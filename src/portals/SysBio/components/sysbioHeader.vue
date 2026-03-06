@@ -1,7 +1,7 @@
 <template>
-    <div class="header f-row align-v-center spread-out ">
+    <div class="header f-row align-v-center spread-out">
         <a class="logo f-row align-v-center" href="/">
-            <img src="/images/sysbio/logos/sb-color-h.svg">
+            <img src="/images/sysbio/logos/sb-color-h.svg" />
         </a>
         <div class="beta">beta</div>
         <div class="menu f-row">
@@ -10,32 +10,54 @@
                 class="menu-item-wrapper"
                 :class="{ active: isActive(item.path) }"
             >
-                    <a class="menu-item" 
-                       :href="item.path || null"
-                       :target="item.external ? '_blank' : null"
-                       v-html="item.label"
+                <a
+                    class="menu-item"
+                    :href="item.path || null"
+                    :target="item.external ? '_blank' : null"
+                    v-html="item.label"
+                >
+                </a>
+                <div v-if="item.subMenuItems" class="submenu">
+                    <a
+                        v-for="subItem in item.subMenuItems"
+                        class="submenu-item"
+                        :class="{ active: isActive(subItem.path) }"
+                        :href="subItem.path || null"
+                        :target="subItem.external ? '_blank' : null"
                     >
+                        {{ subItem.label }}
                     </a>
-                    <div v-if="item.subMenuItems" class="submenu">
-                        <a
-                            v-for="subItem in item.subMenuItems"
-                            class="submenu-item"
-                            :class="{ active: isActive(subItem.path) }"
-                            :href="subItem.path || null"
-                            :target="subItem.external ? '_blank' : null"
-                        >
-                            {{ subItem.label }}
-                        </a>
-                    </div>
+                </div>
             </div>
-            <div style="height:2em; width:0; border: 1px solid black; margin:0 10px; align-self: center;"></div>
+            <div
+                style="
+                    height: 2em;
+                    width: 0;
+                    border: 1px solid black;
+                    margin: 0 10px;
+                    align-self: center;
+                "
+            ></div>
             <div class="menu-item-wrapper">
-                    <a class="menu-item" 
-                       :href="'/account'"
+                <a class="menu-item" :href="'/account'">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
                     >
-                        <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'><g stroke='#000' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'><path d='M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7'/></g></svg> 
-                        Account
-                    </a>
+                        <g
+                            stroke="#000"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="3"
+                        >
+                            <path
+                                d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7"
+                            />
+                        </g>
+                    </svg>
+                    {{ userInfo ? "Account" : "Login" }}
+                </a>
             </div>
         </div>
     </div>
@@ -49,26 +71,24 @@ let menuItemActive = false;
 
 export default Vue.component("sysbio-header", {
     components: {},
-    props: {
-    },
+    props: {},
     data() {
         return {
             nav: sysbioMenu,
+            userInfo: null,
         };
     },
     computed: {},
     mounted() {
         fetch("/", { method: "HEAD" })
-        .then(res => {
-            const userInfo = res.headers.get("X-Fairplex-User-Info");
-            //console.log(userInfo);
-        })
-        .catch(() => {});
+            .then((res) => {
+                userInfo = res.headers.get("X-Fairplex-User-Info");
+                //console.log(userInfo);
+            })
+            .catch(() => {});
     },
     created() {
-        this.injectFavicon(
-            "/images/sysbio/logos/sb-color-icon.svg"
-        );
+        this.injectFavicon("/images/sysbio/logos/sb-color-icon.svg");
         this.injectFont(
             "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
         );
@@ -99,7 +119,8 @@ export default Vue.component("sysbio-header", {
             //compare menu item's path to current path to set active
             //but only the first instance
             if (menuItemActive) return false;
-            const currentPath = window.location.pathname+''+window.location.search;
+            const currentPath =
+                window.location.pathname + "" + window.location.search;
             if (path === currentPath) {
                 menuItemActive = true;
                 return true;
@@ -115,9 +136,9 @@ export default Vue.component("sysbio-header", {
     padding: 0 40px;
     background: white;
     box-shadow: 0 2px 2px 0px black;
-    position:fixed;
+    position: fixed;
     z-index: 100;
-    width:100%;
+    width: 100%;
 
     .beta {
         font-size: 12px;
@@ -134,7 +155,8 @@ export default Vue.component("sysbio-header", {
         top: -10px;
     }
 
-    a, a:visited {
+    a,
+    a:visited {
         color: black !important;
         text-decoration: none;
     }
@@ -153,7 +175,7 @@ export default Vue.component("sysbio-header", {
     .menu {
         display: flex;
         font-size: 14px;
-        letter-spacing: .2px;
+        letter-spacing: 0.2px;
         z-index: 5000;
     }
     .menu-item-wrapper {
@@ -181,15 +203,15 @@ export default Vue.component("sysbio-header", {
         font-weight: 600;
         color: var(--sysbio-black);
         font-weight: bold;
-        display:flex;
+        display: flex;
         align-items: center;
-        gap:3px;
+        gap: 3px;
     }
     ::v-deep .menu-item svg,
-    ::v-deep .menu-item img{
+    ::v-deep .menu-item img {
         height: 1em;
     }
-    .menu-item-wrapper:has(.submenu) .menu-item{
+    .menu-item-wrapper:has(.submenu) .menu-item {
         border-radius: 10px 10px 0 0;
     }
     .menu-item.menu-item-main {
@@ -206,7 +228,7 @@ export default Vue.component("sysbio-header", {
         color: var(--sysbio-blue) !important;
     }
     .menu-item-wrapper:hover .menu-item,
-    .menu-item-wrapper:hover .submenu{
+    .menu-item-wrapper:hover .submenu {
         background: white;
         box-shadow: 0 2px 2px 0px black;
     }
@@ -229,7 +251,7 @@ export default Vue.component("sysbio-header", {
         color: black;
         width: -webkit-fill-available;
         text-align: right;
-        font-weight: normal
+        font-weight: normal;
     }
 }
 </style>

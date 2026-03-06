@@ -320,6 +320,7 @@ module.exports = {
             "Access-Control-Allow-Origin": "*",
         },
     },
+    publicPath: process.env.BASE_URL || "/",
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
         let bioindex_host =
