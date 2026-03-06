@@ -67,7 +67,6 @@
 import Vue from "vue";
 
 import sysbioMenu from "@/portals/SysBio/assets/sysbioMenu.json";
-let userInfo = null;
 let menuItemActive = false;
 
 export default Vue.component("sysbio-header", {
@@ -76,6 +75,7 @@ export default Vue.component("sysbio-header", {
     data() {
         return {
             nav: sysbioMenu,
+            userInfo: null,
         };
     },
     computed: {},
