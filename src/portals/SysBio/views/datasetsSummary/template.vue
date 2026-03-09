@@ -69,10 +69,12 @@
                                     >
                                         <div class="small-chart-label">{{ item.label }}</div>
                                         <div
+                                            v-if="hasDataForSmallChart(item)"
                                             :ref="'small-' + fieldName + '-' + item.key"
                                             class="small-chart-container"
                                             :class="chartType(fieldName) === 'pie' ? 'chart-pie-container' : 'chart-bar-container'"
                                         ></div>
+                                        <div v-else class="small-chart-container small-chart-na">N/A</div>
                                     </div>
                                 </div>
                             </div>
@@ -193,6 +195,11 @@ export default {
                 items.push({ key: program, label: program, data: programCounts });
             }
             return items;
+        },
+        /** True if the small-chart item has at least one positive count to render. */
+        hasDataForSmallChart(item) {
+            if (!item || typeof item.data !== "object") return false;
+            return Object.values(item.data).some((v) => Number(v) > 0);
         },
         /** Categories in a bar field that have contributions from 2+ programs. Used for vertical breakdown charts. */
         getBarCategoriesWithMultiplePrograms(fieldName) {
@@ -745,5 +752,12 @@ export default {
     width: 100%;
     max-width: 132px;
     min-height: 60px;
+}
+.small-chart-container.small-chart-na {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 0.875rem;
 }
 </style>
