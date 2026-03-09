@@ -2,7 +2,7 @@
     <div class="sysbio f-layout">
         <sysbio-header></sysbio-header>
         <div class="sysbio-body">
-            <h2 class="static-header">Datasets Summary</h2>
+            <h2 class="static-header">Data Summary Browser</h2>
             <div id="pageDescription">This page provides a summary of the datasets included in the AMP programs. It is a work in progress and will be updated as more datasets are added.</div>
 
             <div v-if="$parent.convertedData" class="summary-section">
