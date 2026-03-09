@@ -3,8 +3,8 @@
         <sysbio-header></sysbio-header>
         <div class="sysbio-body">
             <h2 class="static-header">Data Summary Browser</h2>
-            <div id="pageDescription">This page provides a summary of the datasets included in the AMP programs. It is a work in progress and will be updated as more datasets are added.</div>
-
+            <div id="pageDescription" v-html="$parent.pageDesc">
+            </div>
             <div v-if="$parent.convertedData" class="summary-section">
                 <label class="font-weight-bold mb-2">Programs</label>
                 <b-form-checkbox-group

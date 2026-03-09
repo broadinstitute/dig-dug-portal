@@ -13,12 +13,13 @@ new Vue({
         return {
             convertedData: null,
             rawDataApi: "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
-            byor_docs: "sysbio_data_summary"
+            byor_docs: "sysbio_data_summary",
+            pageDesc: ""
         };
     },
     async mounted() {
-        const docs = await getTextContent(this.byor_docs);
-        console.log(JSON.stringify(docs));
+        const docs = await getTextContent(this.byor_docs, false, true);
+        this.pageDesc = docs.body;
         await this.loadSummaryData();
     },
     computed: {},
