@@ -5,6 +5,7 @@ import "../../css/f-layout.css";
 import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
+import { getTextContent } from "../../utils/content.js";
 
 new Vue({
     mixins: [sysbioMixin],
@@ -12,10 +13,14 @@ new Vue({
         return {
             convertedData: null,
             rawDataApi: "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
+            byor_docs: "sysbio_data_summary",
+            pageDesc: ""
         };
     },
-    mounted() {
-        this.loadSummaryData();
+    async mounted() {
+        const docs = await getTextContent(this.byor_docs, false, true);
+        this.pageDesc = docs.body;
+        await this.loadSummaryData();
     },
     computed: {},
     methods: {

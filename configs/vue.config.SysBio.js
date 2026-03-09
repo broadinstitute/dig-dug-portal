@@ -45,6 +45,13 @@ let pages = {
         title: "Single Cell",
         chunks: ["chunk-vendors", "chunk-common", "singlecell"],
     },
+    diffexp: {
+        entry: "src/portals/SysBio/views/BulkBrowser/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "diffexp.html",
+        title: "Differential Expression",
+        chunks: ["chunk-vendors", "chunk-common", "diffexp"]
+    },
     datasetsSummary: {
         entry: "src/portals/SysBio/views/datasetsSummary/main.js",
         template: "src/portals/SysBio/views/index.html",

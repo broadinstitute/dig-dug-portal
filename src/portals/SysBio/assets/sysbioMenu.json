@@ -29,6 +29,15 @@
         {
           "label": "Genetic Studies",
           "path": "/gwas.html"
+        },
+        {
+          "label": "Data Summary Browser",
+          "path": "/datasetsSummary.html"
+        },
+        {
+          "label": "FAIRgit",
+          "path": "https://github.com/SysBio-FAIRplex/FAIRgit",
+          "external": true
         }
       ]
     },
