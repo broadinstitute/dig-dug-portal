@@ -180,6 +180,10 @@ export default Vue.component("research-splice-track", {
 			if (this.gene === null){
 				return;
 			}
+			let c = document.getElementById("spliceTrack" + this.sectionId);
+			let ctx = c.getContext("2d");
+			let xMin = this.viewingRegion.start,
+					xMax = this.viewingRegion.end;
 
 			let canvasRenderWidth, canvasRenderHeight;
 
@@ -202,8 +206,7 @@ export default Vue.component("research-splice-track", {
 							this.adjPlotMargin.right);
 
 
-				let xMin = this.viewingRegion.start,
-					xMax = this.viewingRegion.end;
+				
 
 				let xStart = this.adjPlotMargin.left;
 				let xposbypixel = plotWidth / (xMax - xMin);
@@ -216,7 +219,7 @@ export default Vue.component("research-splice-track", {
 					this.adjPlotMargin.top +
 					eachGeneTrackHeight * genesTiled.length;
 
-				let c = document.getElementById("spliceTrack" + this.sectionId);
+				
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
 				c.setAttribute(
@@ -227,7 +230,7 @@ export default Vue.component("research-splice-track", {
 						canvasRenderHeight / 2 +
 						"px;"
 				);
-				let ctx = c.getContext("2d");
+				
 
 				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
@@ -303,7 +306,11 @@ export default Vue.component("research-splice-track", {
 					ctx.fill();
 				}
 				this.spliceVisualMap = spliceVisualMap;
-			}			
+			}
+			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top;
+			//this.renderAxis(ctx, canvasRenderWidth, canvasRenderHeight, xMax, xMin, 0, this.plotType);
+			this.renderAxis(ctx, canvasRenderWidth, plotBottom, xMax, xMin, 0, this.plotType);
+			console.log("X max:", xMax, "X min:", xMin);
 			
 		},
 		tileExons(exonsInput){
@@ -450,7 +457,88 @@ export default Vue.component("research-splice-track", {
 				}
 			}
 			return -1;
-		}
+		},
+		renderAxis(
+			CTX,
+			WIDTH,
+			HEIGHT,
+			xMax,
+			xMin,
+			bump,
+			TYPE,
+		) {
+			// Adapted from MultiRegionPlot
+
+			let xMaxMinGap = xMax - xMin;
+			let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
+
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#000000";
+			CTX.font = "24px Arial";
+			CTX.fillStyle = "#000000";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			//render x axis
+			CTX.moveTo(
+				this.adjPlotMargin.left - bump,
+				HEIGHT + this.adjPlotMargin.top + bump
+			);
+			CTX.lineTo(
+				TYPE == "asso"
+					? WIDTH + this.adjPlotMargin.left + bump
+					: WIDTH + this.adjPlotMargin.left,
+				HEIGHT + this.adjPlotMargin.top + bump
+			);
+			CTX.stroke();
+
+			// X ticks
+			let xStep = TYPE == "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
+				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
+				CTX.moveTo(
+					adjTickXPos,
+					this.adjPlotMargin.top + HEIGHT + bump
+				);
+				CTX.lineTo(
+					adjTickXPos,
+					this.adjPlotMargin.top + HEIGHT + bump * 2
+				);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+
+				let positionLabel = this.utils.Formatters.decimalFormatter(
+					xMin + i * xStep,
+					xDecimal
+				);
+
+				positionLabel =
+					positionLabel >= 100000
+						? Math.round(positionLabel * 0.001) + "k"
+						: positionLabel;
+
+				CTX.fillText(
+					positionLabel,
+					adjTickXPos,
+					this.adjPlotMargin.top + HEIGHT + bump * 4
+				);
+			}
+
+			//Render x axis label
+			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			CTX.fillText(
+				"Position",
+				WIDTH / 2 + this.adjPlotMargin.left,
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom +
+				HEIGHT -
+				24
+			);
+		},
 	},
 });
 
