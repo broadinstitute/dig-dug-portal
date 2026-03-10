@@ -12,6 +12,7 @@
 				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
+				<canvas :id="`xaxis_${sectionId}`"></canvas>
 				<canvas :class="!exonData ? 'hidden' : ''"
 					:id="'spliceTrack'+sectionId"
 					@resize="onResize"
@@ -308,7 +309,7 @@ export default Vue.component("research-splice-track", {
 				this.spliceVisualMap = spliceVisualMap;
 			}
 			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top - 5;
-			this.renderAxis(ctx, canvasRenderWidth, plotBottom, xMax, xMin, 0, this.plotType);
+			this.renderAxis(canvasRenderWidth, xMax, xMin);
 			console.log("X max:", xMax, "X min:", xMin);
 			
 		},
@@ -458,13 +459,25 @@ export default Vue.component("research-splice-track", {
 			return -1;
 		},
 		renderAxis(
-			CTX,
 			WIDTH,
-			HEIGHT,
 			xMax,
 			xMin,
 		) {
 			// Adapted from MultiRegionPlot
+			let c = document.getElementById("xaxis_" + this.sectionId);
+			let CTX = c.getContext("2d");
+			let HEIGHT = 50;
+			c.setAttribute("width", WIDTH);
+			c.setAttribute("height", HEIGHT);
+			c.setAttribute(
+					"style",
+					"width:" +
+						WIDTH / 2 +
+						"px;height:" +
+						HEIGHT / 2 +
+						"px;"
+				);
+			CTX.clearRect(0, 0, WIDTH, HEIGHT);
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;
@@ -473,14 +486,14 @@ export default Vue.component("research-splice-track", {
 			CTX.fillStyle = "#000000";
 			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
 
+			let axisTop = 10;
 			//render x axis
 			CTX.moveTo(
-				this.adjPlotMargin.left,
-				HEIGHT + this.adjPlotMargin.top
+				this.adjPlotMargin.left, axisTop
 			);
 			CTX.lineTo(
 				WIDTH + this.adjPlotMargin.left,
-				HEIGHT + this.adjPlotMargin.top
+				axisTop
 			);
 			CTX.stroke();
 
@@ -493,11 +506,11 @@ export default Vue.component("research-splice-track", {
 				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT
+					axisTop
 				);
 				CTX.lineTo(
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT
+					axisTop
 				);
 				CTX.stroke();
 
@@ -509,7 +522,7 @@ export default Vue.component("research-splice-track", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT - 4
+					HEIGHT - 5
 				);
 			}
 
