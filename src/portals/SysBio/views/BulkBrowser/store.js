@@ -27,7 +27,8 @@ export default new Vuex.Store({
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
     currentComparisons: {},
-    selectedCompType: ""
+    selectedCompType: "",
+    selectedAMP: ""
   },
 
   mutations: {
@@ -73,6 +74,9 @@ export default new Vuex.Store({
             .map(a => a[1])
             .join(" vs. ");
           v.type = comptype;
+          let ampAndCellType = v.label.split(":");
+          v.amp = ampAndCellType[0];
+          v.cellType = ampAndCellType[1];
         }
       }
       context.commit("setBulkData19K", bulkDataObject);

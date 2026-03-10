@@ -204,7 +204,9 @@ new Vue({
                 return null;
             }
             let items = Object.keys(allComps);
-            return items.filter(i => allComps[i].type === this.$store.state.selectedCompType);
+            return items.filter(i => 
+                allComps[i].type === this.$store.state.selectedCompType
+                && allComps[i].amp === this.$store.state.selectedAMP);
         },
         comptypes(){
             if (!this.$store.state.currentComparisons){
@@ -214,6 +216,17 @@ new Vue({
             let typeArray = Array.from(new Set(types));
             if (this.$store.state.selectedCompType === ""){
                 this.$store.state.selectedCompType = typeArray[0];
+            }
+            return typeArray;
+        },
+        amps(){
+            if (!this.$store.state.currentComparisons){
+                return null;
+            }
+            let types = Object.values(this.$store.state.currentComparisons).map(v => v.amp);
+            let typeArray = Array.from(new Set(types));
+            if (this.$store.state.selectedAMP === ""){
+                this.$store.state.selectedAMP = typeArray[0];
             }
             return typeArray;
         },
