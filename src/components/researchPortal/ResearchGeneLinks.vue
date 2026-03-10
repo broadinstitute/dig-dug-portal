@@ -420,15 +420,22 @@ export default Vue.component("research-gene-links-plot", {
 			return returnObj;
 		},
 		searchingPhenotype() {
+
 			if (this.phenotype != null) {
+
 				let returnPhenotype = !!this.renderConfig["phenotype match"]
 					? this.renderConfig["phenotype match"][this.phenotype]
 					: this.phenotype;
 
 				return returnPhenotype;
 			} else if (this.phenotype == null) {
-				if (!!this.utils.keyParams[this.renderConfig["phenotype parameter"]]) {
-					return this.utils.keyParams[this.renderConfig["phenotype parameter"]];
+				let keyParamPhenotype = this.utils.keyParams[this.renderConfig["phenotype parameter"]];
+				if (!!keyParamPhenotype) {
+					keyParamPhenotype =
+						!!this.renderConfig["phenotype match"]
+						? this.renderConfig["phenotype match"][keyParamPhenotype]
+						: keyParamPhenotype;
+					return keyParamPhenotype;
 				} else {
 					return null;
 				}
@@ -437,7 +444,12 @@ export default Vue.component("research-gene-links-plot", {
 	},
 	watch: {
 		searchingParameters(PARAM) {
-			this.getGlobalEnrichment(this.searchingRegion);
+			//this.getGlobalEnrichment(this.searchingRegion);
+		},
+		phenotype(PHENOTYPE) {
+				if(PHENOTYPE != null) {
+					this.getGlobalEnrichment(this.searchingRegion);
+				}
 		},
 		pkgDataSelected: {
 			handler: function (DATA) {
@@ -1215,12 +1227,12 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		async getGlobalEnrichment(REGION_OBJ) {
-			if (
+			/*if (
 				!!REGION_OBJ &&
 				!!REGION_OBJ.chr &&
 				!!REGION_OBJ.start &&
 				REGION_OBJ.end
-			) {
+			) {*/
 				let geneLinksServer =
 					this.renderConfig["gene links server"] == "KP BioIndex"
 						? this.utils.uiUtils.biDomain() + "/api/bio"
@@ -1241,7 +1253,7 @@ export default Vue.component("research-gene-links-plot", {
 
 					this.trigger++;
 				}
-			}
+			//}
 		},
 	},
 });
