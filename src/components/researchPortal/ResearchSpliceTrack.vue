@@ -307,7 +307,7 @@ export default Vue.component("research-splice-track", {
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
-			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top;
+			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top - 5;
 			this.renderAxis(ctx, canvasRenderWidth, plotBottom, xMax, xMin, 0, this.plotType);
 			console.log("X max:", xMax, "X min:", xMin);
 			
@@ -463,13 +463,8 @@ export default Vue.component("research-splice-track", {
 			HEIGHT,
 			xMax,
 			xMin,
-			bump,
-			TYPE,
 		) {
 			// Adapted from MultiRegionPlot
-
-			let xMaxMinGap = xMax - xMin;
-			let xDecimal = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
 
 			CTX.beginPath();
 			CTX.lineWidth = 1;
@@ -480,14 +475,12 @@ export default Vue.component("research-splice-track", {
 
 			//render x axis
 			CTX.moveTo(
-				this.adjPlotMargin.left - bump,
-				HEIGHT + this.adjPlotMargin.top + bump
+				this.adjPlotMargin.left,
+				HEIGHT + this.adjPlotMargin.top
 			);
 			CTX.lineTo(
-				TYPE == "asso"
-					? WIDTH + this.adjPlotMargin.left + bump
-					: WIDTH + this.adjPlotMargin.left,
-				HEIGHT + this.adjPlotMargin.top + bump
+				WIDTH + this.adjPlotMargin.left,
+				HEIGHT + this.adjPlotMargin.top
 			);
 			CTX.stroke();
 
@@ -500,11 +493,11 @@ export default Vue.component("research-splice-track", {
 				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
 				CTX.moveTo(
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump
+					this.adjPlotMargin.top + HEIGHT
 				);
 				CTX.lineTo(
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump * 2
+					this.adjPlotMargin.top + HEIGHT
 				);
 				CTX.stroke();
 
