@@ -308,7 +308,6 @@ export default Vue.component("research-splice-track", {
 				this.spliceVisualMap = spliceVisualMap;
 			}
 			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top;
-			//this.renderAxis(ctx, canvasRenderWidth, canvasRenderHeight, xMax, xMin, 0, this.plotType);
 			this.renderAxis(ctx, canvasRenderWidth, plotBottom, xMax, xMin, 0, this.plotType);
 			console.log("X max:", xMax, "X min:", xMin);
 			
@@ -493,7 +492,7 @@ export default Vue.component("research-splice-track", {
 			CTX.stroke();
 
 			// X ticks
-			let xStep = TYPE == "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
+			let xStep = Math.ceil((xMax - xMin) / 5);
 			let xTickDistance = WIDTH / 5;
 
 			for (let i = 0; i < 6; i++) {
@@ -511,15 +510,8 @@ export default Vue.component("research-splice-track", {
 
 				CTX.textAlign = "center";
 
-				let positionLabel = this.utils.Formatters.decimalFormatter(
-					xMin + i * xStep,
-					xDecimal
-				);
-
-				positionLabel =
-					positionLabel >= 100000
-						? Math.round(positionLabel * 0.001) + "k"
-						: positionLabel;
+				
+				let positionLabel = xMin + i * xStep;
 
 				CTX.fillText(
 					positionLabel,
