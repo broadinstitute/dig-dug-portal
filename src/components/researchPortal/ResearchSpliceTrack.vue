@@ -516,7 +516,7 @@ export default Vue.component("research-splice-track", {
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
-					this.adjPlotMargin.top + HEIGHT + bump * 4
+					this.adjPlotMargin.top + HEIGHT - 4
 				);
 			}
 
