@@ -276,7 +276,6 @@ new Vue({
             }
             this.getParams();
             await this.$store.dispatch("queryBulkFile");
-            await this.$store.dispatch("queryBulk");
         
             await this.populateEnrichr();
             this.dataReady = true;
@@ -350,7 +349,6 @@ new Vue({
                 // Reset highlighted gene upon changing dataset
                 await this.$store.dispatch("firstGene");
                 await this.$store.dispatch("queryBulkFile");
-                await this.$store.dispatch("queryBulk");
                 if (newData !== "") {
                     this.getBulkMetadata();
                 }
@@ -366,7 +364,6 @@ new Vue({
         selectedComparison(newData, oldData) {
             if (newData !== oldData) {
                 keyParams.set({ comparison: newData });
-                this.$store.dispatch("queryBulk");
             }
         },
         selectedGene(newData, oldData) {

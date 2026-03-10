@@ -17,26 +17,20 @@ export default new Vuex.Store({
   modules: {
     bioPortal,
     kp4cd,
-    singleBulkZNorm: bioIndex("single-cell-bulk-z-norm"),
   },
   state: {
     limit: 20,
-    singleBulkZNormData: [],
     bulkData19K: [],
     selectedDataset: keyParams.dataset || 'sysbio_v1',
     defaultComparison: "T001",
     selectedComparison: keyParams.comparison || "",
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
-    singleBulkZNormUrl: `${BIO_INDEX_HOST}/api/bio/query/single-cell-bulk-z-norm?q=`,
     currentComparisons: {},
     selectedCompType: ""
   },
 
   mutations: {
-    setSingleBulkZNormData(state, data) {
-      state.singleBulkZNormData = data || state.singleBulkZNormData;
-    },
     setBulkData19K(state, data) {
       state.bulkData19K = data || state.bulkData19K;
     },
@@ -57,23 +51,13 @@ export default new Vuex.Store({
   },
 
   actions: {
-    async queryBulk(context) {
-      let compQueryParam = context.state.currentComparisons[context.state.selectedComparison];
-      let singleBulkZNormObject = {};
-      if (context.state.selectedDataset !== "") {
-        const query = `${context.state.singleBulkZNormUrl}${context.state.selectedDataset},${compQueryParam}&limit=${context.state.limit}`
-        const response = await fetch(query);
-        singleBulkZNormObject = await response.json();
-      }
-      context.commit("setSingleBulkZNormData", singleBulkZNormObject.data);
-    },
     async queryBulkFile(context) {
       let bulkDataObject = [];
       let comparisons = {};
       if (context.state.selectedDataset !== "") {
         let datasetFile = `${context.state.bulkFileUrl
           }${context.state.selectedDataset}/dea.tsv.gz`;
-        
+        console.log(datasetFile);
         const response = await fetch(datasetFile);
         const bulkDataText = await response.text();
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
