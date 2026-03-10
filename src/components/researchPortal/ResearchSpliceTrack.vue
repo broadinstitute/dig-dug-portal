@@ -513,6 +513,11 @@ export default Vue.component("research-splice-track", {
 					axisTop
 				);
 				CTX.stroke();
+				CTX.lineTo(
+					adjTickXPos,
+					axisTop + 10
+				);
+				CTX.stroke();
 
 				CTX.textAlign = "center";
 
