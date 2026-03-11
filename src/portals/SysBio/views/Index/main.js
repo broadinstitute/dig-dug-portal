@@ -7,12 +7,14 @@ import "../../css/sysbio.css";
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
+import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
 
 import dataConvert from "@/utils/dataConvert";
 
 new Vue({
     components: {
-        ResearchBarInCellPlot
+        ResearchBarInCellPlot,
+        ResearchMultiBarGraphs,
     },
     mixins: [sysbioMixin],
     data: {
@@ -163,7 +165,267 @@ new Vue({
                 }
             },
             id: "sysBioDataComposition"
-        }
+        },
+        multiBarGraphs: {
+            data: null,
+            plotConfig: {
+
+            },
+        },
+        testData: [
+            {
+                "source_short": "AMP-CMD",
+                "field": "case_control",
+                "category": "Case",
+                "n_donors": 111
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "case_control",
+                "category": "Unknown",
+                "n_donors": 80
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "case_control",
+                "category": "Control",
+                "n_donors": 63
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "case_control",
+                "category": "Unknown",
+                "n_donors": 224
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "case_control",
+                "category": "Case",
+                "n_donors": 215
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "case_control",
+                "category": "Control",
+                "n_donors": 227
+            },
+            {
+                "source_short": "AMP-PD",
+                "field": "case_control",
+                "category": "Case",
+                "n_donors": 69
+            },
+            {
+                "source_short": "AMP-PD",
+                "field": "case_control",
+                "category": "Control",
+                "n_donors": 24
+            },
+            {
+                "source_short": "AMP-PD",
+                "field": "case_control",
+                "category": "Unknown",
+                "n_donors": 4
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "case_control",
+                "category": "Case",
+                "n_donors": 151
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "case_control",
+                "category": "Control",
+                "n_donors": 28
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "Unknown",
+                "n_donors": 106
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "Chronic kidney disease",
+                "n_donors": 37
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "CMD study-specific control",
+                "n_donors": 37
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "MASL",
+                "n_donors": 25
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "MASH",
+                "n_donors": 23
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "Acute kidney failure",
+                "n_donors": 14
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "disease",
+                "category": "MetALD",
+                "n_donors": 12
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "disease",
+                "category": "AD",
+                "n_donors": 215
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "disease",
+                "category": "MCI",
+                "n_donors": 42
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "disease",
+                "category": "Unknown",
+                "n_donors": 162
+            },
+            {
+                "source_short": "AMP-PD",
+                "field": "disease",
+                "category": "PD or related phenotype",
+                "n_donors": 73
+            },
+            {
+                "source_short": "AMP-PD",
+                "field": "disease",
+                "category": "No PD or other neurological disorder",
+                "n_donors": 24
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "disease",
+                "category": "SLE",
+                "n_donors": 151
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "disease",
+                "category": "Unknown",
+                "n_donors": 28
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "race",
+                "category": "Unknown",
+                "n_donors": 186
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "race",
+                "category": "White",
+                "n_donors": 52
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "race",
+                "category": "Black or African American ",
+                "n_donors": 15
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "sex",
+                "category": "Male",
+                "n_donors": 92
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "sex",
+                "category": "Female",
+                "n_donors": 82
+            },
+            {
+                "source_short": "AMP-CMD",
+                "field": "sex",
+                "category": "Unknown",
+                "n_donors": 80
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "sex",
+                "category": "Female",
+                "n_donors": 437
+            },
+            {
+                "source_short": "AMP-AD",
+                "field": "sex",
+                "category": "Male",
+                "n_donors": 228
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "sex",
+                "category": "Female",
+                "n_donors": 152
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "sex",
+                "category": "Male",
+                "n_donors": 27
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "race",
+                "category": "White ",
+                "n_donors": 71
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "race",
+                "category": "Black or African American ",
+                "n_donors": 70
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "race",
+                "category": "Asian ",
+                "n_donors": 23
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "race",
+                "category": "Hispanic ",
+                "n_donors": 10
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "race",
+                "category": "Unknown",
+                "n_donors": 5
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "ethnicity",
+                "category": "Not Hispanic or Latino",
+                "n_donors": 137
+            },
+            {
+                "source_short": "AMP-RA/SLE",
+                "field": "ethnicity",
+                "category": "Hispanic or Latino",
+                "n_donors": 42
+            }
+        ]
     },
     async created() {
         this.getNews();
@@ -190,14 +452,29 @@ new Vue({
             });
             this.newsFeed = newsFeed;
         },
+        /**
+         * Convert TSV string to CSV string (comma-delimited, quoting cells that contain comma/newline/quote).
+         */
+        tsvToCsv(tsvStr) {
+            if (tsvStr == null || typeof tsvStr !== "string") return "";
+            return tsvStr.split(/\r?\n/).map((line) =>
+                line.split("\t").map((cell) => {
+                    if (/[",\r\n]/.test(cell)) return `"${String(cell).replace(/"/g, '""')}"`;
+                    return cell;
+                }).join(",")
+            ).join("\n");
+        },
         async getDataComposition() {
             //const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
             const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary";
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
             if (contentJson.error == null) {
-                let data = contentJson[0]['field_data_points'];
-                this.dataComposition.data = dataConvert.csv2Json(data)
+                let data = contentJson[0]["field_data_points"];
+                const csvStr = this.tsvToCsv(data);
+                const parsed = dataConvert.csv2Json(csvStr);
+                this.dataComposition.data = parsed;
+                this.multiBarGraphs.data = parsed;
             }
         },
         showTab(e) {
