@@ -410,8 +410,6 @@ new Vue({
         async bulkData19K(newData){
             if (newData.length > 0){
                 await this.populateEnrichr();
-            } else {
-                console.log("Still no bulk data");
             }
         }
     },

@@ -125,13 +125,11 @@ export async function getNewsItem(itemId) {
 
 export async function getEnrichr(genesList, library) {
 	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-	console.log(enrichrEndpoint);
 	let enrichrRequest = {
 		"gene_set_library": library,
 		"gene_list": genesList,
 		"gene_list_desc": "my_list"
 	}
-	console.log(JSON.stringify(enrichrRequest));
 	try {
 		const response = await fetch(enrichrEndpoint, {
 			method: 'POST',
