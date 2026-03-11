@@ -59,11 +59,10 @@ export default Vue.component("bulk-volcano-plot", {
 	mounted: function () {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.renderConfig.width || this.chart.clientWidth;
-        this.geneMap = new Map(this.plotData.map(d => [d.GENE, d])); //should be this.renderConfig.renderBy
+        this.geneMap = new Map(this.plotData.map(d => [d.gene, d])); //should be this.renderConfig.renderBy
 		this.renderPlot();
 		if (this.selectedGene){
 			this.highlightDot(this.selectedGene);
-			//this.$emit("highlight", this.selectedGene);
 		}
 	},
 	computed: {
@@ -85,7 +84,6 @@ export default Vue.component("bulk-volcano-plot", {
 			}
 		},
 		selectedGene(newData, oldData){
-			console.log("Volcano plot receiving gene");
 			this.highlightDot(newData);
 		},
 		renderConfig:{
@@ -432,7 +430,6 @@ export default Vue.component("bulk-volcano-plot", {
 				y: dataItem[this.yAxisField]
 			}
 			let classes = `${this.dataToClass(geneVal)} highlightCircle`;
-			console.log(classes);
 			this.svg.select("#axisGroup")
 				.append('circle')
                 .attr('cx', this.x(geneVal.x))
@@ -450,7 +447,8 @@ export default Vue.component("bulk-volcano-plot", {
             const dotXpos = this.x(geneVal.x) - this.margin.left;
             const plotWidth = this.chartWidth - this.margin.left;
             let xLabelAnchor = "end"
-            let xLabelOffset = -10
+            let xLabelOffset = 20
+			let yLabelOffset = -20
             if(dotXpos < 50){
                 xLabelAnchor = "start"
                 xLabelOffset = 10;
@@ -460,7 +458,7 @@ export default Vue.component("bulk-volcano-plot", {
                 .append('text')
                 .attr('text-anchor', xLabelAnchor)
                 .attr("x", this.x(geneVal.x) + xLabelOffset)
-                .attr("y", this.y(geneVal.y) + 4)
+                .attr("y", this.y(geneVal.y) + yLabelOffset)
                 .attr("class", "highlightLabel")
                 .style("font-family", "Arial").style("font-size", 10)
                 .style("text-shadow", "1px 1px 1px white")
