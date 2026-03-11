@@ -25,7 +25,8 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedCompType">
+                                        <select v-model="$store.state.selectedCompType"
+                                            class="form-control">
                                             <option value="">Select a comparison type</option>
                                             <option v-for="type in $parent.comptypes"
                                                 :value="type">
@@ -43,7 +44,8 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedAMP">
+                                        <select v-model="$store.state.selectedAMP"
+                                            class="form-control">
                                             <option value="">Select an AMP</option>
                                             <option v-for="amp in $parent.amps"
                                                 :value="amp">
@@ -61,7 +63,8 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedComparison">
+                                        <select v-model="$store.state.selectedComparison"
+                                            class="form-control">
                                             <option value="">Select a comparison</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
@@ -93,7 +96,7 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <input type="number" step="0.1"
+                                        <input type="number" step="0.1" class="form-control"
                                             :value=$parent.volcanoYCondition
                                             @change="event => $parent.setVolcano(event.target.value)"/>
                                     </div>
@@ -458,5 +461,11 @@ button.hide-table {
 }
 #menu div.tabs-group:last-child {
     margin-right: 0px !important;
+}
+#menu div.tabs-group {
+    margin: 10px;
+}
+#gene-box {
+    padding: 10px !important;
 }
 </style>
