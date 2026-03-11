@@ -116,7 +116,7 @@
                                                         :renderConfig="$parent.volcanoConfig"
                                                         :margin="$parent.margin"
                                                         sectionId="_bulk"
-                                                        :selectedGene="$parent.selectedGene"
+                                                        :selectedGene="$store.state.selectedGene"
                                                         :upregulatedIn="$parent.upregulatedIn"
                                                         @highlight="gene => $parent.highlight(gene)">
 

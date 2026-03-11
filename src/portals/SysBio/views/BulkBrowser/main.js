@@ -355,7 +355,6 @@ new Vue({
             return this.enrichrLibrary === libraryName ? "selected-library" : "";
         },
         geneFound(found){
-            console.log("Gene found?", found);
             this.foundGene = found;
         }
     },

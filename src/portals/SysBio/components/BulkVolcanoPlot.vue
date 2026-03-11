@@ -59,11 +59,10 @@ export default Vue.component("bulk-volcano-plot", {
 	mounted: function () {
 		this.chart = document.getElementById(`vector_wrapper_${this.sectionId}`);
 		this.chartWidth = this.renderConfig.width || this.chart.clientWidth;
-        this.geneMap = new Map(this.plotData.map(d => [d.GENE, d])); //should be this.renderConfig.renderBy
+        this.geneMap = new Map(this.plotData.map(d => [d.gene, d])); //should be this.renderConfig.renderBy
 		this.renderPlot();
 		if (this.selectedGene){
 			this.highlightDot(this.selectedGene);
-			//this.$emit("highlight", this.selectedGene);
 		}
 	},
 	computed: {
@@ -89,10 +88,7 @@ export default Vue.component("bulk-volcano-plot", {
 		},
 		renderConfig:{
             handler(newData, oldData){
-                //console.log(newData === oldData)
-                //if(newData !== oldData){
-                    this.renderPlot();
-                //}
+                this.renderPlot();
             },
             deep: true
         }
@@ -100,7 +96,6 @@ export default Vue.component("bulk-volcano-plot", {
 	methods: {
 		tpmFormatter: Formatters.tpmFormatter,
 		renderPlot() {
-            console.log('rendering')
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 
@@ -398,21 +393,6 @@ export default Vue.component("bulk-volcano-plot", {
 					.style('fill', fillColor)
                     .attr("id", (d.key))
                     .attr("class", this.dataToClass(d.value));
-
-                //draw labels
-                /*
-                const labels = ["RRAGA","ATP1B3","TUBA4B","PNISR","CIR1","GOLGB1"]
-                if(labels.includes(d.key)){
-                    console.log(d.key);
-                    this.svg.select("#axisGroup")
-                    .append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr("x", this.x(d.value.x) - 20)
-                    .attr("y", this.y(d.value.y) - 5)
-                    .style("font-family", "Arial").style("font-size", 10)
-                    .text(d.key);
-                }
-                */
 			});
 
             this.svg.selectAll("circle.dataCircle")
@@ -467,7 +447,8 @@ export default Vue.component("bulk-volcano-plot", {
             const dotXpos = this.x(geneVal.x) - this.margin.left;
             const plotWidth = this.chartWidth - this.margin.left;
             let xLabelAnchor = "end"
-            let xLabelOffset = -10
+            let xLabelOffset = 20
+			let yLabelOffset = -20
             if(dotXpos < 50){
                 xLabelAnchor = "start"
                 xLabelOffset = 10;
@@ -477,7 +458,7 @@ export default Vue.component("bulk-volcano-plot", {
                 .append('text')
                 .attr('text-anchor', xLabelAnchor)
                 .attr("x", this.x(geneVal.x) + xLabelOffset)
-                .attr("y", this.y(geneVal.y) + 4)
+                .attr("y", this.y(geneVal.y) + yLabelOffset)
                 .attr("class", "highlightLabel")
                 .style("font-family", "Arial").style("font-size", 10)
                 .style("text-shadow", "1px 1px 1px white")
