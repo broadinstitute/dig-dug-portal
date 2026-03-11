@@ -69,9 +69,10 @@
                                     :plotConfig="$parent.dataComposition.plotConfig"
                                     :canvasId="$parent.dataComposition.id" :utils="null" />-->
                                 <research-multi-bar-graphs
-                                    v-if="($parent.multiBarGraphs && $parent.multiBarGraphs.data && $parent.multiBarGraphs.data.length) || ($parent.testData && $parent.testData.length)"
-                                    :plotData="$parent.multiBarGraphs.data || $parent.testData || []"
+                                    v-if="$parent.multiBarGraphs && $parent.multiBarGraphs.data && $parent.multiBarGraphs.data.length"
+                                    :plotData="$parent.multiBarGraphs.data"
                                     :plotConfig="$parent.multiBarGraphs.plotConfig"
+                                    :plotMargin="$parent.multiBarGraphs.plotMargin"
                                     :canvasId="$parent.multiBarGraphs.id"
                                     :utils="null"
                                 />

@@ -1,5 +1,9 @@
 <template>
-  <div class="research-multi-bar-graphs">
+  <div
+    :id="canvasId || undefined"
+    class="research-multi-bar-graphs"
+    :style="rootStyle"
+  >
     <div v-if="legendSources.length" class="multi-bar-legend">
       <span
         v-for="src in legendSources"
@@ -15,6 +19,7 @@
         v-for="(group, fieldName) in dataByField"
         :key="fieldName"
         class="multi-bar-chart-wrapper"
+        :style="chartWrapperStyle"
       >
         <div class="multi-bar-chart-title">{{ formatFieldLabel(fieldName) }}</div>
         <div class="multi-bar-chart">
@@ -50,7 +55,7 @@
 </template>
 
 <script>
-const SOURCE_COLORS = [
+const DEFAULT_COLORS = [
   "#EE4097",
   "#0000C6",
   "#00BFFF",
@@ -72,6 +77,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    plotMargin: {
+      type: Object,
+      default: () => ({}),
+    },
     canvasId: {
       type: String,
       default: "",
@@ -87,50 +96,83 @@ export default {
     };
   },
   computed: {
+    config() {
+      const c = this.plotConfig || {};
+      return {
+        cardsPerRow: Math.max(1, parseInt(c.cardsPerRow, 10) || 3),
+        sourceKey: c.sourceKey || "source_short",
+        groupByField: c.groupByField || "field",
+        categoryKey: c.categoryKey || "category",
+        valueKey: c.valueKey || "n_donors",
+        fieldLabels: c.fieldLabels || {},
+        colors: Array.isArray(c.colors) && c.colors.length ? c.colors : DEFAULT_COLORS,
+      };
+    },
+    chartWrapperStyle() {
+      const n = this.config.cardsPerRow;
+      const gapPx = 24;
+      const gapTotal = (n - 1) * gapPx;
+      const basis = `calc((100% - ${gapTotal}px) / ${n})`;
+      return { flex: `1 1 ${basis}` };
+    },
+    rootStyle() {
+      const m = this.plotMargin || {};
+      return {
+        paddingTop: (m.top != null ? m.top : 20) + "px",
+        paddingRight: (m.right != null ? m.right : 40) + "px",
+        paddingBottom: (m.bottom != null ? m.bottom : 20) + "px",
+        paddingLeft: (m.left != null ? m.left : 20) + "px",
+      };
+    },
     normalizedData() {
       const raw = this.plotData || [];
+      const sk = this.config.sourceKey;
+      const gf = this.config.groupByField;
+      const ck = this.config.categoryKey;
+      const vk = this.config.valueKey;
       return raw.filter(
         (row) =>
           row &&
-          (row.source_short != null || row.field != null) &&
-          row.category != null &&
-          (row.n_donors != null || row.n_donors === 0)
+          (row[sk] != null || row[gf] != null) &&
+          row[ck] != null &&
+          (row[vk] != null || row[vk] === 0)
       );
     },
     legendSources() {
+      const sk = this.config.sourceKey;
       const set = new Set();
       this.normalizedData.forEach((row) => {
-        if (row.source_short != null && String(row.source_short).trim() !== "")
-          set.add(String(row.source_short).trim());
+        const v = row[sk];
+        if (v != null && String(v).trim() !== "") set.add(String(v).trim());
       });
       return [...set].sort();
     },
     dataByField() {
+      const gf = this.config.groupByField;
+      const sk = this.config.sourceKey;
+      const ck = this.config.categoryKey;
+      const vk = this.config.valueKey;
       const byField = {};
       this.normalizedData.forEach((row) => {
-        const field = row.field != null ? String(row.field).trim() : "";
+        const field = row[gf] != null ? String(row[gf]).trim() : "";
         if (!field) return;
         if (!byField[field]) byField[field] = [];
         byField[field].push({
-          source_short: row.source_short != null ? String(row.source_short).trim() : "",
-          category: row.category != null ? String(row.category).trim() : "",
-          n_donors: Number(row.n_donors) || 0,
+          source_short: row[sk] != null ? String(row[sk]).trim() : "",
+          category: row[ck] != null ? String(row[ck]).trim() : "",
+          n_donors: Number(row[vk]) || 0,
         });
       });
       return byField;
     },
   },
-  created() {
-    this.legendSources.forEach((src, i) => {
-      this.$set(this.colorIndexBySource, src, i % SOURCE_COLORS.length);
-    });
-  },
   watch: {
     legendSources: {
       handler(sources) {
+        const colors = this.config.colors;
         const next = {};
         sources.forEach((src, i) => {
-          next[src] = i % SOURCE_COLORS.length;
+          next[src] = i % colors.length;
         });
         this.colorIndexBySource = next;
       },
@@ -139,11 +181,14 @@ export default {
   },
   methods: {
     colorBySource(sourceShort) {
+      const colors = this.config.colors;
       const i = this.colorIndexBySource[sourceShort];
-      return i != null ? SOURCE_COLORS[i] : "#999";
+      return i != null ? colors[i] : "#999";
     },
     formatFieldLabel(fieldName) {
       if (!fieldName) return "";
+      const labels = this.config.fieldLabels;
+      if (labels && labels[fieldName] != null) return String(labels[fieldName]);
       const s = String(fieldName);
       return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     },
@@ -227,9 +272,8 @@ export default {
 }
 
 .multi-bar-chart-wrapper {
-  flex: 1 1 320px;
-  min-width: 280px;
-  max-width: 520px;
+  /* flex and minWidth set via chartWrapperStyle from config.cardsPerRow */
+  min-width: 200px;
   padding: 1rem;
   background: #fbfbfb;
   border: 1px solid #eee;
