@@ -71,7 +71,7 @@ export default new Vuex.Store({
         for (const [k, v] of Object.entries(comparisons)){
           let comptype = Array.from(v.label.matchAll(compTypeFinder))
             .map(a => a[1])
-            .join(" vs. ");
+            .join(" vs ");
           v.type = comptype;
           let ampAndCellType = v.label.split(":");
           v.amp = ampAndCellType[0];
