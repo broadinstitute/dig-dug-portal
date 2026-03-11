@@ -15,9 +15,9 @@
                         <research-single-cell-info v-if="!!$store.state.selectedDataset"
                             :data="$parent.bulkMetadata"
                         />
-                        <div v-if="$parent.dataReady" id="menu">
+                        <div v-if="$parent.dataReady" id="menu" class="row">
                             <!--left tab group-->
-                            <div class="tabs-group">
+                            <div class="tabs-group col-md-4">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select a comparison type
@@ -35,7 +35,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group">
+                            <div class="tabs-group col-md-4">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select an AMP
@@ -53,7 +53,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group">
+                            <div class="tabs-group col-md-4">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select a comparison
@@ -65,7 +65,7 @@
                                             <option value="">Select a comparison</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
-                                                {{ $store.state.currentComparisons[comp].label
+                                                {{ $store.state.currentComparisons[comp].cellType
                                                 }}
                                             </option>
                                         </select>
@@ -455,10 +455,6 @@ button.hide-table {
 }
 #menu {
     display: flex;
-}
-#menu div.tabs-group {
-    margin: 10px;
-    max-width: 25%;
 }
 #menu div.tabs-group:last-child {
     margin-right: 0px !important;
