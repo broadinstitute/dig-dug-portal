@@ -394,7 +394,7 @@ export default Vue.component("bulk-volcano-plot", {
 					.append('circle')
 					.attr('cx', this.x(d.value.x))
 					.attr('cy', this.y(d.value.y))
-					.attr('r', 2)
+					.attr('r', 5)
 					.style('fill', fillColor)
                     .attr("id", (d.key))
                     .attr("class", this.dataToClass(d.value));
