@@ -85,14 +85,12 @@ export default Vue.component("bulk-volcano-plot", {
 			}
 		},
 		selectedGene(newData, oldData){
+			console.log("Volcano plot receiving gene");
 			this.highlightDot(newData);
 		},
 		renderConfig:{
             handler(newData, oldData){
-                //console.log(newData === oldData)
-                //if(newData !== oldData){
-                    this.renderPlot();
-                //}
+                this.renderPlot();
             },
             deep: true
         }
@@ -100,7 +98,6 @@ export default Vue.component("bulk-volcano-plot", {
 	methods: {
 		tpmFormatter: Formatters.tpmFormatter,
 		renderPlot() {
-            console.log('rendering')
 			let wrapperClass = `.vector-wrapper-${this.canvasId}`;
 			let wrapperId = `vector_wrapper_${this.sectionId}`;
 
@@ -398,21 +395,6 @@ export default Vue.component("bulk-volcano-plot", {
 					.style('fill', fillColor)
                     .attr("id", (d.key))
                     .attr("class", this.dataToClass(d.value));
-
-                //draw labels
-                /*
-                const labels = ["RRAGA","ATP1B3","TUBA4B","PNISR","CIR1","GOLGB1"]
-                if(labels.includes(d.key)){
-                    console.log(d.key);
-                    this.svg.select("#axisGroup")
-                    .append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr("x", this.x(d.value.x) - 20)
-                    .attr("y", this.y(d.value.y) - 5)
-                    .style("font-family", "Arial").style("font-size", 10)
-                    .text(d.key);
-                }
-                */
 			});
 
             this.svg.selectAll("circle.dataCircle")
@@ -450,6 +432,7 @@ export default Vue.component("bulk-volcano-plot", {
 				y: dataItem[this.yAxisField]
 			}
 			let classes = `${this.dataToClass(geneVal)} highlightCircle`;
+			console.log(classes);
 			this.svg.select("#axisGroup")
 				.append('circle')
                 .attr('cx', this.x(geneVal.x))

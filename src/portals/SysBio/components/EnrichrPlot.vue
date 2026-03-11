@@ -321,7 +321,6 @@ export default Vue.component("enrichr-plot", {
 
 				phenotypeGroupsObj[group].push(p);
 			});
-			console.log(JSON.stringify(Object.keys(phenotypeGroupsObj)));
 			return phenotypeGroupsObj;
 		},
 		onResize() {

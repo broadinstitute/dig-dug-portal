@@ -363,12 +363,10 @@ export default Vue.component("bulk-table", {
             return "";
         },
         async findGene(gene){
-            console.log("Finding" + gene);
             // Populate the subtable before toggling it open
             this.$emit("geneFound", false);
             //await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
-            console.log(JSON.stringify(this.allGenes[0]));
             if (location === -1){
                 return;
             }
@@ -391,7 +389,7 @@ export default Vue.component("bulk-table", {
             this.$emit("downGenes", newGenes);
         },
         currentData(newData){
-            console.log("Current data is:", JSON.stringify(newData));
+            console.log("Current data received");
         }
     }
 });
