@@ -288,7 +288,6 @@ new Vue({
             }
             this.getParams();
             await this.$store.dispatch("queryBulkFile");
-        
             await this.populateEnrichr();
             this.dataReady = true;
         },
@@ -406,6 +405,13 @@ new Vue({
         selectedLibraryType(newData, oldData){
             if (!!newData){
                 this.tableHidden = false;
+            }
+        },
+        async bulkData19K(newData){
+            if (newData.length > 0){
+                await this.populateEnrichr();
+            } else {
+                console.log("Still no bulk data");
             }
         }
     },

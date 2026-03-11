@@ -3,7 +3,8 @@ import dataConvert from "@/utils/dataConvert";
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=";
 const NEWSFEED_URL = "https://hugeampkpncms.org/rest/news_list?project=";
 const NEWSITEM_URL = "https://hugeampkpncms.org/rest/news?id=";
-const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
+//const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
+const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
 const MOTRPAC_AUTH = process.env.MOTRPAC;
 export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
 export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
@@ -124,11 +125,13 @@ export async function getNewsItem(itemId) {
 
 export async function getEnrichr(genesList, library) {
 	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
+	console.log(enrichrEndpoint);
 	let enrichrRequest = {
 		"gene_set_library": library,
 		"gene_list": genesList,
 		"gene_list_desc": "my_list"
 	}
+	console.log(JSON.stringify(enrichrRequest));
 	try {
 		const response = await fetch(enrichrEndpoint, {
 			method: 'POST',
