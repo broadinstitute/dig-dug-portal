@@ -102,6 +102,11 @@
                                     <div class="col-md-3"></div>
                                 </div>
                                 <div class="tabs-section-wrapper">
+                                    <div class="gene-not-found" v-if="!$parent.foundGene">
+                                        Gene not found.
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
                                     <div class="tab-section" >
                                         <div class="flex-gap">
                                             <div class="wide-block">
@@ -130,7 +135,7 @@
                             <div class="flex-gap flex-column">
                                 <bulk-table
                                     :bulkData="$parent.bulkData19K"
-                                    
+                                    @geneFound="v => $parent.geneFound(v)"
                                     :dataset="$store.state.selectedDataset"
                                     :config="$parent.tableConfig"
                                     :scatterConfig="$parent.scatterplotConfig"
@@ -470,5 +475,11 @@ button.hide-table {
 }
 #diff-exp-menu > .menu-item {
     font-size: larger;
+}
+.gene-not-found {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid goldenrod;
+    background-color: gold;
 }
 </style>

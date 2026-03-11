@@ -47,6 +47,7 @@ new Vue({
     data() {
         return {
             loading: true,
+            foundGene: false,
             dataReady: false,
             enrichrReady: false,
             tableHidden: false,
@@ -352,6 +353,10 @@ new Vue({
         getClass(library){
             let libraryName = library["Gene-set Library"];
             return this.enrichrLibrary === libraryName ? "selected-library" : "";
+        },
+        geneFound(found){
+            console.log("Gene found?", found);
+            this.foundGene = found;
         }
     },
     watch: {
