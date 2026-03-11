@@ -7,12 +7,14 @@ import "../../css/sysbio.css";
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
+import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
 
 import dataConvert from "@/utils/dataConvert";
 
 new Vue({
     components: {
-        ResearchBarInCellPlot
+        ResearchBarInCellPlot,
+        ResearchMultiBarGraphs,
     },
     mixins: [sysbioMixin],
     data: {
@@ -163,7 +165,41 @@ new Vue({
                 }
             },
             id: "sysBioDataComposition"
-        }
+        },
+        multiBarGraphs: {
+            data: null,
+            plotMargin: {
+                top: 20,
+                right: 40,
+                bottom: 20,
+                left: 20,
+            },
+            plotConfig: {
+                cardsPerRow: 3,
+                sourceKey: "source_short",
+                groupByField: "field",
+                categoryKey: "category",
+                valueKey: "n_donors",
+                fieldLabels: {
+                    case_control: "Case / Control",
+                    disease: "Disease",
+                    race: "Race",
+                    sex: "Sex",
+                    ethnicity: "Ethnicity",
+                },
+                colors: [
+                    "#EE4097",
+                    "#0000C6",
+                    "#00BFFF",
+                    "#2E7D32",
+                    "#F9A825",
+                    "#6A1B9A",
+                    "#C62828",
+                    "#00838F",
+                ],
+            },
+            id: "sysBioMultiBarGraphs",
+        },
     },
     async created() {
         this.getNews();
@@ -190,13 +226,29 @@ new Vue({
             });
             this.newsFeed = newsFeed;
         },
+        /**
+         * Convert TSV string to CSV string (comma-delimited, quoting cells that contain comma/newline/quote).
+         */
+        tsvToCsv(tsvStr) {
+            if (tsvStr == null || typeof tsvStr !== "string") return "";
+            return tsvStr.split(/\r?\n/).map((line) =>
+                line.split("\t").map((cell) => {
+                    if (/[",\r\n]/.test(cell)) return `"${String(cell).replace(/"/g, '""')}"`;
+                    return cell;
+                }).join(",")
+            ).join("\n");
+        },
         async getDataComposition() {
-            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
+            //const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
+            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary";
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
             if (contentJson.error == null) {
-                let data = contentJson[0]['field_data_points'];
-                this.dataComposition.data = dataConvert.csv2Json(data)
+                let data = contentJson[0]["field_data_points"];
+                const csvStr = this.tsvToCsv(data);
+                const parsed = dataConvert.csv2Json(csvStr);
+                this.dataComposition.data = parsed;
+                this.multiBarGraphs.data = parsed;
             }
         },
         showTab(e) {

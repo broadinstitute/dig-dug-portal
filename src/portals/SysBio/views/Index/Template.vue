@@ -50,7 +50,7 @@
                         <div class="tabs f-col">
                             <div class="tab f-col active" data-tab="composition" @click="$parent.showTab($event)">
                                 <div class="tab-title">Data Composition</div>
-                                <div class="tab-body">Distribution of samples by assay, tissue, and disease status</div>
+                                <div class="tab-body">Demographics and phenotypes within AMP programs for which FAIRplex has generated harmonized RNA-sequencing data</div>
                             </div>
                             <div class="tab f-col" data-tab="expression" @click="$parent.showTab($event)">
                                 <div class="tab-title">Gene Expression</div>
@@ -63,11 +63,19 @@
                         </div>
                         <div class="tab-contents f-col">
                             <div class="tab-content active f-col" data-tab="composition">
-                                <research-bar-in-cell-plot v-if="!!$parent.dataComposition.data"
+                                <!--<research-bar-in-cell-plot v-if="!!$parent.dataComposition.data"
                                     :plotData="$parent.dataComposition.data"
                                     :plotMargin="$parent.dataComposition.plotMargin"
                                     :plotConfig="$parent.dataComposition.plotConfig"
-                                    :canvasId="$parent.dataComposition.id" :utils="null" />
+                                    :canvasId="$parent.dataComposition.id" :utils="null" />-->
+                                <research-multi-bar-graphs
+                                    v-if="$parent.multiBarGraphs && $parent.multiBarGraphs.data && $parent.multiBarGraphs.data.length"
+                                    :plotData="$parent.multiBarGraphs.data"
+                                    :plotConfig="$parent.multiBarGraphs.plotConfig"
+                                    :plotMargin="$parent.multiBarGraphs.plotMargin"
+                                    :canvasId="$parent.multiBarGraphs.id"
+                                    :utils="null"
+                                />
                             </div>
                             <div class="tab-content f-col" data-tab="expression">
                                 <div>Explore visualizations of differential gene expression within human tissues derived
@@ -163,6 +171,19 @@
         <sysbio-footer></sysbio-footer>
     </div>
 </template>
+
+<script>
+import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
+import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
+
+export default {
+    name: "SysBioIndexTemplate",
+    components: {
+        ResearchBarInCellPlot,
+        ResearchMultiBarGraphs,
+    },
+};
+</script>
 
 <style scoped>
 .hero{
