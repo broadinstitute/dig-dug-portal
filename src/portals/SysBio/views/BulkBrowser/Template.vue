@@ -327,6 +327,7 @@
     display:flex;
     flex-direction: column;
     min-width: 600px;
+    margin: 0 auto;
   }
   .flex-gap {
     display:flex;
@@ -346,9 +347,9 @@
     width: 100%;
   }
   #center-content {
-    align-self:center;
-    background:#f8f8f8;
-    padding:20px;
+    background: #ffffff;
+    width: 100%;
+    border-top: 5px solid #eeeeee;
   }
   #table-wrapper {
     background:white;
@@ -452,14 +453,15 @@ button.hide-table {
 }
 #menu {
     display: flex;
-    border-radius: 5px;
+    /*border-radius: 5px;
     border: 1px solid darkgray;
     background-color: lightgray;
-    padding: 10px;
+    padding: 10px;*/
+    margin: auto;
 }
 #menu div.tabs-group {
     margin: 10px;
-    border-radius: 5px;
+    border: 1px solid #eeeeee;
 }
 #menu div.tabs-group:last-child {
     min-width: 20%;
