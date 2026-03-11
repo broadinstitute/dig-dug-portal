@@ -191,7 +191,8 @@ new Vue({
             this.newsFeed = newsFeed;
         },
         async getDataComposition() {
-            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
+            //const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
+            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary";
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
             if (contentJson.error == null) {
