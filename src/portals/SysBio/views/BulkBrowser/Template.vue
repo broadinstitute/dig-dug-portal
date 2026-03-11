@@ -15,9 +15,9 @@
                         <research-single-cell-info v-if="!!$store.state.selectedDataset"
                             :data="$parent.bulkMetadata"
                         />
-                        <div v-if="$parent.dataReady" id="menu" class="row">
+                        <div v-if="$parent.dataReady" id="menu">
                             <!--left tab group-->
-                            <div class="tabs-group col-md-4">
+                            <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select a comparison type
@@ -35,7 +35,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group col-md-4">
+                            <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select an AMP
@@ -53,7 +53,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group col-md-4">
+                            <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Select a comparison
@@ -72,7 +72,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="tabs-group">
+                            <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Search for a gene
@@ -98,7 +98,7 @@
                                             @change="event => $parent.setVolcano(event.target.value)"/>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">
