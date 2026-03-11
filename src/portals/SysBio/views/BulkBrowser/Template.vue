@@ -25,7 +25,8 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedCompType">
+                                        <select v-model="$store.state.selectedCompType"
+                                            class="form-control">
                                             <option value="">Select a comparison type</option>
                                             <option v-for="type in $parent.comptypes"
                                                 :value="type">
@@ -43,7 +44,8 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedAMP">
+                                        <select v-model="$store.state.selectedAMP"
+                                            class="form-control">
                                             <option value="">Select an AMP</option>
                                             <option v-for="amp in $parent.amps"
                                                 :value="amp">
@@ -56,23 +58,24 @@
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
-                                        Select a comparison
+                                        Select a cell type
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedComparison">
-                                            <option value="">Select a comparison</option>
+                                        <select v-model="$store.state.selectedComparison"
+                                            class="form-control">
+                                            <option value="">Select a cell type</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
-                                                {{ $store.state.currentComparisons[comp].label
+                                                {{ $store.state.currentComparisons[comp].cellType
                                                 }}
                                             </option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
-                            <!-- <div class="tabs-group">
+                            <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Search for a gene
@@ -93,12 +96,12 @@
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <input type="number" step="0.1"
+                                        <input type="number" step="0.1" class="form-control"
                                             :value=$parent.volcanoYCondition
                                             @change="event => $parent.setVolcano(event.target.value)"/>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">
@@ -455,12 +458,19 @@ button.hide-table {
 }
 #menu {
     display: flex;
+    border-radius: 5px;
+    border: 1px solid darkgray;
+    background-color: lightgray;
+    padding: 10px;
 }
 #menu div.tabs-group {
     margin: 10px;
-    max-width: 25%;
+    border-radius: 5px;
 }
 #menu div.tabs-group:last-child {
-    margin-right: 0px !important;
+    min-width: 20%;
+}
+#gene-box {
+    padding: 10px !important;
 }
 </style>
