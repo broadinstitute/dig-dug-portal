@@ -113,7 +113,6 @@ new Vue({
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    { key: "expand", label: "Gene expression by variable" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
