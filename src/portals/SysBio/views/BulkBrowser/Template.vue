@@ -458,12 +458,17 @@ button.hide-table {
 }
 #menu {
     display: flex;
-}
-#menu div.tabs-group:last-child {
-    margin-right: 0px !important;
+    border-radius: 5px;
+    border: 1px solid darkgray;
+    background-color: lightgray;
+    padding: 10px;
 }
 #menu div.tabs-group {
     margin: 10px;
+    border-radius: 5px;
+}
+#menu div.tabs-group:last-child {
+    min-width: 20%;
 }
 #gene-box {
     padding: 10px !important;
