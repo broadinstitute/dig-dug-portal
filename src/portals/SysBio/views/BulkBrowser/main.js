@@ -53,7 +53,7 @@ new Vue({
             allMetadata: null,
             bulkMetadata: null,
             plotId: "bulk_heatmap",
-            plotHeight: 300,
+            plotHeight: 450,
             chart: null,
             chartWidth: 0,
             datasets: [],
@@ -182,7 +182,7 @@ new Vue({
                 "x axis label": "log2 Fold Change",
                 "y axis field": "-log10P",
                 "y axis label": "-log10(FDR adj. p)",
-                "width": 600,
+                "width": 900,
                 "height": this.plotHeight,
                 "x condition": { 
                     "combination": "or", 
