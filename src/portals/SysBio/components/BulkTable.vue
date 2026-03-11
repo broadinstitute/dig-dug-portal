@@ -36,9 +36,6 @@
                 :fields="config.fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                :sort-by="isSubtable? 'sample_id' : '-log10P'"
-                :sort-desc="!isSubtable"
-                :sort-icon-left="true"
                 :tbody-tr-class="rowClasses"
             >
                 <template #cell(gene)="r">
@@ -366,6 +363,7 @@ export default Vue.component("bulk-table", {
             return "";
         },
         async findGene(gene){
+            console.log("Finding" + gene);
             // Populate the subtable before toggling it open
             let dataItem = this.bulkData.find(g => g.gene === gene);
             if (!dataItem){
@@ -373,6 +371,7 @@ export default Vue.component("bulk-table", {
             }
             //await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
+            console.log(JSON.stringify(this.allGenes[0]));
             if (location === -1){
                 return;
             }
@@ -392,6 +391,9 @@ export default Vue.component("bulk-table", {
         },
         downregulatedGenes(newGenes){
             this.$emit("downGenes", newGenes);
+        },
+        currentData(newData){
+            console.log("Current data is:", JSON.stringify(newData));
         }
     }
 });
