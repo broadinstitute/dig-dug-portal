@@ -38,6 +38,24 @@
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
+                                        Select an AMP
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
+                                        <select v-model="$store.state.selectedAMP">
+                                            <option value="">Select an AMP</option>
+                                            <option v-for="amp in $parent.amps"
+                                                :value="amp">
+                                                {{ amp }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
                                         Select a comparison
                                     </div>
                                 </div>
@@ -47,14 +65,14 @@
                                             <option value="">Select a comparison</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
-                                                {{ $store.state.currentComparisons[comp].label 
+                                                {{ $store.state.currentComparisons[comp].label
                                                 }}
                                             </option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group">
+                            <!-- <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Search for a gene
@@ -80,7 +98,7 @@
                                             @change="event => $parent.setVolcano(event.target.value)"/>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">

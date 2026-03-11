@@ -20,7 +20,7 @@
         },
         {
           "label": "Gene Expression Browser",
-          "path": "/expression.html"
+          "path": "/diffexp.html"
         },
         {
           "label": "Single Cell Browser",

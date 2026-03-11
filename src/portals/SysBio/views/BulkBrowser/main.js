@@ -113,7 +113,6 @@ new Vue({
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
-                    { key: "expand", label: "Gene expression by variable" },
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "single-cell-bulk-melted",
@@ -204,7 +203,9 @@ new Vue({
                 return null;
             }
             let items = Object.keys(allComps);
-            return items.filter(i => allComps[i].type === this.$store.state.selectedCompType);
+            return items.filter(i => 
+                allComps[i].type === this.$store.state.selectedCompType
+                && allComps[i].amp === this.$store.state.selectedAMP);
         },
         comptypes(){
             if (!this.$store.state.currentComparisons){
@@ -214,6 +215,17 @@ new Vue({
             let typeArray = Array.from(new Set(types));
             if (this.$store.state.selectedCompType === ""){
                 this.$store.state.selectedCompType = typeArray[0];
+            }
+            return typeArray;
+        },
+        amps(){
+            if (!this.$store.state.currentComparisons){
+                return null;
+            }
+            let types = Object.values(this.$store.state.currentComparisons).map(v => v.amp);
+            let typeArray = Array.from(new Set(types));
+            if (this.$store.state.selectedAMP === ""){
+                this.$store.state.selectedAMP = typeArray[0];
             }
             return typeArray;
         },
@@ -276,8 +288,6 @@ new Vue({
             }
             this.getParams();
             await this.$store.dispatch("queryBulkFile");
-            await this.$store.dispatch("queryBulk");
-        
             await this.populateEnrichr();
             this.dataReady = true;
         },
@@ -350,7 +360,6 @@ new Vue({
                 // Reset highlighted gene upon changing dataset
                 await this.$store.dispatch("firstGene");
                 await this.$store.dispatch("queryBulkFile");
-                await this.$store.dispatch("queryBulk");
                 if (newData !== "") {
                     this.getBulkMetadata();
                 }
@@ -366,7 +375,6 @@ new Vue({
         selectedComparison(newData, oldData) {
             if (newData !== oldData) {
                 keyParams.set({ comparison: newData });
-                this.$store.dispatch("queryBulk");
             }
         },
         selectedGene(newData, oldData) {
@@ -397,6 +405,11 @@ new Vue({
         selectedLibraryType(newData, oldData){
             if (!!newData){
                 this.tableHidden = false;
+            }
+        },
+        async bulkData19K(newData){
+            if (newData.length > 0){
+                await this.populateEnrichr();
             }
         }
     },
