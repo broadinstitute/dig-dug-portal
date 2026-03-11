@@ -365,10 +365,7 @@ export default Vue.component("bulk-table", {
         async findGene(gene){
             console.log("Finding" + gene);
             // Populate the subtable before toggling it open
-            let dataItem = this.bulkData.find(g => g.gene === gene);
-            if (!dataItem){
-                return;
-            }
+            this.$emit("geneFound", false);
             //await this.getSubtable(dataItem);
             let location = this.allGenes.indexOf(gene);
             console.log(JSON.stringify(this.allGenes[0]));
@@ -377,6 +374,7 @@ export default Vue.component("bulk-table", {
             }
             let page = Math.floor(location / this.perPage) + 1;
             this.currentPage = page;
+            this.$emit("geneFound", true);
         }
     },
     watch: {

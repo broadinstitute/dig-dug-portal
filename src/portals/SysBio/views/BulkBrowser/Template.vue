@@ -75,33 +75,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tabs-group">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Search for a gene
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section">
-                                        <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
-                                        </gene-selectpicker>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tabs-group">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Set -log10(FDR adj. p) threshold
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section">
-                                        <input type="number" step="0.1" class="form-control"
-                                            :value=$parent.volcanoYCondition
-                                            @change="event => $parent.setVolcano(event.target.value)"/>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">
@@ -111,6 +84,26 @@
                                 <div class="tabs-wrapper">
                                     <div class="tab">
                                         Differentially Expressed Genes
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper row" id="diff-exp-menu">
+                                    <div class="col-md-3"></div>
+                                    <div class="col-md-3 menu-item">
+                                        <div class="label">Search for a gene</div>
+                                        <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+                                        </gene-selectpicker>
+                                    </div>
+                                    <div class="col-md-3 menu-item">
+                                        <div class="label">Set -log1-(FDR adj. P) threshold</div>
+                                            <input type="number" step="0.1" class="form-control"
+                                            :value=$parent.volcanoYCondition
+                                            @change="event => $parent.setVolcano(event.target.value)"/>
+                                    </div>
+                                    <div class="col-md-3"></div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="gene-not-found" v-if="!$parent.foundGene">
+                                        Gene not found.
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper">
@@ -137,20 +130,20 @@
                                     </div>
                                 </div>
                             </div>
-                                </div>
-                                <div id="table-wrapper" class="flex-gap flex-column">
-                                    <div class="flex-gap flex-column">
-                                        <bulk-table
-                                            :bulkData="$parent.bulkData19K"
-                                            
-                                            :dataset="$store.state.selectedDataset"
-                                            :config="$parent.tableConfig"
-                                            :scatterConfig="$parent.scatterplotConfig"
-                                            :highlightedGene="$store.state.selectedGene"
-                                            :regulationConditions="$parent.regulationConditions">
-                                        </bulk-table>
-                                    </div>
-                                </div>
+                        </div>
+                        <div id="table-wrapper" class="flex-gap flex-column">
+                            <div class="flex-gap flex-column">
+                                <bulk-table
+                                    :bulkData="$parent.bulkData19K"
+                                    @geneFound="v => $parent.geneFound(v)"
+                                    :dataset="$store.state.selectedDataset"
+                                    :config="$parent.tableConfig"
+                                    :scatterConfig="$parent.scatterplotConfig"
+                                    :highlightedGene="$store.state.selectedGene"
+                                    :regulationConditions="$parent.regulationConditions">
+                                </bulk-table>
+                            </div>
+                        </div>
                                 <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
@@ -452,6 +445,7 @@ button.hide-table {
 }
 .volcano {
     width: 100%;
+    background-color: white;
 }
 .top-menu-item {
     max-width: 25%;
@@ -472,5 +466,20 @@ button.hide-table {
 }
 #gene-box {
     padding: 10px !important;
+}
+#diff-exp-menu {
+    padding: 20px;
+    margin: 20px;
+    background-color: #efefef;
+    border-radius: 5px;
+}
+#diff-exp-menu > .menu-item {
+    font-size: larger;
+}
+.gene-not-found {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid goldenrod;
+    background-color: gold;
 }
 </style>
