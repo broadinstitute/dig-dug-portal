@@ -58,14 +58,14 @@
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
-                                        Select a comparison
+                                        Select a cell type
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
                                         <select v-model="$store.state.selectedComparison"
                                             class="form-control">
-                                            <option value="">Select a comparison</option>
+                                            <option value="">Select a cell type</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
                                                 {{ $store.state.currentComparisons[comp].cellType

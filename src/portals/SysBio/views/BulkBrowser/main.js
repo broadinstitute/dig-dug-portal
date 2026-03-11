@@ -61,6 +61,7 @@ new Vue({
             enrichrUp: [],
             enrichrDown: [],
             enrichrLibraries: [],
+            enrichrByor: "matkp_enrichrlibraries", // Using MATKP list until further notice
             enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
             selectedLibraryType: "",
@@ -287,6 +288,7 @@ new Vue({
                 keyParams.set({ gene: this.$store.state.selectedGene });
             }
             this.getParams();
+            this.enrichrLibraries = await getTextContent(this.enrichrByor);
             await this.$store.dispatch("queryBulkFile");
             await this.populateEnrichr();
             this.dataReady = true;
