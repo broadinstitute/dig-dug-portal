@@ -168,7 +168,7 @@ new Vue({
             let results = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison);
-            return results.sort((a,b) => b[this.bulkDataSortField] - a[this.bulkDataSortField]);
+            return results;
         },
         volcanoConfig() {
             let config = {

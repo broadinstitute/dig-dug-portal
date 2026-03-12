@@ -1,9 +1,9 @@
 <template>
-  <div id="bulk-table" :class="isSubtable ? 'bulk-subtable' : ''">
+  <div id="bulk-table">
       <div>
         <div>
         </div>
-          <div v-if="!isSubtable" class="text-right mb-2">
+          <div class="text-right mb-2">
               <data-download
                   :data="bulkData"
                   filename="bulk_gene"
@@ -11,7 +11,7 @@
           </div>
           <div class="show-inline">
             <div class="table-total-rows">Total rows:{{ rows }}</div>
-            <b-form-radio-group v-if="!isSubtable" class="show-inline"
+            <b-form-radio-group class="show-inline"
                 v-model="showGenes">
                 <b-form-radio
                     value="">
@@ -29,7 +29,7 @@
           </div>
           <div v-if="tableData.length > 0">
             <b-table v-model="currentData"
-                :hover="isSubtable"
+                :hover="false"
                 small
                 responsive="sm"
                 :items="tableData"
@@ -37,82 +37,10 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 :tbody-tr-class="rowClasses"
+                :sort-by.sync="sortField"
+                :sort-desc.sync="sortDesc"
             >
-                <template #cell(expand)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 1)"
-                    >
-                        {{ row.detailsShowing ? "Hide" : "Show" }}
-                    </b-button>
-                </template>
-                <template #row-details="row">
-                    <div class="subtable-all" v-if="
-                            subtableData[subtableKey(row.item)]?.length > 0"
-                    >
-                    <div class="row subtable-selectors">
-                        <div class="col-md-1"></div>
-                        <div class="col-md-4">
-                            <div class="label">View data by categorical field.</div>
-                            <select v-model="catField">
-                                <option v-for="field in
-                                    subtableFields[subtableKey(row.item)].filter(f => f.isCat)"
-                                    :value="field">
-                                    {{ field.label }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-md-2"></div>
-                        <div class="col-md-4">
-                            
-                            <div class="label">View data by continuous field.</div>
-                            <select v-model="contField">
-                                <option v-for="field in 
-                                    subtableFields[subtableKey(row.item)].filter(f => f.isNumerical)"
-                                    :value="field">
-                                    {{ field.label }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-md-1"></div>
-                    </div>
-                    <div class="row subtable-plots">
-                        <div class="col-md-6">
-                            <bulk-violin-plot
-                                v-if="catFields.length > 0"
-                                :data="subtableData[subtableKey(row.item)]"
-                                :gene="row.item.gene"
-                                :xField="catField?.key || catFields[0].key"
-                                :xLabel="catField?.label || catFields[0].label"
-                            />
-                            <div v-else class="no-fields">
-                                No categorical fields available for this dataset.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <scatterplot
-                                v-if="contFields.length > 0"
-                                :plotData="subtableData[subtableKey(row.item)]"
-                                :config="scatterConfig"
-                                :plotId="`bulk_${row.item.gene}`"
-                                :hideDownload="true"
-                                :tightenLeft="true">
-                            </scatterplot>
-                            <div v-else class="no-fields">
-                                No continuous fields available for this dataset.</div>
-                            </div>
-                    </div>
-                    <bulk-table              
-                        :bulkData="subtableData[subtableKey(row.item)]"
-                        :config="{fields : subtableFields[subtableKey(row.item)]}"
-                        :isSubtable="true"
-                    >
-                    </bulk-table>
-                    </div>
-                    
-                </template>
-            </b-table>
+        </b-table>
             <b-pagination
                 v-model="currentPage"
                 class="pagination-sm justify-content-center"
@@ -150,7 +78,6 @@ export default Vue.component("bulk-table", {
     props: [
         "bulkData",
         "config",
-        "isSubtable",
         "filter",
         "dataset",
         "highlightedGene",
@@ -170,15 +97,16 @@ export default Vue.component("bulk-table", {
             currentData: [],
             tableYField: "-log10P",
             tableXField: "logFoldChange",
+            sortField: "absoluteFoldChange",
+            sortDesc: true,
             up: "upregulated",
             down: "downregulated"
         };
     },
     async mounted(){
-        if (this.isSubtable){
-            return;
+        if (this.highlightedGene !== ""){
+            await this.findGene(this.highlightedGene);   
         }
-        await this.findGene(this.highlightedGene);
         this.$emit("upGenes", this.upregulatedGenes);
         this.$emit("downGenes", this.downregulatedGenes);
     },
@@ -223,7 +151,7 @@ export default Vue.component("bulk-table", {
             if (this.filter) {
                 data = data.filter(this.filter);
             }
-            if (!!this.showGenes && !this.isSubtable){
+            if (!!this.showGenes){
                 data = data.filter(item => this.showRegulation(item) === this.showGenes);
             }
             return data;
@@ -251,9 +179,6 @@ export default Vue.component("bulk-table", {
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(item) {
-            if (this.isSubtable){
-                return;
-            }
             let queryKey = this.subtableKey(item);
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
@@ -341,9 +266,6 @@ export default Vue.component("bulk-table", {
             return item.gene === this.highlightedGene ? "table-warning " : "";
         },
         showRegulation(item){
-            if (this.isSubtable){
-                return "";
-            }
             let cond = this.regulationConditions;
             if (item[this.tableYField] < cond.yGreater){
                 return "";
@@ -356,11 +278,14 @@ export default Vue.component("bulk-table", {
             }
             return "";
         },
-        async findGene(gene){
+        findGene(gene){
             // Populate the subtable before toggling it open
             this.$emit("geneFound", false);
-            //await this.getSubtable(dataItem);
-            let location = this.allGenes.indexOf(gene);
+            let sortedItems = this.bulkData.toSorted(
+                (a,b) => this.sortDesc
+                    ? b[this.sortField] - a[this.sortField]
+                    : a[this.sortField] - b[this.sortField]);
+            let location = sortedItems.findIndex(i => i.gene === gene);
             if (location === -1){
                 return;
             }
@@ -371,10 +296,10 @@ export default Vue.component("bulk-table", {
     },
     watch: {
         async highlightedGene(newGene){
-            if (!!newGene){await this.findGene(newGene)};
+            if (!!newGene){ this.findGene(newGene)};
         },
         async tableData(data){
-            await this.findGene(this.highlightedGene);
+            this.findGene(this.highlightedGene);
         },
         upregulatedGenes(newGenes){
             this.$emit("upGenes", newGenes);
@@ -382,7 +307,7 @@ export default Vue.component("bulk-table", {
         downregulatedGenes(newGenes){
             this.$emit("downGenes", newGenes);
         },
-        currentData(newData){
+        async currentData(newData){
             console.log("Current data received");
         }
     }
