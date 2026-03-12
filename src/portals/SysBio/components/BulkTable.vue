@@ -38,12 +38,6 @@
                 :current-page="currentPage"
                 :tbody-tr-class="rowClasses"
             >
-                <template #cell(gene)="r">
-                    <!-- Link to where? -->
-                    <a :href='`/gene.html?gene=${r.item.gene}`'>
-                        {{ r.item.gene }}
-                    </a>
-                </template>
                 <template #cell(expand)="row">
                     <b-button
                         variant="outline-primary"

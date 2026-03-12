@@ -63,6 +63,7 @@ export default new Vuex.Store({
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
         const compTypeFinder = /\((\w+)\)/g;
         bulkDataObject.forEach(b => {
+          b.absoluteFoldChange = Math.abs(b.logFoldChange)
           let comp_id = b.comparison_id;
           if (!comparisons.comp_id && !!b.comparison){
             comparisons[comp_id] = {label: b.comparison};

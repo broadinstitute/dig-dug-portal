@@ -51,6 +51,7 @@ new Vue({
             dataReady: false,
             enrichrReady: false,
             tableHidden: false,
+            bulkDataSortField: "absoluteFoldChange",
             allMetadata: null,
             bulkMetadata: null,
             plotId: "bulk_heatmap",
@@ -163,16 +164,11 @@ new Vue({
         selectedGene() {
             return this.$store.state.selectedGene;
         },
-        zNormData() {
-            let outputData = structuredClone(this.$store.state.singleBulkZNormData);
-            outputData.forEach(item => item["-log10P"] = item.log10FDR);
-            return outputData.sort((a,b) => a.logFoldChange - b.logFoldChange);
-        },
         bulkData19K() {
             let results = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
                     && item.comparison_id === this.$store.state.selectedComparison);
-            return results;
+            return results.sort((a,b) => b[this.bulkDataSortField] - a[this.bulkDataSortField]);
         },
         volcanoConfig() {
             let config = {
