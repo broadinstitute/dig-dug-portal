@@ -47,7 +47,7 @@ new Vue({
     data() {
         return {
             loading: true,
-            foundGene: false,
+            foundGene: true,
             dataReady: false,
             enrichrReady: false,
             tableHidden: false,

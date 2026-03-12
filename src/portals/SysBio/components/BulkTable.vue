@@ -280,6 +280,9 @@ export default Vue.component("bulk-table", {
         },
         findGene(gene){
             // Populate the subtable before toggling it open
+            if (gene === ""){
+                return;
+            }
             this.$emit("geneFound", false);
             let sortedItems = this.bulkData.toSorted(
                 (a,b) => this.sortDesc
