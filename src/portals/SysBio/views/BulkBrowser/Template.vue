@@ -135,6 +135,7 @@
                                 <bulk-table
                                     :bulkData="$parent.bulkData19K"
                                     @geneFound="v => $parent.geneFound(v)"
+                                    @highlightRow="gene => $parent.highlight(gene)"
                                     :dataset="$store.state.selectedDataset"
                                     :config="$parent.tableConfig"
                                     :scatterConfig="$parent.scatterplotConfig"

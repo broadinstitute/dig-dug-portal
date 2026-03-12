@@ -42,6 +42,9 @@
                 :sort-by.sync="sortField"
                 :sort-desc.sync="sortDesc"
             >
+                <template #cell(gene)="r">
+                    <button @click="findGene(r.item.gene)">{{ r.item.gene }}</button>
+                </template>
         </b-table>
             <b-pagination
                 v-model="currentPage"
@@ -281,9 +284,11 @@ export default Vue.component("bulk-table", {
             return "";
         },
         findGene(gene){
-            // Populate the subtable before toggling it open
             if (gene === ""){
                 return;
+            }
+            if (this.highlightedGene !== gene){
+                this.$emit("highlightRow", gene);
             }
             this.$emit("geneFound", false);
             let sortedItems = this.bulkData.toSorted(
