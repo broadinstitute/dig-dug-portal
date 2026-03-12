@@ -6,8 +6,7 @@
           <!-- BODY -->
           <div class="sysbio-body f-col">
             <h2>Differential Gene Expression Browser</h2>
-            <div>
-                Fill in differential expression documentation here.
+            <div v-html="$parent.docs" class="docs">
             </div>
             <div class="flex-column flex-small-gap">
                 <div id="center-width" class="flex-gap flex-column">

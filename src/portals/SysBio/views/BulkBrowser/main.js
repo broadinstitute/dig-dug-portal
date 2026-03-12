@@ -12,9 +12,7 @@ import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
-import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
-import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import EnrichrPlot from "../../components/EnrichrPlot.vue";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -33,16 +31,10 @@ new Vue({
         Scatterplot,
         BulkVolcanoPlot,
         BulkTable,
-        BulkViolinPlot,
         GeneSelectPicker,
-        MouseGeneSelect,
         EnrichrPlot,
-       // ResearchBarPlot,
-        //CriterionFunctionGroup,
-        //FilterGreaterThan,
-        //ResearchSingleCellBrowser,
         //ResearchSingleCellInfo,
-        //uiUtils
+        
     },
     data() {
         return {
@@ -64,6 +56,8 @@ new Vue({
             enrichrDown: [],
             enrichrLibraries: [],
             enrichrByor: "matkp_enrichrlibraries", // Using MATKP list until further notice
+            byorDocs: "sysbiofairplex_geneexpressionbrowser",
+            docs: "",
             enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
             selectedLibraryType: "",
@@ -286,6 +280,8 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
+            const documentation = await getTextContent(this.byorDocs, true);
+            this.docs = documentation;
             await this.$store.dispatch("queryBulkFile");
             await this.populateEnrichr();
             this.dataReady = true;
