@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 
 import { contentMixin } from "@/portals/CFDELiver/mixins/contentMixin.js";
-import { getContent } from "@/portals/CFDELiver/utils/content.js";
+import { getTextContent } from "@/portals/CFDELiver/utils/content.js";
 
 new Vue({
     mixins: [contentMixin],

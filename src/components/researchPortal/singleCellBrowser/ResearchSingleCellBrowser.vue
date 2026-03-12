@@ -1448,7 +1448,7 @@
 
                 llog('display config', {
                     displayFields: this.displayFields, 
-                    displayGroups:this.displayGroups
+                    displayGroups: this.displayGroups
                 });
 
                 this.traitFields = this.filterDisplayFields(true);

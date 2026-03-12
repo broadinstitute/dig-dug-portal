@@ -5,7 +5,8 @@ body.kp-default{
 .main-content{
     display: flex;
     flex-direction: column;
-    max-width: 1200px;
+    max-width: 1300px;
+    width:100%;
     margin: 0 auto;
     padding: 40px;
 

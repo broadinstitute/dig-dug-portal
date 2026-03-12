@@ -17,6 +17,13 @@ let pages = {
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"],
     },
+    cellatlas: {
+        entry: "src/portals/CFDELiver/views/CellAtlas/main.js",
+        template: "src/portals/CFDELiver/views/index.html",
+        filename: "cell-atlas.html",
+        title: "Cell Atlas",
+        chunks: ["chunk-vendors", "chunk-common", "cellatlas"],
+    },
 };
 
 module.exports = {
