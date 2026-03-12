@@ -1,20 +1,20 @@
-name: Build and Deploy to EC2 (cfde-liver-main)
+name: Build and Deploy to EC2 (cfde-liver-prod)
 
 on:
-    push:
-        branches:
-            - cfde-liver-main
+    release:
+        types: [published]
     workflow_dispatch:
 
 permissions:
     contents: read
 
 concurrency:
-    group: deploy-ec2-cfde-liver-main
+    group: deploy-ec2-cfde-liver-prod
     cancel-in-progress: true
 
 jobs:
     build-and-deploy:
+        if: startsWith(github.ref, 'refs/tags/cfde-liver-v')
         runs-on: ubuntu-latest
         timeout-minutes: 30
 
@@ -37,38 +37,38 @@ jobs:
 
             - name: Build production assets
               env:
-                  VUE_CLI_SERVICE_CONFIG_PATH: configs/vue.config.CFDELiver_DEV.js
+                  VUE_CLI_SERVICE_CONFIG_PATH: configs/vue.config.CFDELiver_PROD.js
               run: npm run deploy
 
             - name: Verify build output
               run: |
-                  ls -la portals/CFDELiver_DEV
+                  ls -la portals/CFDELiver_PROD
 
             - name: Clear target directory on EC2
               uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_DEV }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_DEV }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_DEV }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
                   port: ${{ secrets.EC2_PORT || 22 }}
-                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_DEV }}/*
+                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}/*
 
             - name: Deploy dist to EC2
               uses: appleboy/scp-action@v0.1.7
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_DEV }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_DEV }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_DEV }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
                   port: ${{ secrets.EC2_PORT || 22 }}
-                  source: portals/CFDELiver_DEV/*
-                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_DEV }}
+                  source: portals/CFDELiver_PROD/*
+                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}
                   strip_components: 2
 
             - name: Run post-deploy script
               uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_DEV }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_DEV }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_DEV }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
                   port: ${{ secrets.EC2_PORT || 22 }}
                   script: /opt/deploy/post-deploy.sh
