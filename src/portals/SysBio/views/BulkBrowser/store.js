@@ -63,6 +63,7 @@ export default new Vuex.Store({
         bulkDataObject = dataConvert.tsv2Json(bulkDataText);
         const compTypeFinder = /\((\w+)\)/g;
         bulkDataObject.forEach(b => {
+          b.absoluteFoldChange = Math.abs(b.logFoldChange)
           let comp_id = b.comparison_id;
           if (!comparisons.comp_id && !!b.comparison){
             comparisons[comp_id] = {label: b.comparison};
@@ -79,15 +80,10 @@ export default new Vuex.Store({
         }
       }
       context.commit("setBulkData19K", bulkDataObject);
-      context.dispatch("firstGene"); // Default to viewing first gene in table
       context.commit("setCurrentComparisons", comparisons);
     },
     resetComparison(context) {
       context.commit("setSelectedComparison", context.state.defaultComparison);
-    },
-    firstGene(context){
-      let gene = context.state.bulkData19K[0].gene;
-      context.commit("setSelectedGene", gene);
     },
   },
 });

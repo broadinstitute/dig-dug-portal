@@ -6,8 +6,7 @@
           <!-- BODY -->
           <div class="sysbio-body f-col">
             <h2>Differential Gene Expression Browser</h2>
-            <div>
-                Fill in differential expression documentation here.
+            <div v-html="$parent.docs" class="docs">
             </div>
             <div class="flex-column flex-small-gap">
                 <div id="center-width" class="flex-gap flex-column">
@@ -136,6 +135,7 @@
                                 <bulk-table
                                     :bulkData="$parent.bulkData19K"
                                     @geneFound="v => $parent.geneFound(v)"
+                                    @highlightRow="gene => $parent.highlight(gene)"
                                     :dataset="$store.state.selectedDataset"
                                     :config="$parent.tableConfig"
                                     :scatterConfig="$parent.scatterplotConfig"
@@ -165,7 +165,7 @@
                                             <div class="row select-library">
                                                 <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
-                                                    <select v-model="$parent.selectedLibraryType">
+                                                    <select v-model="$parent.selectedLibraryType" class="form-control">
                                                         <option :value="''">
                                                             Select a library type
                                                         </option>

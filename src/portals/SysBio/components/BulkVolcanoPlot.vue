@@ -174,7 +174,30 @@ export default Vue.component("bulk-volcano-plot", {
 					tempObj.value['y'] = v[this.yAxisField];
 
 					sumstat.push(tempObj);
-				})
+				});
+
+			this.svg.append("g")
+				.attr("id", "axisLabelsGroup")
+				.attr("transform", "translate(0,0)");
+
+			this.svg.select("#axisLabelsGroup")
+				.style("font-family", "Arial").style("font-size", 12)
+				.style("text-anchor", "middle")
+
+			let amp = this.$store.state.selectedAMP;
+			let upregulatedIn = amp.split("vs")[0];
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", margin.left + 50)
+				.attr("y", (height + margin.bottom))
+				.text(`← down-regulated in ${upregulatedIn}`);
+			
+			this.svg.select("#axisLabelsGroup")
+				.append("text")
+				.attr("x", margin.left + width)
+				.attr("y", (height + margin.bottom))
+				.attr("text-anchor", "end")
+				.text(`up-regulated in ${upregulatedIn} →`)
 			
 			//render axis labels
 			this.svg.append("text")
