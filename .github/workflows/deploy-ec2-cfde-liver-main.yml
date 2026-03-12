@@ -36,6 +36,8 @@ jobs:
                   fi
 
             - name: Build production assets
+              env:
+                  VUE_CLI_SERVICE_CONFIG_PATH: configs/vue.config.CFDELiver.js
               run: npm run deploy
 
             - name: Deploy dist to EC2
