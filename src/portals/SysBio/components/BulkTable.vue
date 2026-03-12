@@ -19,10 +19,12 @@
                 </b-form-radio>
                 <b-form-radio
                     :value="up">
+                        <span class="upregulated">&#9608;</span>
                         Upregulated only
                 </b-form-radio>
                 <b-form-radio
                     :value="down">
+                        <span class="downregulated">&#9608;</span>
                         Downregulated only
                 </b-form-radio>
             </b-form-radio-group>
