@@ -51,7 +51,7 @@ jobs:
                   username: ${{ secrets.EC2_USER_CFDE_LIVER }}
                   key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
                   port: ${{ secrets.EC2_PORT || 22 }}
-                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}/*
+                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}/*
 
             - name: Deploy dist to EC2
               uses: appleboy/scp-action@v0.1.7
@@ -61,7 +61,7 @@ jobs:
                   key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
                   port: ${{ secrets.EC2_PORT || 22 }}
                   source: portals/CFDELiver_PROD/*
-                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}
+                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}
                   strip_components: 2
 
             - name: Run post-deploy script
