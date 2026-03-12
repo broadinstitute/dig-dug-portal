@@ -54,6 +54,7 @@ jobs:
                   source: portals/CFDELiver/*
                   target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}
                   strip_components: 1
+                  rm: true
 
             - name: Run post-deploy script
               uses: appleboy/ssh-action@v1.0.3
