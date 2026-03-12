@@ -165,7 +165,7 @@
                                             <div class="row select-library">
                                                 <div class="col-md-3">
                                                     <div class="label">Select a library type</div>
-                                                    <select v-model="$parent.selectedLibraryType">
+                                                    <select v-model="$parent.selectedLibraryType" class="form-control">
                                                         <option :value="''">
                                                             Select a library type
                                                         </option>
