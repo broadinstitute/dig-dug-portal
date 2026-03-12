@@ -1,0 +1,85 @@
+body.kp-default{
+    background-color: white;
+}
+
+.main-content{
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+
+    .section {
+        display: flex;
+        flex-direction: column;
+        background: #eee;
+        min-height: 100px;
+        width: 100%;
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    a,
+    a:visited{
+        color:var(--cfde-blue);
+        text-decoration: none;
+    }
+    a:hover{
+        color:var(--cfde-lite-blue);
+    }
+
+    button{
+        background: var(--cfde-blue);
+        color: white;
+        border: 0;
+        font-size: 1em;
+        cursor:pointer;
+    }
+    button:hover{
+        background: var(--cfde-lite-blue)
+    }
+    button,
+    input,
+    select{
+        border: 1px solid #aaa;
+        border-radius: .5em;
+        padding: .5em .8em;
+    }
+    select:hover{
+        background: var(--cfde-lite-blue);
+        cursor: pointer;
+        color:white;
+    }
+
+    button.lg,
+    input.lg,
+    select.lg{
+        font-size: 1.2em;
+    }
+    button.sm,
+    input.sm,
+    select.sm{
+        font-size: .8em;
+    }
+    input[type="checkbox"],
+    input[type="radio"]{
+        accent-color: var(--cfde-blue);
+        margin:0;
+    }
+    fieldset{
+        border:0;
+        margin:0;
+        padding:0;
+        padding-block: 0;
+        padding-inline: 0;
+        margin-inline: 0;
+    }
+    input:disabled,
+    button:disabled,
+    select:disabled{
+        cursor: not-allowed;
+        accent-color: #eee;
+        background: #eee;
+        color:#aaa;
+    }
+}
