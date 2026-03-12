@@ -4,15 +4,18 @@
     class="research-multi-bar-graphs"
     :style="rootStyle"
   >
-    <div v-if="legendSources.length" class="multi-bar-legend">
-      <span
-        v-for="src in legendSources"
-        :key="src"
-        class="legend-item"
-      >
-        <span class="legend-swatch" :style="{ background: colorBySource(src) }"></span>
-        <span class="legend-label">{{ src }}</span>
-      </span>
+    <div class="multi-bar-top-row">
+      <div v-if="legendSources.length" class="multi-bar-legend">
+        <span
+          v-for="src in legendSources"
+          :key="src"
+          class="legend-item"
+        >
+          <span class="legend-swatch" :style="{ background: colorBySource(src) }"></span>
+          <span class="legend-label">{{ src }}</span>
+        </span>
+      </div>
+      <a href="/datasetsSummary.html" class="multi-bar-summary-btn">Browse full data summary.</a>
     </div>
     <div class="multi-bar-grid">
       <div
@@ -244,7 +247,6 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 1.5rem;
-  margin-bottom: 1.25rem;
   padding: 0.5rem 0;
 }
 
@@ -336,5 +338,31 @@ export default {
   font-size: 0.8rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.multi-bar-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.multi-bar-summary-btn {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9rem;
+  background-color: #eeeeee;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.multi-bar-summary-btn:hover {
+  background-color: #cccccc;
+  text-decoration: none;
 }
 </style>
