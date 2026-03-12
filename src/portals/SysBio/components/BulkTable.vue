@@ -43,7 +43,7 @@
                 :sort-desc.sync="sortDesc"
             >
                 <template #cell(gene)="r">
-                    <button @click="findGene(r.item.gene)">{{ r.item.gene }}</button>
+                    <button class="invisible-button" @click="findGene(r.item.gene)">{{ r.item.gene }}</button>
                 </template>
         </b-table>
             <b-pagination
