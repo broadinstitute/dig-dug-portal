@@ -44,6 +44,15 @@ jobs:
               run: |
                   ls -la portals/CFDELiver
 
+            - name: Clear target directory on EC2
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
+                  port: ${{ secrets.EC2_PORT || 22 }}
+                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}/*
+
             - name: Deploy dist to EC2
               uses: appleboy/scp-action@v0.1.7
               with:
@@ -54,7 +63,6 @@ jobs:
                   source: portals/CFDELiver/*
                   target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}
                   strip_components: 1
-                  rm: true
 
             - name: Run post-deploy script
               uses: appleboy/ssh-action@v1.0.3
