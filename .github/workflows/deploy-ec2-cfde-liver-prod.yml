@@ -47,28 +47,28 @@ jobs:
             - name: Clear target directory on EC2
               uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
                   port: ${{ secrets.EC2_PORT || 22 }}
-                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}/*
+                  script: rm -rf ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}/*
 
             - name: Deploy dist to EC2
               uses: appleboy/scp-action@v0.1.7
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
                   port: ${{ secrets.EC2_PORT || 22 }}
                   source: portals/CFDELiver_PROD/*
-                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER_PROD }}
+                  target: ${{ secrets.EC2_TARGET_DIR_CFDE_LIVER }}
                   strip_components: 2
 
             - name: Run post-deploy script
               uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.EC2_HOST_CFDE_LIVER_PROD }}
-                  username: ${{ secrets.EC2_USER_CFDE_LIVER_PROD }}
-                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER_PROD }}
+                  host: ${{ secrets.EC2_HOST_CFDE_LIVER }}
+                  username: ${{ secrets.EC2_USER_CFDE_LIVER }}
+                  key: ${{ secrets.EC2_SSH_KEY_CFDE_LIVER }}
                   port: ${{ secrets.EC2_PORT || 22 }}
                   script: /opt/deploy/post-deploy.sh
