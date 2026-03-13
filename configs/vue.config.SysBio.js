@@ -52,6 +52,13 @@ let pages = {
         title: "Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "diffexp"]
     },
+    comparator: {
+        entry: "src/portals/SysBio/views/Comparator/main.js",
+        template: "src/portals/SysBio/views/index.html",
+        filename: "comp.html",
+        title: "Differential Expression Comparator",
+        chunks: ["chunk-vendors", "chunk-common", "comparator"]
+    },
     datasetsSummary: {
         entry: "src/portals/SysBio/views/datasetsSummary/main.js",
         template: "src/portals/SysBio/views/index.html",
