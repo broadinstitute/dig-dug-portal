@@ -32,9 +32,9 @@ new Vue({
     },
 
     watch: {
-        keyParamsPage(newPage, oldPage) {
+        async keyParamsPage(newPage, oldPage) {
             if (newPage !== oldPage) {
-                this.getContent(newPage)
+                await this.getContent(newPage)
             }
         },
     },
@@ -49,7 +49,9 @@ new Vue({
     },
 
     async created() {
-        this.pageContent = await getTextContent(this.pages[keyParams.page], true);
+        if (!!keyParams.page){
+            await this.getContent(keyParams.page);
+        }
     },
 
     methods: {
@@ -57,6 +59,12 @@ new Vue({
         csv2Json(DATA) {
             return dataConvert.csv2Json(DATA);
         },
+        async getContent(page){
+            console.log("Is this thing on?");
+            let byorPage = this.pages[page];
+            let pageContent = await getTextContent(byorPage, false, true);
+            this.pageContent = pageContent;
+        }
     },
 
     render(createElement, context) {
