@@ -27,7 +27,6 @@ export default new Vuex.Store({
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
     currentComparisons: {},
-    selectedCompType: "",
     selectedAMP: ""
   },
 
@@ -70,10 +69,6 @@ export default new Vuex.Store({
           }
         });
         for (const [k, v] of Object.entries(comparisons)){
-          let comptype = Array.from(v.label.matchAll(compTypeFinder))
-            .map(a => a[1])
-            .join(" vs ");
-          v.type = comptype;
           let ampAndCellType = v.label.split(":");
           v.amp = ampAndCellType[0];
           v.cellType = ampAndCellType[1];

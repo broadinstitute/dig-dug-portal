@@ -19,33 +19,14 @@
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
-                                        Select a comparison type
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section">
-                                        <select v-model="$store.state.selectedCompType"
-                                            class="form-control">
-                                            <option value="">Select a comparison type</option>
-                                            <option v-for="type in $parent.comptypes"
-                                                :value="type">
-                                                {{ type }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tabs-group">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Select an AMP
+                                        Select a comparison
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
                                         <select v-model="$store.state.selectedAMP"
                                             class="form-control">
-                                            <option value="">Select an AMP</option>
+                                            <option value="">Select a comparison</option>
                                             <option v-for="amp in $parent.amps"
                                                 :value="amp">
                                                 {{ amp }}
