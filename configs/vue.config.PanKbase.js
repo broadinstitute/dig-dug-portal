@@ -233,6 +233,13 @@ let pages = {
         filename: "celltype.html",
         title: "Cell Type",
         chunks: ["chunk-vendors", "chunk-common", "celltype"]
+    },
+    nmf: {
+        entry: "src/portals/PanKbase/views/NMF/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "nmf.html",
+        title: "NMF",
+        chunks: ["chunk-vendors", "chunk-common", "nmf"]
     }
 };
 
