@@ -22,13 +22,11 @@ export default new Vuex.Store({
     limit: 20,
     bulkData19K: [],
     selectedDataset: keyParams.dataset || 'sysbio_v1',
-    defaultComparison: "T001",
-    selectedComparison: keyParams.comparison || "",
+    selectedComp1: keyParams.comp1 || "",
+    selectedComp2: keyParams.comp2 || "",
     selectedGene: keyParams.gene || "",
     bulkFileUrl: `${BIO_INDEX_HOST}/api/raw/file/single_cell_bulk/`,
     currentComparisons: {},
-    selectedCompType: "",
-    selectedAMP: ""
   },
 
   mutations: {
@@ -37,10 +35,13 @@ export default new Vuex.Store({
     },
     setCurrentComparisons(state, data) {
       state.currentComparisons = data || state.currentComparisons;
-      state.defaultComparison = Object.keys(state.currentComparisons)[0];
+
     },
-    setSelectedComparison(state, comparison) {
-      state.selectedComparison = comparison;
+    setSelectedComp1(state, comparison) {
+      state.selectedComp1 = comparison;
+    },
+    setSelectedComp2(state, comparison) {
+      state.selectedComp2 = comparison;
     },
     setSelectedGene(state, gene){
       state.selectedGene = gene;
@@ -69,21 +70,17 @@ export default new Vuex.Store({
             comparisons[comp_id] = {label: b.comparison};
           }
         });
-        for (const [k, v] of Object.entries(comparisons)){
-          let comptype = Array.from(v.label.matchAll(compTypeFinder))
-            .map(a => a[1])
-            .join(" vs ");
-          v.type = comptype;
-          let ampAndCellType = v.label.split(":");
-          v.amp = ampAndCellType[0];
-          v.cellType = ampAndCellType[1];
-        }
       }
       context.commit("setBulkData19K", bulkDataObject);
       context.commit("setCurrentComparisons", comparisons);
+      context.dispatch("resetComparison");
     },
     resetComparison(context) {
-      context.commit("setSelectedComparison", context.state.defaultComparison);
+      let comps = Object.keys(context.state.currentComparisons);
+      let comp1 = comps[0];
+      let comp2 = comps[1];
+      context.commit("setSelectedComp1", comp1);
+      context.commit("setSelectedComp2", comp2);
     },
   },
 });

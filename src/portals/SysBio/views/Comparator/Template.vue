@@ -19,55 +19,17 @@
                             <div class="tabs-group">
                                 <div class="tabs-wrapper">
                                     <div class="tab">
-                                        Select a comparison type
+                                        Select comparison 1
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="tab-section">
-                                        <select v-model="$store.state.selectedCompType"
+                                        <select v-model="$store.state.selectedComp1"
                                             class="form-control">
-                                            <option value="">Select a comparison type</option>
-                                            <option v-for="type in $parent.comptypes"
-                                                :value="type">
-                                                {{ type }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tabs-group">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Select an AMP
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section">
-                                        <select v-model="$store.state.selectedAMP"
-                                            class="form-control">
-                                            <option value="">Select an AMP</option>
-                                            <option v-for="amp in $parent.amps"
-                                                :value="amp">
-                                                {{ amp }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tabs-group">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Select a cell type
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section">
-                                        <select v-model="$store.state.selectedComparison"
-                                            class="form-control">
-                                            <option value="">Select a cell type</option>
+                                            <option value="">Select a comparison</option>
                                             <option v-for="comp in $parent.comparisons"
                                                 :value="comp">
-                                                {{ $store.state.currentComparisons[comp].cellType
+                                                {{ $store.state.currentComparisons[comp].label
                                                 }}
                                             </option>
                                         </select>

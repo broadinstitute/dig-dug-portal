@@ -56,7 +56,6 @@ new Vue({
             enrichrDown: [],
             enrichrLibraries: [],
             enrichrByor: "matkp_enrichrlibraries", // Using MATKP list until further notice
-            byorDocs: "sysbiofairplex_geneexpressionbrowser",
             docs: "",
             enrichrLibrary: "KEGG_2015", //hardcoding default
             libraryPage: 1,
@@ -152,16 +151,14 @@ new Vue({
         selectedDataset() {
             return this.$store.state.selectedDataset;
         },
-        selectedComparison() {
-            return this.$store.state.selectedComparison;
-        },
         selectedGene() {
             return this.$store.state.selectedGene;
         },
         bulkData19K() {
+            // TODO join on gene
             let results = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                    && item.comparison_id === this.$store.state.selectedComparison);
+                    && item.comparison_id === this.$store.state.selectedComp1);
             return results;
         },
         volcanoConfig() {
@@ -195,45 +192,16 @@ new Vue({
                 return null;
             }
             let items = Object.keys(allComps);
-            return items.filter(i => 
-                allComps[i].type === this.$store.state.selectedCompType
-                && allComps[i].amp === this.$store.state.selectedAMP);
-        },
-        comptypes(){
-            if (!this.$store.state.currentComparisons){
-                return null;
-            }
-            let types = Object.values(this.$store.state.currentComparisons).map(v => v.type);
-            let typeArray = Array.from(new Set(types));
-            if (this.$store.state.selectedCompType === ""){
-                this.$store.state.selectedCompType = typeArray[0];
-            }
-            return typeArray;
-        },
-        amps(){
-            if (!this.$store.state.currentComparisons){
-                return null;
-            }
-            let types = Object.values(this.$store.state.currentComparisons).map(v => v.amp);
-            let typeArray = Array.from(new Set(types));
-            if (this.$store.state.selectedAMP === ""){
-                this.$store.state.selectedAMP = typeArray[0];
-            }
-            return typeArray;
-        },
-        upregulatedIn(){
-            if (this.$store.state.selectedDataset === 'bulkRNA_Emont2022_Humans_SAT'){
-                return 'insulin resistant';
-            }
-            let comparisonText = this.$store.state.currentComparisons[this.$store.state.selectedComparison].label;
-            let versus = /[^w]vs/;
-            return Formatters.snakeFormatter(comparisonText.split(versus)[0]);
+            return items;
         },
         kpDataset() {
             return keyParams.dataset;
         },
-        kpComparison() {
-            return keyParams.comparison;
+        kpComp1() {
+            return keyParams.comp1;
+        },
+        kpComp2() {
+            return keyParams.comp2;
         },
         kpGene() {
             return keyParams.gene;
@@ -280,8 +248,6 @@ new Vue({
             }
             this.getParams();
             this.enrichrLibraries = await getTextContent(this.enrichrByor);
-            const documentation = await getTextContent(this.byorDocs, true);
-            this.docs = documentation;
             await this.$store.dispatch("queryBulkFile");
             await this.populateEnrichr();
             this.dataReady = true;
@@ -370,9 +336,14 @@ new Vue({
                 await this.populateEnrichr();
             }
         },
-        selectedComparison(newData, oldData) {
+        "$store.state.selectedComp1"(newData, oldData) {
             if (newData !== oldData) {
-                keyParams.set({ comparison: newData });
+                keyParams.set({ comp1: newData });
+            }
+        },
+        "$store.state.selectedComp2"(newData, oldData) {
+            if (newData !== oldData) {
+                keyParams.set({ comp2: newData });
             }
         },
         selectedGene(newData, oldData) {
@@ -380,19 +351,19 @@ new Vue({
                 keyParams.set({ gene: newData });
             }
         },
-        comparisons(newData, oldData) {
-            if (this.$store.state.selectedComparison === "" || !newData.includes(this.selectedComparison)){
-                this.$store.state.selectedComparison = newData[0];
-            }
-        },
         kpDataset(newData, oldData) {
             if (newData !== oldData) {
                 this.$store.state.selectedDataset = newData;
             }
         },
-        kpComparison(newData, oldData) {
+        kpComp1(newData, oldData) {
             if (newData !== oldData) {
-                this.$store.state.selectedComparison = newData;
+                this.$store.state.selectedComp1 = newData;
+            }
+        },
+        kpComp2(newData, oldData) {
+            if (newData !== oldData) {
+                this.$store.state.selectedComp2 = newData;
             }
         },
         kpGene(newData, oldData) {
