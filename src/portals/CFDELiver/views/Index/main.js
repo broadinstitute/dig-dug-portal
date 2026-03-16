@@ -8,15 +8,21 @@ new Vue({
     mixins: [contentMixin],
     data() {
         return{
-            
+            pageContent: null,
         }
     },
     watch: {},
     computed: {},
     mounted(){},
-    created(){},
+    async created(){
+        await this.fetchInfo();
+    },
     methods: {
-
+        async fetchInfo() {
+            const res = await getTextContent("cfdeliver_home", false, true);
+            const clean = JSON.parse(res.field_data_table_format);
+            this.pageContent = clean;
+        },
     },
     render: (h) => h(Template),
 }).$mount("#app");
