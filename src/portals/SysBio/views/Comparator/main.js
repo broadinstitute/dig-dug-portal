@@ -174,7 +174,7 @@ new Vue({
                     || item.comparison_id === this.$store.state.selectedComp2);
             let resultsSorted = resultsUnsorted.sort((a,b) => b.gene.localeCompare(a.gene));
             let results = [];
-            while (resultsSorted.length > 0){
+            while (resultsSorted.length > 1){
                 let currentItem = resultsSorted.pop();
                 let nextItem = resultsSorted.pop();
                 if (currentItem.gene === nextItem.gene){
@@ -184,36 +184,18 @@ new Vue({
                         results.push(this.combineItems(nextItem, currentItem))
                     }
                     // test for a third item
+                    if (resultsSorted.length > 0){
+                        let thirdItem = resultsSorted[resultsSorted.length - 1];
+                        if (thirdItem.gene === currentItem.gene){
+                            console.error("Triplicate detected");
+                            return [];
+                        }
+                    }
                 } else {
                     resultsSorted.push(nextItem);
                 }
             }
             return results;
-        },
-        volcanoConfig() {
-            let config = {
-                "type": "volcano plot",
-                "label": "This is a Test",
-                "legend": "This is a Test",
-                "render by": "gene",
-                "x axis field": "logFoldChange",
-                "x axis label": "log2 Fold Change",
-                "y axis field": "-log10P",
-                "y axis label": "-log10(FDR adj. p)",
-                "width": 900,
-                "height": this.plotHeight,
-                "x condition": { 
-                    "combination": "or", 
-                    "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
-                //combination for condition can be "greater than", "lower than", "or" and "and."
-                "y condition": { 
-                    "combination": "greater than", 
-                    "greater than": parseFloat(this.volcanoYCondition) },
-                "dot label score": 2
-                //number of conditions that the value of each dot to meet to have labeled
-            };
-            return config;
         },
         comparisons() {
             let allComps = this.$store.state.currentComparisons;
@@ -309,6 +291,31 @@ new Vue({
             } catch (error) {
                 console.error("Error: ", error);
             }
+        },
+        getVolcanoConfig(index){
+            let config = {
+                "type": "volcano plot",
+                "label": "This is a Test",
+                "legend": "This is a Test",
+                "render by": "gene",
+                "x axis field": `logFoldChange_${index}`,
+                "x axis label": "log2 Fold Change",
+                "y axis field": `minusLog10P_${index}`,
+                "y axis label": "-log10(FDR adj. p)",
+                "width": 900,
+                "height": this.plotHeight,
+                "x condition": { 
+                    "combination": "or", 
+                    "greater than": this.volcanoXConditionGreater, 
+                    "lower than": this.volcanoXConditionLower },
+                //combination for condition can be "greater than", "lower than", "or" and "and."
+                "y condition": { 
+                    "combination": "greater than", 
+                    "greater than": parseFloat(this.volcanoYCondition) },
+                "dot label score": 2
+                //number of conditions that the value of each dot to meet to have labeled
+            };
+            return config;
         },
         selectLibrary(library){
             this.enrichrLibrary = library.item["Gene-set Library"];

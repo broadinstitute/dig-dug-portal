@@ -5,7 +5,7 @@
           <sysbio-header></sysbio-header>
           <!-- BODY -->
           <div class="sysbio-body f-col">
-            <h2>Differential Gene Expression Browser</h2>
+            <h2>Differential Gene Expression Comparator</h2>
             <div v-html="$parent.docs" class="docs">
             </div>
             <div class="flex-column flex-small-gap">
@@ -74,9 +74,9 @@
                                                 <div v-if="$parent.bulkData19K.length> 0">
                                                     <bulk-volcano-plot
                                                         :renderData="$parent.bulkData19K"
-                                                        :renderConfig="$parent.volcanoConfig"
+                                                        :renderConfig="$parent.getVolcanoConfig(1)"
                                                         :margin="$parent.margin"
-                                                        sectionId="_bulk"
+                                                        sectionId="_bulk1"
                                                         :selectedGene="$store.state.selectedGene"
                                                         :upregulatedIn="$parent.upregulatedIn"
                                                         @highlight="gene => $parent.highlight(gene)">
