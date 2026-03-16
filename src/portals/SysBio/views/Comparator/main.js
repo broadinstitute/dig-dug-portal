@@ -302,7 +302,7 @@ new Vue({
                 "x axis label": "log2 Fold Change",
                 "y axis field": `minusLog10P_${index}`,
                 "y axis label": "-log10(FDR adj. p)",
-                "width": 900,
+                "width": 500,
                 "height": this.plotHeight,
                 "x condition": { 
                     "combination": "or", 

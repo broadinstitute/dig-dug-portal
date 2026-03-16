@@ -91,7 +91,7 @@
                                     <div class="tab-section" >
                                         <div class="flex-gap">
                                             <div class="wide-block">
-                                                <div v-if="$parent.bulkData19K.length> 0">
+                                                <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
                                                     <div id="volcano1">
                                                         Comparison 1
                                                         <bulk-volcano-plot
@@ -481,5 +481,8 @@ button.hide-table {
     padding: 20px;
     border: 1px solid goldenrod;
     background-color: gold;
+}
+#volcanos {
+    display: inherit;
 }
 </style>
