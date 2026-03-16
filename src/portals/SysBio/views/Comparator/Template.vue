@@ -36,6 +36,26 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="tabs-group">
+                                <div class="tabs-wrapper">
+                                    <div class="tab">
+                                        Select comparison 2
+                                    </div>
+                                </div>
+                                <div class="tabs-section-wrapper">
+                                    <div class="tab-section">
+                                        <select v-model="$store.state.selectedComp2"
+                                            class="form-control">
+                                            <option value="">Select a comparison</option>
+                                            <option v-for="comp in $parent.comparisons"
+                                                :value="comp">
+                                                {{ $store.state.currentComparisons[comp].label
+                                                }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">
@@ -84,7 +104,7 @@
                                                     </bulk-volcano-plot>
                                                 </div>
                                                 <div v-else>
-                                                    Select a dataset and a comparison to view the volcano plot.
+                                                    Select two different comparisons to view the volcano plot.
                                                 </div>
                                             </div>
                                         </div>
