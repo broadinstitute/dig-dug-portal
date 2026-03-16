@@ -93,7 +93,9 @@
                                             <div class="wide-block">
                                                 <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
                                                     <div id="volcano1">
-                                                        Comparison 1
+                                                        <div class="label">
+                                                            {{ $store.state.currentComparisons[$store.state.selectedComp1].label}}
+                                                        </div>
                                                         <bulk-volcano-plot
                                                             :renderData="$parent.bulkData19K"
                                                             :renderConfig="$parent.getVolcanoConfig(1)"
@@ -106,7 +108,9 @@
                                                         </bulk-volcano-plot>
                                                     </div>
                                                     <div id="volcano2">
-                                                        Comparison 2
+                                                        <div class="label">
+                                                            {{ $store.state.currentComparisons[$store.state.selectedComp2].label}}
+                                                        </div>
                                                         <bulk-volcano-plot
                                                             :renderData="$parent.bulkData19K"
                                                             :renderConfig="$parent.getVolcanoConfig(2)"
@@ -484,5 +488,13 @@ button.hide-table {
 }
 #volcanos {
     display: inherit;
+}
+#volcano1, #volcano2 {
+    margin-left: 50px;
+    margin-right: 50px;
+}
+#volcanos div.label {
+    font-size: larger;
+    font-weight: bold;
 }
 </style>
