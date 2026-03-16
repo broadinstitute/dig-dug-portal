@@ -92,16 +92,32 @@
                                         <div class="flex-gap">
                                             <div class="wide-block">
                                                 <div v-if="$parent.bulkData19K.length> 0">
-                                                    <bulk-volcano-plot
-                                                        :renderData="$parent.bulkData19K"
-                                                        :renderConfig="$parent.getVolcanoConfig(1)"
-                                                        :margin="$parent.margin"
-                                                        sectionId="_bulk1"
-                                                        :selectedGene="$store.state.selectedGene"
-                                                        :upregulatedIn="$parent.upregulatedIn"
-                                                        @highlight="gene => $parent.highlight(gene)">
+                                                    <div id="volcano1">
+                                                        Comparison 1
+                                                        <bulk-volcano-plot
+                                                            :renderData="$parent.bulkData19K"
+                                                            :renderConfig="$parent.getVolcanoConfig(1)"
+                                                            :margin="$parent.margin"
+                                                            sectionId="_bulk1"
+                                                            :selectedGene="$store.state.selectedGene"
+                                                            :upregulatedIn="$parent.upregulatedIn"
+                                                            @highlight="gene => $parent.highlight(gene)">
 
-                                                    </bulk-volcano-plot>
+                                                        </bulk-volcano-plot>
+                                                    </div>
+                                                    <div id="volcano2">
+                                                        Comparison 2
+                                                        <bulk-volcano-plot
+                                                            :renderData="$parent.bulkData19K"
+                                                            :renderConfig="$parent.getVolcanoConfig(2)"
+                                                            :margin="$parent.margin"
+                                                            sectionId="_bulk2"
+                                                            :selectedGene="$store.state.selectedGene"
+                                                            :upregulatedIn="$parent.upregulatedIn"
+                                                            @highlight="gene => $parent.highlight(gene)">
+
+                                                        </bulk-volcano-plot>
+                                                    </div>
                                                 </div>
                                                 <div v-else>
                                                     Select two different comparisons to view the volcano plot.
