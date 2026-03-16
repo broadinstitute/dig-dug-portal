@@ -4,52 +4,6 @@
 		<div v-if="isGenerating && perGeneMode" class="generation-status-fixed">
 			(Generating protocol: ({{ elapsedTime }}) {{ currentGeneName || '...' }} Remaining genes {{ remainingGenesCount }} ({{ remainingGeneSymbols.join(', ') }}))
 		</div>
-		<!-- URL Parameter Choice Dialog -->
-		<div v-if="showUrlChoiceDialog" class="url-choice-dialog-overlay">
-			<div class="url-choice-dialog">
-				<div class="url-choice-header">
-					<h3>Choose Gene Source</h3>
-					<p>Both associations and genes parameters were found in the URL. Please choose which gene source you'd like to use for validation:</p>
-				</div>
-				
-				<div class="url-choice-options">
-					<div class="url-choice-option">
-						<div class="url-choice-title">
-							<h4>Genes from Associations</h4>
-							<p>Fetch genes from phenotype-gene set associations</p>
-						</div>
-						<div class="url-choice-preview">
-							<strong>Associations data:</strong>
-							<pre>{{ urlChoiceOptions.associations }}</pre>
-						</div>
-						<button @click="chooseAssociations" class="btn btn-primary url-choice-btn">
-							Use Associations
-						</button>
-					</div>
-					
-					<div class="url-choice-option">
-						<div class="url-choice-title">
-							<h4>Genes from URL Parameter</h4>
-							<p>Use the specific genes provided in the URL</p>
-						</div>
-						<div class="url-choice-preview">
-							<strong>Genes:</strong>
-							<span class="genes-list">{{ urlChoiceOptions.genes.join(', ') }}</span>
-						</div>
-						<button @click="chooseGenes" class="btn btn-primary url-choice-btn">
-							Use Genes
-						</button>
-					</div>
-				</div>
-				
-				<div class="url-choice-actions">
-					<button @click="cancelUrlChoice" class="btn btn-outline-secondary">
-						Cancel
-					</button>
-				</div>
-			</div>
-		</div>
-		
 		<!-- Welcome Popup for New Users -->
 		<div v-if="showWelcomePopup" class="welcome-popup-overlay">
 			<div class="welcome-popup">
@@ -323,7 +277,7 @@
                             <h5 style="margin: 0;">Genes </h5>
                             
                         </div>
-                        <small class="format-suggestion">(Switch to Edit mode to enter genes manually. Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)). Click gene chips to select genes.
+                        <small class="format-suggestion">(Switch to Edit mode to enter genes manually. Enter genes separated by commas (e.g., GENE1, GENE2, GENE3)). Click gene chips to select genes for grouping.
                             <button 
                                 @click="genesEditMode = !genesEditMode"
                                 class="btn btn-sm"
@@ -333,64 +287,7 @@
                                 {{ genesEditMode ? 'View' : 'Edit list' }}
                             </button>
                         </small>
-                        
-                        <!-- Gene Filter Section (only when genes are from associations, not manual/URL) -->
-                        <div v-if="geneData.length > 0 && !hasManualGenes" class="gene-filter-section" style="margin-bottom: 12px; padding: 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
-                            <div class="filter-options-inline" style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px;">
-                                <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <input 
-                                            type="checkbox" 
-                                            v-model="showOnlyLogBfGenes"
-                                            @change="updateGenesListFromFilters"
-                                            class="overlap-checkbox"
-                                            style="cursor: pointer;"
-                                        />
-                                        <span style="font-size: 14px; color: #333;">
-                                            Filter out {{ genesWithLogBfZero }} genes with direct genetic support score == 0
-                                        </span>
-                                    </label>
-                                </div>
-                                <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label" :class="{ 'disabled': shouldDisableOverlappingFilter }" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <input 
-                                            type="checkbox" 
-                                            v-model="showOnlyOverlappingGenes"
-                                            @change="updateGenesListFromFilters"
-                                            class="overlap-checkbox"
-                                            :disabled="shouldDisableOverlappingFilter"
-                                            style="cursor: pointer;"
-                                        />
-                                        <span v-if="!shouldDisableOverlappingFilter" style="font-size: 14px; color: #333;">
-                                            Show {{ overlappingGenesCount }} overlapping genes only
-                                        </span>
-                                        <span v-else class="disabled-text" style="font-size: 14px; color: #999;">
-                                            Overlapping genes filter (disabled - only one association)
-                                        </span>
-                                    </label>
-                                </div>
-                                <div class="overlap-filter">
-                                    <label class="overlap-checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <input 
-                                            type="checkbox" 
-                                            v-model="sortByGeneticNovelty"
-                                            @change="updateGenesListFromFilters"
-                                            class="overlap-checkbox"
-                                            style="cursor: pointer;"
-                                        />
-                                        <span style="font-size: 14px; color: #333;">
-                                            Sort by genetic novelty
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div v-if="filteredGenes.length > 0" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #dee2e6;">
-                                <small style="color: #666; font-size: 12px;">
-                                    Showing {{ filteredGenes.length }} of {{ geneData.length }} genes after filtering
-                                </small>
-                            </div>
-                        </div>
-                        
+
                         <!-- View Mode: Gene Chips -->
                         <div v-if="!genesEditMode" class="genes-view-mode" style="padding: 8px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6; max-height: 200px; overflow-y: auto;">
                             <div v-if="organizedGenes.length > 0" class="gene-chips-container" style="display: flex; flex-wrap: wrap; gap: 4px;">
@@ -431,38 +328,10 @@
                         </div>
                     </div>
 
-                    <!-- 2-3. Phenotype-gene set associations Field -->
-                    <div class="gene-sets-section" style="margin-bottom: 20px;">
-                        <div class="associations-header" @click="toggleAssociationsSection">
-                            <h5><span class="associations-toggle">{{ showAssociationsSection ? '−' : '+' }}</span> Load Genes from Phenotype Gene set Associations (Optional)</h5>
-                        </div>
-                        <div v-if="showAssociationsSection" class="gene-sets-input">
-                            <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                            <textarea 
-                                id="gene-sets"
-                                v-model="geneSets" 
-                                placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
-                                class="gene-sets-field"
-                                rows="3"
-                            ></textarea>
-                            <div v-if="geneSets.trim() && (genesList.length === 0 || associationsModified)" class="load-genes-section">
-                                <button 
-                                    @click="loadGenesFromAssociations" 
-                                    class="btn btn-secondary load-genes-btn"
-                                    :disabled="isLoadingGenes"
-                                >
-                                    <span v-if="isLoadingGenes" class="loading-spinner-small"></span>
-                                    {{ isLoadingGenes ? 'Loading genes...' : 'Load genes' }}
-                                </button>
-                                <small class="load-genes-hint">Click to fetch genes from the phenotype-gene set associations above</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Score genes and Rank genes buttons -->
-                    <div class="gene-utility-section" style="margin-bottom: 20px;">
+                    <!-- Group and Tier Genes (visible when there are genes, e.g. from URL or manual) -->
+                    <div class="gene-utility-section gene-utility-section-centered" style="margin-bottom: 20px;">
                         <research-gene-set-utility
-                            v-if="genesList.length > 0 && phenotypeSearch.trim()"
+                            v-if="genesList.length > 0 && (phenotypeSearch.trim() || urlHasGenes)"
                             :genes="genesList"
                             :hypothesis="phenotypeSearch"
                             :research-context="researchContext"
@@ -479,12 +348,13 @@
                                 model: sectionConfigs.model || (sectionConfigs.llm === 'openai' ? 'gpt-5-mini' : 'gemini-2.5-flash-lite')
                             }"
                             :hide-buttons="false"
+                            :show-only-group-and-tier="true"
                             @update:selectedGenes="handleGenesSelected"
                             @grouped-genes="handleGroupedGenes"
                         />
                         <div v-else style="padding: 12px; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107;">
                             <p style="margin: 0; color: #856404; font-size: 14px;">
-                                <strong>Note:</strong> Please provide genes and a hypothesis to enable gene scoring and ranking.
+                                <strong>Note:</strong> Add genes (e.g. from URL parameters or manually) to enable Group and Tier Genes.
                             </p>
                         </div>
                     </div>
@@ -501,9 +371,6 @@
             <div class="action-buttons">
                 <button @click="draftValidationPlan" class="btn btn-primary">
                     Review & Generate Experiment Plan
-                </button>
-                <button @click="resetAllSelections" class="btn btn-secondary">
-                    Reset
                 </button>
             </div>
         </div>
@@ -608,9 +475,9 @@
                                         <em>This will generate one comprehensive experiment plan that tests all selected genes ({{ selectedGenes.join(', ') }}) together in combination with your hypothesis.</em>
                                     </p>
                                     <p v-else-if="geneExperimentStrategy === 'per_groups' && groupedGenes && groupedGenes.tiers">
-                                        <em>This will generate experiment plans for each gene group from the grouping/tiering strategy. 
+                                        <em>This will generate experiment plans for each selected gene group.
                                         <span v-if="groupedGenes.tiers">
-                                            Total groups: {{ groupedGenes.tiers.reduce((sum, tier) => sum + tier.groups.length, 0) }} across {{ groupedGenes.tiers.length }} tier(s).
+                                            Selected: {{ selectedGroupCount }} of {{ groupedGenes.tiers.reduce((sum, tier) => sum + tier.groups.length, 0) }} groups across {{ groupedGenes.tiers.length }} tier(s). Unselect groups in the Group and Tier dialog to exclude them.
                                         </span>
                                         </em>
                                     </p>
@@ -628,11 +495,12 @@
                         
                         
                         <div class="experiment-actions">
-                            <button @click="generateExperiment" class="btn btn-primary" :disabled="isGenerating || selectedGenes.length === 0 || (geneExperimentStrategy === 'per_groups' && (!groupedGenes || !groupedGenes.tiers || groupedGenes.tiers.length === 0))">
+                            <button @click="generateExperiment" class="btn btn-primary" :disabled="isGenerating || selectedGenes.length === 0 || (geneExperimentStrategy === 'per_groups' && (!groupedGenes || !groupedGenes.tiers || groupedGenes.tiers.length === 0 || selectedGroupCount === 0))">
                                 <span v-if="isGenerating" class="loading-spinner-small"></span>
                                 {{ isGenerating ? `Generating Experiments (${elapsedTime})` : 
                                    selectedGenes.length === 0 ? '⚠️ Select Genes First' : 
                                    (geneExperimentStrategy === 'per_groups' && (!groupedGenes || !groupedGenes.tiers || groupedGenes.tiers.length === 0)) ? '⚠️ Generate Gene Groups First' : 
+                                   (geneExperimentStrategy === 'per_groups' && selectedGroupCount === 0) ? '⚠️ Select at Least One Group' : 
                                    'Generate Experiment' }}
                             </button>
                         </div>
@@ -1404,8 +1272,7 @@ export default {
             // UI state
             researchContext: '',
             phenotypeSearch: '',
-            geneSets: '',
-            genesList: [], // List of genes from associations or manual input
+            genesList: [], // List of genes from URL or manual input
             genesListString: '', // String representation of genesList for editing
             selectedAssayTypes: [],
             selectedCellTypes: [],
@@ -1427,9 +1294,6 @@ export default {
             generationStartTime: null,
             generationTimer: null,
             elapsedTime: '0:00',
-            selectedAssociationGroups: [],
-            associationGroups: [],
-            ignoreAssociations: false,
             showDropdowns: {
                 assayTypes: false,
                 cellTypes: false,
@@ -1438,10 +1302,6 @@ export default {
             // Gene data table properties
             geneData: [],
             originalGeneData: [], // Store original data before merging
-            filteredGenes: [],
-            filteredOutCount: 0, // Count of genes filtered out due to log_bf = 0
-            overlappingFilteredCount: 0, // Count of genes filtered out by overlapping filter
-            showOnlyLogBfGenes: true, // Filter to show only genes with log_bf > 0
             currentPage: 1,
             itemsPerPage: 10,
             selectedGenes: [],
@@ -1451,34 +1311,17 @@ export default {
             geneExperimentStrategy: 'individual', // 'individual', 'all_together', or 'per_groups'
             // Grouped genes data from grouping/tiering
             groupedGenes: null,
-            // Gene filter properties
-            priorWeight: 0,
-            minScore: 0,
-            showOnlyOverlappingGenes: true,
-            sortByGeneticNovelty: false, // Sort by genetic novelty (alpha = 1) or alphabetically (alpha = 0)
             // Evidence view state
             expandedGenes: [],
-            // Gene loading state
-            isLoadingGenes: false,
-            // Track if associations have been modified since last gene load
-            associationsModified: false,
             // Citation popup state
             showCitationPopup: false,
             // Configuration section state
             showConfigurationSection: false,
-            // Associations section state
-            showAssociationsSection: false,
 			// Disclaimer toggle state
 			showDisclaimer: false,
 			// Manual gene input state
 			showManualGeneInput: false,
 			manualGenes: '',
-			// URL parameter choice dialog
-			showUrlChoiceDialog: false,
-			urlChoiceOptions: {
-				associations: null,
-				genes: null
-			},
 			// Welcome popup for new users
 			showWelcomePopup: false,
 			// URL parameter detection for welcome popup
@@ -1510,12 +1353,10 @@ export default {
 		// Check for URL parameters to determine welcome popup display
 		const urlParams = new URLSearchParams(window.location.search);
 		const hasGenes = urlParams.has('genes') && urlParams.get('genes').trim() !== '';
-		const hasAssociations = urlParams.has('associations') && urlParams.get('associations').trim() !== '';
-		const hasGeneSets = urlParams.has('geneSets') && urlParams.get('geneSets').trim() !== '';
 		const hasHypothesis = urlParams.has('hypothesis') && urlParams.get('hypothesis').trim() !== '';
 		const hasResearchContext = urlParams.has('researchContext') && urlParams.get('researchContext').trim() !== '';
 		
-		const hasAnyGeneSource = hasGenes || hasAssociations || hasGeneSets;
+		const hasAnyGeneSource = hasGenes;
 		
 		// Set flags for welcome popup display
 		this.urlHasGenes = hasAnyGeneSource;
@@ -1646,20 +1487,21 @@ export default {
 			return this.selectedGenes.slice(startIdx);
 		},
 		totalPages() {
-			return Math.ceil(this.filteredGenes.length / this.itemsPerPage);
+			return Math.ceil(this.geneData.length / this.itemsPerPage);
 		},
 		paginatedGeneData() {
 			const start = (this.currentPage - 1) * this.itemsPerPage;
 			const end = start + this.itemsPerPage;
 			return this.geneData.slice(start, end);
 		},
-		paginatedFilteredGenes() {
-			const start = (this.currentPage - 1) * this.itemsPerPage;
-			const end = start + this.itemsPerPage;
-			return this.filteredGenes.slice(start, end);
-		},
 		filteredGeneCount() {
-			return this.filteredGenes.length;
+			return this.geneData.length;
+		},
+		selectedGroupCount() {
+			if (!this.groupedGenes || !this.groupedGenes.tiers || !this.groupedGenes.tiers.length) return 0;
+			return this.groupedGenes.tiers.reduce((sum, tier) => {
+				return sum + (tier.groups || []).filter(g => g.selectedForProtocol !== false).length;
+			}, 0);
 		},
 		visiblePages() {
 			const pages = [];
@@ -1685,44 +1527,6 @@ export default {
 			return this.paginatedGeneData.length > 0 && 
 				   this.paginatedGeneData.every(item => this.selectedGenes.includes(item.gene));
 		},
-		genesWithLogBfZero() {
-			// Count genes with log_bf = 0
-			return this.geneData.filter(gene => gene.log_bf === 0).length;
-		},
-		overlappingGenesCount() {
-			// Count genes that appear in multiple associations
-			const geneCounts = {};
-			this.originalGeneData.forEach(item => {
-				if (item.gene) {
-					geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
-				}
-			});
-			return this.geneData.filter(gene => geneCounts[gene.gene] > 1).length;
-		},
-		hasOnlyOneAssociation() {
-			// Check if there's only one association in the geneSets
-			if (!this.geneSets.trim()) {
-				return false;
-			}
-			
-			const lines = this.geneSets.split('\n').filter(line => line.trim());
-			return lines.length === 1;
-		},
-		hasOnlyOneAssociationFromData() {
-			// Check if there's only one association based on the actual gene data
-			// Count unique phenotype-geneSet combinations in originalGeneData
-			const associations = new Set();
-			this.originalGeneData.forEach(item => {
-				if (item.phenotype && item.gene_set) {
-					associations.add(`${item.phenotype}-${item.gene_set}`);
-				}
-			});
-			return associations.size === 1;
-		},
-		shouldDisableOverlappingFilter() {
-			// Disable overlapping filter if there's only one association or if it's manual genes
-			return this.hasOnlyOneAssociation || this.hasOnlyOneAssociationFromData || this.hasManualGenes;
-		},
 	},
     watch: {
         utilsBox: {
@@ -1733,31 +1537,6 @@ export default {
             },
             immediate: true
         },
-        geneSets(newVal, oldVal) {
-            // Track when associations are modified
-            if (oldVal !== undefined && newVal !== oldVal) {
-                // If geneSets is cleared, reset the modified flag
-                if (!newVal.trim()) {
-                    this.associationsModified = false;
-                    console.log('Associations cleared, Load Genes button hidden');
-                } else {
-                    this.associationsModified = true;
-                    console.log('Associations modified, Load Genes button should appear');
-                }
-            }
-        },
-        priorWeight(newVal, oldVal) {
-            // Update filtered genes when slider value changes
-            console.log(`Prior weight changed from ${oldVal} to ${newVal}`);
-            this.updateFilteredGenes();
-        },
-        shouldDisableOverlappingFilter(newVal) {
-            // If overlapping filter should be disabled, turn it off
-            if (newVal && this.showOnlyOverlappingGenes) {
-                this.showOnlyOverlappingGenes = false;
-                this.updateFilteredGenes();
-            }
-        }
 	},
 	methods: {
         kcURL,
@@ -1871,76 +1650,6 @@ export default {
 			// Open in new tab
 			window.open(exploreUrl, '_blank');
 		},
-		updateFilteredGenes() {
-			// Start with all genes
-			let genesToFilter = this.geneData;
-			
-			// Apply log_bf filter if enabled (but skip for manual genes)
-			if (this.showOnlyLogBfGenes) {
-				const beforeLogBfFilter = this.geneData.length;
-				genesToFilter = this.geneData.filter(gene => gene.isManual || gene.log_bf > 0);
-				this.filteredOutCount = beforeLogBfFilter - genesToFilter.length;
-				console.log(`Log_bf filter: ${genesToFilter.length} genes with log_bf > 0 or manual (${this.filteredOutCount} filtered out)`);
-			} else {
-				this.filteredOutCount = 0;
-			}
-			
-			// Apply overlapping genes filter if enabled AND there are multiple associations (but skip for manual genes)
-			if (this.showOnlyOverlappingGenes && !this.shouldDisableOverlappingFilter) {
-				// Count gene occurrences in original data
-				const geneCounts = {};
-				this.originalGeneData.forEach(item => {
-					if (item.gene) {
-						geneCounts[item.gene] = (geneCounts[item.gene] || 0) + 1;
-					}
-				});
-				
-				// Filter to only genes that appear more than once OR are manual genes
-				const beforeOverlapFilter = genesToFilter.length;
-				genesToFilter = genesToFilter.filter(gene => gene.isManual || geneCounts[gene.gene] > 1);
-				this.overlappingFilteredCount = beforeOverlapFilter - genesToFilter.length;
-				
-				console.log(`Overlapping genes filter: ${genesToFilter.length} genes appear in multiple associations or are manual (${this.overlappingFilteredCount} filtered out)`);
-			} else {
-				this.overlappingFilteredCount = 0;
-				if (this.shouldDisableOverlappingFilter) {
-					console.log(`Overlapping genes filter disabled - only one association or manual genes`);
-				}
-			}
-			
-			// Calculate the score for each gene using: Novelty = D * (1 - I) * alpha
-			// where D = Direct PPA, I = Indirect PPA, alpha = priorWeight
-			const scoredGenes = genesToFilter.map(gene => {
-				// For manual genes, use a default score or skip calculation
-				if (gene.isManual) {
-					// Manual genes get a default score of 0.5 (middle range)
-					return { ...gene, calculatedScore: 0.5 };
-				}
-				
-				// Use pre-calculated PPA values if available, otherwise calculate them
-				const directPPA = gene.directPPA || this.calculatePPA(gene.log_bf || 0);
-				const indirectPPA = gene.indirectPPA || this.calculatePPA(gene.prior || 0);
-				
-				// Calculate novelty score: D * (1 - I) * alpha
-				const score = directPPA * (1 - indirectPPA) * this.priorWeight;
-				return { ...gene, calculatedScore: score };
-			});
-			
-			// Sort by calculated score (descending)
-			scoredGenes.sort((a, b) => b.calculatedScore - a.calculatedScore);
-			
-			// Update minScore to the lowest score in the filtered set
-			this.minScore = scoredGenes.length > 0 ? scoredGenes[scoredGenes.length - 1].calculatedScore : 0;
-			
-			// Update filtered genes using Vue.set to ensure reactivity
-			this.$set(this, 'filteredGenes', scoredGenes);
-			
-			// Reset to first page when filter changes
-			this.currentPage = 1;
-			
-			// Debug logging
-			console.log(`Filter updated: ${this.filteredGenes.length} genes, priorWeight: ${this.priorWeight}, minScore: ${this.minScore.toFixed(2)}, overlappingOnly: ${this.showOnlyOverlappingGenes}`);
-		},
 		toggleAllGenes() {
 			if (this.allGenesSelected) {
 				// Unselect all genes on current page
@@ -2003,54 +1712,6 @@ export default {
 			// Parse the string and update genesList
 			const geneList = this.genesListString.split(',').map(gene => gene.trim()).filter(gene => gene);
 			this.genesList = [...new Set(geneList)].sort();
-		},
-		updateGenesListFromFilters() {
-			// Update filteredGenes first
-			this.updateFilteredGenes();
-			
-			// Get the source data (filteredGenes or geneData)
-			const sourceData = this.filteredGenes.length > 0 ? this.filteredGenes : this.geneData;
-			
-			// Extract unique genes with their data
-			const geneMap = new Map();
-			sourceData.forEach(gene => {
-				if (gene.gene && !geneMap.has(gene.gene)) {
-					geneMap.set(gene.gene, gene);
-				}
-			});
-			
-			// Convert to array of gene objects
-			const genesWithData = Array.from(geneMap.values());
-			
-			// Sort based on sortByGeneticNovelty checkbox
-			let sortedGenes;
-			if (this.sortByGeneticNovelty) {
-				// Sort by genetic novelty: D * (1 - I) * alpha (where alpha = 1)
-				const alpha = 1;
-				genesWithData.forEach(gene => {
-					// Get direct and indirect PPAs (already calculated or calculate them)
-					const D = gene.directPPA !== undefined ? gene.directPPA : this.calculatePPA(gene.log_bf || 0);
-					const I = gene.indirectPPA !== undefined ? gene.indirectPPA : this.calculatePPA(gene.prior || 0);
-					// Calculate genetic novelty
-					gene.geneticNovelty = D * (1 - I) * alpha;
-				});
-				
-				// Sort by genetic novelty (descending - highest first)
-				sortedGenes = genesWithData.sort((a, b) => {
-					const noveltyA = a.geneticNovelty || 0;
-					const noveltyB = b.geneticNovelty || 0;
-					return noveltyB - noveltyA; // Descending order
-				}).map(g => g.gene);
-			} else {
-				// Sort alphabetically (alpha = 0)
-				sortedGenes = genesWithData.map(g => g.gene).sort((a, b) => 
-					a.localeCompare(b, undefined, { sensitivity: 'base' })
-				);
-			}
-			
-			// Update genesList and genesListString
-			this.genesList = sortedGenes;
-			this.genesListString = sortedGenes.join(', ');
 		},
 		exportSelectedGenes() {
 			if (this.selectedGenes.length === 0) {
@@ -2228,10 +1889,6 @@ export default {
 			// Check if keyParams exist and populate fields
 			if (this.utilsBox && this.utilsBox.keyParams) {
 				
-				let hypothesisFound = false;
-				let hasAssociations = false;
-				let hasGenes = false;
-				
 				// Populate research context field if keyParams['researchContext'] exists
 				if (this.utilsBox.keyParams['researchContext'] && typeof this.utilsBox.keyParams['researchContext'] === 'string') {
 					this.researchContext = this.utilsBox.keyParams['researchContext'];
@@ -2240,81 +1897,17 @@ export default {
 				// Populate hypothesis field if keyParams['hypothesis'] exists
 				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
 					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
-					hypothesisFound = true;
-				}
-				
-				// Check for associations parameter
-				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
-					this.geneSets = this.utilsBox.keyParams['geneSets'];
-					hasAssociations = true;
-				}
-				
-				// Check for associations parameter (alternative)
-				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
-					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
-					hasAssociations = true;
 				}
 				
 				// Check for genes parameter
 				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
 					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
-					// Remove duplicates and sort alphabetically
 					const uniqueGeneList = [...new Set(geneList)];
 					const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 					if (sortedGeneList.length > 0) {
-						hasGenes = true;
-						this.urlChoiceOptions.genes = sortedGeneList;
+						await this.addGenesFromUrl(sortedGeneList);
 					}
-
 				}
-				
-				// If both associations and genes are present, show choice dialog
-				if (hasAssociations && hasGenes) {
-					this.urlChoiceOptions.associations = this.geneSets;
-					this.showUrlChoiceDialog = true;
-					return; // Wait for user choice
-				}
-				
-				// If only associations, proceed with associations
-				if (hasAssociations && !hasGenes) {
-					await this.fetchGenesFromAssociations();
-				}
-				
-				// If only genes, proceed with genes
-				if (!hasAssociations && hasGenes) {
-					await this.addGenesFromUrl(this.urlChoiceOptions.genes);
-				}
-				
-				// If hypothesis was found, open the configure panel instead of generating draft
-				if (hypothesisFound) {
-					// Configuration panel is now always visible
-					// Scroll disabled to allow users to see genes getting fetched
-					// this.$nextTick(() => {
-					// 	setTimeout(() => {
-					// 		const configurePanel = document.getElementById('planner-search-ui');
-					// 		if (configurePanel) {
-					// 			configurePanel.scrollIntoView({ 
-					// 				behavior: 'smooth', 
-					// 				block: 'start',
-					// 				inline: 'nearest'
-					// 			});
-					// 		}
-					// 	}, 500); // Wait for panel to open
-					// });
-				}
-			}
-		},
-		async loadGenesFromAssociations() {
-			try {
-				this.isLoadingGenes = true;
-				await this.fetchGenesFromAssociations();
-				// Reset the modified flag after successful gene loading
-				this.associationsModified = false;
-				console.log('Genes loaded successfully, associations modified flag reset');
-			} catch (error) {
-				console.error('Error loading genes from associations:', error);
-			} finally {
-				this.isLoadingGenes = false;
 			}
 		},
 		toggleManualGeneInput() {
@@ -2375,9 +1968,6 @@ export default {
 			this.genesList = [...this.genesList, ...geneList].filter((gene, index, self) => self.indexOf(gene) === index).sort();
 			this.genesListString = this.genesList.join(', ');
 			
-			// Update filtered genes
-			this.updateFilteredGenes();
-			
 			// Clear manual input and hide the section
 			this.manualGenes = '';
 			this.showManualGeneInput = false;
@@ -2427,9 +2017,8 @@ export default {
 				// Update genesList for the utility component
 				this.genesList = [...this.genesList, ...newGenes].filter((gene, index, self) => self.indexOf(gene) === index).sort();
 				this.genesListString = this.genesList.join(', ');
-				
-				// Update filtered genes
-				this.updateFilteredGenes();
+				// Select all genes loaded from URL initially (for grouping)
+				this.selectedGenes = [...this.genesList];
 				
 				console.log(`Added ${newGenes.length} genes from URL parameters: ${newGenes.join(', ')}`);
 				
@@ -2438,91 +2027,6 @@ export default {
 			}
 		},
 		
-		async chooseAssociations() {
-			this.showUrlChoiceDialog = false;
-			this.geneSets = this.urlChoiceOptions.associations;
-			await this.fetchGenesFromAssociations();
-		},
-		
-		async chooseGenes() {
-			this.showUrlChoiceDialog = false;
-			await this.addGenesFromUrl(this.urlChoiceOptions.genes);
-		},
-		
-		cancelUrlChoice() {
-			this.showUrlChoiceDialog = false;
-			// Clear the options
-			this.urlChoiceOptions.associations = null;
-			this.urlChoiceOptions.genes = null;
-		},
-		async fetchGenesFromAssociations() {
-			try {
-				// Parse the gene sets data to extract phenotype and gene set information
-				const lines = this.geneSets.split('\n').filter(line => line.trim());
-				const geneQueries = [];
-				
-				// Extract phenotype and gene set pairs for API queries
-				for (const line of lines) {
-					const parts = line.split(',').map(part => part.trim());
-					if (parts.length >= 2) {
-						const phenotype = findPhenotypeByName(parts[0]);
-						const geneSet = parts[1];
-						if (phenotype && geneSet) {
-							geneQueries.push({ phenotype, geneSet });
-						}
-					}
-				}
-				
-				// Fetch genes for each phenotype-gene set pair
-				const allGenes = new Set();
-				const allGeneData = [];
-				
-				for (const query of geneQueries) {
-					try {
-						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
-						
-						const response = await fetch(url);
-						
-						const data = await response.json();
-						
-						// Extract genes and full data from the response
-						if (data.data && Array.isArray(data.data)) {
-							data.data.forEach(item => {
-								if (item.gene) {
-									allGenes.add(item.gene);
-									allGeneData.push(item);
-								}
-							});
-						}
-					} catch (error) {
-						console.error(`❌ Error fetching genes for ${query.phenotype}-${query.geneSet}:`, error);
-					}
-				}
-				
-				// Store original data before merging (no prefiltering)
-				this.originalGeneData = allGeneData;
-				
-				// Sort by Combined score (descending) first, then group by Gene
-				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
-				
-				// Store the sorted and grouped gene data for the table
-				this.geneData = sortedAndGroupedData;
-				
-				// Reset overlapping filter if there's only one association
-				if (this.shouldDisableOverlappingFilter) {
-					this.showOnlyOverlappingGenes = false;
-					console.log('Overlapping filter reset - only one association detected');
-				}
-				
-				// Initialize filtered genes and apply initial filter
-				this.updateFilteredGenes();
-				// Update genesList from filtered genes (this will apply filters to the genes list)
-				this.updateGenesListFromFilters();
-				
-			} catch (error) {
-				console.error('Error fetching genes from associations:', error);
-			}
-		},
 		previousPage() {
 			if (this.currentPage > 1) {
 				this.currentPage--;
@@ -2563,7 +2067,6 @@ export default {
 			// Collect and validate the current configuration
 			const config = {
 				hypothesisSearch: this.phenotypeSearch,
-				geneSets: this.geneSets,
 				assayTypes: this.selectedAssayTypes,
 				cellTypes: this.selectedCellTypes,
 				readouts: this.selectedReadouts,
@@ -2603,66 +2106,6 @@ export default {
 			// API 1: For hypothesis/phenotype search terms
 			// API 2: For program-based search
 		},
-		onIgnoreAssociationsChange() {
-			// When ignore associations is checked, clear selected groups
-			if (this.ignoreAssociations) {
-				this.selectedAssociationGroups = [];
-			} else {
-				// When unchecked, auto-select all groups
-				this.selectedAssociationGroups = this.associationGroups.map(group => group.groupKey);
-			}
-		},
-		populateAssociationGroups() {
-			// Clear existing groups
-			this.associationGroups = [];
-			
-			if (!this.geneSets.trim()) {
-				return;
-			}
-			
-			const textareaContent = this.geneSets.trim();
-			
-			// Check if content is formatted as CSV (has comma-separated values)
-			if (textareaContent.includes(',')) {
-				// Group associations by phenotype + source
-				const lines = textareaContent.split('\n').filter(line => line.trim());
-				const groups = {};
-				
-				// Process all lines (no header row assumption for CSV)
-				for (let i = 0; i < lines.length; i++) {
-					const line = lines[i].trim();
-					if (line) {
-						const parts = line.split(',').map(part => part.trim());
-						if (parts.length >= 3) {
-							const phenotype = parts[0] || 'N/A';
-							const geneSet = parts[1] || 'N/A';
-							const source = parts[2] || 'N/A';
-							
-							const groupKey = `${phenotype} + ${source}`;
-							if (!groups[groupKey]) {
-								groups[groupKey] = {
-									phenotype: phenotype,
-									source: source,
-									geneSets: []
-								};
-							}
-							groups[groupKey].geneSets.push(geneSet);
-						}
-					}
-				}
-				
-				// Convert groups object to array
-				Object.keys(groups).forEach(groupKey => {
-					const group = groups[groupKey];
-					this.associationGroups.push({
-						groupKey: groupKey,
-						phenotype: group.phenotype,
-						source: group.source,
-						geneSets: group.geneSets
-					});
-				});
-			}
-		},
 		closeWelcomePopup() {
 			this.showWelcomePopup = false;
 		},
@@ -2683,7 +2126,6 @@ export default {
 			return this.kcURL('/r/cfde_explore');
 		},
 		resetAllSelections() {
-			// Reset all selections
 			this.selectedAssayTypes = [];
 			this.selectedCellTypes = [];
 			this.selectedReadouts = [];
@@ -2692,21 +2134,10 @@ export default {
 			this.selectedTimeBudget = '';
 			this.experimentNotes = '';
 			this.phenotypeSearch = '';
-			this.geneSets = '';
-			this.selectedAssociationGroups = [];
-			this.associationGroups = [];
-			this.ignoreAssociations = false;
 			this.selectedGenes = [];
 			this.experimentResults = '';
 			this.isGenerating = false;
 			this.showExperimentSummary = false;
-			this.filteredOutCount = 0;
-			this.overlappingFilteredCount = 0;
-			this.showOnlyLogBfGenes = true;
-			// Reset associations modified flag
-			this.associationsModified = false;
-			this.showOnlyOverlappingGenes = true;
-			this.priorWeight = 1;
 			this.clearGenerationTimer();
 		},
 		extractSystemPrompt() {
@@ -2900,20 +2331,22 @@ export default {
 					return;
 				}
 				
-				// Per groups strategy: generate experiments for each gene group
+				// Per groups strategy: generate experiments for each selected gene group
 				if (this.geneExperimentStrategy === 'per_groups' && this.groupedGenes && this.groupedGenes.tiers && this.groupedGenes.tiers.length > 0) {
 					console.log('[Planner] Starting per-group experiment generation');
 					
-					// Collect all groups from all tiers
+					// Collect only groups selected for protocol generation
 					const allGroups = [];
 					this.groupedGenes.tiers.forEach(tier => {
 						tier.groups.forEach(group => {
-							allGroups.push({ tier, group });
+							if (group.selectedForProtocol !== false) {
+								allGroups.push({ tier, group });
+							}
 						});
 					});
 					
 					if (allGroups.length === 0) {
-						alert('No gene groups found. Please generate gene groups first using the "Group and Tier Selected Genes" button.');
+						alert('No gene groups selected for protocol generation. In the Group and Tier dialog, use "Select group" for the groups you want to include, or generate gene groups first.');
 						this.isGenerating = false;
 						this.clearGenerationTimer();
 						return;
@@ -3217,9 +2650,6 @@ export default {
 		toggleConfigurationSection() {
 			this.showConfigurationSection = !this.showConfigurationSection;
 		},
-		toggleAssociationsSection() {
-			this.showAssociationsSection = !this.showAssociationsSection;
-		},
 		formatExperimentForDownload() {
 			let content = '';
 			
@@ -3232,12 +2662,7 @@ export default {
 			if (this.phenotypeSearch.trim() !== '') {
 				content += `HYPOTHESIS:\n${this.phenotypeSearch}\n\n`;
 			}
-			
-			if (this.geneSets.trim() !== '') {
-				content += `PHENOTYPES, GENE SETS, AND SOURCES:\n${this.geneSets}\n\n`;
-			}
-			
-			
+
 			// Add configuration summary
 			content += 'EXPERIMENT CONFIGURATION:\n';
 			content += '-------------------------\n';
@@ -4850,6 +4275,12 @@ a {
 /* Override utility-actions margin when inside filter section */
 .gene-filter-section .utility-actions {
     margin-bottom: 0;
+}
+
+.gene-utility-section-centered {
+    display: flex;
+    justify-content: center;
+    overflow: visible;
 }
 
 .filter-grid {

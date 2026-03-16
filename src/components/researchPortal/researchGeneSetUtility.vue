@@ -2,7 +2,7 @@
 	<div class="research-gene-set-utility">
 		<!-- Action Buttons -->
 		<div v-if="!hideButtons" class="utility-actions" style="display: flex; gap: 10px; margin-bottom: 15px;">
-			<div class="button-with-tooltip">
+			<div v-if="!showOnlyGroupAndTier" class="button-with-tooltip">
 				<button 
 					@click="openScoreDialog"
 					class="btn btn-primary"
@@ -36,7 +36,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="button-with-tooltip">
+			<div v-if="!showOnlyGroupAndTier" class="button-with-tooltip">
 				<button 
 					@click="openRankDialog"
 					class="btn btn-primary"
@@ -70,14 +70,14 @@
 					class="btn btn-group"
 					style="padding: 8px 16px; display: flex; align-items: center; gap: 6px;"
 				>
-					<span>Group and Tier Selected Genes</span>
+					<span>{{ showOnlyGroupAndTier ? 'Group and Tier Genes (Optional)' : 'Group and Tier Selected Genes' }}</span>
 					<span class="info-icon">
 						ℹ️
 					</span>
 				</button>
 				<div class="tooltip tooltip-group">
 					<div class="tooltip-content">
-						<h5>Group and Tier Selected Genes</h5>
+						<h5>{{ showOnlyGroupAndTier ? 'Group and Tier Genes (Optional)' : 'Group and Tier Selected Genes' }}</h5>
 						<p><strong>What it does:</strong> Groups selected genes that can be experimented together and organizes them into tiers for experiment workflows.</p>
 						<p><strong>Grouping:</strong> Identifies genes that share common experimental approaches, pathways, or mechanisms, making them suitable for combined experiments.</p>
 						<p><strong>Tiering:</strong> Organizes gene groups into priority tiers based on:</p>
@@ -702,7 +702,7 @@
 		<div v-if="showGroupDialog" class="dialog-overlay" @click.self="closeGroupDialog">
 			<div class="dialog-container">
 				<div class="dialog-header">
-					<h3>Group and Tier Selected Genes</h3>
+					<h3>{{ showOnlyGroupAndTier ? 'Group and Tier Genes (Optional)' : 'Group and Tier Selected Genes' }}</h3>
 					<button @click="closeGroupDialog" class="close-btn">&times;</button>
 				</div>
 				<div class="dialog-content">
@@ -751,8 +751,17 @@
 
 							<!-- Groups in this tier -->
 							<div v-for="(group, groupIndex) in tier.groups" :key="groupIndex" class="group-item" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
-								<h5 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px; font-weight: 600;">{{ group.groupName }}</h5>
-								
+								<div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+									<h5 style="margin: 0 0 10px 0; color: #28a745; font-size: 16px; font-weight: 600;">{{ group.groupName }}</h5>
+									<button
+										type="button"
+										class="btn btn-sm btn-outline-secondary"
+										style="font-size: 12px; padding: 4px 10px;"
+										@click="toggleGroupForProtocol(tier, group)"
+									>
+										{{ group.selectedForProtocol !== false ? 'Unselect group' : 'Select group' }}
+									</button>
+								</div>
 								<!-- Genes in group -->
 								<div style="margin-bottom: 10px;">
 									<strong style="color: #333; font-size: 13px;">Genes:</strong>
@@ -852,6 +861,12 @@ export default {
 		},
 		// Optional: Hide action buttons (dialogs still accessible programmatically)
 		hideButtons: {
+			type: Boolean,
+			required: false,
+			default: false
+		},
+		// When true, show only the "Group and Tier Genes" button (hide Score and Rank)
+		showOnlyGroupAndTier: {
 			type: Boolean,
 			required: false,
 			default: false
@@ -2066,12 +2081,17 @@ You must return ONLY a valid JSON object with the following structure:
 					});
 				});
 				
-				// Store the result
+				// Store the result and add selectedForProtocol to each group (default: included in protocol generation)
 				this.groupedGenes = groupingResult;
+				(this.groupedGenes.tiers || []).forEach(tier => {
+					(tier.groups || []).forEach(group => {
+						this.$set(group, 'selectedForProtocol', true);
+					});
+				});
 				console.log('Grouping complete:', groupingResult);
 				
 				// Emit grouped genes to parent component for protocol generation
-				this.$emit('grouped-genes', groupingResult);
+				this.$emit('grouped-genes', this.groupedGenes);
 				
 			} catch (error) {
 				console.error('Error grouping genes:', error);
@@ -2081,6 +2101,11 @@ You must return ONLY a valid JSON object with the following structure:
 				this.isGroupingGenes = false;
 				this.clearGroupTimer();
 			}
+		},
+		toggleGroupForProtocol(tier, group) {
+			const current = group.selectedForProtocol !== false;
+			this.$set(group, 'selectedForProtocol', !current);
+			this.$emit('grouped-genes', this.groupedGenes);
 		},
 		
 		// IDG data fetching for a specific page of genes
@@ -2500,6 +2525,10 @@ You must return ONLY a valid JSON object with the following structure:
 </script>
 
 <style scoped>
+
+.research-gene-set-utility {
+	overflow: visible;
+}
 
 .utility-actions {
 	margin-bottom: 15px;
@@ -2951,8 +2980,12 @@ You must return ONLY a valid JSON object with the following structure:
 }
 
 .tooltip-group {
-	left: auto;
-	right: 0;
+	left: 50%;
+	right: auto;
+	transform: translateX(-50%);
+	/* Show above the button so popup is not cut off at bottom of viewport */
+	top: auto;
+	bottom: calc(100% + 4px);
 }
 
 @keyframes tooltipFadeIn {
