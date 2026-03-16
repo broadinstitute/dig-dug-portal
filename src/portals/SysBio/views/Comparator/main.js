@@ -98,14 +98,26 @@ new Vue({
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "logFoldChange",
-                        label: "log2 Fold Change",
+                        key: "logFoldChange_1",
+                        label: `log2 Fold Change in Comp. 1`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "-log10P",
-                        label: "-log10(FDR adj. p)",
+                        key: "logFoldChange_2",
+                        label: `log2 Fold Change in Comp. 2`,
+                        sortable: true,
+                        formatter: Formatters.tpmFormatter
+                    },
+                    {
+                        key: "minusLog10P_1",
+                        label: `-log10(FDR adj. p) in Comp. 1`,
+                        sortable: true,
+                        formatter: Formatters.tpmFormatter,
+                    },
+                    {
+                        key: "minusLog10P_2",
+                        label: `-log10(FDR adj. p) in Comp. 2`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
@@ -156,9 +168,26 @@ new Vue({
         },
         bulkData19K() {
             // TODO join on gene
-            let results = this.$store.state.bulkData19K.filter(
+            let resultsUnsorted = this.$store.state.bulkData19K.filter(
                 item => item.gene !== undefined
-                    && item.comparison_id === this.$store.state.selectedComp1);
+                    && item.comparison_id === this.$store.state.selectedComp1
+                    || item.comparison_id === this.$store.state.selectedComp2);
+            let resultsSorted = resultsUnsorted.sort((a,b) => b.gene.localeCompare(a.gene));
+            let results = [];
+            while (resultsSorted.length > 0){
+                let currentItem = resultsSorted.pop();
+                let nextItem = resultsSorted.pop();
+                if (currentItem.gene === nextItem.gene){
+                    if (currentItem.comparison_id === this.$store.state.selectedComp1){
+                        results.push(this.combineItems(currentItem, nextItem))
+                    } else {
+                        results.push(this.combineItems(nextItem, currentItem))
+                    }
+                    // test for a third item
+                } else {
+                    resultsSorted.push(nextItem);
+                }
+            }
             return results;
         },
         volcanoConfig() {
@@ -314,6 +343,16 @@ new Vue({
         },
         geneFound(found){
             this.foundGene = found;
+        },
+        combineItems(item1, item2){
+            let item = {
+                gene: item1.gene,
+                minusLog10P_1: item1["-log10P"],
+                logFoldChange_1: item1.logFoldChange,
+                minusLog10P_2: item2["-log10P"],
+                logFoldChange_2: item2.logFoldChange
+            };
+            return item;
         }
     },
     watch: {
