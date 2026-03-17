@@ -8,6 +8,8 @@ import "../../css/sysbio.css";
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import { sysbioStore } from "../../mixins/sysbioStore.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionGroup.vue";
 import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -33,6 +35,8 @@ new Vue({
         BulkTable,
         GeneSelectPicker,
         EnrichrPlot,
+        FilterGreaterThan,
+        CriterionFunctionGroup,
         //ResearchSingleCellInfo,
         
     },
