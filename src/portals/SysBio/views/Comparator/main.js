@@ -41,7 +41,6 @@ new Vue({
         FilterGreaterLess,
         FilterAbsolute,
         CriterionFunctionGroup,
-        //ResearchSingleCellInfo,
         
     },
     data() {

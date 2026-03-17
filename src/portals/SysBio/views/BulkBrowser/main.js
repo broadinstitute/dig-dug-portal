@@ -33,7 +33,6 @@ new Vue({
         BulkTable,
         GeneSelectPicker,
         EnrichrPlot,
-        //ResearchSingleCellInfo,
         
     },
     data() {

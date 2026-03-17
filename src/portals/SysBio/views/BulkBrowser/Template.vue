@@ -11,9 +11,6 @@
             <div class="flex-column flex-small-gap">
                 <div id="center-width" class="flex-gap flex-column">
                     <div class="flex-gap flex-column" id="center-content">
-                        <research-single-cell-info v-if="!!$store.state.selectedDataset"
-                            :data="$parent.bulkMetadata"
-                        />
                         <div v-if="$parent.dataReady" id="menu">
                             <!--left tab group-->
                             <div class="tabs-group">
