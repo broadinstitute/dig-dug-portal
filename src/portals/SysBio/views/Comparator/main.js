@@ -133,6 +133,7 @@ new Vue({
             volcanoXConditionGreater: 1.5,
             volcanoXConditionLower: -1.5,
             enrichrColorScale: null,
+            activeTab: 0
         };
     },
     computed: {

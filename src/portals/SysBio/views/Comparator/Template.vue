@@ -59,7 +59,7 @@
                         </div>
                     </div>
                     <div v-if="$parent.dataReady" class="tabs-outer">
-                        <b-tabs>
+                        <b-tabs v-model="$parent.activeTab">
                             <b-tab title="Side by side comparison">
                                 <div class="flex-gap tabs-inner" id="visualizers">
                                 <!--left tab group-->
@@ -153,7 +153,7 @@
                                                                 <div class="label">
                                                                     logFoldChange vs. logFoldChange
                                                                 </div>
-                                                                <scatterplot
+                                                                <scatterplot v-if="$parent.activeTab === 1"
                                                                     :log-scale="false"
                                                                     :plot-data="$parent.bulkData19K"
                                                                     :config="$parent.getScatterConfig(true)"
@@ -166,7 +166,7 @@
                                                                 <div class="label">
                                                                     -log10P vs. -log10P
                                                                 </div>
-                                                                <scatterplot
+                                                                <scatterplot v-if="$parent.activeTab === 1"
                                                                     :log-scale="false"
                                                                     :plot-data="$parent.bulkData19K"
                                                                     :config="$parent.getScatterConfig(false)"
