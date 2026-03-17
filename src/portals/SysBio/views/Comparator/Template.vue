@@ -58,10 +58,10 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="$parent.dataReady">
+                    <div v-if="$parent.dataReady" class="tabs-outer">
                         <b-tabs>
                             <b-tab title="Side by side comparison">
-                                <div class="flex-gap" id="visualizers">
+                                <div class="flex-gap tabs-inner" id="visualizers">
                                 <!--left tab group-->
                                     <div class="tabs-group volcano">
                                         <div class="tabs-wrapper">
@@ -135,8 +135,42 @@
                                     </div>
                                 </div>
                             </b-tab>
-                            <b-tab title="Plots">
-                                Coming soon
+                            <b-tab title="Direct comparison">
+                                <div class="flex-gap tabs-inner" id="scatterplots">
+                                <!--left tab group-->
+                                    <div class="tabs-group volcano">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                Fold vs. Fold
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <div v-if="$parent.bulkData19K.length> 0">
+                                                            <div id="scatter1">
+                                                                <div class="label">
+                                                                    logFoldChange vs. logFoldChange
+                                                                </div>
+                                                                <scatterplot></scatterplot>
+                                                            </div>
+                                                            <div id="scatter2">
+                                                                <div class="label">
+                                                                    -log10P vs. -log10P
+                                                                </div>
+                                                                <scatterplot></scatterplot>
+                                                            </div>
+                                                        </div>
+                                                        <div v-else>
+                                                            Select two different comparisons to view the scatterplots.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </b-tab>
                         </b-tabs>
                         
@@ -504,5 +538,14 @@ button.hide-table {
 #volcanos div.label {
     font-size: larger;
     font-weight: bold;
+}
+.tabs-outer {
+    padding: 10px;
+}
+.tabs-outer a {
+    color: inherit !important;
+}
+.tabs-inner {
+    margin: 10px;
 }
 </style>
