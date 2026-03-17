@@ -91,7 +91,8 @@ new Vue({
                 sortDesc: false,
             },
             chromosomeFilterSet: false,
-            byorDocs: "sysbio_GWAS"
+            byorDocs: "sysbio_GWAS",
+            docs: ""
         };
     },
 
@@ -124,9 +125,10 @@ new Vue({
 
     mounted() {},
 
-    created() {
+    async created() {
         this.fetchData();
-        this.fetchInfo();
+        const documentation = await getTextContent(this.byorDocs, true);
+        this.docs = documentation;
     },
     methods: {
         async fetchData() {
