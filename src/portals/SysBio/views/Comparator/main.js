@@ -343,12 +343,31 @@ new Vue({
         },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
-            data = data.filter(d => 
-                up ? d[this.x1] >= this.volcanoXConditionGreater || d[this.x2] >= this.volcanoXConditionGreater
-                : d[this.x1] <= -this.volcanoXConditionGreater || d[this.x2] <= -this.volcanoXConditionGreater );
-            data = data.filter(d=> d[this.y1] >= this.volcanoYCondition || d[this.y2] >= this.volcanoYCondition)
-                .map(d => d.gene);
+            let direction = up ? "up" : "down";
+            data = data.filter(d => this.showRegulation(d) === direction || this.showRegulation(d) === "both");
+            data = data.map(d => d.gene);
             return data;
+        },
+        showRegulation(item){
+            let result1 = this.isRegulated(item, this.x1, this.y1);
+            let result2 = this.isRegulated(item, this.x2, this.y2);
+            if (result1 !== "" && result2 !== "" && result1 !== result2){
+                return "both";
+            }
+            return result1.concat(result2);
+        },
+        isRegulated(item, xField, yField){
+            let cond = this.regulationConditions;
+            if (item[yField] < cond.yGreater){
+                return "";
+            }
+            if (item[xField] <= cond.xLower){
+                return "down";
+            }
+            if (item[xField] >= cond.xGreater){
+                return "up"
+            }
+            return "";
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
