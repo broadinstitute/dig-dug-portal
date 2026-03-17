@@ -91,6 +91,7 @@ new Vue({
                 sortDesc: false,
             },
             chromosomeFilterSet: false,
+            byorDocs: "sysbio_GWAS"
         };
     },
 

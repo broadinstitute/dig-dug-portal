@@ -48,6 +48,8 @@ new Vue({
             colorByFields: ['AMP', 'Assay', 'cell_type', 'StatusLabel', 'Tissue'],
             highlightLabel: null,
             highlightLabels: [],
+            byorDocs: "sysbio_singlecell",
+            docs: ""
         };
     },
 
@@ -60,9 +62,11 @@ new Vue({
 
     mounted() {},
 
-    created() {
+    async created() {
         this.fetchData();
         this.fetchInfo();
+        const documentation = await getTextContent(this.byorDocs, true);
+        this.docs = documentation;
     },
     methods: {
         async fetchData() {
