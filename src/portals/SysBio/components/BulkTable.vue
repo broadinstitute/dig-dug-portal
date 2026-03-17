@@ -20,12 +20,12 @@
                 <b-form-radio
                     :value="up">
                         <span class="upregulated">&#9608;</span>
-                        Upregulated only
+                        Upregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
                 </b-form-radio>
                 <b-form-radio
                     :value="down">
                         <span class="downregulated">&#9608;</span>
-                        Downregulated only
+                        Downregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
                 </b-form-radio>
             </b-form-radio-group>
           </div>
@@ -86,7 +86,8 @@ export default Vue.component("bulk-table", {
         "filter",
         "dataset",
         "highlightedGene",
-        "regulationConditions"
+        "regulationConditions",
+        "isCompPage"
     ],
     data() {
         return {
