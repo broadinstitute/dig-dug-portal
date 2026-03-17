@@ -362,6 +362,12 @@ tr.downregulated {
 span.downregulated {
     color: #12bdfe;
 }
+tr.both {
+    border-left: 5px solid purple;
+}
+span.both {
+    color: purple;
+}
 button.invisible-button {
     border: none;
     background-color: inherit;
