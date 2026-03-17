@@ -60,19 +60,43 @@
                     </div>
                     <div v-if="$parent.dataReady" class="tabs-outer">
                         <criterion-function-group>
+                        <filter-absolute
+                            key="logFoldChange_1"
+                            field="logFoldChange_1"
+                            :label="`log2 FoldChange in ${$parent.label1}`">
+                            <div class="label">
+                                <div>|log2 FoldChange| in</div>
+                                <div>{{ $parent.label1 }}</div>
+                            </div>
+                        </filter-absolute>
+                        <filter-absolute
+                            key="logFoldChange_2"
+                            field="logFoldChange_2"
+                            :label="`log2 FoldChange in ${$parent.label2}`">
+                            <div class="label">
+                                <div>|log2 FoldChange| in</div>
+                                <div>{{ $parent.label1 }}</div>
+                            </div>
+                        </filter-absolute>
                         <filter-greater-control
                             key="minusLog10P_1"
                             field="minusLog10P_1"
                             :label="`-log10P in ${$parent.label1}`"
                         >
-                            <div class="label">{{ `-log10P in ${$parent.label1}`}}</div>
+                            <div class="label">
+                                <div>-log10P in</div>
+                                <div>{{ $parent.label1 }}</div>
+                            </div>
                         </filter-greater-control>
                         <filter-greater-control
                             key="minusLog10P_2"
                             field="minusLog10P_2"
                             :label="`-log10P in ${$parent.label2}`"
                         >
-                            <div class="label">{{ `-log10P in ${$parent.label2}`}}</div>
+                            <div class="label">
+                                <div>-log10P in</div>
+                                <div>{{ $parent.label2 }}</div>
+                            </div>
                         </filter-greater-control>
                         <template slot="filtered" slot-scope="{ filter }">
                             <b-tabs v-model="$parent.activeTab">
@@ -88,7 +112,7 @@
                                                     </gene-selectpicker>
                                                 </div>
                                                 <div class="col-md-3 menu-item">
-                                                    <div class="label">Set -log1-(FDR adj. P) threshold</div>
+                                                    <div class="label">Set -log10(FDR adj. P) threshold for up/down regulation</div>
                                                         <input type="number" step="0.1" class="form-control"
                                                         :value=$parent.volcanoYCondition
                                                         @change="event => $parent.setVolcano(event.target.value)"/>

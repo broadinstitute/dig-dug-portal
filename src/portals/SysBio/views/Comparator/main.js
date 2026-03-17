@@ -9,6 +9,8 @@ import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import { sysbioStore } from "../../mixins/sysbioStore.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterAbsolute from "@/components/criterion/FilterAbsolute.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionGroup.vue";
 import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
@@ -36,6 +38,8 @@ new Vue({
         GeneSelectPicker,
         EnrichrPlot,
         FilterGreaterThan,
+        FilterGreaterLess,
+        FilterAbsolute,
         CriterionFunctionGroup,
         //ResearchSingleCellInfo,
         
