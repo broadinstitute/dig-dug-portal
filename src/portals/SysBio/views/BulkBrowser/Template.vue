@@ -143,7 +143,7 @@
                                                 for all differentially expressed genes from the above-selected dataset
                                                 and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
                                                 <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
-                                                If you use data from this tool, please review our <a href="/info.html?page=policies">Citation
+                                                If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
                                             </div>
@@ -203,7 +203,7 @@
                                                             </button>
                                                         </template>
                                                     </b-table>
-                                                    <b-pagination
+                                                    <b-pagination v-if="$parent.librariesForType.length > 5"
                                                         small
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"
