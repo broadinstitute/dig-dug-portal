@@ -59,79 +59,87 @@
                         </div>
                     </div>
                     <div v-if="$parent.dataReady">
-                        <div class="flex-gap" id="visualizers">
-                            <!--left tab group-->
-                            <div class="tabs-group volcano">
-                                <div class="tabs-wrapper">
-                                    <div class="tab">
-                                        Differentially Expressed Genes
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper row" id="diff-exp-menu">
-                                    <div class="col-md-3"></div>
-                                    <div class="col-md-3 menu-item">
-                                        <div class="label">Search for a gene</div>
-                                        <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
-                                        </gene-selectpicker>
-                                    </div>
-                                    <div class="col-md-3 menu-item">
-                                        <div class="label">Set -log1-(FDR adj. P) threshold</div>
-                                            <input type="number" step="0.1" class="form-control"
-                                            :value=$parent.volcanoYCondition
-                                            @change="event => $parent.setVolcano(event.target.value)"/>
-                                    </div>
-                                    <div class="col-md-3"></div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="gene-not-found" v-if="!$parent.foundGene">
-                                        Gene not found.
-                                    </div>
-                                </div>
-                                <div class="tabs-section-wrapper">
-                                    <div class="tab-section" >
-                                        <div class="flex-gap">
-                                            <div class="wide-block">
-                                                <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
-                                                    <div id="volcano1">
-                                                        <div class="label">
-                                                            {{ $store.state.currentComparisons[$store.state.selectedComp1].label}}
-                                                        </div>
-                                                        <bulk-volcano-plot
-                                                            :renderData="$parent.bulkData19K"
-                                                            :renderConfig="$parent.getVolcanoConfig(1)"
-                                                            :margin="$parent.margin"
-                                                            sectionId="_bulk1"
-                                                            :selectedGene="$store.state.selectedGene"
-                                                            :upregulatedIn="$parent.upregulatedIn"
-                                                            @highlight="gene => $parent.highlight(gene)">
+                        <b-tabs>
+                            <b-tab title="Side by side comparison">
+                                <div class="flex-gap" id="visualizers">
+                                <!--left tab group-->
+                                    <div class="tabs-group volcano">
+                                        <div class="tabs-wrapper">
+                                            <div class="tab">
+                                                Differentially Expressed Genes
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper row" id="diff-exp-menu">
+                                            <div class="col-md-3"></div>
+                                            <div class="col-md-3 menu-item">
+                                                <div class="label">Search for a gene</div>
+                                                <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+                                                </gene-selectpicker>
+                                            </div>
+                                            <div class="col-md-3 menu-item">
+                                                <div class="label">Set -log1-(FDR adj. P) threshold</div>
+                                                    <input type="number" step="0.1" class="form-control"
+                                                    :value=$parent.volcanoYCondition
+                                                    @change="event => $parent.setVolcano(event.target.value)"/>
+                                            </div>
+                                            <div class="col-md-3"></div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                            <div class="gene-not-found" v-if="!$parent.foundGene">
+                                                Gene not found.
+                                            </div>
+                                        </div>
+                                        <div class="tabs-section-wrapper">
+                                            <div class="tab-section" >
+                                                <div class="flex-gap">
+                                                    <div class="wide-block">
+                                                        <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
+                                                            <div id="volcano1">
+                                                                <div class="label">
+                                                                    {{ $store.state.currentComparisons[$store.state.selectedComp1].label}}
+                                                                </div>
+                                                                <bulk-volcano-plot
+                                                                    :renderData="$parent.bulkData19K"
+                                                                    :renderConfig="$parent.getVolcanoConfig(1)"
+                                                                    :margin="$parent.margin"
+                                                                    sectionId="_bulk1"
+                                                                    :selectedGene="$store.state.selectedGene"
+                                                                    :upregulatedIn="$parent.upregulatedIn"
+                                                                    @highlight="gene => $parent.highlight(gene)">
 
-                                                        </bulk-volcano-plot>
-                                                    </div>
-                                                    <div id="volcano2">
-                                                        <div class="label">
-                                                            {{ $store.state.currentComparisons[$store.state.selectedComp2].label}}
-                                                        </div>
-                                                        <bulk-volcano-plot
-                                                            :renderData="$parent.bulkData19K"
-                                                            :renderConfig="$parent.getVolcanoConfig(2)"
-                                                            :margin="$parent.margin"
-                                                            sectionId="_bulk2"
-                                                            :selectedGene="$store.state.selectedGene"
-                                                            :upregulatedIn="$parent.upregulatedIn"
-                                                            @highlight="gene => $parent.highlight(gene)">
+                                                                </bulk-volcano-plot>
+                                                            </div>
+                                                            <div id="volcano2">
+                                                                <div class="label">
+                                                                    {{ $store.state.currentComparisons[$store.state.selectedComp2].label}}
+                                                                </div>
+                                                                <bulk-volcano-plot
+                                                                    :renderData="$parent.bulkData19K"
+                                                                    :renderConfig="$parent.getVolcanoConfig(2)"
+                                                                    :margin="$parent.margin"
+                                                                    sectionId="_bulk2"
+                                                                    :selectedGene="$store.state.selectedGene"
+                                                                    :upregulatedIn="$parent.upregulatedIn"
+                                                                    @highlight="gene => $parent.highlight(gene)">
 
-                                                        </bulk-volcano-plot>
+                                                                </bulk-volcano-plot>
+                                                            </div>
+                                                        </div>
+                                                        <div v-else>
+                                                            Select two different comparisons to view the volcano plot.
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div v-else>
-                                                    Select two different comparisons to view the volcano plot.
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+                            </b-tab>
+                            <b-tab title="Plots">
+                                Coming soon
+                            </b-tab>
+                        </b-tabs>
+                        
                         <div id="table-wrapper" class="flex-gap flex-column">
                             <div class="flex-gap flex-column">
                                 <bulk-table
