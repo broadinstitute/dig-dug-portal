@@ -349,8 +349,11 @@
                             }"
                             :hide-buttons="false"
                             :show-only-group-and-tier="true"
+                            :show-review-button="true"
                             @update:selectedGenes="handleGenesSelected"
                             @grouped-genes="handleGroupedGenes"
+                            @review-generate-per-groups="onReviewGeneratePerGroups"
+                            @review-generate="draftValidationPlan"
                         />
                         <div v-else style="padding: 12px; background: #fff3cd; border-radius: 6px; border: 1px solid #ffc107;">
                             <p style="margin: 0; color: #856404; font-size: 14px;">
@@ -368,7 +371,7 @@
             </div>
         <div>
         <!-- Action Buttons -->
-            <div class="action-buttons">
+            <div v-if="!(genesList && genesList.length > 0 && (phenotypeSearch.trim() || urlHasGenes))" class="action-buttons">
                 <button @click="draftValidationPlan" class="btn btn-primary">
                     Review & Generate Experiment Plan
                 </button>
@@ -1685,6 +1688,24 @@ export default {
 			// Store grouped genes data for protocol generation
 			this.groupedGenes = groupedGenesData;
 			console.log('Grouped genes received:', groupedGenesData);
+		},
+		onReviewGeneratePerGroups() {
+			this.showExperimentSummary = true;
+			this.geneExperimentStrategy = 'per_groups';
+			this.$nextTick(() => {
+				try {
+					const draftSection = document.getElementById('planner-search-draft');
+					if (draftSection) {
+						draftSection.scrollIntoView({
+							behavior: 'smooth',
+							block: 'start',
+							inline: 'nearest'
+						});
+					}
+				} catch (e) {
+					// ignore scroll errors
+				}
+			});
 		},
 		unselectGene(geneSymbol) {
 			// Remove gene from selectedGenes

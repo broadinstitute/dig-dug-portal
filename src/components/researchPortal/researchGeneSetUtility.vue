@@ -91,6 +91,15 @@
 					</div>
 				</div>
 			</div>
+			<button
+				v-if="showOnlyGroupAndTier && showReviewButton"
+				type="button"
+				class="btn btn-primary"
+				style="padding: 8px 16px;"
+				@click="$emit('review-generate')"
+			>
+				Review &amp; Generate Experiment Plan
+			</button>
 		</div>
 
 		<!-- Score Generation Dialog -->
@@ -804,6 +813,13 @@
 					</div>
 				</div>
 				<div class="dialog-actions">
+					<button
+						v-if="groupedGenes && !isGroupingGenes"
+						@click="reviewAndGenerateWithSelectedGroups"
+						class="btn btn-primary"
+					>
+						Review &amp; Generate Experiment Plan with Selected Groups
+					</button>
 					<button @click="closeGroupDialog" class="btn btn-outline-secondary">Close</button>
 				</div>
 			</div>
@@ -867,6 +883,12 @@ export default {
 		},
 		// When true, show only the "Group and Tier Genes" button (hide Score and Rank)
 		showOnlyGroupAndTier: {
+			type: Boolean,
+			required: false,
+			default: false
+		},
+		// When true, show a companion Review button next to Group
+		showReviewButton: {
 			type: Boolean,
 			required: false,
 			default: false
@@ -2107,6 +2129,10 @@ You must return ONLY a valid JSON object with the following structure:
 			this.$set(group, 'selectedForProtocol', !current);
 			this.$emit('grouped-genes', this.groupedGenes);
 		},
+		reviewAndGenerateWithSelectedGroups() {
+			this.$emit('review-generate-per-groups');
+			this.closeGroupDialog();
+		},
 		
 		// IDG data fetching for a specific page of genes
 		async fetchIDGDataForScoredGenesOnPage(pageGenes) {
@@ -2553,7 +2579,7 @@ You must return ONLY a valid JSON object with the following structure:
 	border-radius: 8px;
 	width: 90%;
 	max-width: 1200px;
-	max-height: 90vh;
+	max-height: 80vh;
 	display: flex;
 	flex-direction: column;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -2601,7 +2627,7 @@ You must return ONLY a valid JSON object with the following structure:
 	padding: 16px 24px;
 	border-top: 1px solid #e9ecef;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: center;
 	gap: 10px;
 	flex-shrink: 0;
 }
