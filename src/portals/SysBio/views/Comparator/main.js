@@ -105,7 +105,11 @@ new Vue({
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
             enrichrColorScale: null,
-            activeTab: 0
+            activeTab: 0,
+            x1: "logFoldChange_1",
+            x2: "logFoldChange_2",
+            y1: "minusLog10P_1",
+            y2: "minusLog10P_2"
         };
     },
     computed: {
@@ -114,25 +118,25 @@ new Vue({
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "logFoldChange_1",
+                        key: this.x1,
                         label: `log2 Fold Change in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "logFoldChange_2",
+                        key: this.x2,
                         label: `log2 Fold Change in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter
                     },
                     {
-                        key: "minusLog10P_1",
+                        key: this.y1,
                         label: `-log10(FDR adj. p) in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "minusLog10P_2",
+                        key: this.y2,
                         label: `-log10(FDR adj. p) in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
@@ -340,9 +344,9 @@ new Vue({
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
             data = data.filter(d => 
-                up ? d.logFoldChange >= this.volcanoXConditionGreater
-                : d.logFoldChange <= -this.volcanoXConditionGreater );
-            data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
+                up ? d[this.x1] >= this.volcanoXConditionGreater || d[this.x2] >= this.volcanoXConditionGreater
+                : d[this.x1] <= -this.volcanoXConditionGreater || d[this.x2] <= -this.volcanoXConditionGreater );
+            data = data.filter(d=> d[this.y1] >= this.volcanoYCondition || d[this.y2] >= this.volcanoYCondition)
                 .map(d => d.gene);
             return data;
         },
@@ -369,13 +373,12 @@ new Vue({
             this.foundGene = found;
         },
         combineItems(item1, item2){
-            let item = {
-                gene: item1.gene,
-                minusLog10P_1: item1["-log10P"],
-                logFoldChange_1: item1.logFoldChange,
-                minusLog10P_2: item2["-log10P"],
-                logFoldChange_2: item2.logFoldChange
-            };
+            let item = {};
+            item.gene = item1.gene;
+            item[this.x1] = item1["logFoldChange"];
+            item[this.y1] = item1["-log10P"];
+            item[this.x2] = item2["logFoldChange"];
+            item[this.y2] = item2["-log10P"];
             return item;
         },
         getScatterConfig(isLogFoldChange){
