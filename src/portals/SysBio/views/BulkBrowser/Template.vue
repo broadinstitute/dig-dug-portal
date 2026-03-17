@@ -67,19 +67,23 @@
                                     </div>
                                 </div>
                                 <div class="tabs-section-wrapper row" id="diff-exp-menu">
-                                    <div class="col-md-3"></div>
-                                    <div class="col-md-3 menu-item">
+                                    <div class="col-md-4 menu-item">
                                         <div class="label">Search for a gene</div>
                                         <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
                                         </gene-selectpicker>
                                     </div>
-                                    <div class="col-md-3 menu-item">
-                                        <div class="label">Set -log1-(FDR adj. P) threshold</div>
+                                    <div class="col-md-4 menu-item">
+                                        <div class="label">Set X-axis threshold for up/down regulation</div>
+                                            <input type="number" step="0.1" class="form-control"
+                                            :value=$parent.volcanoXConditionGreater
+                                            @change="event => $parent.setVolcano(event.target.value, $parent.volcanoYCondition)"/>
+                                    </div>
+                                    <div class="col-md-4 menu-item">
+                                        <div class="label">Set Y-axis threshold for up/down regulation</div>
                                             <input type="number" step="0.1" class="form-control"
                                             :value=$parent.volcanoYCondition
-                                            @change="event => $parent.setVolcano(event.target.value)"/>
+                                            @change="event => $parent.setVolcano($parent.volcanoXConditionGreater, event.target.value)"/>
                                     </div>
-                                    <div class="col-md-3"></div>
                                 </div>
                                 <div class="tabs-section-wrapper">
                                     <div class="gene-not-found" v-if="!$parent.foundGene">
@@ -139,7 +143,7 @@
                                                 for all differentially expressed genes from the above-selected dataset
                                                 and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
                                                 <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
-                                                If you use data from this tool, please review our <a href="/info.html?page=policies">Citation
+                                                If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
                                             </div>
@@ -199,7 +203,7 @@
                                                             </button>
                                                         </template>
                                                     </b-table>
-                                                    <b-pagination
+                                                    <b-pagination v-if="$parent.librariesForType.length > 5"
                                                         small
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"

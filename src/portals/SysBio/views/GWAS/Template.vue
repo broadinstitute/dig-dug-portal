@@ -4,9 +4,9 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body">
-            <div v-if="$parent.pageInfo">
-                <h2>{{ $parent.pageInfo.title }}</h2>
-                <div v-html="$parent.pageInfo.body"></div>
+            <div>
+                <h2>Genetic Studies</h2>
+                <div v-html="$parent.docs"></div>
             </div>
             <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
                 <div style="flex:1">

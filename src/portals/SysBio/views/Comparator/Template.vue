@@ -59,139 +59,191 @@
                         </div>
                     </div>
                     <div v-if="$parent.dataReady" class="tabs-outer">
-                        <b-tabs v-model="$parent.activeTab">
-                            <b-tab title="Side by side comparison">
-                                <div class="flex-gap tabs-inner" id="visualizers">
-                                <!--left tab group-->
-                                    <div class="tabs-group volcano">
-                                        <div class="tabs-section-wrapper row" id="diff-exp-menu">
-                                            <div class="col-md-3"></div>
-                                            <div class="col-md-3 menu-item">
-                                                <div class="label">Search for a gene</div>
-                                                <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
-                                                </gene-selectpicker>
-                                            </div>
-                                            <div class="col-md-3 menu-item">
-                                                <div class="label">Set -log1-(FDR adj. P) threshold</div>
-                                                    <input type="number" step="0.1" class="form-control"
-                                                    :value=$parent.volcanoYCondition
-                                                    @change="event => $parent.setVolcano(event.target.value)"/>
-                                            </div>
-                                            <div class="col-md-3"></div>
-                                        </div>
-                                        <div class="tabs-section-wrapper">
-                                            <div class="gene-not-found" v-if="!$parent.foundGene">
-                                                Gene not found.
-                                            </div>
-                                        </div>
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
-                                                            <div id="volcano1">
-                                                                <div class="label">
-                                                                    {{$parent.label1}}
-                                                                </div>
-                                                                <bulk-volcano-plot
-                                                                    :renderData="$parent.bulkData19K"
-                                                                    :renderConfig="$parent.getVolcanoConfig(1)"
-                                                                    :margin="$parent.margin"
-                                                                    sectionId="_bulk1"
-                                                                    :selectedGene="$store.state.selectedGene"
-                                                                    :upregulatedIn="$parent.upregulatedIn"
-                                                                    @highlight="gene => $parent.highlight(gene)">
-
-                                                                </bulk-volcano-plot>
-                                                            </div>
-                                                            <div id="volcano2">
-                                                                <div class="label">
-                                                                    {{$parent.label2}}
-                                                                </div>
-                                                                <bulk-volcano-plot
-                                                                    :renderData="$parent.bulkData19K"
-                                                                    :renderConfig="$parent.getVolcanoConfig(2)"
-                                                                    :margin="$parent.margin"
-                                                                    sectionId="_bulk2"
-                                                                    :selectedGene="$store.state.selectedGene"
-                                                                    :upregulatedIn="$parent.upregulatedIn"
-                                                                    @highlight="gene => $parent.highlight(gene)">
-
-                                                                </bulk-volcano-plot>
-                                                            </div>
-                                                        </div>
-                                                        <div v-else>
-                                                            Select two different comparisons to view the volcano plot.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </b-tab>
-                            <b-tab title="Direct comparison">
-                                <div class="flex-gap tabs-inner" id="scatterplots">
-                                <!--left tab group-->
-                                    <div class="tabs-group volcano">
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <div v-if="$parent.bulkData19K.length> 0" id="scatterplots">
-                                                            <div id="scatter1">
-                                                                <div class="label">
-                                                                    logFoldChange vs. logFoldChange
-                                                                </div>
-                                                                <scatterplot v-if="$parent.activeTab === 1"
-                                                                    :log-scale="false"
-                                                                    :plot-data="$parent.bulkData19K"
-                                                                    :config="$parent.getScatterConfig(true)"
-                                                                    :plot-name="`logFoldChange: ${$parent.label2} vs. ${$parent.label1}`"
-                                                                    :translucent-dots="true"
-                                                                >
-                                                                </scatterplot>
-                                                            </div>
-                                                            <div id="scatter2">
-                                                                <div class="label">
-                                                                    -log10P vs. -log10P
-                                                                </div>
-                                                                <scatterplot v-if="$parent.activeTab === 1"
-                                                                    :log-scale="false"
-                                                                    :plot-data="$parent.bulkData19K"
-                                                                    :config="$parent.getScatterConfig(false)"
-                                                                    :plot-name="`-log10P: ${$parent.label2} vs. ${$parent.label1}`"
-                                                                    :translucent-dots="true"
-                                                                >
-                                                                </scatterplot>
-                                                            </div>
-                                                        </div>
-                                                        <div v-else>
-                                                            Select two different comparisons to view the scatterplots.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </b-tab>
-                        </b-tabs>
-                        
-                        <div id="table-wrapper" class="flex-gap flex-column">
-                            <div class="flex-gap flex-column">
-                                <bulk-table
-                                    :bulkData="$parent.bulkData19K"
-                                    @geneFound="v => $parent.geneFound(v)"
-                                    @highlightRow="gene => $parent.highlight(gene)"
-                                    :dataset="$store.state.selectedDataset"
-                                    :config="$parent.tableConfig"
-                                    :scatterConfig="$parent.scatterplotConfig"
-                                    :highlightedGene="$store.state.selectedGene"
-                                    :regulationConditions="$parent.regulationConditions">
-                                </bulk-table>
+                        <criterion-function-group>
+                        <filter-absolute
+                            key="logFoldChange_1"
+                            field="logFoldChange_1"
+                            :label="`log2 FoldChange in ${$parent.label1}`">
+                            <div class="label">
+                                <div>|log2 FoldChange| in</div>
+                                <div>{{ $parent.label1 }}</div>
                             </div>
-                        </div>
+                        </filter-absolute>
+                        <filter-absolute
+                            key="logFoldChange_2"
+                            field="logFoldChange_2"
+                            :label="`log2 FoldChange in ${$parent.label2}`">
+                            <div class="label">
+                                <div>|log2 FoldChange| in</div>
+                                <div>{{ $parent.label1 }}</div>
+                            </div>
+                        </filter-absolute>
+                        <filter-greater-control
+                            key="minusLog10P_1"
+                            field="minusLog10P_1"
+                            :label="`-log10P in ${$parent.label1}`"
+                        >
+                            <div class="label">
+                                <div>-log10P in</div>
+                                <div>{{ $parent.label1 }}</div>
+                            </div>
+                        </filter-greater-control>
+                        <filter-greater-control
+                            key="minusLog10P_2"
+                            field="minusLog10P_2"
+                            :label="`-log10P in ${$parent.label2}`"
+                        >
+                            <div class="label">
+                                <div>-log10P in</div>
+                                <div>{{ $parent.label2 }}</div>
+                            </div>
+                        </filter-greater-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <b-tabs v-model="$parent.activeTab">
+                                <b-tab title="Side by side comparison">
+                                    <div class="flex-gap tabs-inner" id="visualizers">
+                                    <!--left tab group-->
+                                        <div class="tabs-group volcano">
+                                            <div class="tabs-section-wrapper row" id="diff-exp-menu">
+                                                <div class="col-md-4 menu-item">
+                                                    <div class="label">Search for a gene</div>
+                                                    <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+                                                    </gene-selectpicker>
+                                                </div>
+                                                <div class="col-md-4 menu-item">
+                                                    <div class="label">Set X-axis threshold for up/down regulation</div>
+                                                        <input type="number" step="0.1" class="form-control"
+                                                        :value=$parent.volcanoXConditionGreater
+                                                        @change="event => $parent.setVolcano(event.target.value, $parent.volcanoYCondition)"/>
+                                                </div>
+                                                <div class="col-md-4 menu-item">
+                                                    <div class="label">Set Y-axis threshold for up/down regulation</div>
+                                                        <input type="number" step="0.1" class="form-control"
+                                                        :value=$parent.volcanoYCondition
+                                                        @change="event => $parent.setVolcano($parent.volcanoXConditionGreater, event.target.value)"/>
+                                                </div>
+                                            </div>
+                                            <div class="tabs-section-wrapper">
+                                                <div class="gene-not-found" v-if="!$parent.foundGene">
+                                                    Gene not found.
+                                                </div>
+                                            </div>
+                                            <div class="tabs-section-wrapper">
+                                                <div class="tab-section" >
+                                                    <div class="flex-gap">
+                                                        <div class="wide-block">
+                                                            <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
+                                                                <div id="volcano1">
+                                                                    <div class="label">
+                                                                        {{$parent.label1}}
+                                                                    </div>
+                                                                    <bulk-volcano-plot
+                                                                        :filter="filter"
+                                                                        :renderData="$parent.bulkData19K"
+                                                                        :renderConfig="$parent.getVolcanoConfig(1)"
+                                                                        :margin="$parent.margin"
+                                                                        sectionId="_bulk1"
+                                                                        :selectedGene="$store.state.selectedGene"
+                                                                        :upregulatedIn="$parent.upregulatedIn"
+                                                                        @highlight="gene => $parent.highlight(gene)">
+
+                                                                    </bulk-volcano-plot>
+                                                                </div>
+                                                                <div id="volcano2">
+                                                                    <div class="label">
+                                                                        {{$parent.label2}}
+                                                                    </div>
+                                                                    <bulk-volcano-plot
+                                                                        :filter="filter"
+                                                                        :renderData="$parent.bulkData19K"
+                                                                        :renderConfig="$parent.getVolcanoConfig(2)"
+                                                                        :margin="$parent.margin"
+                                                                        sectionId="_bulk2"
+                                                                        :selectedGene="$store.state.selectedGene"
+                                                                        :upregulatedIn="$parent.upregulatedIn"
+                                                                        @highlight="gene => $parent.highlight(gene)">
+
+                                                                    </bulk-volcano-plot>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else>
+                                                                Select two different comparisons to view the volcano plot.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </b-tab>
+                                <b-tab title="Direct comparison">
+                                    <div class="flex-gap tabs-inner" id="scatterplots">
+                                    <!--left tab group-->
+                                        <div class="tabs-group volcano">
+                                            <div class="tabs-section-wrapper">
+                                                <div class="tab-section" >
+                                                    <div class="flex-gap">
+                                                        <div class="wide-block">
+                                                            <div v-if="$parent.bulkData19K.length> 0" id="scatterplots">
+                                                                <div id="scatter1">
+                                                                    <div class="label">
+                                                                        logFoldChange vs. logFoldChange
+                                                                    </div>
+                                                                    <scatterplot v-if="$parent.activeTab === 1"
+                                                                        :filter="filter"
+                                                                        :log-scale="false"
+                                                                        :plot-data="$parent.bulkData19K"
+                                                                        :config="$parent.getScatterConfig(true)"
+                                                                        :plot-name="`logFoldChange: ${$parent.label2} vs. ${$parent.label1}`"
+                                                                        :translucent-dots="true"
+                                                                    >
+                                                                    </scatterplot>
+                                                                </div>
+                                                                <div id="scatter2">
+                                                                    <div class="label">
+                                                                        -log10P vs. -log10P
+                                                                    </div>
+                                                                    <scatterplot v-if="$parent.activeTab === 1"
+                                                                        :filter="filter"
+                                                                        :log-scale="false"
+                                                                        :plot-data="$parent.bulkData19K"
+                                                                        :config="$parent.getScatterConfig(false)"
+                                                                        :plot-name="`-log10P: ${$parent.label2} vs. ${$parent.label1}`"
+                                                                        :translucent-dots="true"
+                                                                    >
+                                                                    </scatterplot>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else>
+                                                                Select two different comparisons to view the scatterplots.
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </b-tab>
+                            </b-tabs>
+                            <div id="table-wrapper" class="flex-gap flex-column">
+                                <div class="flex-gap flex-column">
+                                    <bulk-table
+                                        :filter="filter"
+                                        :bulkData="$parent.bulkData19K"
+                                        @geneFound="v => $parent.geneFound(v)"
+                                        @highlightRow="gene => $parent.highlight(gene)"
+                                        :dataset="$store.state.selectedDataset"
+                                        :config="$parent.tableConfig"
+                                        :scatterConfig="$parent.scatterplotConfig"
+                                        :highlightedGene="$store.state.selectedGene"
+                                        :regulationConditions="$parent.regulationConditions"
+                                        :isCompPage="true">
+                                    </bulk-table>
+                                </div>
+                            </div>
+                        </template>
+                    </criterion-function-group>
+                        
                                 <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
                                     <div class="tabs-group">
                                         <div class="tabs-wrapper">
@@ -206,7 +258,7 @@
                                                 for all differentially expressed genes from the above-selected dataset
                                                 and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
                                                 <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
-                                                If you use data from this tool, please review our <a href="/info.html?page=policies">Citation
+                                                If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
                                             </div>
@@ -266,7 +318,7 @@
                                                             </button>
                                                         </template>
                                                     </b-table>
-                                                    <b-pagination
+                                                    <b-pagination v-if="$parent.librariesForType.length > 5"
                                                         small
                                                         v-model="$parent.libraryPage"
                                                         :total-rows="$parent.librariesForType.length"
@@ -545,9 +597,6 @@ button.hide-table {
 }
 .tabs-outer {
     padding: 10px;
-}
-.tabs-outer a {
-    color: inherit !important;
 }
 .tabs-inner {
     margin: 10px;

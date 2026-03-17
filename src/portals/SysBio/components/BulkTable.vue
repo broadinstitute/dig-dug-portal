@@ -20,12 +20,17 @@
                 <b-form-radio
                     :value="up">
                         <span class="upregulated">&#9608;</span>
-                        Upregulated only
+                        Upregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
                 </b-form-radio>
                 <b-form-radio
                     :value="down">
                         <span class="downregulated">&#9608;</span>
-                        Downregulated only
+                        Downregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
+                </b-form-radio>
+                <b-form-radio v-if="false"
+                    value="both">
+                        <span class="both">&#9608;</span>
+                        Upregulated in one comparison, downregulated in another
                 </b-form-radio>
             </b-form-radio-group>
           </div>
@@ -86,7 +91,8 @@ export default Vue.component("bulk-table", {
         "filter",
         "dataset",
         "highlightedGene",
-        "regulationConditions"
+        "regulationConditions",
+        "isCompPage"
     ],
     data() {
         return {
@@ -157,17 +163,17 @@ export default Vue.component("bulk-table", {
                 data = data.filter(this.filter);
             }
             if (!!this.showGenes){
-                data = data.filter(item => this.showRegulation(item) === this.showGenes);
+                data = data.filter(item => this.showRegulation(item) === this.showGenes || this.showRegulation(item) === "both");
             }
             return data;
         },
         upregulatedGenes(){
-            let genesList = this.tableData.filter(item => this.showRegulation(item) === this.up)
+            let genesList = this.tableData.filter(item => this.showRegulation(item) === this.up || this.showRegulation(item) === "both")
                 .map(item => item.gene);
             return genesList;
         },
         downregulatedGenes(){
-            let genesList = this.tableData.filter(item => this.showRegulation(item) === this.down)
+            let genesList = this.tableData.filter(item => this.showRegulation(item) === this.down || this.showRegulation(item) === "both")
                 .map(item => item.gene);
             return genesList;
         },
@@ -271,14 +277,26 @@ export default Vue.component("bulk-table", {
             return item.gene === this.highlightedGene ? "table-warning " : "";
         },
         showRegulation(item){
+            if (this.isCompPage){
+                let result1 = this.isRegulated(item, `${this.tableXField}_1`, `${this.tableYField}_1`);
+                let result2 = this.isRegulated(item, `${this.tableXField}_2`, `${this.tableYField}_2`);
+                if (result1 !== "" && result2 !== "" && result1 !== result2){
+                    return "both";
+                }
+                return result1.concat(result2);
+            } else {
+                return this.isRegulated(item, this.tableXField, this.tableYField);
+            }
+        },
+        isRegulated(item, xField, yField){
             let cond = this.regulationConditions;
-            if (item[this.tableYField] < cond.yGreater){
+            if (item[yField] < cond.yGreater){
                 return "";
             }
-            if (item[this.tableXField] <= cond.xLower){
+            if (item[xField] <= cond.xLower){
                 return this.down;
             }
-            if (item[this.tableXField] >= cond.xGreater){
+            if (item[xField] >= cond.xGreater){
                 return this.up;
             }
             return "";

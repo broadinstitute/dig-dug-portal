@@ -4,9 +4,9 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body">
-            <div v-if="$parent.pageInfo" style="margin:0 0 40px">
-                <h2>{{ $parent.pageInfo.title }}</h2>
-                <div v-html="$parent.pageInfo.body"></div>
+            <div style="margin:0 0 40px">
+                <h2>Single Cell Browser</h2>
+                <div v-html="$parent.docs"></div>
             </div>
             <div v-if="$parent.ready" style="display:flex; gap: 20px; height: 480px;">
                 <div style="display:flex; flex-direction: column; width: 300px;">

@@ -120,7 +120,6 @@ new Vue({
             },
             volcanoYCondition: 1.3,
             volcanoXConditionGreater: 1.5,
-            volcanoXConditionLower: -1.5,
             enrichrColorScale: null,
         };
     },
@@ -179,7 +178,7 @@ new Vue({
                 "x condition": { 
                     "combination": "or", 
                     "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
+                    "lower than": -this.volcanoXConditionGreater },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": { 
                     "combination": "greater than", 
@@ -232,7 +231,7 @@ new Vue({
         regulationConditions(){
             return {
                 xGreater: this.volcanoXConditionGreater,
-                xLower: this.volcanoXConditionLower,
+                xLower: -this.volcanoXConditionGreater,
                 yGreater: this.volcanoYCondition
             }
         },
@@ -311,7 +310,7 @@ new Vue({
             let data = structuredClone(this.bulkData19K);
             data = data.filter(d => 
                 up ? d.logFoldChange >= this.volcanoXConditionGreater
-                : d.logFoldChange <= this.volcanoXConditionLower );
+                : d.logFoldChange <= -this.volcanoXConditionGreater );
             data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
                 .map(d => d.gene);
             return data;
@@ -319,12 +318,13 @@ new Vue({
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-        async setVolcano(newYVal){
-            if (newYVal === this.volcanoYCondition) {
+        async setVolcano(newXVal, newYVal){
+            if (newXVal === this.volcanoXConditionGreater && newYVal === this.volcanoYCondition) {
                 return;
             }
             // If any change, refire Enrichr
             this.volcanoYCondition = newYVal;
+            this.volcanoXConditionGreater = newXVal;
             await this.populateEnrichr();
         },
         hideTable(){

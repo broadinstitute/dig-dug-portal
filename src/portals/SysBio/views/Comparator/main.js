@@ -8,6 +8,10 @@ import "../../css/sysbio.css";
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import { sysbioStore } from "../../mixins/sysbioStore.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import FilterAbsolute from "@/components/criterion/FilterAbsolute.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionGroup.vue";
 import { createColorScale } from "../../utils/visuals.js";
 import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -33,6 +37,10 @@ new Vue({
         BulkTable,
         GeneSelectPicker,
         EnrichrPlot,
+        FilterGreaterThan,
+        FilterGreaterLess,
+        FilterAbsolute,
+        CriterionFunctionGroup,
         //ResearchSingleCellInfo,
         
     },
@@ -94,30 +102,42 @@ new Vue({
                 legendSpacing: 35
             },
             svg: null,
-            tableConfig: {
+            volcanoYCondition: 1.3,
+            volcanoXConditionGreater: 1.5,
+            enrichrColorScale: null,
+            activeTab: 0,
+            x1: "logFoldChange_1",
+            x2: "logFoldChange_2",
+            y1: "minusLog10P_1",
+            y2: "minusLog10P_2"
+        };
+    },
+    computed: {
+        tableConfig(){
+            return {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
-                        key: "logFoldChange_1",
-                        label: `log2 Fold Change in Comp. 1`,
+                        key: this.x1,
+                        label: `log2 Fold Change in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "logFoldChange_2",
-                        label: `log2 Fold Change in Comp. 2`,
+                        key: this.x2,
+                        label: `log2 Fold Change in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter
                     },
                     {
-                        key: "minusLog10P_1",
-                        label: `-log10(FDR adj. p) in Comp. 1`,
+                        key: this.y1,
+                        label: `-log10(FDR adj. p) in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
-                        key: "minusLog10P_2",
-                        label: `-log10(FDR adj. p) in Comp. 2`,
+                        key: this.y2,
+                        label: `-log10(FDR adj. p) in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
@@ -128,15 +148,8 @@ new Vue({
                     { key: "gene_set", label: "Gene set", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
-            },
-            volcanoYCondition: 1.3,
-            volcanoXConditionGreater: 1.5,
-            volcanoXConditionLower: -1.5,
-            enrichrColorScale: null,
-            activeTab: 0
-        };
-    },
-    computed: {
+            };
+        },
         colorScaleEndpoints(){
             let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
             if (allEnrichr.length === 0){
@@ -224,7 +237,7 @@ new Vue({
         regulationConditions(){
             return {
                 xGreater: this.volcanoXConditionGreater,
-                xLower: this.volcanoXConditionLower,
+                xLower: -this.volcanoXConditionGreater,
                 yGreater: this.volcanoYCondition
             }
         },
@@ -314,7 +327,7 @@ new Vue({
                 "x condition": { 
                     "combination": "or", 
                     "greater than": this.volcanoXConditionGreater, 
-                    "lower than": this.volcanoXConditionLower },
+                    "lower than": -this.volcanoXConditionGreater },
                 //combination for condition can be "greater than", "lower than", "or" and "and."
                 "y condition": { 
                     "combination": "greater than", 
@@ -330,22 +343,42 @@ new Vue({
         },
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
-            data = data.filter(d => 
-                up ? d.logFoldChange >= this.volcanoXConditionGreater
-                : d.logFoldChange <= this.volcanoXConditionLower );
-            data = data.filter(d=> d["-log10P"] >= this.volcanoYCondition)
-                .map(d => d.gene);
+            let direction = up ? "up" : "down";
+            data = data.filter(d => this.showRegulation(d) === direction || this.showRegulation(d) === "both");
+            data = data.map(d => d.gene);
             return data;
+        },
+        showRegulation(item){
+            let result1 = this.isRegulated(item, this.x1, this.y1);
+            let result2 = this.isRegulated(item, this.x2, this.y2);
+            if (result1 !== "" && result2 !== "" && result1 !== result2){
+                return "both";
+            }
+            return result1.concat(result2);
+        },
+        isRegulated(item, xField, yField){
+            let cond = this.regulationConditions;
+            if (item[yField] < cond.yGreater){
+                return "";
+            }
+            if (item[xField] <= cond.xLower){
+                return "down";
+            }
+            if (item[xField] >= cond.xGreater){
+                return "up"
+            }
+            return "";
         },
         highlight(highlightedGene) {
             this.$store.state.selectedGene = highlightedGene;
         },
-        async setVolcano(newYVal){
-            if (newYVal === this.volcanoYCondition) {
+        async setVolcano(newXVal, newYVal){
+            if (newXVal === this.volcanoXConditionGreater && newYVal === this.volcanoYCondition) {
                 return;
             }
             // If any change, refire Enrichr
             this.volcanoYCondition = newYVal;
+            this.volcanoXConditionGreater = newXVal;
             await this.populateEnrichr();
         },
         hideTable(){
@@ -359,13 +392,12 @@ new Vue({
             this.foundGene = found;
         },
         combineItems(item1, item2){
-            let item = {
-                gene: item1.gene,
-                minusLog10P_1: item1["-log10P"],
-                logFoldChange_1: item1.logFoldChange,
-                minusLog10P_2: item2["-log10P"],
-                logFoldChange_2: item2.logFoldChange
-            };
+            let item = {};
+            item.gene = item1.gene;
+            item[this.x1] = item1["logFoldChange"];
+            item[this.y1] = item1["-log10P"];
+            item[this.x2] = item2["logFoldChange"];
+            item[this.y2] = item2["-log10P"];
             return item;
         },
         getScatterConfig(isLogFoldChange){
