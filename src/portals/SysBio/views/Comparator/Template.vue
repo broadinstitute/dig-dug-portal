@@ -112,7 +112,7 @@
                                                     </gene-selectpicker>
                                                 </div>
                                                 <div class="col-md-3 menu-item">
-                                                    <div class="label">Set -log10(FDR adj. P) threshold for up/down regulation</div>
+                                                    <div class="label">Set |-log10(FDR adj. P)| threshold for up/down regulation</div>
                                                         <input type="number" step="0.1" class="form-control"
                                                         :value=$parent.volcanoYCondition
                                                         @change="event => $parent.setVolcano(event.target.value)"/>

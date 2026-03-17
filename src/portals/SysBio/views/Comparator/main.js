@@ -102,30 +102,39 @@ new Vue({
                 legendSpacing: 35
             },
             svg: null,
-            tableConfig: {
+            volcanoYCondition: 1.3,
+            volcanoXConditionGreater: 1.5,
+            volcanoXConditionLower: -1.5,
+            enrichrColorScale: null,
+            activeTab: 0
+        };
+    },
+    computed: {
+        tableConfig(){
+            return {
                 fields: [
                     { key: "gene", label: "Gene", sortable: true },
                     {
                         key: "logFoldChange_1",
-                        label: `log2 Fold Change in Comp. 1`,
+                        label: `log2 Fold Change in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
                         key: "logFoldChange_2",
-                        label: `log2 Fold Change in Comp. 2`,
+                        label: `log2 Fold Change in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter
                     },
                     {
                         key: "minusLog10P_1",
-                        label: `-log10(FDR adj. p) in Comp. 1`,
+                        label: `-log10(FDR adj. p) in ${this.label1}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
                     {
                         key: "minusLog10P_2",
-                        label: `-log10(FDR adj. p) in Comp. 2`,
+                        label: `-log10(FDR adj. p) in ${this.label2}`,
                         sortable: true,
                         formatter: Formatters.tpmFormatter,
                     },
@@ -136,15 +145,8 @@ new Vue({
                     { key: "gene_set", label: "Gene set", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                 ],
-            },
-            volcanoYCondition: 1.3,
-            volcanoXConditionGreater: 1.5,
-            volcanoXConditionLower: -1.5,
-            enrichrColorScale: null,
-            activeTab: 0
-        };
-    },
-    computed: {
+            };
+        },
         colorScaleEndpoints(){
             let allEnrichr = this.enrichrUp.concat(this.enrichrDown);
             if (allEnrichr.length === 0){
