@@ -96,7 +96,7 @@
                                                         <div v-if="$parent.bulkData19K.length> 0" id="volcanos">
                                                             <div id="volcano1">
                                                                 <div class="label">
-                                                                    {{ $store.state.currentComparisons[$store.state.selectedComp1].label}}
+                                                                    {{$parent.label1}}
                                                                 </div>
                                                                 <bulk-volcano-plot
                                                                     :renderData="$parent.bulkData19K"
@@ -111,7 +111,7 @@
                                                             </div>
                                                             <div id="volcano2">
                                                                 <div class="label">
-                                                                    {{ $store.state.currentComparisons[$store.state.selectedComp2].label}}
+                                                                    {{$parent.label2}}
                                                                 </div>
                                                                 <bulk-volcano-plot
                                                                     :renderData="$parent.bulkData19K"
@@ -153,13 +153,27 @@
                                                                 <div class="label">
                                                                     logFoldChange vs. logFoldChange
                                                                 </div>
-                                                                <scatterplot></scatterplot>
+                                                                <scatterplot
+                                                                    :log-scale="false"
+                                                                    :plot-data="$parent.bulkData19K"
+                                                                    :config="$parent.getScatterConfig(true)"
+                                                                    :plot-name="`logFoldChange: ${$parent.label2} vs. ${$parent.label1}`"
+                                                                    :translucent-dots="true"
+                                                                >
+                                                                </scatterplot>
                                                             </div>
                                                             <div id="scatter2">
                                                                 <div class="label">
                                                                     -log10P vs. -log10P
                                                                 </div>
-                                                                <scatterplot></scatterplot>
+                                                                <scatterplot
+                                                                    :log-scale="false"
+                                                                    :plot-data="$parent.bulkData19K"
+                                                                    :config="$parent.getScatterConfig(false)"
+                                                                    :plot-name="`-log10P: ${$parent.label2} vs. ${$parent.label1}`"
+                                                                    :translucent-dots="true"
+                                                                >
+                                                                </scatterplot>
                                                             </div>
                                                         </div>
                                                         <div v-else>

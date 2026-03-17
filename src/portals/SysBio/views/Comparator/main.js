@@ -242,6 +242,12 @@ new Vue({
         },
         downGenes(){
             return this.getTopGenes(false);
+        },
+        label1() {
+            return this.$store.state.currentComparisons[this.$store.state.selectedComp1].label;
+        },
+        label2() {
+            return this.$store.state.currentComparisons[this.$store.state.selectedComp2].label;
         }
     },
     async mounted() {
@@ -360,7 +366,25 @@ new Vue({
                 logFoldChange_2: item2.logFoldChange
             };
             return item;
-        }
+        },
+        getScatterConfig(isLogFoldChange){
+            let field = isLogFoldChange ? "logFoldChange" : "minusLog10P";
+            let config = {
+                xField: `${field}_1`,
+                xAxisLabel: this.label1,
+                yField: `${field}_2`,
+                yAxisLabel: this.label2,
+                dotKey: "gene",
+                hoverBoxPosition: "both",
+                plotHeight: 350,
+                hoverFields: [
+                    {key: "gene", label: "Gene"},
+                    {key: `${field}_1`, label: `${field} in ${this.label1}`},
+                    {key: `${field}_2`, label: `${field} in ${this.label2}`},
+                ],
+            };
+            return config;
+        },
     },
     watch: {
         async selectedDataset(newData, oldData) {
