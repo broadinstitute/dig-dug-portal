@@ -148,7 +148,7 @@
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
                                                     <div class="wide-block">
-                                                        <div v-if="$parent.bulkData19K.length> 0">
+                                                        <div v-if="$parent.bulkData19K.length> 0" id="scatterplots">
                                                             <div id="scatter1">
                                                                 <div class="label">
                                                                     logFoldChange vs. logFoldChange
@@ -542,7 +542,7 @@ button.hide-table {
     border: 1px solid goldenrod;
     background-color: gold;
 }
-#volcanos {
+#volcanos, #scatterplots {
     display: inherit;
 }
 #volcano1, #volcano2 {
@@ -561,5 +561,9 @@ button.hide-table {
 }
 .tabs-inner {
     margin: 10px;
+}
+#scatter1, #scatter2 {
+    width: 450px;
+    margin: 50px;
 }
 </style>
