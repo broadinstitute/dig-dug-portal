@@ -72,7 +72,7 @@
                             :label="`log2 FoldChange in ${$parent.label2}`">
                             <div class="label">
                                 <div>|log2 FoldChange| in</div>
-                                <div>{{ $parent.label1 }}</div>
+                                <div>{{ $parent.label2 }}</div>
                             </div>
                         </filter-absolute>
                         <filter-greater-control
