@@ -64,11 +64,6 @@
                                 <div class="flex-gap tabs-inner" id="visualizers">
                                 <!--left tab group-->
                                     <div class="tabs-group volcano">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                Differentially Expressed Genes
-                                            </div>
-                                        </div>
                                         <div class="tabs-section-wrapper row" id="diff-exp-menu">
                                             <div class="col-md-3"></div>
                                             <div class="col-md-3 menu-item">
@@ -139,11 +134,6 @@
                                 <div class="flex-gap tabs-inner" id="scatterplots">
                                 <!--left tab group-->
                                     <div class="tabs-group volcano">
-                                        <div class="tabs-wrapper">
-                                            <div class="tab">
-                                                Fold vs. Fold
-                                            </div>
-                                        </div>
                                         <div class="tabs-section-wrapper">
                                             <div class="tab-section" >
                                                 <div class="flex-gap">
@@ -355,7 +345,7 @@
   display: flex;
   z-index: 1;
 }
-  .tab {
+  .tab, li.nav-item {
       padding: 10px 10px;
       margin: 0 -1px -1px 0;
       background: #eee;
