@@ -185,6 +185,13 @@ export default Vue.component("bulk-volcano-plot", {
 				.style("text-anchor", "middle")
 
 			let amp = this.$store.state?.selectedAMP || null;
+			if (this.sectionId.startsWith("_bulk")){
+				let index = this.sectionId.at(-1);
+				let comp = index === "1" 
+					? this.$store.state.selectedComp1 
+						: this.$store.state.selectedComp2;
+				amp = this.$store.state.currentComparisons[comp].label;
+			}
 			let upregulatedIn = !!amp ? amp.split("vs")[0] : "";
 			if (!!amp){
 				this.svg.select("#axisLabelsGroup")
