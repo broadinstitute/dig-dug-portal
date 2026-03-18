@@ -230,7 +230,8 @@
                                         :scatterConfig="$parent.scatterplotConfig"
                                         :highlightedGene="$store.state.selectedGene"
                                         :regulationConditions="$parent.regulationConditions"
-                                        :isCompPage="true">
+                                        :isCompPage="true"
+                                        @allGenes="genes => $parent.getAllGenes(genes)">
                                     </bulk-table>
                                 </div>
                             </div>
@@ -248,9 +249,7 @@
                                           <div class="tab-section">
                                             <div class="row">
                                                 <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
-                                                for all differentially expressed genes from the above-selected dataset
-                                                and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
-                                                <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
+                                                for all differentially expressed genes from the table above.
                                                 If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
@@ -328,42 +327,21 @@
                                 <div id="enrichr">
                                     <div class="tabs-group">
                                         <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <enrichr-plot
-                                                            v-if="$parent.enrichrReady && $parent.dataReady"
-                                                            ref="DownregulatedGenes"
-                                                            :phenotypesData="$parent.enrichrDown"
-                                                            :colors="$parent.colors"
-                                                            :colorScale="$parent.enrichrColorScale"
-                                                            canvasId="Downregulated"
-                                                            :utils="$parent.utils"
-                                                            :truncate="$parent.truncateEnrichr"
-                                                        ></enrichr-plot>
-                                                    </div>
+                                            <div class="tab-section">
+                                                <enrichr-plot
+                                                    v-if="$parent.enrichrReady && $parent.dataReady"
+                                                    :phenotypesData="$parent.enrichrDown"
+                                                    :colors="$parent.colors"
+                                                    :colorScale="$parent.enrichrColorScale"
+                                                    canvasId="Top"
+                                                    :utils="$parent.utils"
+                                                    :truncate="$parent.truncateEnrichr"
+                                                ></enrichr-plot>
+                                                        <div v-else>
+                                                            Loading ENRICHR data...
+                                                        </div>
+                                                    
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tabs-group">
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <enrichr-plot
-                                                            v-if="$parent.enrichrReady && $parent.dataReady"
-                                                            ref="UpregulatedGenes"
-                                                            :phenotypesData="$parent.enrichrUp"
-                                                            :colors="$parent.colors"
-                                                            :colorScale="$parent.enrichrColorScale"
-                                                            canvasId="Upregulated"
-                                                            :utils="$parent.utils"
-                                                            :truncate="$parent.truncateEnrichr"
-                                                        ></enrichr-plot>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -461,8 +439,7 @@
     display: flex;
   }
   #enrichr .tabs-group{
-    width: 680px;
-    height: 345px;
+    width: 100%;
   }
 
 .legends {

@@ -185,6 +185,13 @@ export default Vue.component("bulk-volcano-plot", {
 				.style("text-anchor", "middle")
 
 			let amp = this.$store.state?.selectedAMP || null;
+			if (this.sectionId.startsWith("_bulk")){
+				let index = this.sectionId.at(-1);
+				let comp = index === "1" 
+					? this.$store.state.selectedComp1 
+						: this.$store.state.selectedComp2;
+				amp = this.$store.state.currentComparisons[comp].label;
+			}
 			let upregulatedIn = !!amp ? amp.split("vs")[0] : "";
 			if (!!amp){
 				this.svg.select("#axisLabelsGroup")
@@ -206,14 +213,14 @@ export default Vue.component("bulk-volcano-plot", {
 			this.svg.append("text")
                 .attr('text-anchor', 'middle')
 				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.bottom + margin.top - 14))
+				.attr("y", (height + margin.bottom / 2 + 10))
                 .style("font-family", "Arial").style("font-size", 14)
 				.text(this.renderConfig['x axis label']);
 
 			this.svg.append("text")
 				.attr('text-anchor', 'middle')
-				.attr("x", -(margin.top+(height/2)))
-				.attr("y", 14)
+				.attr("x", -((height/2)))
+				.attr("y", 55)
                 .attr("transform", "rotate(-90)")
                 .style("font-family", "Arial").style("font-size", 14)
 				.text(this.renderConfig['y axis label']);
