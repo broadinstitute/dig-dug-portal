@@ -343,17 +343,17 @@ new Vue({
         getTopGenes(up=true){
             let data = structuredClone(this.bulkData19K);
             let direction = up ? "up" : "down";
-            data = data.filter(d => this.showRegulation(d) === direction || this.showRegulation(d) === "both");
+            data = data.filter(d => this.showRegulation(d) === direction);
             data = data.map(d => d.gene);
             return data;
         },
         showRegulation(item){
             let result1 = this.isRegulated(item, this.x1, this.y1);
             let result2 = this.isRegulated(item, this.x2, this.y2);
-            if (result1 !== "" && result2 !== "" && result1 !== result2){
-                return "both";
+            if (result1 !== result2){
+                return "";
             }
-            return result1.concat(result2);
+            return result1;
         },
         isRegulated(item, xField, yField){
             let cond = this.regulationConditions;

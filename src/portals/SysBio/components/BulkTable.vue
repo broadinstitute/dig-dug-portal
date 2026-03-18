@@ -20,17 +20,12 @@
                 <b-form-radio
                     :value="up">
                         <span class="upregulated">&#9608;</span>
-                        Upregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
+                        Upregulated {{ !isCompPage ? "only" : "in both comparisons" }}
                 </b-form-radio>
                 <b-form-radio
                     :value="down">
                         <span class="downregulated">&#9608;</span>
-                        Downregulated {{ !isCompPage ? "only" : "in at least one comparison" }}
-                </b-form-radio>
-                <b-form-radio v-if="false"
-                    value="both">
-                        <span class="both">&#9608;</span>
-                        Upregulated in one comparison, downregulated in another
+                        Downregulated {{ !isCompPage ? "only" : "in both comparisons" }}
                 </b-form-radio>
             </b-form-radio-group>
           </div>
@@ -280,10 +275,11 @@ export default Vue.component("bulk-table", {
             if (this.isCompPage){
                 let result1 = this.isRegulated(item, `${this.tableXField}_1`, `${this.tableYField}_1`);
                 let result2 = this.isRegulated(item, `${this.tableXField}_2`, `${this.tableYField}_2`);
-                if (result1 !== "" && result2 !== "" && result1 !== result2){
-                    return "both";
+                if (result1 !== result2){
+                    return "";
+                } else {
+                    return result1;
                 }
-                return result1.concat(result2);
             } else {
                 return this.isRegulated(item, this.tableXField, this.tableYField);
             }
