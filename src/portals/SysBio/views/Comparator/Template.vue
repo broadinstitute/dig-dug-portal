@@ -62,8 +62,7 @@
                             field="logFoldChange_1"
                             :label="`log2 FoldChange in ${$parent.label1}`">
                             <div class="label">
-                                <div>|log2 FoldChange| in</div>
-                                <div>{{ $parent.label1 }}</div>
+                                <div>|log2 FoldChange| in Comparison 1</div>
                             </div>
                         </filter-absolute>
                         <filter-absolute
@@ -71,8 +70,7 @@
                             field="logFoldChange_2"
                             :label="`log2 FoldChange in ${$parent.label2}`">
                             <div class="label">
-                                <div>|log2 FoldChange| in</div>
-                                <div>{{ $parent.label2 }}</div>
+                                <div>|log2 FoldChange| in Comparison 2</div>
                             </div>
                         </filter-absolute>
                         <filter-greater-control
@@ -81,8 +79,7 @@
                             :label="`-log10P in ${$parent.label1}`"
                         >
                             <div class="label">
-                                <div>-log10P in</div>
-                                <div>{{ $parent.label1 }}</div>
+                                <div>-log10P in Comparison 1</div>
                             </div>
                         </filter-greater-control>
                         <filter-greater-control
@@ -91,8 +88,7 @@
                             :label="`-log10P in ${$parent.label2}`"
                         >
                             <div class="label">
-                                <div>-log10P in</div>
-                                <div>{{ $parent.label2 }}</div>
+                                <div>-log10P in Comparison 2</div>
                             </div>
                         </filter-greater-control>
                         <template slot="filtered" slot-scope="{ filter }">
