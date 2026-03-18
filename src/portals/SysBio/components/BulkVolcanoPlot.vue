@@ -206,14 +206,14 @@ export default Vue.component("bulk-volcano-plot", {
 			this.svg.append("text")
                 .attr('text-anchor', 'middle')
 				.attr("x", (margin.left + (width / 2)))
-				.attr("y", (height + margin.bottom + margin.top - 14))
+				.attr("y", (height + margin.bottom / 2 + 10))
                 .style("font-family", "Arial").style("font-size", 14)
 				.text(this.renderConfig['x axis label']);
 
 			this.svg.append("text")
 				.attr('text-anchor', 'middle')
-				.attr("x", -(margin.top+(height/2)))
-				.attr("y", 14)
+				.attr("x", -((height/2)))
+				.attr("y", 55)
                 .attr("transform", "rotate(-90)")
                 .style("font-family", "Arial").style("font-size", 14)
 				.text(this.renderConfig['y axis label']);
