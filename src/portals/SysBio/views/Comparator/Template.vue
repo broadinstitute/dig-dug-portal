@@ -230,7 +230,8 @@
                                         :scatterConfig="$parent.scatterplotConfig"
                                         :highlightedGene="$store.state.selectedGene"
                                         :regulationConditions="$parent.regulationConditions"
-                                        :isCompPage="true">
+                                        :isCompPage="true"
+                                        @allGenes="genes => $parent.getAllGenes(genes)">
                                     </bulk-table>
                                 </div>
                             </div>
@@ -338,26 +339,6 @@
                                                             :colors="$parent.colors"
                                                             :colorScale="$parent.enrichrColorScale"
                                                             canvasId="Downregulated"
-                                                            :utils="$parent.utils"
-                                                            :truncate="$parent.truncateEnrichr"
-                                                        ></enrichr-plot>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tabs-group">
-                                        <div class="tabs-section-wrapper">
-                                            <div class="tab-section" >
-                                                <div class="flex-gap">
-                                                    <div class="wide-block">
-                                                        <enrichr-plot
-                                                            v-if="$parent.enrichrReady && $parent.dataReady"
-                                                            ref="UpregulatedGenes"
-                                                            :phenotypesData="$parent.enrichrUp"
-                                                            :colors="$parent.colors"
-                                                            :colorScale="$parent.enrichrColorScale"
-                                                            canvasId="Upregulated"
                                                             :utils="$parent.utils"
                                                             :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>

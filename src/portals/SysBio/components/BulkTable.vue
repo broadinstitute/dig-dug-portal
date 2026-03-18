@@ -333,6 +333,9 @@ export default Vue.component("bulk-table", {
         },
         async currentData(newData){
             console.log("Current data received");
+        },
+        allGenes(newData){
+            this.$emit("allGenes", newData);
         }
     }
 });

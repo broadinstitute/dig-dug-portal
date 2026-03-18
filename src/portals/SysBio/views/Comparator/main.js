@@ -108,7 +108,8 @@ new Vue({
             x1: "logFoldChange_1",
             x2: "logFoldChange_2",
             y1: "minusLog10P_1",
-            y2: "minusLog10P_2"
+            y2: "minusLog10P_2",
+            allGenes: []
         };
     },
     computed: {
@@ -284,10 +285,8 @@ new Vue({
         },
         async populateEnrichr(){
             this.enrichrReady = false;
-            this.enrichrUp = [];
             this.enrichrDown = [];
-            this.enrichrUp = await getEnrichr(this.upGenes, this.enrichrLibrary, this.truncateEnrichr);
-            this.enrichrDown = await getEnrichr(this.downGenes, this.enrichrLibrary, this.truncateEnrichr);
+            this.enrichrDown = await getEnrichr(this.allGenes, this.enrichrLibrary, this.truncateEnrichr);
             this.enrichrColorScale = createColorScale(this.colorScaleEndpoints, [ACCESSIBLE_DARK_GRAY, ACCESSIBLE_PURPLE]);
             this.enrichrReady = true;
         },
@@ -417,6 +416,11 @@ new Vue({
             };
             return config;
         },
+        async getAllGenes(genes){
+            this.allGenes = genes;
+            console.log("Genes received", JSON.stringify(genes));
+            await this.populateEnrichr();
+        }
     },
     watch: {
         async selectedDataset(newData, oldData) {
