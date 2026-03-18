@@ -1,5 +1,5 @@
 let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
-
+    console.log("convertData.js called", SHARED_RESOURCE);
     let convertedData = [];
     let joinValues = function (FIELDS, jBy, fData) {
 
@@ -246,7 +246,7 @@ let convertData = function (CONVERT, DATA, PHENOTYPE_MAP, SHARED_RESOURCE) {
                     break;
 
                 case "map name":
-
+                    console.log("dataConvert.js called");
                     let map = (c["map"] == "shared resource") ? SHARED_RESOURCE[c["map name"]] : c["map"];
 
                     tempObj[c["field name"]] = map[rawValue];

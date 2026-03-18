@@ -6990,3 +6990,16 @@ export function findPhenotypeById(searchTerm) {
 
     return null;
 }
+
+export function getCfdePhenotypes() {
+    return cfdePhenotypes;
+}
+
+
+
+export default {
+    findPhenotypeByName,
+    findPhenotypeById,
+    getCfdePhenotypes,
+    cfdePhenotypes,
+};

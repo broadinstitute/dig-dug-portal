@@ -1472,6 +1472,7 @@ export default Vue.component("research-section", {
 						switch(this.dataPoint['parameter convert'][param].type) {
 							case "map name":
 								//this.$root.sharedResource
+								console.log("ResearchSection.vue called");
 								let paramText;
 								if(this.dataPoint['parameter convert'][param].map == 'shared resource') {
 									const convertPoint = this.$root.sharedResource[this.dataPoint['parameter convert'][param]['map name']];

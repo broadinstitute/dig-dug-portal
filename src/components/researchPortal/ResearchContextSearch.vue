@@ -192,6 +192,9 @@ export default {
                 case "kp phenotypes":
                     this.getListOptions(EVENT, paramType, this.kpPhenotypes);
                     break;
+                case "cfde phenotypes":
+                    this.getListOptions(EVENT, paramType, this.cfdePhenotypes);
+                    break;
                 default:
                     this.getListOptions(EVENT, paramType, paramValue);
                     break;
@@ -236,6 +239,14 @@ export default {
             let phenotypes = [];
             this.parent.kpPhenotypes.map(p => {
                 phenotypes.push({label: p.description, value: p.name});
+            });
+            return phenotypes;
+        },
+        cfdePhenotypes() {
+            let phenotypes = [];
+            const cfdePhenotypes = this.utils.cfdeUtils.getCfdePhenotypes();
+            Object.keys(cfdePhenotypes).map(key => {
+                phenotypes.push({label: cfdePhenotypes[key], value: key});
             });
             return phenotypes;
         }
