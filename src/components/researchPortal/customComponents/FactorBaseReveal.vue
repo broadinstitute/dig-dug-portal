@@ -1,12 +1,20 @@
 <template>
     <div class="factor-base-reveal">
-        <div class="card mdkp-card">
-            <div class="card-body">
-                <h4 class="card-title">Factor-based reveal</h4>
+        <div class="card mdkp-card" style="margin: 0 0 50px 0;">
+            <div class="card-body" style="display:flex; flex-direction: column; gap:30px">
+                <div style="display:flex; gap:20px">
+                    <div><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_reveal.png" style="height:100px"/></div>
+                    <div style="display:flex; flex-direction: column;">
+                        <div style="font-size: 2em; font-weight: bold;">CFDE REVEAL</div>
+                        <div style="font-size: 1.5em; font-weight: bold;">Tell us what you're researching. We'll surface candidate genes and mechanisms you may not have considered.</div>
+                        <div style="font-size: 1.2em;">All results are grounded in <a href="#">computational analyses of biological data</a>. An LLM is used to find, filter, and interpret findings in the context of your research.</div>
+                    </div>
+                </div>
 
-                <div class="d-flex flex-column gap-2 mb-3">
+                <div class="d-flex flex-column gap-2">
                     <div class="d-flex align-items-baseline justify-content-between">
-                        <label class="font-weight-bold text-secondary mb-0">Tell us what you're studying or curious about:</label>
+                        <!--
+                        <label class="font-weight-bold text-secondary mb-0">Describe what you're researching or curious about:</label>
                         <fieldset class="d-flex align-items-center gap-2 mb-0">
                             <span class="small">mode:</span>
                             <div class="d-flex align-items-center gap-1">
@@ -18,22 +26,24 @@
                                 <label for="search_step" class="mb-0 small">step</label>
                             </div>
                         </fieldset>
+                        -->
                     </div>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2" style="position: relative;">
                         <input
                             type="text"
                             class="form-control"
                             ref="queryInput"
                             v-model="userQuery"
-                            placeholder="e.g. What novel genes might be candidates for rare congenital myopathies"
+                            placeholder="Describe what you're researching or curious about"
                             @keydown.enter.prevent="queryParse()"
+                            style="padding: 10px 150px 10px 10px; font-size: 14px; height: auto;"
                         />
-                        <button class="btn btn-primary" style="min-width: 120px;" @click="queryParse()">Search</button>
+                        <button class="btn btn-cfde" style="min-width: 120px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" @click="queryParse()">Reveal</button>
                     </div>
-                    <a role="button" class="small text-primary" @click="display_examples = !display_examples">
+                    <a role="button" class="small text-primary" @click="display_examples = !display_examples" style="padding: 5px 10px;">
                         {{ display_examples ? 'hide' : 'show' }} examples
                     </a>
-                    <div v-if="display_examples" class="d-flex flex-wrap gap-2">
+                    <div v-if="display_examples" class="d-flex flex-wrap gap-2" style="padding:0 10px;">
                         <span
                             v-for="ex in exampleQueries"
                             :key="ex"
@@ -43,6 +53,7 @@
                     </div>
                 </div>
 
+                <!--
                 <div v-if="loading_search_criteria" class="load-indicator mb-3 d-flex align-items-center gap-2">
                     <b-spinner small></b-spinner>
                     <span class="text-muted">Extracting research criteria based on your query…</span>
@@ -51,392 +62,512 @@
                     <span>{{ error_msg_search_criteria }}</span>
                     <button v-if="allow_retry" class="btn btn-sm btn-primary" @click="beginFlow()">Retry</button>
                 </div>
-
-                <div v-if="searchCriteria && searchCriteria.length" class="mt-3">
-                    <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.1em;">Extracted research criteria from your Query</div>
-                    <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_search_criteria = !display_search_criteria">
-                        <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
-                            <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                <strong>Search Terms:</strong>
-                                <span class="pill" v-for="item in searchCriteria[0].values" :key="item">{{ item }}</span>
-                            </div>
-                            <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                <strong>Your Research Context:</strong>
-                                <span class="pill">{{ searchCriteria[1].values }}</span>
-                            </div>
-                        </div>
-                        <span class="small text-muted">{{ display_search_criteria ? 'show less' : 'show more' }}</span>
-                    </div>
-                    <div :class="{ collapsed: !display_search_criteria }" class="criteria-detail">
-                        <div class="d-flex justify-content-end mb-2">
-                            <button v-if="!edit_search_criteria" class="btn btn-info btn-sm" @click="editSearchCriteria()">✎ Edit search criteria</button>
-                            <div v-else class="d-flex gap-1">
-                                <button class="btn btn-warning btn-sm" @click="cancelEditSearchCriteria()">Cancel</button>
-                                <button class="btn btn-success btn-sm" @click="saveSearchCriteria()">Save search criteria</button>
-                            </div>
-                        </div>
-                        <p class="small font-weight-bold mb-2">The values below will be used to inform subsequent steps.</p>
-                        <b-table
-                            :items="searchCriteria"
-                            :fields="[
-                                { key: 'search_criteria', label: 'Search Criteria' },
-                                { key: 'values', label: 'Values' },
-                                { key: 'why', label: 'Why' },
-                                { key: 'purpose', label: 'Purpose' }
-                            ]"
-                            small
-                            striped
-                            hover
-                            responsive="sm"
-                            head-variant="light"
-                        >
-                            <template #cell(values)="row">
-                                <span v-if="Array.isArray(row.item.values)" class="d-inline-flex flex-wrap gap-1">
-                                    <span
-                                        class="pill"
-                                        :class="{ editable: edit_search_criteria }"
-                                        v-for="item in row.item.values"
-                                        :key="item"
-                                        @click="edit_search_criteria && removeSearchTerm(item)"
-                                    >{{ item }}</span>
-                                    <input
-                                        v-if="edit_search_criteria"
-                                        class="pill new"
-                                        placeholder="+"
-                                        @keyup.enter="addSearchTerm($event)"
-                                        @blur="addSearchTerm($event)"
-                                    />
-                                </span>
-                                <textarea
-                                    v-else
-                                    class="pill form-control"
-                                    style="width:100%; field-sizing: content; min-height: 2.5em;"
-                                    :disabled="!edit_search_criteria"
-                                    v-model="row.item.values"
-                                ></textarea>
-                            </template>
-                            <template #cell(why)="data">
-                                <span v-html="data.value"></span>
-                            </template>
-                        </b-table>
-                        <div class="d-flex justify-content-end mt-2">
-                            <button
-                                class="btn btn-primary"
-                                :disabled="edit_search_criteria"
-                                @click="onResearch()"
-                            >
-                                {{ searchMode === 'step' ? 'Continue' : 'Re-search' }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <div v-if="error_mechanisms" class="alert alert-danger d-flex align-items-center justify-content-between mt-2">
                     <span><strong>Error:</strong> {{ error_msg_mechanisms }}</span>
                     <button class="btn btn-sm btn-primary" @click="retryMechanismHypotheses()">Retry</button>
                 </div>
-
-                <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" class="mt-4">
-                    <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} factor{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
-                    <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
-                        <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
-                            <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                <strong>Phenotype:</strong>
-                                <span class="pill" v-for="p in phenotypeList" :key="p">{{ getPhenotypeDisplay(p) }}</span>
-                            </div>
-                            <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                <strong>Factors:</strong>
-                                <span class="pill" v-for="f in factorLabelsList" :key="f">{{ f }}</span>
-                            </div>
-                        </div>
-                        <span class="small text-muted">{{ display_phenotypes_factors ? 'show less' : 'show more' }}</span>
-                    </div>
-                    <div :class="{ collapsed: !display_phenotypes_factors }" class="criteria-detail">
-                    <b-tabs content-class="mt-2">
-                        <b-tab title="View data" active>
-                            <!-- Phenotype path: Selected Rationale section above table -->
-                            <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
-                                <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
-                                <ul class="list-unstyled small text-muted mb-0">
-                                    <li v-for="item in phenotypeRationaleList" :key="item.phenotype" class="mb-2">
-                                        <strong>{{ getPhenotypeDisplay(item.phenotype) }}:</strong> {{ item.rationale }}
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="factors-table-scroll-wrapper">
-                            <!-- Phenotype path: custom table, no rationale column -->
-                            <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
-                                <thead variant="light">
-                                    <tr>
-                                        <th style="width: 72px;">Included</th>
-                                        <th style="width: 120px;">Phenotype</th>
-                                        <th style="width: 180px;">Factor</th>
-                                        <th style="width: auto;">Top gene sets</th>
-                                        <th style="width: 140px;">View genes in factor</th>
-                                    </tr>
-                                </thead>
-                                <tbody v-for="row in factorDataTableRowsWithRationaleMeta" :key="getRowKey(row)">
-                                    <tr>
-                                        <td>
-                                            <div class="text-center">
-                                                <input type="checkbox" :checked="row.included" disabled class="form-check-input d-inline-block" aria-label="Included" />
-                                            </div>
-                                        </td>
-                                        <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                        <td>{{ row.factorLabel }}</td>
-                                        <td><span class="small">{{ row.top_gene_sets }}</span></td>
-                                        <td>
-                                            <button
-                                                class="btn btn-sm btn-outline-primary"
-                                                @click="toggleFactorGenesRow({ item: row })"
-                                            >
-                                                {{ isFactorRowExpanded(row) ? 'Hide genes' : 'Show genes' }}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="isFactorRowExpanded(row)">
-                                        <td colspan="5" class="p-0 border-0">
-                                            <div class="subtable-container py-2 px-3 bg-light">
-                                                <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                <div v-else class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.phenotype, row.factor).length }} rows)</div>
-                                                <b-table
-                                                    v-if="!loadingGenesForFactor[getRowKey(row)]"
-                                                    striped
-                                                    hover
-                                                    small
-                                                    responsive="sm"
-                                                    head-variant="light"
-                                                    :items="getGenesForFactor(row.phenotype, row.factor)"
-                                                    :fields="[
-                                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                        { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
-                                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                    ]"
-                                                    :per-page="subtablePerPage"
-                                                    :current-page="getSubtableCurrentPage(row)"
-                                                />
-                                                <b-pagination
-                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor).length > subtablePerPage"
-                                                    v-model="subtableCurrentPages[getRowKey(row)]"
-                                                    class="pagination-sm justify-content-center mt-2"
-                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor).length"
-                                                    :per-page="subtablePerPage"
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </b-table-simple>
-                            <!-- Association path: standard b-table, one rationale per row -->
-                            <b-table
-                                v-else
-                        :items="factorDataTableRows"
-                        :fields="[
-                            { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
-                            { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                            { key: 'factorLabel', label: 'Factor', thStyle: { width: '180px' } },
-                            { key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
-                            { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
-                            { key: 'view_genes', label: 'View genes in factor', thStyle: { width: '140px' } }
-                        ]"
-                        small
-                        striped
-                        hover
-                        head-variant="light"
-                    >
-                        <template #cell(included)="row">
-                            <div class="text-center">
-                                <input type="checkbox" :checked="row.item.included" disabled class="form-check-input d-inline-block" aria-label="Included in selection" />
-                            </div>
-                        </template>
-                        <template #cell(phenotype)="row">
-                            {{ getPhenotypeDisplay(row.item.phenotype) }}
-                        </template>
-                        <template #cell(top_gene_sets)="row">
-                            <span class="small">{{ row.item.top_gene_sets }}</span>
-                        </template>
-                        <template #cell(rationale)="row">
-                            <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
-                            <span v-else class="small text-muted">—</span>
-                        </template>
-                        <template #cell(view_genes)="row">
-                            <button
-                                class="btn btn-sm btn-outline-primary"
-                                @click="toggleFactorGenesRow(row)"
-                            >
-                                {{ row.detailsShowing ? 'Hide genes' : 'Show genes' }}
-                            </button>
-                        </template>
-                        <template #row-details="row">
-                            <div class="subtable-container py-2">
-                                <div class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.item.phenotype, row.item.factor).length }} rows)</div>
-                                <b-table
-                                    striped
-                                    hover
-                                    small
-                                    responsive="sm"
-                                    head-variant="light"
-                                    :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
-                                    :fields="[
-                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                        { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
-                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                    ]"
-                                    :per-page="subtablePerPage"
-                                    :current-page="getSubtableCurrentPage(row.item)"
-                                />
-                                <b-pagination
-                                    v-if="getGenesForFactor(row.item.phenotype, row.item.factor).length > subtablePerPage"
-                                    v-model="subtableCurrentPages[getRowKey(row.item)]"
-                                    class="pagination-sm justify-content-center mt-2"
-                                    :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor).length"
-                                    :per-page="subtablePerPage"
-                                />
-                            </div>
-                        </template>
-                    </b-table>
-                            </div>
-                        </b-tab>
-                        <b-tab title="View plot">
-                            <factor-base-reveal-heatmap
-                                :factor-data="factorData"
-                                :factor-data-table-rows="factorDataTableRowsFiltered"
-                                :phenotype-description-by-id="phenotypeDescriptionById"
-                                height="500px"
-                            />
-                        </b-tab>
-                    </b-tabs>
-                    </div>
-                </div>
-
-                <div v-if="mechanisms && mechanisms.length" class="mt-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
-                        <button class="btn btn-outline-secondary btn-sm" @click="downloadReport">
-                            Download report
-                        </button>
-                    </div>
-                    <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_mechanisms = !display_mechanisms">
-                        <div v-if="searchCriteria && searchCriteria[1]" class="text-muted">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
-                        <span class="small text-muted">{{ display_mechanisms ? 'show less' : 'show more' }}</span>
-                    </div>
-                    <div :class="{ collapsed: !display_mechanisms }" class="criteria-detail">
-                        <div v-if="mechanisms_summary" class="mb-4">
-                            <strong class="d-block mb-2" style="font-size: 1.1em;">Summary</strong>
-                            <div class="text-muted">{{ mechanisms_summary }}</div>
-                        </div>
-                        <div class="d-flex flex-column gap-4">
-                            <div
-                                v-for="(mechanism, idx) in mechanisms"
-                                :key="idx"
-                                class="mechanism-card rounded border shadow-sm bg-light overflow-hidden"
-                            >
-                                <div class="mechanism-card-header px-3 py-3 bg-secondary text-white">
-                                    <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
+                -->
+                
+                <template v-if="false">
+                    <div v-if="searchCriteria && searchCriteria.length" class="mt-3">
+                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.1em;">Extracted research criteria from your Query</div>
+                        <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_search_criteria = !display_search_criteria">
+                            <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
+                                <!-- og
+                                <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                    <strong>Search Terms:</strong>
+                                    <span class="pill" v-for="item in searchCriteria[0].values" :key="item">{{ item }}</span>
                                 </div>
-                                <div class="px-3 py-3">
-                                    <div class="row mb-3">
-                                        <div class="col-md-8">
-                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Mechanistic hypothesis</div>
-                                            <div class="font-size-1">{{ mechanism.hypothesis }}</div>
+                                -->
+                                <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                    <strong>Phenotype Terms:</strong>
+                                    <span class="pill" v-for="item in lastPhenotypeTerms" :key="item">{{ item }}</span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                    <strong>Mechanism Terms:</strong>
+                                    <span class="pill" v-for="item in lastMechanismTerms" :key="item">{{ item }}</span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                    <strong>Your Research Context:</strong>
+                                    <span class="pill">{{ searchCriteria[1].values }}</span>
+                                </div>
+                            </div>
+                            <span class="small text-muted">{{ display_search_criteria ? 'show less' : 'show more' }}</span>
+                        </div>
+                        <div :class="{ collapsed: !display_search_criteria }" class="criteria-detail">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button v-if="!edit_search_criteria" class="btn btn-info btn-sm" @click="editSearchCriteria()">✎ Edit search criteria</button>
+                                <div v-else class="d-flex gap-1">
+                                    <button class="btn btn-warning btn-sm" @click="cancelEditSearchCriteria()">Cancel</button>
+                                    <button class="btn btn-success btn-sm" @click="saveSearchCriteria()">Save search criteria</button>
+                                </div>
+                            </div>
+                            <p class="small font-weight-bold mb-2">The values below will be used to inform subsequent steps.</p>
+                            <b-table
+                                :items="searchCriteria"
+                                :fields="[
+                                    { key: 'search_criteria', label: 'Search Criteria' },
+                                    { key: 'values', label: 'Values' },
+                                    { key: 'why', label: 'Why' },
+                                    { key: 'purpose', label: 'Purpose' }
+                                ]"
+                                small
+                                striped
+                                hover
+                                responsive="sm"
+                                head-variant="light"
+                            >
+                                <template #cell(values)="row">
+                                    <span v-if="Array.isArray(row.item.values)" class="d-inline-flex flex-wrap gap-1">
+                                        <span
+                                            class="pill"
+                                            :class="{ editable: edit_search_criteria }"
+                                            v-for="item in row.item.values"
+                                            :key="item"
+                                            @click="edit_search_criteria && removeSearchTerm(item)"
+                                        >{{ item }}</span>
+                                        <input
+                                            v-if="edit_search_criteria"
+                                            class="pill new"
+                                            placeholder="+"
+                                            @keyup.enter="addSearchTerm($event)"
+                                            @blur="addSearchTerm($event)"
+                                        />
+                                    </span>
+                                    <textarea
+                                        v-else
+                                        class="pill form-control"
+                                        style="width:100%; field-sizing: content; min-height: 2.5em;"
+                                        :disabled="!edit_search_criteria"
+                                        v-model="row.item.values"
+                                    ></textarea>
+                                </template>
+                                <template #cell(why)="data">
+                                    <span v-html="data.value"></span>
+                                </template>
+                            </b-table>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button
+                                    class="btn btn-primary"
+                                    :disabled="edit_search_criteria"
+                                    @click="onResearch()"
+                                >
+                                    {{ searchMode === 'step' ? 'Continue' : 'Re-search' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div v-if="steps && steps.length" style="display:flex; flex-direction: column;">
+                    <div style="display:flex; gap:20px">
+                        <h4 class="reveal-tab" 
+                            :class="{'tab-active':showTab==='process'}" 
+                            @click="showTab='process'">
+                            Process
+                        </h4>
+                        <h4 class="reveal-tab" 
+                            :class="{'tab-active':showTab==='data', 'tab-inactive': !loadComplete}" 
+                            @click="showTab='data'">
+                            Data
+                        </h4>
+                        <h4 class="reveal-tab" 
+                            :class="{'tab-active':showTab==='results', 'tab-inactive': !loadComplete}" 
+                            @click="showTab='results'">
+                            Results
+                        </h4>
+                    </div>
+                    <div>
+                        <div style="display:flex; flex-direction: column; gap:5px; color: #555;" :style="`display: ${showTab==='process'?'flex':'none'}`">
+                            <div v-if="loadComplete" class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">Process took {{ currTotalTime() }}</div>
+                            <div v-for="(step, i) in steps" class="status" :key="i">
+                                <template v-if="step.type!=='error'">
+                                    <div @click="step.substeps.length>0 && i!==steps.length-1 ? toggleStep(i) : null" 
+                                        style="display:flex; gap: 5px; align-items: center;" 
+                                        :style="`cursor: ${step.substeps.length>0 && i!==steps.length-1?'pointer':'default'}`"
+                                    >
+                                        <b-spinner v-if="i===steps.length-1 && !loadComplete" small></b-spinner>
+                                        <span v-else-if="step.substeps.length>0">{{ step.expanded ? "▼" : "▶" }}</span>
+                                        <span v-else>♦</span>
+                                        <span style="font-weight:bold">{{ step.title }}</span>
+                                        <span>{{ formatTime(step.time) || currStepTime(step) }}</span>
+                                        <span v-if="i === steps.length - 1 && step.substeps.length">
+                                            {{ step.substeps[step.substeps.length - 1].title }}
+                                        </span>
+                                    </div>
+                                    <div v-if="step.expanded" class="sub-status" style="display:flex; flex-direction: column;">
+                                        <div v-for="(substep, ii) in step.substeps" style="padding:0 0 0 18px">
+                                            <div @click="toggleStep(i, ii)" style="cursor: pointer;">
+                                                <span v-if="substep.result">{{ substep.expanded ? "▼" : "▶" }} </span>
+                                                {{ substep.title }}
+                                            </div>
+                                            <div v-if="substep.result && substep.expanded" style="padding:0 0 0 18px">
+                                                <div v-html="substep.result.title"></div>
+                                                <pre style="background: #eee; padding: 10px; height: 100px; resize:vertical; overflow: auto;">{{ substep.result.result }}</pre>
+                                            </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Rationale</div>
-                                            <div class="bg-warning bg-opacity-25 p-2 rounded small">{{ mechanism.novelty_explanation || mechanism.novelty }}</div>
-                                        </div>
                                     </div>
-                                    <div v-if="mechanism.relevance" class="mb-3">
-                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevance</div>
-                                        <div class="small">{{ mechanism.relevance }}</div>
+                                </template>
+                                <template v-else>
+                                    <div style="display:flex; gap: 5px; align-items: center;">
+                                        <span style="font-weight:bold; color: red">Error: {{ step.title }}</span>
                                     </div>
-                                    <div class="mb-3">
-                                        <template v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)">
-                                            <div v-if="(mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length)" class="mb-2">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant phenotypes</div>
-                                                <div class="small">{{ getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes) }}</div>
-                                            </div>
-                                            <div v-if="(mechanism.relevant_factors && mechanism.relevant_factors.length)" class="mb-2">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant factors</div>
-                                                <div class="small">{{ mechanism.relevant_factors.join(", ") }}</div>
-                                            </div>
-                                            <div v-if="(mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)" class="mb-2">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene sets</div>
-                                                <div class="small" style="white-space: normal;">{{ formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets) }}</div>
-                                            </div>
-                                            <div class="font-weight-bold small text-uppercase text-muted mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
-                                            <div class="candidate-genes-legend mb-2 small">
-                                                <span class="candidate-genes-legend-pill ai-generated">AI Generated</span>
-                                                <span class="candidate-genes-legend-pill raw-data">From Raw Data</span>
-                                            </div>
-                                            <b-table
-                                                small
-                                                striped
-                                                hover
-                                                responsive="sm"
-                                                head-variant="light"
-                                                :items="mechanism.candidate_genes || mechanism.genes || []"
-                                                :fields="[
-                                                    { key: 'gene', label: 'Gene', thStyle: { width: '90px' }, thClass: 'candidate-genes-th-ai' },
-                                                    { key: 'group', label: 'Group', thStyle: { width: '110px' }, thClass: 'candidate-genes-th-ai' },
-                                                    { key: 'reason', label: 'Reason', thClass: 'candidate-genes-th-ai' },
-                                                    { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' }, thClass: 'candidate-genes-th-raw' },
-                                                    { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' }, thClass: 'candidate-genes-th-raw' },
-                                                    { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' }, thClass: 'candidate-genes-th-raw' }
-                                                ]"
-                                            >
-                                                <template #cell(scores_combined)="row">
-                                                    {{ row.item.scores && (row.item.scores.combined != null || row.item.scores.c != null) ? Number(row.item.scores.combined ?? row.item.scores.c).toFixed(2) : '—' }}
-                                                </template>
-                                                <template #cell(scores_gwas)="row">
-                                                    {{ row.item.scores && (row.item.scores.gwas != null || row.item.scores.g != null) ? Number(row.item.scores.gwas ?? row.item.scores.g).toFixed(2) : '—' }}
-                                                </template>
-                                                <template #cell(scores_functional)="row">
-                                                    {{ row.item.scores && (row.item.scores.functional != null || row.item.scores.f != null) ? Number(row.item.scores.functional ?? row.item.scores.f).toFixed(2) : '—' }}
-                                                </template>
-                                                <template #cell(reason)="row">
-                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}
-                                                </template>
-                                            </b-table>
-                                        </template>
+                                </template>
+                            </div>
+                            <div v-if="!loadComplete">Total process time: {{ currTotalTime() }}</div>
+                        </div>
+
+                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
+                            <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} factor{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
+                            <!--
+                            <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
+                                <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
+                                    <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                        <strong>Phenotype:</strong>
+                                        <span class="pill" v-for="p in phenotypeList" :key="p">{{ getPhenotypeDisplay(p) }}</span>
                                     </div>
-                                    <div v-if="mechanism.genes_collective_reason" class="mb-3">
-                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Genes collective reason</div>
-                                        <div class="bg-warning bg-opacity-25 p-2 rounded small">{{ mechanism.genes_collective_reason }}</div>
+                                    <div class="d-flex flex-wrap align-items-baseline gap-2">
+                                        <strong>Factors:</strong>
+                                        <span class="pill" v-for="f in factorLabelsList" :key="f">{{ f }}</span>
                                     </div>
-                                    <div v-if="(mechanism.supporting_network || mechanism.network) && ((mechanism.supporting_network || mechanism.network).nodes || (mechanism.supporting_network || mechanism.network).edges)" class="mt-3">
-                                        <div class="font-weight-bold small text-uppercase text-muted mb-2">Supporting network</div>
-                                        <div class="small text-muted mb-2">
-                                            {{ ((mechanism.supporting_network || mechanism.network).nodes || []).length }} nodes,
-                                            {{ ((mechanism.supporting_network || mechanism.network).edges || []).length }} edges
-                                        </div>
-                                        <factor-base-reveal-network
-                                            :key="mechanism.group_name || idx"
-                                            :ref="'mechanismNetwork-' + idx"
-                                            :network="mechanism.supporting_network || mechanism.network"
-                                            :genes="mechanism.candidate_genes || mechanism.genes || []"
-                                            :width="640"
-                                            :height="360"
-                                            :show-popup-button="true"
-                                            @open-popup="openNetworkPopup(idx)"
+                                </div>
+                                <span class="small text-muted">{{ display_phenotypes_factors ? 'show less' : 'show more' }}</span>
+                            </div>
+                            -->
+                            <div :class="{ collapsed: !display_phenotypes_factors }" class="criteria-detail">
+                            <b-tabs content-class="mt-2">
+                                <b-tab title="View table" active>
+                                    <!-- Phenotype path: Selected Rationale section above table -->
+                                    <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
+                                        <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
+                                        <ul class="list-unstyled small text-muted mb-0">
+                                            <li v-for="item in phenotypeRationaleList" :key="item.phenotype" class="mb-2">
+                                                <strong>{{ getPhenotypeDisplay(item.phenotype) }}:</strong> {{ item.rationale }}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="factors-table-scroll-wrapper">
+                                    <!-- Phenotype path: custom table, no rationale column -->
+                                    <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
+                                        <thead variant="light">
+                                            <tr>
+                                                <th style="width: 72px;">Included</th>
+                                                <th style="width: 120px;">Phenotype</th>
+                                                <th style="width: 180px;">Factor</th>
+                                                <th style="width: auto;">Top gene sets</th>
+                                                <th style="width: 140px;">View genes in factor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody v-for="row in factorDataTableRowsWithRationaleMeta" :key="getRowKey(row)">
+                                            <tr>
+                                                <td>
+                                                    <div class="text-center">
+                                                        <input type="checkbox" :checked="row.included" disabled class="form-check-input d-inline-block" aria-label="Included" />
+                                                    </div>
+                                                </td>
+                                                <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
+                                                <td>{{ row.factorLabel }}</td>
+                                                <td><span class="small">{{ row.top_gene_sets }}</span></td>
+                                                <td>
+                                                    <button
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        @click="toggleFactorGenesRow({ item: row })"
+                                                    >
+                                                        {{ isFactorRowExpanded(row) ? 'Hide genes' : 'Show genes' }}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr v-if="isFactorRowExpanded(row)">
+                                                <td colspan="5" class="p-0 border-0">
+                                                    <div class="subtable-container py-2 px-3 bg-light">
+                                                        <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
+                                                        <div v-else class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.phenotype, row.factor).length }} rows)</div>
+                                                        <b-table
+                                                            v-if="!loadingGenesForFactor[getRowKey(row)]"
+                                                            striped
+                                                            hover
+                                                            small
+                                                            responsive="sm"
+                                                            head-variant="light"
+                                                            :items="getGenesForFactor(row.phenotype, row.factor)"
+                                                            :fields="[
+                                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
+                                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
+                                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
+                                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
+                                                            ]"
+                                                            :per-page="subtablePerPage"
+                                                            :current-page="getSubtableCurrentPage(row)"
+                                                        />
+                                                        <b-pagination
+                                                            v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor).length > subtablePerPage"
+                                                            v-model="subtableCurrentPages[getRowKey(row)]"
+                                                            class="pagination-sm justify-content-center mt-2"
+                                                            :total-rows="getGenesForFactor(row.phenotype, row.factor).length"
+                                                            :per-page="subtablePerPage"
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </b-table-simple>
+                                    <!-- Association path: standard b-table, one rationale per row -->
+                                    <b-table
+                                        v-else
+                                :items="factorDataTableRows"
+                                :fields="[
+                                    { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
+                                    { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
+                                    { key: 'factorLabel', label: 'Factor', thStyle: { width: '180px' } },
+                                    { key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
+                                    { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
+                                    { key: 'view_genes', label: 'View genes in factor', thStyle: { width: '140px' } }
+                                ]"
+                                small
+                                striped
+                                hover
+                                head-variant="light"
+                            >
+                                <template #cell(included)="row">
+                                    <div class="text-center">
+                                        <input type="checkbox" :checked="row.item.included" disabled class="form-check-input d-inline-block" aria-label="Included in selection" />
+                                    </div>
+                                </template>
+                                <template #cell(phenotype)="row">
+                                    {{ getPhenotypeDisplay(row.item.phenotype) }}
+                                </template>
+                                <template #cell(top_gene_sets)="row">
+                                    <span class="small">{{ row.item.top_gene_sets }}</span>
+                                </template>
+                                <template #cell(rationale)="row">
+                                    <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
+                                    <span v-else class="small text-muted">—</span>
+                                </template>
+                                <template #cell(view_genes)="row">
+                                    <button
+                                        class="btn btn-sm btn-outline-primary"
+                                        @click="toggleFactorGenesRow(row)"
+                                    >
+                                        {{ row.detailsShowing ? 'Hide genes' : 'Show genes' }}
+                                    </button>
+                                </template>
+                                <template #row-details="row">
+                                    <div class="subtable-container py-2">
+                                        <div class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.item.phenotype, row.item.factor).length }} rows)</div>
+                                        <b-table
+                                            striped
+                                            hover
+                                            small
+                                            responsive="sm"
+                                            head-variant="light"
+                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
+                                            :fields="[
+                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
+                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
+                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
+                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
+                                            ]"
+                                            :per-page="subtablePerPage"
+                                            :current-page="getSubtableCurrentPage(row.item)"
+                                        />
+                                        <b-pagination
+                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor).length > subtablePerPage"
+                                            v-model="subtableCurrentPages[getRowKey(row.item)]"
+                                            class="pagination-sm justify-content-center mt-2"
+                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor).length"
+                                            :per-page="subtablePerPage"
                                         />
                                     </div>
+                                </template>
+                            </b-table>
+                                    </div>
+                                </b-tab>
+                                <b-tab title="View plot">
+                                    <factor-base-reveal-heatmap
+                                        :factor-data="factorData"
+                                        :factor-data-table-rows="factorDataTableRowsFiltered"
+                                        :phenotype-description-by-id="phenotypeDescriptionById"
+                                        height="500px"
+                                    />
+                                </b-tab>
+                            </b-tabs>
+                            </div>
+                        </div>
+    
+                        <div v-if="mechanisms && mechanisms.length" :style="`display: ${showTab==='results'?'block':'none'}`">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
+                                <button class="btn btn-outline-secondary btn-sm" @click="downloadReport">
+                                    Download report
+                                </button>
+                            </div>
+                            <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_mechanisms = !display_mechanisms">
+                                <div v-if="searchCriteria && searchCriteria[1]" class="text-muted">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
+                                <!--<span class="small text-muted">{{ display_mechanisms ? 'show less' : 'show more' }}</span>-->
+                            </div>
+                            <div :class="{ collapsed: !display_mechanisms }" class="criteria-detail">
+                                <div v-if="mechanisms_summary" class="mb-4">
+                                    <strong class="d-block mb-2" style="font-size: 1.1em;">Summary</strong>
+                                    <div class="text-muted">{{ mechanisms_summary }}</div>
+                                </div>
+                                <div class="d-flex flex-column gap-4" style="gap:40px;">
+                                    <div
+                                        v-for="(mechanism, idx) in mechanisms"
+                                        :key="idx"
+                                        class="mechanism-card rounded border shadow-sm bg-light overflow-hidden"
+                                    >
+                                        <div class="mechanism-card-header px-3 py-3 bg-secondary text-white">
+                                            <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
+                                        </div>
+                                        <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
+                                            <div class="" style="display:flex; gap:20px">
+                                                <div class="" style="flex:1">
+                                                    <div class="font-weight-bold small text-uppercase text-muted mb-1">Mechanistic hypothesis</div>
+                                                    <div class="font-size-1">{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
+                                                </div>
+                                                <div class="" style="flex:1">
+                                                    <div class="font-weight-bold small text-uppercase text-muted mb-1">Rationale</div>
+                                                    <div class="small">{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
+                                                </div>
+                                            </div>
+                                            <div v-if="mechanism.relevance" class="mb-3">
+                                                <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevance</div>
+                                                <div class="small">{{ mechanism.relevance }}</div>
+                                            </div>
+                                            <div style="display:flex; flex-direction: row; gap:20px">
+                                                <div style="display:flex; flex-direction: column; flex:1; overflow-x: auto;">
+                                                    <div class="mb-3">
+                                                        <template v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)">
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
+                                                            <!--
+                                                            <div class="candidate-genes-legend mb-2 small">
+                                                                <span class="candidate-genes-legend-pill ai-generated">AI Generated</span>
+                                                                <span class="candidate-genes-legend-pill raw-data">From Raw Data</span>
+                                                            </div>
+                                                            -->
+                                                            <b-table
+                                                                small
+                                                                striped
+                                                                hover
+                                                                responsive="sm"
+                                                                head-variant="light"
+                                                                :items="mechanism.candidate_genes || mechanism.genes || []"
+                                                                :fields="[
+                                                                    { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
+                                                                    //{ key: 'group', label: 'Group', thStyle: { width: '110px' } },
+                                                                    { key: 'reason', label: 'Reason' },
+                                                                    { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' } },
+                                                                    { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' } },
+                                                                    { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' } }
+                                                                ]"
+                                                            >
+                                                                <template #cell(scores_combined)="row">
+                                                                    {{ row.item.scores && (row.item.scores.combined != null || row.item.scores.c != null) ? Number(row.item.scores.combined ?? row.item.scores.c).toFixed(2) : '—' }}
+                                                                </template>
+                                                                <template #cell(scores_gwas)="row">
+                                                                    {{ row.item.scores && (row.item.scores.gwas != null || row.item.scores.g != null) ? Number(row.item.scores.gwas ?? row.item.scores.g).toFixed(2) : '—' }}
+                                                                </template>
+                                                                <template #cell(scores_functional)="row">
+                                                                    {{ row.item.scores && (row.item.scores.functional != null || row.item.scores.f != null) ? Number(row.item.scores.functional ?? row.item.scores.f).toFixed(2) : '—' }}
+                                                                </template>
+                                                                <template #cell(reason)="row">
+                                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}<span class="ai-gen">AI</span>
+                                                                </template>
+                                                                <template #cell(gene)="row">
+                                                                    <span class="small pill" :style="`background:${row.item.group==='Balanced'?'#984ea3':row.item.group==='High Functional'?'#7570b3':row.item.group==='High GWAS'?'#d95f02':'#acacad'}; color:white`">{{ row.item.gene }}</span>
+                                                                </template>
+                                                            </b-table>
+                                                        </template>
+                                                    </div>
+                                                    <div v-if="mechanism.genes_collective_reason" class="mb-3">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Genes collective reason</div>
+                                                        <div class="bg-warning bg-opacity-25 p-2 rounded small">{{ mechanism.genes_collective_reason }}</div>
+                                                    </div>
+                                                </div>
+                                                <div v-if="(mechanism.supporting_network || mechanism.network) && ((mechanism.supporting_network || mechanism.network).nodes || (mechanism.supporting_network || mechanism.network).edges)" class="" style="flex:1">
+                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">Supporting network</div>
+                                                    <div class="small text-muted mb-2">
+                                                        {{ ((mechanism.supporting_network || mechanism.network).nodes || []).length }} nodes,
+                                                        {{ ((mechanism.supporting_network || mechanism.network).edges || []).length }} edges
+                                                    </div>
+                                                    <factor-base-reveal-network
+                                                        :key="mechanism.group_name || idx"
+                                                        :ref="'mechanismNetwork-' + idx"
+                                                        :network="mechanism.supporting_network || mechanism.network"
+                                                        :genes="mechanism.candidate_genes || mechanism.genes || []"
+                                                        :width="640"
+                                                        :height="360"
+                                                        :show-popup-button="true"
+                                                        @open-popup="openNetworkPopup(idx)"
+                                                    />
+                                                    <div class="mt-2" style="display:flex; flex-direction: column;">
+                                                        <div v-if="(mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length)" class="mb-2">
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant phenotypes</div>
+                                                            <div style="display:flex; flex-direction: column; gap:3px">
+                                                                <div v-for="phenotype in getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)" 
+                                                                    class="small pill" :style="`background:${NODE_COLORS.Phenotype}; color:white`">
+                                                                    {{ phenotype }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="(mechanism.relevant_factors && mechanism.relevant_factors.length)" class="mb-2">
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant factors</div>
+                                                            <div style="display:flex; flex-direction: column; gap:3px">
+                                                                <div v-for="factor in mechanism.relevant_factors" class="small pill" 
+                                                                    :style="`background:${NODE_COLORS.Factor}; color:white`">
+                                                                    {{ factor }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="(mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)" class="mb-2">
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene sets</div>
+                                                            <div class="small" style="white-space: normal; display:flex; flex-direction: column; gap:3px">
+                                                                <div v-for="set in formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)">
+                                                                    <div style="display:flex; gap:10px; justify-content: space-between; align-items: center;">
+                                                                        <div class="pill" style="overflow: clip; text-overflow: ellipsis; max-width: 300px; word-wrap: normal;" :style="`background:${NODE_COLORS.Pathway}; color:white`" :title="set.desc">{{ set.gs }}</div>
+                                                                        <div class="pill">{{ set.program }}</div>
+                                                                    </div>
+                                                                    <!--<div>{{ set.desc }}</div>-->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!--
                 <p v-if="!searchCriteria && !loading_search_criteria && !error_search_criteria" class="text-muted mb-0">Enter a research question above and click Search to extract search terms and context.</p>
-
+                -->
+                <!--
                 <div v-if="loadStatus" class="load-indicator mt-3 mb-2">
                     <b-spinner v-if="!loadComplete" small class="mr-2"></b-spinner>
                     <span :class="loadComplete ? 'text-success' : 'text-muted'">{{ loadStatus }}{{ loadStepSeconds > 0 ? ' (' + loadStepSeconds + 's)' : '' }}</span>
                 </div>
+                -->
             </div>
+        </div>
+
+        <div v-if="all_supporting_network" 
+        style="position: absolute; z-index: 999; top: 200px; right: 50px">
+            <factor-base-reveal-network
+                :key="999"
+                :ref="'mechanismNetwork-' + 999"
+                :network="all_supporting_network"
+                :genes="[]"
+                :width="640"
+                :height="360"
+                :show-popup-button="true"
+                @open-popup="openNetworkPopup(999)"
+            />
         </div>
 
         <!-- Network viz popup: 90% window size -->
@@ -477,6 +608,7 @@ import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import { divide } from "lodash";
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -521,6 +653,11 @@ export default Vue.component("factor-base-reveal", {
             /** Association path only: all associations from API (e.g. first 30) for table display; factorData still holds only top 10 selected. */
             associationPathTableData: [],
             loadStatus: "",
+            statusSteps: [],
+            steps: [],
+            stepsTime: null,
+            stepsTimer: null,
+            now: Date.now(),
             loadComplete: false,
             genesAndFactorValuesLoaded: false,
             loadStepSeconds: 0,
@@ -532,7 +669,7 @@ export default Vue.component("factor-base-reveal", {
             mechanisms: null,
             mechanisms_summary: null,
             display_mechanisms: true,
-            display_phenotypes_factors: false,
+            display_phenotypes_factors: true,
             subtablePerPage: 10,
             subtableCurrentPages: {},
             expandedFactorRowKeys: {},
@@ -541,6 +678,17 @@ export default Vue.component("factor-base-reveal", {
             networkPopupMechanismIndex: null,
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
+
+            all_supporting_network: null,
+
+            NODE_COLORS: {
+                Phenotype: "#e41a1c",
+                Factor: "#377eb8",
+                Pathway: "#4daf4a",
+                Gene: "#984ea3",
+            },
+
+            showTab: 'process',
 
 extractSystemPropmpt: `### Task
 Deconstruct biological research queries into structured keywords for high-precision semantic search. Focus on extracting terms explicitly present in the text.
@@ -978,8 +1126,117 @@ Return ONLY a JSON object:
         },
         setLoadStatus(msg, stopTimer = false) {
             this.loadStatus = msg;
+            //this.setLoadStep(`----${msg}`);
             if (stopTimer) this.stopStepTimer();
             else this.startStepTimer();
+        },
+        setLoadStep(msg, subMsg, time){
+            const index = this.statusSteps.findIndex(o => o.msg === msg);
+            if(index>-1){
+                this.statusSteps[index].subMsg.push(subMsg);
+            }else{
+                this.statusSteps.push({
+                    msg: msg,
+                    subMsg: [subMsg],
+                    expanded: false
+                });
+            }
+        },
+        setStep(step, toggleTimer=false){
+            if(step.type==='error'){
+                this.steps.push({
+                    type: step.type,
+                    title: step.title
+                })
+                if(this.stepsTimer){
+                    clearInterval(this.stepsTimer);
+                    this.stepsTimer = null;
+                    this.now = now;
+                }
+                return;
+            }
+
+            const ID = step.id;
+            if(!ID) {
+                console.warn(`Step is missing id`)
+                return;
+            }
+
+            const now = Date.now()
+            if(toggleTimer){
+                if(this.steps?.length===0){
+                    //start this.stepsTimer
+                    this.stepsTime = now;
+                    this.stepsTimer = setInterval(() => {
+                        this.now = Date.now();
+                    }, 500);
+                }else{
+                    //stop this.stepsTimer
+                    clearInterval(this.stepsTimer);
+                    this.stepsTimer = null;
+                    this.now = now;
+                }
+            }
+
+            let IDidx = this.steps.findIndex(o => o.id === ID);
+            if(IDidx === -1){
+                this.steps.push({
+                    id: ID,
+                    title: step.title,
+                    substeps: [],
+                    expanded: false,
+                    timeStart: now,
+                    time: null,
+                })
+                IDidx = this.steps.length-1;
+
+                if(this.stepsTimer && this.steps.length > 1){
+                    const prev = this.steps[IDidx - 1];
+                    prev.time = now - prev.timeStart;
+                }
+            }
+            if(step.substep){
+                const sID = step.substep.id;
+                if(!sID) {
+                    console.warn(`Step ${ID} is missing substep id`)
+                    return;
+                }
+                const sIDidx = this.steps[IDidx].substeps.findIndex(o => o.id === sID);
+                if(sIDidx === -1){
+                    this.steps[IDidx].substeps.push({
+                        id: sID,
+                        title: step.substep.title,
+                        result: step.substep.result,
+                        expanded: false
+                    })
+                }else{
+                    this.steps[IDidx].substeps[sIDidx].result = step.substep.result;
+                }
+            }
+        },
+        formatTime(ms) {
+            if (!ms) return null;
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            if(seconds<0) return null;
+            return `${String(minutes)}m${String(seconds).padStart(2, '0')}s`;
+        },
+        currTotalTime() {
+            return this.formatTime(this.now - this.stepsTime);
+        },
+        currStepTime(step){
+            return this.formatTime(this.now - step.timeStart);
+        },
+        toggleStep(i, ii=null){
+            if(ii !== null){
+                this.steps[i].substeps[ii].expanded = !this.steps[i].substeps[ii].expanded
+            }else{
+                this.steps[i].expanded = !this.steps[i].expanded
+            }
+        },
+        toggleStatus(i) {
+            this.statusSteps[i].expanded = !this.statusSteps[i].expanded
         },
         /** Return human-readable phenotype for display; use phenotype id for queries. */
         getPhenotypeDisplay(phenotypeId) {
@@ -990,12 +1247,23 @@ Return ONLY a JSON object:
         /** Comma-separated list of phenotype descriptions for on-screen report. */
         getRelevantPhenotypesDisplay(phenotypeIds) {
             if (!Array.isArray(phenotypeIds) || !phenotypeIds.length) return "";
-            return phenotypeIds.map((id) => this.getPhenotypeDisplay(id)).join(", ");
+            return phenotypeIds.map((id) => this.getPhenotypeDisplay(id));
         },
         /** Format relevant gene sets for display: "id (description)" when description exists. */
         formatRelevantGeneSetsForDisplay(geneSetIds) {
             if (!Array.isArray(geneSetIds) || !geneSetIds.length) return "";
             const infoMap = this.buildGeneSetInfoMap();
+            return geneSetIds.map((gs) => {
+                const info = infoMap[gs];
+                const desc = (info.description != null && String(info.description).trim() !== "") ? String(info.description).trim() : "";
+                const program = (info.gene_set_program != null && String(info.gene_set_program).trim() !== "") ? String(info.gene_set_program).trim() : "";
+                const geneSet = {};
+                geneSet.gs = gs;
+                if (desc) geneSet.desc = desc;
+                if (program) geneSet.program = program;
+                return geneSet;
+            })
+            /*
             return geneSetIds.map((gs) => {
                 const info = infoMap[gs];
                 if (!info) return gs;
@@ -1006,6 +1274,7 @@ Return ONLY a JSON object:
                 if (program) return `${gs} (${program})`;
                 return gs;
             }).join(", ");
+            */
         },
         /**
          * Build a map from gene set id to { description, gene_set_program } using factorData.
@@ -1183,16 +1452,31 @@ Return ONLY a JSON object:
         },
         queryParse() {
             if (!this.userQuery || !this.userQuery.trim()) return;
+            this.loadComplete = false;
             this.searchCriteria = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
             this.error_search_criteria = false;
+            this.steps = [];
+            this.stepsTime = null;
+            this.stepsTimer = null;
+            this.now = Date.now();
+            this.showTab = 'process';
+            this.display_examples = false;
             this.beginFlow();
         },
         beginFlow() {
             this.loading_search_criteria = true;
             this.error_search_criteria = false;
             this.allow_retry = true;
+            this.setStep({
+                id: "1",
+                title: "LLM: Extracting search terms from user query",
+                substep: {
+                    id: "1.1",
+                    title: `User Query ${this.userQuery.trim()}`
+                }
+            }, true);
             this.llmExtract.sendPrompt({
                 userPrompt: this.userQuery.trim(),
                 onResponse: this.onExtractResponse,
@@ -1209,6 +1493,10 @@ Return ONLY a JSON object:
             try {
                 return JSON.parse(cleanString);
             } catch (e) {
+                this.setStep({
+                    type: "error",
+                    title: "Malformed response from LLM"
+                })
                 console.error("FactorBaseReveal: Failed to parse LLM JSON", e);
                 return null;
             }
@@ -1230,13 +1518,16 @@ Return ONLY a JSON object:
             }
 
             console.log("FactorBaseReveal: JSON", json);
+            console.log('phenoptype terms', json.phenotype_terms)
+            console.log('mechanism terms', json.mechanism_terms)
 
             const searchTerms = [
                 ...(Array.isArray(json.phenotype_terms) ? json.phenotype_terms : []),
                 ...(Array.isArray(json.mechanism_terms) ? json.mechanism_terms : []),
             ].filter(Boolean);
-            const researchContext =
-                typeof json.research_context === "string" ? json.research_context : "";
+
+            const researchContext = typeof json.research_context === "string" ? json.research_context : "";
+            
             this.searchCriteria = [
                 {
                     search_criteria: "Search Terms",
@@ -1253,11 +1544,30 @@ Return ONLY a JSON object:
                         "This context will be used to tailor mechanistic hypotheses to your research.",
                 },
             ];
+
             this.searchTerm = searchTerms.join(", ");
+            
             const phenotypeTerms = Array.isArray(json.phenotype_terms) ? json.phenotype_terms : [];
             const mechanismTerms = Array.isArray(json.mechanism_terms) ? json.mechanism_terms : [];
+
             this.lastPhenotypeTerms = phenotypeTerms;
             this.lastMechanismTerms = mechanismTerms;
+
+            this.setStep({
+                id: "1",
+                substep: {
+                    id: "1.1",
+                    result: {
+                        title: "Extracted search terms and research context",
+                        result: {
+                            phenotypeTerms,
+                            mechanismTerms,
+                            researchContext
+                        }
+                    }
+                }
+            })
+
             if (this.searchMode === "auto") {
                 if (phenotypeTerms.length > 0) {
                     this.onResearch(phenotypeTerms);
@@ -1270,6 +1580,10 @@ Return ONLY a JSON object:
             this.loading_search_criteria = false;
             this.error_search_criteria = true;
             this.error_msg_search_criteria = err && err.message ? err.message : "An error occurred.";
+            this.setStep({
+                type: 'error',
+                title: "Request failed or timed out.",
+            })
         },
         onExtractEnd() {
             this.loading_search_criteria = false;
@@ -1324,7 +1638,11 @@ Return ONLY a JSON object:
             }
             try {
                 this.setLoadStatus("Searching for similar phenotypes…");
-                this.loadComplete = false;
+                this.setStep({
+                    id: "2",
+                    title: "API: Searching for similar phenotypes"
+                });
+
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
                 this.associationPathTableData = [];
@@ -1334,31 +1652,75 @@ Return ONLY a JSON object:
                 this.phenotypeDescriptionById = {};
                 const phenotypeIdsToLoad = [];
                 let firstMatched = null;
+                //loop through each phenotype search term
                 for (let t = 0; t < phenotypeTerms.length; t++) {
                     const searchTerm = phenotypeTerms[t];
                     this.setLoadStatus(`Searching for similar phenotypes (${t + 1}/${phenotypeTerms.length}: ${searchTerm})…`);
+                    //this.setLoadStep("API: Searching for similar phenotypes", `${t + 1}/${phenotypeTerms.length}: ${searchTerm}`);
+                    this.setStep({
+                        id: "2",
+                        substep: {
+                            id: "2.1",
+                            title: `${t + 1}/${phenotypeTerms.length}: ${searchTerm}`
+                        }
+                    })
+                    
                     const phenoRes = await this.querySearchApi("phenotypes", { searchTerm });
+                    console.log('raw phenotype search results', phenoRes);
                     const rawList = phenoRes.results || phenoRes.data || [];
                     const list = rawList.filter((item) => item.phenotype != null && (item.portal == null || item.portal !== "kp"));
+                    console.log('filtered phenotype search results', list);
+                    this.setStep({
+                        id: "2",
+                        substep: {
+                            id: "2.1",
+                            result: {
+                                title: `Retrieved phenotypes with semantic similatiry to "${searchTerm}"`,
+                                result: list
+                            }
+                        }
+                    })
                     if (!list.length) {
                         console.warn("FactorBaseReveal: No items for term:", searchTerm);
                         continue;
                     }
+                    //get factors for phenotype, lock in phenotype with hihest similarity score if it has factors
                     let chosen = null;
+                    //this.setLoadStep("API: Searching for similar phenotypes", `Selecting phenotype with highest similarity score that has factors`);
+                    let idx = 0;
                     for (const item of list) {
+                        this.setStep({
+                            id: "2",
+                            substep: {
+                                id: `2.2.${idx}`,
+                                title: `Selecting phenotype with highest similarity score for ${searchTerm}`
+                            }
+                        })
                         const phenotypeId = item.phenotype;
-                        console.log("FactorBaseReveal: Trying phenotype", "phenotype:", phenotypeId);
+                        console.log("FactorBaseReveal: Trying phenotype:", phenotypeId);
                         try {
+                            //TODO: this ran twice with only 1 phenotype in list, why?
                             const factorRes = await this.querySearchApi("factor", { phenotype: phenotypeId });
                             const data = factorRes && Array.isArray(factorRes.data) ? factorRes.data : [];
                             if (data.length > 0) {
                                 chosen = item;
                                 console.log("FactorBaseReveal: Using phenotype with factor data", "phenotype:", phenotypeId);
+                                this.setStep({
+                                    id: "2",
+                                    substep: {
+                                        id: `2.2.${idx}`,
+                                        result: {
+                                            title: `Selected phenotype with highest similarity score for ${searchTerm}`,
+                                            result: phenotypeId
+                                        }
+                                    }
+                                })
                                 break;
                             }
                         } catch (err) {
                             console.warn("FactorBaseReveal: Factor API failed for phenotype", phenotypeId, err);
                         }
+                        idx++;
                     }
                     if (chosen && chosen.phenotype != null) {
                         if (!phenotypeIdsToLoad.includes(chosen.phenotype)) {
@@ -1377,10 +1739,25 @@ Return ONLY a JSON object:
                     return;
                 }
                 this.matchedPhenotype = firstMatched != null ? { id: firstMatched.phenotype } : null;
+                console.log('phenotypeIdsToLoad', phenotypeIdsToLoad);
+                this.setStep({
+                    id: "2",
+                    substep: {
+                        id: `2.3`,
+                        result: {
+                            title: `Phenotypes selected for further analysis.`,
+                            result: phenotypeIdsToLoad
+                        }
+                    }
+                })
                 await this.loadFactorDataForPhenotypes(phenotypeIdsToLoad);
             } catch (err) {
                 console.warn("FactorBaseReveal: Phenotype search or factor load failed", err);
                 this.setLoadStatus("Error: " + (err && err.message ? err.message : "search failed"), true);
+                this.setStep({
+                    type: "error",
+                    title: "Phenotype search or factor load failed"
+                })
                 this.loadComplete = true;
             }
         },
@@ -1399,7 +1776,10 @@ Return ONLY a JSON object:
             }
             try {
                 this.setLoadStatus("Fetching phenotype–factor associations…");
-                this.loadComplete = false;
+                this.setStep({
+                    id: "2",
+                    title: "API: Searching for phenotype–factor associations"
+                })
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
                 this.associationPathTableData = [];
@@ -1413,13 +1793,51 @@ Return ONLY a JSON object:
                 const rawList = Array.isArray(raw) ? raw : (raw && (raw.data || raw.results)) ? (raw.data || raw.results) : [];
                 const maxAssociationsToHydrate = 30;
                 const listForHydration = rawList.slice(0, maxAssociationsToHydrate);
+                this.setStep({
+                    id: "2",
+                    substep: {
+                        id: "2.1",
+                        title: searchTerm,
+                        result: {
+                            title: `Received ${rawList.length} associations, reduced to ${maxAssociationsToHydrate}`,
+                            result: listForHydration
+                        }
+                    }
+                })
                 this.setLoadStatus("Fetching gene sets (phenotypeGeneSetFactor)…");
+                this.setStep({
+                    id: "3",
+                    title: "API: Fetching gene sets for associations"
+                })
+                let idx = 0;
                 for (const row of listForHydration) {
                     if (row.phenotype == null || row.factor == null) continue;
+                    this.setStep({
+                        id: "3",
+                        substep: {
+                            id: `3.1.${idx}`,
+                            title: `${row.phenotype} / ${row.label}`
+                        }
+                    })
                     const { top_gene_sets, gene_set_description, gene_set_program } = await this.fetchGeneSetsForPhenotypeFactor(row.phenotype, row.factor);
                     row.top_gene_sets = top_gene_sets;
                     row.gene_set_description = gene_set_description;
                     row.gene_set_program = gene_set_program;
+                    this.setStep({
+                        id: "3",
+                        substep: {
+                            id: `3.1.${idx}`,
+                            result: {
+                                title: `Received top 5 gene sets for ${row.label} of ${row.phenotype}`,
+                                result: {
+                                    top_gene_sets,
+                                    gene_set_description,
+                                    gene_set_program
+                                }
+                            }
+                        }
+                    })
+                    idx++;
                 }
                 const originalById = {};
                 const collected = listForHydration.map((row) => {
@@ -1446,6 +1864,10 @@ Return ONLY a JSON object:
 
                 if (collected.length === 0) {
                     this.setLoadStatus("No phenotype–factor associations returned.", true);
+                    this.setStep({
+                        type: "error",
+                        title: "No phenotype–factor associations returned."
+                    })
                     this.loadComplete = true;
                     return;
                 }
@@ -1454,14 +1876,34 @@ Return ONLY a JSON object:
                     ? String(this.searchCriteria[1].values)
                     : "";
                 this.setLoadStatus("Filtering by research context (CSV)…");
+                this.setStep({
+                    id: "4",
+                    title: "LLM: Filtering factors by relevance to user query"
+                })
                 const csvString = this.flattenToCsv(collected, ["id", "factor_label", "phenotype", "top_gene_sets", "gene_set_description", "score"]);
                 let selected = await this.filterPhenotypeFactorsByContext(csvString, researchContext);
                 selected = selected.slice(0, 10);
+                console.log('f-selected', selected);
                 if (selected.length === 0) {
                     this.setLoadStatus("No associations selected for research context.", true);
+                    this.setStep({
+                        type: "error",
+                        title: "No associations selected for research context."
+                    })
                     this.loadComplete = true;
                     return;
                 }
+                this.setStep({
+                    id: "4",
+                    substep: {
+                        id: `4.1`,
+                        title: `Selecting factors for further analysis.`,
+                        result: {
+                            title: `Selected factors for further analysis.`,
+                            result: selected
+                        }
+                    }
+                })
 
                 const seen = new Set();
                 for (const item of selected) {
@@ -1522,6 +1964,10 @@ Return ONLY a JSON object:
                 const phenotypes = Object.keys(this.factorData).filter((p) => (this.factorData[p].factors || []).length > 0);
                 if (phenotypes.length === 0) {
                     this.setLoadStatus("No phenotype–factor data to load.", true);
+                    this.setStep({
+                        type: "error",
+                        title: "No phenotype–factor data to load."
+                    })
                     this.loadComplete = true;
                     return;
                 }
@@ -1530,6 +1976,10 @@ Return ONLY a JSON object:
             } catch (err) {
                 console.warn("FactorBaseReveal: phenotypeFactors-only workflow failed", err);
                 this.setLoadStatus("Error: " + (err && err.message ? err.message : "workflow failed"), true);
+                this.setStep({
+                    type: "error",
+                    title: "Workflow failed"
+                })
                 this.loadComplete = true;
             }
         },
@@ -1570,6 +2020,10 @@ Return ONLY a JSON object:
                     },
                     onError: (err) => {
                         console.warn("FactorBaseReveal: phenotypeFactors filter LLM error", err);
+                        this.setStep({
+                            type: 'error',
+                            title: "Request failed or timed out.",
+                        })
                         resolve([]);
                     },
                     onEnd: () => {},
@@ -1586,6 +2040,12 @@ Return ONLY a JSON object:
             if (!list.length) return;
 
             this.setLoadStatus("Loading genes (from gene sets in top_gene_sets)…");
+            //this.setLoadStep("API: Getting gene scores for gene sets")
+            this.setStep({
+                id: "6",
+                title: "API: Getting gene scores for gene sets"
+            })
+            let idx = 0;
             for (const phenotype of list) {
                 const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
                 for (const factorItem of factors) {
@@ -1593,8 +2053,18 @@ Return ONLY a JSON object:
                     const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
                         ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
                         : [];
+                    //TODO: sometimes factors share same gene sets, and get fetched each time, we can optimize here
+                    //gene scores at this step are based on phenotype<>geneset associations
                     for (const geneSet of geneSetIds) {
                         this.setLoadStatus(`Loading genes (${phenotype})…`);
+                        //this.setLoadStep("API: Getting gene scores for gene sets", `${phenotype} / ${factorItem.label} / ${geneSet}`)
+                        this.setStep({
+                            id: "6",
+                            substep: {
+                                id: `6.1.${idx}`,
+                                title: `${phenotype} / ${factorItem.label} / ${geneSet}`
+                            }
+                        })
                         try {
                             const raw = await this.querySearchApi("pigeanJoinedGeneSets", {
                                 phenotype,
@@ -1602,12 +2072,15 @@ Return ONLY a JSON object:
                             });
                             const rows = raw && Array.isArray(raw.data) ? raw.data : [];
                             const geneList = [];
+                            const geneListFull = [];
                             for (const row of rows) {
                                 const gene = row.gene;
                                 if (gene == null || gene === "") continue;
                                 const combined = parseFloat(row.combined);
+                                //filter out genes with a combined score of less than 3
                                 if (row.combined != null && !isNaN(combined) && combined < 3) continue;
                                 geneList.push(gene);
+                                geneListFull.push(row);
                                 if (this.factorData[phenotype].genes[gene] == null) {
                                     this.$set(this.factorData[phenotype].genes, gene, {
                                         combined: row.combined,
@@ -1629,17 +2102,42 @@ Return ONLY a JSON object:
                             if (factorItem.geneSets != null) {
                                 this.$set(factorItem.geneSets, geneSet, { genes: geneList });
                             }
+                            this.setStep({
+                                id: "6",
+                                substep: {
+                                    id: `6.1.${idx}`,
+                                    result: {
+                                        title: `Retrieved genes and gene scores for "${geneSet}" of "${phenotype}"`,
+                                        result: structuredClone(geneListFull)
+                                    }
+                                }
+                            })
                         } catch (err) {
                             console.warn(`FactorBaseReveal: pigeanJoinedGeneSets API failed for ${phenotype}/${geneSet}`, err);
                         }
+                        idx++;
                     }
                 }
             }
 
             this.setLoadStatus("Loading factor values (factor_value)…");
+            //this.setLoadStep("API: Getting gene loadings for factors")
+            this.setStep({
+                id: "7",
+                title: "API: Getting gene loadings for factors"
+            })
+            idx = 0;
             for (const phenotype of list) {
                 const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
                 for (const factorItem of factors) {
+                    //this.setLoadStep("API: Getting gene loadings for factors", `${phenotype} / ${factorItem.label}`);
+                    this.setStep({
+                        id: "7",
+                        substep: {
+                            id: `7.1.${idx}`,
+                            title: `${phenotype} / ${factorItem.label}`
+                        }
+                    })
                     try {
                         const raw = await this.querySearchApi("factorGenes", {
                             phenotype,
@@ -1656,19 +2154,46 @@ Return ONLY a JSON object:
                                 this.$set(factorItem.genes[gene], "factorRelevance", numVal);
                             }
                         }
+                        this.setStep({
+                            id: "7",
+                            substep: {
+                                id: `7.1.${idx}`,
+                                result: {
+                                    title: `Retrieved gene loadings for "${factorItem.label}" of "${phenotype}"`,
+                                    result: rows
+                                }
+                            }
+                        })
                     } catch (err) {
                         console.warn(`FactorBaseReveal: factorGenes API failed for ${phenotype}/${factorItem.factor}`, err);
                     }
+                    idx++;
                 }
             }
+
+            /* TEMP */
+            /*
+            const allKgTriples = this.transformMergedDataToKG(this.factorData, 'allFactors');
+            const allFlattened = this.flattenKGData(allKgTriples);
+            const allRowIds = allFlattened.map(obj => obj.id);
+            const supporting_network = this.buildNetworkFromFlattenedRowIds(allFlattened, allRowIds);
+            this.all_supporting_network = supporting_network;
+            */
+            //console.log('TEMP allFlattened', allFlattened);
+            /* END */
 
             this.genesAndFactorValuesLoaded = true;
             console.log("FactorBaseReveal: processed factorData", this.factorData);
             this.setLoadStatus("Converting to knowledge graph…");
-            const kgTriples = this.transformMergedDataToKG(this.factorData);
+            const kgTriples = this.transformMergedDataToKG(this.factorData, 'factors');
             console.log("FactorBaseReveal: KG triples", kgTriples);
             this.lastKgTriples = kgTriples;
             this.setLoadStatus("Generating mechanistic hypotheses…");
+            //this.setLoadStep("LLM: Generating mechanistic hypotheses");
+            this.setStep({
+                id: "8",
+                title: "LLM: Generating mechanistic hypotheses"
+            })
             this.requestMechanismHypotheses(this.factorData, kgTriples);
         },
         /**
@@ -1682,31 +2207,91 @@ Return ONLY a JSON object:
                 this.$set(this.factorData, phenotype, { genes: {}, factors: [] });
             }
             this.setLoadStatus("Loading factors…");
+            //this.setLoadStep("API: Loading factors")
+            this.setStep({
+                id: "3",
+                title: "API: Loading factors"
+            })
+            let idx = 0;
             for (const phenotype of phenotypes) {
                 this.setLoadStatus(`Loading factors (${phenotype})…`);
+                //this.setLoadStep("API: Loading factors", phenotype)
+                this.setStep({
+                    id: "3",
+                    substep: {
+                        id: `3.1.${idx}`,
+                        title: phenotype
+                    }
+                })
                 try {
                     const raw = await this.querySearchApi("factor", { phenotype });
+                    this.setStep({
+                        id: "3",
+                        substep: {
+                            id: `3.1.${idx}`,
+                            result: {
+                                title: `Retrieved factors for "${phenotype}"`,
+                                result: raw.data
+                            }
+                        }
+                    })
                     const normalized = this.normalizeFactorData(raw);
                     this.factorData[phenotype].factors = normalized;
                     this.$set(this.factorData[phenotype], "allFactors", [...normalized]);
                 } catch (err) {
                     console.warn(`FactorBaseReveal: factor API failed for ${phenotype}`, err);
                 }
+                idx++;
             }
 
             this.setLoadStatus("Fetching gene sets (phenotypeGeneSetFactor)…");
+            //this.setLoadStep("API: Fetching gene sets for factors");
+            this.setStep({
+                id: "4",
+                title: "API: Fetching gene sets for factors"
+            })
+            idx = 0;
             for (const phenotype of phenotypes) {
                 const factors = this.factorData[phenotype].factors || [];
                 for (const factorItem of factors) {
                     this.setLoadStatus(`Fetching gene sets (${phenotype} / ${factorItem.factor})…`);
+                    //this.setLoadStep("API: Fetching gene sets for factors", `${phenotype} / ${factorItem.label}`);
+                    this.setStep({
+                        id: "4",
+                        substep:{
+                            id: `4.1.${idx}`,
+                            title: `${phenotype} / ${factorItem.label}`
+                        }
+                    })
                     const { top_gene_sets, gene_set_description, gene_set_program } = await this.fetchGeneSetsForPhenotypeFactor(phenotype, factorItem.factor);
+                    this.setStep({
+                        id: "4",
+                        substep:{
+                            id: `4.1.${idx}`,
+                            result: {
+                                title: `Retrieved top 5 gene sets for "${factorItem.label}" of "${phenotype}"`,
+                                result: {
+                                    top_gene_sets,
+                                    gene_set_description,
+                                    gene_set_program
+                                }
+                            }
+                        }
+                    })
                     factorItem.top_gene_sets = top_gene_sets;
                     this.$set(factorItem, "gene_set_description", gene_set_description);
                     this.$set(factorItem, "gene_set_program", gene_set_program);
+                    idx++;
                 }
             }
 
             this.setLoadStatus("Filtering factors…");
+            //this.setLoadStep("LLM: Filtering factors by relevance to user query");
+            this.setStep({
+                id: "5",
+                title: "LLM: Filtering factors by relevance to user query"
+            })
+
             await this.filterFactorsByContext(phenotypes);
 
             await this.loadGenesForFactorData(phenotypes);
@@ -1734,6 +2319,10 @@ Return ONLY a JSON object:
             });
             if (associations.length === 0) return Promise.resolve();
 
+            console.log('factorData', this.factorData)
+            console.log('phenotypes', phenotypes)
+            console.log('associations', associations)
+
             const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge how relevant each association is to the research context. Filter to only associations relevant to the research context. Sort the selected associations by relevance (most relevant first). Within each phenotype, order the \"relevant_factors\" array by relevance (most relevant factor first). Return ONLY a JSON object with a \"selected_associations\" array: each element has \"phenotype\", \"relevant_factors\" (array of factor labels or factor_id values to keep, ordered by relevance), and \"rationale\" (brief reason why these factors were chosen). Use only factors from the input.`;
 
             return new Promise((resolve, reject) => {
@@ -1741,6 +2330,8 @@ Return ONLY a JSON object:
                     userPrompt,
                     onResponse: (response) => {
                         const json = this.parseLLMResponse(response);
+                        console.log('LLM Factor filtering', json);
+
                         const allowedByPhenotype = {};
                         const rationaleByPhenotype = {};
                         const selected = json && Array.isArray(json.selected_associations) ? json.selected_associations : [];
@@ -1765,6 +2356,21 @@ Return ONLY a JSON object:
                             resolve();
                             return;
                         }
+                        this.setStep({
+                            id: "5",
+                            substep: {
+                                id: "5.1",
+                                title: "Selected factors for further analysis.",
+                                result: {
+                                    title: selected[0].rationale,
+                                    result: {
+                                        phenotype: selected[0].phenotype,
+                                        relevant_factors: selected[0].relevant_factors
+                                    }
+                                }
+                            }
+                        })
+
                         phenotypes.forEach((phenotype) => {
                             const factors = this.factorData[phenotype].factors || [];
                             const allowed = allowedByPhenotype[phenotype];
@@ -1784,6 +2390,10 @@ Return ONLY a JSON object:
                     },
                     onError: (err) => {
                         console.warn("FactorBaseReveal: factor filter LLM error", err);
+                        this.setStep({
+                            type: 'error',
+                            title: "Request failed or timed out.",
+                        })
                         resolve();
                     },
                     onEnd: () => {
@@ -1799,7 +2409,7 @@ Return ONLY a JSON object:
             this.loadComplete = false;
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
-                : this.transformMergedDataToKG(this.factorData);
+                : this.transformMergedDataToKG(this.factorData, 'factors');
             if (triples.length) this.lastKgTriples = triples;
             this.requestMechanismHypotheses(this.factorData, triples);
         },
@@ -1861,6 +2471,9 @@ Return ONLY a JSON object:
         requestMechanismHypotheses(factorData, kgTriples) {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
+
+            console.log('kgTriples', kgTriples);
+
             const researchContext =
                 (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
                     ? String(this.searchCriteria[1].values)
@@ -1885,7 +2498,13 @@ Return ONLY a JSON object:
                         resolved = true;
                         if (!retry) {
                             this.setLoadStatus("Ready", true);
+                            //this.setLoadStep("Complete.");
+                            this.setStep({
+                                id: "9",
+                                title: "Complete."
+                            }, true)
                             this.loadComplete = true;
+                            this.showTab = 'results';
                         }
                         resolve({ failed, err, retry });
                     };
@@ -1915,6 +2534,10 @@ Return ONLY a JSON object:
                                     isTimeout && attempt >= maxAttempts
                                         ? "Query failed after 3 attempts (timeout)."
                                         : (err && err.message) ? err.message : "Request failed or timed out.";
+                                this.setStep({
+                                    type: 'error',
+                                    title: "Request failed or timed out.",
+                                })
                                 finish(true, err, false);
                             }
                         },
@@ -2166,14 +2789,14 @@ Return ONLY a JSON object:
          * @param {Object} mergedData - factorData: { [phenotype]: { genes: {}, factors: [] } }
          * @returns {Array} - Triples { subject, predicate, object, context }
          */
-        transformMergedDataToKG(mergedData) {
+        transformMergedDataToKG(mergedData, factorsKey) {
             const triples = [];
 
             Object.keys(mergedData || {}).forEach((phenotypeName) => {
                 const pData = mergedData[phenotypeName];
-                if (!pData || !Array.isArray(pData.factors)) return;
+                if (!pData || !Array.isArray(pData[factorsKey])) return;
 
-                pData.factors.forEach((factorObj) => {
+                pData[factorsKey].forEach((factorObj) => {
                     const factorLabel = factorObj.label;
 
                     triples.push({
@@ -2301,20 +2924,25 @@ Return ONLY a JSON object:
             const out = { top_gene_sets: "", gene_set_description: "", gene_set_program: "" };
             const maxGeneSetsPerFactor = 5;
             try {
+                //get gene sets for phenotype/factor assoc.
                 const raw = await this.querySearchApi("phenotypeGeneSetFactor", { phenotype, factor });
                 const rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.data) ? raw.data : []);
+                //filter out gene sets with "None" as program (MsigDB; mouse)
                 const filtered = rows.filter((row) => {
                     const program = row.gene_set_program;
                     if (program == null) return true;
                     if (String(program).trim().toLowerCase() === "none") return false;
                     return true;
                 });
+                //sort desc. by beta uncorrected
                 const withBeta = filtered.map((r) => {
                     const b = r.beta_uncorrected;
                     const num = b != null && b !== "" && !isNaN(Number(b)) ? Number(b) : null;
                     return { ...r, _beta: num };
                 }).sort((a, b) => (b._beta ?? -1) - (a._beta ?? -1));
+                //keep top N (5)
                 const selected = withBeta.slice(0, maxGeneSetsPerFactor);
+
                 const names = selected.map((r) => (r.gene_set != null ? String(r.gene_set).trim() : "")).filter(Boolean);
                 const descs = selected.map((r) => (r.gene_set_description != null ? String(r.gene_set_description).trim() : "")).filter(Boolean);
                 const programs = selected.map((r) => (r.gene_set_program != null ? String(r.gene_set_program).trim() : "")).filter(Boolean);
@@ -2348,12 +2976,47 @@ Return ONLY a JSON object:
 </script>
 
 <style scoped>
+.closed {
+    overflow: hidden;
+    height: 50px;
+    box-shadow: inset 0px -20px 20px -20px #ccc;
+}
+
+.reveal-tab {
+    border-bottom: 5px solid transparent;
+    cursor: pointer;
+}
+.reveal-tab:not(.tab-inactive):not(.tab-active):hover {
+    border-bottom: 5px solid #f1682280;
+}
+.tab-active {
+    border-bottom: 5px solid #f16822;
+    cursor: default;
+}
+.tab-inactive {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.btn-cfde {
+  background-color: #f16822;
+  border-color: #f16822;
+  color: #fff;
+}
+.btn-cfde:hover,
+.btn-cfde:focus,
+.btn-cfde:active {
+  background-color: #d15618;
+  border-color: #f16822;
+  color: #fff;
+}
+
 .pill {
     display: inline-block;
     padding: 0.25em 0.6em;
     border-radius: 1em;
     background: #e9ecef;
-    font-size: 0.9em;
+    width: fit-content;
 }
 .pill.editable {
     cursor: pointer;
@@ -2361,6 +3024,31 @@ Return ONLY a JSON object:
 .pill.new {
     width: 2em;
     padding: 0.25em;
+}
+.ai-gen {
+    display: inline;
+    background: #cce5ff;
+    color: #004085;
+    padding: 0 3px;
+    border-radius: 3px;
+    font-size: inherit;
+    margin: 0 0 0 3px;
+    position: relative;
+    border: 0;
+    line-height: inherit;
+}
+.ai-gen:hover::after {
+    content: 'Written by a AI';
+    position: absolute;
+    background: #cce5ff;
+    color: #004085;
+    width: max-content;
+    padding: 0 3px;
+    top: 0;
+    left: 0;
+    font-size: inherit;
+    line-height: initial;
+    border-radius: 3px;
 }
 .query-sample {
     cursor: pointer;
