@@ -2,78 +2,114 @@
     <div class="pigean-graph-viz">
         <div class="network-wrapper">
             <div class="table-container">
-                <b-table 
-                    striped 
-                    hover 
-                    :items="tableData" 
+                <b-table
+                    striped
+                    hover
+                    :items="tableData"
                     :fields="tableFields"
                     small
                     responsive
                     class="nodes-table"
                 >
                     <template v-slot:cell(node)="row">
-                        <span 
+                        <span
                             :class="`node-name-${row.item.shape}`"
-                            @mouseenter="showHoverPopup(row.item, row.index, $event)"
+                            @mouseenter="
+                                showHoverPopup(row.item, row.index, $event)
+                            "
                             @mouseleave="hideHoverPopup"
                             @click.stop="showClickPopup(row.item.id)"
-                            style="cursor: pointer;"
+                            style="cursor: pointer"
                         >
                             {{ row.item.label }}
                         </span>
                     </template>
                     <template v-slot:cell(connectedNodes)="row">
-                        <div 
+                        <div
                             class="connected-nodes-list"
-                            @mouseenter="showHoverPopup(row.item, row.index, $event)"
+                            @mouseenter="
+                                showHoverPopup(row.item, row.index, $event)
+                            "
                             @mouseleave="hideHoverPopup"
                             @click.stop="showClickPopup(row.item.id)"
-                            style="cursor: pointer;"
+                            style="cursor: pointer"
                         >
-                            <span 
-                                v-for="(connected, idx) in row.item.displayedConnected" 
+                            <span
+                                v-for="(connected, idx) in row.item
+                                    .displayedConnected"
                                 :key="idx"
                                 :class="`connected-node-${connected.shape}`"
                             >
-                                {{ connected.label }}<span v-if="idx < row.item.displayedConnected.length - 1">, </span>
+                                {{ connected.label
+                                }}<span
+                                    v-if="
+                                        idx <
+                                        row.item.displayedConnected.length - 1
+                                    "
+                                    >,
+                                </span>
                             </span>
-                            <span 
-                                v-if="row.item.hasMore" 
+                            <span
+                                v-if="row.item.hasMore"
                                 class="show-more-link"
                                 @click.stop="toggleShowMore(row.item.id)"
                             >
-                                {{ row.item.showMore ? ' (show less)' : '... show more (' + row.item.remainingCount + ')' }}
+                                {{
+                                    row.item.showMore
+                                        ? " (show less)"
+                                        : "... show more (" +
+                                          row.item.remainingCount +
+                                          ")"
+                                }}
                             </span>
                         </div>
                     </template>
                 </b-table>
             </div>
             <div class="network-wrapper-inner">
-                <div ref="networkContainer" id="mynetwork" class="network-container"></div>
+                <div
+                    ref="networkContainer"
+                    id="mynetwork"
+                    class="network-container"
+                ></div>
             </div>
             <!-- Right Column: Zoom UI -->
             <div class="network-zoom-column">
                 <div class="zoom-controls-vertical">
-                    <input 
-                        type="range" 
-                        id="zoomSlider" 
-                        class="zoom-slider-vertical" 
-                        min="0.1" 
-                        max="2.0" 
+                    <input
+                        type="range"
+                        id="zoomSlider"
+                        class="zoom-slider-vertical"
+                        min="0.1"
+                        max="2.0"
                         step="0.05"
                         :value="zoomLevel"
                         @input="updateZoom($event.target.value)"
                         orient="vertical"
                     />
-                    <span id="zoomPercentage" class="zoom-percentage-vertical">{{ Math.round(zoomLevel * 100) }}%</span>
+                    <span id="zoomPercentage" class="zoom-percentage-vertical"
+                        >{{ Math.round(zoomLevel * 100) }}%</span
+                    >
                     <div class="zoom-buttons-vertical">
-                        <button class="btn-zoom-vertical" @click="fitToScreen" title="Fit network to screen">
+                        <button
+                            class="btn-zoom-vertical"
+                            @click="fitToScreen"
+                            title="Fit network to screen"
+                        >
                             <b-icon icon="arrows-angle-contract"></b-icon>
                         </button>
-                        <button class="btn-zoom-vertical" @click="centerNetwork" title="Center network">
+                        <button
+                            class="btn-zoom-vertical"
+                            @click="centerNetwork"
+                            title="Center network"
+                        >
                             <b-icon icon="bullseye"></b-icon>
                         </button>
-                        <button class="btn-zoom-vertical" @click="downloadNetworkImage" title="Download network image">
+                        <button
+                            class="btn-zoom-vertical"
+                            @click="downloadNetworkImage"
+                            title="Download network image"
+                        >
                             <b-icon icon="download"></b-icon>
                         </button>
                     </div>
@@ -82,8 +118,8 @@
         </div>
 
         <!-- Hover Popup (small, follows mouse) -->
-        <div 
-            id="hoverPopup" 
+        <div
+            id="hoverPopup"
             class="hover-popup"
             @mouseenter="cancelHidePopup"
             @mouseleave="hideHoverPopup"
@@ -92,17 +128,20 @@
         </div>
 
         <!-- Click Popup (large, centered, stays open) -->
-        <div 
-            v-if="isClickPopupOpen" 
+        <div
+            v-if="isClickPopupOpen"
             class="click-popup-overlay"
             @click.self="hideClickPopup"
         >
             <div class="click-popup">
                 <div class="click-popup-content">
-                    <div id="clickPopupNetwork" class="click-popup-network"></div>
+                    <div
+                        id="clickPopupNetwork"
+                        class="click-popup-network"
+                    ></div>
                 </div>
                 <div class="click-popup-controls">
-                    <button 
+                    <button
                         class="click-popup-close"
                         @click="hideClickPopup"
                         title="Close"
@@ -110,26 +149,40 @@
                         ✕
                     </button>
                     <div class="click-popup-zoom-controls">
-                        <input 
-                            type="range" 
-                            id="clickPopupZoomSlider" 
-                            class="zoom-slider-vertical" 
-                            min="0.1" 
-                            max="2.0" 
+                        <input
+                            type="range"
+                            id="clickPopupZoomSlider"
+                            class="zoom-slider-vertical"
+                            min="0.1"
+                            max="2.0"
                             step="0.05"
                             :value="clickPopupZoomLevel"
                             @input="updateClickPopupZoom($event.target.value)"
                             orient="vertical"
                         />
-                        <span class="zoom-percentage-vertical">{{ Math.round(clickPopupZoomLevel * 100) }}%</span>
+                        <span class="zoom-percentage-vertical"
+                            >{{ Math.round(clickPopupZoomLevel * 100) }}%</span
+                        >
                         <div class="zoom-buttons-vertical">
-                            <button class="btn-zoom-vertical" @click="fitClickPopupNetwork" title="Fit network to screen">
+                            <button
+                                class="btn-zoom-vertical"
+                                @click="fitClickPopupNetwork"
+                                title="Fit network to screen"
+                            >
                                 <b-icon icon="arrows-angle-contract"></b-icon>
                             </button>
-                            <button class="btn-zoom-vertical" @click="centerClickPopupNetwork" title="Center network">
+                            <button
+                                class="btn-zoom-vertical"
+                                @click="centerClickPopupNetwork"
+                                title="Center network"
+                            >
                                 <b-icon icon="bullseye"></b-icon>
                             </button>
-                            <button class="btn-zoom-vertical" @click="downloadClickPopupImage" title="Download network image">
+                            <button
+                                class="btn-zoom-vertical"
+                                @click="downloadClickPopupImage"
+                                title="Download network image"
+                            >
                                 <b-icon icon="download"></b-icon>
                             </button>
                         </div>
@@ -142,7 +195,8 @@
 
 <script>
 import Vue from "vue";
-import { Network, DataSet } from "vis-network";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default Vue.component("PigeanGraphViz", {
@@ -152,12 +206,12 @@ export default Vue.component("PigeanGraphViz", {
         },
         genesetSize: {
             type: String,
-            default: "small"
+            default: "small",
         },
         sigma: {
             type: Number,
-            default: 2
-        }
+            default: 2,
+        },
     },
     data() {
         return {
@@ -175,22 +229,22 @@ export default Vue.component("PigeanGraphViz", {
             mousePosition: { x: 0, y: 0 }, // Track mouse position
             isClickPopupOpen: false, // Track if click popup is open
             clickPopupNodeId: null, // Track which node is shown in click popup
-            clickPopupZoomLevel: 1.0 // Track zoom level for click popup
+            clickPopupZoomLevel: 1.0, // Track zoom level for click popup
         };
     },
     computed: {
         tableFields() {
             return [
                 {
-                    key: 'node',
-                    label: 'Node',
-                    sortable: false
+                    key: "node",
+                    label: "Node",
+                    sortable: false,
                 },
                 {
-                    key: 'connectedNodes',
-                    label: 'Connected Nodes',
-                    sortable: false
-                }
+                    key: "connectedNodes",
+                    label: "Connected Nodes",
+                    sortable: false,
+                },
             ];
         },
         tableData() {
@@ -200,40 +254,48 @@ export default Vue.component("PigeanGraphViz", {
 
             // Build connection map
             const connections = {};
-            this.originalNodes.forEach(node => {
+            this.originalNodes.forEach((node) => {
                 connections[node.id] = [];
             });
 
             // Find all connected nodes
-            this.originalEdges.forEach(edge => {
-                const fromNode = this.originalNodes.find(n => n.id === edge.from);
-                const toNode = this.originalNodes.find(n => n.id === edge.to);
-                
+            this.originalEdges.forEach((edge) => {
+                const fromNode = this.originalNodes.find(
+                    (n) => n.id === edge.from
+                );
+                const toNode = this.originalNodes.find((n) => n.id === edge.to);
+
                 if (fromNode && toNode) {
-                    if (!connections[edge.from].find(n => n.id === toNode.id)) {
+                    if (
+                        !connections[edge.from].find((n) => n.id === toNode.id)
+                    ) {
                         connections[edge.from].push({
                             id: toNode.id,
                             label: toNode.label || toNode.id,
-                            shape: toNode.shape || 'dot',
-                            size: toNode.size || 10
+                            shape: toNode.shape || "dot",
+                            size: toNode.size || 10,
                         });
                     }
-                    if (!connections[edge.to].find(n => n.id === fromNode.id)) {
+                    if (
+                        !connections[edge.to].find((n) => n.id === fromNode.id)
+                    ) {
                         connections[edge.to].push({
                             id: fromNode.id,
                             label: fromNode.label || fromNode.id,
-                            shape: fromNode.shape || 'dot',
-                            size: fromNode.size || 10
+                            shape: fromNode.shape || "dot",
+                            size: fromNode.size || 10,
                         });
                     }
                 }
             });
 
             // Create table data with sorting
-            const tableItems = this.originalNodes.map(node => {
+            const tableItems = this.originalNodes.map((node) => {
                 const connected = connections[node.id] || [];
                 const isExpanded = this.expandedNodes[node.id] || false;
-                const displayedCount = isExpanded ? connected.length : Math.min(5, connected.length);
+                const displayedCount = isExpanded
+                    ? connected.length
+                    : Math.min(5, connected.length);
                 const displayedConnected = connected.slice(0, displayedCount);
                 const hasMore = connected.length > 5;
                 const remainingCount = Math.max(0, connected.length - 5);
@@ -241,32 +303,42 @@ export default Vue.component("PigeanGraphViz", {
                 return {
                     id: node.id,
                     label: node.label || node.id,
-                    shape: node.shape || 'dot',
+                    shape: node.shape || "dot",
                     size: node.size || 10,
                     connected: connected,
                     displayedConnected: displayedConnected,
                     hasMore: hasMore,
                     showMore: isExpanded,
-                    remainingCount: remainingCount
+                    remainingCount: remainingCount,
                 };
             });
 
             // Sort: squares first, then dots, then by size (biggest first)
             tableItems.sort((a, b) => {
                 // First sort by shape: square/box/diamond first, then dot/circle
-                const shapeOrderA = (a.shape === 'square' || a.shape === 'box' || a.shape === 'diamond') ? 1 : 2;
-                const shapeOrderB = (b.shape === 'square' || b.shape === 'box' || b.shape === 'diamond') ? 1 : 2;
-                
+                const shapeOrderA =
+                    a.shape === "square" ||
+                    a.shape === "box" ||
+                    a.shape === "diamond"
+                        ? 1
+                        : 2;
+                const shapeOrderB =
+                    b.shape === "square" ||
+                    b.shape === "box" ||
+                    b.shape === "diamond"
+                        ? 1
+                        : 2;
+
                 if (shapeOrderA !== shapeOrderB) {
                     return shapeOrderA - shapeOrderB;
                 }
-                
+
                 // Then sort by size (biggest first)
                 return b.size - a.size;
             });
 
             return tableItems;
-        }
+        },
     },
     watch: {
         phenotypeId: {
@@ -274,8 +346,8 @@ export default Vue.component("PigeanGraphViz", {
                 if (newPhenotypeId) {
                     this.loadAndVisualize(newPhenotypeId);
                 }
-            }
-        }
+            },
+        },
     },
     mounted() {
         if (this.phenotypeId) {
@@ -303,58 +375,59 @@ export default Vue.component("PigeanGraphViz", {
             return `${baseUrl}?q=${encodedPhenotype}%2C${this.sigma}%2C${this.genesetSize}`;
         },
         prepareNodes(nodeData) {
-            return nodeData.map(node => {
+            return nodeData.map((node) => {
                 // Preserve ALL original properties from the data model
                 const nodeObj = {
-                    ...node,  // Spread all original properties first
+                    ...node, // Spread all original properties first
                     id: node.id,
-                    label: String(node.label || node.id || ''), // Ensure label is always a string
+                    label: String(node.label || node.id || ""), // Ensure label is always a string
                 };
-                
+
                 // Only add fixed property if positions exist (for vis-network)
                 if (this.hasPositions) {
                     nodeObj.fixed = {
                         x: true,
-                        y: true
+                        y: true,
                     };
                 } else {
                     nodeObj.fixed = {
                         x: false,
-                        y: false
+                        y: false,
                     };
                 }
-                
+
                 return nodeObj;
             });
         },
         prepareEdges(edgeData) {
-            return edgeData.map(edge => {
+            return edgeData.map((edge) => {
                 // Preserve ALL original properties from the data model
                 const edgeObj = {
-                    ...edge,  // Spread all original properties first
+                    ...edge, // Spread all original properties first
                     from: edge.from,
                     to: edge.to,
                     width: Math.max(1, (edge.width || 1) * 2), // Scale width for visibility
                 };
-                
+
                 // Only add smooth property if it doesn't exist (for vis-network)
                 if (!edgeObj.smooth) {
                     edgeObj.smooth = {
-                        type: 'continuous',
-                        roundness: 0.5
+                        type: "continuous",
+                        roundness: 0.5,
                     };
                 }
-                
+
                 return edgeObj;
             });
         },
         createNetwork(nodeData, edgeData) {
-
             console.log("nodeData", nodeData);
             console.log("edgeData", edgeData);
 
-            const container = this.$refs.networkContainer || document.getElementById('mynetwork');
-            
+            const container =
+                this.$refs.networkContainer ||
+                document.getElementById("mynetwork");
+
             if (!container) {
                 console.error("Network container not found");
                 return;
@@ -366,7 +439,7 @@ export default Vue.component("PigeanGraphViz", {
 
             const networkData = {
                 nodes: this.nodes,
-                edges: this.edges
+                edges: this.edges,
             };
 
             const options = {
@@ -375,30 +448,30 @@ export default Vue.component("PigeanGraphViz", {
                     shadow: false,
                     font: {
                         size: 12,
-                        face: 'Arial'
-                    }
+                        face: "Arial",
+                    },
                 },
                 edges: {
                     shadow: false,
                     smooth: {
-                        type: 'continuous',
-                        roundness: 0.5
-                    }
+                        type: "continuous",
+                        roundness: 0.5,
+                    },
                 },
                 physics: {
                     enabled: !this.hasPositions,
                     stabilization: {
                         enabled: !this.hasPositions,
                         iterations: 200,
-                        fit: true
+                        fit: true,
                     },
                     barnesHut: {
                         gravitationalConstant: -2000,
                         centralGravity: 0.1,
                         springLength: 200,
                         springConstant: 0.04,
-                        damping: 0.09
-                    }
+                        damping: 0.09,
+                    },
                 },
                 interaction: {
                     hover: true,
@@ -406,8 +479,8 @@ export default Vue.component("PigeanGraphViz", {
                     zoomView: false,
                     dragView: true,
                     zoomSpeed: 1,
-                    navigationButtons: false
-                }
+                    navigationButtons: false,
+                },
             };
 
             // Create new network or update existing one
@@ -424,8 +497,8 @@ export default Vue.component("PigeanGraphViz", {
                 // Fit to screen initially
                 this.network.fit({
                     animation: {
-                        duration: 0
-                    }
+                        duration: 0,
+                    },
                 });
                 this.updateZoomSlider();
 
@@ -447,8 +520,8 @@ export default Vue.component("PigeanGraphViz", {
                 setTimeout(() => {
                     this.network.fit({
                         animation: {
-                            duration: 0
-                        }
+                            duration: 0,
+                        },
                     });
                     this.updateZoomSlider();
                 }, 100);
@@ -472,29 +545,31 @@ export default Vue.component("PigeanGraphViz", {
             this.network.moveTo({
                 scale: scale,
                 animation: {
-                    duration: 0
-                }
+                    duration: 0,
+                },
             });
             this.zoomLevel = scale;
             this.updateCursorForZoom(scale);
         },
         updateCursorForZoom(scale) {
-            const container = this.$refs.networkContainer || document.getElementById('mynetwork');
+            const container =
+                this.$refs.networkContainer ||
+                document.getElementById("mynetwork");
             if (!container) return;
 
             // Change cursor to grab when zoomed in (scale > 1.0)
             if (scale > 1.0) {
-                container.style.cursor = 'grab';
+                container.style.cursor = "grab";
             } else {
-                container.style.cursor = 'default';
+                container.style.cursor = "default";
             }
         },
         fitToScreen() {
             if (!this.network) return;
             this.network.fit({
                 animation: {
-                    duration: 0
-                }
+                    duration: 0,
+                },
             });
             // Update slider immediately
             this.updateZoomSlider();
@@ -507,8 +582,8 @@ export default Vue.component("PigeanGraphViz", {
                 position: { x: 0, y: 0 },
                 scale: currentScale,
                 animation: {
-                    duration: 300
-                }
+                    duration: 300,
+                },
             });
         },
         downloadNetworkImage() {
@@ -516,23 +591,27 @@ export default Vue.component("PigeanGraphViz", {
             try {
                 // Check if getBase64Image method exists, if not use canvas directly
                 let dataUrl;
-                if (typeof this.network.getBase64Image === 'function') {
+                if (typeof this.network.getBase64Image === "function") {
                     dataUrl = this.network.getBase64Image("image/png", 1.0);
                 } else {
                     // Fallback: get canvas from the network container
-                    const networkContainer = this.$refs.networkContainer || document.getElementById('mynetwork');
+                    const networkContainer =
+                        this.$refs.networkContainer ||
+                        document.getElementById("mynetwork");
                     if (networkContainer) {
-                        const canvas = networkContainer.querySelector('canvas');
+                        const canvas = networkContainer.querySelector("canvas");
                         if (canvas) {
                             dataUrl = canvas.toDataURL("image/png");
                         } else {
-                            throw new Error('Canvas not found in network container');
+                            throw new Error(
+                                "Canvas not found in network container"
+                            );
                         }
                     } else {
-                        throw new Error('Network container not found');
+                        throw new Error("Network container not found");
                     }
                 }
-                
+
                 const link = document.createElement("a");
                 link.download = `network-${Date.now()}.png`;
                 link.href = dataUrl;
@@ -541,15 +620,15 @@ export default Vue.component("PigeanGraphViz", {
                 link.click();
                 document.body.removeChild(link);
             } catch (error) {
-                console.error('Error downloading network image:', error);
+                console.error("Error downloading network image:", error);
             }
         },
         fitClickPopupNetwork() {
             if (!this.clickPopupNetwork) return;
             this.clickPopupNetwork.fit({
                 animation: {
-                    duration: 300
-                }
+                    duration: 300,
+                },
             });
             this.updateClickPopupZoomSlider();
         },
@@ -561,8 +640,8 @@ export default Vue.component("PigeanGraphViz", {
                 position: { x: 0, y: 0 },
                 scale: currentScale,
                 animation: {
-                    duration: 300
-                }
+                    duration: 300,
+                },
             });
         },
         downloadClickPopupImage() {
@@ -570,23 +649,31 @@ export default Vue.component("PigeanGraphViz", {
             try {
                 // Check if getBase64Image method exists, if not use canvas directly
                 let dataUrl;
-                if (typeof this.clickPopupNetwork.getBase64Image === 'function') {
-                    dataUrl = this.clickPopupNetwork.getBase64Image("image/png", 1.0);
+                if (
+                    typeof this.clickPopupNetwork.getBase64Image === "function"
+                ) {
+                    dataUrl = this.clickPopupNetwork.getBase64Image(
+                        "image/png",
+                        1.0
+                    );
                 } else {
                     // Fallback: get canvas from the network container
-                    const popupContainer = document.getElementById('clickPopupNetwork');
+                    const popupContainer =
+                        document.getElementById("clickPopupNetwork");
                     if (popupContainer) {
-                        const canvas = popupContainer.querySelector('canvas');
+                        const canvas = popupContainer.querySelector("canvas");
                         if (canvas) {
                             dataUrl = canvas.toDataURL("image/png");
                         } else {
-                            throw new Error('Canvas not found in popup network container');
+                            throw new Error(
+                                "Canvas not found in popup network container"
+                            );
                         }
                     } else {
-                        throw new Error('Popup network container not found');
+                        throw new Error("Popup network container not found");
                     }
                 }
-                
+
                 const link = document.createElement("a");
                 link.download = `network-popup-${Date.now()}.png`;
                 link.href = dataUrl;
@@ -595,7 +682,7 @@ export default Vue.component("PigeanGraphViz", {
                 link.click();
                 document.body.removeChild(link);
             } catch (error) {
-                console.error('Error downloading popup network image:', error);
+                console.error("Error downloading popup network image:", error);
             }
         },
         updateClickPopupZoom(value) {
@@ -607,8 +694,8 @@ export default Vue.component("PigeanGraphViz", {
             this.clickPopupNetwork.moveTo({
                 scale: scale,
                 animation: {
-                    duration: 0
-                }
+                    duration: 0,
+                },
             });
             this.clickPopupZoomLevel = scale;
         },
@@ -627,8 +714,8 @@ export default Vue.component("PigeanGraphViz", {
             }
 
             // Find the node
-            const filterNode = this.originalNodes.find(node =>
-                node.id === nodeId
+            const filterNode = this.originalNodes.find(
+                (node) => node.id === nodeId
             );
 
             if (!filterNode) {
@@ -639,7 +726,7 @@ export default Vue.component("PigeanGraphViz", {
             const connectedNodeIds = new Set([nodeId]);
 
             // Find edges connected to the filter node
-            this.originalEdges.forEach(edge => {
+            this.originalEdges.forEach((edge) => {
                 if (edge.from === nodeId || edge.to === nodeId) {
                     connectedNodeIds.add(edge.from);
                     connectedNodeIds.add(edge.to);
@@ -647,12 +734,17 @@ export default Vue.component("PigeanGraphViz", {
             });
 
             // Find all edges between connected nodes
-            const allConnectedEdges = this.originalEdges.filter(edge => {
-                return connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to);
+            const allConnectedEdges = this.originalEdges.filter((edge) => {
+                return (
+                    connectedNodeIds.has(edge.from) &&
+                    connectedNodeIds.has(edge.to)
+                );
             });
 
             // Filter nodes to only include connected ones
-            const filteredNodes = this.originalNodes.filter(node => connectedNodeIds.has(node.id));
+            const filteredNodes = this.originalNodes.filter((node) =>
+                connectedNodeIds.has(node.id)
+            );
 
             // Prepare filtered data
             const preparedNodes = this.prepareNodes(filteredNodes);
@@ -661,7 +753,7 @@ export default Vue.component("PigeanGraphViz", {
             // Create network data
             const popupNetworkData = {
                 nodes: new DataSet(preparedNodes),
-                edges: new DataSet(preparedEdges)
+                edges: new DataSet(preparedEdges),
             };
 
             const popupOptions = {
@@ -670,54 +762,58 @@ export default Vue.component("PigeanGraphViz", {
                     shadow: false,
                     font: {
                         size: 10,
-                        face: 'Arial'
-                    }
+                        face: "Arial",
+                    },
                 },
                 edges: {
                     shadow: false,
                     smooth: {
-                        type: 'continuous',
-                        roundness: 0.5
-                    }
+                        type: "continuous",
+                        roundness: 0.5,
+                    },
                 },
                 physics: {
                     enabled: true,
                     stabilization: {
                         enabled: true,
                         iterations: 50,
-                        fit: true
+                        fit: true,
                     },
                     barnesHut: {
                         gravitationalConstant: -2000,
                         centralGravity: 0.1,
                         springLength: 200,
                         springConstant: 0.04,
-                        damping: 0.09
-                    }
+                        damping: 0.09,
+                    },
                 },
                 interaction: {
                     hover: false,
                     zoomView: false,
                     dragView: false,
-                    tooltipDelay: 0
+                    tooltipDelay: 0,
                 },
-                width: '500px',
-                height: '500px'
+                width: "500px",
+                height: "500px",
             };
 
-            const popupContainer = document.getElementById('hoverPopupNetwork');
+            const popupContainer = document.getElementById("hoverPopupNetwork");
             if (!popupContainer) {
                 return;
             }
 
-            popupContainer.innerHTML = ''; // Clear previous network
+            popupContainer.innerHTML = ""; // Clear previous network
 
             // Destroy previous network if it exists
             if (this.hoverPopupNetwork) {
                 this.hoverPopupNetwork.destroy();
             }
 
-            this.hoverPopupNetwork = new Network(popupContainer, popupNetworkData, popupOptions);
+            this.hoverPopupNetwork = new Network(
+                popupContainer,
+                popupNetworkData,
+                popupOptions
+            );
 
             // Disable physics after stabilization
             this.hoverPopupNetwork.on("stabilizationEnd", () => {
@@ -732,7 +828,7 @@ export default Vue.component("PigeanGraphViz", {
             // Store mouse position
             this.mousePosition = {
                 x: event.clientX,
-                y: event.clientY
+                y: event.clientY,
             };
 
             // Clear any pending hide timeout
@@ -741,7 +837,7 @@ export default Vue.component("PigeanGraphViz", {
                 this.popupHideTimeout = null;
             }
 
-            const popup = document.getElementById('hoverPopup');
+            const popup = document.getElementById("hoverPopup");
 
             if (!popup) {
                 return;
@@ -751,7 +847,7 @@ export default Vue.component("PigeanGraphViz", {
             try {
                 this.createHoverPopupNetwork(item.id);
             } catch (error) {
-                console.error('Error creating popup network:', error);
+                console.error("Error creating popup network:", error);
             }
 
             // Position popup near mouse cursor
@@ -789,21 +885,27 @@ export default Vue.component("PigeanGraphViz", {
             }
 
             // Final bounds check
-            finalX = Math.max(10, Math.min(finalX, viewportWidth - popupWidth - 10));
-            finalY = Math.max(10, Math.min(finalY, viewportHeight - popupHeight - 10));
+            finalX = Math.max(
+                10,
+                Math.min(finalX, viewportWidth - popupWidth - 10)
+            );
+            finalY = Math.max(
+                10,
+                Math.min(finalY, viewportHeight - popupHeight - 10)
+            );
 
-            popup.style.left = finalX + 'px';
-            popup.style.top = finalY + 'px';
-            popup.classList.add('show');
+            popup.style.left = finalX + "px";
+            popup.style.top = finalY + "px";
+            popup.classList.add("show");
         },
         hideHoverPopup() {
             if (this.popupHideTimeout) {
                 clearTimeout(this.popupHideTimeout);
             }
             this.popupHideTimeout = setTimeout(() => {
-                const popup = document.getElementById('hoverPopup');
+                const popup = document.getElementById("hoverPopup");
                 if (popup) {
-                    popup.classList.remove('show');
+                    popup.classList.remove("show");
                 }
                 this.popupHideTimeout = null;
             }, 200);
@@ -830,7 +932,7 @@ export default Vue.component("PigeanGraphViz", {
         hideClickPopup() {
             this.isClickPopupOpen = false;
             this.clickPopupNodeId = null;
-            
+
             // Destroy network when closing
             if (this.clickPopupNetwork) {
                 this.clickPopupNetwork.destroy();
@@ -843,8 +945,8 @@ export default Vue.component("PigeanGraphViz", {
             }
 
             // Find the node
-            const filterNode = this.originalNodes.find(node =>
-                node.id === nodeId
+            const filterNode = this.originalNodes.find(
+                (node) => node.id === nodeId
             );
 
             if (!filterNode) {
@@ -855,7 +957,7 @@ export default Vue.component("PigeanGraphViz", {
             const connectedNodeIds = new Set([nodeId]);
 
             // Find edges connected to the filter node
-            this.originalEdges.forEach(edge => {
+            this.originalEdges.forEach((edge) => {
                 if (edge.from === nodeId || edge.to === nodeId) {
                     connectedNodeIds.add(edge.from);
                     connectedNodeIds.add(edge.to);
@@ -863,12 +965,17 @@ export default Vue.component("PigeanGraphViz", {
             });
 
             // Find all edges between connected nodes
-            const allConnectedEdges = this.originalEdges.filter(edge => {
-                return connectedNodeIds.has(edge.from) && connectedNodeIds.has(edge.to);
+            const allConnectedEdges = this.originalEdges.filter((edge) => {
+                return (
+                    connectedNodeIds.has(edge.from) &&
+                    connectedNodeIds.has(edge.to)
+                );
             });
 
             // Filter nodes to only include connected ones
-            const filteredNodes = this.originalNodes.filter(node => connectedNodeIds.has(node.id));
+            const filteredNodes = this.originalNodes.filter((node) =>
+                connectedNodeIds.has(node.id)
+            );
 
             // Prepare filtered data
             const preparedNodes = this.prepareNodes(filteredNodes);
@@ -877,7 +984,7 @@ export default Vue.component("PigeanGraphViz", {
             // Create network data
             const popupNetworkData = {
                 nodes: new DataSet(preparedNodes),
-                edges: new DataSet(preparedEdges)
+                edges: new DataSet(preparedEdges),
             };
 
             const popupOptions = {
@@ -886,30 +993,30 @@ export default Vue.component("PigeanGraphViz", {
                     shadow: false,
                     font: {
                         size: 12,
-                        face: 'Arial'
-                    }
+                        face: "Arial",
+                    },
                 },
                 edges: {
                     shadow: false,
                     smooth: {
-                        type: 'continuous',
-                        roundness: 0.5
-                    }
+                        type: "continuous",
+                        roundness: 0.5,
+                    },
                 },
                 physics: {
                     enabled: true,
                     stabilization: {
                         enabled: true,
                         iterations: 200,
-                        fit: true
+                        fit: true,
                     },
                     barnesHut: {
                         gravitationalConstant: -2000,
                         centralGravity: 0.1,
                         springLength: 200,
                         springConstant: 0.04,
-                        damping: 0.09
-                    }
+                        damping: 0.09,
+                    },
                 },
                 interaction: {
                     hover: true,
@@ -917,23 +1024,27 @@ export default Vue.component("PigeanGraphViz", {
                     zoomView: true,
                     dragView: true,
                     zoomSpeed: 1,
-                    navigationButtons: false
-                }
+                    navigationButtons: false,
+                },
             };
 
-            const popupContainer = document.getElementById('clickPopupNetwork');
+            const popupContainer = document.getElementById("clickPopupNetwork");
             if (!popupContainer) {
                 return;
             }
 
-            popupContainer.innerHTML = ''; // Clear previous network
+            popupContainer.innerHTML = ""; // Clear previous network
 
             // Destroy previous network if it exists
             if (this.clickPopupNetwork) {
                 this.clickPopupNetwork.destroy();
             }
 
-            this.clickPopupNetwork = new Network(popupContainer, popupNetworkData, popupOptions);
+            this.clickPopupNetwork = new Network(
+                popupContainer,
+                popupNetworkData,
+                popupOptions
+            );
 
             // Disable physics after stabilization
             this.clickPopupNetwork.on("stabilizationEnd", () => {
@@ -965,7 +1076,7 @@ export default Vue.component("PigeanGraphViz", {
                 const data = await response.json();
 
                 if (!data.data || data.data.length === 0) {
-                    throw new Error('No data returned from API');
+                    throw new Error("No data returned from API");
                 }
 
                 const graphData = data.data[0];
@@ -979,7 +1090,9 @@ export default Vue.component("PigeanGraphViz", {
                 console.log("originalNodes", this.originalNodes);
 
                 // Check if nodes have positions
-                this.hasPositions = graphData.nodes.some(node => node.x !== undefined && node.y !== undefined);
+                this.hasPositions = graphData.nodes.some(
+                    (node) => node.x !== undefined && node.y !== undefined
+                );
 
                 // Prepare and visualize
                 const preparedNodes = this.prepareNodes(graphData.nodes);
@@ -993,12 +1106,11 @@ export default Vue.component("PigeanGraphViz", {
                     console.log("=== RENDERING INITIAL NETWORK ===");
                     console.log("Nodes being rendered:", datasetNodes);
                 }, 500);
-
             } catch (error) {
-                console.error('Error loading graph data:', error);
+                console.error("Error loading graph data:", error);
             }
-        }
-    }
+        },
+    },
 });
 </script>
 
