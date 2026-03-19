@@ -43,7 +43,8 @@
 </template>
 
 <script>
-import { Network, DataSet } from "vis-network";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 
 const NODE_COLORS = {
     Phenotype: "#e41a1c",
