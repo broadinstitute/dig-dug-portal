@@ -502,11 +502,12 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 break;
 
             case "map name":
-
+                console.log("formatters.js called");
                 let tempValue = cellValue;
 
                 if (columnKeyObj["map"] == "shared resource") {
                     let map = this.$root.sharedResource[columnKeyObj["map name"]]
+                    console.log("map", columnKeyObj["map name"], map[cellValue]);
                     cellValue = map[cellValue];
                 } else {
                     cellValue = columnKeyObj["map"][cellValue];

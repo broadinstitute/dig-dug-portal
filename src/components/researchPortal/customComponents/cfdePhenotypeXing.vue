@@ -12,7 +12,11 @@
         <table class="cfde-xing-table">
                 <thead>
                     <tr>
-                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["x axis field"]}}</th><th>{{renderConfig["suppliment field"]}}</th><th>Background</th><th>Log10({{renderConfig["x axis field"]}}) : {{renderConfig["suppliment field"]}}</th>
+                        <th>{{ renderConfig["render by"] }}</th><th>{{renderConfig["x axis field"]}}</th>
+                        <template v-if="renderConfig['suppliment fields']">
+                            <th v-for="field in renderConfig['suppliment fields']" :key="field">{{ field }}</th>
+                        </template>
+                        <!--<th>{{renderConfig["suppliment field"]}}</th>--><th>Background</th><th>Log10({{renderConfig["x axis field"]}}) : {{renderConfig["suppliment field"]}}</th>
                     </tr>
                     
                 </thead>
@@ -34,10 +38,13 @@
                {{utils.Formatters.pValueFormatter(item[renderConfig["x axis field"]])}}
 
             </td>
-            <td>
+            <template v-if="renderConfig['suppliment fields']">
+                <td v-for="field in renderConfig['suppliment fields']" :key="field">{{ utils.Formatters.pValueFormatter(item[field]) }}</td>
+            </template>
+            <!--<td>
                {{utils.Formatters.pValueFormatter(item[renderConfig["suppliment field"]])}}
 
-            </td>
+            </td>-->
             <td>{{ item["Background"] }}</td>
             <td class="value-td">
                <span class="mean-pos" :style="'left:' + getMeanXpos(dataMean)" ></span>
@@ -49,7 +56,7 @@
 
         </tr>
         <tr>
-            <td></td><td></td><td></td><td></td><td>
+            <td></td><td></td><td></td><td></td><td></td><td>
                 <span style="float:left; margin-left: -10px;">{{utils.Formatters.pValueFormatter(dataMin)}}</span>
                 <span style="float:right; margin-right: -10px;">{{utils.Formatters.pValueFormatter(dataMax)}}</span>
             </td>

@@ -47,6 +47,7 @@ import regionUtils from "@/utils/regionUtils";
 import userUtils from "@/utils/userUtils.js";
 import drcUtils from "@/utils/drcUtils.js";
 import { llmUtils } from "@/utils/llmUtils.js";
+import cfdeUtils from "@/utils/cfdeUtils.js";
 import $ from "jquery";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
@@ -191,6 +192,7 @@ new Vue({
                 userUtils: userUtils,
                 llmUtils: llmUtils,
                 drcUtils: drcUtils,
+                cfdeUtils: cfdeUtils,
             };
             return utils;
         },
@@ -316,9 +318,20 @@ new Vue({
             let sharedResource;
             if (!!this.sectionConfigs["shared resource"]) {
                 sharedResource = this.sectionConfigs["shared resource"];
+
+                Object.keys(sharedResource).map(key => {
+                    if (sharedResource[key] == "cfde phenotypes") {
+                        sharedResource[key] = this.utilsBox.cfdeUtils.getCfdePhenotypes();
+                    }
+                    if (sharedResource[key] == "cfde mouse phenotypes") {
+                        sharedResource[key] = this.utilsBox.cfdeUtils.getCfdeMousePhenotypes();
+                    }
+                });
             } else {
                 sharedResource = null;
             }
+
+            console.log("sharedResource", sharedResource);
 
             return sharedResource;
         },
@@ -355,7 +368,18 @@ new Vue({
                             p.values = values;
 
                             newParameters.push(p);
-                        } else {
+                        }
+
+                        else if (p.type == 'list' && p.values == 'cfde phenotypes') {
+                            p.values = this.utilsBox.cfdeUtils.getCfdePhenotypesInList();
+                            newParameters.push(p);
+                        }
+                        else if (p.type == 'list' && p.values == 'cfde mouse phenotypes') {
+                            p.values = this.utilsBox.cfdeUtils.getCfdeMousePhenotypesInList();
+                            newParameters.push(p);
+                        }
+
+                        else {
                             newParameters.push(p);
                         }
                     });
@@ -1924,7 +1948,7 @@ new Vue({
                 return string.slice(0, -1);
             };
 
-            let applyConvert = function (DATA, CONVERT, PHENOTYPE_MAP) {
+            let applyConvert = function (DATA, CONVERT, PHENOTYPE_MAP, SHARED_RESOURCE) {
                 let tempObj = {};
                 CONVERT.map((c) => {
                     let cType = c.type;
@@ -2049,6 +2073,15 @@ new Vue({
                                 ? PHENOTYPE_MAP[pID].description
                                 : pID;
                             break;
+
+                        case "map name":
+                            console.log("main.js called");
+
+                            let map = (c["map"] == "shared resource") ? SHARED_RESOURCE[c["map name"]] : c["map"];
+
+                            tempObj[c["field name"]] = map[rawValue];
+
+                            break;
                     }
                 });
 
@@ -2059,7 +2092,7 @@ new Vue({
                 let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
                 DATA.map((d) => {
-                    let tempObj = applyConvert(d, CONVERT, phenotypeMap);
+                    let tempObj = applyConvert(d, CONVERT, phenotypeMap, sharedResource);
 
                     // Apply data convert to feature data level
                     let dKeys = Object.keys(tempObj);
@@ -2077,7 +2110,8 @@ new Vue({
                                 let tempFDObj = applyConvert(
                                     fd,
                                     CONVERT,
-                                    phenotypeMap
+                                    phenotypeMap,
+                                    sharedResource
                                 );
                                 tempArr.push(tempFDObj);
                             });

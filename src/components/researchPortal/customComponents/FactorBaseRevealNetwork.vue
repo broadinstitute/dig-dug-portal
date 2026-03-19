@@ -84,6 +84,7 @@ export default {
             zoomMin: 0.2,
             zoomMax: 2,
             zoomStep: 0.05,
+            nodeMap: {},
         };
     },
     computed: {
@@ -100,7 +101,7 @@ export default {
             items.push(
                 { label: "Phenotype", color: NODE_COLORS.Phenotype },
                 { label: "Factor", color: NODE_COLORS.Factor },
-                { label: "Pathway", color: NODE_COLORS.Pathway }
+                { label: "Gene Set", color: NODE_COLORS.Pathway }
             );
             const groupsUsed = new Set();
             (this.genes || []).forEach((g) => {
@@ -109,7 +110,7 @@ export default {
             if (groupsUsed.size > 0) {
                 groupsUsed.forEach((grp) => {
                     items.push({
-                        label: grp,
+                        label: `Gene (${grp})`,
                         color: GENE_GROUP_COLORS[grp] || DEFAULT_GENE_COLOR,
                     });
                 });
@@ -299,20 +300,54 @@ export default {
             });
         },
         buildVisEdges(edges) {
-            return (edges || []).map((e, i) => ({
-                id: `e-${i}-${e.source}-${e.target}`,
-                from: e.source,
-                to: e.target,
-                title: e.predicate || "",
-                width: 1.5,
-                color: { color: "#999", opacity: 0.6 },
-                smooth: { type: "continuous", roundness: 0.5 },
-            }));
+            const typeOrder = {
+                "Gene": 0,
+                "Pathway": 1,
+                "Factor": 2,
+                "Phenotype": 3
+            };
+
+            return (edges || []).map((e, i) => {
+                const sourceNode = this.nodeMap[e.source];
+                const targetNode = this.nodeMap[e.target];
+
+                let from = e.source;
+                let to = e.target;
+
+                if (sourceNode && targetNode) {
+                const sourceRank = typeOrder[sourceNode.type] ?? 0;
+                const targetRank = typeOrder[targetNode.type] ?? 0;
+
+                // enforce left → right flow
+                if (sourceRank > targetRank) {
+                        from = e.target;
+                        to = e.source;
+                    }
+                }
+                return{
+                    id: `e-${i}-${from}-${to}`,
+                    from: from,
+                    to: to,
+                    title: e.predicate || "",
+                    //label: e.predicate || "",
+                    width: 1.5,
+                    color: { color: "#999", opacity: 0.6 },
+                    smooth: { type: "continuous", roundness: 0.5 },
+                    arrows: {
+                        to: { 
+                            enabled: true,
+                            scaleFactor: 0.5,
+                        }
+                    }
+                }
+            });
         },
         render() {
             this.cleanup();
             const container = this.$refs.container;
             if (!container) return;
+
+            console.log('Graph: network', this.network);
 
             const nodes = (this.network.nodes || []).map((n) => ({ ...n }));
             const edges = (this.network.edges || []).map((e) => ({
@@ -322,6 +357,10 @@ export default {
             }));
 
             if (nodes.length === 0) return;
+
+            nodes.forEach(n => {
+                this.nodeMap[n.id] = n;
+            });
 
             const visNodes = this.buildVisNodes(nodes);
             const visEdges = this.buildVisEdges(edges);
@@ -356,6 +395,7 @@ export default {
                         springLength: 120,
                         springConstant: 0.04,
                         damping: 0.3,
+                        avoidOverlap: 0.5
                     },
                 },
                 interaction: {
