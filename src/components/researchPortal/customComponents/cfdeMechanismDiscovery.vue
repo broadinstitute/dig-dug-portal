@@ -1173,7 +1173,6 @@ Return a structured **JSON object** following this schema:
 			const TAB_WRAPPER = 'rp_tabs';
 			const CONTENT_WRAPPER = 'rp_tabs_contents';
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
-            
         },
         setTab(tabId){
 
