@@ -193,7 +193,10 @@ export default {
                     this.getListOptions(EVENT, paramType, this.kpPhenotypes);
                     break;
                 case "cfde phenotypes":
-                    this.getListOptions(EVENT, paramType, this.cfdePhenotypes);
+                        this.getListOptions(EVENT, paramType, this.cfdePhenotypes);
+                        break;
+                case "cfde mouse phenotypes":
+                    this.getListOptions(EVENT, paramType, this.cfdeMousePhenotypes);
                     break;
                 default:
                     this.getListOptions(EVENT, paramType, paramValue);
@@ -247,6 +250,14 @@ export default {
             const cfdePhenotypes = this.utils.cfdeUtils.getCfdePhenotypes();
             Object.keys(cfdePhenotypes).map(key => {
                 phenotypes.push({label: cfdePhenotypes[key], value: key});
+            });
+            return phenotypes;
+        },
+        cfdeMousePhenotypes() {
+            let phenotypes = [];
+            const cfdeMousePhenotypes = this.utils.cfdeUtils.getCfdeMousePhenotypes();
+            Object.keys(cfdeMousePhenotypes).map(key => {
+                phenotypes.push({label: cfdeMousePhenotypes[key], value: key});
             });
             return phenotypes;
         }

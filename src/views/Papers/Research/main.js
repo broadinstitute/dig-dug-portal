@@ -323,6 +323,9 @@ new Vue({
                     if (sharedResource[key] == "cfde phenotypes") {
                         sharedResource[key] = this.utilsBox.cfdeUtils.getCfdePhenotypes();
                     }
+                    if (sharedResource[key] == "cfde mouse phenotypes") {
+                        sharedResource[key] = this.utilsBox.cfdeUtils.getCfdeMousePhenotypes();
+                    }
                 });
             } else {
                 sharedResource = null;
@@ -365,7 +368,18 @@ new Vue({
                             p.values = values;
 
                             newParameters.push(p);
-                        } else {
+                        }
+
+                        else if (p.type == 'list' && p.values == 'cfde phenotypes') {
+                            p.values = this.utilsBox.cfdeUtils.getCfdePhenotypesInList();
+                            newParameters.push(p);
+                        }
+                        else if (p.type == 'list' && p.values == 'cfde mouse phenotypes') {
+                            p.values = this.utilsBox.cfdeUtils.getCfdeMousePhenotypesInList();
+                            newParameters.push(p);
+                        }
+
+                        else {
                             newParameters.push(p);
                         }
                     });
