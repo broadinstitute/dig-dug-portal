@@ -20,6 +20,7 @@ import cfdeDesign from "@/components/researchPortal/customComponents/cfdeDesign.
 import cfdeLanding2 from "@/components/researchPortal/customComponents/cfdeLanding2.vue";
 import cfdeMechanismDiscovery from "@/components/researchPortal/customComponents/cfdeMechanismDiscovery.vue";
 import cfdeExplore from "@/components/researchPortal/customComponents/cfdeExplore.vue";
+import FactorBaseReveal from "@/components/researchPortal/customComponents/FactorBaseReveal.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -29,7 +30,8 @@ export default Vue.component("research-section-components", {
 		cfdeDesign,
 		cfdeLanding2,
 		cfdeMechanismDiscovery,
-		cfdeExplore
+		cfdeExplore,
+		FactorBaseReveal
 	},
 	data() {
 		return {
@@ -64,6 +66,9 @@ console.log('this.component', this.component);
 				break;
 			case 'cfdeExplore':
 				this.currentComponent = cfdeExplore;
+				break;
+			case 'FactorBaseReveal':
+				this.currentComponent = FactorBaseReveal;
 				break;
 		}
 	},
