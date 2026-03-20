@@ -10,10 +10,14 @@
 		</div>
 		<div class="col-md-12">
 			<!-- place info modal here-->
+			<div v-if="!!this.selectedSplice">
+				<strong>{{ this.exonData[0].gene_name }} {{ this.exonData[0].strand }}</strong>
+			</div>
 			<div
 				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
+
 				<canvas :id="`xaxis_${sectionId}`"></canvas>
 				<canvas :class="!exonData ? 'hidden' : ''"
 					:id="'spliceTrack'+sectionId"
