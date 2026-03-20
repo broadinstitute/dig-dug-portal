@@ -86,7 +86,7 @@ export default Vue.component("research-splice-track", {
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
-				top: customPlotMargin.top * 2,
+				top: customPlotMargin.top * 3,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
 			} :
@@ -293,7 +293,7 @@ export default Vue.component("research-splice-track", {
 						spliceStart: spliceStart,
 						spliceEnd: spliceEnd
 					});
-					let yPos = this.adjPlotMargin.top / 2;
+					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
 					let hover = this.highlightTent(splice);
 					ctx.fillStyle = highlight ? this.colors.green
@@ -305,10 +305,10 @@ export default Vue.component("research-splice-track", {
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
 					ctx.strokeStyle = "1px solid black";
-					ctx.moveTo(spliceStart, yPos + 20);
+					ctx.moveTo(spliceStart, yPos * 2);
 					ctx.lineTo(spliceMidpoint, yPos);
 					ctx.stroke();
-					ctx.lineTo(spliceEnd, yPos + 20);
+					ctx.lineTo(spliceEnd, yPos * 2);
 					ctx.stroke();
 					ctx.moveTo(spliceMidpoint, yPos);
 					ctx.beginPath();
