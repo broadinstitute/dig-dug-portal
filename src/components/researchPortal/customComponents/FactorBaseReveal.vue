@@ -1900,6 +1900,7 @@ Return ONLY a JSON object:
                 const phenotypeIdsToLoad = [];
                 let firstMatched = null;
                 //loop through each phenotype search term
+                let idx = 0;
                 for (let t = 0; t < phenotypeTerms.length; t++) {
                     const searchTerm = phenotypeTerms[t];
                     this.setLoadStatus(`Searching for similar phenotypes (${t + 1}/${phenotypeTerms.length}: ${searchTerm})…`);
@@ -1907,8 +1908,8 @@ Return ONLY a JSON object:
                     this.setStep({
                         id: "2",
                         substep: {
-                            id: "2.1",
-                            title: `${t + 1}/${phenotypeTerms.length}: ${searchTerm}`
+                            id: `2.1.${idx}`,
+                            title: `${searchTerm}`
                         }
                     })
                     
@@ -1920,7 +1921,7 @@ Return ONLY a JSON object:
                     this.setStep({
                         id: "2",
                         substep: {
-                            id: "2.1",
+                            id: `2.1.${idx}`,
                             result: {
                                 title: `Retrieved phenotypes with semantic similatiry to "${searchTerm}"`,
                                 result: list
@@ -1934,15 +1935,15 @@ Return ONLY a JSON object:
                     //get factors for phenotype, lock in phenotype with hihest similarity score if it has factors
                     let chosen = null;
                     //this.setLoadStep("API: Searching for similar phenotypes", `Selecting phenotype with highest similarity score that has factors`);
-                    let idx = 0;
+                    this.setStep({
+                        id: "2",
+                        substep: {
+                            id: `2.2.${idx}`,
+                            title: `Selecting phenotype with highest similarity score for ${searchTerm}`
+                        }
+                    })
                     for (const item of list) {
-                        this.setStep({
-                            id: "2",
-                            substep: {
-                                id: `2.2.${idx}`,
-                                title: `Selecting phenotype with highest similarity score for ${searchTerm}`
-                            }
-                        })
+                        
                         const phenotypeId = item.phenotype;
                         console.log("FactorBaseReveal: Trying phenotype:", phenotypeId);
                         try {
@@ -1952,32 +1953,32 @@ Return ONLY a JSON object:
                             if (data.length > 0) {
                                 chosen = item;
                                 console.log("FactorBaseReveal: Using phenotype with factor data", "phenotype:", phenotypeId);
-                                this.setStep({
-                                    id: "2",
-                                    substep: {
-                                        id: `2.2.${idx}`,
-                                        result: {
-                                            title: `Selected phenotype with highest similarity score for ${searchTerm}`,
-                                            result: phenotypeId
-                                        }
-                                    }
-                                })
                                 break;
                             }
                         } catch (err) {
                             console.warn("FactorBaseReveal: Factor API failed for phenotype", phenotypeId, err);
                         }
-                        idx++;
                     }
                     if (chosen && chosen.phenotype != null) {
                         if (!phenotypeIdsToLoad.includes(chosen.phenotype)) {
                             phenotypeIdsToLoad.push(chosen.phenotype);
                         }
+                        this.setStep({
+                            id: "2",
+                            substep: {
+                                id: `2.2.${idx}`,
+                                result: {
+                                    title: `Selected phenotype with highest similarity score for ${searchTerm}`,
+                                    result: chosen.phenotype
+                                }
+                            }
+                        })
                         this.$set(this.phenotypeDescriptionById, chosen.phenotype, (chosen.phenotype_name != null && chosen.phenotype_name !== "") ? chosen.phenotype_name : chosen.phenotype);
                         if (!firstMatched) firstMatched = chosen;
                     } else {
                         console.warn("FactorBaseReveal: No phenotype with factor data for term:", searchTerm, list.map((i) => ({ phenotype: i.phenotype })));
                     }
+                    idx++;
                 }
                 if (!phenotypeIdsToLoad.length) {
                     this.setLoadStatus("No phenotype with factor data found for any term.", true);
@@ -1991,8 +1992,8 @@ Return ONLY a JSON object:
                     id: "2",
                     substep: {
                         id: `2.3`,
+                        title: "Phenotypes selected for further analysis.",
                         result: {
-                            title: `Phenotypes selected for further analysis.`,
                             result: phenotypeIdsToLoad
                         }
                     }
@@ -2035,7 +2036,7 @@ Return ONLY a JSON object:
                 this.mechanisms = null;
                 this.phenotypeDescriptionById = {};
 
-                const searchTerm = mechanismTerms.join(" ");
+                const searchTerm = [...mechanismTerms, ...this.lastPhenotypeTerms].join(" ");
                 const raw = await this.querySearchApi("phenotypeFactors", { searchTerm });
                 const rawList = Array.isArray(raw) ? raw : (raw && (raw.data || raw.results)) ? (raw.data || raw.results) : [];
                 const maxAssociationsToHydrate = 30;
