@@ -301,10 +301,16 @@ export default Vue.component("research-splice-track", {
 						: this.colors.gray;
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
+					ctx.strokeStyle = "1px solid black";
 					ctx.moveTo(spliceStart, yPos + 20);
-					ctx.lineTo(spliceEnd, yPos + 20);
 					ctx.lineTo(spliceMidpoint, yPos);
-					ctx.fill();
+					ctx.stroke();
+					ctx.lineTo(spliceEnd, yPos + 20);
+					ctx.stroke();
+					ctx.moveTo(spliceMidpoint, yPos);
+					//ctx.strokeStyle = "1px solid red";
+					//ctx.arc(spliceMidpoint, yPos, Math.PI * 2, true);
+					//ctx.stroke();
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
