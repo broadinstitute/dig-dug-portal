@@ -33,6 +33,7 @@
     "tabix-reader": "^1.0.1",
     "trapi-client": "^0.0.3",
     "url-parse": "^1.5.10",
+    "vis-data": "^8.0.3",
     "vis-network": "9.1.9",
     "vis-util": "^5.0.7",
     "vue": "^2.7.16",

@@ -2542,7 +2542,20 @@ Return ONLY a JSON object:
 
             await this.filterFactorsByContext(phenotypes);
 
-            await this.loadGenesForFactorData(phenotypes);
+            const filteredPhenotypes = phenotypes.filter(
+                (p) => (this.factorData[p] && this.factorData[p].factors || []).length > 0
+            );
+            if (filteredPhenotypes.length === 0) {
+                this.setLoadStatus("No factors selected after filtering.", true);
+                this.setStep({
+                    type: "error",
+                    title: "No factors selected after filtering."
+                });
+                this.loadComplete = true;
+                return;
+            }
+
+            await this.loadGenesForFactorData(filteredPhenotypes);
         },
         /**
          * Step 2: Filter factors by research context using factorFilteringPrompt.
@@ -2621,13 +2634,16 @@ Return ONLY a JSON object:
                             if (rationaleByPhenotype[phenotype] != null) {
                                 this.$set(this.factorData[phenotype], "filterRationale", rationaleByPhenotype[phenotype]);
                             }
-                            if (allowed && allowed.size > 0) {
-                                this.factorData[phenotype].factors = factors.filter((f) => {
-                                    const idStr = String(f.factor);
-                                    const labelStr = f.label != null ? String(f.label).trim() : "";
-                                    return allowed.has(idStr) || allowed.has(labelStr) || allowed.has(Number(f.factor));
-                                });
+                            // Strict filtering: when LLM does not select a phenotype, exclude all its factors.
+                            if (!allowed || allowed.size === 0) {
+                                this.factorData[phenotype].factors = [];
+                                return;
                             }
+                            this.factorData[phenotype].factors = factors.filter((f) => {
+                                const idStr = String(f.factor);
+                                const labelStr = f.label != null ? String(f.label).trim() : "";
+                                return allowed.has(idStr) || allowed.has(labelStr) || allowed.has(Number(f.factor));
+                            });
                         });
                         console.log("FactorBaseReveal: filtered factors by context (per phenotype)", allowedByPhenotype);
                         resolve();
