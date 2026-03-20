@@ -308,9 +308,9 @@ export default Vue.component("research-splice-track", {
 					ctx.lineTo(spliceEnd, yPos + 20);
 					ctx.stroke();
 					ctx.moveTo(spliceMidpoint, yPos);
-					//ctx.strokeStyle = "1px solid red";
-					//ctx.arc(spliceMidpoint, yPos, Math.PI * 2, true);
-					//ctx.stroke();
+					ctx.beginPath();
+					ctx.arc(spliceMidpoint, yPos, 5, 0, Math.PI * 2, true);
+					ctx.stroke();
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
