@@ -4,19 +4,22 @@ import store from "./store.js";
 
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
-// import GeneFinderTable from "@/components/GeneFinderTable.vue"; // Commented out - gene-level associations section is muted
+import GeneFinderTable from "@/components/GeneFinderTable.vue"; // Commented out - gene-level associations section is muted
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
-// import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue"; // Commented out - gene-level associations section is muted
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue"; // Commented out - gene-level associations section is muted
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import RawImage from "@/components/RawImage.vue";
 import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
 import PigeanPhenotype from "@/components/PigeanPhenotype.vue";
 import PigeanFactor from "@/components/PigeanFactors.vue";
+
+import GeneSet2Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";
+import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -42,7 +45,7 @@ new Vue({
     store,
     components: {
         AncestrySelectPicker,
-        // GeneFinderTable, // Commented out - gene-level associations section is muted
+        GeneFinderTable, // Commented out - gene-level associations section is muted
         AssociationsTable,
         EnrichmentTable,
         DatasetsTable,
@@ -59,19 +62,21 @@ new Vue({
         FilterEffectDirection,
         SearchHeaderWrapper,
         ResearchMPlot,
-        // PhenotypeHugeScores, // Commented out - gene-level associations section is muted
+        PhenotypeHugeScores, // Commented out - gene-level associations section is muted
         C2ctTable,
         ResearchSingleSearch,
         MetaAnalysisBarGraph,
         PigeanPhenotype,
         PigeanFactor,
+        // CFDE features
+        GeneSet2Phenotype,
     },
     mixins: [pageMixin],
     data() {
         return {
             phenotypeSearchKey: null,
             newPhenotypeSearchKey: null,
-            // hidePValueFilter: true, // Commented out - gene-level associations section is muted
+            hidePValueFilter: true,
             annotation: "",
         };
     },
@@ -229,27 +234,27 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         // Commented out - gene-level associations section is muted
-        // hidePValueFilter(hide) {
-        //     let pValuePills = document.querySelectorAll(
-        //         ".geneLevelAssoc .filter-pill-pValue"
-        //     );
-        //     let genePills = document.querySelectorAll(
-        //         ".geneLevelAssoc .filter-pill-gene"
-        //     );
-        //     let allFilterPills = document.querySelectorAll(
-        //         ".geneLevelAssoc .filter-pill-collection"
-        //     );
-        //     if (hide) {
-        //         if (pValuePills.length > 0 && genePills.length > 0) {
-        //             pValuePills.forEach((e) => (e.hidden = true));
-        //         } else if (pValuePills.length > 0 && genePills.length === 0) {
-        //             allFilterPills.forEach((e) => (e.hidden = true));
-        //         }
-        //     } else {
-        //         allFilterPills.forEach((e) => (e.hidden = false));
-        //         pValuePills.forEach((e) => (e.hidden = false));
-        //     }
-        // },
+        hidePValueFilter(hide) {
+            let pValuePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-pValue"
+            );
+            let genePills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-gene"
+            );
+            let allFilterPills = document.querySelectorAll(
+                ".geneLevelAssoc .filter-pill-collection"
+            );
+            if (hide) {
+                if (pValuePills.length > 0 && genePills.length > 0) {
+                    pValuePills.forEach((e) => (e.hidden = true));
+                } else if (pValuePills.length > 0 && genePills.length === 0) {
+                    allFilterPills.forEach((e) => (e.hidden = true));
+                }
+            } else {
+                allFilterPills.forEach((e) => (e.hidden = false));
+                pValuePills.forEach((e) => (e.hidden = false));
+            }
+        },
     },
 
     created() {
@@ -291,9 +296,9 @@ new Vue({
             return isInPhenotype == searchKeys.length ? true : null;
         },
         // Commented out - gene-level associations section is muted
-        // clickedTab(tabLabel) {
-        //     this.hidePValueFilter = tabLabel === "hugescore";
-        // },
+        clickedTab(tabLabel) {
+            this.hidePValueFilter = tabLabel === "hugescore";
+        },
         onAnnotationSelected() {
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");

@@ -53,14 +53,15 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
-import { Network, DataSet } from "vis-network";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 
 export default Vue.component("FactorizationNetworkGraph", {
     props: {
         factorGraphData: {
             type: Object,
             required: true,
-            default: () => ({nodes: [], edges:[]})
+            default: () => ({ nodes: [], edges: [] }),
         },
         isEmbed: {
             type: Boolean,
@@ -102,7 +103,7 @@ export default Vue.component("FactorizationNetworkGraph", {
         factorGraphData: {
             // Can we get away with this, or too computationally expensive?
             handler(newVal, oldVal) {
-                if (newVal !== oldVal){
+                if (newVal !== oldVal) {
                     //this.setupGraphData(newVal);
                     this.refreshGraph(newVal);
                 }
@@ -138,7 +139,7 @@ export default Vue.component("FactorizationNetworkGraph", {
             if (newVal.nodes.length === 0 || newVal.edges.length === 0) {
                 this.error = "No data available";
                 return; // Early return to prevent rerender
-            }    
+            }
 
             // Track seen IDs and filter duplicates
             const seenIds = new Set();
@@ -261,7 +262,8 @@ export default Vue.component("FactorizationNetworkGraph", {
                 return;
             }
 
-            const { uniqueNodes, validEdges } = this.processGraphData(graphData);
+            const { uniqueNodes, validEdges } =
+                this.processGraphData(graphData);
 
             await this.nodes.add(uniqueNodes);
             await this.nodes.flush();

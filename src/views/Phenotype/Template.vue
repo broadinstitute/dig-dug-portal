@@ -105,6 +105,13 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="label">Download bottom-line data:</span>
+                                <a v-if="$store.state.ancestry == '' || !$store.state.ancestry" :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/Mixed/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
+                                <a v-else :href="'https://dig-open-bottom-line-analysis.s3.amazonaws.com/bottom-line/' + $store.state.ancestry + '/' + $store.state.phenotype.name + '.sumstats.tsv.gz'" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="color: white !important; margin-left: 10px;">Download</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -335,12 +342,13 @@
                         </criterion-function-group>
                     </div>
                 </div>
+                <!-- 
                 <pigean-factors
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     :pigeanFactorData="$store.state.pigeanFactor.data"
                 >
-
                 </pigean-factors>
+            
 
                 <pigean-phenotype
                     :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -348,7 +356,9 @@
                 >
 
                 </pigean-phenotype>
-<!--
+
+                -->
+
           <div class="card mdkp-card">
                     <div class="card-body geneLevelAssoc">
                         <h4 class="card-title">
@@ -456,8 +466,8 @@
                             </template>
                         </criterion-function-group>
                     </div>
-                </div>      TODO: Add gene-level associations table
--->
+                </div>
+
                 
 
                 <div class="card mdkp-card">
@@ -486,6 +496,35 @@
                             :pathway-data="$store.state.pathwayAssoc.data"
                         >
                         </pathway-table>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <kc-cfde-logo></kc-cfde-logo>
+                        <h4 class="card-title">
+                            Most significant <a href="https://cfdeknowledge.org" style="color: #ff6600;">CFDE</a> gene sets connected to 
+                            {{ $store.state.phenotype.description }}
+                            &nbsp;<tooltip-documentation
+                                name="phenotype.geneset2phenotype.tooltip"
+                                :content-fill="$parent.docDetails"
+                                :is-hover="true"
+                                :no-icon="false"
+                                :content-map="
+                                    $store.state.bioPortal.documentations
+                                "
+                            ></tooltip-documentation>
+                        </h4>
+                        <!--<documentation
+                            name="phenotype.geneset2phenotype.subheader"
+                            :content-map="$store.state.bioPortal.documentations"
+                        ></documentation>-->
+                        <div class="temporary-documentation">Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse</div>
+
+                        <gene-set-2-phenotype
+                            :phenotype="$store.state.phenotype"
+                        >
+                        </gene-set-2-phenotype>
                     </div>
                 </div>
 
@@ -712,4 +751,9 @@ div.card
     >>> span.badge.badge-secondary.badge-pill.btn.filter-pill-totalEntropy {
     background-color: #14a433;
 }
+
+.temporary-documentation {
+    margin-bottom: 25px;
+}
+
 </style>
