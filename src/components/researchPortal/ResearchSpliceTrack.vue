@@ -60,8 +60,13 @@ export default Vue.component("research-splice-track", {
 				green: "#00FF00",
 				gray: "#DDDDDD99",
 				charcoal: "#333333",
-				purple: "#AA4499"
-			}
+				purple: "#AA4499",
+				blue: "#2F67B1", // colorblind safe blue from UCSB
+				red: "#BF2C23", // colorblind safe red from UCSB,
+				magenta: "#9F4A96", // Paul Tol's Muted colorblind safe palette
+				teal: "#5DA899", // Paul Tol's Muted colorblind safe palette
+			},
+			dotRadius: 6,
 		};
 	},
 	modules: {
@@ -262,8 +267,8 @@ export default Vue.component("research-splice-track", {
 
 						let highlight = this.highlightExon(gene);
 						let hover = geneCounter === this.hoverExon;
-						ctx.fillStyle = highlight ? this.colors.green
-							: hover ? this.colors.purple
+						ctx.fillStyle = highlight ? this.colors.teal
+							: hover ? this.colors.magenta
 							: this.colors.charcoal;
 
 						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
@@ -299,12 +304,10 @@ export default Vue.component("research-splice-track", {
 					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
 					let hover = this.highlightTent(splice);
-					ctx.fillStyle = highlight ? this.colors.green
-						: hover ? this.colors.purple
+					ctx.fillStyle = highlight ? this.colors.teal
+						: hover ? this.colors.magenta
 						: "black";
-					ctx.strokeStyle = highlight ? this.colors.green
-						: hover ? this.colors.purple
-						: "black";
+					ctx.strokeStyle = ctx.fillStyle;
 					ctx.lineWidth = 2;
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
@@ -315,12 +318,11 @@ export default Vue.component("research-splice-track", {
 					ctx.stroke();
 					ctx.moveTo(spliceMidpoint, yPos);
 					ctx.beginPath();
-					ctx.arc(spliceMidpoint, yPos, 5, 0, Math.PI * 2, true);
+					ctx.arc(spliceMidpoint, yPos, this.dotRadius, 0, Math.PI * 2, true);
 					ctx.fill();
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
-			let plotBottom = canvasRenderHeight - this.adjPlotMargin.top - 5;
 			this.renderAxis(canvasRenderWidth, xMax, xMin);
 			console.log("X max:", xMax, "X min:", xMin);
 			
@@ -453,14 +455,12 @@ export default Vue.component("research-splice-track", {
 		getTent(xPos, yPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				let radius = 5;
 				let dotHeight = this.adjPlotMargin.top / 3;
 				let xDist = t.spliceMidpoint - xPos;
 				let yDist = dotHeight - yPos;
-				if (Math.abs(xDist) <= radius && Math.abs(yDist) <= radius){
+				if (Math.abs(xDist) <= this.dotRadius && Math.abs(yDist) <= this.dotRadius){
 					return i;
 				}
-				//if (xPos >= t.spliceStart && xPos <= t.spliceEnd){ return i; }
 			}
 			return -1;
 		},
