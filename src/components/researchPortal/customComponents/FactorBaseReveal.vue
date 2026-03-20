@@ -2558,6 +2558,63 @@ Return ONLY a JSON object:
             await this.loadGenesForFactorData(filteredPhenotypes);
         },
         /**
+         * Normalize strings for loose matching (case, whitespace).
+         */
+        collapseWsLower(s) {
+            return String(s || "")
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, " ");
+        },
+        /**
+         * Map LLM-returned phenotype string to factorData key (API id vs. display / paraphrase).
+         */
+        resolveLlmPhenotypeToFactorDataKey(llmPhenotype, dataKeys) {
+            const s = String(llmPhenotype || "").trim();
+            if (!s) return null;
+            if (dataKeys.includes(s)) return s;
+            const lower = s.toLowerCase();
+            let k = dataKeys.find((x) => String(x).toLowerCase() === lower);
+            if (k) return k;
+            k = dataKeys.find((x) => {
+                const disp = this.phenotypeDescriptionById[x];
+                return disp && String(disp).trim().toLowerCase() === lower;
+            });
+            if (k) return k;
+            k = dataKeys.find(
+                (x) =>
+                    String(x).toLowerCase().includes(lower) ||
+                    lower.includes(String(x).toLowerCase())
+            );
+            return k || null;
+        },
+        /**
+         * True if factor id/label matches any LLM-selected factor string (exact, case-insensitive, normalized, long-substring).
+         */
+        factorMatchesLlmAllowedSet(f, allowedRawSet) {
+            if (!allowedRawSet || allowedRawSet.size === 0) return false;
+            const idStr = String(f.factor);
+            const labelStr = f.label != null ? String(f.label).trim() : "";
+            const numId = Number(f.factor);
+            const factorQueryVal = this.getFactorQueryValue(f.factor);
+            for (const a of allowedRawSet) {
+                const raw = String(a).trim();
+                if (!raw) continue;
+                if (idStr === raw || labelStr === raw) return true;
+                if (factorQueryVal && (factorQueryVal === raw || factorQueryVal.toLowerCase() === raw.toLowerCase())) {
+                    return true;
+                }
+                if (!isNaN(numId) && String(numId) === raw) return true;
+                if (String(idStr).toLowerCase() === raw.toLowerCase()) return true;
+                if (labelStr && labelStr.toLowerCase() === raw.toLowerCase()) return true;
+                const na = this.collapseWsLower(raw);
+                const nl = this.collapseWsLower(labelStr);
+                if (na && nl && na === nl) return true;
+                if (na.length >= 12 && nl.length >= 12 && (na.includes(nl) || nl.includes(na))) return true;
+            }
+            return false;
+        },
+        /**
          * Step 2: Filter factors by research context using factorFilteringPrompt.
          * Calls llmFilter with context + factor-phenotype list; keeps only factors whose ID is in the returned list.
          */
@@ -2584,7 +2641,7 @@ Return ONLY a JSON object:
             console.log('phenotypes', phenotypes)
             console.log('associations', associations)
 
-            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge how relevant each association is to the research context. Filter to only associations relevant to the research context. Sort the selected associations by relevance (most relevant first). Within each phenotype, order the \"relevant_factors\" array by relevance (most relevant factor first). Return ONLY a JSON object with a \"selected_associations\" array: each element has \"phenotype\", \"relevant_factors\" (array of factor labels or factor_id values to keep, ordered by relevance), and \"rationale\" (brief reason why these factors were chosen). Use only factors from the input.`;
+            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge how relevant each association is to the research context. Filter to only associations relevant to the research context. Sort the selected associations by relevance (most relevant first). Within each phenotype, order the \"relevant_factors\" array by relevance (most relevant factor first). Return ONLY a JSON object with a \"selected_associations\" array: each element has \"phenotype\", \"relevant_factors\" (array of factor labels or factor_id values to keep, ordered by relevance), and \"rationale\" (brief reason why these factors were chosen). Use only factors from the input.\n\n**CRITICAL:** For each object, the \"phenotype\" string MUST be copied exactly from the \"phenotype\" field in the associations JSON above (same spelling and casing). For \"relevant_factors\", copy factor labels or factor_id values exactly from the input.`;
 
             return new Promise((resolve, reject) => {
                 this.llmFilter.sendPrompt({
@@ -2597,19 +2654,28 @@ Return ONLY a JSON object:
                         const rationaleByPhenotype = {};
                         const selected = json && Array.isArray(json.selected_associations) ? json.selected_associations : [];
                         selected.forEach((item) => {
-                            const phenotype = item.phenotype != null ? String(item.phenotype).trim() : "";
-                            if (!phenotype) return;
+                            const llmPhenotype = item.phenotype != null ? String(item.phenotype).trim() : "";
+                            if (!llmPhenotype) return;
+                            const dataKey = this.resolveLlmPhenotypeToFactorDataKey(llmPhenotype, phenotypes);
+                            if (!dataKey) {
+                                console.warn(
+                                    "FactorBaseReveal: LLM phenotype did not match any factorData key; skipping row.",
+                                    llmPhenotype,
+                                    phenotypes
+                                );
+                                return;
+                            }
                             const set = new Set();
                             const arr = item.relevant_factors;
                             if (Array.isArray(arr)) {
                                 arr.forEach((v) => set.add(String(v).trim()));
                             }
                             if (item.rationale != null && String(item.rationale).trim() !== "") {
-                                rationaleByPhenotype[phenotype] = String(item.rationale).trim();
+                                rationaleByPhenotype[dataKey] = String(item.rationale).trim();
                             }
                             if (set.size > 0) {
-                                if (!allowedByPhenotype[phenotype]) allowedByPhenotype[phenotype] = new Set();
-                                set.forEach((v) => allowedByPhenotype[phenotype].add(v));
+                                if (!allowedByPhenotype[dataKey]) allowedByPhenotype[dataKey] = new Set();
+                                set.forEach((v) => allowedByPhenotype[dataKey].add(v));
                             }
                         });
                         if (Object.values(allowedByPhenotype).every((s) => !s || s.size === 0)) {
@@ -2639,11 +2705,9 @@ Return ONLY a JSON object:
                                 this.factorData[phenotype].factors = [];
                                 return;
                             }
-                            this.factorData[phenotype].factors = factors.filter((f) => {
-                                const idStr = String(f.factor);
-                                const labelStr = f.label != null ? String(f.label).trim() : "";
-                                return allowed.has(idStr) || allowed.has(labelStr) || allowed.has(Number(f.factor));
-                            });
+                            this.factorData[phenotype].factors = factors.filter((f) =>
+                                this.factorMatchesLlmAllowedSet(f, allowed)
+                            );
                         });
                         console.log("FactorBaseReveal: filtered factors by context (per phenotype)", allowedByPhenotype);
                         resolve();
