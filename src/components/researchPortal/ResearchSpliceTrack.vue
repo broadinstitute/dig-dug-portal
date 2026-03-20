@@ -298,7 +298,10 @@ export default Vue.component("research-splice-track", {
 					let hover = this.highlightTent(splice);
 					ctx.fillStyle = highlight ? this.colors.green
 						: hover ? this.colors.purple
-						: this.colors.gray;
+						: "black";
+					ctx.strokeStyle = highlight ? this.colors.green
+						: hover ? this.colors.purple
+						: "black";
 					// Draw the tents as triangles of height 20
 					ctx.beginPath();
 					ctx.strokeStyle = "1px solid black";
@@ -311,6 +314,7 @@ export default Vue.component("research-splice-track", {
 					ctx.beginPath();
 					ctx.arc(spliceMidpoint, yPos, 5, 0, Math.PI * 2, true);
 					ctx.stroke();
+					ctx.fill();
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
