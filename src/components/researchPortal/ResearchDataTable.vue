@@ -273,7 +273,7 @@
 											</button>
 										</span>
 								</span>
-								<span v-else-if="tdKey === 'View Splice Track'">
+								<span v-else-if="tdKey === 'View gene splicing model'">
 									<button
 										@click="selectSplice(tdValue)">
 										View
