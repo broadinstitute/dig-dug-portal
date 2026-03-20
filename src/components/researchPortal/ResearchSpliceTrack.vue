@@ -2,8 +2,9 @@
 	<div class="mbm-plot-content row">
 		<div v-if="!!this.selectedSplice">
 			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
-			<p>Rectangles represent exons. Hover to highlight splices overlapping the exon.</p>
-			<p>Dot-and-line diagrams represent splices. Hover over the dot to highlight exons overlapping the splice.</p>
+			<p>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</p>
+			<p>Dot-and-line diagrams represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</p>
+			<p>The splicing event indicated by an arrow corresponds to the selected row from the table.</p>
 		</div>
 		<div v-else>
 			Select a splice track to view from the table below.
@@ -69,8 +70,11 @@ export default Vue.component("research-splice-track", {
 				red: "#BF2C23", // colorblind safe red from UCSB,
 				magenta: "#9F4A96", // Paul Tol's Muted colorblind safe palette
 				teal: "#5DA899", // Paul Tol's Muted colorblind safe palette
+				gold: "#DCCD7D" // Paul Tol's Muted colorblind safe palette
 			},
 			dotRadius: 6,
+			selectedSpliceStart: null,
+			selectedSpliceEnd: null
 		};
 	},
 	modules: {
@@ -141,10 +145,15 @@ export default Vue.component("research-splice-track", {
 			immediate: true,
 		},
 		async selectedSplice(newData){
+			console.log(newData);
 			let spliceParams = newData.split("___");
 			let gene = spliceParams[0];
 			let ensembl = spliceParams[1];
 			let tissue = spliceParams[2];
+			let start = spliceParams[3];
+			let end = spliceParams[4];
+			this.selectedSpliceStart = parseInt(start);
+			this.selectedSpliceEnd = parseInt(end);
 			this.gene = await(this.getGene(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
@@ -307,9 +316,15 @@ export default Vue.component("research-splice-track", {
 					});
 					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
+					let isSelected = splice.splice_start === this.selectedSpliceStart
+						&& splice.splice_end === this.selectedSpliceEnd;
+					if (isSelected){
+						console.log("Found it");
+					}
 					let hover = this.highlightTent(splice);
 					ctx.fillStyle = highlight ? this.colors.teal
 						: hover ? this.colors.magenta
+						: isSelected ? this.colors.gold
 						: "black";
 					ctx.strokeStyle = ctx.fillStyle;
 					ctx.lineWidth = 2;
@@ -324,6 +339,19 @@ export default Vue.component("research-splice-track", {
 					ctx.beginPath();
 					ctx.arc(spliceMidpoint, yPos, this.dotRadius, 0, Math.PI * 2, true);
 					ctx.fill();
+					if(isSelected){
+						// Draw an arrow
+						ctx.strokeStyle = "black";
+						ctx.fillStyle = "black";
+						let arrowPoint = yPos - (this.dotRadius * 2);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint, arrowPoint - 27);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint - 6, arrowPoint - 9);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint + 6, arrowPoint - 9);
+						ctx.stroke();
+					}
 				}
 				this.spliceVisualMap = spliceVisualMap;
 			}
