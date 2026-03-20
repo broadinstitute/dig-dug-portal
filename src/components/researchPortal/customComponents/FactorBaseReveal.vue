@@ -945,7 +945,7 @@ Your task: (1) Filter to only associations that are mechanistically relevant to 
 - No preamble, no markdown blocks, no explanation.`,
 
 mechanismSystemPrompt: `You are an expert in bioinformatics. You will be given a pre-filtered Knowledge Graph (KG) provided as a flat list of triples, where each row has a unique 'id'.
-Task: Synthesize 2 mechanistic hypotheses linking the phenotypes in the research context. 
+Task: Synthesize mechanistic hypotheses linking the phenotypes in the research context. 
 
 ---
 ## Discovery Logic
