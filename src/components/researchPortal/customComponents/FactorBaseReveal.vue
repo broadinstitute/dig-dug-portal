@@ -218,7 +218,7 @@
                         </div>
 
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
-                            <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} factor{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
+                            <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
                                 <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
@@ -2610,11 +2610,7 @@ Return ONLY a JSON object:
                                 id: "5.1",
                                 title: "Selected factors for further analysis.",
                                 result: {
-                                    title: selected[0].rationale,
-                                    result: {
-                                        phenotype: selected[0].phenotype,
-                                        relevant_factors: selected[0].relevant_factors
-                                    }
+                                    result: selected
                                 }
                             }
                         })
