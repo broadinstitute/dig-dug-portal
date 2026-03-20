@@ -253,9 +253,9 @@
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
                                                     <th style="width: auto;">Phenotype</th>
-                                                    <th style="width: auto;">Factor</th>
+                                                    <th style="width: auto;">Gene set cluster</th>
                                                     <!--<th style="width: auto;">Top gene sets</th>-->
-                                                    <th style="width: 230px;">Genes and gene sets in factor</th>
+                                                    <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                 </tr>
                                             </thead>
                                             <tbody v-for="row in factorDataTableRowsWithRationaleMeta" :key="getRowKey(row)">
@@ -291,7 +291,7 @@
                                                     <td colspan="5" class="p-0 border-0">
                                                         <div class="bg-light" style="display:flex; gap: 20px;">
                                                             <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                                <div class="small text-muted mb-2">Gene Sets in factor (top 5)</div>
+                                                                <div class="small text-muted mb-2">Gene Sets in cluster (top 5)</div>
                                                                 <!--
                                                                 <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
                                                                     <span>{{ gs.geneset }}</span>
@@ -370,7 +370,7 @@
                                                                     :items="getGenesForFactor(row.phenotype, row.factor)"
                                                                     :fields="[
                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                        { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
+                                                                        { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                         { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                         { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -398,10 +398,10 @@
                                             :fields="[
                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'factorLabel', label: 'Factor', thStyle: { width: '180px' } },
+                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
                                                 //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
-                                                { key: 'view_genes', label: 'Genes and gene sets in factor', thStyle: { width: '140px' } }
+                                                { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
                                             ]"
                                             small
                                             striped
@@ -434,7 +434,7 @@
                                             <template #row-details="row">
                                                 <div class="bg-light" style="display:flex; gap: 20px;">
                                                     <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                        <div class="small text-muted mb-2">Gene Sets in factor (top 5)</div>
+                                                        <div class="small text-muted mb-2">Gene Sets in cluster (top 5)</div>
                                                         <!--
                                                         <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
                                                             <span>{{ gs.geneset }}</span>
@@ -511,7 +511,7 @@
                                                             :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
                                                             :fields="[
                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                { key: 'factorRelevance', label: 'Relevant to factor', thStyle: { width: '120px' } },
+                                                                { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                 { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                 { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -661,7 +661,7 @@
                                                             </div>
                                                         </div>
                                                         <div v-if="(mechanism.relevant_factors && mechanism.relevant_factors.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant factors</div>
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene set clusters</div>
                                                             <div style="display:flex; flex-direction: column; gap:3px">
                                                                 <div v-for="factor in mechanism.relevant_factors" class="small pill" 
                                                                     :style="`background:${NODE_COLORS.Factor}; color:white`">
@@ -2026,7 +2026,7 @@ Return ONLY a JSON object:
                 this.setLoadStatus("Fetching phenotype–factor associations…");
                 this.setStep({
                     id: "2",
-                    title: "API: Searching for phenotype–factor associations"
+                    title: "API: Searching for phenotype–gene set cluster associations"
                 })
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
@@ -2372,7 +2372,7 @@ Return ONLY a JSON object:
             //this.setLoadStep("API: Getting gene loadings for factors")
             this.setStep({
                 id: "7",
-                title: "API: Getting gene loadings for factors"
+                title: "API: Getting gene loadings for gene set clusters"
             })
             idx = 0;
             for (const phenotype of list) {
@@ -2458,7 +2458,7 @@ Return ONLY a JSON object:
             //this.setLoadStep("API: Loading factors")
             this.setStep({
                 id: "3",
-                title: "API: Loading factors"
+                title: "API: Loading gene set clusters"
             })
             let idx = 0;
             for (const phenotype of phenotypes) {
@@ -2496,7 +2496,7 @@ Return ONLY a JSON object:
             //this.setLoadStep("API: Fetching gene sets for factors");
             this.setStep({
                 id: "4",
-                title: "API: Fetching gene sets for factors"
+                title: "API: Fetching gene sets for gene set clusters"
             })
             idx = 0;
             for (const phenotype of phenotypes) {
@@ -2537,7 +2537,7 @@ Return ONLY a JSON object:
             //this.setLoadStep("LLM: Filtering factors by relevance to user query");
             this.setStep({
                 id: "5",
-                title: "LLM: Filtering factors by relevance to user query"
+                title: "LLM: Filtering gene set clusters by relevance to user query"
             })
 
             await this.filterFactorsByContext(phenotypes);

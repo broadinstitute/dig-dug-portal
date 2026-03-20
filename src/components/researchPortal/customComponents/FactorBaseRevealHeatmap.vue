@@ -36,7 +36,7 @@
           </span>
         </div>
         <div class="legend-item">
-          <span class="legend-label">Factor relevance:</span>
+          <span class="legend-label">Gene set cluster relevance:</span>
           <span class="legend-color factor-relevance"></span>
           <span class="legend-text">Darker = more relevant</span>
         </div>

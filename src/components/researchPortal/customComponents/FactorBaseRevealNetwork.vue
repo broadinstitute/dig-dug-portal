@@ -101,7 +101,7 @@ export default {
             const items = [];
             items.push(
                 { label: "Phenotype", color: NODE_COLORS.Phenotype },
-                { label: "Factor", color: NODE_COLORS.Factor },
+                { label: "Gene Set Cluster", color: NODE_COLORS.Factor },
                 { label: "Gene Set", color: NODE_COLORS.Pathway }
             );
             const groupsUsed = new Set();
