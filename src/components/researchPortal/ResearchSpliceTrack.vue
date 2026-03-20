@@ -1,11 +1,11 @@
 <template>
 	<div class="mbm-plot-content row">
-			<span v-if="!!this.selectedSplice">
-				Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}
-			</span>
-			<span v-else>
-				Select a splice track to view from the table below.
-			</span>
+		<div v-if="!!this.selectedSplice">
+			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
+		</div>
+		<div v-else>
+			Select a splice track to view from the table below.
+		</div>
 		<div class="col-md-12">
 			<!-- place info modal here-->
 			<div
@@ -291,7 +291,8 @@ export default Vue.component("research-splice-track", {
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
 					spliceVisualMap.push({
 						spliceStart: spliceStart,
-						spliceEnd: spliceEnd
+						spliceEnd: spliceEnd,
+						spliceMidpoint: spliceMidpoint
 					});
 					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
@@ -435,7 +436,7 @@ export default Vue.component("research-splice-track", {
 			let xPos = Math.floor(e.clientX - rect.left) * 2;
 			let yPos = Math.floor(e.clientY - rect.top)  * 2;
 			if (yPos < this.adjPlotMargin.top){
-				let tent = this.getTent(xPos);
+				let tent = this.getTent(xPos, yPos);
 				this.hoverTent = tent;
 				if (tent != -1){
 					this.hoverExon = -1;
@@ -448,12 +449,17 @@ export default Vue.component("research-splice-track", {
 				}
 			}
 		},
-		getTent(xPos){
+		getTent(xPos, yPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				if (xPos >= t.spliceStart && xPos <= t.spliceEnd){
+				let radius = 5;
+				let dotHeight = this.adjPlotMargin.top / 3;
+				let xDist = t.spliceMidpoint - xPos;
+				let yDist = dotHeight - yPos;
+				if (Math.abs(xDist) <= radius && Math.abs(yDist) <= radius){
 					return i;
 				}
+				//if (xPos >= t.spliceStart && xPos <= t.spliceEnd){ return i; }
 			}
 			return -1;
 		},
