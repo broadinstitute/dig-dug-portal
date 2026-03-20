@@ -2,6 +2,8 @@
 	<div class="mbm-plot-content row">
 		<div v-if="!!this.selectedSplice">
 			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
+			<p>Rectangles represent exons. Hover to highlight splices overlapping the exon.</p>
+			<p>Dot-and-line diagrams represent splices. Hover over the dot to highlight exons overlapping the splice.</p>
 		</div>
 		<div v-else>
 			Select a splice track to view from the table below.
