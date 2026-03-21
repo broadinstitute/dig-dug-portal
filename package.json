@@ -3,9 +3,9 @@
   "version": "4.0.1",
   "private": true,
   "scripts": {
-    "watch": "vue-cli-service build --mode development --watch",
-    "build": "vue-cli-service build --mode development",
-    "deploy": "vue-cli-service build --mode production"
+    "watch": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode development --watch",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode development",
+    "deploy": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode production"
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.40",
