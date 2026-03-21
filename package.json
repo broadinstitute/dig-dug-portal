@@ -35,7 +35,6 @@
     "url-parse": "^1.5.10",
     "vis-data": "^8.0.3",
     "vis-network": "9.1.9",
-    "vis-util": "^5.0.7",
     "vue": "^2.7.16",
     "vue-async-computed": "^3.9.0",
     "vue-codemirror": "^4.0.6",
