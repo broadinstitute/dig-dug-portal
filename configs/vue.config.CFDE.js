@@ -75,9 +75,9 @@ module.exports = {
             },
         });
 
-        // Add the rule for handling .js files with babel-loader
+        // Add the rule for handling .js and .mjs/.cjs files with babel-loader
         config.module.rules.push({
-            test: /\.js$/,
+            test: /\.(js|mjs|cjs)$/,
             include: [/node_modules\/vis-network/, /node_modules\/vis-data/],
             use: {
                 loader: "babel-loader",
