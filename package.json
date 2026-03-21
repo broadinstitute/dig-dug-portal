@@ -3,9 +3,9 @@
   "version": "4.0.1",
   "private": true,
   "scripts": {
-    "watch": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode development --watch",
-    "build": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode development",
-    "deploy": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --mode production"
+    "watch": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development --watch",
+    "build": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development",
+    "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production"
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.40",
