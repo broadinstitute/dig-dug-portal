@@ -1284,7 +1284,12 @@ Return ONLY a JSON object:
 ---
 
 ### Guidelines
-- **Row Referencing:** The 'supporting_row_ids' array must contain ALL 'id' values required to support every Phenotype-Factor link included in the group.
+- **Row Referencing (Phenotype–Factor):** The 'supporting_row_ids' array must contain ALL 'id' values for every 'associated_with' row that supports each Phenotype–Factor pair in the group.
+- **Row Referencing (Gene sets / pathways — mandatory):** The KG connects factors to genes through named gene sets (pathways): Factor --linked_to_pathway--> Gene set, and Gene --contributes_to_pathway--> Gene set. You MUST include in 'supporting_row_ids' every such row that is needed to justify your story:
+  - Include ALL 'linked_to_pathway' rows for every Factor cited in the hypothesis (same factor label as in the pair).
+  - For EVERY gene listed in 'genes', include ALL 'contributes_to_pathway' rows for that gene symbol that appear in the KG and tie it to those factors' gene sets (same gene object string as in contains_gene / contributes_to_pathway rows).
+  - If you cite a 'contains_gene' row for a gene, you MUST also include at least one 'contributes_to_pathway' row for that gene (connecting it to a pathway) plus the matching 'linked_to_pathway' row(s) for the factor to that pathway, when those rows exist in the data.
+  - Do NOT omit gene-set or pathway rows to save space; downstream visualization and summaries depend on these ids.
 - **Gene Limits:** Include at least 5 high-impact candidate genes per hypothesis group. 
 - **Sorting:** Order the 'genes' array by impact (prioritize genes with higher combined_score).
 - **Efficiency:** The goal is to reduce redundancy. If two phenotypes share the same underlying pathway-factor mechanism, they belong in the same group.
@@ -3707,11 +3712,13 @@ Return ONLY a JSON object:
                         });
 
                         const factorGeneSets = factorObj.geneSets || {};
+                        let geneLinkedToSomePathway = false;
                         geneSets.forEach((gsName) => {
                             const members = factorGeneSets[gsName] && Array.isArray(factorGeneSets[gsName].genes)
                                 ? factorGeneSets[gsName].genes
                                 : [];
                             if (!members.includes(gene.name)) return;
+                            geneLinkedToSomePathway = true;
                             triples.push({
                                 subject: gene.name,
                                 predicate: "contributes_to_pathway",
@@ -3719,6 +3726,36 @@ Return ONLY a JSON object:
                                 context: { type: "GeneToPathway", context_factor: factorLabel },
                             });
                         });
+                        /**
+                         * Ensure each gene under a factor has at least one pathway/gene-set edge in the KG so
+                         * Factor–GeneSet–Gene linkage exists for the LLM (linked_to_pathway + contributes_to_pathway).
+                         * Uses the first top gene set when membership lists omit the gene (API / threshold mismatch).
+                         */
+                        if (!geneLinkedToSomePathway && geneSets.length > 0) {
+                            const fallbackGs = geneSets[0];
+                            if (!factorObj.geneSets) {
+                                this.$set(factorObj, "geneSets", {});
+                            }
+                            if (!factorObj.geneSets[fallbackGs]) {
+                                this.$set(factorObj.geneSets, fallbackGs, { genes: [] });
+                            }
+                            const gsEntry = factorObj.geneSets[fallbackGs];
+                            const gens = Array.isArray(gsEntry.genes) ? [...gsEntry.genes] : [];
+                            if (!gens.includes(gene.name)) {
+                                gens.push(gene.name);
+                                this.$set(gsEntry, "genes", gens);
+                            }
+                            triples.push({
+                                subject: gene.name,
+                                predicate: "contributes_to_pathway",
+                                object: fallbackGs,
+                                context: {
+                                    type: "GeneToPathway",
+                                    context_factor: factorLabel,
+                                    linkage_fallback: true,
+                                },
+                            });
+                        }
                     });
                 });
             });
