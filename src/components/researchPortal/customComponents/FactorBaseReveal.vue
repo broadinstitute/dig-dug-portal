@@ -566,7 +566,7 @@
                                         :key="idx"
                                         class="mechanism-card rounded border shadow-sm bg-light overflow-hidden"
                                     >
-                                        <div class="mechanism-card-header px-3 py-3 bg-secondary text-white">
+                                        <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
                                             <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
                                         </div>
                                         <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
@@ -683,6 +683,289 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Remaining gene set clusters: checked in Data tab but not cited in any mechanism (associated_with in supporting_row_ids) -->
+                                    <div
+                                        v-if="remainingGeneSetClusterRows.length"
+                                        class="remaining-gene-clusters mt-5 pt-4 border-top"
+                                    >
+                                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
+                                            Remaining gene set clusters
+                                        </div>
+                                        <p class="text-muted small mb-3">
+                                            These phenotype–gene set cluster pairs were <strong>included</strong> in your data selection but do not appear in any mechanistic hypothesis above
+                                            (no matching Phenotype–Factor link in that hypothesis’s supporting evidence).
+                                        </p>
+                                        <div v-if="remainingPairGenerateError" class="alert alert-danger small mb-3" role="alert">
+                                            {{ remainingPairGenerateError }}
+                                        </div>
+                                        <div class="criteria-detail">
+                                            <div class="factors-table-scroll-wrapper">
+                                                        <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
+                                                            <thead variant="light">
+                                                                <tr>
+                                                                    <th style="width: 72px;">Included</th>
+                                                                    <th style="width: auto;">Phenotype</th>
+                                                                    <th style="width: auto;">Gene set cluster</th>
+                                                                    <th style="width: 300px;">Genes and gene sets in cluster</th>
+                                                                    <th style="width: 130px;">Hypothesis.</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody v-for="row in remainingFactorDataTableRowsWithRationaleMeta" :key="'rem-' + getRowKey(row)">
+                                                                <tr>
+                                                                    <td>
+                                                                        <div class="text-center">
+                                                                            <input type="checkbox" :checked="row.included" disabled class="form-check-input d-inline-block" aria-label="Included" />
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
+                                                                    <td>{{ row.factorLabel }}</td>
+                                                                    <td style="text-align: center;">
+                                                                        <button
+                                                                            class="btn btn-sm btn-outline-primary"
+                                                                            @click="toggleFactorGenesRow({ item: row })"
+                                                                        >
+                                                                            {{ isFactorRowExpanded(row) ? 'Hide' : 'Show' }}
+                                                                        </button>
+                                                                    </td>
+                                                                    <td class="text-center align-middle">
+                                                                        <button
+                                                                            type="button"
+                                                                            class="btn btn-sm btn-cfde"
+                                                                            :disabled="generatingRemainingRowKey === getRowKey(row)"
+                                                                            @click="generateHypothesisForRemainingPair(row)"
+                                                                        >
+                                                                            <b-spinner v-if="generatingRemainingRowKey === getRowKey(row)" small class="mr-1"></b-spinner>
+                                                                            <template v-if="generatingRemainingRowKey === getRowKey(row)">Generating… {{ formatRemainingGenerateElapsed() }}</template>
+                                                                            <template v-else>Generate</template>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr v-if="isFactorRowExpanded(row)">
+                                                                    <td colspan="6" class="p-0 border-0">
+                                                                        <div class="bg-light" style="display:flex; gap: 20px;">
+                                                                            <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
+                                                                                <div class="small text-muted mb-2">Gene Sets in cluster (top 5)</div>
+                                                                                <b-table
+                                                                                    striped
+                                                                                    hover
+                                                                                    small
+                                                                                    responsive="sm"
+                                                                                    head-variant="light"
+                                                                                    :items="getGenesetForFactor(row.phenotype, row.factor)"
+                                                                                    :fields="[
+                                                                                        { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
+                                                                                        { key: 'program', label: 'Program', thClass: 'text-nowrap'},
+                                                                                        { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
+                                                                                    ]"
+                                                                                >
+                                                                                    <template #cell(geneset)="gRow">
+                                                                                        <div class="truncate-cell" :title="gRow.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                                            {{ gRow.item.geneset }}
+                                                                                        </div>
+                                                                                    </template>
+                                                                                    <template #cell(actions)="gRow">
+                                                                                        <button
+                                                                                            v-if="gRow.item.program === 'gtex'"
+                                                                                            class="btn btn-sm btn-outline-primary"
+                                                                                            @click="onGeneSetRowToggled(gRow)"
+                                                                                        >
+                                                                                            {{ gRow.detailsShowing ? 'Hide' : 'Show' }}
+                                                                                        </button>
+                                                                                    </template>
+                                                                                    <template #row-details="gRow">
+                                                                                        <div style="padding: 10px;">
+                                                                                            <div v-if="gene_set_sources[gRow.item.geneset]">
+                                                                                                <b-card>
+                                                                                                    <a :href="gene_set_sources[gRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gRow.item.geneset].geneSet }}</a>
+                                                                                                    <ul>
+                                                                                                        <li v-for="(rel, i) in gene_set_sources[gRow.item.geneset].relations" :key="i" class="text-muted small">
+                                                                                                            <div>
+                                                                                                                <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
+                                                                                                            </div>
+                                                                                                            <div>
+                                                                                                                via
+                                                                                                                <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
+                                                                                                                ({{ rel.method.direction }})
+                                                                                                            </div>
+                                                                                                        </li>
+                                                                                                    </ul>
+                                                                                                </b-card>
+                                                                                            </div>
+                                                                                            <div v-else>no data available yet.</div>
+                                                                                        </div>
+                                                                                    </template>
+                                                                                </b-table>
+                                                                            </div>
+                                                                            <div class="subtable-container py-2 px-3" style="flex:1">
+                                                                                <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
+                                                                                <div v-else class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.phenotype, row.factor).length }} rows)</div>
+                                                                                <b-table
+                                                                                    v-if="!loadingGenesForFactor[getRowKey(row)]"
+                                                                                    striped
+                                                                                    hover
+                                                                                    small
+                                                                                    responsive="sm"
+                                                                                    head-variant="light"
+                                                                                    :items="getGenesForFactor(row.phenotype, row.factor)"
+                                                                                    :fields="[
+                                                                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                                        { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
+                                                                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
+                                                                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
+                                                                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
+                                                                                    ]"
+                                                                                    :per-page="subtablePerPage"
+                                                                                    :current-page="getSubtableCurrentPage(row)"
+                                                                                />
+                                                                                <b-pagination
+                                                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor).length > subtablePerPage"
+                                                                                    v-model="subtableCurrentPages[getRowKey(row)]"
+                                                                                    class="pagination-sm justify-content-center mt-2"
+                                                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor).length"
+                                                                                    :per-page="subtablePerPage"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </b-table-simple>
+                                                        <b-table
+                                                            v-else
+                                                            :items="remainingGeneSetClusterRows"
+                                                            :fields="[
+                                                                { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
+                                                                { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
+                                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
+                                                                { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
+                                                                { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } },
+                                                                { key: 'hypothesis', label: 'Hypothesis.', thStyle: { width: '130px' } }
+                                                            ]"
+                                                            small
+                                                            striped
+                                                            hover
+                                                            head-variant="light"
+                                                        >
+                                                            <template #cell(included)="row">
+                                                                <div class="text-center">
+                                                                    <input type="checkbox" :checked="row.item.included" disabled class="form-check-input d-inline-block" aria-label="Included in selection" />
+                                                                </div>
+                                                            </template>
+                                                            <template #cell(phenotype)="row">
+                                                                {{ getPhenotypeDisplay(row.item.phenotype) }}
+                                                            </template>
+                                                            <template #cell(rationale)="row">
+                                                                <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
+                                                                <span v-else class="small text-muted">—</span>
+                                                            </template>
+                                                            <template #cell(view_genes)="row">
+                                                                <button
+                                                                    class="btn btn-sm btn-outline-primary"
+                                                                    @click="toggleFactorGenesRow(row)"
+                                                                >
+                                                                    {{ row.detailsShowing ? 'Hide' : 'Show' }}
+                                                                </button>
+                                                            </template>
+                                                            <template #cell(hypothesis)="row">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-sm btn-cfde"
+                                                                    :disabled="generatingRemainingRowKey === getRowKey(row.item)"
+                                                                    @click="generateHypothesisForRemainingPair(row.item)"
+                                                                >
+                                                                    <b-spinner v-if="generatingRemainingRowKey === getRowKey(row.item)" small class="mr-1"></b-spinner>
+                                                                    <template v-if="generatingRemainingRowKey === getRowKey(row.item)">Generating… {{ formatRemainingGenerateElapsed() }}</template>
+                                                                    <template v-else>Generate</template>
+                                                                </button>
+                                                            </template>
+                                                            <template #row-details="row">
+                                                                <div class="bg-light" style="display:flex; gap: 20px;">
+                                                                    <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
+                                                                        <div class="small text-muted mb-2">Gene Sets in cluster (top 5)</div>
+                                                                        <b-table
+                                                                            striped
+                                                                            hover
+                                                                            small
+                                                                            responsive="sm"
+                                                                            head-variant="light"
+                                                                            :items="getGenesetForFactor(row.item.phenotype, row.item.factor)"
+                                                                            :fields="[
+                                                                                { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
+                                                                                { key: 'program', label: 'Program', thClass: 'text-nowrap'},
+                                                                                { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
+                                                                            ]"
+                                                                        >
+                                                                            <template #cell(geneset)="gRow">
+                                                                                <div class="truncate-cell" :title="gRow.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                                    {{ gRow.item.geneset }}
+                                                                                </div>
+                                                                            </template>
+                                                                            <template #cell(actions)="gRow">
+                                                                                <button
+                                                                                    v-if="gRow.item.program === 'gtex'"
+                                                                                    class="btn btn-sm btn-outline-primary"
+                                                                                    @click="onGeneSetRowToggled(gRow)"
+                                                                                >
+                                                                                    {{ gRow.detailsShowing ? 'Hide' : 'Show' }}
+                                                                                </button>
+                                                                            </template>
+                                                                            <template #row-details="gRow">
+                                                                                <div style="padding: 10px;">
+                                                                                    <div v-if="gene_set_sources[gRow.item.geneset]">
+                                                                                        <b-card>
+                                                                                            <a :href="gene_set_sources[gRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gRow.item.geneset].geneSet }}</a>
+                                                                                            <ul>
+                                                                                                <li v-for="(rel, i) in gene_set_sources[gRow.item.geneset].relations" :key="i" class="text-muted small">
+                                                                                                    <div>
+                                                                                                        <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
+                                                                                                    </div>
+                                                                                                    <div>
+                                                                                                        via
+                                                                                                        <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
+                                                                                                        ({{ rel.method.direction }})
+                                                                                                    </div>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                        </b-card>
+                                                                                    </div>
+                                                                                    <div v-else>no data available yet.</div>
+                                                                                </div>
+                                                                            </template>
+                                                                        </b-table>
+                                                                    </div>
+                                                                    <div class="subtable-container py-2" style="flex:1">
+                                                                        <div class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.item.phenotype, row.item.factor).length }} rows)</div>
+                                                                        <b-table
+                                                                            striped
+                                                                            hover
+                                                                            small
+                                                                            responsive="sm"
+                                                                            head-variant="light"
+                                                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
+                                                                            :fields="[
+                                                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                                { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
+                                                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
+                                                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
+                                                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
+                                                                            ]"
+                                                                            :per-page="subtablePerPage"
+                                                                            :current-page="getSubtableCurrentPage(row.item)"
+                                                                        />
+                                                                        <b-pagination
+                                                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor).length > subtablePerPage"
+                                                                            v-model="subtableCurrentPages[getRowKey(row.item)]"
+                                                                            class="pagination-sm justify-content-center mt-2"
+                                                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor).length"
+                                                                            :per-page="subtablePerPage"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </template>
+                                                        </b-table>
                                             </div>
                                         </div>
                                     </div>
@@ -817,6 +1100,16 @@ export default Vue.component("factor-base-reveal", {
             mechanisms: null,
             mechanisms_summary: null,
             display_mechanisms: true,
+            /** Row keys (phenotype|factor) for pairs user generated via "Generate" in Remaining section; removes row from that table. */
+            adHocCoveredRowKeys: [],
+            /** While set, matching row's Generate shows loading. */
+            generatingRemainingRowKey: "",
+            /** Start time (ms) for elapsed display on remaining-cluster Generate. */
+            remainingGenerateStartedAt: null,
+            /** Updated on interval while generating so elapsed time is reactive. */
+            remainingGenerateNow: Date.now(),
+            remainingGenerateTimerId: null,
+            remainingPairGenerateError: "",
             display_phenotypes_factors: true,
             subtablePerPage: 10,
             subtableCurrentPages: {},
@@ -1112,6 +1405,52 @@ Return ONLY a JSON object:
             const rows = this.factorDataTableRowsFiltered || [];
             return [...new Set(rows.map((r) => r.factorLabel))].sort();
         },
+        /**
+         * Phenotype–factor pairs cited in mechanism results: from flattened KG rows
+         * (predicate associated_with) referenced by each hypothesis supporting_row_ids.
+         */
+        mechanismResultPhenotypeFactorPairKeys() {
+            const keys = new Set();
+            const flat = this.lastFlattenedKG;
+            const mechs = this.mechanisms || [];
+            if (!mechs.length) return keys;
+            for (const m of mechs) {
+                if (m._fromRemainingPair && Array.isArray(m._remainingPairCoverKeys)) {
+                    m._remainingPairCoverKeys.forEach((k) => keys.add(k));
+                    continue;
+                }
+                if (!flat || !flat.length) continue;
+                if (!Array.isArray(m.supporting_row_ids) || !m.supporting_row_ids.length) continue;
+                const idSet = new Set(m.supporting_row_ids.map(Number));
+                flat.forEach((row) => {
+                    if (!idSet.has(Number(row.id))) return;
+                    if (String(row.predicate).trim() !== "associated_with") return;
+                    const p = row.subject != null ? String(row.subject).trim() : "";
+                    const f = row.object != null ? String(row.object).trim() : "";
+                    if (p && f) keys.add(`${p}|${this.collapseWsLower(f)}`);
+                });
+            }
+            return keys;
+        },
+        /** Checked (included) data-table rows whose phenotype–factor pair is not in any mechanism result. */
+        remainingGeneSetClusterRows() {
+            const keys = this.mechanismResultPhenotypeFactorPairKeys;
+            const adHoc = new Set(this.adHocCoveredRowKeys || []);
+            return (this.factorDataTableRows || []).filter((r) => {
+                if (!r.included) return false;
+                if (adHoc.has(this.getRowKey(r))) return false;
+                const p = String(r.phenotype).trim();
+                const fl = r.factorLabel != null ? String(r.factorLabel).trim() : "";
+                const fid = r.factor != null ? String(r.factor).trim() : "";
+                if (keys.has(`${p}|${this.collapseWsLower(fl)}`)) return false;
+                if (keys.has(`${p}|${this.collapseWsLower(fid)}`)) return false;
+                return true;
+            });
+        },
+        remainingFactorDataTableRowsWithRationaleMeta() {
+            const remKeys = new Set((this.remainingGeneSetClusterRows || []).map((r) => this.getRowKey(r)));
+            return (this.factorDataTableRowsWithRationaleMeta || []).filter((r) => remKeys.has(this.getRowKey(r)));
+        },
     },
     created() {
         this.llmExtract = createLLMClient({
@@ -1148,6 +1487,7 @@ Return ONLY a JSON object:
     },
     beforeDestroy() {
         this.stopStepTimer();
+        this.stopRemainingGenerateTimer();
     },
     methods: {
          showByorTab(){
@@ -1357,6 +1697,30 @@ Return ONLY a JSON object:
                 clearInterval(this.loadStepTimerId);
                 this.loadStepTimerId = null;
             }
+        },
+        startRemainingGenerateTimer() {
+            this.stopRemainingGenerateTimer();
+            this.remainingGenerateStartedAt = Date.now();
+            this.remainingGenerateNow = Date.now();
+            this.remainingGenerateTimerId = setInterval(() => {
+                this.remainingGenerateNow = Date.now();
+            }, 250);
+        },
+        stopRemainingGenerateTimer() {
+            if (this.remainingGenerateTimerId != null) {
+                clearInterval(this.remainingGenerateTimerId);
+                this.remainingGenerateTimerId = null;
+            }
+            this.remainingGenerateStartedAt = null;
+        },
+        /** Elapsed time label for remaining-cluster Generate (same style as step timer). */
+        formatRemainingGenerateElapsed() {
+            if (this.remainingGenerateStartedAt == null) return "";
+            const ms = Math.max(0, (this.remainingGenerateNow || Date.now()) - this.remainingGenerateStartedAt);
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}m${String(seconds).padStart(2, "0")}s`;
         },
         setLoadStatus(msg, stopTimer = false) {
             this.loadStatus = msg;
@@ -2898,6 +3262,113 @@ Return ONLY a JSON object:
             })();
         },
         /**
+         * Build factorData containing only one (phenotype, factor) for ad-hoc mechanism generation.
+         * @param {{ phenotype: string, factor: string|number }} row - Table row with phenotype and factor id.
+         * @returns {Object|null} - Same shape as factorData slice, or null if not found.
+         */
+        buildSinglePairFactorData(row) {
+            if (!row || row.phenotype == null || row.factor == null) return null;
+            const phenotype = String(row.phenotype).trim();
+            const factorId = row.factor;
+            const pData = this.factorData && this.factorData[phenotype];
+            if (!pData) return null;
+            const factors = pData.factors || [];
+            const factorItem = factors.find((x) => x.factor === factorId || String(x.factor) === String(factorId));
+            if (!factorItem) return null;
+            const genesInFactor = Object.keys(factorItem.genes || {});
+            const globalGenes = pData.genes || {};
+            const subsetGlobal = {};
+            genesInFactor.forEach((g) => {
+                if (globalGenes[g] != null) {
+                    subsetGlobal[g] = JSON.parse(JSON.stringify(globalGenes[g]));
+                }
+            });
+            const factorClone = JSON.parse(JSON.stringify(factorItem));
+            return {
+                [phenotype]: {
+                    genes: subsetGlobal,
+                    factors: [factorClone],
+                },
+            };
+        },
+        /**
+         * Generate mechanistic hypothesis for one remaining phenotype–factor pair (same LLM step as main run, subset data only).
+         */
+        generateHypothesisForRemainingPair(row) {
+            if (!row || row.phenotype == null || row.factor == null) return;
+            const pairKey = this.getRowKey(row);
+            this.remainingPairGenerateError = "";
+            const subset = this.buildSinglePairFactorData(row);
+            if (!subset) {
+                this.remainingPairGenerateError = "Could not build data for this pair.";
+                return;
+            }
+            const kgTriples = this.transformMergedDataToKG(subset, "factors");
+            if (!kgTriples || !kgTriples.length) {
+                this.remainingPairGenerateError = "No knowledge graph triples for this pair.";
+                return;
+            }
+            this.generatingRemainingRowKey = pairKey;
+            this.startRemainingGenerateTimer();
+            const flattened = this.flattenKGData(kgTriples);
+            const researchContext =
+                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
+                    ? String(this.searchCriteria[1].values)
+                    : "";
+            const factorSummary = this.serializeFactorDataForPrompt(subset);
+            const kgBlock = this.flattenedKGToCSV(flattened);
+            const fullPrompt = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+
+            let finished = false;
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                this.generatingRemainingRowKey = "";
+                this.stopRemainingGenerateTimer();
+            };
+
+            this.llmAnalyze.sendPrompt({
+                userPrompt: fullPrompt,
+                onResponse: (response) => {
+                    const json = this.parseLLMResponse(response);
+                    if (!json) {
+                        this.remainingPairGenerateError = "Could not parse LLM response.";
+                        return;
+                    }
+                    if (!Array.isArray(json.hypotheses) || !json.hypotheses.length) {
+                        this.remainingPairGenerateError =
+                            typeof json.error === "string" && json.error
+                                ? json.error
+                                : "No hypotheses in response.";
+                        return;
+                    }
+                    const p = String(row.phenotype).trim();
+                    const fl = row.factorLabel != null ? String(row.factorLabel).trim() : "";
+                    const fid = row.factor != null ? String(row.factor).trim() : "";
+                    const coverKeys = [];
+                    if (fl) coverKeys.push(`${p}|${this.collapseWsLower(fl)}`);
+                    if (fid) coverKeys.push(`${p}|${this.collapseWsLower(fid)}`);
+                    const normalized = this.normalizeMechanismHypotheses(json.hypotheses, flattened).map((m) => ({
+                        ...m,
+                        _fromRemainingPair: true,
+                        _remainingPairCoverKeys: [...new Set(coverKeys)],
+                    }));
+                    const prev = Array.isArray(this.mechanisms) ? this.mechanisms : [];
+                    this.mechanisms = [...prev, ...normalized];
+                    if (!this.adHocCoveredRowKeys.includes(pairKey)) {
+                        this.adHocCoveredRowKeys = [...this.adHocCoveredRowKeys, pairKey];
+                    }
+                },
+                onError: (err) => {
+                    console.warn("FactorBaseReveal: remaining-pair mechanism LLM error", err);
+                    this.remainingPairGenerateError =
+                        err && err.message ? err.message : "Request failed or timed out.";
+                    finish();
+                },
+                onEnd: finish,
+            });
+        },
+        /**
          * Extract relevant phenotype ids, factor labels, and gene set names from flattened KG rows by supporting row ids.
          * Phenotypes: from associated_with (subject). Factors: from associated_with (object) and linked_to_pathway/contains_gene (subject). Gene sets: from linked_to_pathway and contributes_to_pathway (object).
          * @param {Array} flattened - Flat rows from flattenKGData.
@@ -3079,9 +3550,12 @@ Return ONLY a JSON object:
         },
         /**
          * Normalize mechanism hypotheses for display. LLM returns genes (no scores); we attach scores from the KG.
+         * @param {Array} hypotheses - Raw hypotheses from LLM.
+         * @param {Array|null|undefined} flattenedOverride - If provided, use for scoring/networks instead of lastFlattenedKG (ad-hoc single-pair runs).
          */
-        normalizeMechanismHypotheses(hypotheses) {
-            const flattened = this.lastFlattenedKG;
+        normalizeMechanismHypotheses(hypotheses, flattenedOverride) {
+            const flattened =
+                flattenedOverride !== undefined && flattenedOverride !== null ? flattenedOverride : this.lastFlattenedKG;
             return (hypotheses || []).map((h) => {
                 const out = { ...h };
                 if (Array.isArray(h.genes) && out.candidate_genes == null) {
