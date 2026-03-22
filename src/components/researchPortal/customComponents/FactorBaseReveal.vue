@@ -944,33 +944,44 @@ Your task: (1) Filter to only associations that are mechanistically relevant to 
 - Sort by relevance: put the most relevant association first, then the next, and so on.
 - No preamble, no markdown blocks, no explanation.`,
 
-mechanismSystemPrompt: `You are an expert in bioinformatics. You will be given a pre-filtered Knowledge Graph (KG) provided as a flat list of triples, where each row has a unique 'id'.
-Task: Synthesize mechanistic hypotheses linking the phenotypes and factors in the research context. 
+mechanismSystemPrompt: `
+You are an expert in bioinformatics. You will be given a pre-filtered Knowledge Graph (KG) provided as a flat list of triples, where each row has a unique 'id'.
+
+### Task
+1. **Semantic Grouping:** Analyze all Phenotype-Factor pairs in the KG and group them by biological similarity (e.g., shared pathways, common molecular mechanisms, or related physiological systems).
+2. **Synthesize Hypotheses:** For each distinct group, generate one comprehensive mechanistic hypothesis that explains the relationship between those factors and phenotypes.
 
 ---
-## Discovery Logic
-1. Modifier Rule: Every hypothesis MUST pair a canonical gene (e.g., INS, APOE) with at least one 'Functional (Novel)' gene from the data that acts as a non-canonical modifier.
-2. Component Integration: Each hypothesis must explicitly link a specific set of Factors and Gene Sets (Pathways) identified in the graph.
-3. Support Priority: Prioritize genes with a combined_score >= 3.0. Focus on those where functional_support > 3.0 but gwas_support < 1.5.
-4. Data Fidelity: Use ONLY the 'category' and labels provided in the JSON metadata. Do not use internal knowledge to relabel nodes.
+
+### Discovery Logic
+1. **Thematic Clustering:** Do not generate a hypothesis for every single pair. Instead, cluster Phenotype-Factor pairs that share significant overlap in 'contains_gene' pathways or functional categories.
+2. **Modifier Rule:** Every hypothesis MUST pair a canonical gene (e.g., INS, APOE) with at least one 'Functional (Novel)' gene from the data that acts as a non-canonical modifier.
+3. **Component Integration:** Explicitly link the Factor cluster to the specific Gene Sets (Pathways) identified in the graph.
+4. **Support Priority:** Prioritize genes with a combined_score >= 3.0. Focus on those where functional_support > 3.0 but gwas_support < 1.5.
+5. **Data Fidelity:** Use ONLY the 'category' and labels provided in the JSON metadata. Do not use internal knowledge to relabel nodes.
 
 ---
-## Output Format (Strict JSON)
+
+### Output Format (Strict JSON)
 Return ONLY a JSON object:
 {
-  'hypotheses': [
+  "hypotheses": [
     {
-      'group_name': 'Headline Name',
-      'hypothesis': '1-2 sentence description of how the factors and gene sets interact.',
-      'novelty': 'Contrast canonical elements vs. the non-canonical extension revealed by the novel modifier.',
-      'genes': [
+      "group_name": "Headline Name (Mechanistic Theme)",
+      "associated_pairs": [
+        { "phenotype": "Phenotype A", "factor": "Factor 1" },
+        { "phenotype": "Phenotype B", "factor": "Factor 2" }
+      ],
+      "hypothesis": "A unified 2-3 sentence description of how these grouped factors and gene sets interact.",
+      "novelty": "Contrast canonical elements vs. the non-canonical extension revealed by the novel modifier.",
+      "genes": [
         {
-          'gene': 'SYMBOL',
-          'group': 'High GWAS | High Functional | Balanced',
-          'role': 'How this gene bridges the factor to the gene set.'
+          "gene": "SYMBOL",
+          "group": "High GWAS | High Functional | Balanced",
+          "role": "How this gene bridges the factor group to the gene set."
         }
       ],
-      'supporting_row_ids': [0, 1, 2, 3, 4]
+      "supporting_row_ids": [0, 1, 2, 3, 4]
     }
   ]
 }
@@ -978,13 +989,13 @@ Return ONLY a JSON object:
 (Do NOT return 'scores' in genes; scores will be filled from the KG data by the system.)
 
 ---
-## Guidelines
-- Row Referencing: The 'supporting_row_ids' array must contain the 'id' values of every row in the input data required to form the causal network (Phenotype -> Factor -> Pathway <- Gene).
-- Connectivity: Ensure the selected IDs include the root 'associated_with' edge (Phenotype -> Factor).
-- Only list genes that appear in the attached KG (e.g. as object of a contains_gene row).
-- Sorting: Order the 'genes' array by impact (prioritize genes with higher combined_score in the data).
-- Limit: Include at least 5 high-impact candidate genes per hypothesis.
-- All candidate genes must be included in the supporting network.`,
+
+### Guidelines
+- **Row Referencing:** The 'supporting_row_ids' array must contain ALL 'id' values required to support every Phenotype-Factor link included in the group.
+- **Gene Limits:** Include at least 5 high-impact candidate genes per hypothesis group. 
+- **Sorting:** Order the 'genes' array by impact (prioritize genes with higher combined_score).
+- **Efficiency:** The goal is to reduce redundancy. If two phenotypes share the same underlying pathway-factor mechanism, they belong in the same group.
+`,
         };
     },
     computed: {
