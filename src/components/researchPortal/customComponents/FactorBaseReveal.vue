@@ -686,7 +686,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Remaining gene set clusters: checked in Data tab but not cited in any mechanism (associated_with in supporting_row_ids) -->
+                                    <!-- Remaining: included pairs not in any context-relevant semantic group, or grouped but not cited in mechanism evidence -->
                                     <div
                                         v-if="remainingGeneSetClusterRows.length"
                                         class="remaining-gene-clusters mt-5 pt-4 border-top"
@@ -695,8 +695,8 @@
                                             Remaining gene set clusters
                                         </div>
                                         <p class="text-muted small mb-3">
-                                            These phenotype–gene set cluster pairs were <strong>included</strong> in your data selection but do not appear in any mechanistic hypothesis above
-                                            (no matching Phenotype–Factor link in that hypothesis’s supporting evidence).
+                                            These phenotype–gene set cluster pairs were <strong>included</strong> in your data selection but are listed here because they were
+                                            <strong>not</strong> placed in any context-relevant semantic group, <strong>or</strong> they appear in a group but lack a matching Phenotype–Factor link in any hypothesis’s supporting evidence above.
                                         </p>
                                         <div v-if="remainingPairGenerateError" class="alert alert-danger small mb-3" role="alert">
                                             {{ remainingPairGenerateError }}
@@ -1021,6 +1021,34 @@
                 </div>
             </div>
         </div>
+
+        <!-- Incremental hypotheses: remind user more groups are still running (fixed to viewport) -->
+        <div
+            v-if="showMechanismHypothesisStreamBubble"
+            class="mechanism-hypothesis-stream-bubble"
+            role="status"
+            aria-live="polite"
+        >
+            <div class="mechanism-hypothesis-stream-bubble__inner">
+                <div class="mechanism-hypothesis-stream-bubble__title-row">
+                    <span class="mechanism-hypothesis-stream-bubble__pulse" aria-hidden="true"></span>
+                    <span class="mechanism-hypothesis-stream-bubble__title">Generating mechanistic hypotheses</span>
+                </div>
+                <p class="mechanism-hypothesis-stream-bubble__text">
+                    Additional semantic groups are still being processed. You can keep reviewing results above.
+                </p>
+                <div v-if="mechanismHypothesisActiveGroupName" class="mechanism-hypothesis-stream-bubble__current">
+                    <span class="mechanism-hypothesis-stream-bubble__current-label">Now:</span>
+                    <strong>{{ mechanismHypothesisActiveGroupName }}</strong>
+                </div>
+                <div class="mechanism-hypothesis-stream-bubble__progress">
+                    {{ mechanismHypothesisStreamDone }} of {{ mechanismHypothesisStreamTotal }} groups complete
+                </div>
+                <div class="mechanism-hypothesis-stream-bubble__elapsed">
+                    Elapsed: {{ formatMechanismHypothesisStreamElapsed() }}
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -1099,9 +1127,22 @@ export default Vue.component("factor-base-reveal", {
             error_msg_mechanisms: "",
             mechanisms: null,
             mechanisms_summary: null,
+            /** While incremental hypotheses run: total groups, completed count, current LLM group label (top-right bubble). */
+            mechanismHypothesisStreamTotal: 0,
+            mechanismHypothesisStreamDone: 0,
+            mechanismHypothesisActiveGroupName: "",
+            /** Elapsed timer for multi-group hypothesis generation (bubble). */
+            mechanismHypothesisStreamStartedAt: null,
+            mechanismHypothesisStreamNow: Date.now(),
+            mechanismHypothesisStreamTimerId: null,
             display_mechanisms: true,
             /** Row keys (phenotype|factor) for pairs user generated via "Generate" in Remaining section; removes row from that table. */
             adHocCoveredRowKeys: [],
+            /**
+             * After semantic grouping LLM: normalized keys `${phenotype}|${collapseWsLower(factorLabel)}` for pairs placed in at least one group.
+             * null = grouping not completed this run (use mechanism-only remaining logic). [] = all pairs left ungrouped.
+             */
+            semanticGroupedPairKeys: null,
             /** While set, matching row's Generate shows loading. */
             generatingRemainingRowKey: "",
             /** Start time (ms) for elapsed display on remaining-cluster Generate. */
@@ -1237,62 +1278,77 @@ Your task: (1) Filter to only associations that are mechanistically relevant to 
 - Sort by relevance: put the most relevant association first, then the next, and so on.
 - No preamble, no markdown blocks, no explanation.`,
 
-mechanismSystemPrompt: `
-You are an expert in bioinformatics. You will be given a pre-filtered Knowledge Graph (KG) provided as a flat list of triples, where each row has a unique 'id'.
+mechanismGroupingSystemPrompt: `
+You are an expert in bioinformatics. You will be given a Knowledge Graph (KG) as CSV rows (each row has a unique numeric 'id') plus a factor summary and **research context**.
 
-### Task
-1. **Semantic Grouping:** Analyze all Phenotype-Factor pairs in the KG and group them by biological similarity (e.g., shared pathways, common molecular mechanisms, or related physiological systems).
-2. **Synthesize Hypotheses:** For each distinct group, generate one comprehensive mechanistic hypothesis that explains the relationship between those factors and phenotypes.
+### Task (grouping only)
+**Semantic grouping:** Using the **research context**, decide which Phenotype–Factor (gene set cluster) pairs from \`associated_with\` rows (subject = phenotype id, object = factor / gene-set cluster label) **belong together** mechanistically. Form groups that share pathways, overlapping \`contains_gene\` evidence, related gene sets (\`linked_to_pathway\`, \`contributes_to_pathway\`), or coherent physiology **relevant to the research context**.
 
----
+### Rules
+1. **Research context first:** Only group pairs that are **plausibly tied to the stated research context**. Pairs that are weakly related or irrelevant to the context should be **omitted** from every group (they will be listed separately for the user as “remaining”).
+2. **No forced coverage:** You do **not** need to assign every \`associated_with\` pair to a group. Omit pairs that do not fit any coherent, context-relevant cluster.
+3. **No duplicate pairs:** The same (phenotype, factor) pair must appear in **at most one** group. Use the **exact** phenotype and factor strings from the CSV (subject and object columns).
+4. **Thematic clustering:** Merge pairs that share mechanism **and** context relevance; prefer fewer, meaningful groups over many tiny ones.
+5. **Names:** \`group_name\` is a short mechanistic theme label (you may invent it).
+6. **Empty groups array:** If **no** pairs are strongly supported by the research context, return \`"groups": []\`.
+7. **No hypotheses:** Do not write mechanistic hypotheses or gene lists here — only grouping.
 
-### Discovery Logic
-1. **Thematic Clustering:** Do not generate a hypothesis for every single pair. Instead, cluster Phenotype-Factor pairs that share significant overlap in 'contains_gene' pathways or functional categories.
-2. **Modifier Rule:** Every hypothesis MUST pair a canonical gene (e.g., INS, APOE) with at least one 'Functional (Novel)' gene from the data that acts as a non-canonical modifier.
-3. **Component Integration:** Explicitly link the Factor cluster to the specific Gene Sets (Pathways) identified in the graph.
-4. **Support Priority:** Prioritize genes with a combined_score >= 3.0. Focus on those where functional_support > 3.0 but gwas_support < 1.5.
-5. **Data Fidelity:** Use ONLY the 'category' and labels provided in the JSON metadata. Do not use internal knowledge to relabel nodes.
-
----
-
-### Output Format (Strict JSON)
-Return ONLY a JSON object:
+### Output (strict JSON)
+Return ONLY:
 {
-  "hypotheses": [
+  "groups": [
     {
-      "group_name": "Headline Name (Mechanistic Theme)",
+      "group_name": "Short mechanistic theme for this cluster",
       "associated_pairs": [
-        { "phenotype": "Phenotype A", "factor": "Factor 1" },
-        { "phenotype": "Phenotype B", "factor": "Factor 2" }
+        { "phenotype": "Exact phenotype string from KG", "factor": "Exact factor label from KG" }
       ],
-      "hypothesis": "A unified 2-3 sentence description of how these grouped factors and gene sets interact.",
-      "novelty": "Contrast canonical elements vs. the non-canonical extension revealed by the novel modifier.",
-      "genes": [
-        {
-          "gene": "SYMBOL",
-          "group": "High GWAS | High Functional | Balanced",
-          "role": "How this gene bridges the factor group to the gene set."
-        }
-      ],
-      "supporting_row_ids": [0, 1, 2, 3, 4]
+      "grouping_rationale": "One or two sentences on why these pairs belong together for this research context."
     }
   ]
 }
 
-(Do NOT return 'scores' in genes; scores will be filled from the KG data by the system.)
+No markdown fences, no preamble.
+`,
 
----
+mechanismHypothesisSystemPrompt: `
+You are an expert in bioinformatics. Each request gives you **one fixed semantic group** of Phenotype–Factor (gene set cluster) pairs (do not change membership), plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON, and (4) research context.
+
+### Task
+Produce **exactly one** mechanistic hypothesis for that group. Return \`hypotheses\` as an array of **length 1** (only \`hypotheses[0]\`).
+
+### Discovery logic (per group)
+1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
+2. **Gene sets:** Explicitly connect factors in that group to the gene sets (pathways) in the KG (\`linked_to_pathway\`, \`contributes_to_pathway\`).
+3. **Support priority:** Prefer genes with combined_score context in the data; prioritize strong functional signal where appropriate.
+4. **Data fidelity:** Use only labels and categories present in the KG CSV.
+
+### Output (strict JSON)
+Return ONLY:
+{
+  "hypotheses": [
+    {
+      "group_name": "Headline (may refine the input group_name)",
+      "associated_pairs": [ { "phenotype": "...", "factor": "..." } ],
+      "hypothesis": "2–3 sentences.",
+      "novelty": "Contrast canonical vs non-canonical emphasis.",
+      "genes": [
+        { "gene": "SYMBOL", "group": "High GWAS | High Functional | Balanced", "role": "Brief bridge role." }
+      ],
+      "supporting_row_ids": [0, 1, 2]
+    }
+  ]
+}
+
+The \`hypotheses\` array MUST contain exactly **one** element for the single group provided.
+
+(Do NOT return 'scores' in genes; scores are filled by the system.)
 
 ### Guidelines
-- **Row Referencing (Phenotype–Factor):** The 'supporting_row_ids' array must contain ALL 'id' values for every 'associated_with' row that supports each Phenotype–Factor pair in the group.
-- **Row Referencing (Gene sets / pathways — mandatory):** The KG connects factors to genes through named gene sets (pathways): Factor --linked_to_pathway--> Gene set, and Gene --contributes_to_pathway--> Gene set. You MUST include in 'supporting_row_ids' every such row that is needed to justify your story:
-  - Include ALL 'linked_to_pathway' rows for every Factor cited in the hypothesis (same factor label as in the pair).
-  - For EVERY gene listed in 'genes', include ALL 'contributes_to_pathway' rows for that gene symbol that appear in the KG and tie it to those factors' gene sets (same gene object string as in contains_gene / contributes_to_pathway rows).
-  - If you cite a 'contains_gene' row for a gene, you MUST also include at least one 'contributes_to_pathway' row for that gene (connecting it to a pathway) plus the matching 'linked_to_pathway' row(s) for the factor to that pathway, when those rows exist in the data.
-  - Do NOT omit gene-set or pathway rows to save space; downstream visualization and summaries depend on these ids.
-- **Gene Limits:** Include at least 5 high-impact candidate genes per hypothesis group. 
-- **Sorting:** Order the 'genes' array by impact (prioritize genes with higher combined_score).
-- **Efficiency:** The goal is to reduce redundancy. If two phenotypes share the same underlying pathway-factor mechanism, they belong in the same group.
+- **associated_pairs:** Must match the corresponding input group's \`associated_pairs\` exactly (same pairs; order may match).
+- **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in that hypothesis's group.
+- **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
+- **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes; otherwise as many as are strongly supported.
+- **Sorting:** Order \`genes\` by impact (higher combined_score first when inferable from context).
 `,
         };
     },
@@ -1411,6 +1467,15 @@ Return ONLY a JSON object:
             return [...new Set(rows.map((r) => r.factorLabel))].sort();
         },
         /**
+         * Set of normalized pair keys the semantic-grouping LLM placed in at least one group.
+         * `null` if grouping has not finished this run; empty Set after `groups: []`.
+         */
+        semanticGroupedPairKeySet() {
+            const arr = this.semanticGroupedPairKeys;
+            if (arr == null) return null;
+            return new Set(arr);
+        },
+        /**
          * Phenotype–factor pairs cited in mechanism results: from flattened KG rows
          * (predicate associated_with) referenced by each hypothesis supporting_row_ids.
          */
@@ -1437,9 +1502,13 @@ Return ONLY a JSON object:
             }
             return keys;
         },
-        /** Checked (included) data-table rows whose phenotype–factor pair is not in any mechanism result. */
+        /**
+         * Included rows that are either (a) not placed in any semantic group for the research context, or
+         * (b) placed in a group but not cited in any mechanism’s supporting evidence (or covered by ad-hoc generate).
+         */
         remainingGeneSetClusterRows() {
-            const keys = this.mechanismResultPhenotypeFactorPairKeys;
+            const mechKeys = this.mechanismResultPhenotypeFactorPairKeys;
+            const semSet = this.semanticGroupedPairKeySet;
             const adHoc = new Set(this.adHocCoveredRowKeys || []);
             return (this.factorDataTableRows || []).filter((r) => {
                 if (!r.included) return false;
@@ -1447,14 +1516,28 @@ Return ONLY a JSON object:
                 const p = String(r.phenotype).trim();
                 const fl = r.factorLabel != null ? String(r.factorLabel).trim() : "";
                 const fid = r.factor != null ? String(r.factor).trim() : "";
-                if (keys.has(`${p}|${this.collapseWsLower(fl)}`)) return false;
-                if (keys.has(`${p}|${this.collapseWsLower(fid)}`)) return false;
-                return true;
+                const mechCovers =
+                    mechKeys.has(`${p}|${this.collapseWsLower(fl)}`) ||
+                    mechKeys.has(`${p}|${this.collapseWsLower(fid)}`);
+                if (semSet === null) {
+                    return !mechCovers;
+                }
+                const inSemanticGroup =
+                    semSet.has(`${p}|${this.collapseWsLower(fl)}`) ||
+                    semSet.has(`${p}|${this.collapseWsLower(fid)}`);
+                if (!inSemanticGroup) return true;
+                return !mechCovers;
             });
         },
         remainingFactorDataTableRowsWithRationaleMeta() {
             const remKeys = new Set((this.remainingGeneSetClusterRows || []).map((r) => this.getRowKey(r)));
             return (this.factorDataTableRowsWithRationaleMeta || []).filter((r) => remKeys.has(this.getRowKey(r)));
+        },
+        /** Fixed top-right bubble: first card visible but more groups still generating. */
+        showMechanismHypothesisStreamBubble() {
+            const t = this.mechanismHypothesisStreamTotal;
+            const d = this.mechanismHypothesisStreamDone;
+            return t > 1 && d >= 1 && d < t;
         },
     },
     created() {
@@ -1464,10 +1547,16 @@ Return ONLY a JSON object:
             system_prompt: this.extractSystemPropmpt
         });
 
+        this.llmMechanismGrouping = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-mini",
+            system_prompt: this.mechanismGroupingSystemPrompt,
+        });
+
         this.llmAnalyze = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
-            system_prompt: this.mechanismSystemPrompt
+            system_prompt: this.mechanismHypothesisSystemPrompt,
         });
 
         this.llmFilter = createLLMClient({
@@ -1493,6 +1582,7 @@ Return ONLY a JSON object:
     beforeDestroy() {
         this.stopStepTimer();
         this.stopRemainingGenerateTimer();
+        this.stopMechanismHypothesisStreamTimer();
     },
     methods: {
          showByorTab(){
@@ -1718,6 +1808,30 @@ Return ONLY a JSON object:
             }
             this.remainingGenerateStartedAt = null;
         },
+        startMechanismHypothesisStreamTimer() {
+            this.stopMechanismHypothesisStreamTimer();
+            this.mechanismHypothesisStreamStartedAt = Date.now();
+            this.mechanismHypothesisStreamNow = Date.now();
+            this.mechanismHypothesisStreamTimerId = setInterval(() => {
+                this.mechanismHypothesisStreamNow = Date.now();
+            }, 250);
+        },
+        stopMechanismHypothesisStreamTimer() {
+            if (this.mechanismHypothesisStreamTimerId != null) {
+                clearInterval(this.mechanismHypothesisStreamTimerId);
+                this.mechanismHypothesisStreamTimerId = null;
+            }
+            this.mechanismHypothesisStreamStartedAt = null;
+        },
+        /** Elapsed time for multi-group mechanistic hypothesis run (bubble). */
+        formatMechanismHypothesisStreamElapsed() {
+            if (this.mechanismHypothesisStreamStartedAt == null) return "";
+            const ms = Math.max(0, (this.mechanismHypothesisStreamNow || Date.now()) - this.mechanismHypothesisStreamStartedAt);
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}m${String(seconds).padStart(2, "0")}s`;
+        },
         /** Elapsed time label for remaining-cluster Generate (same style as step timer). */
         formatRemainingGenerateElapsed() {
             if (this.remainingGenerateStartedAt == null) return "";
@@ -1933,6 +2047,27 @@ Return ONLY a JSON object:
             if (!item || item.phenotype == null || item.factor == null) return "";
             return `${item.phenotype}|${item.factor}`;
         },
+        /**
+         * Normalized keys `${phenotype}|${collapseWsLower(factor label)}` for pairs the grouping LLM assigned to groups.
+         * @param {Array<{ associated_pairs?: Array<{phenotype,factor}> }>} groups
+         * @returns {string[]}
+         */
+        buildSemanticGroupedPairKeysFromGroups(groups) {
+            const out = [];
+            const seen = new Set();
+            (groups || []).forEach((g) => {
+                (g.associated_pairs || []).forEach((p) => {
+                    const phen = p.phenotype != null ? String(p.phenotype).trim() : "";
+                    const fac = p.factor != null ? String(p.factor).trim() : "";
+                    if (!phen || !fac) return;
+                    const k = `${phen}|${this.collapseWsLower(fac)}`;
+                    if (seen.has(k)) return;
+                    seen.add(k);
+                    out.push(k);
+                });
+            });
+            return out;
+        },
         getSubtableCurrentPage(item) {
             const key = this.getRowKey(item);
             return (this.subtableCurrentPages || {})[key] || 1;
@@ -2082,6 +2217,7 @@ Return ONLY a JSON object:
             this.searchCriteria = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
+            this.semanticGroupedPairKeys = null;
             this.error_search_criteria = false;
             this.steps = [];
             this.stepsTime = null;
@@ -2276,6 +2412,7 @@ Return ONLY a JSON object:
                 this.matchedPhenotype = null;
                 this.lastKgTriples = [];
                 this.mechanisms = null;
+                this.semanticGroupedPairKeys = null;
                 this.phenotypeDescriptionById = {};
                 const phenotypeIdsToLoad = [];
                 let firstMatched = null;
@@ -2414,6 +2551,7 @@ Return ONLY a JSON object:
                 this.matchedPhenotype = null;
                 this.lastKgTriples = [];
                 this.mechanisms = null;
+                this.semanticGroupedPairKeys = null;
                 this.phenotypeDescriptionById = {};
 
                 const searchTerm = [...mechanismTerms, ...this.lastPhenotypeTerms].join(" ");
@@ -2506,7 +2644,7 @@ Return ONLY a JSON object:
                 this.setLoadStatus("Filtering by research context (CSV)…");
                 this.setStep({
                     id: "4",
-                    title: "LLM: Filtering factors by relevance to user query"
+                    title: "LLM: Filtering gene set clusters by relevance to user query"
                 })
                 const csvString = this.flattenToCsv(collected, ["id", "factor_label", "phenotype", "top_gene_sets", "gene_set_description", "score"]);
                 let selected = await this.filterPhenotypeFactorsByContext(csvString, researchContext);
@@ -2816,12 +2954,11 @@ Return ONLY a JSON object:
             const kgTriples = this.transformMergedDataToKG(this.factorData, 'factors');
             console.log("FactorBaseReveal: KG triples", kgTriples);
             this.lastKgTriples = kgTriples;
-            this.setLoadStatus("Generating mechanistic hypotheses…");
-            //this.setLoadStep("LLM: Generating mechanistic hypotheses");
+            this.setLoadStatus("Semantic groupings…");
             this.setStep({
                 id: "8",
-                title: "LLM: Generating mechanistic hypotheses"
-            })
+                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+            });
             this.requestMechanismHypotheses(this.factorData, kgTriples);
         },
         /**
@@ -2913,8 +3050,7 @@ Return ONLY a JSON object:
                 }
             }
 
-            this.setLoadStatus("Filtering factors…");
-            //this.setLoadStep("LLM: Filtering factors by relevance to user query");
+            this.setLoadStatus("Filtering gene set clusters…");
             this.setStep({
                 id: "5",
                 title: "LLM: Filtering gene set clusters by relevance to user query"
@@ -3109,8 +3245,12 @@ Return ONLY a JSON object:
         retryMechanismHypotheses() {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
-            this.setLoadStatus("Generating mechanistic hypotheses…");
+            this.setLoadStatus("Semantic groupings…");
             this.loadComplete = false;
+            this.setStep({
+                id: "8",
+                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+            });
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
                 : this.transformMergedDataToKG(this.factorData, 'factors');
@@ -3169,14 +3309,21 @@ Return ONLY a JSON object:
             return [header, ...rows].join("\n");
         },
         /**
-         * Build user prompt from KG + factorData and send to LLM for mechanism hypotheses.
-         * KG is sent as flattened CSV to save tokens. On timeout (504 or network/CORS), retries up to 3 times.
+         * Shared KG + factor summary block for mechanism LLM steps (grouping and per-group hypotheses).
+         */
+        buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext) {
+            return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+        },
+        /**
+         * Two-phase mechanism generation: (1) semantic grouping LLM, (2) hypothesis LLM per group in one call.
+         * KG is flattened CSV. Retries up to 3 times per phase on timeout.
          */
         requestMechanismHypotheses(factorData, kgTriples) {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
+            this.semanticGroupedPairKeys = null;
 
-            console.log('kgTriples', kgTriples);
+            console.log("kgTriples", kgTriples);
 
             const researchContext =
                 (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
@@ -3191,79 +3338,287 @@ Return ONLY a JSON object:
                 csv: kgBlock,
             });
             const factorSummary = this.serializeFactorDataForPrompt(factorData);
-            const fullPrompt = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+            const baseContextSuffix = this.buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext);
+            const groupingUserPrompt = `${baseContextSuffix}\n\nUsing the research context, form "groups" of Phenotype–Factor pairs from rows with predicate "associated_with" that belong together mechanistically. Omit pairs that are not context-relevant. Return ONLY JSON with a "groups" array as specified in your instructions (use [] if none qualify).`;
             const maxAttempts = 3;
 
-            const runAttempt = (attempt) => {
+            const runGroupingAttempt = (attempt) => {
                 return new Promise((resolve) => {
                     let resolved = false;
-                    const finish = (failed, err, retry) => {
+                    const finish = (payload) => {
                         if (resolved) return;
                         resolved = true;
-                        if (!retry) {
-                            this.setLoadStatus("Ready", true);
-                            //this.setLoadStep("Complete.");
-                            this.setStep({
-                                id: "9",
-                                title: "Complete."
-                            }, true)
-                            this.loadComplete = true;
-                            this.showTab = 'results';
-                        }
-                        resolve({ failed, err, retry });
+                        resolve(payload);
                     };
-                    this.llmAnalyze.sendPrompt({
-                        userPrompt: fullPrompt,
+                    let groupsValidated = null;
+                    this.llmMechanismGrouping.sendPrompt({
+                        userPrompt: groupingUserPrompt,
                         onResponse: (response) => {
-                            this.error_mechanisms = false;
-                            console.log("FactorBaseReveal: mechanism LLM response", response);
+                            console.log("FactorBaseReveal: mechanism grouping LLM response", response);
                             const json = this.parseLLMResponse(response);
-                            if (json && typeof json.overall_summary === "string") {
-                                this.mechanisms_summary = json.overall_summary;
-                            } else if (json && Array.isArray(json.hypotheses) && json.hypotheses.length) {
-                                this.mechanisms_summary = null;
-                            }
-                            if (json && Array.isArray(json.hypotheses)) {
-                                this.mechanisms = this.normalizeMechanismHypotheses(json.hypotheses);
-                            }
+                            const groups = json && Array.isArray(json.groups) ? json.groups : null;
+                            const valid =
+                                groups != null &&
+                                groups.every(
+                                    (g) =>
+                                        g &&
+                                        typeof g === "object" &&
+                                        Array.isArray(g.associated_pairs) &&
+                                        g.associated_pairs.length > 0 &&
+                                        g.associated_pairs.every(
+                                            (p) =>
+                                                p &&
+                                                p.phenotype != null &&
+                                                String(p.phenotype).trim() !== "" &&
+                                                p.factor != null &&
+                                                String(p.factor).trim() !== ""
+                                        )
+                                );
+                            groupsValidated = valid ? groups : null;
                         },
                         onError: (err) => {
-                            console.warn("FactorBaseReveal: mechanism LLM error", err);
+                            console.warn("FactorBaseReveal: mechanism grouping LLM error", err);
                             const isTimeout = this.isMechanismTimeoutError(err);
                             if (isTimeout && attempt < maxAttempts) {
-                                finish(false, err, true);
+                                finish({ retry: true, failed: false, err, groups: null });
                             } else {
-                                this.error_mechanisms = true;
-                                this.error_msg_mechanisms =
-                                    isTimeout && attempt >= maxAttempts
-                                        ? "Query failed after 3 attempts (timeout)."
-                                        : (err && err.message) ? err.message : "Request failed or timed out.";
-                                this.setStep({
-                                    type: 'error',
-                                    title: "Request failed or timed out.",
-                                })
-                                finish(true, err, false);
+                                finish({
+                                    retry: false,
+                                    failed: true,
+                                    err,
+                                    groups: null,
+                                    isTimeout,
+                                });
                             }
                         },
                         onEnd: () => {
-                            finish(false, null, false);
+                            if (resolved) return;
+                            if (groupsValidated) {
+                                finish({ retry: false, failed: false, err: null, groups: groupsValidated });
+                            } else {
+                                finish({
+                                    retry: false,
+                                    failed: true,
+                                    err: new Error(
+                                        "Semantic groupings returned no valid groups (check LLM JSON)."
+                                    ),
+                                    groups: null,
+                                });
+                            }
+                        },
+                    });
+                });
+            };
+
+            /**
+             * One LLM call for a single semantic group. Returns { retry, failed, err, hypothesis }.
+             * Hypothesis is merged with fixed associated_pairs from the input group.
+             */
+            const runHypothesisAttemptForGroup = (attempt, group, groupIndex) => {
+                const groupBlock = JSON.stringify(group, null, 2);
+                const hypothesisUserPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${groupBlock}\n\`\`\`\n\n${baseContextSuffix}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
+                return new Promise((resolve) => {
+                    let resolved = false;
+                    const finish = (payload) => {
+                        if (resolved) return;
+                        resolved = true;
+                        resolve(payload);
+                    };
+                    this.llmAnalyze.sendPrompt({
+                        userPrompt: hypothesisUserPrompt,
+                        onResponse: (response) => {
+                            this.error_mechanisms = false;
+                            console.log(
+                                "FactorBaseReveal: mechanism hypothesis LLM response (group",
+                                groupIndex,
+                                ")",
+                                response
+                            );
+                            const json = this.parseLLMResponse(response);
+                            if (!json) {
+                                finish({
+                                    retry: false,
+                                    failed: true,
+                                    err: new Error("Could not parse LLM JSON for hypothesis."),
+                                    hypothesis: null,
+                                });
+                                return;
+                            }
+                            if (json && typeof json.overall_summary === "string") {
+                                this.mechanisms_summary = json.overall_summary;
+                            } else {
+                                this.mechanisms_summary = null;
+                            }
+                            let hypotheses = json && Array.isArray(json.hypotheses) ? json.hypotheses : [];
+                            let h = hypotheses[0];
+                            if (!h && json && json.hypothesis && typeof json.hypothesis === "object") {
+                                h = json.hypothesis;
+                            }
+                            if (!h) {
+                                finish({
+                                    retry: false,
+                                    failed: true,
+                                    err: new Error("No hypothesis returned for this group (check LLM JSON)."),
+                                    hypothesis: null,
+                                });
+                                return;
+                            }
+                            const g = group;
+                            const out = { ...h };
+                            if (Array.isArray(g.associated_pairs)) {
+                                out.associated_pairs = JSON.parse(JSON.stringify(g.associated_pairs));
+                            }
+                            if (!out.group_name && g.group_name) out.group_name = g.group_name;
+                            finish({ retry: false, failed: false, err: null, hypothesis: out });
+                        },
+                        onError: (err) => {
+                            console.warn("FactorBaseReveal: mechanism hypothesis LLM error (group)", groupIndex, err);
+                            const isTimeout = this.isMechanismTimeoutError(err);
+                            if (isTimeout && attempt < maxAttempts) {
+                                finish({ retry: true, failed: false, err, hypothesis: null });
+                            } else {
+                                finish({ retry: false, failed: true, err, hypothesis: null });
+                            }
+                        },
+                        onEnd: () => {
+                            if (resolved) return;
+                            finish({
+                                retry: false,
+                                failed: true,
+                                err: new Error("Incomplete LLM response for hypothesis."),
+                                hypothesis: null,
+                            });
                         },
                     });
                 });
             };
 
             (async () => {
+                let groups = null;
                 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    this.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${maxAttempts})`);
-                    const result = await runAttempt(attempt);
-                    if (result.retry) continue;
-                    if (result.failed) return;
+                    this.setLoadStatus(`Semantic groupings… (attempt ${attempt}/${maxAttempts})`);
+                    const gr = await runGroupingAttempt(attempt);
+                    if (gr.retry) continue;
+                    if (gr.failed) {
+                        this.error_mechanisms = true;
+                        this.error_msg_mechanisms =
+                            gr.err && gr.err.message
+                                ? gr.err.message
+                                : "Semantic groupings failed or returned invalid groups.";
+                        this.setStep({
+                            type: "error",
+                            title: "Semantic groupings failed.",
+                        });
+                        this.setLoadStatus("Ready", true);
+                        this.loadComplete = true;
+                        return;
+                    }
+                    groups = gr.groups;
+                    break;
+                }
+                if (!groups) {
+                    this.error_mechanisms = true;
+                    this.error_msg_mechanisms = "Semantic groupings failed after 3 attempts (timeout).";
+                    this.setLoadStatus("Ready", true);
+                    this.loadComplete = true;
                     return;
                 }
-                this.error_mechanisms = true;
-                this.error_msg_mechanisms = "Query failed after 3 attempts (timeout).";
+
+                this.semanticGroupedPairKeys = this.buildSemanticGroupedPairKeysFromGroups(groups);
+
+                this.setStep({
+                    id: "8",
+                    substep: {
+                        id: "8.1",
+                        title: "Semantic groups",
+                        result: {
+                            title: "Context-relevant grouped pairs (ungrouped pairs appear under Remaining)",
+                            result: groups,
+                        },
+                    },
+                });
+                this.setStep({
+                    id: "8.2",
+                    title: "LLM: Generating mechanistic hypotheses per group",
+                });
+
+                this.mechanismHypothesisStreamTotal = groups.length;
+                this.mechanismHypothesisStreamDone = 0;
+                this.mechanismHypothesisActiveGroupName = "";
+                this.mechanisms = [];
+                if (groups.length > 0) {
+                    this.startMechanismHypothesisStreamTimer();
+                }
+                for (let gi = 0; gi < groups.length; gi++) {
+                    const group = groups[gi];
+                    const gName =
+                        (group.group_name != null && String(group.group_name).trim() !== "")
+                            ? String(group.group_name).trim()
+                            : `Group ${gi + 1}`;
+                    this.mechanismHypothesisActiveGroupName = gName;
+                    this.setStep({
+                        id: "8.2",
+                        substep: {
+                            id: `8.2.${gi + 1}`,
+                            title: gName,
+                        },
+                    });
+                    let got = null;
+                    let lastFailed = null;
+                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                        this.setLoadStatus(
+                            `Generating mechanistic hypothesis for: ${gName}… (attempt ${attempt}/${maxAttempts})`
+                        );
+                        const res = await runHypothesisAttemptForGroup(attempt, group, gi);
+                        if (res.retry) continue;
+                        if (res.failed) {
+                            lastFailed = res.err;
+                            break;
+                        }
+                        got = res.hypothesis;
+                        break;
+                    }
+                    if (!got) {
+                        this.stopMechanismHypothesisStreamTimer();
+                        this.mechanismHypothesisStreamTotal = 0;
+                        this.mechanismHypothesisStreamDone = 0;
+                        this.mechanismHypothesisActiveGroupName = "";
+                        this.error_mechanisms = true;
+                        this.error_msg_mechanisms =
+                            lastFailed && lastFailed.message
+                                ? lastFailed.message
+                                : "Mechanistic hypothesis generation failed for a group.";
+                        this.setStep({
+                            type: "error",
+                            title: "Mechanistic hypothesis generation failed.",
+                        });
+                        this.setLoadStatus("Ready", true);
+                        this.loadComplete = true;
+                        return;
+                    }
+                    const normalized = this.normalizeMechanismHypotheses([got]);
+                    this.mechanisms = [...(this.mechanisms || []), ...normalized];
+                    this.mechanismHypothesisStreamDone = gi + 1;
+                    if (gi === 0) {
+                        this.showTab = "results";
+                    }
+                    this.setLoadStatus(`Generated ${gi + 1} of ${groups.length} mechanistic hypotheses…`);
+                }
+
+                this.stopMechanismHypothesisStreamTimer();
+                this.mechanismHypothesisStreamTotal = 0;
+                this.mechanismHypothesisStreamDone = 0;
+                this.mechanismHypothesisActiveGroupName = "";
                 this.setLoadStatus("Ready", true);
+                this.setStep(
+                    {
+                        id: "9",
+                        title: "Complete.",
+                    },
+                    true
+                );
                 this.loadComplete = true;
+                this.showTab = "results";
             })();
         },
         /**
@@ -3322,7 +3677,24 @@ Return ONLY a JSON object:
                     : "";
             const factorSummary = this.serializeFactorDataForPrompt(subset);
             const kgBlock = this.flattenedKGToCSV(flattened);
-            const fullPrompt = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+            const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+            const factorLabelForKg =
+                row.factorLabel != null && String(row.factorLabel).trim() !== ""
+                    ? String(row.factorLabel).trim()
+                    : row.factor != null
+                      ? String(row.factor).trim()
+                      : "";
+            const singleGroup = {
+                group_name: factorLabelForKg ? `${factorLabelForKg} × ${row.phenotype}` : `Remaining pair ${pairKey}`,
+                associated_pairs: [
+                    {
+                        phenotype: String(row.phenotype).trim(),
+                        factor: factorLabelForKg,
+                    },
+                ],
+                grouping_rationale: "Generated from remaining phenotype–gene set cluster table.",
+            };
+            const fullPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${JSON.stringify(singleGroup, null, 2)}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
 
             let finished = false;
             const finish = () => {
@@ -4043,5 +4415,87 @@ Return ONLY a JSON object:
 ::v-deep .candidate-genes-th-raw {
     background: #e2e3e5 !important;
     color: #383d41;
+}
+
+/* Fixed toast while incremental mechanism hypotheses still run (top-right avoids page footer clipping) */
+.mechanism-hypothesis-stream-bubble {
+    position: fixed;
+    top: max(24px, env(safe-area-inset-top, 0px));
+    right: max(24px, env(safe-area-inset-right, 0px));
+    z-index: 10050;
+    max-width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+.mechanism-hypothesis-stream-bubble__inner {
+    background: #ff6600;
+    color: #fff;
+    padding: 14px 18px 16px;
+    border-radius: 18px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+.mechanism-hypothesis-stream-bubble__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.mechanism-hypothesis-stream-bubble__pulse {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    animation: mechanism-stream-pulse 1.4s ease-out infinite;
+}
+@keyframes mechanism-stream-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+.mechanism-hypothesis-stream-bubble__title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+}
+.mechanism-hypothesis-stream-bubble__text {
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    opacity: 0.98;
+}
+.mechanism-hypothesis-stream-bubble__current {
+    font-size: 0.88rem;
+    line-height: 1.4;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+.mechanism-hypothesis-stream-bubble__current-label {
+    opacity: 0.85;
+    margin-right: 6px;
+}
+.mechanism-hypothesis-stream-bubble__progress {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0.95;
+    letter-spacing: 0.02em;
+}
+.mechanism-hypothesis-stream-bubble__elapsed {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    opacity: 0.92;
+    letter-spacing: 0.03em;
 }
 </style>
