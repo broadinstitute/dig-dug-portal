@@ -3032,6 +3032,34 @@ Return ONLY a JSON object:
             };
         },
         /**
+         * Keep only Gene nodes whose symbols appear in candidate_genes; drop other genes and edges that reference them.
+         * Phenotype / Factor / Pathway (gene set) nodes are unchanged.
+         */
+        filterSupportingNetworkToCandidateGenes(network, candidateGenes) {
+            const nodesIn = network && Array.isArray(network.nodes) ? network.nodes : [];
+            const edgesIn = network && Array.isArray(network.edges) ? network.edges : [];
+            const allowed = new Set();
+            (candidateGenes || []).forEach((g) => {
+                const sym = g && g.gene != null ? String(g.gene).trim() : "";
+                if (sym) allowed.add(sym.toUpperCase());
+            });
+            if (allowed.size === 0) return { nodes: nodesIn, edges: edgesIn };
+
+            const geneSymbolKey = (n) => {
+                const id = n && n.id != null ? String(n.id).trim() : "";
+                const label = n && n.label != null ? String(n.label).trim() : "";
+                return (id || label).toUpperCase();
+            };
+
+            const nodes = nodesIn.filter((n) => {
+                if (!n || n.type !== "Gene") return true;
+                return allowed.has(geneSymbolKey(n));
+            });
+            const nodeIds = new Set(nodes.map((n) => n.id));
+            const edges = edgesIn.filter((e) => e && nodeIds.has(e.source) && nodeIds.has(e.target));
+            return { nodes, edges };
+        },
+        /**
          * Get combined, gwas, functional scores for a gene from flattened KG (contains_gene rows with context_*).
          * @param {Array} flattened - Flat rows from flattenKGData.
          * @param {string} geneSymbol - Gene symbol (object of contains_gene row).
@@ -3092,6 +3120,19 @@ Return ONLY a JSON object:
                     out.relevant_factors = relevant_factors;
                     out.relevant_gene_sets = relevant_gene_sets;
                     out.gene_connections = this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids);
+                }
+                const candForNet = out.candidate_genes || h.candidate_genes;
+                if (
+                    Array.isArray(candForNet) &&
+                    candForNet.length > 0 &&
+                    out.supporting_network &&
+                    Array.isArray(out.supporting_network.nodes) &&
+                    out.supporting_network.nodes.length > 0
+                ) {
+                    out.supporting_network = this.filterSupportingNetworkToCandidateGenes(
+                        out.supporting_network,
+                        candForNet
+                    );
                 }
                 return out;
             });
