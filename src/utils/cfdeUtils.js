@@ -20147,6 +20147,21 @@ export function findPhenotypeById(searchTerm) {
     return null;
 }
 
+/**
+ * Resolve a stored phenotype id to a user-facing label using CFDE maps only (human + mouse).
+ * Does not consult API / description maps — use alongside those for full display formatting.
+ * @param {string|number|null|undefined} phenotypeId
+ * @returns {string|null}
+ */
+export function resolveCfdePhenotypeLabel(phenotypeId) {
+    if (phenotypeId == null) return null;
+    const idStr = String(phenotypeId).trim();
+    if (!idStr) return null;
+    if (cfdePhenotypes[idStr]) return cfdePhenotypes[idStr];
+    if (cfdeMousePhenotypes[idStr]) return cfdeMousePhenotypes[idStr];
+    return null;
+}
+
 export function getCfdePhenotypes() {
     return cfdePhenotypes;
 }
@@ -20172,6 +20187,7 @@ export function getCfdeMousePhenotypesInList() {
 export default {
     findPhenotypeByName,
     findPhenotypeById,
+    resolveCfdePhenotypeLabel,
     getCfdePhenotypes,
     getCfdeMousePhenotypes,
     getCfdePhenotypesInList,

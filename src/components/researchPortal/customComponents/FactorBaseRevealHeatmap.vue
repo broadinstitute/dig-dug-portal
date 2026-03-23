@@ -65,6 +65,7 @@
 <script>
 import Vue from "vue";
 import JSZip from "jszip";
+import { resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils";
 
 export default Vue.component("pigean-factors-viz", {
   props: {
@@ -124,7 +125,12 @@ export default Vue.component("pigean-factors-viz", {
       const keys = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
       keys.sort();
       const descById = this.phenotypeDescriptionById || {};
-      return keys.map((p) => ({ value: p, text: (descById[p] != null && descById[p] !== "") ? String(descById[p]) : p }));
+      return keys.map((p) => {
+        const fromSearch = descById[p] != null && String(descById[p]).trim() !== "" ? String(descById[p]).trim() : "";
+        const fromCfde = resolveCfdePhenotypeLabel(p);
+        const text = fromSearch || fromCfde || p;
+        return { value: p, text };
+      });
     },
     /**
      * Derived heatmap data for the selected phenotype: columns = gene sets first, then genes;

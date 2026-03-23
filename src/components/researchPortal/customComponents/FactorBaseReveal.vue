@@ -262,7 +262,7 @@
                                                                     <td class="align-middle">{{ group.group_name }}</td>
                                                                     <td class="align-middle">
                                                                         <div v-for="pair in group.associated_pairs" :key="`${group.key}-${pair.phenotype}-${pair.factor}`">
-                                                                            <span>{{ pair.phenotype }} - {{ pair.factor }}</span>
+                                                                            <span>{{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}</span>
                                                                         </div>
                                                                     </td>
                                                                     <td class="align-middle">{{ group.grouping_rationale }}</td>
@@ -859,7 +859,7 @@
                                                         </td>
                                                         <td class="align-middle">
                                                             <div v-for="(pair, pidx) in (group.associated_pairs || [])" :key="'rem-pair-' + idx + '-' + pidx">
-                                                                {{ pair.phenotype }} - {{ pair.factor }}
+                                                                {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
                                                             </div>
                                                         </td>
                                                         <td class="align-middle">
@@ -1271,7 +1271,7 @@ import JSZip from "jszip";
 
 import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
-import { kcURL } from "@/utils/cfdeUtils";
+import { kcURL, resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils";
 import uiUtils from "@/utils/uiUtils";
 
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork.vue";
@@ -2533,11 +2533,16 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
         toggleStatus(i) {
             this.statusSteps[i].expanded = !this.statusSteps[i].expanded
         },
-        /** Return human-readable phenotype for display; use phenotype id for queries. */
+        /** Return human-readable phenotype for display; use phenotype id for queries. Does not mutate stored data. */
         getPhenotypeDisplay(phenotypeId) {
             if (phenotypeId == null) return "";
+            const idStr = String(phenotypeId).trim();
+            if (!idStr) return "";
             const desc = this.phenotypeDescriptionById && this.phenotypeDescriptionById[phenotypeId];
-            return desc != null && desc !== "" ? String(desc) : String(phenotypeId);
+            if (desc != null && String(desc).trim() !== "") return String(desc).trim();
+            const cfdeLabel = resolveCfdePhenotypeLabel(phenotypeId);
+            if (cfdeLabel) return String(cfdeLabel);
+            return idStr;
         },
         /** Comma-separated list of phenotype descriptions for on-screen report. */
         getRelevantPhenotypesDisplay(phenotypeIds) {
