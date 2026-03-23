@@ -222,8 +222,9 @@ export default Vue.component("pigean-factors-viz", {
       const margin = { top: 100, bottom: 20 };
       const legendHeight = 60;
       const scrollbarHeight = 30;
-      const extraPadding = 100;
-      const minHeight = parseInt(this.height) || 500;
+      const extraPadding = 70;
+      const parsedHeight = parseInt(this.height);
+      const minHeight = Number.isFinite(parsedHeight) ? parsedHeight : 0;
       const maxHeight = 2000;
 
       if (this.useFactorBaseRevealData && this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
@@ -238,6 +239,8 @@ export default Vue.component("pigean-factors-viz", {
         const totalRows = numSpecialRows + numFactors;
         const calculatedHeight = totalRows * cellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight + extraPadding;
         dynamicHeight = Math.min(Math.max(calculatedHeight, minHeight), maxHeight) + "px";
+      } else if (!Number.isFinite(parsedHeight)) {
+        dynamicHeight = "260px";
       }
 
       return {

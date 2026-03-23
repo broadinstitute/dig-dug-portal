@@ -319,24 +319,6 @@
 
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
                             <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
-                            <div
-                                v-if="selectionDiffersFromFiltered"
-                                class="mb-3 d-flex align-items-center"
-                                style="gap:15px;"
-                            >
-                                <div class="font-weight-bold" style="color: #000000; font-size: 1.2em;">
-                                    Regroup the selected gene set clusters?
-                                </div>
-                                <button
-                                    class="btn btn-cfde"
-                                    style="min-width: 120px;"
-                                    :disabled="regroupingSelectedPairs"
-                                    @click="regroupSelectedGeneSetClusters"
-                                >
-                                    <b-spinner v-if="regroupingSelectedPairs" small class="mr-1"></b-spinner>
-                                    <span>{{ regroupingSelectedPairs ? 'Regrouping…' : 'Regroup' }}</span>
-                                </button>
-                            </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
                                 <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
@@ -354,6 +336,33 @@
                             -->
                             <div :class="{ collapsed: !display_phenotypes_factors }" class="criteria-detail">
                             <div class="mt-2">
+                                <div class="mb-4" style="margin-top:20px;">
+                                    <factor-base-reveal-heatmap
+                                        ref="factorBaseRevealHeatmap"
+                                        :factor-data="factorData"
+                                        :factor-data-table-rows="factorDataTableRowsFiltered"
+                                        :phenotype-description-by-id="phenotypeDescriptionById"
+                                        height="auto"
+                                    />
+                                </div>
+                                <div
+                                    v-if="selectionDiffersFromFiltered"
+                                    class="mb-3 d-flex align-items-center"
+                                    style="gap:15px;"
+                                >
+                                    <div class="font-weight-bold" style="color: #000000; font-size: 1.2em;">
+                                        Regroup the selected gene set clusters?
+                                    </div>
+                                    <button
+                                        class="btn btn-cfde"
+                                        style="min-width: 120px;"
+                                        :disabled="regroupingSelectedPairs"
+                                        @click="regroupSelectedGeneSetClusters"
+                                    >
+                                        <b-spinner v-if="regroupingSelectedPairs" small class="mr-1"></b-spinner>
+                                        <span>{{ regroupingSelectedPairs ? 'Regrouping…' : 'Regroup' }}</span>
+                                    </button>
+                                </div>
                                     <!-- Phenotype path: Selected Rationale section above table -->
                                     <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
                                         <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
@@ -668,15 +677,6 @@
                                             :per-page="mainTablePerPage"
                                         />
                                     </div>
-                                <div class="mt-4">
-                                    <factor-base-reveal-heatmap
-                                        ref="factorBaseRevealHeatmap"
-                                        :factor-data="factorData"
-                                        :factor-data-table-rows="factorDataTableRowsFiltered"
-                                        :phenotype-description-by-id="phenotypeDescriptionById"
-                                        height="500px"
-                                    />
-                                </div>
                             </div>
                             </div>
                         </div>
