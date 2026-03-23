@@ -186,7 +186,8 @@
                                         style="display:flex; gap: 5px; align-items: center;" 
                                         :style="`cursor: ${step.substeps.length>0 && i!==steps.length-1?'pointer':'default'}`"
                                     >
-                                        <b-spinner v-if="i===steps.length-1 && !loadComplete" small></b-spinner>
+                                        <b-spinner v-if="i===steps.length-1 && !loadComplete && !stepApprovalGateActive" small></b-spinner>
+                                        <span v-else-if="i===steps.length-1 && !loadComplete && stepApprovalGateActive">▶</span>
                                         <span v-else-if="step.substeps.length>0">{{ step.expanded ? "▼" : "▶" }}</span>
                                         <span v-else>♦</span>
                                         <span style="font-weight:bold">{{ step.title }}</span>
@@ -204,7 +205,27 @@
                                             <div v-if="substep.result && substep.expanded" style="padding:0 0 0 18px">
                                                 <div v-html="substep.result.title"></div>
                                                 <pre style="background: #eee; padding: 10px; height: 100px; resize:vertical; overflow: auto;">{{ substep.result.result }}</pre>
+                                                <div
+                                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '1' && step.id === '1' && substep.id === '1.1'"
+                                                    style="display:flex; gap:10px; margin-top:10px;"
+                                                >
+                                                    <button class="btn btn-outline-secondary btn-sm" @click="openSearchCriteriaEditorFromGate">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-primary btn-sm" @click="approveStepGate">
+                                                        Continue
+                                                    </button>
+                                                </div>
                                             </div>
+                                        </div>
+                                        <div
+                                            v-if="stepApprovalGateActive && stepApprovalGateStepId === step.id && step.id !== '1'"
+                                            style="padding: 10px 0 0 18px;"
+                                        >
+                                            <div class="small text-muted mb-2">{{ stepApprovalGateMessage }}</div>
+                                            <button class="btn btn-primary btn-sm" @click="approveStepGate">
+                                                Continue
+                                            </button>
                                         </div>
                                     </div>
                                 </template>
@@ -1049,6 +1070,52 @@
                 </div>
             </div>
         </div>
+
+        <b-modal
+            v-model="showSearchCriteriaEditModal"
+            title="Edit extracted terms"
+            centered
+            hide-header-close
+            no-close-on-backdrop
+            no-close-on-esc
+            hide-footer
+        >
+            <b-table
+                :items="searchCriteriaEditRows"
+                :fields="[
+                    { key: 'type', label: 'Type', thStyle: { width: '34%' } },
+                    { key: 'term', label: 'Term' }
+                ]"
+                small
+                striped
+                responsive="sm"
+                head-variant="light"
+            >
+                <template #cell(type)="row">
+                    <span class="font-weight-bold">{{ row.item.type }}</span>
+                </template>
+                <template #cell(term)="row">
+                    <textarea
+                        v-if="row.item.type === 'Research context'"
+                        class="form-control form-control-sm"
+                        v-model="row.item.term"
+                        rows="4"
+                        style="min-height: 6.5em; resize: vertical;"
+                        placeholder="Enter research context"
+                    ></textarea>
+                    <input
+                        v-else
+                        type="text"
+                        class="form-control form-control-sm"
+                        v-model="row.item.term"
+                        placeholder="Comma-separated terms"
+                    />
+                </template>
+            </b-table>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-primary btn-sm" @click="saveSearchCriteriaFromModal">Save</button>
+            </div>
+        </b-modal>
     </div>
 </template>
 
@@ -1089,6 +1156,8 @@ export default Vue.component("factor-base-reveal", {
             display_search_criteria: false,
             edit_search_criteria: false,
             prev_search_criteria: null,
+            showSearchCriteriaEditModal: false,
+            searchCriteriaEditRows: [],
             loading_search_criteria: false,
             error_search_criteria: false,
             error_msg_search_criteria: "",
@@ -1102,7 +1171,8 @@ export default Vue.component("factor-base-reveal", {
             searchApis: {
                 //phenotypes: "https://search.hugeamp.org/api/search/pgvector/phenotypes?q=$searchTerm&similarity_threshold=0.5",
                 phenotypes: "https://search.hugeamp.org/api/search/pgvector/phenotypes-with-factors?q=$searchTerm",
-                phenotypeFactors: "https://search.hugeamp.org/api/search/pgvector/factors?q=$searchTerm",
+                factors: "https://search.hugeamp.org/api/search/pgvector/factors?q=$searchTerm",
+                phenotypeFactors: "https://search.hugeamp.org/api/search/pgvector/factors-and-phenotypes?q=$searchTerm&similarity_threshold=0.3&top_k=30",
                 factor: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-factor?limit=1000&q=$phenotype,cfde",
                 phenotypeGeneSetFactor: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-gene-set-factor?q=$phenotype,cfde,$factor",
                 factorGenes: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-gene-factor?q=$phenotype,cfde,$factor",
@@ -1116,6 +1186,7 @@ export default Vue.component("factor-base-reveal", {
             steps: [],
             stepsTime: null,
             stepsTimer: null,
+            stepsPausedAt: null,
             now: Date.now(),
             loadComplete: false,
             genesAndFactorValuesLoaded: false,
@@ -1127,6 +1198,13 @@ export default Vue.component("factor-base-reveal", {
             error_msg_mechanisms: "",
             mechanisms: null,
             mechanisms_summary: null,
+            /** Semantic groups produced during filtering step; reused for hypothesis generation. */
+            filteredSemanticGroups: null,
+            /** User approval gates at key workflow breakpoints. */
+            stepApprovalGateActive: false,
+            stepApprovalGateStepId: "",
+            stepApprovalGateMessage: "",
+            stepApprovalGateResolver: null,
             /** While incremental hypotheses run: total groups, completed count, current LLM group label (top-right bubble). */
             mechanismHypothesisStreamTotal: 0,
             mechanismHypothesisStreamDone: 0,
@@ -1583,6 +1661,10 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
         this.stopStepTimer();
         this.stopRemainingGenerateTimer();
         this.stopMechanismHypothesisStreamTimer();
+        if (typeof this.stepApprovalGateResolver === "function") {
+            this.stepApprovalGateResolver();
+            this.stepApprovalGateResolver = null;
+        }
     },
     methods: {
          showByorTab(){
@@ -1945,6 +2027,129 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
         currStepTime(step){
             return this.formatTime(this.now - step.timeStart);
         },
+        expandStepById(stepId) {
+            const idx = this.steps.findIndex((s) => s.id === stepId);
+            if (idx !== -1) {
+                this.$set(this.steps[idx], "expanded", true);
+            }
+        },
+        expandStepToResult(stepId) {
+            const idx = this.steps.findIndex((s) => s.id === stepId);
+            if (idx === -1) return;
+            this.$set(this.steps[idx], "expanded", true);
+            (this.steps[idx].substeps || []).forEach((substep, subIdx) => {
+                if (substep && substep.result) {
+                    this.$set(this.steps[idx].substeps[subIdx], "expanded", true);
+                }
+            });
+        },
+        waitForStepApproval(stepId, message, expandToResult = false) {
+            this.showTab = "process";
+            if (expandToResult) this.expandStepToResult(stepId);
+            else this.expandStepById(stepId);
+            this.pauseStepsElapsedForReview();
+            this.stepApprovalGateActive = true;
+            this.stepApprovalGateStepId = String(stepId);
+            this.stepApprovalGateMessage = message || "Review this step, then continue.";
+            this.setLoadStatus("Waiting for your approval to continue…", true);
+            return new Promise((resolve) => {
+                this.stepApprovalGateResolver = resolve;
+            });
+        },
+        pauseStepsElapsedForReview() {
+            if (this.stepsPausedAt != null) return;
+            this.stepsPausedAt = Date.now();
+            if (this.stepsTimer) {
+                clearInterval(this.stepsTimer);
+                this.stepsTimer = null;
+            }
+            this.now = this.stepsPausedAt;
+        },
+        resumeStepsElapsedAfterReview() {
+            if (this.stepsPausedAt == null) return;
+            const resumedAt = Date.now();
+            const pausedMs = Math.max(0, resumedAt - this.stepsPausedAt);
+            if (this.stepsTime != null) {
+                this.stepsTime += pausedMs;
+            }
+            (this.steps || []).forEach((s) => {
+                if (s && s.time == null && s.timeStart != null) {
+                    s.timeStart += pausedMs;
+                }
+            });
+            this.stepsPausedAt = null;
+            this.now = resumedAt;
+            this.stepsTimer = setInterval(() => {
+                this.now = Date.now();
+            }, 500);
+        },
+        buildSearchCriteriaEditRows() {
+            const phen = Array.isArray(this.lastPhenotypeTerms) ? this.lastPhenotypeTerms : [];
+            const mech = Array.isArray(this.lastMechanismTerms) ? this.lastMechanismTerms : [];
+            const researchContext =
+                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
+                    ? String(this.searchCriteria[1].values)
+                    : "";
+            this.searchCriteriaEditRows = [
+                { type: "Phenotype terms", term: phen.join(", ") },
+                { type: "Mechanism terms", term: mech.join(", ") },
+                { type: "Research context", term: researchContext },
+            ];
+        },
+        openSearchCriteriaEditorFromGate() {
+            this.buildSearchCriteriaEditRows();
+            this.showSearchCriteriaEditModal = true;
+            this.showTab = "process";
+        },
+        saveSearchCriteriaFromModal() {
+            const rows = Array.isArray(this.searchCriteriaEditRows) ? this.searchCriteriaEditRows : [];
+            const phenotypeRow = rows.find((r) => r && r.type === "Phenotype terms");
+            const mechanismRow = rows.find((r) => r && r.type === "Mechanism terms");
+            const contextRow = rows.find((r) => r && r.type === "Research context");
+            const phenotypeTerms = String((phenotypeRow && phenotypeRow.term) || "")
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            const mechanismTerms = String((mechanismRow && mechanismRow.term) || "")
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            const researchContext = contextRow ? String(contextRow.term || "").trim() : "";
+
+            this.lastPhenotypeTerms = phenotypeTerms;
+            this.lastMechanismTerms = mechanismTerms;
+            const searchTerms = [...phenotypeTerms, ...mechanismTerms];
+            this.searchTerm = searchTerms.join(", ");
+            this.searchCriteria = [
+                {
+                    search_criteria: "Search Terms",
+                    values: searchTerms.length ? searchTerms : ["(none extracted)"],
+                    why: "We extracted this from your search query.",
+                    purpose:
+                        "These terms will be used to search for related phenotype↔signature associations via semantic search.",
+                },
+                {
+                    search_criteria: "Research Context",
+                    values: researchContext || "(none extracted)",
+                    why: "We inferred this from your search query.",
+                    purpose:
+                        "This context will be used to tailor mechanistic hypotheses to your research.",
+                },
+            ];
+
+            this.showSearchCriteriaEditModal = false;
+        },
+        approveStepGate() {
+            if (!this.stepApprovalGateActive) return;
+            const resolver = this.stepApprovalGateResolver;
+            this.stepApprovalGateActive = false;
+            this.stepApprovalGateStepId = "";
+            this.stepApprovalGateMessage = "";
+            this.stepApprovalGateResolver = null;
+            this.resumeStepsElapsedAfterReview();
+            this.setLoadStatus("Continuing workflow…");
+            if (typeof resolver === "function") resolver();
+        },
         toggleStep(i, ii=null){
             if(ii !== null){
                 this.steps[i].substeps[ii].expanded = !this.steps[i].substeps[ii].expanded
@@ -2218,10 +2423,18 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             this.mechanisms = null;
             this.mechanisms_summary = null;
             this.semanticGroupedPairKeys = null;
+            this.filteredSemanticGroups = null;
+            this.stepApprovalGateActive = false;
+            this.stepApprovalGateStepId = "";
+            this.stepApprovalGateMessage = "";
+            this.stepApprovalGateResolver = null;
+            this.showSearchCriteriaEditModal = false;
+            this.searchCriteriaEditRows = [];
             this.error_search_criteria = false;
             this.steps = [];
             this.stepsTime = null;
             this.stepsTimer = null;
+            this.stepsPausedAt = null;
             this.now = Date.now();
             this.showTab = 'process';
             this.display_examples = false;
@@ -2264,7 +2477,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 return null;
             }
         },
-        onExtractResponse(response) {
+        async onExtractResponse(response) {
             this.loading_search_criteria = false;
             if (!response) return;
             const json = this.parseLLMResponse(response);
@@ -2321,7 +2534,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 substep: {
                     id: "1.1",
                     result: {
-                        title: "Extracted search terms and research context",
+                        title: "Extracted search terms and research context. Review terms, then continue.",
                         result: {
                             phenotypeTerms,
                             mechanismTerms,
@@ -2330,6 +2543,12 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     }
                 }
             })
+
+            await this.waitForStepApproval(
+                "1",
+                "Review terms and continue when ready.",
+                true
+            );
 
             if (this.searchMode === "auto") {
                 if (mechanismTerms.length > 0) {
@@ -2413,6 +2632,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 this.lastKgTriples = [];
                 this.mechanisms = null;
                 this.semanticGroupedPairKeys = null;
+                this.filteredSemanticGroups = null;
                 this.phenotypeDescriptionById = {};
                 const phenotypeIdsToLoad = [];
                 let firstMatched = null;
@@ -2552,6 +2772,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 this.lastKgTriples = [];
                 this.mechanisms = null;
                 this.semanticGroupedPairKeys = null;
+                this.filteredSemanticGroups = null;
                 this.phenotypeDescriptionById = {};
 
                 const searchTerm = [...mechanismTerms, ...this.lastPhenotypeTerms].join(" ");
@@ -2644,10 +2865,11 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 this.setLoadStatus("Filtering by research context (CSV)…");
                 this.setStep({
                     id: "4",
-                    title: "LLM: Filtering gene set clusters by relevance to user query"
+                    title: "LLM: Filtering and semantic grouping gene set clusters by relevance to user query"
                 })
                 const csvString = this.flattenToCsv(collected, ["id", "factor_label", "phenotype", "top_gene_sets", "gene_set_description", "score"]);
-                let selected = await this.filterPhenotypeFactorsByContext(csvString, researchContext);
+                const selectedPayload = await this.filterPhenotypeFactorsByContext(csvString, researchContext);
+                let selected = Array.isArray(selectedPayload.selected) ? selectedPayload.selected : [];
                 selected = selected.slice(0, 10);
                 console.log('f-selected', selected);
                 if (selected.length === 0) {
@@ -2699,6 +2921,49 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 const selectedIds = new Set(selected.map((s) => s.id));
                 const selectedRationaleById = {};
                 selected.forEach((s) => { selectedRationaleById[s.id] = (s.rationale != null && String(s.rationale) !== "") ? String(s.rationale) : ""; });
+                const llmGroups = Array.isArray(selectedPayload.groups) ? selectedPayload.groups : [];
+                const groupedFromFilter = llmGroups
+                    .map((g, gi) => {
+                        const pairs = Array.isArray(g.item_ids)
+                            ? g.item_ids
+                                  .map((id) => String(id))
+                                  .filter((id) => selectedIds.has(id))
+                                  .map((id) => {
+                                      const src = originalById[id];
+                                      if (!src || src.phenotype == null || src.factor == null) return null;
+                                      const phenotype = String(src.phenotype).trim();
+                                      const factorLabel =
+                                          src.label != null && String(src.label).trim() !== ""
+                                              ? String(src.label).trim()
+                                              : String(src.factor).trim();
+                                      if (!phenotype || !factorLabel) return null;
+                                      return { phenotype, factor: factorLabel };
+                                  })
+                                  .filter(Boolean)
+                            : [];
+                        const uniq = [];
+                        const seen = new Set();
+                        pairs.forEach((p) => {
+                            const key = `${p.phenotype}|${this.collapseWsLower(p.factor)}`;
+                            if (seen.has(key)) return;
+                            seen.add(key);
+                            uniq.push(p);
+                        });
+                        if (!uniq.length) return null;
+                        return {
+                            group_name:
+                                g.group_name != null && String(g.group_name).trim() !== ""
+                                    ? String(g.group_name).trim()
+                                    : `Group ${gi + 1}`,
+                            associated_pairs: uniq,
+                            grouping_rationale:
+                                g.grouping_rationale != null && String(g.grouping_rationale).trim() !== ""
+                                    ? String(g.grouping_rationale).trim()
+                                    : "Grouped during context filtering.",
+                        };
+                    })
+                    .filter(Boolean);
+                this.filteredSemanticGroups = groupedFromFilter.length ? groupedFromFilter : null;
                 this.associationPathTableData = listForHydration.map((row) => {
                     const orig = originalById[row.id];
                     if (!orig || orig.phenotype == null || orig.factor == null) {
@@ -2710,7 +2975,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     const topGeneSetsDisplay = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
                         ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean).join(", ")
                         : "";
-                    const included = selectedIds.has(row.id);
+                    const included = selectedIds.has(String(row.id));
                     const rationale = selectedRationaleById[row.id] != null ? selectedRationaleById[row.id] : "";
                     return {
                         phenotype,
@@ -2726,6 +2991,18 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     if (a.included !== b.included) return b.included ? 1 : -1;
                     return (a.phenotype || "").localeCompare(b.phenotype || "");
                 });
+                if (this.filteredSemanticGroups && this.filteredSemanticGroups.length) {
+                    this.setStep({
+                        id: "4",
+                        substep: {
+                            id: "4.2",
+                            title: "Semantic groups generated during filtering.",
+                            result: {
+                                result: this.filteredSemanticGroups,
+                            },
+                        },
+                    });
+                }
 
                 const phenotypes = Object.keys(this.factorData).filter((p) => (this.factorData[p].factors || []).length > 0);
                 if (phenotypes.length === 0) {
@@ -2767,11 +3044,11 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             return [header, ...dataRows].join("\n");
         },
         /**
-         * Filter phenotype–factor associations (provided as CSV string) by research context; LLM returns selected ids sorted by relevance.
-         * Returns a Promise that resolves to an array of { id, rationale }, most relevant first (take first 10 in caller).
+         * Filter + semantically group phenotype–factor associations by research context.
+         * Returns { selected: [{id, rationale}], groups: [{group_name, item_ids, grouping_rationale}] }.
          */
         filterPhenotypeFactorsByContext(csvString, researchContext) {
-            const userPrompt = `**Research Context:**\n${researchContext || "(none)"}\n\n**Phenotype–factor associations (CSV with columns: id, factor_label, phenotype, top_gene_sets, gene_set_description, score):**\n${csvString}\n\nUse factor_label, phenotype, top_gene_sets, and gene_set_description to judge relevance. The gene_set_description column explains what each gene set is about (gene set ids alone may not be meaningful). Filter to only associations relevant to the research context. Sort the selected list by relevance (most relevant first). Return ONLY a JSON object with a "selected" array; each element must have "id" (exact value from the CSV id column) and "rationale". Order the array by relevance (first = most relevant).`;
+            const userPrompt = `**Research Context:**\n${researchContext || "(none)"}\n\n**Phenotype–factor associations (CSV with columns: id, factor_label, phenotype, top_gene_sets, gene_set_description, score):**\n${csvString}\n\nUse factor_label, phenotype, top_gene_sets, and gene_set_description to judge relevance. The gene_set_description column explains what each gene set is about (gene set ids alone may not be meaningful).\n\nTasks:\n1) Filter to only associations relevant to the research context.\n2) Sort selected associations by relevance (most relevant first).\n3) Create semantic groups from selected associations.\n\nReturn ONLY JSON with this shape:\n{\n  "selected": [\n    { "id": "EXACT_ID_FROM_INPUT", "rationale": "brief reason" }\n  ],\n  "groups": [\n    {\n      "group_name": "short mechanistic theme",\n      "item_ids": ["ID1", "ID2"],\n      "grouping_rationale": "why these selected items belong together"\n    }\n  ]\n}\n\nRules:\n- Use only ids from selected items in groups.item_ids.\n- Do not include duplicate ids across groups.\n- Omit weakly related selected items from groups if no coherent cluster exists.`;
             return new Promise((resolve) => {
                 this.llmPhenotypeFactorsFilter.sendPrompt({
                     userPrompt,
@@ -2782,7 +3059,31 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                             id: String(item.id),
                             rationale: (item.rationale != null && String(item.rationale).trim() !== "") ? String(item.rationale).trim() : "",
                         }));
-                        resolve(out);
+                        const groups = json && Array.isArray(json.groups) ? json.groups : [];
+                        const selectedIds = new Set(out.map((s) => s.id));
+                        const groupedIds = new Set();
+                        const cleanGroups = groups
+                            .map((g, gi) => {
+                                if (!g || typeof g !== "object" || !Array.isArray(g.item_ids)) return null;
+                                const itemIds = g.item_ids
+                                    .map((id) => String(id).trim())
+                                    .filter((id) => id && selectedIds.has(id) && !groupedIds.has(id));
+                                itemIds.forEach((id) => groupedIds.add(id));
+                                if (!itemIds.length) return null;
+                                return {
+                                    group_name:
+                                        g.group_name != null && String(g.group_name).trim() !== ""
+                                            ? String(g.group_name).trim()
+                                            : `Group ${gi + 1}`,
+                                    item_ids: itemIds,
+                                    grouping_rationale:
+                                        g.grouping_rationale != null && String(g.grouping_rationale).trim() !== ""
+                                            ? String(g.grouping_rationale).trim()
+                                            : "Grouped during context filtering.",
+                                };
+                            })
+                            .filter(Boolean);
+                        resolve({ selected: out, groups: cleanGroups });
                     },
                     onError: (err) => {
                         console.warn("FactorBaseReveal: phenotypeFactors filter LLM error", err);
@@ -2790,7 +3091,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                             type: 'error',
                             title: "Request failed or timed out.",
                         })
-                        resolve([]);
+                        resolve({ selected: [], groups: [] });
                     },
                     onEnd: () => {},
                 });
@@ -2805,13 +3106,65 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const list = phenotypes && phenotypes.length ? phenotypes : Object.keys(this.factorData || {});
             if (!list.length) return;
 
-            this.setLoadStatus("Loading genes (from gene sets in top_gene_sets)…");
-            //this.setLoadStep("API: Getting gene scores for gene sets")
+            this.setLoadStatus("Loading factor values (factor_value)…");
+            //this.setLoadStep("API: Getting gene loadings for factors")
             this.setStep({
                 id: "6",
-                title: "API: Getting gene scores for gene sets"
+                title: "API: Getting gene loadings for gene set clusters"
             })
             let idx = 0;
+            for (const phenotype of list) {
+                const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
+                for (const factorItem of factors) {
+                    this.setLoadStatus(`Loading factor values (${phenotype})…`);
+                    //this.setLoadStep("API: Getting gene loadings for factors", `${phenotype} / ${factorItem.label}`);
+                    this.setStep({
+                        id: "6",
+                        substep: {
+                            id: `6.1.${idx}`,
+                            title: `${phenotype} / ${factorItem.label}`
+                        }
+                    })
+                    try {
+                        const raw = await this.querySearchApi("factorGenes", {
+                            phenotype,
+                            factor: factorItem.factor,
+                        });
+                        const rows = raw && Array.isArray(raw.data) ? raw.data : [];
+                        for (const row of rows) {
+                            const gene = row.gene;
+                            if (gene == null || !factorItem.genes || factorItem.genes[gene] == null) continue;
+                            const fv = row.factor_value;
+                            const numVal = fv != null && fv !== "" && !isNaN(Number(fv)) ? Number(fv) : fv;
+                            if (numVal != null) {
+                                this.$set(factorItem.genes[gene], "factor_value", numVal);
+                                this.$set(factorItem.genes[gene], "factorRelevance", numVal);
+                            }
+                        }
+                        this.setStep({
+                            id: "6",
+                            substep: {
+                                id: `6.1.${idx}`,
+                                result: {
+                                    title: `Retrieved gene loadings for "${factorItem.label}" of "${phenotype}"`,
+                                    result: rows
+                                }
+                            }
+                        })
+                    } catch (err) {
+                        console.warn(`FactorBaseReveal: factorGenes API failed for ${phenotype}/${factorItem.factor}`, err);
+                    }
+                    idx++;
+                }
+            }
+
+            this.setLoadStatus("Loading genes (from gene sets in top_gene_sets)…");
+            //this.setLoadStep("API: Getting gene memberships for gene sets")
+            this.setStep({
+                id: "7",
+                title: "API: Getting gene memberships for gene sets"
+            })
+            idx = 0;
             for (const phenotype of list) {
                 const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
                 for (const factorItem of factors) {
@@ -2819,15 +3172,14 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
                         ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
                         : [];
-                    //TODO: sometimes factors share same gene sets, and get fetched each time, we can optimize here
-                    //gene scores at this step are based on phenotype<>geneset associations
+                    // TODO: factors can share gene sets; dedupe fetches if needed.
                     for (const geneSet of geneSetIds) {
                         this.setLoadStatus(`Loading genes (${phenotype})…`);
-                        //this.setLoadStep("API: Getting gene scores for gene sets", `${phenotype} / ${factorItem.label} / ${geneSet}`)
+                        //this.setLoadStep("API: Getting gene memberships for gene sets", `${phenotype} / ${factorItem.label} / ${geneSet}`)
                         this.setStep({
-                            id: "6",
+                            id: "7",
                             substep: {
-                                id: `6.1.${idx}`,
+                                id: `7.1.${idx}`,
                                 title: `${phenotype} / ${factorItem.label} / ${geneSet}`
                             }
                         })
@@ -2843,7 +3195,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                                 const gene = row.gene;
                                 if (gene == null || gene === "") continue;
                                 const combined = parseFloat(row.combined);
-                                //filter out genes with a combined score of less than 3
+                                // filter out genes with a combined score < 3
                                 if (row.combined != null && !isNaN(combined) && combined < 3) continue;
                                 geneList.push(gene);
                                 geneListFull.push(row);
@@ -2869,11 +3221,11 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                                 this.$set(factorItem.geneSets, geneSet, { genes: geneList });
                             }
                             this.setStep({
-                                id: "6",
+                                id: "7",
                                 substep: {
-                                    id: `6.1.${idx}`,
+                                    id: `7.1.${idx}`,
                                     result: {
-                                        title: `Retrieved genes and gene scores for "${geneSet}" of "${phenotype}"`,
+                                        title: `Retrieved genes and gene memberships for "${geneSet}" of "${phenotype}"`,
                                         result: structuredClone(geneListFull)
                                     }
                                 }
@@ -2883,57 +3235,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                         }
                         idx++;
                     }
-                }
-            }
-
-            this.setLoadStatus("Loading factor values (factor_value)…");
-            //this.setLoadStep("API: Getting gene loadings for factors")
-            this.setStep({
-                id: "7",
-                title: "API: Getting gene loadings for gene set clusters"
-            })
-            idx = 0;
-            for (const phenotype of list) {
-                const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
-                for (const factorItem of factors) {
-                    //this.setLoadStep("API: Getting gene loadings for factors", `${phenotype} / ${factorItem.label}`);
-                    this.setStep({
-                        id: "7",
-                        substep: {
-                            id: `7.1.${idx}`,
-                            title: `${phenotype} / ${factorItem.label}`
-                        }
-                    })
-                    try {
-                        const raw = await this.querySearchApi("factorGenes", {
-                            phenotype,
-                            factor: factorItem.factor,
-                        });
-                        const rows = raw && Array.isArray(raw.data) ? raw.data : [];
-                        for (const row of rows) {
-                            const gene = row.gene;
-                            if (gene == null || !factorItem.genes || factorItem.genes[gene] == null) continue;
-                            const fv = row.factor_value;
-                            const numVal = fv != null && fv !== "" && !isNaN(Number(fv)) ? Number(fv) : fv;
-                            if (numVal != null) {
-                                this.$set(factorItem.genes[gene], "factor_value", numVal);
-                                this.$set(factorItem.genes[gene], "factorRelevance", numVal);
-                            }
-                        }
-                        this.setStep({
-                            id: "7",
-                            substep: {
-                                id: `7.1.${idx}`,
-                                result: {
-                                    title: `Retrieved gene loadings for "${factorItem.label}" of "${phenotype}"`,
-                                    result: rows
-                                }
-                            }
-                        })
-                    } catch (err) {
-                        console.warn(`FactorBaseReveal: factorGenes API failed for ${phenotype}/${factorItem.factor}`, err);
-                    }
-                    idx++;
                 }
             }
 
@@ -2954,10 +3255,10 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const kgTriples = this.transformMergedDataToKG(this.factorData, 'factors');
             console.log("FactorBaseReveal: KG triples", kgTriples);
             this.lastKgTriples = kgTriples;
-            this.setLoadStatus("Semantic groupings…");
+            this.setLoadStatus("Preparing mechanistic hypotheses…");
             this.setStep({
                 id: "8",
-                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+                title: "LLM: Generating mechanistic hypotheses per group",
             });
             this.requestMechanismHypotheses(this.factorData, kgTriples);
         },
@@ -3053,7 +3354,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             this.setLoadStatus("Filtering gene set clusters…");
             this.setStep({
                 id: "5",
-                title: "LLM: Filtering gene set clusters by relevance to user query"
+                title: "LLM: Filtering and semantic grouping gene set clusters by relevance to user query"
             })
 
             await this.filterFactorsByContext(phenotypes);
@@ -3157,7 +3458,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             console.log('phenotypes', phenotypes)
             console.log('associations', associations)
 
-            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge how relevant each association is to the research context. Filter to only associations relevant to the research context. Sort the selected associations by relevance (most relevant first). Within each phenotype, order the \"relevant_factors\" array by relevance (most relevant factor first). Return ONLY a JSON object with a \"selected_associations\" array: each element has \"phenotype\", \"relevant_factors\" (array of factor labels or factor_id values to keep, ordered by relevance), and \"rationale\" (brief reason why these factors were chosen). Use only factors from the input.\n\n**CRITICAL:** For each object, the \"phenotype\" string MUST be copied exactly from the \"phenotype\" field in the associations JSON above (same spelling and casing). For \"relevant_factors\", copy factor labels or factor_id values exactly from the input.`;
+            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge relevance to the research context.\n\nTasks:\n1) Filter to only context-relevant associations.\n2) Sort selected associations by relevance.\n3) Build semantic groups from selected associations.\n\nReturn ONLY JSON:\n{\n  \"selected_associations\": [\n    {\n      \"phenotype\": \"Exact phenotype string from input\",\n      \"relevant_factors\": [\"exact factor label or factor_id from input\"],\n      \"rationale\": \"brief reason\"\n    }\n  ],\n  \"groups\": [\n    {\n      \"group_name\": \"short mechanistic theme\",\n      \"associated_pairs\": [\n        { \"phenotype\": \"Exact phenotype string from input\", \"factor\": \"Exact selected factor label or id\" }\n      ],\n      \"grouping_rationale\": \"why these pairs belong together\"\n    }\n  ]\n}\n\nRules:\n- Use only selected associations in groups.\n- No duplicate (phenotype, factor) pairs across groups.\n- Omit weakly related pairs from groups if they do not form coherent clusters.`;
 
             return new Promise((resolve, reject) => {
                 this.llmFilter.sendPrompt({
@@ -3169,6 +3470,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                         const allowedByPhenotype = {};
                         const rationaleByPhenotype = {};
                         const selected = json && Array.isArray(json.selected_associations) ? json.selected_associations : [];
+                        const llmGroups = json && Array.isArray(json.groups) ? json.groups : [];
                         selected.forEach((item) => {
                             const llmPhenotype = item.phenotype != null ? String(item.phenotype).trim() : "";
                             if (!llmPhenotype) return;
@@ -3225,7 +3527,56 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                                 this.factorMatchesLlmAllowedSet(f, allowed)
                             );
                         });
+                        const grouped = [];
+                        const groupedPairKeys = new Set();
+                        (llmGroups || []).forEach((g, gi) => {
+                            if (!g || typeof g !== "object" || !Array.isArray(g.associated_pairs)) return;
+                            const pairs = [];
+                            (g.associated_pairs || []).forEach((p) => {
+                                const llmPhen = p && p.phenotype != null ? String(p.phenotype).trim() : "";
+                                const llmFactor = p && p.factor != null ? String(p.factor).trim() : "";
+                                if (!llmPhen || !llmFactor) return;
+                                const phenotypeKey = this.resolveLlmPhenotypeToFactorDataKey(llmPhen, phenotypes);
+                                if (!phenotypeKey) return;
+                                const factors = this.factorData[phenotypeKey] && this.factorData[phenotypeKey].factors
+                                    ? this.factorData[phenotypeKey].factors
+                                    : [];
+                                const matched = factors.find((f) => this.factorMatchesLlmAllowedSet(f, new Set([llmFactor])));
+                                if (!matched) return;
+                                const factorLabel =
+                                    matched.label != null && String(matched.label).trim() !== ""
+                                        ? String(matched.label).trim()
+                                        : String(matched.factor).trim();
+                                const key = `${phenotypeKey}|${this.collapseWsLower(factorLabel)}`;
+                                if (groupedPairKeys.has(key)) return;
+                                groupedPairKeys.add(key);
+                                pairs.push({ phenotype: phenotypeKey, factor: factorLabel });
+                            });
+                            if (!pairs.length) return;
+                            grouped.push({
+                                group_name:
+                                    g.group_name != null && String(g.group_name).trim() !== ""
+                                        ? String(g.group_name).trim()
+                                        : `Group ${gi + 1}`,
+                                associated_pairs: pairs,
+                                grouping_rationale:
+                                    g.grouping_rationale != null && String(g.grouping_rationale).trim() !== ""
+                                        ? String(g.grouping_rationale).trim()
+                                        : "Grouped during context filtering.",
+                            });
+                        });
+                        this.filteredSemanticGroups = grouped.length ? grouped : null;
                         console.log("FactorBaseReveal: filtered factors by context (per phenotype)", allowedByPhenotype);
+                        if (this.filteredSemanticGroups && this.filteredSemanticGroups.length) {
+                            this.setStep({
+                                id: "5",
+                                substep: {
+                                    id: "5.2",
+                                    title: "Semantic groups generated during filtering.",
+                                    result: { result: this.filteredSemanticGroups },
+                                },
+                            });
+                        }
                         resolve();
                     },
                     onError: (err) => {
@@ -3245,11 +3596,11 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
         retryMechanismHypotheses() {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
-            this.setLoadStatus("Semantic groupings…");
+            this.setLoadStatus("Preparing mechanistic hypotheses…");
             this.loadComplete = false;
             this.setStep({
                 id: "8",
-                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+                title: "LLM: Generating mechanistic hypotheses per group",
             });
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
@@ -3494,34 +3845,38 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             };
 
             (async () => {
-                let groups = null;
-                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    this.setLoadStatus(`Semantic groupings… (attempt ${attempt}/${maxAttempts})`);
-                    const gr = await runGroupingAttempt(attempt);
-                    if (gr.retry) continue;
-                    if (gr.failed) {
+                let groups = Array.isArray(this.filteredSemanticGroups) && this.filteredSemanticGroups.length
+                    ? JSON.parse(JSON.stringify(this.filteredSemanticGroups))
+                    : null;
+                if (!groups) {
+                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                        this.setLoadStatus(`Semantic groupings… (attempt ${attempt}/${maxAttempts})`);
+                        const gr = await runGroupingAttempt(attempt);
+                        if (gr.retry) continue;
+                        if (gr.failed) {
+                            this.error_mechanisms = true;
+                            this.error_msg_mechanisms =
+                                gr.err && gr.err.message
+                                    ? gr.err.message
+                                    : "Semantic groupings failed or returned invalid groups.";
+                            this.setStep({
+                                type: "error",
+                                title: "Semantic groupings failed.",
+                            });
+                            this.setLoadStatus("Ready", true);
+                            this.loadComplete = true;
+                            return;
+                        }
+                        groups = gr.groups;
+                        break;
+                    }
+                    if (!groups) {
                         this.error_mechanisms = true;
-                        this.error_msg_mechanisms =
-                            gr.err && gr.err.message
-                                ? gr.err.message
-                                : "Semantic groupings failed or returned invalid groups.";
-                        this.setStep({
-                            type: "error",
-                            title: "Semantic groupings failed.",
-                        });
+                        this.error_msg_mechanisms = "Semantic groupings failed after 3 attempts (timeout).";
                         this.setLoadStatus("Ready", true);
                         this.loadComplete = true;
                         return;
                     }
-                    groups = gr.groups;
-                    break;
-                }
-                if (!groups) {
-                    this.error_mechanisms = true;
-                    this.error_msg_mechanisms = "Semantic groupings failed after 3 attempts (timeout).";
-                    this.setLoadStatus("Ready", true);
-                    this.loadComplete = true;
-                    return;
                 }
 
                 this.semanticGroupedPairKeys = this.buildSemanticGroupedPairKeysFromGroups(groups);
@@ -3530,13 +3885,17 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     id: "8",
                     substep: {
                         id: "8.1",
-                        title: "Semantic groups",
+                        title: "Context-relevant semantic groups",
                         result: {
                             title: "Context-relevant grouped pairs (ungrouped pairs appear under Remaining)",
                             result: groups,
                         },
                     },
                 });
+                await this.waitForStepApproval(
+                    "8",
+                    "Review semantic groups before generating mechanistic hypotheses."
+                );
                 this.setStep({
                     id: "8.2",
                     title: "LLM: Generating mechanistic hypotheses per group",
