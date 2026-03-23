@@ -319,6 +319,24 @@
 
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
                             <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
+                            <div
+                                v-if="selectionDiffersFromFiltered"
+                                class="mb-3 d-flex align-items-center"
+                                style="gap:15px;"
+                            >
+                                <div class="font-weight-bold" style="color: #000000; font-size: 1.2em;">
+                                    Regroup the selected gene set clusters?
+                                </div>
+                                <button
+                                    class="btn btn-cfde"
+                                    style="min-width: 120px;"
+                                    :disabled="regroupingSelectedPairs"
+                                    @click="regroupSelectedGeneSetClusters"
+                                >
+                                    <b-spinner v-if="regroupingSelectedPairs" small class="mr-1"></b-spinner>
+                                    <span>{{ regroupingSelectedPairs ? 'Regrouping…' : 'Regroup' }}</span>
+                                </button>
+                            </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
                                 <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
@@ -335,8 +353,7 @@
                             </div>
                             -->
                             <div :class="{ collapsed: !display_phenotypes_factors }" class="criteria-detail">
-                            <b-tabs content-class="mt-2">
-                                <b-tab title="View table" active>
+                            <div class="mt-2">
                                     <!-- Phenotype path: Selected Rationale section above table -->
                                     <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
                                         <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
@@ -346,7 +363,7 @@
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class="factors-table-scroll-wrapper">
+                                    <div>
                                         <!-- Phenotype path: custom table, no rationale column -->
                                         <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
                                             <thead variant="light">
@@ -358,11 +375,17 @@
                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                 </tr>
                                             </thead>
-                                            <tbody v-for="row in factorDataTableRowsWithRationaleMeta" :key="getRowKey(row)">
+                                            <tbody v-for="row in mainFactorTableRowsPaged" :key="getRowKey(row)">
                                                 <tr>
                                                     <td>
                                                         <div class="text-center">
-                                                            <input type="checkbox" :checked="row.included" disabled class="form-check-input d-inline-block" aria-label="Included" />
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="isPairIncluded(row)"
+                                                        class="form-check-input d-inline-block"
+                                                        aria-label="Included"
+                                                        @change="onPairIncludedToggle(row, $event.target.checked)"
+                                                    />
                                                         </div>
                                                     </td>
                                                     <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
@@ -494,7 +517,8 @@
                                         <!-- Association path: standard b-table, one rationale per row -->
                                         <b-table
                                             v-else
-                                            :items="factorDataTableRows"
+                                            :items="mainFactorTableRowsPaged"
+                                            primary-key="_rowKey"
                                             :fields="[
                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
@@ -510,7 +534,13 @@
                                         >
                                             <template #cell(included)="row">
                                                 <div class="text-center">
-                                                    <input type="checkbox" :checked="row.item.included" disabled class="form-check-input d-inline-block" aria-label="Included in selection" />
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="isPairIncluded(row.item)"
+                                                        class="form-check-input d-inline-block"
+                                                        aria-label="Included in selection"
+                                                        @change="onPairIncludedToggle(row.item, $event.target.checked)"
+                                                    />
                                                 </div>
                                             </template>
                                             <template #cell(phenotype)="row">
@@ -528,7 +558,7 @@
                                                     class="btn btn-sm btn-outline-primary"
                                                     @click="toggleFactorGenesRow(row)"
                                                 >
-                                                    {{ row.detailsShowing ? 'Hide' : 'Show' }}
+                                                    {{ isFactorRowExpanded(row.item) ? 'Hide' : 'Show' }}
                                                 </button>
                                             </template>
                                             <template #row-details="row">
@@ -630,17 +660,24 @@
                                                 </div>
                                             </template>
                                         </b-table>
+                                        <b-pagination
+                                            v-if="(isPhenotypePath ? factorDataTableRowsWithRationaleMeta.length : factorDataTableRows.length) > mainTablePerPage"
+                                            v-model="mainTableCurrentPage"
+                                            class="pagination-sm justify-content-center mt-2"
+                                            :total-rows="isPhenotypePath ? factorDataTableRowsWithRationaleMeta.length : factorDataTableRows.length"
+                                            :per-page="mainTablePerPage"
+                                        />
                                     </div>
-                                </b-tab>
-                                <b-tab title="View plot">
+                                <div class="mt-4">
                                     <factor-base-reveal-heatmap
+                                        ref="factorBaseRevealHeatmap"
                                         :factor-data="factorData"
                                         :factor-data-table-rows="factorDataTableRowsFiltered"
                                         :phenotype-description-by-id="phenotypeDescriptionById"
                                         height="500px"
                                     />
-                                </b-tab>
-                            </b-tabs>
+                                </div>
+                            </div>
                             </div>
                         </div>
     
@@ -861,7 +898,7 @@
                                             {{ remainingPairGenerateError }}
                                         </div>
                                         <div class="criteria-detail">
-                                            <div class="factors-table-scroll-wrapper">
+                                            <div>
                                                         <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
                                                             <thead variant="light">
                                                                 <tr>
@@ -872,11 +909,11 @@
                                                                     <th style="width: 130px;">Hypothesis.</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody v-for="row in remainingFactorDataTableRowsWithRationaleMeta" :key="'rem-' + getRowKey(row)">
+                                                            <tbody v-for="row in remainingFactorTableRowsPaged" :key="'rem-' + getRowKey(row)">
                                                                 <tr>
                                                                     <td>
                                                                         <div class="text-center">
-                                                                            <input type="checkbox" :checked="row.included" disabled class="form-check-input d-inline-block" aria-label="Included" />
+                                                                            <input type="checkbox" :checked="row.included" class="form-check-input d-inline-block" aria-label="Included" />
                                                                         </div>
                                                                     </td>
                                                                     <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
@@ -994,7 +1031,8 @@
                                                         </b-table-simple>
                                                         <b-table
                                                             v-else
-                                                            :items="remainingGeneSetClusterRows"
+                                                            :items="remainingGeneSetClusterRowsPaged"
+                                                            primary-key="_rowKey"
                                                             :fields="[
                                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
@@ -1010,7 +1048,7 @@
                                                         >
                                                             <template #cell(included)="row">
                                                                 <div class="text-center">
-                                                                    <input type="checkbox" :checked="row.item.included" disabled class="form-check-input d-inline-block" aria-label="Included in selection" />
+                                                                    <input type="checkbox" :checked="row.item.included" class="form-check-input d-inline-block" aria-label="Included in selection" />
                                                                 </div>
                                                             </template>
                                                             <template #cell(phenotype)="row">
@@ -1025,7 +1063,7 @@
                                                                     class="btn btn-sm btn-outline-primary"
                                                                     @click="toggleFactorGenesRow(row)"
                                                                 >
-                                                                    {{ row.detailsShowing ? 'Hide' : 'Show' }}
+                                                                    {{ isFactorRowExpanded(row.item) ? 'Hide' : 'Show' }}
                                                                 </button>
                                                             </template>
                                                             <template #cell(hypothesis)="row">
@@ -1125,6 +1163,13 @@
                                                                 </div>
                                                             </template>
                                                         </b-table>
+                                                        <b-pagination
+                                                            v-if="(isPhenotypePath ? remainingFactorDataTableRowsWithRationaleMeta.length : remainingGeneSetClusterRows.length) > mainTablePerPage"
+                                                            v-model="remainingTableCurrentPage"
+                                                            class="pagination-sm justify-content-center mt-2"
+                                                            :total-rows="isPhenotypePath ? remainingFactorDataTableRowsWithRationaleMeta.length : remainingGeneSetClusterRows.length"
+                                                            :per-page="mainTablePerPage"
+                                                        />
                                             </div>
                                         </div>
                                     </div>
@@ -1327,9 +1372,15 @@ export default Vue.component("factor-base-reveal", {
             remainingGenerateNow: Date.now(),
             remainingGenerateTimerId: null,
             remainingPairGenerateError: "",
+            pairSelectionOverrides: {},
+            llmFilteredPairKeysBaseline: [],
+            regroupingSelectedPairs: false,
             display_phenotypes_factors: true,
             subtablePerPage: 10,
             subtableCurrentPages: {},
+            mainTablePerPage: 10,
+            mainTableCurrentPage: 1,
+            remainingTableCurrentPage: 1,
             expandedFactorRowKeys: {},
             loadingGenesForFactor: {},
             /** When set, show network viz in a floating overlay at 90% window size. Value = mechanism index. */
@@ -1531,7 +1582,18 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
     computed: {
         factorDataTableRows() {
             if (this.associationPathTableData && this.associationPathTableData.length > 0) {
-                return this.associationPathTableData;
+                return this.associationPathTableData.map((r) => {
+                    const rowKey = this.getRowKey(r);
+                    const included = Object.prototype.hasOwnProperty.call(this.pairSelectionOverrides, rowKey)
+                        ? !!this.pairSelectionOverrides[rowKey]
+                        : !!r.included;
+                    return {
+                        ...r,
+                        included,
+                        _rowKey: rowKey,
+                        _showDetails: !!this.expandedFactorRowKeys[rowKey],
+                    };
+                });
             }
             const rows = [];
             const data = this.factorData || {};
@@ -1568,6 +1630,10 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     const isIncluded = !filteredSet || filteredSet.size === 0
                         ? true
                         : (filteredSet.has(String(f.factor)) || (f.label != null && filteredSet.has(String(f.label).trim())));
+                    const rowKey = `${phenotype}|${f.factor}`;
+                    const included = Object.prototype.hasOwnProperty.call(this.pairSelectionOverrides, rowKey)
+                        ? !!this.pairSelectionOverrides[rowKey]
+                        : isIncluded;
                     rows.push({
                         phenotype,
                         factor: f.factor,
@@ -1576,7 +1642,9 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                         top_gene_set_programs: topGeneSetPrograms,
                         rationale,
                         isFiltered: isIncluded,
-                        included: isIncluded,
+                        included,
+                        _rowKey: rowKey,
+                        _showDetails: !!this.expandedFactorRowKeys[rowKey],
                     });
                 });
             });
@@ -1626,6 +1694,38 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
         },
         factorDataTableRowsFiltered() {
             return (this.factorDataTableRows || []).filter((r) => r.isFiltered);
+        },
+        mainFactorTableRowsPaged() {
+            const rows = this.isPhenotypePath
+                ? (this.factorDataTableRowsWithRationaleMeta || [])
+                : (this.factorDataTableRows || []);
+            const start = (Math.max(1, this.mainTableCurrentPage) - 1) * this.mainTablePerPage;
+            return rows.slice(start, start + this.mainTablePerPage);
+        },
+        remainingFactorTableRowsPaged() {
+            const rows = this.remainingFactorDataTableRowsWithRationaleMeta || [];
+            const start = (Math.max(1, this.remainingTableCurrentPage) - 1) * this.mainTablePerPage;
+            return rows.slice(start, start + this.mainTablePerPage);
+        },
+        remainingGeneSetClusterRowsPaged() {
+            const rows = this.remainingGeneSetClusterRows || [];
+            const start = (Math.max(1, this.remainingTableCurrentPage) - 1) * this.mainTablePerPage;
+            return rows.slice(start, start + this.mainTablePerPage);
+        },
+        currentSelectedPairKeys() {
+            return (this.factorDataTableRows || [])
+                .filter((r) => !!r.included)
+                .map((r) => this.getRowKey(r))
+                .filter(Boolean);
+        },
+        selectionDiffersFromFiltered() {
+            const baseline = new Set((this.llmFilteredPairKeysBaseline || []).map((k) => String(k)));
+            const current = new Set((this.currentSelectedPairKeys || []).map((k) => String(k)));
+            if (baseline.size !== current.size) return true;
+            for (const k of baseline) {
+                if (!current.has(k)) return true;
+            }
+            return false;
         },
         phenotypeCount() {
             const rows = this.factorDataTableRowsFiltered || [];
@@ -2280,6 +2380,118 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 },
             ];
         },
+        isPairIncluded(row) {
+            const key = this.getRowKey(row);
+            if (!key) return false;
+            if (Object.prototype.hasOwnProperty.call(this.pairSelectionOverrides, key)) {
+                return !!this.pairSelectionOverrides[key];
+            }
+            return !!(row && row.included);
+        },
+        onPairIncludedToggle(row, checked) {
+            const key = this.getRowKey(row);
+            if (!key) return;
+            this.$set(this.pairSelectionOverrides, key, !!checked);
+        },
+        snapshotFilteredSelectionBaseline() {
+            const currentRows = this.factorDataTableRows || [];
+            const nextOverrides = {};
+            const baseline = [];
+            currentRows.forEach((r) => {
+                const key = this.getRowKey(r);
+                if (!key) return;
+                const included = !!r.included;
+                nextOverrides[key] = included;
+                if (included) baseline.push(key);
+            });
+            this.pairSelectionOverrides = nextOverrides;
+            this.llmFilteredPairKeysBaseline = baseline;
+        },
+        normalizeHeatmapSelectionAfterRegroup() {
+            this.$nextTick(() => {
+                const ref = this.$refs.factorBaseRevealHeatmap;
+                const comp = Array.isArray(ref) ? ref[0] : ref;
+                if (!comp) return;
+                const opts = Array.isArray(comp.phenotypeOptions) ? comp.phenotypeOptions : [];
+                if (!opts.length) {
+                    comp.selectedPhenotype = "";
+                    return;
+                }
+                if (!opts.some((o) => o && o.value === comp.selectedPhenotype)) {
+                    comp.selectedPhenotype = opts[0].value;
+                }
+            });
+        },
+        buildSelectedFactorDataFromRows(rows) {
+            const subset = {};
+            (rows || []).forEach((row) => {
+                const phenotype = row && row.phenotype != null ? String(row.phenotype).trim() : "";
+                if (!phenotype) return;
+                const pData = this.factorData && this.factorData[phenotype];
+                if (!pData) return;
+                const factors = pData.factors || [];
+                const allFactors = pData.allFactors || [];
+                const factorItem =
+                    factors.find((x) => x.factor === row.factor || String(x.factor) === String(row.factor)) ||
+                    allFactors.find((x) => x.factor === row.factor || String(x.factor) === String(row.factor));
+                if (!factorItem) return;
+                if (!subset[phenotype]) subset[phenotype] = { genes: {}, factors: [] };
+                if (!subset[phenotype].factors.some((f) => String(f.factor) === String(factorItem.factor))) {
+                    subset[phenotype].factors.push(JSON.parse(JSON.stringify(factorItem)));
+                }
+                Object.keys(factorItem.genes || {}).forEach((g) => {
+                    if (pData.genes && pData.genes[g] != null && subset[phenotype].genes[g] == null) {
+                        subset[phenotype].genes[g] = JSON.parse(JSON.stringify(pData.genes[g]));
+                    }
+                });
+            });
+            return subset;
+        },
+        async regroupSelectedGeneSetClusters() {
+            if (this.regroupingSelectedPairs) return;
+            this.regroupingSelectedPairs = true;
+            try {
+                const selectedRows = (this.factorDataTableRows || []).filter((r) => !!r.included);
+                if (!selectedRows.length) return;
+                for (const row of selectedRows) {
+                    const genesLoaded = this.getGenesForFactor(row.phenotype, row.factor).length > 0;
+                    const geneSetsLoaded = this.getGenesetForFactor(row.phenotype, row.factor).length > 0;
+                    if (!genesLoaded || !geneSetsLoaded) {
+                        await this.loadGenesForOneFactor(row.phenotype, row.factor, row);
+                    }
+                }
+                const selectedFactorData = this.buildSelectedFactorDataFromRows(selectedRows);
+                const phenotypes = Object.keys(selectedFactorData || {});
+                if (!phenotypes.length) return;
+                this.factorData = JSON.parse(JSON.stringify(selectedFactorData));
+                this.normalizeHeatmapSelectionAfterRegroup();
+                this.snapshotFilteredSelectionBaseline();
+                this.mechanisms = null;
+                this.mechanisms_summary = null;
+                this.semanticGroupedPairKeys = null;
+                this.error_mechanisms = false;
+                this.error_msg_mechanisms = "";
+                this.stepApprovalGateActive = false;
+                this.stepApprovalGateStepId = "";
+                this.stepApprovalGateMessage = "";
+                this.stepApprovalGateResolver = null;
+                this.loadComplete = false;
+                this.steps = (this.steps || []).filter(
+                    (s) => s && s.id !== "8" && s.id !== "8.2" && s.id !== "9" && s.type !== "error"
+                );
+                this.showTab = "process";
+                this.setLoadStatus("Semantic groupings…");
+                this.setStep({
+                    id: "8",
+                    title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+                });
+                const kgTriples = this.transformMergedDataToKG(selectedFactorData, "factors");
+                this.lastKgTriples = kgTriples;
+                this.requestMechanismHypotheses(selectedFactorData, kgTriples);
+            } finally {
+                this.regroupingSelectedPairs = false;
+            }
+        },
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;
             if (this.stepApprovalGateStepId === "8" && this.selectedSemanticGroupCount === 0) return;
@@ -2437,14 +2649,13 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             if (!this.subtableCurrentPages[key]) {
                 this.$set(this.subtableCurrentPages, key, 1);
             }
-            if (typeof row.toggleDetails === "function") {
-                row.toggleDetails();
-            } else {
-                const willExpand = !this.expandedFactorRowKeys[key];
-                this.$set(this.expandedFactorRowKeys, key, willExpand);
-                if (willExpand && this.getGenesForFactor(row.item.phenotype, row.item.factor).length === 0) {
-                    this.loadGenesForOneFactor(row.item.phenotype, row.item.factor);
-                }
+            const willExpand = !this.expandedFactorRowKeys[key];
+            this.$set(this.expandedFactorRowKeys, key, willExpand);
+            if (row.item) {
+                this.$set(row.item, "_showDetails", willExpand);
+            }
+            if (willExpand && this.getGenesForFactor(row.item.phenotype, row.item.factor).length === 0) {
+                this.loadGenesForOneFactor(row.item.phenotype, row.item.factor, row.item);
             }
         },
         isFactorRowExpanded(item) {
@@ -2458,15 +2669,16 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const allFactors = pData.allFactors || [];
             const f = factors.find((x) => x.factor === factor || String(x.factor) === String(factor))
                 || allFactors.find((x) => x.factor === factor || String(x.factor) === String(factor));
+            if (!f) return [];
             //console.log('getGenesetForFactor', f);
             const topGeneSetsStr = f.top_gene_sets;
             const topGeneSetProgramsStr = f.gene_set_program;
             const topGeneSets = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
                 ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
-                : "";
+                : [];
             const topGeneSetPrograms = (typeof topGeneSetProgramsStr === "string" && topGeneSetProgramsStr)
                 ? topGeneSetProgramsStr.split("|").map((s) => s.trim()).filter(Boolean)
-                : "";
+                : [];
             const result = topGeneSets.map((g, i) => ({
                 geneset: g,
                 program: topGeneSetPrograms[i]
@@ -2503,24 +2715,55 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
          * Load genes for a single (phenotype, factor) on demand (e.g. when user expands an unselected factor row).
          * Finds the factor in allFactors or factors and populates its genes and phenotype.genes.
          */
-        async loadGenesForOneFactor(phenotype, factorId) {
+        async loadGenesForOneFactor(phenotype, factorId, rowMeta = null) {
             const key = this.getRowKey({ phenotype, factor: factorId });
-            const pData = this.factorData && this.factorData[phenotype];
-            if (!pData) return;
+            if (this.loadingGenesForFactor && this.loadingGenesForFactor[key]) return;
+            if (!this.factorData) this.factorData = {};
+            if (!this.factorData[phenotype]) {
+                this.$set(this.factorData, phenotype, { genes: {}, factors: [], allFactors: [] });
+            }
+            const pData = this.factorData[phenotype];
             const factors = pData.factors || [];
             const allFactors = pData.allFactors || [];
-            const factorItem = factors.find((x) => x.factor === factorId || String(x.factor) === String(factorId))
+            let factorItem = factors.find((x) => x.factor === factorId || String(x.factor) === String(factorId))
                 || allFactors.find((x) => x.factor === factorId || String(x.factor) === String(factorId));
+            if (!factorItem && rowMeta) {
+                if (!pData.allFactors) this.$set(pData, "allFactors", []);
+                factorItem = {
+                    factor: factorId,
+                    label:
+                        rowMeta.factorLabel != null && String(rowMeta.factorLabel).trim() !== ""
+                            ? String(rowMeta.factorLabel).trim()
+                            : String(factorId),
+                    top_gene_sets: "",
+                    gene_set_description: "",
+                    gene_set_program: "",
+                    genes: {},
+                    geneSets: {},
+                };
+                pData.allFactors.push(factorItem);
+            }
             if (!factorItem) return;
-            if (factorItem.genes && Object.keys(factorItem.genes).length > 0) return;
             if (!factorItem.genes) this.$set(factorItem, "genes", {});
             if (!factorItem.geneSets) this.$set(factorItem, "geneSets", {});
             this.$set(this.loadingGenesForFactor, key, true);
-            const topGeneSetsStr = factorItem.top_gene_sets;
-            const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
-                ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
-                : [];
             try {
+                if (!factorItem.top_gene_sets || String(factorItem.top_gene_sets).trim() === "") {
+                    try {
+                        const { top_gene_sets, gene_set_description, gene_set_program } =
+                            await this.fetchGeneSetsForPhenotypeFactor(phenotype, factorItem.factor);
+                        factorItem.top_gene_sets = top_gene_sets;
+                        this.$set(factorItem, "gene_set_description", gene_set_description);
+                        this.$set(factorItem, "gene_set_program", gene_set_program);
+                    } catch (err) {
+                        console.warn(`FactorBaseReveal: phenotypeGeneSetFactor failed for ${phenotype}/${factorItem.factor}`, err);
+                    }
+                }
+                if (factorItem.genes && Object.keys(factorItem.genes).length > 0) return;
+                const topGeneSetsStr = factorItem.top_gene_sets;
+                const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
+                    ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
+                    : [];
                 for (const geneSet of geneSetIds) {
                     try {
                         const raw = await this.querySearchApi("pigeanJoinedGeneSets", { phenotype, geneSet });
@@ -2588,7 +2831,12 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             this.remainingGroupGenerateError = "";
             this.searchCriteriaEditRows = [];
             this.searchCriteriaEditRowsDefault = [];
+            this.pairSelectionOverrides = {};
+            this.llmFilteredPairKeysBaseline = [];
+            this.regroupingSelectedPairs = false;
             this.error_search_criteria = false;
+            this.mainTableCurrentPage = 1;
+            this.remainingTableCurrentPage = 1;
             this.steps = [];
             this.stepsTime = null;
             this.stepsTimer = null;
@@ -3104,6 +3352,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     if (a.included !== b.included) return b.included ? 1 : -1;
                     return (a.phenotype || "").localeCompare(b.phenotype || "");
                 });
+                this.snapshotFilteredSelectionBaseline();
 
                 const phenotypes = Object.keys(this.factorData).filter((p) => (this.factorData[p].factors || []).length > 0);
                 if (phenotypes.length === 0) {
@@ -3449,6 +3698,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 return;
             }
 
+            this.snapshotFilteredSelectionBaseline();
             await this.loadGenesForFactorData(filteredPhenotypes);
         },
         /**
@@ -4847,26 +5097,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
 }
 .mechanism-card-header {
     background: #6c757d;
-}
-.factors-table-scroll-wrapper {
-    max-height: 500px;
-    overflow: auto;
-}
-/* Ensure entire table scrolls together; no sticky first column */
-.factors-table-scroll-wrapper >>> th:first-child,
-.factors-table-scroll-wrapper >>> td:first-child {
-    position: static !important;
-    left: auto !important;
-}
-.factors-table-scroll-wrapper >>> .table-responsive {
-    overflow: visible;
-    display: block;
-}
-.factors-table-scroll-wrapper >>> .b-table-sticky-column {
-    position: static !important;
-}
-.factors-table-scroll-wrapper .form-check-input {
-    position: relative !important;
 }
 .network-popup-overlay {
     position: fixed;
