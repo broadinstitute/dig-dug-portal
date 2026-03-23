@@ -705,6 +705,12 @@
                                     >
                                         <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
                                             <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
+                                            <button
+                                                class="btn btn-cfde btn-sm ml-auto"
+                                                @click.stop="openDesignProtocolForMechanism(mechanism)"
+                                            >
+                                                Design experiment protocol
+                                            </button>
                                         </div>
                                         <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
                                             <div class="" style="display:flex; gap:20px">
@@ -1265,6 +1271,7 @@ import JSZip from "jszip";
 
 import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
+import { kcURL } from "@/utils/cfdeUtils";
 import uiUtils from "@/utils/uiUtils";
 
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork.vue";
@@ -2605,6 +2612,37 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const map = {};
             Object.keys(infoMap).forEach((id) => { map[id] = infoMap[id].description || ""; });
             return map;
+        },
+        openDesignProtocolForMechanism(mechanism) {
+            if (!mechanism || typeof mechanism !== "object") return;
+
+            const researchContext =
+                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
+                    ? String(this.searchCriteria[1].values)
+                    : "";
+            const hypothesis = mechanism.hypothesis != null ? String(mechanism.hypothesis) : "";
+            const genesRaw = Array.isArray(mechanism.candidate_genes) && mechanism.candidate_genes.length
+                ? mechanism.candidate_genes
+                : (Array.isArray(mechanism.genes) ? mechanism.genes : []);
+            const genes = Array.from(
+                new Set(
+                    genesRaw
+                        .map((item) => {
+                            if (typeof item === "string") return item.trim();
+                            if (item && item.gene != null) return String(item.gene).trim();
+                            return "";
+                        })
+                        .filter(Boolean)
+                )
+            ).join(",");
+
+            const params = new URLSearchParams();
+            params.set("researchContext", researchContext);
+            params.set("hypothesis", hypothesis);
+            params.set("genes", genes);
+
+            const designUrl = kcURL(`/r/cfde_design?${params.toString()}`);
+            window.open(designUrl, "_blank", "noopener");
         },
         openNetworkPopup(mechanismIndex) {
             this.networkPopupMechanismIndex = mechanismIndex;
