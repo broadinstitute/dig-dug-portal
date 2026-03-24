@@ -220,7 +220,7 @@
                             </div>
                         </div>
                         <a
-                            href="/r/factor_base_reveal"
+                            href="/r/cfde_reveal"
                             style="align-self: flex-end"
                             >Start here</a
                         >
