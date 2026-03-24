@@ -444,32 +444,37 @@
                                                                         { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
                                                                     ]"
                                                                 >
-                                                                    <template #cell(geneset)="row">
-                                                                        <div class="truncate-cell" :title="row.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                            {{ row.item.geneset }}
-                                                                        </div>
+                                                                    <template #cell(geneset)="gsRow">
+                                                                        <a
+                                                                            :href="cfdeExploreAssociationHref(row.phenotype, gsRow.item.geneset, gsRow.item.program)"
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                            :title="gsRow.item.geneset"
+                                                                            style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                                        >{{ gsRow.item.geneset }}</a>
                                                                     </template>
-                                                                    <template #cell(actions)="row">
+                                                                    <template #cell(actions)="gsRow">
                                                                         <button
-                                                                            v-if="row.item.program === 'gtex'"
+                                                                            v-if="gsRow.item.program === 'gtex'"
                                                                             class="btn btn-sm btn-outline-primary"
-                                                                            @click="onGeneSetRowToggled(row)"
+                                                                            @click="onGeneSetRowToggled(gsRow)"
                                                                         >
-                                                                            {{ row.detailsShowing ? 'Hide' : 'Show' }}
+                                                                            {{ gsRow.detailsShowing ? 'Hide' : 'Show' }}
                                                                         </button>
                                                                     </template>  
-                                                                    <template #row-details="row">
+                                                                    <template #row-details="gsRow">
                                                                         <div style="padding: 10px;">
                                                                             <!--
-                                                                            <a role="button" @click="getProvenance(row.item.geneset, row.item.program)">info</a>
-                                                                            <pre>{{ gene_set_sources[row.item.geneset] }}</pre>
+                                                                            <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
+                                                                            <pre>{{ gene_set_sources[gsRow.item.geneset] }}</pre>
                                                                             -->
-                                                                            <div v-if="gene_set_sources[row.item.geneset]">
+                                                                            <div v-if="gene_set_sources[gsRow.item.geneset]">
                                                                                 <b-card>
-                                                                                    <a :href="gene_set_sources[row.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[row.item.geneset].geneSet }}</a>
+                                                                                    <a :href="gene_set_sources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gsRow.item.geneset].geneSet }}</a>
 
                                                                                     <ul>
-                                                                                        <li v-for="(rel, i) in gene_set_sources[row.item.geneset].relations" :key="i" class="text-muted small">
+                                                                                        <li v-for="(rel, i) in gene_set_sources[gsRow.item.geneset].relations" :key="i" class="text-muted small">
                                                                                             <div>
                                                                                                 <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
                                                                                             </div>
@@ -594,32 +599,37 @@
                                                                 { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
                                                             ]"
                                                         >
-                                                            <template #cell(geneset)="row">
-                                                                <div class="truncate-cell" :title="row.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                    {{ row.item.geneset }}
-                                                                </div>
+                                                            <template #cell(geneset)="gsRow">
+                                                                <a
+                                                                    :href="cfdeExploreAssociationHref(row.item.phenotype, gsRow.item.geneset, gsRow.item.program)"
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                    :title="gsRow.item.geneset"
+                                                                    style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                                >{{ gsRow.item.geneset }}</a>
                                                             </template>
-                                                            <template #cell(actions)="row">
+                                                            <template #cell(actions)="gsRow">
                                                                 <button
-                                                                    v-if="row.item.program === 'gtex'"
+                                                                    v-if="gsRow.item.program === 'gtex'"
                                                                     class="btn btn-sm btn-outline-primary"
-                                                                    @click="onGeneSetRowToggled(row)"
+                                                                    @click="onGeneSetRowToggled(gsRow)"
                                                                 >
-                                                                    {{ row.detailsShowing ? 'Hide' : 'Show' }}
+                                                                    {{ gsRow.detailsShowing ? 'Hide' : 'Show' }}
                                                                 </button>
                                                             </template>  
-                                                            <template #row-details="row">
+                                                            <template #row-details="gsRow">
                                                                 <div style="padding: 10px;">
                                                                     <!--
-                                                                    <a role="button" @click="getProvenance(row.item.geneset, row.item.program)">info</a>
-                                                                    <pre>{{ gene_set_sources[row.item.geneset] }}</pre>
+                                                                    <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
+                                                                    <pre>{{ gene_set_sources[gsRow.item.geneset] }}</pre>
                                                                     -->
-                                                                    <div v-if="gene_set_sources[row.item.geneset]">
+                                                                    <div v-if="gene_set_sources[gsRow.item.geneset]">
                                                                         <b-card>
-                                                                            <a :href="gene_set_sources[row.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[row.item.geneset].geneSet }}</a>
+                                                                            <a :href="gene_set_sources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gsRow.item.geneset].geneSet }}</a>
 
                                                                             <ul>
-                                                                                <li v-for="(rel, i) in gene_set_sources[row.item.geneset].relations" :key="i" class="text-muted small">
+                                                                                <li v-for="(rel, i) in gene_set_sources[gsRow.item.geneset].relations" :key="i" class="text-muted small">
                                                                                     <div>
                                                                                         <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
                                                                                     </div>
@@ -797,17 +807,25 @@
                                                         <div v-if="(mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length)" class="mb-2">
                                                             <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant phenotypes</div>
                                                             <div style="display:flex; flex-direction: column; gap:3px">
-                                                                <div v-for="phenotype in getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)" 
-                                                                    class="small pill" :style="`background:${NODE_COLORS.Phenotype}; color:white`">
-                                                                    {{ phenotype }}
+                                                                <div
+                                                                    v-for="(phenotypeLabel, pidx) in getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)"
+                                                                    :key="'mech-' + idx + '-rphen-' + pidx + '-' + (phenotypeLabel || '')"
+                                                                    class="small pill"
+                                                                    :style="`background:${NODE_COLORS.Phenotype}; color:white`"
+                                                                >
+                                                                    {{ phenotypeLabel }}
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div v-if="(mechanism.relevant_factors && mechanism.relevant_factors.length)" class="mb-2">
                                                             <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene set clusters</div>
                                                             <div style="display:flex; flex-direction: column; gap:3px">
-                                                                <div v-for="factor in mechanism.relevant_factors" class="small pill" 
-                                                                    :style="`background:${NODE_COLORS.Factor}; color:white`">
+                                                                <div
+                                                                    v-for="(factor, fidx) in mechanism.relevant_factors"
+                                                                    :key="'mech-' + idx + '-rfac-' + fidx + '-' + (factor || '')"
+                                                                    class="small pill"
+                                                                    :style="`background:${NODE_COLORS.Factor}; color:white`"
+                                                                >
                                                                     {{ factor }}
                                                                 </div>
                                                             </div>
@@ -815,12 +833,19 @@
                                                         <div v-if="(mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)" class="mb-2">
                                                             <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene sets</div>
                                                             <div class="small" style="white-space: normal; display:flex; flex-direction: column; gap:3px">
-                                                                <div v-for="set in formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)">
+                                                                <div v-for="set in formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)" :key="set.gs">
                                                                     <div style="display:flex; gap:10px; justify-content: space-between; align-items: center;">
-                                                                        <div class="pill" style="overflow: clip; text-overflow: ellipsis; max-width: 300px; word-wrap: normal;" :style="`background:${NODE_COLORS.Pathway}; color:white`" :title="set.desc">{{ set.gs }}</div>
+                                                                        <a
+                                                                            :href="cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            class="pill text-white text-decoration-none cfde-explore-geneset-link"
+                                                                            style="overflow: clip; text-overflow: ellipsis; max-width: 300px; word-wrap: normal;"
+                                                                            :style="`background:${NODE_COLORS.Pathway}`"
+                                                                            :title="set.desc || set.gs"
+                                                                        >{{ set.gs }}</a>
                                                                         <div class="pill">{{ set.program }}</div>
                                                                     </div>
-                                                                    <!--<div>{{ set.desc }}</div>-->
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -964,9 +989,14 @@
                                                                                     ]"
                                                                                 >
                                                                                     <template #cell(geneset)="gRow">
-                                                                                        <div class="truncate-cell" :title="gRow.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                                            {{ gRow.item.geneset }}
-                                                                                        </div>
+                                                                                        <a
+                                                                                            :href="cfdeExploreAssociationHref(row.phenotype, gRow.item.geneset, gRow.item.program)"
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                                            :title="gRow.item.geneset"
+                                                                                            style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                                                        >{{ gRow.item.geneset }}</a>
                                                                                     </template>
                                                                                     <template #cell(actions)="gRow">
                                                                                         <button
@@ -1102,9 +1132,14 @@
                                                                             ]"
                                                                         >
                                                                             <template #cell(geneset)="gRow">
-                                                                                <div class="truncate-cell" :title="gRow.item.geneset" style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                                                    {{ gRow.item.geneset }}
-                                                                                </div>
+                                                                                <a
+                                                                                    :href="cfdeExploreAssociationHref(row.item.phenotype, gRow.item.geneset, gRow.item.program)"
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                                    :title="gRow.item.geneset"
+                                                                                    style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                                                                >{{ gRow.item.geneset }}</a>
                                                                             </template>
                                                                             <template #cell(actions)="gRow">
                                                                                 <button
@@ -2618,13 +2653,85 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             Object.keys(infoMap).forEach((id) => { map[id] = infoMap[id].description || ""; });
             return map;
         },
+        /** True if factorData[phenotypeKey] lists this gene set on any factor's top_gene_sets. */
+        factorDataHasGeneSet(phenotypeKey, geneSetId) {
+            const g = geneSetId != null ? String(geneSetId).trim() : "";
+            if (!g || !this.factorData || !this.factorData[phenotypeKey]) return false;
+            const factors = (this.factorData[phenotypeKey].factors || []);
+            return factors.some((f) => {
+                const ids = (typeof f.top_gene_sets === "string" && f.top_gene_sets)
+                    ? f.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
+                    : [];
+                return ids.includes(g);
+            });
+        },
+        /**
+         * Phenotype **id** for Explore associations (not display name). Picks relevant phenotypes whose factor data include this gene set when possible.
+         */
+        resolvePhenotypeIdForCfdeExploreAssociation(mechanism, geneSetId) {
+            const g = geneSetId != null ? String(geneSetId).trim() : "";
+            if (!g) return "";
+            const rel = Array.isArray(mechanism && mechanism.relevant_phenotypes) ? mechanism.relevant_phenotypes : [];
+            if (rel.length === 1) return String(rel[0]);
+            for (let i = 0; i < rel.length; i++) {
+                const pid = String(rel[i]);
+                if (this.factorDataHasGeneSet(pid, g)) return pid;
+            }
+            const data = this.factorData || {};
+            const keys = Object.keys(data);
+            for (let i = 0; i < keys.length; i++) {
+                if (this.factorDataHasGeneSet(keys[i], g)) return keys[i];
+            }
+            if (rel.length) return String(rel[0]);
+            return keys.length ? keys[0] : "";
+        },
+        resolveSourceForCfdeExploreGeneSet(geneSetId) {
+            const infoMap = this.buildGeneSetInfoMap();
+            const id = geneSetId != null ? String(geneSetId).trim() : "";
+            const info = id ? infoMap[id] : null;
+            const prog = info && info.gene_set_program != null ? String(info.gene_set_program).trim() : "";
+            return prog || "cfde";
+        },
+        /** Research context for CFDE Explore / Design (`researchContext` query param in cfdeExplore.vue). */
+        getRevealResearchContextForExplore() {
+            if (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null) {
+                return String(this.searchCriteria[1].values).trim();
+            }
+            return "";
+        },
+        /**
+         * CFDE Explore: `associations`, optional `hypothesis` + `researchContext` (same names as utilsBox.keyParams in cfdeExplore).
+         */
+        cfdeExploreAssociationHref(phenotypeId, geneSetId, program, hypothesisOptional) {
+            const p = phenotypeId != null ? String(phenotypeId).trim() : "";
+            const g = geneSetId != null ? String(geneSetId).trim() : "";
+            const s = (program != null && String(program).trim() !== "") ? String(program).trim() : "cfde";
+            if (!g) return "#";
+            const triple = `${p},${g},${s}`;
+            const params = new URLSearchParams();
+            params.set("associations", triple);
+            const hypothesis = hypothesisOptional != null ? String(hypothesisOptional).trim() : "";
+            if (hypothesis) params.set("hypothesis", hypothesis);
+            const researchContext = this.getRevealResearchContextForExplore();
+            if (researchContext) params.set("researchContext", researchContext);
+            return kcURL(`/r/cfde_explore?${params.toString()}`);
+        },
+        /** Hypothesis-card gene set link; includes mechanism hypothesis when present. */
+        cfdeExploreGeneSetHref(mechanism, geneSetId, explicitProgram) {
+            const phenotype = this.resolvePhenotypeIdForCfdeExploreAssociation(mechanism, geneSetId);
+            const geneSet = geneSetId != null ? String(geneSetId).trim() : "";
+            if (!geneSet) return "#";
+            const source =
+                (explicitProgram != null && String(explicitProgram).trim() !== "")
+                    ? String(explicitProgram).trim()
+                    : this.resolveSourceForCfdeExploreGeneSet(geneSet);
+            const hypothesis = mechanism && mechanism.hypothesis != null ? String(mechanism.hypothesis).trim() : "";
+            return this.cfdeExploreAssociationHref(phenotype, geneSet, source, hypothesis);
+        },
         openDesignProtocolForMechanism(mechanism) {
             if (!mechanism || typeof mechanism !== "object") return;
 
-            const researchContext =
-                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
+            const researchContext = this.getRevealResearchContextForExplore();
             const hypothesis = mechanism.hypothesis != null ? String(mechanism.hypothesis) : "";
             const genesRaw = Array.isArray(mechanism.candidate_genes) && mechanism.candidate_genes.length
                 ? mechanism.candidate_genes
@@ -5097,6 +5204,13 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
 .pill.new {
     width: 2em;
     padding: 0.25em;
+}
+.cfde-explore-geneset-link {
+    cursor: pointer;
+}
+.cfde-explore-geneset-link:hover {
+    filter: brightness(1.08);
+    text-decoration: underline;
 }
 .ai-gen {
     display: inline;

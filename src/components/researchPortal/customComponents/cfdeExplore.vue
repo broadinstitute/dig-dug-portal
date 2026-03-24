@@ -296,6 +296,7 @@
 							<option value="Gene Prioritization">Gene Prioritization</option>
 							<option value="Expression Analysis">Expression Analysis</option>
 							<option value="Discovery & Enrichment">Discovery & Enrichment</option>
+							<option value="C2M2">C2M2</option>
 						</select>
 					</div>
 					
@@ -322,15 +323,31 @@
 								</ul>
 							</div>
 							<div class="option-actions">
-								<button 
-									@click="handleCardClick(card)"
-									class="btn btn-primary option-btn"
-									:disabled="!manualGenes.trim() || (card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)"
-								>
-									<span v-if="(card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)" class="loading-spinner-small"></span>
-									{{ card['open label'] }}
-								</button>
-								<span class="option-note">{{ getCardTip(card) }}</span>
+								<template v-if="card.linkType === 'c2m2_portal'">
+									<div v-if="c2m2PortalLoading" class="c2m2-portal-loading text-muted small">Loading portal links…</div>
+									<div v-else class="c2m2-portal-link-buttons">
+										<a
+											v-for="(portalLink, pIdx) in c2m2PortalLinks"
+											:key="portalLink.url + '-' + pIdx"
+											:href="portalLink.url"
+											class="btn btn-primary option-btn c2m2-portal-btn"
+											target="_blank"
+											rel="noopener noreferrer"
+										>{{ portalLink.label }}</a>
+									</div>
+									<span class="option-note">{{ getCardTip(card) }}</span>
+								</template>
+								<template v-else>
+									<button 
+										@click="handleCardClick(card)"
+										class="btn btn-primary option-btn"
+										:disabled="!manualGenes.trim() || (card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)"
+									>
+										<span v-if="(card['card label'] === 'Gene Relevance & Novelty Scoring' && isGettingGeneNovelty) || (card['card label'] === 'Genes to Hypothesis' && isGeneratingHypothesis)" class="loading-spinner-small"></span>
+										{{ card['open label'] }}
+									</button>
+									<span class="option-note">{{ getCardTip(card) }}</span>
+								</template>
 							</div>
 						</div>
 					</div>
@@ -1284,6 +1301,22 @@ export default {
             // Exploration cards configuration
             explorationCards: [
                 {
+                    "card label": "CFDE Data Portal",
+                    "card description": "Open C2M2 provenance resources in the CFDE Data Portal for GTEx gene sets linked from your associations. Each button corresponds to a file or entity referenced in the portal.",
+                    "details": [
+                        "Provenance from the C2M2 index for your GTEx gene set id"
+                    ],
+                    "open label": "",
+                    "link": null,
+                    "link tip": "CFDE / C2M2 • Opens in new tab",
+                    "required parameters": [],
+                    "handler": null,
+                    "badge": "C2M2",
+                    "linkType": "c2m2_portal",
+                    "condition": "c2m2_portal",
+                    "category": "C2M2"
+                },
+                {
                     "card label": "Mechanistic Assessment & Novelty",
                     "card description": "Quantitatively assess mechanistic relevance and experimental novelty of genes relative to your hypothesis. Evaluates tissue-specific gene function, mechanistic linkage to hypothesis pathways, and research standing to prioritize candidates.",
                     "details": [
@@ -1408,6 +1441,10 @@ export default {
             
             // Card category filter
             selectedCardCategory: 'all',
+
+            // C2M2 CFDE Data Portal card (GTEx associations + provenance API)
+            c2m2PortalLinks: [],
+            c2m2PortalLoading: false,
                
             // UI state
             phenotypeSearch: '',
@@ -1634,6 +1671,9 @@ export default {
 				}
 				if (card.condition === 'hypothesis') {
 					if (!this.hasHypothesis) return false;
+				}
+				if (card.condition === 'c2m2_portal') {
+					if (!this.c2m2PortalLinks || this.c2m2PortalLinks.length === 0) return false;
 				}
 				
 				// Check category filter
@@ -2126,6 +2166,9 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 						console.log('Associations modified, Load Genes button should appear');
 					}
 				}
+				this.$nextTick(() => {
+					this.refreshC2m2PortalLinks();
+				});
 			},
 			selectedScoredGenes() {
 				// Update indeterminate state of select-all checkbox for scored genes
@@ -2210,14 +2253,78 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 		findPhenotypeByName,
 		findPhenotypeById,
 		setSimpleLink,
+		/** Normalize keyParams values from the URL (query-string can return numbers or arrays). */
+		coerceKeyParamToString(val) {
+			if (val == null) return "";
+			if (Array.isArray(val)) {
+				return val.map((v) => (v != null ? String(v) : "")).filter(Boolean).join(";");
+			}
+			return String(val);
+		},
 		handleCardClick(card) {
+			if (card.linkType === 'c2m2_portal') return;
 			// Route to the appropriate handler method based on card config
 			console.log(`[Card Click] Card: ${card['card label']}, Handler: ${card.handler}`);
 			if (card.handler && typeof this[card.handler] === 'function') {
 				console.log(`[Card Click] Calling handler method: ${card.handler}`);
 				this[card.handler]();
-			} else {
+			} else if (card.handler) {
 				console.error(`Handler method "${card.handler}" not found for card "${card['card label']}"`);
+			}
+		},
+		async refreshC2m2PortalLinks() {
+			const raw = (this.geneSets || '').trim();
+			if (!raw) {
+				this.c2m2PortalLinks = [];
+				this.c2m2PortalLoading = false;
+				return;
+			}
+			const lines = raw.split('\n').filter(line => line.trim());
+			const geneSetIds = new Set();
+			for (const line of lines) {
+				const parts = line.split(',').map(part => part.trim());
+				if (parts.length < 3) continue;
+				const geneSetId = parts[1];
+				const source = String(parts[2] || '').toLowerCase();
+				if (source === 'gtex' && geneSetId) {
+					geneSetIds.add(geneSetId);
+				}
+			}
+			if (geneSetIds.size === 0) {
+				this.c2m2PortalLinks = [];
+				this.c2m2PortalLoading = false;
+				return;
+			}
+			this.c2m2PortalLoading = true;
+			const byUrl = new Map();
+			try {
+				await Promise.all(
+					[...geneSetIds].map(async geneSetId => {
+						try {
+							const url = `https://cfde-bi.hugeamp.org/api/bio/query/c2m2-provenance?q=${encodeURIComponent(geneSetId)}`;
+							const response = await fetch(url);
+							const data = await response.json();
+							if (!data || !Array.isArray(data.data) || data.data.length === 0) {
+								return;
+							}
+							for (const entry of data.data) {
+								const nodes = entry && entry.nodes ? entry.nodes : [];
+								for (const node of nodes) {
+									const linkUrl = node.dcc_url;
+									if (!linkUrl || byUrl.has(linkUrl)) continue;
+									const props = node.properties || {};
+									const label = props.filename || props.name || node.id || 'Open in portal';
+									byUrl.set(linkUrl, { url: linkUrl, label });
+								}
+							}
+						} catch (e) {
+							console.error('[C2M2] Provenance fetch failed for', geneSetId, e);
+						}
+					})
+				);
+				this.c2m2PortalLinks = Array.from(byUrl.values());
+			} finally {
+				this.c2m2PortalLoading = false;
 			}
 		},
 		getCardTip(card) {
@@ -2705,32 +2812,38 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				let hasGenes = false;
 				
 				// Populate hypothesis field if keyParams['hypothesis'] exists
-				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
-					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
+				const hypRaw = this.utilsBox.keyParams['hypothesis'];
+				if (hypRaw != null && String(hypRaw).trim() !== '') {
+					this.phenotypeSearch = this.coerceKeyParamToString(hypRaw);
 					hypothesisFound = true;
 				}
 				
 				// Populate research context field if keyParams['researchContext'] exists
-				if (this.utilsBox.keyParams['researchContext'] && typeof this.utilsBox.keyParams['researchContext'] === 'string') {
-					this.researchContext = this.utilsBox.keyParams['researchContext'];
-					this.designToolResearchContext = this.utilsBox.keyParams['researchContext'];
+				const ctxRaw = this.utilsBox.keyParams['researchContext'];
+				if (ctxRaw != null && String(ctxRaw).trim() !== '') {
+					const ctx = this.coerceKeyParamToString(ctxRaw);
+					this.researchContext = ctx;
+					this.designToolResearchContext = ctx;
 				}
 				
 				// Check for associations parameter
-				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
-					this.geneSets = this.utilsBox.keyParams['geneSets'];
+				const geneSetsRaw = this.utilsBox.keyParams['geneSets'];
+				if (geneSetsRaw != null && String(geneSetsRaw).trim() !== '') {
+					this.geneSets = this.coerceKeyParamToString(geneSetsRaw);
 					hasAssociations = true;
 				}
 				
 				// Check for associations parameter (alternative)
-				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
-					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
+				const assocRaw = this.utilsBox.keyParams['associations'];
+				if (assocRaw != null && String(assocRaw).trim() !== '') {
+					this.geneSets = this.parseAssociations(this.coerceKeyParamToString(assocRaw));
 					hasAssociations = true;
 				}
 				
 				// Check for genes parameter
-				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
-					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
+				const genesRawParam = this.utilsBox.keyParams['genes'];
+				if (genesRawParam != null && String(genesRawParam).trim() !== '') {
+					const geneList = this.coerceKeyParamToString(genesRawParam).split(',').map(gene => gene.trim()).filter(gene => gene);
 					// Remove duplicates and sort alphabetically
 					const uniqueGeneList = [...new Set(geneList)];
 					const sortedGeneList = uniqueGeneList.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
@@ -3065,11 +3178,12 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 					const parts = line.split(',').map(part => part.trim());
 					console.log('Processing line:', line, 'Parts:', parts);
 					if (parts.length >= 2) {
-						const phenotype = findPhenotypeByName(parts[0]);
-						const geneSet = parts[1];
-						console.log('Phenotype lookup:', parts[0], '->', phenotype);
+						const phenotype = parts[0] ? String(parts[0]).trim() : '';
+						const geneSet = parts[1] ? String(parts[1]).trim() : '';
+						const source = (parts.length >= 3 && parts[2]) ? String(parts[2]).trim() : 'cfde';
+						console.log('Phenotype + gene set:', phenotype, geneSet, source);
 						if (phenotype && geneSet) {
-							geneQueries.push({ phenotype, geneSet });
+							geneQueries.push({ phenotype, geneSet, source });
 						} else {
 							console.log('Skipping line - phenotype or geneSet missing:', { phenotype, geneSet });
 						}
@@ -3077,6 +3191,13 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				}
 				
 				console.log('Gene queries to process:', geneQueries);
+
+				if (geneQueries.length === 0) {
+					console.warn(
+						'CFDE Explore: No phenotype–gene set pairs to fetch. Each line needs "phenotype_id,gene_set_id" (optional third column: source), e.g. from REVEAL links.'
+					);
+					return;
+				}
 				
 				// Fetch genes for each phenotype-gene set pair
 				const allGenes = new Set();
@@ -3084,7 +3205,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				
 				for (const query of geneQueries) {
 					try {
-						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
+						const src = (query.source != null && String(query.source).trim() !== '') ? String(query.source).trim() : 'cfde';
+						const url = `https://cfde-bi.hugeamp.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
 
 						console.log('URL:', url);
 						
@@ -3169,6 +3291,8 @@ Genes that are already **well-studied core components** (e.g., highly characteri
 				
 			} catch (error) {
 				console.error('Error fetching genes from associations:', error);
+			} finally {
+				void this.refreshC2m2PortalLinks();
 			}
 		},
 		previousPage() {
@@ -5847,6 +5971,36 @@ small.input-warning {
     font-style: italic;
     font-weight: 500;
     letter-spacing: 0.01em;
+}
+
+.c2m2-portal-link-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+}
+
+.c2m2-portal-btn,
+.c2m2-portal-btn:visited {
+    max-width: 100%;
+    word-break: break-word;
+    text-align: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #ffffff !important;
+}
+
+.c2m2-portal-btn:hover,
+.c2m2-portal-btn:focus,
+.c2m2-portal-btn:active {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.c2m2-portal-loading {
+    width: 100%;
+    text-align: center;
 }
 
 /* Gene Data Table Section */
