@@ -2032,6 +2032,7 @@ export default Vue.component("multi-region-plot", {
 						? Math.round(positionLabel * 0.001) + "k"
 						: positionLabel;
 
+				// Placing position labels on the X axis. TODO replicate on splice plot.
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
