@@ -43,7 +43,7 @@
 							<strong>Suggested CFDE Programs:</strong>
 							<div v-for="program in llmResults.programs" style="display:flex; flex-direction: column;">
 								<div style="display:grid; grid-template-columns: 1fr 2fr; gap: 10px;">
-									<strong>{{ program.name }}</strong> 
+									<strong>{{ program.name }}</strong>
 									<div style="display:flex; justify-content: flex-end; gap: 10px">
 										<a :href="kcURL(`/r/kc_programs?DCC=${program.id}`)">program snapshot</a>
 										<a :href="programLinks[program.id]" target="_blank">data portal</a>
@@ -57,11 +57,11 @@
 							<div>See evidence-backed hypotheses about the biology behind your research interest:</div>
 							<div style="text-align: center; font-family: serif; font-size: 1.4em; padding: 10px; font-style: italic;">{{ llmResults.discovery }}</div>
 							<div>
-								Using pre-computed genetic associations between 6,000 common & rare disease phenotypes 
+								Using pre-computed genetic associations between 6,000 common & rare disease phenotypes
 								and 150,000 gene expression signatures from various CFDE Programs.
 							</div>
 							<div style="margin: 10px 0 0">
-								<a :href="kcURL(`/r/cfde_reveal?query=${llmResults.discovery}`)" target="_blank">mechanism discovery</a>
+								<a :href="kcURL(`/r/factor_base_reveal?query=${llmResults.discovery}`)" target="_blank">mechanism discovery</a>
 							</div>
 						</div>
 					</div>
@@ -116,7 +116,7 @@
 							</div>
 						</div>
 					</div>
-					
+
 				</div>
 			</div>
 			<!--
@@ -137,7 +137,7 @@
 				</span>
 			</span>
 			-->
-			<template v-if="singleSearchMethod == 'ss_keyword'"> 
+			<template v-if="singleSearchMethod == 'ss_keyword'">
 				<input class="form-control byor-single-search" type="text" ref="search" id="byor_single_search" v-model="singleSearchParam"
 					:placeholder="!hasFocus?'Click here to begin':''" @keyup.enter="onSearch" @focus="onFocus" @blur="onBlur"
 					autocomplete="off" />
@@ -147,7 +147,7 @@
 					</div>
 					<div v-if="isLoading" class="loading"></div>
 				</div>
-				
+
 			</template>
 			<!--
 			<template v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled'] && singleSearchMethod == 'ss_meaning'">
@@ -183,7 +183,7 @@
 			<!--
 			<div class="byor-single-search-results-wrapper" v-if="!!singleSearchConfig && singleSearchMethod == 'ss_keyword'">
 				<div id="byor_single_search_results" class="byor-single-search-results-groups" v-if="anyResults() > 0">
-					
+
 					<div class="byor-ss-results-section" id="kp_gene_options" v-if="singleSearchResult.genes.length > 0">
 						<div class="byor-ss-results-section-title">GENES</div>
 						<div v-for="(gene, gIndex) in singleSearchResult.genes" :key="gene" class="">
@@ -195,12 +195,12 @@
 									<div class="ss-options-wrapper" :id="'kp_gene_option_'+gIndex">
 										<div v-for="option in isParameterActive('kp genes').options">
 											<span>
-												<a :href="(option.url) ? option.url + gene : 'javascript:;'" 
+												<a :href="(option.url) ? option.url + gene : 'javascript:;'"
 													class="ss-explore">
 													{{option['url label'] }}
 												</a>
 												<span v-if="!!option.url && !!option.sections"> | </span>
-												<a href="javascript:;" 
+												<a href="javascript:;"
 													class="ss-generate-summary"
 													@click="generateSummary(gene, option['summary id'], option['summary label'], option.sections)"
 												>
@@ -220,7 +220,7 @@
 						>
 						<div id="kp_phenotypes_options" class="byor-ss-results-section">
 							<div class="byor-ss-results-section-title">GENE SET PHENOTYPES</div>
-							<div v-for="(phenotype, pIndex) in singleSearchResult.phenotypes" 
+							<div v-for="(phenotype, pIndex) in singleSearchResult.phenotypes"
 								:value="phenotype.name"
 								:key="phenotype.name"
 							>
@@ -236,7 +236,7 @@
 														{{ option['url label'] }}
 													</a>
 													<span v-if="!!option.url && !!option.sections"> | </span>
-													<a href="javascript:;" 
+													<a href="javascript:;"
 														class="ss-generate-summary"
 														@click="generateSummary(phenotype.name, option['summary id'], option['summary label'], option.sections)"
 													>
@@ -271,7 +271,7 @@
 															{{ option['url label'] }}
 															</a>
 															<span v-if="!!option.url && !!option.sections"> | </span>
-															<a href="javascript:;" 
+															<a href="javascript:;"
 																class="ss-generate-summary"
 																@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)"
 															>
@@ -307,7 +307,7 @@
 													{{ option['url label'] }}
 													</a>
 													<span v-if="!!option.url && !!option.sections"> | </span>
-													<a href="javascript:;" 
+													<a href="javascript:;"
 														class="ss-generate-summary"
 														@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)"
 													>
@@ -326,7 +326,7 @@
 				<div v-else-if="meaningSearchOptions.length === 1 && meaningSearchOptions[0].value == ''">
 					<div id="byor_single_search_results" style="top: 75px;" class="byor-single-search-results-groups">
 						<div class="byor-ss-results-section ss-meaning-search">
-							<div> 
+							<div>
 								<div class="single-search-option">
 									{{ meaningSearchOptions[0].label }}
 								</div>
@@ -444,19 +444,19 @@ export default Vue.component("research-single-search-cfde-llm", {
 
 			## CFDE Programs (neutral, info-dense)
 
-			### **4DN (4D Nucleome)** 
+			### **4DN (4D Nucleome)**
 			id: 4DN
 			The 4D Nucleome project investigates how the spatial and temporal organization of DNA within the nucleus influences gene regulation and cellular function. It integrates genomics, epigenomics, transcriptomics, and imaging data to model chromatin structure and dynamics across cell types and disease states. The 4DN portal provides thousands of standardized datasets, analytical pipelines, and visualization tools for exploring genome architecture in 3D.
 
-			### **A2CPS (Acute to Chronic Pain Signatures)** 
+			### **A2CPS (Acute to Chronic Pain Signatures)**
 			id: A2CPS
 			A2CPS seeks to identify molecular, physiological, and neuroimaging biomarkers that predict which individuals will develop chronic pain following surgery. The consortium collects multimodal data—including omics (genomics, proteomics, metabolomics, lipidomics, transcriptomics), quantitative sensory testing, and functional MRI—from over 3,000 participants. Its goal is to define biosignatures of pain susceptibility and resilience to improve early diagnosis and intervention.
 
-			### **Bridge2AI** 
+			### **Bridge2AI**
 			id:Bridge2AI
 			Bridge2AI unites biomedical and artificial intelligence communities to generate ethically sourced, AI-ready datasets and tools that follow FAIR principles. Its projects span voice biomarker discovery, diabetes cohort studies, intensive care data integration, and AI-driven cellular mapping. Bridge2AI emphasizes interoperability, workforce development, and the creation of multimodal datasets linking genomics, imaging, and clinical data for machine learning applications.
 
-			### **exRNA (Extracellular RNA Communication Program)** 
+			### **exRNA (Extracellular RNA Communication Program)**
 			id: exRNA
 			The exRNA program investigates extracellular RNAs and their carriers (e.g., extracellular vesicles, lipoproteins) to define their roles in intercellular communication, biomarker discovery, and therapeutics. It provides the exRNA Atlas and Explorer with human and mouse small/long RNA‑seq and qPCR profiles from diverse biofluids and phenotypes, plus tools for deconvolution, differential expression, and interactive visualization. These resources support study design, methods benchmarking, and discovery of exRNA-based disease signatures.
 
@@ -642,7 +642,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 			this.meaningSearchParam = this.singleSearchConfig["search by meaning parameters"][0]['parameter'];
 		}
 	},
-	mounted() { 
+	mounted() {
 		//listens for search event from nav component
 		EventBus.$on('activate-search', this.onFocus);
 	},
@@ -664,7 +664,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 				if (!!PARAM && PARAM.length >= 2) {
 
 					let paramWords = PARAM.split(" ");
-					
+
 					this.lookupGenes(PARAM);
 					// in case there is custom searchConfig, make sure kp gene search is there. Otherwise, gene search is active in default.
 					/*
@@ -724,7 +724,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 					let searchFields = Object.keys(this.customList);
 
 
-					
+
 					searchFields.map(P => {
 
 						let searchItems = [];
@@ -750,7 +750,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 
 					//console.log({searchFields})
 					//console.log(this.singleSearchResult)
-					
+
 				} else {
 					this.singleSearchResult.genes = [];
 					this.singleSearchResult.phenotypes = [];
@@ -762,7 +762,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 					})
 				}
 			}
-			
+
 		},
 	},
 	methods: {
@@ -776,7 +776,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 		/*
 		kcURL(path){
 			const isLocalhost = window.location.hostname === 'localhost';
-  
+
 			if (isLocalhost) {
 				// Extract pageid and query params
 				const match = path.match(/^\/r\/([^?]+)\?(.*)$/);
@@ -927,7 +927,7 @@ export default Vue.component("research-single-search-cfde-llm", {
 						}
 					})
 				}
-				
+
 				///
 
 				summary.data = filteredData;
