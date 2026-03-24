@@ -7,7 +7,7 @@
 					<h3>Choose Gene Source</h3>
 					<p>Both associations and genes parameters were found in the URL. Please choose which gene source you'd like to use for validation:</p>
 				</div>
-				
+
 				<div class="url-choice-options">
 					<div class="url-choice-option">
 						<div class="url-choice-title">
@@ -22,7 +22,7 @@
 							Use Associations
 						</button>
 					</div>
-					
+
 					<div class="url-choice-option">
 						<div class="url-choice-title">
 							<h4>Genes from URL Parameter</h4>
@@ -37,7 +37,7 @@
 						</button>
 					</div>
 				</div>
-				
+
 				<div class="url-choice-actions">
 					<button @click="cancelUrlChoice" class="btn btn-outline-secondary">
 						Cancel
@@ -45,22 +45,22 @@
 				</div>
 			</div>
 		</div>
-		
+
         <!-- Two Column Layout for Upper Half -->
         <div class="upper-layout">
             <!-- Left Column (70%) - Hypothesis Section -->
             <div>
                 <!-- Hypothesis to Validate Section -->
                 <div id="hypothesis-section" class="hypothesis-container section-wrapper">
-            
+
                     <div class="section-header">
                             <h4>Hypothesis to Validate</h4>
                     </div>
                     <div class="hypothesis-content">
-                        <h5>Your Hypothesis (Use the <a href="/r/cfde_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
+                        <h5>Your Hypothesis (Use the <a href="/r/factor_base_reveal" target="_blank">CFDE-REVEAL</a> to generate your hypothesis.)</h5>
                         <div class="textarea-container">
-			<textarea 
-                                v-model="phenotypeSearch" 
+			<textarea
+                                v-model="phenotypeSearch"
                                 placeholder="Enter your hypothesis..."
 				class="hypothesis-textarea"
 				rows="3"
@@ -70,17 +70,17 @@
                         <div v-if="!hideAssociationsInput">
                             <label for="gene-sets">Load Genes from Phenotype Gene set Associations <a href="#" @click.prevent="toggleManualGeneInput" class="manual-add-link">(manually add genes)</a></label>
                             <small class="format-suggestion">Format data with comma-separated columns: Phenotype, Gene set, Source</small>
-                            <textarea 
+                            <textarea
                                 id="gene-sets"
-                                v-model="geneSets" 
+                                v-model="geneSets"
                                 placeholder="e.g., rare inborn errors of metabolism, T69-Brown-Adipose_Male_8W_Down, motrpac"
                                 class="gene-sets-field"
                                 rows="3"
                             ></textarea>
                         </div>
                         <div v-if="!hideAssociationsInput && !showManualGeneInput && geneSets.trim() && (geneData.length === 0 || associationsModified)" class="load-genes-section">
-                            <button 
-                                @click="loadGenesFromAssociations" 
+                            <button
+                                @click="loadGenesFromAssociations"
                                 class="btn btn-secondary load-genes-btn"
                                 :disabled="isLoadingGenes"
                             >
@@ -98,9 +98,9 @@
                                 </a></label>
                             </div>
 			<small class="format-suggestion">Enter gene symbols separated by commas (e.g., GENE1, GENE2, GENE3)</small>
-			<textarea 
+			<textarea
 				id="manual-genes"
-				v-model="manualGenes" 
+				v-model="manualGenes"
 				placeholder="e.g., TP53, BRCA1, MYC, EGFR"
 				class="manual-genes-field"
 				rows="2"
@@ -115,7 +115,7 @@
 				<h4>Explore Your Genes</h4>
 				<p class="gene-options-description">Choose how you'd like to analyze the genes in your list. Enter genes above to enable the options below{{ hasHypothesis ? '' : ' (hypothesis scoring not available without hypothesis parameter)' }}:</p>
 			</div>
-			
+
 			<div class="gene-options-grid">
 				<!-- Option 1: Hypothesis Alignment and Research Gap Score -->
 				<div v-if="hasHypothesis" class="gene-option-card">
@@ -135,7 +135,7 @@
 						</ul>
 					</div>
 					<div class="option-actions">
-				<button 
+				<button
 							@click="generateHypothesisAlignment"
 							class="btn btn-primary option-btn"
 							:disabled="!manualGenes.trim() || isGeneratingScores"
@@ -165,8 +165,8 @@
 						</ul>
 					</div>
 					<div class="option-actions">
-				<button 
-							@click="exploreGTExExpression" 
+				<button
+							@click="exploreGTExExpression"
 							class="btn btn-primary option-btn"
 							:disabled="!manualGenes.trim() || getGeneCount() > 50"
 						>
@@ -197,8 +197,8 @@
 						</ul>
 					</div>
 					<div class="option-actions">
-						<button 
-							@click="enrichGenes" 
+						<button
+							@click="enrichGenes"
 							class="btn btn-primary option-btn"
 							:disabled="!manualGenes.trim()"
 						>
@@ -219,23 +219,23 @@
 					<span class="banner-text">Generating gene to hypothesis novelty and relevance scores... ({{ geneScoringElapsedTime }})</span>
 				</div>
 			</div>
-			
+
 			<div class="gene-data-header">
                         <label class="gene-data-label">Select genes to generate experiment plans</label>
 	                </div>
 				<small class="gene-data-description">
-                        Review the gene associations below and select the genes you want to include in your experiment plan. 
+                        Review the gene associations below and select the genes you want to include in your experiment plan.
                         Each selected gene will be used to generate targeted validation experiments.
                         <br><br>
                         <strong>Note:</strong> The 'Hypothesis Alignment' and 'Research Gap Score' shown in the table are generated by AI and represent how relevant/novel each gene is to your specific hypothesis. These are different from the genetic novelty score used for sorting the table, which is based on gene-to-phenotype associations.
 				</small>
-			
+
 			<div class="table-container">
 				<table class="gene-data-table">
 					<thead>
 						<tr>
                                     <th>
-                                        
+
                                     </th>
                                     <th>Gene/Target</th>
                                     <th>Hypothesis Alignment</th>
@@ -249,8 +249,8 @@
                                     <!-- Gene row -->
                                     <template v-if="row.type === 'gene'">
                                         <td>
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 :value="row.item.gene"
                                                 v-model="selectedGenes"
                                                 class="gene-checkbox"
@@ -291,7 +291,7 @@
 								</div>
 							</td>
                                         <td v-if="!hasManualGenes">
-                                            <button 
+                                            <button
                                                 @click="toggleEvidenceView(row.item.gene)"
                                                 class="view-button"
                                                 :class="{ active: expandedGenes.includes(row.item.gene) }"
@@ -300,7 +300,7 @@
                                             </button>
                                         </td>
                                     </template>
-                                    
+
                                     <!-- Evidence row -->
                                     <template v-else-if="row.type === 'evidence'">
                                         <td :colspan="hasManualGenes ? 5 : 6">
@@ -331,31 +331,31 @@
 						</tr>
 					</tbody>
 				</table>
-				
+
 				<!-- Pagination -->
                         <div class="pagination-container">
 					<div class="pagination-info">
 						Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, geneData.length) }} of {{ geneData.length }} entries
 					</div>
 					<div class="pagination-controls">
-						<button 
-							@click="goToFirstPage" 
+						<button
+							@click="goToFirstPage"
 							:disabled="currentPage === 1"
 							class="pagination-btn first-last-btn"
 							title="First page"
 						>
 							««
 						</button>
-						<button 
-							@click="previousPage" 
+						<button
+							@click="previousPage"
 							:disabled="currentPage === 1"
 							class="pagination-btn"
 						>
 							Previous
 						</button>
 						<span class="page-numbers">
-							<button 
-								v-for="page in visiblePages" 
+							<button
+								v-for="page in visiblePages"
 								:key="page"
 								@click="goToPage(page)"
 								:class="['page-btn', { 'active': page === currentPage }]"
@@ -363,15 +363,15 @@
 								{{ page }}
 							</button>
 						</span>
-						<button 
-							@click="nextPage" 
+						<button
+							@click="nextPage"
 							:disabled="currentPage === totalPages"
 							class="pagination-btn"
 						>
 							Next
 						</button>
-						<button 
-							@click="goToLastPage" 
+						<button
+							@click="goToLastPage"
 							:disabled="currentPage === totalPages"
 							class="pagination-btn first-last-btn"
 							title="Last page"
@@ -381,7 +381,7 @@
 					</div>
 				</div>
 			</div>
-			
+
                 </div>
 				</div>
 			</div>
@@ -432,8 +432,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
   ...
 ]`,
 
-               
-            
+
+
             // UI state
             phenotypeSearch: '',
             geneSets: '',
@@ -533,7 +533,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		this.geneScoringStartTime = null;
 		this.geneScoringElapsedTime = '0:00';
 		this.genesBeingProcessed = [];
-		
+
 		// Check for URL parameters and populate fields
 		// Use nextTick to ensure utilsBox is fully loaded
 		this.$nextTick(async () => {
@@ -559,16 +559,16 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		searchPlanText() {
 			let text = '<p>Your experiment plan will be created using the following approach:</p>';
-			
+
 			if (this.selectedGenes.length > 0 && this.phenotypeSearch.trim() !== '') {
 				text += '<p><strong>Hypothesis + Selected Genes Strategy:</strong></p>';
 				text += '<ol>';
 				text += '<li><strong>Analyze hypothesis:</strong> ';
 				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
-				
+
 				text += '<li><strong>Generate gene-specific experiments:</strong> ';
 				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) in combination with your hypothesis.</li>`;
-				
+
 				text += '<li><strong>Apply user preferences:</strong> ';
 				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
 					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
@@ -581,7 +581,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				text += '<ol>';
 				text += '<li><strong>Generate gene-specific experiments:</strong> ';
 				text += `Create ${this.selectedGenes.length} separate experiment protocol${this.selectedGenes.length > 1 ? 's' : ''} - one for each selected gene (${this.selectedGenes.join(', ')}) to validate their biological functions.</li>`;
-				
+
 				text += '<li><strong>Apply user preferences:</strong> ';
 				if (this.selectedAssayTypes.length > 0 || this.selectedCellTypes.length > 0 || this.selectedReadouts.length > 0) {
 					text += 'Incorporate selected assay types, cell types, and readouts into each gene-specific experiment design.</li>';
@@ -594,25 +594,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				text += '<ol>';
 				text += '<li><strong>Analyze hypothesis:</strong> ';
 				text += `Process the provided hypothesis "${this.phenotypeSearch.trim()}" to identify key biological concepts and mechanisms.</li>`;
-				
+
 				text += '<li><strong>Build an experiment plan:</strong> ';
 				text += 'Design targeted validation experiments to test the hypothesis and establish causal relationships.</li>';
 				text += '</ol>';
 			} else {
 				text += '<p><em>Please provide a hypothesis and/or select genes to generate experiment plans.</em></p>';
 			}
-			
+
 			// Additional context based on other selections
 			if (this.selectedAssayTypes.length > 0) {
 				text += '<p><strong>Assay Types:</strong> ';
 				text += `Focus on ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')} experiments for validation.</p>`;
 			}
-			
+
 			if (this.selectedReadouts.length > 0) {
 				text += '<p><strong>Readouts:</strong> ';
 				text += 'Target specific readouts: ' + this.selectedReadouts.join(', ') + ' for comprehensive analysis.</p>';
 			}
-			
+
 			return text;
 		},
 		parsedExperimentResults() {
@@ -644,7 +644,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					item: item,
 					key: `${item.gene}-${item.combined || 0}`
 				});
-				
+
 				// Add evidence row if expanded and not manual genes
 				if (!this.hasManualGenes && this.expandedGenes.includes(item.gene)) {
 					rows.push({
@@ -660,25 +660,25 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			const pages = [];
 			const total = this.totalPages;
 			const current = this.currentPage;
-			
+
 			// Show up to 5 page numbers
 			let start = Math.max(1, current - 2);
 			let end = Math.min(total, start + 4);
-			
+
 			// Adjust start if we're near the end
 			if (end - start < 4) {
 				start = Math.max(1, end - 4);
 			}
-			
+
 			for (let i = start; i <= end; i++) {
 				pages.push(i);
 			}
-			
+
 			return pages;
 		},
 		allGenesSelected() {
 			const geneRows = this.tableRows.filter(row => row.type === 'gene');
-			return geneRows.length > 0 && 
+			return geneRows.length > 0 &&
 				   geneRows.every(row => this.selectedGenes.includes(row.item.gene));
 		},
 		hasOnlyOneAssociation() {
@@ -686,7 +686,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			if (!this.geneSets.trim()) {
 				return false;
 			}
-			
+
 			const lines = this.geneSets.split('\n').filter(line => line.trim());
 			return lines.length === 1;
 		},
@@ -742,14 +742,14 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		},
 		getPhenotypeDisplayNames(phenotypeString) {
 			if (!phenotypeString) return '';
-			
+
 			// Split by comma and convert each phenotype ID to human-readable name
 			const phenotypeIds = phenotypeString.split(', ').map(id => id.trim());
 			const displayNames = phenotypeIds.map(id => {
 				const humanReadableName = findPhenotypeById(id);
 				return humanReadableName || id; // Fallback to original ID if not found
 			});
-			
+
 			return displayNames.join(', ');
 		},
 		getNovelty(geneSymbol) {
@@ -780,10 +780,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			// Return the original evidence data for this gene before merging
 			// Filter originalGeneData to get all entries for this specific gene
 			const evidenceData = this.originalGeneData.filter(item => item.gene === gene.gene);
-			
+
 			// Sort by combined score (descending) to show highest scores first
 			evidenceData.sort((a, b) => (b.combined || 0) - (a.combined || 0));
-			
+
 			return evidenceData;
 		},
 		// COMMENTED OUT: Automatic novelty querying - will be replaced with manual trigger
@@ -793,7 +793,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			if (this.geneNoveltyTimeout) {
 				clearTimeout(this.geneNoveltyTimeout);
 			}
-			
+
 			// Debounce the request to prevent rapid successive calls
 			this.geneNoveltyTimeout = setTimeout(() => {
 				this._executeGeneNoveltyRequest();
@@ -805,7 +805,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				console.log('Gene novelty request already in progress, skipping...');
 				return;
 			}
-			
+
 			// Get genes on current page that don't have novelty yet
 			const currentPageGenes = this.paginatedGeneData;
 			const genesNeedingNovelty = currentPageGenes.filter(gene =>
@@ -851,7 +851,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						try {
 							// Parse the JSON response
 							const noveltyData = JSON.parse(response);
-							
+
 							// Update the geneNovelty and geneRelevance cache
 							noveltyData.forEach(item => {
 								if (item.gene) {
@@ -862,7 +862,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 											context: item.reason || 'No context provided'
 										});
 									}
-									
+
 									// Handle relevance score
 									if (item.relevance_score !== undefined) {
 										this.$set(this.geneRelevance, item.gene, {
@@ -872,9 +872,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 									}
 								}
 							});
-							
+
 							console.log(`Gene novelty updated for ${noveltyData.length} genes`);
-							
+
 						} catch (error) {
 							console.error('Error parsing gene novelty response:', error);
 						} finally {
@@ -932,7 +932,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				alert('No genes selected to export.');
 				return;
 			}
-			
+
 			// Create a simple text file with selected genes
 			const content = this.selectedGenes.join('\n');
 			const blob = new Blob([content], { type: 'text/plain' });
@@ -952,11 +952,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				const combinedB = b.combined || 0;
 				return combinedB - combinedA; // Descending order
 			});
-			
+
 			// Group by Gene and merge rows
 			const groupedByGene = {};
 			const result = [];
-			
+
 			sortedByCombined.forEach(item => {
 				const gene = item.gene;
 				if (!groupedByGene[gene]) {
@@ -970,7 +970,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					// Merge with existing gene data
 					groupedByGene[gene].phenotypes.add(item.phenotype);
 					groupedByGene[gene].geneSets.add(item.gene_set);
-					
+
 					// Update other fields if this row has higher combined score
 					const currentCombined = groupedByGene[gene].combined || 0;
 					const newCombined = item.combined || 0;
@@ -987,17 +987,17 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					}
 				}
 			});
-			
+
 			// Convert Sets back to arrays and create final result
 			Object.keys(groupedByGene).forEach(gene => {
 				const mergedItem = groupedByGene[gene];
-				
+
 				// Calculate PPA scores for this gene
 				const logBf = mergedItem.log_bf || 0;
 				const prior = mergedItem.prior || 0;
 				const directPPA = this.calculatePPA(logBf);
 				const indirectPPA = this.calculatePPA(prior);
-				
+
 				result.push({
 					...mergedItem,
 					phenotype: Array.from(mergedItem.phenotypes).join(', '),
@@ -1010,37 +1010,37 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					geneSets: undefined
 				});
 			});
-			
+
 			// Sort the final result by Combined score (descending)
 			result.sort((a, b) => {
 				const combinedA = a.combined || 0;
 				const combinedB = b.combined || 0;
 				return combinedB - combinedA;
 			});
-			
-			
+
+
 			return result;
 		},
 		parseAssociations(associationsString) {
 			// Split by semicolon to get individual rows
 			const rows = associationsString.split(';').map(row => row.trim());
-			
+
 			let formatted = '';
-			
+
 			// Process each row
 			rows.forEach(row => {
 				// Split by comma to get phenotype, gene set, and source
 				const parts = row.split(',').map(part => part.trim());
-				
+
 				// Ensure we have at least 3 parts, pad with empty strings if needed
 				const phenotype = parts[0] || '';
 				const geneSet = parts[1] || '';
 				const source = parts[2] || '';
-				
+
 				// Add comma-separated row
 				formatted += `${phenotype}, ${geneSet}, ${source}\n`;
 			});
-			
+
 			return formatted.trim();
 		},
 		parseTextareaContent(textareaContent) {
@@ -1048,13 +1048,13 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			if (this.ignoreAssociations) {
 				return '';
 			}
-			
+
 			// Check if content is formatted as CSV (has comma-separated values)
 			if (textareaContent.includes(',')) {
 				// Group associations by phenotype + source
 				const lines = textareaContent.split('\n').filter(line => line.trim());
 				const groups = {};
-				
+
 				// Process all lines (no header row assumption for CSV)
 				for (let i = 0; i < lines.length; i++) {
 					const line = lines[i].trim();
@@ -1064,9 +1064,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 							const phenotype = parts[0] || 'N/A';
 							const geneSet = parts[1] || 'N/A';
 							const source = parts[2] || 'N/A';
-							
+
 							const groupKey = `${phenotype} + ${source}`;
-							
+
 							// Only include groups that are selected
 							if (this.selectedAssociationGroups.length === 0 || this.selectedAssociationGroups.includes(groupKey)) {
 								if (!groups[groupKey]) {
@@ -1081,10 +1081,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						}
 					}
 				}
-				
+
 				// Format grouped associations for the LLM
 				let formatted = 'PHENOTYPE-GENE SET ASSOCIATIONS (grouped by phenotype + source):\n\n';
-				
+
 				Object.keys(groups).forEach(groupKey => {
 					const group = groups[groupKey];
 					formatted += `**Group: ${groupKey}**\n`;
@@ -1092,7 +1092,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					formatted += `- Source: ${group.source}\n`;
 					formatted += `- Gene Sets: ${group.geneSets.join(', ')}\n\n`;
 				});
-				
+
 				return formatted.trim();
 			} else {
 				// If not a CSV format, return as-is with some basic formatting
@@ -1102,29 +1102,29 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		async initializeFromKeyParams() {
 			// Check if keyParams exist and populate fields
 			if (this.utilsBox && this.utilsBox.keyParams) {
-				
+
 				let hypothesisFound = false;
 				let hasAssociations = false;
 				let hasGenes = false;
-				
+
 				// Populate hypothesis field if keyParams['hypothesis'] exists
 				if (this.utilsBox.keyParams['hypothesis'] && typeof this.utilsBox.keyParams['hypothesis'] === 'string') {
 					this.phenotypeSearch = this.utilsBox.keyParams['hypothesis'];
 					hypothesisFound = true;
 				}
-				
+
 				// Check for associations parameter
 				if (this.utilsBox.keyParams['geneSets'] && typeof this.utilsBox.keyParams['geneSets'] === 'string') {
 					this.geneSets = this.utilsBox.keyParams['geneSets'];
 					hasAssociations = true;
 				}
-				
+
 				// Check for associations parameter (alternative)
 				if (this.utilsBox.keyParams['associations'] && typeof this.utilsBox.keyParams['associations'] === 'string') {
 					this.geneSets = this.parseAssociations(this.utilsBox.keyParams['associations']);
 					hasAssociations = true;
 				}
-				
+
 				// Check for genes parameter
 				if (this.utilsBox.keyParams['genes'] && typeof this.utilsBox.keyParams['genes'] === 'string') {
 					const geneList = this.utilsBox.keyParams['genes'].split(',').map(gene => gene.trim()).filter(gene => gene);
@@ -1133,24 +1133,24 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						this.urlChoiceOptions.genes = geneList;
 					}
 				}
-				
+
 				// If both associations and genes are present, show choice dialog
 				if (hasAssociations && hasGenes) {
 					this.urlChoiceOptions.associations = this.geneSets;
 					this.showUrlChoiceDialog = true;
 					return; // Wait for user choice
 				}
-				
+
 				// If only associations, proceed with associations
 				if (hasAssociations && !hasGenes) {
 					await this.fetchGenesFromAssociations();
 				}
-				
+
 				// If only genes, proceed with genes
 				if (!hasAssociations && hasGenes) {
 					await this.addGenesFromUrl(this.urlChoiceOptions.genes);
 				}
-				
+
 				// If hypothesis was found, open the configure panel instead of generating draft
 				if (hypothesisFound) {
 					// Configuration panel is now always visible
@@ -1159,8 +1159,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					// 	setTimeout(() => {
 					// 		const configurePanel = document.getElementById('planner-search-ui');
 					// 		if (configurePanel) {
-					// 			configurePanel.scrollIntoView({ 
-					// 				behavior: 'smooth', 
+					// 			configurePanel.scrollIntoView({
+					// 				behavior: 'smooth',
 					// 				block: 'start',
 					// 				inline: 'nearest'
 					// 			});
@@ -1210,15 +1210,15 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				alert('Please enter gene symbols in the gene input field.');
 				return;
 			}
-			
+
 			// Parse the manual genes input
 			const geneList = this.manualGenes.split(',').map(gene => gene.trim()).filter(gene => gene);
-			
+
 			if (geneList.length === 0) {
 				alert('Please enter valid gene symbols separated by commas.');
 				return;
 			}
-			
+
 			// Check for duplicate genes
 			const existingGenes = this.geneData.map(g => g.gene);
 			const duplicateGenes = geneList.filter(gene => existingGenes.includes(gene));
@@ -1226,15 +1226,15 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				alert(`The following genes are already in the table: ${duplicateGenes.join(', ')}. Please remove duplicates and try again.`);
 				return;
 			}
-			
+
 			// Check if we have fetched gene data that matches the input
 			let genesToAdd = [];
-			
+
 			if (this.fetchedGeneData.length > 0) {
 				// Use fetched data if available and genes match
 				const fetchedGenes = this.fetchedGeneData.map(g => g.gene);
 				const matchingGenes = geneList.filter(gene => fetchedGenes.includes(gene));
-				
+
 				if (matchingGenes.length === geneList.length) {
 					// All genes match fetched data, use the full fetched data
 					genesToAdd = this.fetchedGeneData;
@@ -1269,31 +1269,31 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				}));
 				console.log('Using manual gene data for table');
 			}
-			
+
 			// Add to existing gene data
 			this.geneData = [...this.geneData, ...genesToAdd];
 			this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
-			
+
 			// Clear the gene input field and fetched data after adding
 			this.manualGenes = '';
 			this.fetchedGeneData = [];
-			
+
 			console.log(`Added ${genesToAdd.length} genes to table: ${geneList.join(', ')}`);
 		},
 		async getNoveltyForManualGenes(geneList, onComplete = null) {
 			try {
 				// Limit to 10 genes as per prompt constraints
 				const genesToProcess = geneList.slice(0, 10);
-				
+
 				if (genesToProcess.length === 0) {
 					return;
 				}
-				
+
 				// Prepare the prompt
 				const prompt = this.gene_novelty_prompt
 					.replace('[INSERT YOUR HYPOTHESIS HERE]', this.phenotypeSearch.trim() || 'No specific hypothesis provided')
 					.replace('[INSERT YOUR COMMA-SEPARATED GENE LIST HERE (MAX 10)]', genesToProcess.join(', '));
-				
+
 				// Call the LLM
 				this.getGeneNovelty.sendPrompt({
 					userPrompt: prompt,
@@ -1301,7 +1301,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						try {
 							// Parse the JSON response
 							const noveltyData = JSON.parse(response);
-							
+
 							// Update the geneNovelty and geneRelevance cache
 							noveltyData.forEach(item => {
 								if (item.gene) {
@@ -1312,7 +1312,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 											context: item.reason || 'No context provided'
 										});
 									}
-									
+
 									// Handle relevance score
 									if (item.relevance_score !== undefined) {
 										this.$set(this.geneRelevance, item.gene, {
@@ -1322,8 +1322,8 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 									}
 								}
 							});
-							
-							
+
+
 						} catch (error) {
 							console.error('Error parsing manual gene novelty response:', error);
 						}
@@ -1342,7 +1342,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 							this.isGeneratingScores = false;
 							this.clearGeneScoringTimer();
 						}
-						
+
 						// Call completion callback when done
 						if (onComplete) {
 							onComplete();
@@ -1353,35 +1353,35 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				console.error('Error preparing manual gene novelty request:', error);
 			}
 		},
-		
+
 		async addGenesFromUrl(geneList) {
 			try {
 				// Hide associations input when genes come from URL
 				this.hideAssociationsInput = true;
-				
+
 				// Populate the gene input field with URL genes
 				this.manualGenes = geneList.join(', ');
-				
+
 				console.log(`Genes from URL parameters populated in gene input: ${geneList.join(', ')}`);
 				console.log('Table will not show until user clicks Add Genes');
-				
+
 			} catch (error) {
 				console.error('Error adding genes from URL parameters:', error);
 			}
 		},
-		
+
 		async chooseAssociations() {
 			this.showUrlChoiceDialog = false;
 			this.geneSets = this.urlChoiceOptions.associations;
 			await this.fetchGenesFromAssociations();
 		},
-		
+
 		async chooseGenes() {
 			this.showUrlChoiceDialog = false;
 			this.hideAssociationsInput = true;
 			await this.addGenesFromUrl(this.urlChoiceOptions.genes);
 		},
-		
+
 		cancelUrlChoice() {
 			this.showUrlChoiceDialog = false;
 			// Clear the options
@@ -1395,7 +1395,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				const lines = this.geneSets.split('\n').filter(line => line.trim());
 				console.log('Parsed lines:', lines);
 				const geneQueries = [];
-				
+
 				// Extract phenotype and gene set pairs for API queries
 				for (const line of lines) {
 					const parts = line.split(',').map(part => part.trim());
@@ -1411,21 +1411,21 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						}
 					}
 				}
-				
+
 				console.log('Gene queries to process:', geneQueries);
-				
+
 				// Fetch genes for each phenotype-gene set pair
 				const allGenes = new Set();
 				const allGeneData = [];
-				
+
 				for (const query of geneQueries) {
 					try {
 						const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set?q=${encodeURIComponent(query.phenotype)},${encodeURIComponent(query.geneSet)},cfde`;
-						
+
 						const response = await fetch(url);
-						
+
 						const data = await response.json();
-						
+
 						// Extract genes and full data from the response
 						console.log(`API response for ${query.phenotype}-${query.geneSet}:`, data);
 						if (data.data && Array.isArray(data.data)) {
@@ -1443,20 +1443,20 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						console.error(`❌ Error fetching genes for ${query.phenotype}-${query.geneSet}:`, error);
 					}
 				}
-				
+
 				// Store original data before merging (no prefiltering)
 				this.originalGeneData = allGeneData;
-				
+
 				// Sort by Combined score (descending) first, then group by Gene
 				const sortedAndGroupedData = this.sortAndGroupGeneData(allGeneData);
-				
+
 				// Store the fetched gene data for later use (don't populate table yet)
 				this.fetchedGeneData = sortedAndGroupedData;
-				
+
 				// Populate the gene input field with fetched genes
 				const geneSymbols = sortedAndGroupedData.map(g => g.gene).join(', ');
 				this.manualGenes = geneSymbols;
-				
+
 				console.log('Genes fetched successfully and populated in input field:', {
 					originalCount: allGeneData.length,
 					groupedCount: sortedAndGroupedData.length,
@@ -1464,7 +1464,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					populatedGeneInput: geneSymbols,
 					note: 'Table will not show until user clicks Add Genes'
 				});
-				
+
 			} catch (error) {
 				console.error('Error fetching genes from associations:', error);
 			}
@@ -1505,9 +1505,9 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		draftValidationPlan() {
 			// Show the experiment plan summary section
 			this.showExperimentSummary = true;
-			
+
 			// Generate experiment plan summary
-			
+
 			// Collect and validate the current configuration
 			const config = {
 				hypothesisSearch: this.phenotypeSearch,
@@ -1520,33 +1520,33 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				timeBudget: this.selectedTimeBudget,
 				notes: this.experimentNotes
 			};
-			
-			
+
+
 			// Validate that we have the required inputs
 			if (!this.phenotypeSearch.trim() && this.selectedGenes.length === 0) {
 				alert('Please provide a hypothesis and/or select genes to generate experiment plans.');
 				return;
 			}
-			
+
 			// Show gene selection status
 			if (this.selectedGenes.length > 0) {
 				console.log(`Selected ${this.selectedGenes.length} genes for experiment generation: ${this.selectedGenes.join(', ')}`);
 			}
-			
+
 			// Wait for collapse animation to complete, then scroll to draft section
 			this.$nextTick(() => {
 				setTimeout(() => {
 					const draftSection = document.getElementById('planner-search-draft');
 					if (draftSection) {
-						draftSection.scrollIntoView({ 
-							behavior: 'smooth', 
+						draftSection.scrollIntoView({
+							behavior: 'smooth',
 							block: 'start',
 							inline: 'nearest'
 						});
 					}
 				}, 1200); // Wait for collapse animation to complete
 			});
-			
+
 			// TODO: Call different APIs based on whether hypothesis search is provided
 			// API 1: For hypothesis/phenotype search terms
 			// API 2: For program-based search
@@ -1564,19 +1564,19 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		populateAssociationGroups() {
 			// Clear existing groups
 			this.associationGroups = [];
-			
+
 			if (!this.geneSets.trim()) {
 				return;
 			}
-			
+
 			const textareaContent = this.geneSets.trim();
-			
+
 			// Check if content is formatted as CSV (has comma-separated values)
 			if (textareaContent.includes(',')) {
 				// Group associations by phenotype + source
 				const lines = textareaContent.split('\n').filter(line => line.trim());
 				const groups = {};
-				
+
 				// Process all lines (no header row assumption for CSV)
 				for (let i = 0; i < lines.length; i++) {
 					const line = lines[i].trim();
@@ -1586,7 +1586,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 							const phenotype = parts[0] || 'N/A';
 							const geneSet = parts[1] || 'N/A';
 							const source = parts[2] || 'N/A';
-							
+
 							const groupKey = `${phenotype} + ${source}`;
 							if (!groups[groupKey]) {
 								groups[groupKey] = {
@@ -1599,7 +1599,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						}
 					}
 				}
-				
+
 				// Convert groups object to array
 				Object.keys(groups).forEach(groupKey => {
 					const group = groups[groupKey];
@@ -1647,47 +1647,47 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		experimentPrompt() {
 			// Build the experiment prompt with captured search draft values
 			let prompt = this.experiment_prompt;
-			
+
 			// Add search context information
 			prompt += '\n\n**Current Search Context:**\n';
-			
+
 			if (this.phenotypeSearch.trim() !== '') {
 				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 			}
-			
+
 			if (this.selectedGenes.length > 0) {
 				prompt += `**Selected Genes:** ${this.selectedGenes.join(', ')}\n`;
 			}
-			
-			
+
+
 			if (this.selectedAssayTypes.length > 0) {
 				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 			}
-			
+
 			if (this.selectedCellTypes.length > 0) {
 				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 			}
-			
+
 			if (this.selectedReadouts.length > 0) {
 				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 			}
-			
+
 			if (this.selectedThroughput) {
 				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
 			}
-			
+
 			if (this.selectedSpecies) {
 				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 			}
-			
+
 			if (this.selectedTimeBudget) {
 				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 			}
-			
+
 			if (this.experimentNotes.trim() !== '') {
 				prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 			}
-			
+
 			return prompt;
 		},
 		// COMMENTED OUT: experimentPromptGenes method
@@ -1695,47 +1695,47 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		experimentPromptGenes() {
 			// Build the experiment prompt for combined gene experiments
 			let prompt = this.experiment_prompt_genes;
-			
+
 			// Add search context information
 			prompt += '\n\n**Current Search Context:**\n';
-			
+
 			if (this.phenotypeSearch.trim() !== '') {
 				prompt += `**Hypothesis:** ${this.phenotypeSearch.trim()}\n`;
 			}
-			
+
 			if (this.selectedGenes.length > 0) {
 				prompt += `**Selected Genes (ALL TOGETHER):** ${this.selectedGenes.join(', ')}\n`;
 				prompt += `**Strategy:** Generate ONE comprehensive experiment that tests all genes together\n`;
 			}
-			
+
 			if (this.selectedAssayTypes.length > 0) {
 				prompt += `**Selected Assay Types:** ${this.selectedAssayTypes.map(at => at.split(':')[1] || '').join(', ')}\n`;
 			}
-			
+
 			if (this.selectedCellTypes.length > 0) {
 				prompt += `**Selected Cell Types:** ${this.selectedCellTypes.map(ct => ct.split(':').pop() || '').join(', ')}\n`;
 			}
-			
+
 			if (this.selectedReadouts.length > 0) {
 				prompt += `**Selected Readouts:** ${this.selectedReadouts.join(', ')}\n`;
 			}
-			
+
 			if (this.selectedThroughput) {
 				prompt += `**Throughput:** ${this.selectedThroughput}\n`;
 			}
-			
+
 			if (this.selectedSpecies) {
 				prompt += `**Species Constraints:** ${this.selectedSpecies}\n`;
 			}
-			
+
 			if (this.selectedTimeBudget) {
 				prompt += `**Time Budget:** ${this.selectedTimeBudget}\n`;
 			}
-			
+
 			if (this.experimentNotes.trim() !== '') {
 				prompt += `**Additional Notes:** ${this.experimentNotes.trim()}\n`;
 			}
-			
+
 			return prompt;
 		},
 		*/
@@ -1757,11 +1757,11 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					alert('Please provide a hypothesis and/or select genes to generate experiment plans.');
 					return;
 				}
-				
+
 				// Show loading state and start timer
 				this.isGenerating = true;
 				this.generationStartTime = Date.now();
-                
+
 				// Choose the appropriate prompt based on gene strategy
 				let prompt;
 				if (this.selectedGenes.length > 0 && this.geneExperimentStrategy === 'all_together') {
@@ -1769,7 +1769,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 				} else {
 					prompt = this.experimentPrompt();
 				}
-				
+
 				// Start timer to update elapsed time every second
 				this.generationTimer = setInterval(() => {
 					if (this.isGenerating && this.generationStartTime) {
@@ -1779,7 +1779,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						this.elapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 					}
 				}, 1000);
-				
+
 				// Generate experiment using the LLM client
 				this.buildExperiments.sendPrompt({
 					userPrompt: prompt.trim() || 'Generate validation experiments based on the selected parameters',
@@ -1804,7 +1804,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 						}
 					}
 				});
-				
+
 			} catch (error) {
 				console.error('Error generating experiment:', error);
 				this.experimentResults = 'Error generating experiment. Please try again.';
@@ -1870,7 +1870,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			if (this.genesBeingProcessed.length === 0) {
 				return false;
 			}
-			
+
 			return this.genesBeingProcessed.every(geneSymbol => {
 				return this.geneNovelty[geneSymbol] && this.geneRelevance[geneSymbol];
 			});
@@ -1903,10 +1903,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 
 			// Get existing genes in the table
 			const existingGenes = this.geneData.map(gene => gene.gene);
-			
+
 			// Find new genes that aren't already in the table
 			const newGenes = geneList.filter(gene => !existingGenes.includes(gene));
-			
+
 			if (newGenes.length === 0) {
 				alert('All genes in your input are already in the table. No new genes to process.');
 				return;
@@ -1949,7 +1949,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 		}, 1000);
 
 			try {
-				
+
 				// Add genes to the table first (similar to addManualGenes but without clearing input)
 				const genesToAdd = genesToProcess.map(gene => ({
 							gene: gene,
@@ -1962,7 +1962,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 					phenotype: 'Manual Input',
 							isManual: true
 						}));
-						
+
 				// Add to existing gene data
 				this.geneData = [...this.geneData, ...genesToAdd];
 				this.originalGeneData = [...this.originalGeneData, ...genesToAdd];
@@ -2004,7 +2004,7 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			// Create GTEx browser URL with genes
 			const genesParam = geneList.join(',');
 			const gtexUrl = `https://www.gtexportal.org/home/multiGeneQueryPage/${genesParam}`;
-			
+
 			// Open in new tab
 			window.open(gtexUrl, '_blank');
 		},
@@ -2023,10 +2023,10 @@ Relevance Score (1=Low Relevance to Hypothesis, 10=Highly Relevant).
 			try {
 				// Create description for the gene set
 				const description = `Gene set from CFDE Genes Validator: ${geneList.join(', ')}`;
-				
+
 				// Create Playbook Workflow Builder URL
 				const workflowUrl = await drcUtils.create_pwb_gene_set_workflow(geneList, description);
-				
+
 				// Open in new tab
 				window.open(workflowUrl, '_blank');
 			} catch (error) {
@@ -2540,17 +2540,17 @@ a {
     .gene-options-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .gene-option-card {
         padding: 15px;
     }
-    
+
     .option-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
-    
+
     .option-badge {
         margin-left: 0;
         align-self: flex-start;
@@ -2575,7 +2575,7 @@ a {
 						}
 						content += '\n';
 					}
-					
+
 					// Design Critique
 					if (experiment.design_critique) {
 						content += `DESIGN CRITIQUE:\n`;
@@ -2602,13 +2602,13 @@ a {
 						}
 						content += `Strategic Recommendation: ${experiment.design_critique.strategic_recommendation}\n\n`;
 					}
-					
+
 					// Provenance
 					if (experiment.provenance) {
 						content += `PROVENANCE:\n`;
 						content += `${experiment.provenance}\n\n`;
 					}
-					
+
 					content += '---\n\n';
 				});
 			} else {
@@ -2617,12 +2617,12 @@ a {
 				content += '-------------------\n';
 				content += this.experimentResults;
 			}
-			
+
 			// Add disclaimers at the end
 			content += '\n\n';
 			content += 'IMPORTANT DISCLAIMERS\n';
 			content += '====================\n\n';
-			
+
 			// Main experiment disclaimer
 			content += '⚠️ IMPORTANT DISCLAIMER\n';
 			content += 'This tool is designed to help generate testable experiment plans for hypothesis validation, not to provide definitive scientific guidance.\n\n';
@@ -2633,15 +2633,15 @@ a {
 			content += '• Verify all technical details, protocols, and safety considerations before implementation\n';
 			content += '• Consider your specific experimental context, resources, and constraints\n\n';
 			content += 'Use these suggestions as a starting point for discussion and planning, not as final experimental protocols.\n\n';
-			
+
 			// Timeline disclaimer
 			content += 'TIMELINE DISCLAIMER\n';
 			content += 'Please note these timelines are general estimates, not absolute predictions, and that timelines assume the user already has the animals/cells/experimental reagents in-hand and the appropriate animal and/or institutional protocols in place to conduct these experiments. All researchers should be responsible for conducting their experiments in accordance with ethical guidelines as required by their institution.\n\n';
-			
+
 			// Conditions disclaimer
 			content += 'CONDITIONS DISCLAIMER\n';
 			content += 'Please note: These are general estimates. Researchers should perform a power calculation for each assay to determine the appropriate number of mice required for the experiment based on expected effect size, variability, and desired statistical power.\n\n';
-			
+
 			// Citation information
 			content += 'CITATION INFORMATION\n';
 			content += 'If you use this tool in a scientific publication, presentation, or other output, please cite the CFDE Knowledge Center in the following format:\n\n';
@@ -2651,7 +2651,7 @@ a {
 			content += '• All published datasets must be cited according to the associated publication, using DOIs and PMIDs when available\n';
 			content += '• Data reused from third-party repositories must adhere to their citation policies\n\n';
 			content += 'Citation policies for each page or analysis on the Knowledge Center are available here: https://cfdeknowledge.org/r/cfdekc_policies_citation\n';
-			
+
 			return content;
 		}
 		*/
@@ -2715,7 +2715,7 @@ a {
     .upper-layout {
         flex-direction: column;
     }
-    
+
     .left-column,
     .right-column {
         flex: 1;
@@ -4957,44 +4957,44 @@ a {
         width: 95%;
         margin: 20px;
     }
-    
+
     .url-choice-options {
         grid-template-columns: 1fr;
         gap: 16px;
         padding: 20px;
     }
-    
+
     .url-choice-option {
         padding: 16px;
     }
-    
+
     .url-choice-header {
         padding: 20px 20px 16px;
     }
-    
+
     .url-choice-header h3 {
         font-size: 20px;
     }
-    
+
     .url-choice-header p {
         font-size: 14px;
     }
-    
+
     .gene-options-grid {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .gene-option-card {
         padding: 16px;
     }
-    
+
     .option-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
-    
+
     .option-badge {
         margin-left: 0;
         align-self: flex-start;
