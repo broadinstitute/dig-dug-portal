@@ -266,7 +266,17 @@
                                                                     <td class="align-middle">{{ group.group_name }}</td>
                                                                     <td class="align-middle">
                                                                         <div v-for="pair in group.associated_pairs" :key="`${group.key}-${pair.phenotype}-${pair.factor}`">
-                                                                            <span>{{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}</span>
+                                                                            <span class="font-weight-bold">{{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}</span>
+                                                                        </div>
+                                                                        <div
+                                                                            v-if="group.redundant_associated_pairs && group.redundant_associated_pairs.length"
+                                                                            class="mt-2 small text-muted"
+                                                                            style="border-top: 1px dashed #ddd; padding-top: 5px;"
+                                                                        >
+                                                                            <span style="font-weight: 600;">Similar / Redundant clusters:</span>
+                                                                            <div v-for="pair in group.redundant_associated_pairs" :key="`red-${group.key}-${pair.phenotype}-${pair.factor}`">
+                                                                                {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
+                                                                            </div>
                                                                         </div>
                                                                     </td>
                                                                     <td class="align-middle">{{ group.grouping_rationale }}</td>
@@ -831,6 +841,19 @@
                                                                     :style="`background:${NODE_COLORS.Factor}; color:white`"
                                                                 >
                                                                     {{ factor }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div v-if="(mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)" class="mb-2">
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Supplementary / Similar Clusters</div>
+                                                            <div style="display:flex; flex-wrap: wrap; gap:3px">
+                                                                <div
+                                                                    v-for="(pair, ridx) in mechanism.redundant_associated_pairs"
+                                                                    :key="'mech-' + idx + '-red-' + ridx + '-' + (pair.factor || '')"
+                                                                    class="small pill"
+                                                                    style="background:#e2e3e5; color:#383d41;"
+                                                                >
+                                                                    {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1639,16 +1662,19 @@ mechanismGroupingSystemPrompt: `
 You are an expert in bioinformatics. You will be given a Knowledge Graph (KG) as CSV rows (each row has a unique numeric 'id') plus a factor summary and **research context**.
 
 ### Task (grouping only)
-**Semantic grouping:** Using the **research context**, decide which Phenotype–Factor (gene set cluster) pairs from \`associated_with\` rows (subject = phenotype id, object = factor / gene-set cluster label) **belong together** mechanistically. Form groups that share pathways, overlapping \`contains_gene\` evidence, related gene sets (\`linked_to_pathway\`, \`contributes_to_pathway\`), or coherent physiology **relevant to the research context**.
+**Semantic grouping:** Using the **research context**, decide which Phenotype–Factor (gene set cluster) pairs from \`associated_with\` rows (subject = phenotype id, object = factor / gene-set cluster label) **belong together** mechanistically. Form groups that share pathways, overlapping \`contains_gene\` evidence, related gene sets, or coherent physiology **relevant to the research context**.
+
+### 2-Tier Selection Rule (CRITICAL)
+To minimize redundancy in downstream hypothesis generation, you must divide the pairs in each group into two tiers:
+1. **Tier 1 (Core 'associated_pairs')**: The most significant, distinct, and representative pairs that define the core mechanistic theme. Select only the highest-quality, most comprehensive factors for this tier.
+2. **Tier 2 (Redundant 'redundant_associated_pairs')**: Pairs that belong to the same theme but are semantically similar, overlapping, or secondary to the Tier 1 pairs (e.g., if you select "Lipid Transport" for Tier 1, put a similar factor like "Cholesterol Metabolism" in Tier 2).
 
 ### Rules
-1. **Research context first:** Only group pairs that are **plausibly tied to the stated research context**. Pairs that are weakly related or irrelevant to the context should be **omitted** from every group (they will be listed separately for the user as “remaining”).
-2. **No forced coverage:** You do **not** need to assign every \`associated_with\` pair to a group. Omit pairs that do not fit any coherent, context-relevant cluster.
-3. **No duplicate pairs:** The same (phenotype, factor) pair must appear in **at most one** group. Use the **exact** phenotype and factor strings from the CSV (subject and object columns).
-4. **Thematic clustering:** Merge pairs that share mechanism **and** context relevance; prefer fewer, meaningful groups over many tiny ones.
-5. **Names:** \`group_name\` is a short mechanistic theme label (you may invent it).
-6. **Empty groups array:** If **no** pairs are strongly supported by the research context, return \`"groups": []\`.
-7. **No hypotheses:** Do not write mechanistic hypotheses or gene lists here — only grouping.
+1. **Research context first:** Only group pairs plausibly tied to the stated research context. Irrelevant pairs must be omitted entirely.
+2. **No duplicate pairs:** A (phenotype, factor) pair must appear in **at most one** group, and in only **one** tier within that group. Use the **exact** strings from the CSV.
+3. **Names:** \`group_name\` is a short mechanistic theme label.
+4. **Empty groups array:** If no pairs are strongly supported by the context, return \`"groups": []\`.
+5. **No hypotheses:** Do not write mechanistic hypotheses or gene lists here.
 
 ### Output (strict JSON)
 Return ONLY:
@@ -1659,7 +1685,10 @@ Return ONLY:
       "associated_pairs": [
         { "phenotype": "Exact phenotype string from KG", "factor": "Exact factor label from KG" }
       ],
-      "grouping_rationale": "One or two sentences on why these pairs belong together for this research context."
+      "redundant_associated_pairs": [
+        { "phenotype": "...", "factor": "..." }
+      ],
+      "grouping_rationale": "Briefly explain why these pairs form a group, and why the redundant pairs were separated from the core pairs."
     }
   ]
 }
@@ -1708,8 +1737,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
 (Do NOT return 'scores' in genes; scores are filled by the system.)
 
 ### Guidelines
-- **associated_pairs:** Must match the corresponding input group's \`associated_pairs\` exactly (same pairs; order may match).
-- **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in that hypothesis's group.
+- **associated_pairs:** Must match the corresponding input group's \`associated_pairs\` exactly. **Do NOT include \`redundant_associated_pairs\` in your hypothesis output.** Use them only for background context if needed.
+- **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in the core \`associated_pairs\` array.
 - **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes; otherwise as many as are strongly supported.
 - **Sorting:** Order \`genes\` by impact (higher combined_score first when inferable from context).
@@ -1960,6 +1989,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                         ? String(g.group_name).trim()
                         : `Group ${idx + 1}`,
                 associated_pairs: Array.isArray(g && g.associated_pairs) ? g.associated_pairs : [],
+                redundant_associated_pairs:
+                    Array.isArray(g && g.redundant_associated_pairs) ? g.redundant_associated_pairs : [],
                 grouping_rationale:
                     g && g.grouping_rationale != null && String(g.grouping_rationale).trim() !== ""
                         ? String(g.grouping_rationale).trim()
@@ -4637,7 +4668,13 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
              * Hypothesis is merged with fixed associated_pairs from the input group.
              */
             const runHypothesisAttemptForGroup = (attempt, group, groupIndex) => {
-                const groupBlock = JSON.stringify(group, null, 2);
+                // Only send core pairs to the hypothesis LLM; keep redundant tier for UI/display.
+                const groupForLlm = {
+                    group_name: group.group_name,
+                    associated_pairs: group.associated_pairs,
+                    grouping_rationale: group.grouping_rationale,
+                };
+                const groupBlock = JSON.stringify(groupForLlm, null, 2);
                 const hypothesisUserPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${groupBlock}\n\`\`\`\n\n${baseContextSuffix}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
                 return new Promise((resolve) => {
                     let resolved = false;
@@ -4689,6 +4726,9 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                             const out = { ...h };
                             if (Array.isArray(g.associated_pairs)) {
                                 out.associated_pairs = JSON.parse(JSON.stringify(g.associated_pairs));
+                            }
+                            if (Array.isArray(g.redundant_associated_pairs)) {
+                                out.redundant_associated_pairs = JSON.parse(JSON.stringify(g.redundant_associated_pairs));
                             }
                             if (!out.group_name && g.group_name) out.group_name = g.group_name;
                             finish({ retry: false, failed: false, err: null, hypothesis: out });
