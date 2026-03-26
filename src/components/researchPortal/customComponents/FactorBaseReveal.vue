@@ -5728,7 +5728,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
 
         /**
          * Fetch gene sets for a (phenotype, factor) via phenotypeGeneSetFactor API. Used on both phenotype and association paths.
-         * Filters out gene_set_program === 'none'; returns all remaining rows sorted by beta_uncorrected (highest first). An LLM step narrows to 5 per factor where applicable.
+         * Filters out gene_set_program === 'none'; keeps top 10 by beta_uncorrected (highest first).
+         * A later LLM step may further narrow to up to 5 per factor.
          * @param {string} phenotype
          * @param {string} factor
          * @returns {Promise<{ top_gene_sets: string, gene_set_description: string }>}
@@ -5752,7 +5753,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     const num = b != null && b !== "" && !isNaN(Number(b)) ? Number(b) : null;
                     return { ...r, _beta: num };
                 }).sort((a, b) => (b._beta ?? -1) - (a._beta ?? -1));
-                const selected = withBeta;
+                const maxGeneSetsForLlmFiltering = 10;
+                const selected = withBeta.slice(0, maxGeneSetsForLlmFiltering);
 
                 const names = selected.map((r) => (r.gene_set != null ? String(r.gene_set).trim() : "")).filter(Boolean);
                 const descs = selected.map((r) => (r.gene_set_description != null ? String(r.gene_set_description).trim() : "")).filter(Boolean);
