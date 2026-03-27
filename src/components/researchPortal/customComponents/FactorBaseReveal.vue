@@ -243,51 +243,6 @@
                                                         </template>
                                                     </b-table>
                                                 </div>
-                                                <div v-if="step.id === '8' && substep.id === '8.1' && semanticGroupsForApproval && semanticGroupsForApproval.length">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm table-striped table-bordered mb-2">
-                                                            <thead class="thead-light">
-                                                                <tr>
-                                                                    <th style="width:70px;" class="text-center">Select</th>
-                                                                    <th style="width:180px;">Group</th>
-                                                                    <th>Phenotype-Gene set cluster</th>
-                                                                    <th style="width:280px;">Rationale</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr v-for="group in semanticGroupsForApprovalRows" :key="group.key">
-                                                                    <td class="text-center align-middle">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            :checked="isSemanticGroupSelected(group.key)"
-                                                                            @change="setSemanticGroupSelected(group.key, $event.target.checked)"
-                                                                        />
-                                                                    </td>
-                                                                    <td class="align-middle">{{ group.group_name }}</td>
-                                                                    <td class="align-middle">
-                                                                        <div v-for="pair in group.associated_pairs" :key="`${group.key}-${pair.phenotype}-${pair.factor}`">
-                                                                            <span class="font-weight-bold">{{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}</span>
-                                                                        </div>
-                                                                        <div
-                                                                            v-if="group.redundant_associated_pairs && group.redundant_associated_pairs.length"
-                                                                            class="mt-2 small text-muted"
-                                                                            style="border-top: 1px dashed #ddd; padding-top: 5px;"
-                                                                        >
-                                                                            <span style="font-weight: 600;">Similar / Redundant clusters:</span>
-                                                                            <div v-for="pair in group.redundant_associated_pairs" :key="`red-${group.key}-${pair.phenotype}-${pair.factor}`">
-                                                                                {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td class="align-middle">{{ group.grouping_rationale }}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div v-if="selectedSemanticGroupCount === 0" class="small text-danger mb-2">
-                                                        Select at least one group to continue.
-                                                    </div>
-                                                </div>
                                                 <pre v-else-if="!(step.id === '1' && substep.id === '1.1')" style="background: #eee; padding: 10px; height: 100px; resize:vertical; overflow: auto;">{{ substep.result.result }}</pre>
                                                 <div
                                                     v-if="stepApprovalGateActive && stepApprovalGateStepId === '1' && step.id === '1' && substep.id === '1.1'"
@@ -314,7 +269,6 @@
                                             <div class="text-muted mb-2" style="font-size: 1rem; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
                                             <button
                                                 class="btn btn-cfde btn-sm"
-                                                :disabled="step.id === '8' && selectedSemanticGroupCount === 0"
                                                 @click="approveStepGate"
                                             >
                                                 Continue
@@ -358,24 +312,6 @@
                                         :phenotype-description-by-id="phenotypeDescriptionById"
                                         height="auto"
                                     />
-                                </div>
-                                <div
-                                    v-if="selectionDiffersFromFiltered"
-                                    class="mb-3 d-flex align-items-center"
-                                    style="gap:15px;"
-                                >
-                                    <div class="font-weight-bold" style="color: #000000; font-size: 1.2em;">
-                                        Regroup the selected gene set clusters?
-                                    </div>
-                                    <button
-                                        class="btn btn-cfde"
-                                        style="min-width: 120px;"
-                                        :disabled="regroupingSelectedPairs"
-                                        @click="regroupSelectedGeneSetClusters"
-                                    >
-                                        <b-spinner v-if="regroupingSelectedPairs" small class="mr-1"></b-spinner>
-                                        <span>{{ regroupingSelectedPairs ? 'Regrouping…' : 'Regroup' }}</span>
-                                    </button>
                                 </div>
                                     <!-- Phenotype path: Selected Rationale section above table -->
                                     <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
@@ -881,66 +817,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div
-                                        v-if="remainingSemanticGroupRows && remainingSemanticGroupRows.length"
-                                        class="remaining-gene-clusters mt-4 pt-3 border-top"
-                                    >
-                                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
-                                            Remaining gene set cluster groups
-                                        </div>
-                                        <p class="text-muted small mb-3">
-                                            These context-relevant semantic groups were identified but not selected for mechanistic hypothesis generation.
-                                        </p>
-                                        <div v-if="remainingGroupGenerateError" class="alert alert-danger small mb-3" role="alert">
-                                            {{ remainingGroupGenerateError }}
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-striped table-bordered mb-0">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th style="width:220px;">Group</th>
-                                                        <th>Phenotype-Gene set cluster</th>
-                                                        <th style="width:280px;">Rationale</th>
-                                                        <th style="width:130px;">Hypothesis</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr v-for="(group, idx) in remainingSemanticGroupRows" :key="'rem-group-' + idx">
-                                                        <td class="align-middle">
-                                                            {{ group.group_name || `Group ${idx + 1}` }}
-                                                        </td>
-                                                        <td class="align-middle">
-                                                            <div v-for="(pair, pidx) in (group.associated_pairs || [])" :key="'rem-pair-' + idx + '-' + pidx">
-                                                                {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
-                                                            </div>
-                                                        </td>
-                                                        <td class="align-middle">
-                                                            {{ group.grouping_rationale || '' }}
-                                                        </td>
-                                                        <td class="text-center align-middle">
-                                                            <button
-                                                                type="button"
-                                                                class="btn btn-sm btn-cfde"
-                                                                :disabled="generatingRemainingGroupKey === getRemainingGroupKey(group, idx)"
-                                                                @click="generateHypothesisForRemainingGroup(group, idx)"
-                                                            >
-                                                                <b-spinner
-                                                                    v-if="generatingRemainingGroupKey === getRemainingGroupKey(group, idx)"
-                                                                    small
-                                                                    class="mr-1"
-                                                                ></b-spinner>
-                                                                <template v-if="generatingRemainingGroupKey === getRemainingGroupKey(group, idx)">
-                                                                    Generating… {{ formatRemainingGenerateElapsed() }}
-                                                                </template>
-                                                                <template v-else>Generate</template>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <!-- Remaining: included pairs not in any context-relevant semantic group, or grouped but not cited in mechanism evidence -->
+                                    <!-- Remaining: included pairs not yet cited in hypothesis evidence -->
                                     <div
                                         v-if="remainingGeneSetClusterRows.length"
                                         class="remaining-gene-clusters mt-5 pt-4 border-top"
@@ -949,8 +826,7 @@
                                             Remaining gene set clusters
                                         </div>
                                         <p class="text-muted small mb-3">
-                                            These phenotype–gene set cluster pairs were <strong>included</strong> in your data selection but are listed here because they were
-                                            <strong>not</strong> placed in any context-relevant semantic group, <strong>or</strong> they appear in a group but lack a matching Phenotype–Factor link in any hypothesis’s supporting evidence above.
+                                            These phenotype-gene set cluster pairs were included in your data selection but are not yet covered by supporting evidence in the generated hypotheses.
                                         </p>
                                         <div v-if="remainingPairGenerateError" class="alert alert-danger small mb-3" role="alert">
                                             {{ remainingPairGenerateError }}
@@ -1294,34 +1170,6 @@
             </div>
         </div>
 
-        <!-- Incremental hypotheses: remind user more groups are still running (fixed to viewport) -->
-        <div
-            v-if="showMechanismHypothesisStreamBubble"
-            class="mechanism-hypothesis-stream-bubble"
-            role="status"
-            aria-live="polite"
-        >
-            <div class="mechanism-hypothesis-stream-bubble__inner">
-                <div class="mechanism-hypothesis-stream-bubble__title-row">
-                    <span class="mechanism-hypothesis-stream-bubble__pulse" aria-hidden="true"></span>
-                    <span class="mechanism-hypothesis-stream-bubble__title">Generating mechanistic hypotheses</span>
-                </div>
-                <p class="mechanism-hypothesis-stream-bubble__text">
-                    Additional semantic groups are still being processed. You can keep reviewing results above.
-                </p>
-                <div v-if="mechanismHypothesisActiveGroupName" class="mechanism-hypothesis-stream-bubble__current">
-                    <span class="mechanism-hypothesis-stream-bubble__current-label">Now:</span>
-                    <strong>{{ mechanismHypothesisActiveGroupName }}</strong>
-                </div>
-                <div class="mechanism-hypothesis-stream-bubble__progress">
-                    {{ mechanismHypothesisStreamDone }} of {{ mechanismHypothesisStreamTotal }} groups complete
-                </div>
-                <div class="mechanism-hypothesis-stream-bubble__elapsed">
-                    Elapsed: {{ formatMechanismHypothesisStreamElapsed() }}
-                </div>
-            </div>
-        </div>
-
     </div>
 </template>
 
@@ -1376,20 +1224,7 @@ export default Vue.component("factor-base-reveal", {
             lastMechanismTerms: [],
             /** Map phenotype id -> description for display; queries still use id. */
             phenotypeDescriptionById: {},
-            matchedPhenotype: null,
-            searchApis: {
-                //phenotypes: "https://search.hugeamp.org/api/search/pgvector/phenotypes?q=$searchTerm&similarity_threshold=0.5",
-                phenotypes: "https://search.hugeamp.org/api/search/pgvector/phenotypes-with-factors?q=$searchTerm",
-                factors: "https://search.hugeamp.org/api/search/pgvector/factors?q=$searchTerm",
-                phenotypeFactors: "https://search.hugeamp.org/api/search/pgvector/factors-and-phenotypes?q=$searchTerm&similarity_threshold=0.3&top_k=30",
-                factor: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-factor?limit=1000&q=$phenotype,cfde",
-                phenotypeGeneSetFactor: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-gene-set-factor?q=$phenotype,cfde,$factor",
-                factorGenes: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-gene-factor?q=$phenotype,cfde,$factor",
-                pigeanJoinedGeneSets: "https://cfde-bi.hugeamp.org/api/bio/query/pigean-joined-gene-set?q=$phenotype,$geneSet,cfde",
-            },
             factorData: {},
-            /** Association path only: all associations from API (e.g. first 30) for table display; factorData still holds only top 10 selected. */
-            associationPathTableData: [],
             loadStatus: "",
             statusSteps: [],
             steps: [],
@@ -1412,29 +1247,9 @@ export default Vue.component("factor-base-reveal", {
             stepApprovalGateStepId: "",
             stepApprovalGateMessage: "",
             stepApprovalGateResolver: null,
-            /** Groups rendered in step-8 approval table; checkbox selection controls generation set. */
-            semanticGroupsForApproval: [],
-            semanticGroupSelectionByKey: {},
-            /** Groups user left unchecked at step-8 review; shown as remaining grouped clusters. */
-            remainingSemanticGroupRows: [],
-            generatingRemainingGroupKey: "",
-            remainingGroupGenerateError: "",
-            /** While incremental hypotheses run: total groups, completed count, current LLM group label (top-right bubble). */
-            mechanismHypothesisStreamTotal: 0,
-            mechanismHypothesisStreamDone: 0,
-            mechanismHypothesisActiveGroupName: "",
-            /** Elapsed timer for multi-group hypothesis generation (bubble). */
-            mechanismHypothesisStreamStartedAt: null,
-            mechanismHypothesisStreamNow: Date.now(),
-            mechanismHypothesisStreamTimerId: null,
             display_mechanisms: true,
             /** Row keys (phenotype|factor) for pairs user generated via "Generate" in Remaining section; removes row from that table. */
             adHocCoveredRowKeys: [],
-            /**
-             * After semantic grouping LLM: normalized keys `${phenotype}|${collapseWsLower(factorLabel)}` for pairs placed in at least one group.
-             * null = grouping not completed this run (use mechanism-only remaining logic). [] = all pairs left ungrouped.
-             */
-            semanticGroupedPairKeys: null,
             /** While set, matching row's Generate shows loading. */
             generatingRemainingRowKey: "",
             /** Start time (ms) for elapsed display on remaining-cluster Generate. */
@@ -1445,7 +1260,6 @@ export default Vue.component("factor-base-reveal", {
             remainingPairGenerateError: "",
             pairSelectionOverrides: {},
             llmFilteredPairKeysBaseline: [],
-            regroupingSelectedPairs: false,
             display_phenotypes_factors: true,
             subtablePerPage: 10,
             subtableCurrentPages: {},
@@ -1472,237 +1286,54 @@ export default Vue.component("factor-base-reveal", {
             showTab: 'process',
 
 extractSystemPropmpt: `### Task
-Deconstruct biological research queries into structured keywords for high-precision semantic search. Focus on mapping user input to canonical scientific nomenclature.
+Deconstruct biological research queries into structured keywords for high-precision semantic search. Focus on mapping user input to canonical scientific nomenclature, providing broad search variations, and strictly balancing term counts to prevent semantic vector dilution.
 
 ### JSON Schema
 Return ONLY a JSON object:
 {
-  "phenotype_terms": ["Targeted list of explicit clinical diagnoses or systemic traits. Max 3."],
-  "mechanism_terms": ["Targeted list of biological processes, pathways, anatomies, or experimental assays. Max 3."],
+  "phenotype_terms": ["List of formal clinical diagnoses, PLUS broad root keywords and common variations to maximize database text-matching. Max 6."],
+  "mechanism_terms": ["Expanded list of biological processes, biochemical pathways, cell types, or localized anatomies. Max 6."],
   "search_type": "phenotypes | mechanisms | both",
   "research_context": "A concise (10-20 word) synthesis of the research intent, explicitly stating the target organ, tissue, or cell type."
 }
 
 ### Extraction Logic & Constraints
-1. **Canonicalization & Acronym Expansion (CRITICAL)**: You MUST expand all biological, medical, or anatomical acronyms into their full standard scientific terms (e.g., convert "BBB" to "blood-brain barrier", "TNF" to "tumor necrosis factor").
-2. **Biochemical & Scientific Formalization**: Upgrade colloquial or shorthand biological terms to their most formal, specific biochemical or ontological equivalents (e.g., convert "O-glycosylation" to "O-linked glycosylation", "fat" to "adipose tissue", "blood vessel formation" to "angiogenesis"). 
-3. **Anatomical Anchoring**: If a target organ, tissue, or cell type is mentioned or implied by the query, explicitly include that precise anatomical context in the 'research_context' string.
-4. **No Inference of Unstated Diseases**: Do not infer high-level disease states if they aren't explicitly requested (e.g., do not turn 'neurons' into 'neurodegeneration').
-5. **Phenotype Definition**: Use 'phenotype_terms' ONLY for recognized clinical diagnoses, macro-level traits, or systemic disease states (e.g., "Alzheimer's disease", "Diabetes"). 
-   - Localized processes, anatomical barriers, and molecular states (e.g., "blood-brain barrier maintenance", "inflammation") are ALWAYS 'mechanism_terms'.
-6. **Null Safety**: If a query contains only a phenotype or only a mechanism, the other list MUST be empty []. 
-7. **Search Type Logic**: 
-   - 'phenotypes': Query focuses strictly on a clinical disease or macro trait.
-   - 'mechanisms': Query focuses on a pathway, anatomy, cell type, or localized process.
-   - 'both': Query explicitly links a biological process to a specific clinical diagnosis.
-8. **Exclusions**: Omit broad stop-words like "study", "data", "mouse", "mechanisms", "pathways", or software names from the term arrays.
+1. **Phenotype Keyword Expansion (CRITICAL)**: Because 'phenotype_terms' are used for strict database text-matching, provide variations. Break compound traits into root words. 
+   - *Example:* "waist-to-hip ratio" -> ["waist-to-hip ratio", "waist", "hip", "waist-hip", "adiposity"].
+2. **Mechanism Keyword Expansion & Vector Balancing (CRITICAL)**: Expand cellular processes and anatomical terms into their deeper biochemical components and specific cell-types. 
+   - *Example:* "senescence" -> ["cellular senescence", "cell cycle arrest", "senescence-associated secretory phenotype", "SASP", "oxidative stress"].
+   - *Example:* "vascular smooth muscle" -> ["vascular smooth muscle cells", "VSMC", "myofibroblast-like phenotype", "arterial intima"].
+3. **Semantic Parity (The Golden Rule)**: Never let the number of 'phenotype_terms' drastically outnumber 'mechanism_terms'. If you generate 5 phenotypes, you MUST generate at least 4-5 mechanism terms to ensure the mathematical vector heavily prioritizes the specific biology over the generic disease.
+4. **Canonicalization & Formalization**: Upgrade colloquial biological terms to formal equivalents (e.g., "fat" to "adipose tissue", "BBB" to "blood-brain barrier").
+5. **Anatomical Anchoring**: If a target organ/tissue is mentioned, explicitly include that precise anatomical context in the 'research_context' string.
+6. **Null Safety**: If a query contains only a phenotype or only a mechanism, the other list MUST be empty [].
+7. **Exclusions**: Omit broad stop-words like "study", "data", "mouse", "mechanisms", or software names.
 
-### Example 1 (Mechanism Only with Acronym & Formalization)
+### Example 1 (Mechanism Only)
 Input: "Find an endothelial glycocalyx / O-glycosylation mechanism linked to BBB maintenance."
 Output: {
   "phenotype_terms": [],
-  "mechanism_terms": ["endothelial glycocalyx", "O-linked glycosylation", "blood-brain barrier maintenance"],
+  "mechanism_terms": ["endothelial glycocalyx", "O-linked glycosylation", "blood-brain barrier maintenance", "tight junctions", "cerebral endothelium"],
   "search_type": "mechanisms",
   "research_context": "Investigating how the endothelial glycocalyx and O-linked glycosylation regulate cerebral endothelium and blood-brain barrier integrity."
 }
 
-### Example 2 (Both)
-Input: "Mapping the effects of APOE4 on amyloid clearance in Alzheimer's patients"
+### Example 2 (Both with Expansion and Parity)
+Input: "Find a vascular smooth-muscle senescence mechanism linked to atherosclerosis."
 Output: {
-  "phenotype_terms": ["Alzheimer's disease"],
-  "mechanism_terms": ["amyloid beta clearance", "Apolipoprotein E4", "proteostasis"],
+  "phenotype_terms": ["atherosclerosis", "atherosclerotic plaque", "coronary artery disease", "atheroma"],
+  "mechanism_terms": ["vascular smooth muscle cell senescence", "VSMC", "cellular senescence", "senescence-associated secretory phenotype", "SASP", "arterial wall remodeling"],
   "search_type": "both",
-  "research_context": "Investigating how the Apolipoprotein E4 (APOE4) variant impacts amyloid beta processing in Alzheimer's disease."
+  "research_context": "Investigating how vascular smooth muscle cell senescence in the arterial wall contributes to atherosclerotic plaque development."
 }`,
 
-factorFilteringPrompt:`You are an expert bioinformatics data filter. 
-
-You will be given:
-1. A **Research Context** describing a biological problem.
-2. A list of **Phenotype-to-Factor associations** in JSON format.
-
-Your task:
-1. Filter: Identify which Factors associated with each Phenotype are mechanistically relevant to the Research Context.
-2. Selection: When multiple Factors are semantically similar or redundant (e.g., 'Lipid Transport' vs 'Lipid Metabolism'), you MUST select only ONE representative Factor from the provided list to represent that cluster.
-
----
-## Strict Constraints
-- USE ONLY ORIGINAL NAMES: You are forbidden from creating new category names or high-level summaries. Every string in 'relevant_factors' MUST be an exact match from the input list.
-- Eliminate Redundancy: For overlapping concepts (e.g., several different 'Glucose' or 'Insulin' factors), pick the single most comprehensive Factor name present in the data.
-- Return ONLY a JSON object.
-- Group the selected Factors by their respective Phenotypes.
-- Anatomical Strictness: You must strictly evaluate the anatomy. If the Research Context specifies a target tissue (e.g., 'arterial intima', 'brain'), you MUST reject any factors or gene sets that are exclusively tied to a different organ (e.g., 'liver', 'ovary'), UNLESS you can explicitly justify how that distant organ secretes a factor that physically travels to act upon the target tissue.
-
----
-## Output Format (Strict JSON)
-{
-  "selected_associations": [
-    {
-      "phenotype": "Phenotype Name",
-      "relevant_factors": ["Original Factor Name A", "Original Factor Name B"],
-      "rationale": "Brief reason why these exact factor was chosen for this phenotype (mechanistic relevance to the research context)."
-    }
-  ]
-}
-
----
-## Guidelines
-- Include a short "rationale" (1–2 sentences) for each phenotype explaining why the selected factors are relevant to the research context.
-- Do not fabricate Factors. If the original list says 'Hormone Regulation Processes', use that; do not change it to 'Hormonal Signaling'.
-- If a Phenotype has no relevant Factors for the context, omit it from the array.
-- No preamble, no markdown blocks, no explanation.`,
-
-phenotypeFactorsFilteringPrompt: `You are a bioinformatics data filter. You will be given:
-1. A **Research Context** (e.g., disease mechanism, molecular pathway of interest).
-2. **Phenotype–factor associations in CSV format** with columns: id, factor_label, phenotype, top_gene_sets, gene_set_description, score.
-
-Your task: (1) Filter to only associations that are mechanistically relevant to the Research Context. (2) Sort the selected list by relevance (most relevant first). Use factor_label, phenotype, top_gene_sets, and gene_set_description when judging relevance. The gene_set_description column describes what the gene sets are about (use it to understand relevance when gene set ids are opaque).
-
----
-## Constraints
-- Return ONLY a single JSON object. No markdown code fences, no preamble, no explanation.
-- Preserve the exact "id" for each selected item (from the CSV id column) so the client can map back.
-- Order the "selected" array by relevance: first item = most relevant.
-- You MUST return at least one item when the input has rows and any is plausibly related to the context.
-- Anatomical Strictness: You must strictly evaluate the anatomy. If the Research Context specifies a target tissue (e.g., 'arterial intima', 'brain'), you MUST reject any factors or gene sets that are exclusively tied to a different organ (e.g., 'liver', 'ovary'), UNLESS you can explicitly justify how that distant organ secretes a factor that physically travels to act upon the target tissue.
-
----
-## Output Format (strict JSON)
-{
-  "selected": [
-    { "id": "EXACT_ID_FROM_INPUT", "rationale": "Brief reason why this association was selected and its relevance level." }
-  ]
-}
-
----
-## Guidelines
-- Include a short "rationale" for each selected item. Use only ids from the input CSV.
-- Sort by relevance: put the most relevant association first, then the next, and so on.
-- No preamble, no markdown blocks, no explanation.`,
-
-geneSetPickSystemPrompt: `You are an expert bioinformatics assistant. You will receive a research context and, for each gene set cluster (factor), a list of candidate gene sets with descriptions and program labels.
-
-Your task: for each factor, pick up to 5 gene sets most relevant to the research context. Copy gene_set identifiers EXACTLY from the input — no paraphrasing.
-
-You are NOT required to return 5. For each factor, return between 1 and 5 gene sets when there are relevant candidates (or fewer when fewer are clearly relevant). No markdown fences.
- 
-Return ONLY valid JSON: { "selections": [ { "phenotype": "...", "factor_id": "...", "gene_sets": ["...", ...] } ] } with one entry per input factor. Order gene_sets by relevance (most relevant first). No markdown fences.`,
-
-mergedFactorAndGeneSetPickSystemPrompt: `You are an expert bioinformatics data filter combined with a gene-set recommender.
-
-You will be given:
-1. A Research Context.
-2. A list of Phenotype-to-Factor associations in JSON format. Each factor association includes candidate gene sets:
-   - gene_set (id string)
-   - description (human-readable)
-   - program (label; may include entries like 'gtex', 'mouse', etc.)
-
-Task:
-1. Filter: For each phenotype, identify which Factors are mechanistically relevant to the Research Context. When multiple factors are semantically redundant, you MUST select only ONE representative Factor per redundant cluster (same spirit as factorFilteringPrompt).
-2. For EACH selected factor, select up to 5 most relevant gene_set values from that factor's candidate gene sets (ids only). You are NOT required to return 5; return fewer if fewer are clearly relevant.
-3. Order: Sort factors by relevance (most relevant first). Order gene_sets by relevance (most relevant first).
-
-Strict Constraints:
-- Use only original values from the input. Do not invent new factor ids/labels or gene_set ids.
-- Anatomical strictness: reject factors/gene sets exclusively tied to an unrelated organ unless you can justify relevance in context.
-
-Return ONLY a single valid JSON object with this schema:
-{
-  "selected_associations": [
-    {
-      "phenotype": "EXACT_PHENOTYPE_STRING_FROM_INPUT",
-      "relevant_factors": ["EXACT_FACTOR_ID_FROM_INPUT", "..."],
-      "rationale": "Brief reason why these factors were chosen (mechanistic relevance)."
-    }
-  ],
-  "gene_set_selections": [
-    {
-      "phenotype": "EXACT_PHENOTYPE_STRING_FROM_INPUT",
-      "factor_id": "EXACT_FACTOR_ID_FROM_INPUT",
-      "gene_sets": ["EXACT_GENE_SET_ID_FROM_INPUT", "..."],
-      "rationale": "Brief reason why these gene sets match the research context."
-    }
-  ]
-}
-
-No markdown or preamble.`,
-
-mergedAssociationAndGeneSetPickSystemPrompt: `You are an expert bioinformatics data filter combined with a gene-set recommender.
-
-You will be given:
-1. A Research Context.
-2. A list of phenotype–factor associations (each association has a unique "id"). Each association includes candidate gene sets:
-   - gene_set (id string)
-   - description
-   - program
-
-Task:
-1. Filter: Select the most mechanistically relevant phenotype–factor associations for the Research Context.
-2. For EACH selected association, select up to 5 most relevant gene_sets from that association's candidate gene sets. You are NOT required to return 5; return fewer if fewer are clearly relevant.
-3. Order: Sort selected associations by relevance (most relevant first). Order gene_sets by relevance (most relevant first).
-
-Strict Constraints:
-- Use only original ids/values from the input. Do not invent new association ids or gene_set ids.
-- Anatomical strictness: reject associations/gene sets exclusively tied to an unrelated organ unless you can justify relevance in context.
-
-Return ONLY valid JSON in this schema:
-{
-  "selected": [
-    {
-      "id": "EXACT_ID_FROM_INPUT",
-      "rationale": "Brief reason why this association was selected.",
-      "gene_sets": ["EXACT_GENE_SET_ID_FROM_INPUT", "..."]
-    }
-  ]
-}
-
-No markdown or preamble.`,
-
-mechanismGroupingSystemPrompt: `
-You are an expert in bioinformatics. You will be given a Knowledge Graph (KG) as CSV rows (each row has a unique numeric 'id') plus a factor summary and **research context**.
-
-### Task (grouping only)
-**Semantic grouping:** Using the **research context**, decide which Phenotype–Factor (gene set cluster) pairs from \`associated_with\` rows (subject = phenotype id, object = factor / gene-set cluster label) **belong together** mechanistically. Form groups that share pathways, overlapping \`contains_gene\` evidence, related gene sets, or coherent physiology **relevant to the research context**.
-
-### 2-Tier Selection Rule (CRITICAL)
-To minimize redundancy in downstream hypothesis generation, you must divide the pairs in each group into two tiers:
-1. **Tier 1 (Core 'associated_pairs')**: The most significant, distinct, and representative pairs that define the core mechanistic theme. Select only the highest-quality, most comprehensive factors for this tier.
-2. **Tier 2 (Redundant 'redundant_associated_pairs')**: Pairs that belong to the same theme but are semantically similar, overlapping, or secondary to the Tier 1 pairs (e.g., if you select "Lipid Transport" for Tier 1, put a similar factor like "Cholesterol Metabolism" in Tier 2).
-
-### Rules
-1. **Research context first:** Only group pairs plausibly tied to the stated research context. Irrelevant pairs must be omitted entirely.
-2. **No duplicate pairs:** A (phenotype, factor) pair must appear in **at most one** group, and in only **one** tier within that group. Use the **exact** strings from the CSV.
-3. **Names:** \`group_name\` is a short mechanistic theme label.
-4. **Empty groups array:** If no pairs are strongly supported by the context, return \`"groups": []\`.
-5. **No hypotheses:** Do not write mechanistic hypotheses or gene lists here.
-
-### Output (strict JSON)
-Return ONLY:
-{
-  "groups": [
-    {
-      "group_name": "Short mechanistic theme for this cluster",
-      "associated_pairs": [
-        { "phenotype": "Exact phenotype string from KG", "factor": "Exact factor label from KG" }
-      ],
-      "redundant_associated_pairs": [
-        { "phenotype": "...", "factor": "..." }
-      ],
-      "grouping_rationale": "Briefly explain why these pairs form a group, and why the redundant pairs were separated from the core pairs."
-    }
-  ]
-}
-
-No markdown fences, no preamble.
-`,
-
 mechanismHypothesisSystemPrompt: `
-You are an expert in bioinformatics. Each request gives you **one fixed semantic group** of Phenotype–Factor (gene set cluster) pairs (do not change membership), plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON, and (4) research context.
+You are an expert in bioinformatics. Each request gives you a full set of context-relevant Phenotype–Factor (gene set cluster) pairs, plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON, and (4) research context.
 
 ### Task
-Produce **exactly one** mechanistic hypothesis for that group. Return \`hypotheses\` as an array of **length 1** (only \`hypotheses[0]\`).
+Produce one or more mechanistic hypotheses across the provided pairs. Return \`hypotheses\` as a non-empty array.
 
-### Discovery logic (per group)
+### Discovery logic
 1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
 2. **Gene sets:** Explicitly connect factors in that group to the gene sets (pathways) in the KG (\`linked_to_pathway\`, \`contributes_to_pathway\`).
 3. **Support priority:** Prefer genes with combined_score context in the data; prioritize strong functional signal where appropriate.
@@ -1715,7 +1346,7 @@ Return ONLY:
   "data_tracing_scratchpad": "Briefly list the specific row IDs from the CSV that connect the phenotype to the factor, and the factor to the highest-scoring genes. Do not use outside knowledge.",
   "hypotheses": [
     {
-      "group_name": "Headline (may refine the input group_name)",
+      "group_name": "Short mechanistic headline",
       "associated_pairs": [ { "phenotype": "...", "factor": "..." } ],
       "hypothesis": "2–3 sentences.",
       "novelty": "Contrast canonical vs non-canonical emphasis.",
@@ -1732,12 +1363,12 @@ Return ONLY:
   ]
 }
 
-The \`hypotheses\` array MUST contain exactly **one** element for the single group provided.
+The \`hypotheses\` array MUST contain at least one element.
 
 (Do NOT return 'scores' in genes; scores are filled by the system.)
 
 ### Guidelines
-- **associated_pairs:** Must match the corresponding input group's \`associated_pairs\` exactly. **Do NOT include \`redundant_associated_pairs\` in your hypothesis output.** Use them only for background context if needed.
+- **associated_pairs:** Must match phenotype/factor pairs exactly from the provided list.
 - **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in the core \`associated_pairs\` array.
 - **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes; otherwise as many as are strongly supported.
@@ -1747,20 +1378,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
     },
     computed: {
         factorDataTableRows() {
-            if (this.associationPathTableData && this.associationPathTableData.length > 0) {
-                return this.associationPathTableData.map((r) => {
-                    const rowKey = this.getRowKey(r);
-                    const included = Object.prototype.hasOwnProperty.call(this.pairSelectionOverrides, rowKey)
-                        ? !!this.pairSelectionOverrides[rowKey]
-                        : !!r.included;
-                    return {
-                        ...r,
-                        included,
-                        _rowKey: rowKey,
-                        _showDetails: !!this.expandedFactorRowKeys[rowKey],
-                    };
-                });
-            }
             const rows = [];
             const data = this.factorData || {};
             const filteredByPhenotype = {};
@@ -1909,15 +1526,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             return [...new Set(rows.map((r) => r.factorLabel))].sort();
         },
         /**
-         * Set of normalized pair keys the semantic-grouping LLM placed in at least one group.
-         * `null` if grouping has not finished this run; empty Set after `groups: []`.
-         */
-        semanticGroupedPairKeySet() {
-            const arr = this.semanticGroupedPairKeys;
-            if (arr == null) return null;
-            return new Set(arr);
-        },
-        /**
          * Phenotype–factor pairs cited in mechanism results: from flattened KG rows
          * (predicate associated_with) referenced by each hypothesis supporting_row_ids.
          */
@@ -1944,13 +1552,9 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             }
             return keys;
         },
-        /**
-         * Included rows that are either (a) not placed in any semantic group for the research context, or
-         * (b) placed in a group but not cited in any mechanism’s supporting evidence (or covered by ad-hoc generate).
-         */
+        /** Included rows not yet cited in mechanism supporting evidence (or covered by ad-hoc generate). */
         remainingGeneSetClusterRows() {
             const mechKeys = this.mechanismResultPhenotypeFactorPairKeys;
-            const semSet = this.semanticGroupedPairKeySet;
             const adHoc = new Set(this.adHocCoveredRowKeys || []);
             return (this.factorDataTableRows || []).filter((r) => {
                 if (!r.included) return false;
@@ -1961,44 +1565,12 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 const mechCovers =
                     mechKeys.has(`${p}|${this.collapseWsLower(fl)}`) ||
                     mechKeys.has(`${p}|${this.collapseWsLower(fid)}`);
-                if (semSet === null) {
-                    return !mechCovers;
-                }
-                const inSemanticGroup =
-                    semSet.has(`${p}|${this.collapseWsLower(fl)}`) ||
-                    semSet.has(`${p}|${this.collapseWsLower(fid)}`);
-                if (!inSemanticGroup) return true;
                 return !mechCovers;
             });
         },
         remainingFactorDataTableRowsWithRationaleMeta() {
             const remKeys = new Set((this.remainingGeneSetClusterRows || []).map((r) => this.getRowKey(r)));
             return (this.factorDataTableRowsWithRationaleMeta || []).filter((r) => remKeys.has(this.getRowKey(r)));
-        },
-        /** Fixed top-right bubble: first card visible but more groups still generating. */
-        showMechanismHypothesisStreamBubble() {
-            const t = this.mechanismHypothesisStreamTotal;
-            const d = this.mechanismHypothesisStreamDone;
-            return t > 1 && d >= 1 && d < t;
-        },
-        semanticGroupsForApprovalRows() {
-            return (this.semanticGroupsForApproval || []).map((g, idx) => ({
-                key: this.semanticGroupApprovalKey(g, idx),
-                group_name:
-                    g && g.group_name != null && String(g.group_name).trim() !== ""
-                        ? String(g.group_name).trim()
-                        : `Group ${idx + 1}`,
-                associated_pairs: Array.isArray(g && g.associated_pairs) ? g.associated_pairs : [],
-                redundant_associated_pairs:
-                    Array.isArray(g && g.redundant_associated_pairs) ? g.redundant_associated_pairs : [],
-                grouping_rationale:
-                    g && g.grouping_rationale != null && String(g.grouping_rationale).trim() !== ""
-                        ? String(g.grouping_rationale).trim()
-                        : "",
-            }));
-        },
-        selectedSemanticGroupCount() {
-            return this.semanticGroupsForApprovalRows.filter((g) => !!this.semanticGroupSelectionByKey[g.key]).length;
         },
     },
     created() {
@@ -2008,47 +1580,12 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             system_prompt: this.extractSystemPropmpt
         });
 
-        this.llmMechanismGrouping = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.mechanismGroupingSystemPrompt,
-        });
-
         this.llmAnalyze = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
             system_prompt: this.mechanismHypothesisSystemPrompt,
         });
 
-        this.llmFilter = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.factorFilteringPrompt
-        });
-
-        this.llmPhenotypeFactorsFilter = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.phenotypeFactorsFilteringPrompt
-        });
-
-        this.llmGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.geneSetPickSystemPrompt,
-        });
-
-        this.llmMergedFactorAndGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.mergedFactorAndGeneSetPickSystemPrompt,
-        });
-
-        this.llmMergedAssociationAndGeneSetPick = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
-            system_prompt: this.mergedAssociationAndGeneSetPickSystemPrompt,
-        });
     },
     async mounted() {
         if (keyParams.query) {
@@ -2061,7 +1598,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
     beforeDestroy() {
         this.stopStepTimer();
         this.stopRemainingGenerateTimer();
-        this.stopMechanismHypothesisStreamTimer();
         if (typeof this.stepApprovalGateResolver === "function") {
             this.stepApprovalGateResolver();
             this.stepApprovalGateResolver = null;
@@ -2291,30 +1827,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             }
             this.remainingGenerateStartedAt = null;
         },
-        startMechanismHypothesisStreamTimer() {
-            this.stopMechanismHypothesisStreamTimer();
-            this.mechanismHypothesisStreamStartedAt = Date.now();
-            this.mechanismHypothesisStreamNow = Date.now();
-            this.mechanismHypothesisStreamTimerId = setInterval(() => {
-                this.mechanismHypothesisStreamNow = Date.now();
-            }, 250);
-        },
-        stopMechanismHypothesisStreamTimer() {
-            if (this.mechanismHypothesisStreamTimerId != null) {
-                clearInterval(this.mechanismHypothesisStreamTimerId);
-                this.mechanismHypothesisStreamTimerId = null;
-            }
-            this.mechanismHypothesisStreamStartedAt = null;
-        },
-        /** Elapsed time for multi-group mechanistic hypothesis run (bubble). */
-        formatMechanismHypothesisStreamElapsed() {
-            if (this.mechanismHypothesisStreamStartedAt == null) return "";
-            const ms = Math.max(0, (this.mechanismHypothesisStreamNow || Date.now()) - this.mechanismHypothesisStreamStartedAt);
-            const totalSeconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            return `${minutes}m${String(seconds).padStart(2, "0")}s`;
-        },
         /** Elapsed time label for remaining-cluster Generate (same style as step timer). */
         formatRemainingGenerateElapsed() {
             if (this.remainingGenerateStartedAt == null) return "";
@@ -2456,35 +1968,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             return new Promise((resolve) => {
                 this.stepApprovalGateResolver = resolve;
             });
-        },
-        semanticGroupApprovalKey(group, idx) {
-            const name = group && group.group_name != null ? String(group.group_name).trim() : "";
-            return `${idx}|${name}`;
-        },
-        prepareSemanticGroupApproval(groups) {
-            const safeGroups = Array.isArray(groups) ? JSON.parse(JSON.stringify(groups)) : [];
-            const selection = {};
-            safeGroups.forEach((g, idx) => {
-                selection[this.semanticGroupApprovalKey(g, idx)] = true;
-            });
-            this.semanticGroupsForApproval = safeGroups;
-            this.semanticGroupSelectionByKey = selection;
-        },
-        isSemanticGroupSelected(key) {
-            return !!this.semanticGroupSelectionByKey[key];
-        },
-        setSemanticGroupSelected(key, selected) {
-            this.$set(this.semanticGroupSelectionByKey, key, !!selected);
-        },
-        getSelectedSemanticGroupsForApproval() {
-            return (this.semanticGroupsForApproval || [])
-                .filter((g, idx) => !!this.semanticGroupSelectionByKey[this.semanticGroupApprovalKey(g, idx)])
-                .map((g) => JSON.parse(JSON.stringify(g)));
-        },
-        getUnselectedSemanticGroupsForApproval() {
-            return (this.semanticGroupsForApproval || [])
-                .filter((g, idx) => !this.semanticGroupSelectionByKey[this.semanticGroupApprovalKey(g, idx)])
-                .map((g) => JSON.parse(JSON.stringify(g)));
         },
         pauseStepsElapsedForReview() {
             if (this.stepsPausedAt != null) return;
@@ -2633,54 +2116,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             });
             return subset;
         },
-        async regroupSelectedGeneSetClusters() {
-            if (this.regroupingSelectedPairs) return;
-            this.regroupingSelectedPairs = true;
-            try {
-                const selectedRows = (this.factorDataTableRows || []).filter((r) => !!r.included);
-                if (!selectedRows.length) return;
-                for (const row of selectedRows) {
-                    const genesLoaded = this.getGenesForFactor(row.phenotype, row.factor).length > 0;
-                    const geneSetsLoaded = this.getGenesetForFactor(row.phenotype, row.factor).length > 0;
-                    if (!genesLoaded || !geneSetsLoaded) {
-                        await this.loadGenesForOneFactor(row.phenotype, row.factor, row);
-                    }
-                }
-                const selectedFactorData = this.buildSelectedFactorDataFromRows(selectedRows);
-                const phenotypes = Object.keys(selectedFactorData || {});
-                if (!phenotypes.length) return;
-                this.factorData = JSON.parse(JSON.stringify(selectedFactorData));
-                this.normalizeHeatmapSelectionAfterRegroup();
-                this.snapshotFilteredSelectionBaseline();
-                this.mechanisms = null;
-                this.mechanisms_summary = null;
-                this.semanticGroupedPairKeys = null;
-                this.error_mechanisms = false;
-                this.error_msg_mechanisms = "";
-                this.stepApprovalGateActive = false;
-                this.stepApprovalGateStepId = "";
-                this.stepApprovalGateMessage = "";
-                this.stepApprovalGateResolver = null;
-                this.loadComplete = false;
-                this.steps = (this.steps || []).filter(
-                    (s) => s && s.id !== "8" && s.id !== "8.2" && s.id !== "9" && s.type !== "error"
-                );
-                this.showTab = "process";
-                this.setLoadStatus("Semantic groupings…");
-                this.setStep({
-                    id: "8",
-                    title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
-                });
-                const kgTriples = this.transformMergedDataToKG(selectedFactorData, "factors");
-                this.lastKgTriples = kgTriples;
-                this.requestMechanismHypotheses(selectedFactorData, kgTriples);
-            } finally {
-                this.regroupingSelectedPairs = false;
-            }
-        },
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;
-            if (this.stepApprovalGateStepId === "8" && this.selectedSemanticGroupCount === 0) return;
             const gateStepId = this.stepApprovalGateStepId;
             if (this.stepApprovalGateStepId === "1") {
                 this.applySearchCriteriaGateEdits();
@@ -2913,27 +2350,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             if (!item || item.phenotype == null || item.factor == null) return "";
             return `${item.phenotype}|${item.factor}`;
         },
-        /**
-         * Normalized keys `${phenotype}|${collapseWsLower(factor label)}` for pairs the grouping LLM assigned to groups.
-         * @param {Array<{ associated_pairs?: Array<{phenotype,factor}> }>} groups
-         * @returns {string[]}
-         */
-        buildSemanticGroupedPairKeysFromGroups(groups) {
-            const out = [];
-            const seen = new Set();
-            (groups || []).forEach((g) => {
-                (g.associated_pairs || []).forEach((p) => {
-                    const phen = p.phenotype != null ? String(p.phenotype).trim() : "";
-                    const fac = p.factor != null ? String(p.factor).trim() : "";
-                    if (!phen || !fac) return;
-                    const k = `${phen}|${this.collapseWsLower(fac)}`;
-                    if (seen.has(k)) return;
-                    seen.add(k);
-                    out.push(k);
-                });
-            });
-            return out;
-        },
         getSubtableCurrentPage(item) {
             const key = this.getRowKey(item);
             return (this.subtableCurrentPages || {})[key] || 1;
@@ -3007,8 +2423,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             });
         },
         /**
-         * Load genes for a single (phenotype, factor) on demand (e.g. when user expands an unselected factor row).
-         * Finds the factor in allFactors or factors and populates its genes and phenotype.genes.
+         * Ensure row expansion state for a single (phenotype, factor) without extra API loading.
+         * Hybrid retrieval already provides factor, gene set, and gene payloads.
          */
         async loadGenesForOneFactor(phenotype, factorId, rowMeta = null) {
             const key = this.getRowKey({ phenotype, factor: factorId });
@@ -3043,71 +2459,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             if (!factorItem.geneSets) this.$set(factorItem, "geneSets", {});
             this.$set(this.loadingGenesForFactor, key, true);
             try {
-                if (!factorItem.top_gene_sets || String(factorItem.top_gene_sets).trim() === "") {
-                    try {
-                        const { top_gene_sets, gene_set_description, gene_set_program } =
-                            await this.fetchGeneSetsForPhenotypeFactor(phenotype, factorItem.factor);
-                        factorItem.top_gene_sets = top_gene_sets;
-                        this.$set(factorItem, "gene_set_description", gene_set_description);
-                        this.$set(factorItem, "gene_set_program", gene_set_program);
-                    } catch (err) {
-                        console.warn(`FactorBaseReveal: phenotypeGeneSetFactor failed for ${phenotype}/${factorItem.factor}`, err);
-                    }
-                }
-                const preNarrow = this.splitGeneSetFieldsFromFactorItem(factorItem);
-                if (preNarrow.ids.length > 5) {
-                    await this.narrowGeneSetsForFactorItems([{ phenotype, factorItem }]);
-                }
-                if (factorItem.genes && Object.keys(factorItem.genes).length > 0) return;
-                const topGeneSetsStr = factorItem.top_gene_sets;
-                const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
-                    ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
-                    : [];
-                for (const geneSet of geneSetIds) {
-                    try {
-                        const raw = await this.querySearchApi("pigeanJoinedGeneSets", { phenotype, geneSet });
-                        const rows = raw && Array.isArray(raw.data) ? raw.data : [];
-                        const geneList = [];
-                        for (const row of rows) {
-                            const gene = row.gene;
-                            if (gene == null || gene === "") continue;
-                            const combined = parseFloat(row.combined);
-                            if (row.combined != null && !isNaN(combined) && combined < 3) continue;
-                            geneList.push(gene);
-                            if (this.factorData[phenotype].genes[gene] == null) {
-                                this.$set(this.factorData[phenotype].genes, gene, {
-                                    combined: row.combined,
-                                    gwasSupport: row.log_bf,
-                                    geneSetSupport: row.prior,
-                                });
-                            }
-                            const factorVal = row.factor_value ?? row.relevance_to_factor ?? row.relevance;
-                            const numVal = factorVal != null && factorVal !== "" && !isNaN(Number(factorVal))
-                                ? Number(factorVal)
-                                : (factorVal != null && factorVal !== "" ? factorVal : 1);
-                            this.$set(factorItem.genes, gene, { factorRelevance: numVal, factor_value: numVal });
-                        }
-                        this.$set(factorItem.geneSets, geneSet, { genes: geneList });
-                    } catch (err) {
-                        console.warn(`FactorBaseReveal: pigeanJoinedGeneSets failed for ${phenotype}/${geneSet}`, err);
-                    }
-                }
-                try {
-                    const raw = await this.querySearchApi("factorGenes", { phenotype, factor: factorItem.factor });
-                    const rows = raw && Array.isArray(raw.data) ? raw.data : [];
-                    for (const row of rows) {
-                        const gene = row.gene;
-                        if (gene == null || !factorItem.genes || factorItem.genes[gene] == null) continue;
-                        const fv = row.factor_value;
-                        const numVal = fv != null && fv !== "" && !isNaN(Number(fv)) ? Number(fv) : fv;
-                        if (numVal != null) {
-                            this.$set(factorItem.genes[gene], "factor_value", numVal);
-                            this.$set(factorItem.genes[gene], "factorRelevance", numVal);
-                        }
-                    }
-                } catch (err) {
-                    console.warn(`FactorBaseReveal: factorGenes failed for ${phenotype}/${factorItem.factor}`, err);
-                }
+                return;
             } finally {
                 this.$set(this.loadingGenesForFactor, key, false);
             }
@@ -3118,22 +2470,15 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             this.searchCriteria = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
-            this.semanticGroupedPairKeys = null;
             this.stepApprovalGateActive = false;
             this.stepApprovalGateStepId = "";
             this.stepApprovalGateMessage = "";
             this.stepApprovalGateResolver = null;
-            this.semanticGroupsForApproval = [];
-            this.semanticGroupSelectionByKey = {};
-            this.remainingSemanticGroupRows = [];
-            this.generatingRemainingGroupKey = "";
-            this.remainingGroupGenerateError = "";
             this.searchCriteriaEditRows = [];
             this.searchCriteriaEditRowsDefault = [];
             this.searchCriteriaExtractionGateDone = false;
             this.pairSelectionOverrides = {};
             this.llmFilteredPairKeysBaseline = [];
-            this.regroupingSelectedPairs = false;
             this.error_search_criteria = false;
             this.mainTableCurrentPage = 1;
             this.remainingTableCurrentPage = 1;
@@ -3307,8 +2652,203 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 event.target.blur();
             }
         },
+        buildHybridQueryText({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
+            return [...(mechanismTerms || []), ...(phenotypeTerms || []), researchContext]
+                .map((v) => String(v || "").trim())
+                .filter(Boolean)
+                .join("\n");
+        },
+        async fetchHybridQueryEmbedding(queryText) {
+            const text = String(queryText || "").trim();
+            if (!text) throw new Error("Hybrid search requires non-empty query text for embedding.");
+            const embResp = await fetch("http://127.0.0.1:11434/api/embed", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "mxbai-embed-large",
+                    input: text,
+                }),
+            });
+            const embJson = await embResp.json().catch(() => ({}));
+            const embedding = embJson && Array.isArray(embJson.embeddings) ? embJson.embeddings[0] : null;
+            if (!embResp.ok) {
+                throw new Error(`Embedding API failed: ${embResp.status} ${JSON.stringify(embJson)}`);
+            }
+            if (!Array.isArray(embedding) || embedding.length !== 1024) {
+                throw new Error("Invalid embedding from Ollama: expected 1024 floats from mxbai-embed-large.");
+            }
+            return embedding;
+        },
+        async callHybridRevealSearch({ queryEmbedding, phenotypeTerms, mechanismTerms, researchContext }) {
+            const payload = {
+                query_embedding: queryEmbedding,
+                phenotype_terms: phenotypeTerms,
+                mechanism_terms: mechanismTerms,
+                research_context: researchContext,
+            };
+            const url = "http://127.0.0.1:8000/api/reveal/hybrid-search";
+            const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const json = await resp.json().catch(() => ({}));
+            if (!resp.ok || !json || json.status !== "success") {
+                throw new Error(`Hybrid search failed at ${url}: ${resp.status} ${JSON.stringify(json)}`);
+            }
+            return json;
+        },
+        normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms = []) {
+            const out = {};
+            const data = hybridJson && hybridJson.data ? hybridJson.data : {};
+            const factors = Array.isArray(data.factors) ? data.factors : [];
+            const fallbackPhenotype = data.phenotype != null
+                ? String(data.phenotype).trim()
+                : ((phenotypeTerms && phenotypeTerms[0]) ? String(phenotypeTerms[0]).trim() : "");
+
+            factors.forEach((item, idx) => {
+                const phenotype = item && item.phenotype != null && String(item.phenotype).trim() !== ""
+                    ? String(item.phenotype).trim()
+                    : fallbackPhenotype;
+                if (!phenotype) return;
+                if (!out[phenotype]) out[phenotype] = { genes: {}, factors: [], allFactors: [] };
+
+                const factorId = item && item.factor_id != null && String(item.factor_id).trim() !== ""
+                    ? String(item.factor_id).trim()
+                    : `factor${idx + 1}`;
+                const factorLabel = item && item.label != null && String(item.label).trim() !== ""
+                    ? String(item.label).trim()
+                    : factorId;
+                const topGeneSets = Array.isArray(item && item.top_gene_sets)
+                    ? item.top_gene_sets.map((s) => String(s || "").trim()).filter(Boolean)
+                    : (item && item.top_gene_sets != null ? String(item.top_gene_sets).split(/[;,]/).map((s) => s.trim()).filter(Boolean) : []);
+                const geneSetPrograms = Array.isArray(item && item.gene_set_programs)
+                    ? item.gene_set_programs.map((s) => String(s || "").trim()).filter(Boolean)
+                    : (item && item.gene_set_program != null ? String(item.gene_set_program).split(/\s*\|\s*/).map((s) => s.trim()).filter(Boolean) : []);
+
+                const factorObj = {
+                    factor: factorId,
+                    label: factorLabel,
+                    top_gene_sets: topGeneSets.join(";"),
+                    gene_set_description: "",
+                    gene_set_program: geneSetPrograms.join(" | "),
+                    genes: {},
+                    geneSets: {},
+                };
+
+                topGeneSets.forEach((gs) => {
+                    factorObj.geneSets[gs] = { genes: [] };
+                });
+
+                const genes = Array.isArray(item && item.genes) ? item.genes : [];
+                genes.forEach((g) => {
+                    const gene = g && g.gene != null ? String(g.gene).trim() : "";
+                    if (!gene) return;
+                    const rel = g && g.relevance != null && !isNaN(Number(g.relevance)) ? Number(g.relevance) : null;
+                    factorObj.genes[gene] = {
+                        factorRelevance: rel != null ? rel : 1,
+                        factor_value: rel,
+                    };
+                    if (out[phenotype].genes[gene] == null) {
+                        out[phenotype].genes[gene] = {
+                            combined: g && g.combined_score != null ? g.combined_score : null,
+                            gwasSupport: g && g.gwas_support != null ? g.gwas_support : null,
+                            geneSetSupport: g && g.functional_support != null ? g.functional_support : null,
+                        };
+                    }
+                });
+
+                out[phenotype].factors.push(factorObj);
+            });
+
+            Object.keys(out).forEach((p) => {
+                out[p].allFactors = [...(out[p].factors || [])];
+            });
+            return out;
+        },
+        async runHybridRetrievalWorkflow({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
+            if (!Array.isArray(phenotypeTerms) || phenotypeTerms.length === 0) return false;
+            const queryText = this.buildHybridQueryText({ phenotypeTerms, mechanismTerms, researchContext });
+            if (!queryText) return false;
+
+            this.setLoadStatus("Hybrid retrieval: generating embedding…");
+            this.setStep({
+                id: "2",
+                title: "API: Hybrid retrieval of phenotype–gene set cluster associations",
+            });
+            const embedding = await this.fetchHybridQueryEmbedding(queryText);
+            this.setStep({
+                id: "2",
+                substep: {
+                    id: "2.h1",
+                    title: "Generated query embedding",
+                    result: { result: { dims: embedding.length, model: "mxbai-embed-large" } },
+                },
+            });
+
+            this.setLoadStatus("Hybrid retrieval: searching factors and gene sets…");
+            const hybridJson = await this.callHybridRevealSearch({
+                queryEmbedding: embedding,
+                phenotypeTerms,
+                mechanismTerms,
+                researchContext,
+            });
+            const normalized = this.normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms);
+            const phenotypes = Object.keys(normalized).filter((p) => (normalized[p].factors || []).length > 0);
+            if (!phenotypes.length) return false;
+
+            this.factorData = normalized;
+            this.setStep({
+                id: "2",
+                substep: {
+                    id: "2.h2",
+                    title: "Hybrid retrieval result",
+                    result: {
+                        result: {
+                            phenotype: hybridJson && hybridJson.data ? hybridJson.data.phenotype : phenotypes[0],
+                            phenotype_count: phenotypes.length,
+                            factor_count: phenotypes.reduce((acc, p) => acc + ((normalized[p].factors || []).length), 0),
+                        },
+                    },
+                },
+            });
+
+            this.snapshotFilteredSelectionBaseline();
+            this.genesAndFactorValuesLoaded = true;
+            this.setLoadStatus("Building knowledge graph from hybrid results…");
+            const kgTriples = this.transformMergedDataToKG(this.factorData, "factors");
+            this.lastKgTriples = kgTriples;
+            this.setStep({
+                id: "3",
+                title: "KG: Building and flattening knowledge graph for LLM",
+                substep: {
+                    id: "3.1",
+                    title: "Generated KG triples and flattened rows",
+                    result: {
+                        result: {
+                            triple_count: Array.isArray(kgTriples) ? kgTriples.length : 0,
+                            phenotype_count: phenotypes.length,
+                        },
+                    },
+                },
+            });
+            await this.waitForStepApproval(
+                "3",
+                "Knowledge graph is ready. Continue to generate mechanistic hypotheses?",
+                true
+            );
+            this.setLoadStatus("Generating hypotheses…");
+            this.setStep({
+                id: "4",
+                title: "LLM: Generating mechanistic hypotheses",
+            });
+            this.requestMechanismHypotheses(this.factorData, kgTriples);
+            return true;
+        },
         /**
-         * Phenotype path: when extraction has phenotype_terms. Resolve phenotypes → load factors → hydrate all gene sets per factor → filter factors by context → LLM pick ≤5 gene sets per factor → load genes & mechanisms.
+         * Hybrid-only retrieval path:
+         * Uses local embedding + local hybrid-search backend to get phenotype↔factor↔gene-set candidates,
+         * then builds KG and runs hypothesis generation.
          */
         async onResearch(phenotypeTermsFromExtract) {
             const phenotypeTerms = phenotypeTermsFromExtract != null
@@ -3322,138 +2862,48 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 if (this.lastMechanismTerms && this.lastMechanismTerms.length > 0) {
                     return this.onResearchPhenotypeFactorsOnly();
                 }
-                console.log("FactorBaseReveal: No phenotype terms, skipping phenotype search and factor load.");
+                console.log("FactorBaseReveal: No phenotype terms, skipping hybrid retrieval.");
                 return;
             }
             try {
-                this.setLoadStatus("Searching for similar phenotypes…");
-                this.setStep({
-                    id: "2",
-                    title: "API: Searching for similar phenotypes"
-                });
-
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
-                this.associationPathTableData = [];
-                this.matchedPhenotype = null;
                 this.lastKgTriples = [];
                 this.mechanisms = null;
-                this.semanticGroupedPairKeys = null;
                 this.phenotypeDescriptionById = {};
-                const phenotypeIdsToLoad = [];
-                let firstMatched = null;
-                //loop through each phenotype search term
-                let idx = 0;
-                for (let t = 0; t < phenotypeTerms.length; t++) {
-                    const searchTerm = phenotypeTerms[t];
-                    this.setLoadStatus(`Searching for similar phenotypes (${t + 1}/${phenotypeTerms.length}: ${searchTerm})…`);
-                    //this.setLoadStep("API: Searching for similar phenotypes", `${t + 1}/${phenotypeTerms.length}: ${searchTerm}`);
-                    this.setStep({
-                        id: "2",
-                        substep: {
-                            id: `2.1.${idx}`,
-                            title: `${searchTerm}`
-                        }
-                    })
-                    
-                    const phenoRes = await this.querySearchApi("phenotypes", { searchTerm });
-                    console.log('raw phenotype search results', phenoRes);
-                    const rawList = phenoRes.results || phenoRes.data || [];
-                    const list = rawList.filter((item) => item.phenotype != null && (item.portal == null || item.portal !== "kp"));
-                    console.log('filtered phenotype search results', list);
-                    this.setStep({
-                        id: "2",
-                        substep: {
-                            id: `2.1.${idx}`,
-                            result: {
-                                title: `Retrieved phenotypes with semantic similatiry to "${searchTerm}"`,
-                                result: list
-                            }
-                        }
-                    })
-                    if (!list.length) {
-                        console.warn("FactorBaseReveal: No items for term:", searchTerm);
-                        continue;
-                    }
-                    //get factors for phenotype, lock in phenotype with hihest similarity score if it has factors
-                    let chosen = null;
-                    //this.setLoadStep("API: Searching for similar phenotypes", `Selecting phenotype with highest similarity score that has factors`);
-                    this.setStep({
-                        id: "2",
-                        substep: {
-                            id: `2.2.${idx}`,
-                            title: `Selecting phenotype with highest similarity score for ${searchTerm}`
-                        }
-                    })
-                    for (const item of list) {
-                        
-                        const phenotypeId = item.phenotype;
-                        console.log("FactorBaseReveal: Trying phenotype:", phenotypeId);
-                        try {
-                            //TODO: this ran twice with only 1 phenotype in list, why?
-                            const factorRes = await this.querySearchApi("factor", { phenotype: phenotypeId });
-                            const data = factorRes && Array.isArray(factorRes.data) ? factorRes.data : [];
-                            if (data.length > 0) {
-                                chosen = item;
-                                console.log("FactorBaseReveal: Using phenotype with factor data", "phenotype:", phenotypeId);
-                                break;
-                            }
-                        } catch (err) {
-                            console.warn("FactorBaseReveal: Factor API failed for phenotype", phenotypeId, err);
-                        }
-                    }
-                    if (chosen && chosen.phenotype != null) {
-                        if (!phenotypeIdsToLoad.includes(chosen.phenotype)) {
-                            phenotypeIdsToLoad.push(chosen.phenotype);
-                        }
-                        this.setStep({
-                            id: "2",
-                            substep: {
-                                id: `2.2.${idx}`,
-                                result: {
-                                    title: `Selected phenotype with highest similarity score for ${searchTerm}`,
-                                    result: chosen.phenotype
-                                }
-                            }
-                        })
-                        this.$set(this.phenotypeDescriptionById, chosen.phenotype, (chosen.phenotype_name != null && chosen.phenotype_name !== "") ? chosen.phenotype_name : chosen.phenotype);
-                        if (!firstMatched) firstMatched = chosen;
-                    } else {
-                        console.warn("FactorBaseReveal: No phenotype with factor data for term:", searchTerm, list.map((i) => ({ phenotype: i.phenotype })));
-                    }
-                    idx++;
+                const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
+                    ? String(this.searchCriteria[1].values)
+                    : "";
+                const usedHybrid = await this.runHybridRetrievalWorkflow({
+                    phenotypeTerms,
+                    mechanismTerms: this.lastMechanismTerms || [],
+                    researchContext,
+                });
+                if (!usedHybrid) {
+                    throw new Error("Hybrid retrieval returned no phenotype–factor results.");
                 }
-                if (!phenotypeIdsToLoad.length) {
-                    this.setLoadStatus("No phenotype with factor data found for any term.", true);
-                    this.loadComplete = true;
-                    console.warn("FactorBaseReveal: No phenotype had factor data across all terms.", phenotypeTerms);
-                    return;
-                }
-                this.matchedPhenotype = firstMatched != null ? { id: firstMatched.phenotype } : null;
-                console.log('phenotypeIdsToLoad', phenotypeIdsToLoad);
-                this.setStep({
-                    id: "2",
-                    substep: {
-                        id: `2.3`,
-                        title: "Phenotypes selected for further analysis.",
-                        result: {
-                            result: phenotypeIdsToLoad
-                        }
-                    }
-                })
-                await this.loadFactorDataForPhenotypes(phenotypeIdsToLoad);
             } catch (err) {
-                console.warn("FactorBaseReveal: Phenotype search or factor load failed", err);
-                this.setLoadStatus("Error: " + (err && err.message ? err.message : "search failed"), true);
-                this.setStep({
-                    type: "error",
-                    title: "Phenotype search or factor load failed"
-                })
+                console.warn("FactorBaseReveal: Hybrid retrieval workflow failed", err);
+                const msg = err && err.message ? String(err.message) : "";
+                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found/i.test(msg);
+                if (isNoResults) {
+                    this.setLoadStatus("No exact matches found for those terms.", true);
+                    this.setStep({
+                        type: "error",
+                        title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms."
+                    });
+                } else {
+                    this.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
+                    this.setStep({
+                        type: "error",
+                        title: "Hybrid retrieval failed due to a server error."
+                    });
+                }
                 this.loadComplete = true;
             }
         },
         /**
-         * Association path: when we have only mechanism_terms. phenotypeFactors API → hydrate all gene sets per association (after mouse/none filter) → LLM filter associations → top 10 → LLM pick ≤5 gene sets per factor → load genes & mechanisms.
+         * Mechanism-only entry now routes to the same hybrid-only retrieval workflow.
          */
         async onResearchPhenotypeFactorsOnly() {
             const mechanismTerms = this.lastMechanismTerms && this.lastMechanismTerms.length
@@ -3462,279 +2912,45 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     ? this.searchCriteria[0].values.filter((v) => v && String(v) !== "(none extracted)")
                     : [];
             if (mechanismTerms.length === 0) {
-                console.log("FactorBaseReveal: No mechanism terms, skipping association path.");
+                console.log("FactorBaseReveal: No mechanism terms, skipping hybrid retrieval.");
                 return;
             }
             try {
-                this.setLoadStatus("Fetching phenotype–factor associations…");
-                this.setStep({
-                    id: "2",
-                    title: "API: Searching for phenotype–gene set cluster associations"
-                })
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
-                this.associationPathTableData = [];
-                this.matchedPhenotype = null;
                 this.lastKgTriples = [];
                 this.mechanisms = null;
-                this.semanticGroupedPairKeys = null;
                 this.phenotypeDescriptionById = {};
-
-                const searchTerm = [...mechanismTerms, ...this.lastPhenotypeTerms].join(" ");
-                const raw = await this.querySearchApi("phenotypeFactors", { searchTerm });
-                const rawList = Array.isArray(raw) ? raw : (raw && (raw.data || raw.results)) ? (raw.data || raw.results) : [];
-                const maxAssociationsToHydrate = 30;
-                const listForHydration = rawList.slice(0, maxAssociationsToHydrate);
-                this.setStep({
-                    id: "2",
-                    substep: {
-                        id: "2.1",
-                        title: searchTerm,
-                        result: {
-                            title: `Received ${rawList.length} associations, reduced to ${maxAssociationsToHydrate}`,
-                            result: listForHydration
-                        }
-                    }
-                })
-                this.setLoadStatus("Fetching gene sets (phenotypeGeneSetFactor)…");
-                this.setStep({
-                    id: "3",
-                    title: "API: Fetching gene sets for associations"
-                })
-                let idx = 0;
-                for (const row of listForHydration) {
-                    if (row.phenotype == null || row.factor == null) continue;
-                    this.setStep({
-                        id: "3",
-                        substep: {
-                            id: `3.1.${idx}`,
-                            title: `${row.phenotype} / ${row.label}`
-                        }
-                    })
-                    const { top_gene_sets, gene_set_description, gene_set_program } = await this.fetchGeneSetsForPhenotypeFactor(row.phenotype, row.factor);
-                    row.top_gene_sets = top_gene_sets;
-                    row.gene_set_description = gene_set_description;
-                    row.gene_set_program = gene_set_program;
-                    this.setStep({
-                        id: "3",
-                        substep: {
-                            id: `3.1.${idx}`,
-                            result: {
-                                title: `Received gene sets for ${row.label} of ${row.phenotype}`,
-                                result: {
-                                    top_gene_sets,
-                                    gene_set_description,
-                                    gene_set_program
-                                }
-                            }
-                        }
-                    })
-                    idx++;
-                }
-                const originalById = {};
-                const collected = listForHydration.map((row) => {
-                    const id = row.id;
-                    if (id != null && row.phenotype != null && row.factor != null) {
-                        originalById[id] = {
-                            phenotype: row.phenotype,
-                            factor: row.factor,
-                            top_gene_sets: row.top_gene_sets,
-                            gene_set_description: row.gene_set_description,
-                            gene_set_program: row.gene_set_program,
-                            label: row.label,
-                        };
-                    }
-                    return {
-                        id,
-                        factor_label: row.label != null ? String(row.label) : "",
-                        phenotype: row.phenotype != null ? String(row.phenotype) : "",
-                        top_gene_sets: row.top_gene_sets != null ? String(row.top_gene_sets) : "",
-                        gene_set_description: row.gene_set_description != null ? String(row.gene_set_description) : "",
-                        score: row.score != null ? Number(row.score) : "",
-                    };
-                }).filter((o) => o.id != null);
-
-                if (collected.length === 0) {
-                    this.setLoadStatus("No phenotype–factor associations returned.", true);
-                    this.setStep({
-                        type: "error",
-                        title: "No phenotype–factor associations returned."
-                    })
-                    this.loadComplete = true;
-                    return;
-                }
-
-                const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
+                const hybridResearchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
                     ? String(this.searchCriteria[1].values)
                     : "";
-                this.setLoadStatus("Filtering by research context (CSV)…");
-                this.setStep({
-                    id: "4",
-                    title: "LLM: Filtering gene set clusters by relevance to user query"
-                })
-                const csvString = this.flattenToCsv(collected, ["id", "factor_label", "phenotype", "top_gene_sets", "gene_set_description", "score"]);
-                let mergedFactorAndGeneSetOk = false;
-                let selectedGeneSetsById = {};
-                let selected = [];
-                try {
-                    selected = await this.filterPhenotypeFactorsByContextAndSelectGeneSetsMerged(listForHydration, originalById, researchContext);
-                    selected = selected.slice(0, 10);
-                    mergedFactorAndGeneSetOk = true;
-                    selectedGeneSetsById = Object.fromEntries(
-                        (selected || []).map((s) => [String(s.id), Array.isArray(s.gene_sets) ? s.gene_sets : []])
-                    );
-                } catch (err) {
-                    console.warn("FactorBaseReveal: merged association filtering + gene-set selection failed; falling back to 2-step process.", err);
-                    selected = await this.filterPhenotypeFactorsByContext(csvString, researchContext);
-                    selected = selected.slice(0, 10);
-                    mergedFactorAndGeneSetOk = false;
-                    selectedGeneSetsById = {};
-                }
-                console.log('f-selected', selected);
-                if (selected.length === 0) {
-                    this.setLoadStatus("No associations selected for research context.", true);
-                    this.setStep({
-                        type: "error",
-                        title: "No associations selected for research context."
-                    })
-                    this.loadComplete = true;
-                    return;
-                }
-                this.setStep({
-                    id: "4",
-                    substep: {
-                        id: `4.1`,
-                        title: `Selecting factors for further analysis.`,
-                        result: {
-                            title: `Selected factors for further analysis.`,
-                            result: selected
-                        }
-                    }
-                })
-
-                const seen = new Set();
-                for (const item of selected) {
-                    const orig = originalById[item.id];
-                    if (!orig || orig.phenotype == null || orig.factor == null) continue;
-                    const phenotype = String(orig.phenotype).trim();
-                    const factor = String(orig.factor).trim();
-                    const key = `${phenotype}|${factor}`;
-                    if (seen.has(key)) continue;
-                    seen.add(key);
-                    if (!this.factorData[phenotype]) {
-                        this.$set(this.factorData, phenotype, { genes: {}, factors: [] });
-                    }
-                    const factors = this.factorData[phenotype].factors;
-                    if (factors.some((f) => String(f.factor) === factor)) continue;
-                    const factorObj = {
-                        factor,
-                        label: (orig.label != null && orig.label !== "") ? String(orig.label) : factor,
-                        top_gene_sets: "",
-                        gene_set_description: "",
-                        gene_set_program: "",
-                        genes: {},
-                        geneSets: {},
-                        selectionRationale: (item.rationale != null && String(item.rationale) !== "") ? String(item.rationale) : "",
-                    };
-
-                    if (mergedFactorAndGeneSetOk && Array.isArray(item.gene_sets) && item.gene_sets.length) {
-                        const sourceLike = {
-                            top_gene_sets: orig.top_gene_sets,
-                            gene_set_description: orig.gene_set_description,
-                            gene_set_program: orig.gene_set_program,
-                        };
-                        const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(sourceLike);
-                        this.applyNarrowedGeneSetsToFactorItem(factorObj, item.gene_sets, ids, descs, progs);
-                    } else {
-                        factorObj.top_gene_sets = orig.top_gene_sets != null ? String(orig.top_gene_sets) : "";
-                        factorObj.gene_set_description = (orig.gene_set_description != null && String(orig.gene_set_description) !== "") ? String(orig.gene_set_description) : "";
-                        factorObj.gene_set_program = (orig.gene_set_program != null && String(orig.gene_set_program) !== "") ? String(orig.gene_set_program) : "";
-                    }
-
-                    factors.push({
-                        ...factorObj,
-                    });
-                }
-                const selectedIds = new Set(selected.map((s) => s.id));
-                const selectedRationaleById = {};
-                selected.forEach((s) => { selectedRationaleById[s.id] = (s.rationale != null && String(s.rationale) !== "") ? String(s.rationale) : ""; });
-                this.associationPathTableData = listForHydration.map((row) => {
-                    const orig = originalById[row.id];
-                    if (!orig || orig.phenotype == null || orig.factor == null) {
-                        return null;
-                    }
-                    const phenotype = String(orig.phenotype).trim();
-                    const factor = String(orig.factor).trim();
-                    let topGeneSetsDisplay = "";
-                    if (mergedFactorAndGeneSetOk) {
-                        const picked = selectedGeneSetsById[String(row.id)] || [];
-                        topGeneSetsDisplay = Array.isArray(picked) && picked.length ? picked.join(", ") : "";
-                    }
-                    if (!topGeneSetsDisplay) {
-                        const topGeneSetsStr = orig.top_gene_sets;
-                        topGeneSetsDisplay = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
-                            ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean).join(", ")
-                            : "";
-                    }
-                    const included = selectedIds.has(String(row.id));
-                    const rationale = selectedRationaleById[row.id] != null ? selectedRationaleById[row.id] : "";
-                    return {
-                        phenotype,
-                        factor,
-                        factorLabel: (orig.label != null && orig.label !== "") ? String(orig.label) : factor,
-                        top_gene_sets: topGeneSetsDisplay,
-                        rationale,
-                        isFiltered: included,
-                        included,
-                    };
-                }).filter(Boolean);
-                this.associationPathTableData.sort((a, b) => {
-                    if (a.included !== b.included) return b.included ? 1 : -1;
-                    return (a.phenotype || "").localeCompare(b.phenotype || "");
+                const usedHybrid = await this.runHybridRetrievalWorkflow({
+                    phenotypeTerms: this.lastPhenotypeTerms && this.lastPhenotypeTerms.length
+                        ? this.lastPhenotypeTerms
+                        : mechanismTerms,
+                    mechanismTerms,
+                    researchContext: hybridResearchContext,
                 });
-                this.snapshotFilteredSelectionBaseline();
-
-                const phenotypes = Object.keys(this.factorData).filter((p) => (this.factorData[p].factors || []).length > 0);
-                if (phenotypes.length === 0) {
-                    this.setLoadStatus("No phenotype–factor data to load.", true);
+                if (!usedHybrid) {
+                    throw new Error("Hybrid retrieval returned no phenotype–factor results.");
+                }
+            } catch (err) {
+                console.warn("FactorBaseReveal: Hybrid retrieval workflow failed (mechanism path)", err);
+                const msg = err && err.message ? String(err.message) : "";
+                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found/i.test(msg);
+                if (isNoResults) {
+                    this.setLoadStatus("No exact matches found for those terms.", true);
                     this.setStep({
                         type: "error",
-                        title: "No phenotype–factor data to load."
-                    })
-                    this.loadComplete = true;
-                    return;
-                }
-                this.matchedPhenotype = { id: phenotypes[0] };
-                if (!mergedFactorAndGeneSetOk) {
-                    this.setLoadStatus("Selecting gene sets per cluster (research context)…");
+                        title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms."
+                    });
+                } else {
+                    this.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
                     this.setStep({
-                        id: "4b",
-                        title: "LLM: Selecting up to 5 gene sets per cluster",
-                    });
-                    await this.narrowGeneSetsPerFactorWithLlm(phenotypes);
-                    (this.associationPathTableData || []).forEach((row) => {
-                        if (!row || row.phenotype == null || row.factor == null) return;
-                        const p = String(row.phenotype).trim();
-                        const fac = (this.factorData[p] && this.factorData[p].factors || []).find(
-                            (f) => String(f.factor) === String(row.factor)
-                        );
-                        if (!fac || !fac.top_gene_sets) return;
-                        const disp = String(fac.top_gene_sets)
-                            .split(";")
-                            .map((s) => s.trim())
-                            .filter(Boolean)
-                            .join(", ");
-                        row.top_gene_sets = disp;
+                        type: "error",
+                        title: "Hybrid retrieval failed due to a server error."
                     });
                 }
-                await this.loadGenesForFactorData(phenotypes);
-            } catch (err) {
-                console.warn("FactorBaseReveal: phenotypeFactors-only workflow failed", err);
-                this.setLoadStatus("Error: " + (err && err.message ? err.message : "workflow failed"), true);
-                this.setStep({
-                    type: "error",
-                    title: "Workflow failed"
-                })
                 this.loadComplete = true;
             }
         },
@@ -3744,762 +2960,21 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
          * @param {string[]} columns - column keys in order
          * @returns {string}
          */
-        flattenToCsv(rows, columns = ["id", "factor_label", "phenotype", "top_gene_sets", "gene_set_description", "score"]) {
-            if (!Array.isArray(rows) || rows.length === 0) return columns.join(",");
-            const escape = (val) => {
-                const s = val != null ? String(val) : "";
-                if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-                return s;
-            };
-            const header = columns.join(",");
-            const dataRows = rows.map((row) => columns.map((col) => escape(row[col])).join(","));
-            return [header, ...dataRows].join("\n");
-        },
-        /**
-         * Filter phenotype–factor associations (provided as CSV string) by research context; LLM returns selected ids sorted by relevance.
-         * Returns a Promise that resolves to an array of { id, rationale }, most relevant first (take first 10 in caller).
-         */
-        filterPhenotypeFactorsByContext(csvString, researchContext) {
-            const userPrompt = `**Research Context:**\n${researchContext || "(none)"}\n\n**Phenotype–factor associations (CSV with columns: id, factor_label, phenotype, top_gene_sets, gene_set_description, score):**\n${csvString}\n\nUse factor_label, phenotype, top_gene_sets, and gene_set_description to judge relevance. The gene_set_description column explains what each gene set is about (gene set ids alone may not be meaningful). Filter to only associations relevant to the research context. Sort the selected list by relevance (most relevant first). Return ONLY a JSON object with a "selected" array; each element must have "id" (exact value from the CSV id column) and "rationale". Order the array by relevance (first = most relevant).`;
-            return new Promise((resolve) => {
-                this.llmPhenotypeFactorsFilter.sendPrompt({
-                    userPrompt,
-                    onResponse: (response) => {
-                        const json = this.parseLLMResponse(response);
-                        const selected = json && Array.isArray(json.selected) ? json.selected : [];
-                        const out = selected.filter((item) => item && item.id != null).map((item) => ({
-                            id: String(item.id),
-                            rationale: (item.rationale != null && String(item.rationale).trim() !== "") ? String(item.rationale).trim() : "",
-                        }));
-                        resolve(out);
-                    },
-                    onError: (err) => {
-                        console.warn("FactorBaseReveal: phenotypeFactors filter LLM error", err);
-                        this.setStep({
-                            type: 'error',
-                            title: "Request failed or timed out.",
-                        })
-                        resolve([]);
-                    },
-                    onEnd: () => {},
-                });
-            });
-        },
-        /**
-         * Step 11: Load genes (pigeanJoinedGeneSets), factor values (factorGenes), build KG, request mechanistic hypotheses.
-         * Assumes this.factorData is already populated for the given phenotypes with factors (each having top_gene_sets, genes, geneSets).
-         * @param {string[]} phenotypes - list of phenotype ids in factorData
-         */
-        async loadGenesForFactorData(phenotypes) {
-            const list = phenotypes && phenotypes.length ? phenotypes : Object.keys(this.factorData || {});
-            if (!list.length) return;
-
-            this.setLoadStatus("Loading factor values (factor_value)…");
-            //this.setLoadStep("API: Getting gene loadings for factors")
-            this.setStep({
-                id: "6",
-                title: "API: Getting gene loadings for gene set clusters"
-            })
-            let idx = 0;
-            for (const phenotype of list) {
-                const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
-                for (const factorItem of factors) {
-                    this.setLoadStatus(`Loading factor values (${phenotype})…`);
-                    //this.setLoadStep("API: Getting gene loadings for factors", `${phenotype} / ${factorItem.label}`);
-                    this.setStep({
-                        id: "6",
-                        substep: {
-                            id: `6.1.${idx}`,
-                            title: `${phenotype} / ${factorItem.label}`
-                        }
-                    })
-                    try {
-                        const raw = await this.querySearchApi("factorGenes", {
-                            phenotype,
-                            factor: factorItem.factor,
-                        });
-                        const rows = raw && Array.isArray(raw.data) ? raw.data : [];
-                        for (const row of rows) {
-                            const gene = row.gene;
-                            if (gene == null || !factorItem.genes || factorItem.genes[gene] == null) continue;
-                            const fv = row.factor_value;
-                            const numVal = fv != null && fv !== "" && !isNaN(Number(fv)) ? Number(fv) : fv;
-                            if (numVal != null) {
-                                this.$set(factorItem.genes[gene], "factor_value", numVal);
-                                this.$set(factorItem.genes[gene], "factorRelevance", numVal);
-                            }
-                        }
-                        this.setStep({
-                            id: "6",
-                            substep: {
-                                id: `6.1.${idx}`,
-                                result: {
-                                    title: `Retrieved gene loadings for "${factorItem.label}" of "${phenotype}"`,
-                                    result: rows
-                                }
-                            }
-                        })
-                    } catch (err) {
-                        console.warn(`FactorBaseReveal: factorGenes API failed for ${phenotype}/${factorItem.factor}`, err);
-                    }
-                    idx++;
-                }
-            }
-
-            this.setLoadStatus("Loading genes (from gene sets in top_gene_sets)…");
-            //this.setLoadStep("API: Getting gene memberships for gene sets")
-            this.setStep({
-                id: "7",
-                title: "API: Getting gene memberships for gene sets"
-            })
-            idx = 0;
-            for (const phenotype of list) {
-                const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
-                for (const factorItem of factors) {
-                    const topGeneSetsStr = factorItem.top_gene_sets;
-                    const geneSetIds = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
-                        ? topGeneSetsStr.split(";").map((s) => s.trim()).filter(Boolean)
-                        : [];
-                    // TODO: factors can share gene sets; dedupe fetches if needed.
-                    for (const geneSet of geneSetIds) {
-                        this.setLoadStatus(`Loading genes (${phenotype})…`);
-                        //this.setLoadStep("API: Getting gene memberships for gene sets", `${phenotype} / ${factorItem.label} / ${geneSet}`)
-                        this.setStep({
-                            id: "7",
-                            substep: {
-                                id: `7.1.${idx}`,
-                                title: `${phenotype} / ${factorItem.label} / ${geneSet}`
-                            }
-                        })
-                        try {
-                            const raw = await this.querySearchApi("pigeanJoinedGeneSets", {
-                                phenotype,
-                                geneSet,
-                            });
-                            const rows = raw && Array.isArray(raw.data) ? raw.data : [];
-                            const geneList = [];
-                            const geneListFull = [];
-                            for (const row of rows) {
-                                const gene = row.gene;
-                                if (gene == null || gene === "") continue;
-                                const combined = parseFloat(row.combined);
-                                // filter out genes with a combined score < 3
-                                if (row.combined != null && !isNaN(combined) && combined < 3) continue;
-                                geneList.push(gene);
-                                geneListFull.push(row);
-                                if (this.factorData[phenotype].genes[gene] == null) {
-                                    this.$set(this.factorData[phenotype].genes, gene, {
-                                        combined: row.combined,
-                                        gwasSupport: row.log_bf,
-                                        geneSetSupport: row.prior,
-                                    });
-                                }
-                                if (factorItem.genes != null) {
-                                    const factorVal = row.factor_value ?? row.relevance_to_factor ?? row.relevance;
-                                    const numVal = factorVal != null && factorVal !== "" && !isNaN(Number(factorVal))
-                                        ? Number(factorVal)
-                                        : (factorVal != null && factorVal !== "" ? factorVal : 1);
-                                    this.$set(factorItem.genes, gene, {
-                                        factorRelevance: numVal,
-                                        factor_value: numVal,
-                                    });
-                                }
-                            }
-                            if (factorItem.geneSets != null) {
-                                this.$set(factorItem.geneSets, geneSet, { genes: geneList });
-                            }
-                            this.setStep({
-                                id: "7",
-                                substep: {
-                                    id: `7.1.${idx}`,
-                                    result: {
-                                        title: `Retrieved genes and gene memberships for "${geneSet}" of "${phenotype}"`,
-                                        result: structuredClone(geneListFull)
-                                    }
-                                }
-                            })
-                        } catch (err) {
-                            console.warn(`FactorBaseReveal: pigeanJoinedGeneSets API failed for ${phenotype}/${geneSet}`, err);
-                        }
-                        idx++;
-                    }
-                }
-            }
-
-            /* TEMP */
-            /*
-            const allKgTriples = this.transformMergedDataToKG(this.factorData, 'allFactors');
-            const allFlattened = this.flattenKGData(allKgTriples);
-            const allRowIds = allFlattened.map(obj => obj.id);
-            const supporting_network = this.buildNetworkFromFlattenedRowIds(allFlattened, allRowIds);
-            this.all_supporting_network = supporting_network;
-            */
-            //console.log('TEMP allFlattened', allFlattened);
-            /* END */
-
-            this.genesAndFactorValuesLoaded = true;
-            console.log("FactorBaseReveal: processed factorData", this.factorData);
-            this.setLoadStatus("Converting to knowledge graph…");
-            const kgTriples = this.transformMergedDataToKG(this.factorData, 'factors');
-            console.log("FactorBaseReveal: KG triples", kgTriples);
-            this.lastKgTriples = kgTriples;
-            this.setLoadStatus("Semantic groupings…");
-            this.setStep({
-                id: "8",
-                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
-            });
-            this.requestMechanismHypotheses(this.factorData, kgTriples);
-        },
-        /**
-         * Build factorData (factors, genes, geneSets) and KG triples for the given phenotype ids.
-         * @param {string[]} phenotypeIds - e.g. ["Obesity"] from phenotype search first result id
-         */
-        async loadFactorDataForPhenotypes(phenotypeIds) {
-            const phenotypes = phenotypeIds && phenotypeIds.length ? phenotypeIds : [];
-            if (!phenotypes.length) return;
-            for (const phenotype of phenotypes) {
-                this.$set(this.factorData, phenotype, { genes: {}, factors: [] });
-            }
-            this.setLoadStatus("Loading factors…");
-            //this.setLoadStep("API: Loading factors")
-            this.setStep({
-                id: "3",
-                title: "API: Loading gene set clusters"
-            })
-            let idx = 0;
-            for (const phenotype of phenotypes) {
-                this.setLoadStatus(`Loading factors (${phenotype})…`);
-                //this.setLoadStep("API: Loading factors", phenotype)
-                this.setStep({
-                    id: "3",
-                    substep: {
-                        id: `3.1.${idx}`,
-                        title: phenotype
-                    }
-                })
-                try {
-                    const raw = await this.querySearchApi("factor", { phenotype });
-                    this.setStep({
-                        id: "3",
-                        substep: {
-                            id: `3.1.${idx}`,
-                            result: {
-                                title: `Retrieved factors for "${phenotype}"`,
-                                result: raw.data
-                            }
-                        }
-                    })
-                    const normalized = this.normalizeFactorData(raw);
-                    this.factorData[phenotype].factors = normalized;
-                    this.$set(this.factorData[phenotype], "allFactors", [...normalized]);
-                } catch (err) {
-                    console.warn(`FactorBaseReveal: factor API failed for ${phenotype}`, err);
-                }
-                idx++;
-            }
-
-            this.setLoadStatus("Fetching gene sets (phenotypeGeneSetFactor)…");
-            //this.setLoadStep("API: Fetching gene sets for factors");
-            this.setStep({
-                id: "4",
-                title: "API: Fetching gene sets for gene set clusters"
-            })
-            idx = 0;
-            for (const phenotype of phenotypes) {
-                const factors = this.factorData[phenotype].factors || [];
-                for (const factorItem of factors) {
-                    this.setLoadStatus(`Fetching gene sets (${phenotype} / ${factorItem.factor})…`);
-                    //this.setLoadStep("API: Fetching gene sets for factors", `${phenotype} / ${factorItem.label}`);
-                    this.setStep({
-                        id: "4",
-                        substep:{
-                            id: `4.1.${idx}`,
-                            title: `${phenotype} / ${factorItem.label}`
-                        }
-                    })
-                    const { top_gene_sets, gene_set_description, gene_set_program } = await this.fetchGeneSetsForPhenotypeFactor(phenotype, factorItem.factor);
-                    this.setStep({
-                        id: "4",
-                        substep:{
-                            id: `4.1.${idx}`,
-                            result: {
-                                title: `Retrieved gene sets for "${factorItem.label}" of "${phenotype}"`,
-                                result: {
-                                    top_gene_sets,
-                                    gene_set_description,
-                                    gene_set_program
-                                }
-                            }
-                        }
-                    })
-                    factorItem.top_gene_sets = top_gene_sets;
-                    this.$set(factorItem, "gene_set_description", gene_set_description);
-                    this.$set(factorItem, "gene_set_program", gene_set_program);
-                    idx++;
-                }
-            }
-
-            this.setLoadStatus("Filtering gene set clusters…");
-            this.setStep({
-                id: "5",
-                title: "LLM: Filtering gene set clusters by relevance to user query"
-            })
-
-            let mergedFactorAndGeneSetOk = false;
-            try {
-                await this.filterFactorsByContextAndSelectGeneSetsMerged(phenotypes);
-                mergedFactorAndGeneSetOk = true;
-            } catch (err) {
-                console.warn("FactorBaseReveal: merged factor filtering + gene-set selection failed; falling back to 2-step process.", err);
-                await this.filterFactorsByContext(phenotypes);
-                mergedFactorAndGeneSetOk = false;
-            }
-
-            const filteredPhenotypes = phenotypes.filter(
-                (p) => (this.factorData[p] && this.factorData[p].factors || []).length > 0
-            );
-            if (filteredPhenotypes.length === 0) {
-                this.setLoadStatus("No factors selected after filtering.", true);
-                this.setStep({
-                    type: "error",
-                    title: "No factors selected after filtering."
-                });
-                this.loadComplete = true;
-                return;
-            }
-
-            if (!mergedFactorAndGeneSetOk) {
-                this.setLoadStatus("Selecting gene sets per cluster (research context)…");
-                this.setStep({
-                    id: "5b",
-                    title: "LLM: Selecting up to 5 gene sets per cluster",
-                });
-                await this.narrowGeneSetsPerFactorWithLlm(filteredPhenotypes);
-            }
-
-            this.snapshotFilteredSelectionBaseline();
-            await this.loadGenesForFactorData(filteredPhenotypes);
-        },
-        /**
-         * Normalize strings for loose matching (case, whitespace).
-         */
         collapseWsLower(s) {
             return String(s || "")
                 .trim()
                 .toLowerCase()
                 .replace(/\s+/g, " ");
         },
-        /**
-         * Map LLM-returned phenotype string to factorData key (API id vs. display / paraphrase).
-         */
-        resolveLlmPhenotypeToFactorDataKey(llmPhenotype, dataKeys) {
-            const s = String(llmPhenotype || "").trim();
-            if (!s) return null;
-            if (dataKeys.includes(s)) return s;
-            const lower = s.toLowerCase();
-            let k = dataKeys.find((x) => String(x).toLowerCase() === lower);
-            if (k) return k;
-            k = dataKeys.find((x) => {
-                const disp = this.phenotypeDescriptionById[x];
-                return disp && String(disp).trim().toLowerCase() === lower;
-            });
-            if (k) return k;
-            k = dataKeys.find(
-                (x) =>
-                    String(x).toLowerCase().includes(lower) ||
-                    lower.includes(String(x).toLowerCase())
-            );
-            return k || null;
-        },
-        /**
-         * True if factor id/label matches any LLM-selected factor string (exact, case-insensitive, normalized, long-substring).
-         */
-        factorMatchesLlmAllowedSet(f, allowedRawSet) {
-            if (!allowedRawSet || allowedRawSet.size === 0) return false;
-            const idStr = String(f.factor);
-            const labelStr = f.label != null ? String(f.label).trim() : "";
-            const numId = Number(f.factor);
-            const factorQueryVal = this.getFactorQueryValue(f.factor);
-            for (const a of allowedRawSet) {
-                const raw = String(a).trim();
-                if (!raw) continue;
-                if (idStr === raw || labelStr === raw) return true;
-                if (factorQueryVal && (factorQueryVal === raw || factorQueryVal.toLowerCase() === raw.toLowerCase())) {
-                    return true;
-                }
-                if (!isNaN(numId) && String(numId) === raw) return true;
-                if (String(idStr).toLowerCase() === raw.toLowerCase()) return true;
-                if (labelStr && labelStr.toLowerCase() === raw.toLowerCase()) return true;
-                const na = this.collapseWsLower(raw);
-                const nl = this.collapseWsLower(labelStr);
-                if (na && nl && na === nl) return true;
-                if (na.length >= 12 && nl.length >= 12 && (na.includes(nl) || nl.includes(na))) return true;
-            }
-            return false;
-        },
-        /**
-         * Step 2: Filter factors by research context using factorFilteringPrompt.
-         * Calls llmFilter with context + factor-phenotype list; keeps only factors whose ID is in the returned list.
-         */
-        filterFactorsByContext(phenotypes) {
-            const researchContext =
-                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-            const associations = [];
-            phenotypes.forEach((phenotype) => {
-                (this.factorData[phenotype].factors || []).forEach((f) => {
-                    associations.push({
-                        phenotype,
-                        factor_id: f.factor,
-                        label: f.label,
-                        top_gene_sets: f.top_gene_sets,
-                        gene_set_description: f.gene_set_description,
-                    });
-                });
-            });
-            if (associations.length === 0) return Promise.resolve();
-
-            console.log('factorData', this.factorData)
-            console.log('phenotypes', phenotypes)
-            console.log('associations', associations)
-
-            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (each may include top_gene_sets and gene_set_description):**\n${JSON.stringify(associations, null, 2)}\n\nUse top_gene_sets and gene_set_description (along with phenotype and factor label) to judge how relevant each association is to the research context. Filter to only associations relevant to the research context. Sort the selected associations by relevance (most relevant first). Within each phenotype, order the \"relevant_factors\" array by relevance (most relevant factor first). Return ONLY a JSON object with a \"selected_associations\" array: each element has \"phenotype\", \"relevant_factors\" (array of factor labels or factor_id values to keep, ordered by relevance), and \"rationale\" (brief reason why these factors were chosen). Use only factors from the input.\n\n**CRITICAL:** For each object, the \"phenotype\" string MUST be copied exactly from the \"phenotype\" field in the associations JSON above (same spelling and casing). For \"relevant_factors\", copy factor labels or factor_id values exactly from the input.`;
-
-            return new Promise((resolve, reject) => {
-                this.llmFilter.sendPrompt({
-                    userPrompt,
-                    onResponse: (response) => {
-                        const json = this.parseLLMResponse(response);
-                        console.log('LLM Factor filtering', json);
-
-                        const allowedByPhenotype = {};
-                        const rationaleByPhenotype = {};
-                        const selected = json && Array.isArray(json.selected_associations) ? json.selected_associations : [];
-                        selected.forEach((item) => {
-                            const llmPhenotype = item.phenotype != null ? String(item.phenotype).trim() : "";
-                            if (!llmPhenotype) return;
-                            const dataKey = this.resolveLlmPhenotypeToFactorDataKey(llmPhenotype, phenotypes);
-                            if (!dataKey) {
-                                console.warn(
-                                    "FactorBaseReveal: LLM phenotype did not match any factorData key; skipping row.",
-                                    llmPhenotype,
-                                    phenotypes
-                                );
-                                return;
-                            }
-                            const set = new Set();
-                            const arr = item.relevant_factors;
-                            if (Array.isArray(arr)) {
-                                arr.forEach((v) => set.add(String(v).trim()));
-                            }
-                            if (item.rationale != null && String(item.rationale).trim() !== "") {
-                                rationaleByPhenotype[dataKey] = String(item.rationale).trim();
-                            }
-                            if (set.size > 0) {
-                                if (!allowedByPhenotype[dataKey]) allowedByPhenotype[dataKey] = new Set();
-                                set.forEach((v) => allowedByPhenotype[dataKey].add(v));
-                            }
-                        });
-                        if (Object.values(allowedByPhenotype).every((s) => !s || s.size === 0)) {
-                            console.warn("FactorBaseReveal: factor filter returned no selected_associations; keeping all factors.");
-                            resolve();
-                            return;
-                        }
-                        this.setStep({
-                            id: "5",
-                            substep: {
-                                id: "5.1",
-                                title: "Selected factors for further analysis.",
-                                result: {
-                                    result: selected
-                                }
-                            }
-                        })
-
-                        phenotypes.forEach((phenotype) => {
-                            const factors = this.factorData[phenotype].factors || [];
-                            const allowed = allowedByPhenotype[phenotype];
-                            if (rationaleByPhenotype[phenotype] != null) {
-                                this.$set(this.factorData[phenotype], "filterRationale", rationaleByPhenotype[phenotype]);
-                            }
-                            // Strict filtering: when LLM does not select a phenotype, exclude all its factors.
-                            if (!allowed || allowed.size === 0) {
-                                this.factorData[phenotype].factors = [];
-                                return;
-                            }
-                            this.factorData[phenotype].factors = factors.filter((f) =>
-                                this.factorMatchesLlmAllowedSet(f, allowed)
-                            );
-                        });
-                        console.log("FactorBaseReveal: filtered factors by context (per phenotype)", allowedByPhenotype);
-                        resolve();
-                    },
-                    onError: (err) => {
-                        console.warn("FactorBaseReveal: factor filter LLM error", err);
-                        this.setStep({
-                            type: 'error',
-                            title: "Request failed or timed out.",
-                        })
-                        resolve();
-                    },
-                    onEnd: () => {
-                        resolve();
-                    },
-                });
-            });
-        },
-
-        /**
-         * Merged step (single LLM call):
-         * 1) Filter factors by research context
-         * 2) For each kept factor, pick up to 5 gene sets most relevant to the research context.
-         *
-         * Mutates factorData in-place only after output is validated.
-         */
-        async filterFactorsByContextAndSelectGeneSetsMerged(phenotypes) {
-            const researchContext =
-                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-
-            const factorsPayload = [];
-            for (const phenotype of phenotypes) {
-                const factors = (this.factorData[phenotype] && this.factorData[phenotype].factors) || [];
-                for (const f of factors) {
-                    const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(f);
-                    if (!ids.length) continue;
-                    factorsPayload.push({
-                        phenotype: String(phenotype),
-                        factor_id: String(f.factor),
-                        factor_label: f.label != null ? String(f.label) : String(f.factor),
-                        gene_set_candidates: ids.map((id, i) => ({
-                            gene_set: id,
-                            description: descs[i] || "",
-                            program: progs[i] || "",
-                        })),
-                    });
-                }
-            }
-            if (!factorsPayload.length) throw new Error("Merged factor/gene-set pick: empty factor payload");
-
-            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype-to-Factor associations (includes gene_set_candidates):**\n${JSON.stringify(
-                factorsPayload,
-                null,
-                2
-            )}\n\nFollow the system prompt exactly and return ONLY the required JSON.`;
-
-            const json = await new Promise((resolve, reject) => {
-                this.llmMergedFactorAndGeneSetPick.sendPrompt({
-                    userPrompt,
-                    onResponse: (response) => {
-                        const parsed = this.parseLLMResponse(response);
-                        resolve(parsed);
-                    },
-                    onError: (err) => reject(err),
-                    onEnd: () => {},
-                });
-            });
-
-            if (!json || !Array.isArray(json.selected_associations) || !Array.isArray(json.gene_set_selections)) {
-                throw new Error("Merged factor/gene-set pick: invalid JSON shape");
-            }
-
-            const allowedByPhenotype = {};
-            const rationaleByPhenotype = {};
-            json.selected_associations.forEach((item) => {
-                const llmPhenotype = item && item.phenotype != null ? String(item.phenotype).trim() : "";
-                if (!llmPhenotype) return;
-                const dataKey = this.resolveLlmPhenotypeToFactorDataKey(llmPhenotype, phenotypes);
-                if (!dataKey) return;
-
-                const set = new Set();
-                if (Array.isArray(item.relevant_factors)) {
-                    item.relevant_factors.forEach((v) => {
-                        const raw = v != null ? String(v).trim() : "";
-                        if (raw) set.add(raw);
-                    });
-                }
-                if (set.size) {
-                    if (!allowedByPhenotype[dataKey]) allowedByPhenotype[dataKey] = new Set();
-                    set.forEach((v) => allowedByPhenotype[dataKey].add(v));
-                }
-                if (item.rationale != null && String(item.rationale).trim() !== "") {
-                    rationaleByPhenotype[dataKey] = String(item.rationale).trim();
-                }
-            });
-
-            const hasAnyAllowed = Object.values(allowedByPhenotype).some((s) => s && s.size > 0);
-            if (!hasAnyAllowed) throw new Error("Merged factor/gene-set pick: no factors allowed");
-
-            // Compute which factors are kept without mutating anything yet.
-            const keptFactorsByPhenotype = {};
-            let keptCount = 0;
-            for (const phenotype of phenotypes) {
-                const factors = (this.factorData[phenotype] && this.factorData[phenotype].factors) || [];
-                const allowed = allowedByPhenotype[phenotype];
-                if (!allowed || allowed.size === 0) {
-                    keptFactorsByPhenotype[phenotype] = [];
-                } else {
-                    const kept = factors.filter((f) => this.factorMatchesLlmAllowedSet(f, allowed));
-                    keptFactorsByPhenotype[phenotype] = kept;
-                    keptCount += kept.length;
-                }
-            }
-            if (keptCount === 0) throw new Error("Merged factor/gene-set pick: keptCount=0");
-
-            // Index gene-set picks by phenotypeKey; each factor pick might use either factor_id or label.
-            const geneSetSelectionsByPhenotype = {};
-            json.gene_set_selections.forEach((sel) => {
-                const llmPhenotype = sel && sel.phenotype != null ? String(sel.phenotype).trim() : "";
-                const rawFactorId = sel && sel.factor_id != null ? String(sel.factor_id).trim() : "";
-                if (!llmPhenotype || !rawFactorId) return;
-                const dataKey = this.resolveLlmPhenotypeToFactorDataKey(llmPhenotype, phenotypes);
-                if (!dataKey) return;
-                const geneSets = Array.isArray(sel.gene_sets)
-                    ? sel.gene_sets.map((x) => String(x).trim()).filter(Boolean)
-                    : [];
-                if (!geneSets.length) return;
-                if (!geneSetSelectionsByPhenotype[dataKey]) geneSetSelectionsByPhenotype[dataKey] = [];
-                geneSetSelectionsByPhenotype[dataKey].push({ factor_id_raw: rawFactorId, geneSets });
-            });
-
-            // Validate coverage for all kept factors and record gene-set picks for each factor.
-            const pickedByFactorKey = new Map();
-            const missing = [];
-            for (const phenotype of phenotypes) {
-                const picks = geneSetSelectionsByPhenotype[phenotype] || [];
-                for (const f of keptFactorsByPhenotype[phenotype] || []) {
-                    const fidRaw = picks.length ? picks.map((p) => p.factor_id_raw) : [];
-                    const expectedFactorId = String(f.factor);
-                    const labelStr = f.label != null ? String(f.label).trim() : "";
-                    const factorQueryVal = this.getFactorQueryValue(f.factor);
-
-                    const pickedEntry = picks.find((p) => {
-                        const raw = p.factor_id_raw;
-                        if (!raw) return false;
-                        const rawLower = raw.toLowerCase();
-                        if (String(f.factor).trim() === raw) return true;
-                        if (factorQueryVal && String(factorQueryVal).trim() === raw) return true;
-                        if (labelStr && labelStr === raw) return true;
-                        if (String(f.factor).trim().toLowerCase() === rawLower) return true;
-                        if (factorQueryVal && String(factorQueryVal).trim().toLowerCase() === rawLower) return true;
-                        if (labelStr && labelStr.toLowerCase() === rawLower) return true;
-                        return false;
-                    });
-
-                    if (!pickedEntry) {
-                        missing.push(`${phenotype}|${expectedFactorId}`);
-                        continue;
-                    }
-                    pickedByFactorKey.set(`${phenotype}|${expectedFactorId}`, pickedEntry.geneSets);
-                }
-            }
-
-            if (missing.length) {
-                throw new Error(`Merged factor/gene-set pick: missing gene-set selections for ${missing.length} kept factors`);
-            }
-
-            // Apply (now that we know the output is complete).
-            for (const phenotype of phenotypes) {
-                const kept = keptFactorsByPhenotype[phenotype] || [];
-                if (rationaleByPhenotype[phenotype] != null) {
-                    this.$set(this.factorData[phenotype], "filterRationale", rationaleByPhenotype[phenotype]);
-                }
-                this.factorData[phenotype].factors = kept;
-            }
-
-            for (const phenotype of phenotypes) {
-                const factors = this.factorData[phenotype].factors || [];
-                for (const f of factors) {
-                    const key = `${phenotype}|${String(f.factor)}`;
-                    const picked = pickedByFactorKey.get(key) || [];
-                    const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(f);
-                    if (!ids.length) continue;
-                    this.applyNarrowedGeneSetsToFactorItem(f, picked, ids, descs, progs);
-                }
-            }
-        },
-
-        /**
-         * Merged step (single LLM call) for the "association path" workflow:
-         * 1) Filter which phenotype–factor associations to keep
-         * 2) For each kept association, pick up to 5 gene sets from that association.
-         *
-         * Returns: [{ id, rationale, gene_sets: [...] }, ...]
-         */
-        async filterPhenotypeFactorsByContextAndSelectGeneSetsMerged(listForHydration, originalById, researchContext) {
-            const payload = [];
-            for (const row of listForHydration || []) {
-                if (row == null) continue;
-                const id = row.id;
-                const orig = originalById && id != null ? originalById[id] : null;
-                if (!orig || orig.phenotype == null || orig.factor == null) continue;
-
-                const factorItemLike = {
-                    top_gene_sets: orig.top_gene_sets,
-                    gene_set_description: orig.gene_set_description,
-                    gene_set_program: orig.gene_set_program,
-                };
-                const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(factorItemLike);
-                const gene_set_candidates = ids.map((gid, i) => ({
-                    gene_set: gid,
-                    description: descs[i] || "",
-                    program: progs[i] || "",
-                }));
-                payload.push({
-                    id: String(id),
-                    phenotype: String(orig.phenotype),
-                    factor_id: String(orig.factor),
-                    factor_label: orig.label != null ? String(orig.label) : String(orig.factor),
-                    gene_set_candidates,
-                });
-            }
-
-            if (!payload.length) throw new Error("Merged association/gene-set pick: empty payload");
-
-            const userPrompt = `**Research Context:**\n${researchContext}\n\n**Phenotype–factor associations (each includes gene_set_candidates):**\n${JSON.stringify(
-                payload,
-                null,
-                2
-            )}\n\nReturn ONLY the required JSON schema as specified in the system prompt.`;
-
-            const json = await new Promise((resolve, reject) => {
-                this.llmMergedAssociationAndGeneSetPick.sendPrompt({
-                    userPrompt,
-                    onResponse: (response) => {
-                        const parsed = this.parseLLMResponse(response);
-                        resolve(parsed);
-                    },
-                    onError: (err) => reject(err),
-                    onEnd: () => {},
-                });
-            });
-
-            const selected = json && Array.isArray(json.selected) ? json.selected : null;
-            if (!selected || !selected.length) throw new Error("Merged association/gene-set pick: empty selected array");
-
-            return selected
-                .map((s) => {
-                    const id = s && s.id != null ? String(s.id).trim() : "";
-                    const rationale = s && s.rationale != null ? String(s.rationale).trim() : "";
-                    const gene_sets = Array.isArray(s.gene_sets)
-                        ? s.gene_sets.map((x) => String(x).trim()).filter(Boolean)
-                        : [];
-                    if (!id || !gene_sets.length) return null;
-                    return { id, rationale, gene_sets };
-                })
-                .filter(Boolean);
-        },
 
         retryMechanismHypotheses() {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
-            this.setLoadStatus("Semantic groupings…");
+            this.setLoadStatus("Generating hypotheses…");
             this.loadComplete = false;
             this.setStep({
-                id: "8",
-                title: "LLM: Semantic groupings of phenotype–gene set cluster pairs",
+                id: "4",
+                title: "LLM: Generating mechanistic hypotheses",
             });
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
@@ -4558,25 +3033,17 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const rows = flattened.map((row) => keys.map((k) => escape(row[k])).join(","));
             return [header, ...rows].join("\n");
         },
-        /**
-         * Shared KG + factor summary block for mechanism LLM steps (grouping and per-group hypotheses).
-         */
+        /** Shared KG + factor summary block for mechanism hypothesis LLM calls. */
         buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext) {
             return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
         },
         /**
-         * Two-phase mechanism generation: (1) semantic grouping LLM, (2) hypothesis LLM per group in one call.
-         * KG is flattened CSV. Retries up to 3 times per phase on timeout.
+         * Single-pass mechanism generation: generate hypotheses directly from the hybrid KG package.
+         * No factor filtering, semantic grouping, or per-group generation phases.
          */
         requestMechanismHypotheses(factorData, kgTriples) {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
-            this.semanticGroupedPairKeys = null;
-            this.remainingSemanticGroupRows = [];
-            this.generatingRemainingGroupKey = "";
-            this.remainingGroupGenerateError = "";
-
-            console.log("kgTriples", kgTriples);
 
             const researchContext =
                 (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
@@ -4585,317 +3052,104 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const flattened = this.flattenKGData(kgTriples);
             this.lastFlattenedKG = flattened;
             const kgBlock = this.flattenedKGToCSV(flattened);
-            console.log("FactorBaseReveal: mechanism LLM input KG CSV:", {
-                rowCount: Array.isArray(flattened) ? flattened.length : 0,
-                csvCharCount: kgBlock ? kgBlock.length : 0,
-                csv: kgBlock,
-            });
             const factorSummary = this.serializeFactorDataForPrompt(factorData);
             const baseContextSuffix = this.buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext);
-            const groupingUserPrompt = `${baseContextSuffix}\n\nUsing the research context, form "groups" of Phenotype–Factor pairs from rows with predicate "associated_with" that belong together mechanistically. Omit pairs that are not context-relevant. Return ONLY JSON with a "groups" array as specified in your instructions (use [] if none qualify).`;
+            const selectedPairs = (this.factorDataTableRowsFiltered || []).map((r) => ({
+                phenotype: String(r.phenotype || "").trim(),
+                factor: String((r.factorLabel != null && String(r.factorLabel).trim() !== "") ? r.factorLabel : r.factor || "").trim(),
+            })).filter((p) => p.phenotype && p.factor);
+            const hypothesesUserPrompt = `**Phenotype–Factor pairs to explain:**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses directly for these pairs. Return ONLY JSON with a non-empty "hypotheses" array.`;
             const maxAttempts = 3;
 
-            const runGroupingAttempt = (attempt) => {
-                return new Promise((resolve) => {
-                    let resolved = false;
-                    const finish = (payload) => {
-                        if (resolved) return;
-                        resolved = true;
-                        resolve(payload);
-                    };
-                    let groupsValidated = null;
-                    this.llmMechanismGrouping.sendPrompt({
-                        userPrompt: groupingUserPrompt,
-                        onResponse: (response) => {
-                            console.log("FactorBaseReveal: mechanism grouping LLM response", response);
-                            const json = this.parseLLMResponse(response);
-                            const groups = json && Array.isArray(json.groups) ? json.groups : null;
-                            const valid =
-                                groups != null &&
-                                groups.every(
-                                    (g) =>
-                                        g &&
-                                        typeof g === "object" &&
-                                        Array.isArray(g.associated_pairs) &&
-                                        g.associated_pairs.length > 0 &&
-                                        g.associated_pairs.every(
-                                            (p) =>
-                                                p &&
-                                                p.phenotype != null &&
-                                                String(p.phenotype).trim() !== "" &&
-                                                p.factor != null &&
-                                                String(p.factor).trim() !== ""
-                                        )
-                                );
-                            groupsValidated = valid ? groups : null;
-                        },
-                        onError: (err) => {
-                            console.warn("FactorBaseReveal: mechanism grouping LLM error", err);
-                            const isTimeout = this.isMechanismTimeoutError(err);
-                            if (isTimeout && attempt < maxAttempts) {
-                                finish({ retry: true, failed: false, err, groups: null });
-                            } else {
-                                finish({
-                                    retry: false,
-                                    failed: true,
-                                    err,
-                                    groups: null,
-                                    isTimeout,
-                                });
-                            }
-                        },
-                        onEnd: () => {
-                            if (resolved) return;
-                            if (groupsValidated) {
-                                finish({ retry: false, failed: false, err: null, groups: groupsValidated });
-                            } else {
-                                finish({
-                                    retry: false,
-                                    failed: true,
-                                    err: new Error(
-                                        "Semantic groupings returned no valid groups (check LLM JSON)."
-                                    ),
-                                    groups: null,
-                                });
-                            }
-                        },
-                    });
-                });
-            };
-
-            /**
-             * One LLM call for a single semantic group. Returns { retry, failed, err, hypothesis }.
-             * Hypothesis is merged with fixed associated_pairs from the input group.
-             */
-            const runHypothesisAttemptForGroup = (attempt, group, groupIndex) => {
-                // Only send core pairs to the hypothesis LLM; keep redundant tier for UI/display.
-                const groupForLlm = {
-                    group_name: group.group_name,
-                    associated_pairs: group.associated_pairs,
-                    grouping_rationale: group.grouping_rationale,
-                };
-                const groupBlock = JSON.stringify(groupForLlm, null, 2);
-                const hypothesisUserPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${groupBlock}\n\`\`\`\n\n${baseContextSuffix}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
-                return new Promise((resolve) => {
-                    let resolved = false;
-                    const finish = (payload) => {
-                        if (resolved) return;
-                        resolved = true;
-                        resolve(payload);
-                    };
-                    this.llmAnalyze.sendPrompt({
-                        userPrompt: hypothesisUserPrompt,
-                        onResponse: (response) => {
-                            this.error_mechanisms = false;
-                            console.log(
-                                "FactorBaseReveal: mechanism hypothesis LLM response (group",
-                                groupIndex,
-                                ")",
-                                response
-                            );
-                            const json = this.parseLLMResponse(response);
-                            if (!json) {
-                                finish({
-                                    retry: false,
-                                    failed: true,
-                                    err: new Error("Could not parse LLM JSON for hypothesis."),
-                                    hypothesis: null,
-                                });
-                                return;
-                            }
-                            if (json && typeof json.overall_summary === "string") {
-                                this.mechanisms_summary = json.overall_summary;
-                            } else {
-                                this.mechanisms_summary = null;
-                            }
-                            let hypotheses = json && Array.isArray(json.hypotheses) ? json.hypotheses : [];
-                            let h = hypotheses[0];
-                            if (!h && json && json.hypothesis && typeof json.hypothesis === "object") {
-                                h = json.hypothesis;
-                            }
-                            if (!h) {
-                                finish({
-                                    retry: false,
-                                    failed: true,
-                                    err: new Error("No hypothesis returned for this group (check LLM JSON)."),
-                                    hypothesis: null,
-                                });
-                                return;
-                            }
-                            const g = group;
-                            const out = { ...h };
-                            if (Array.isArray(g.associated_pairs)) {
-                                out.associated_pairs = JSON.parse(JSON.stringify(g.associated_pairs));
-                            }
-                            if (Array.isArray(g.redundant_associated_pairs)) {
-                                out.redundant_associated_pairs = JSON.parse(JSON.stringify(g.redundant_associated_pairs));
-                            }
-                            if (!out.group_name && g.group_name) out.group_name = g.group_name;
-                            finish({ retry: false, failed: false, err: null, hypothesis: out });
-                        },
-                        onError: (err) => {
-                            console.warn("FactorBaseReveal: mechanism hypothesis LLM error (group)", groupIndex, err);
-                            const isTimeout = this.isMechanismTimeoutError(err);
-                            if (isTimeout && attempt < maxAttempts) {
-                                finish({ retry: true, failed: false, err, hypothesis: null });
-                            } else {
-                                finish({ retry: false, failed: true, err, hypothesis: null });
-                            }
-                        },
-                        onEnd: () => {
-                            if (resolved) return;
-                            finish({
-                                retry: false,
-                                failed: true,
-                                err: new Error("Incomplete LLM response for hypothesis."),
-                                hypothesis: null,
-                            });
-                        },
-                    });
-                });
-            };
-
             (async () => {
-                let groups = null;
+                let parsed = null;
+                let lastFailed = null;
                 for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    this.setLoadStatus(`Semantic groupings… (attempt ${attempt}/${maxAttempts})`);
-                    const gr = await runGroupingAttempt(attempt);
-                    if (gr.retry) continue;
-                    if (gr.failed) {
-                        this.error_mechanisms = true;
-                        this.error_msg_mechanisms =
-                            gr.err && gr.err.message
-                                ? gr.err.message
-                                : "Semantic groupings failed or returned invalid groups.";
-                        this.setStep({
-                            type: "error",
-                            title: "Semantic groupings failed.",
+                    this.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${maxAttempts})`);
+                    const res = await new Promise((resolve) => {
+                        let done = false;
+                        const finish = (payload) => {
+                            if (done) return;
+                            done = true;
+                            resolve(payload);
+                        };
+                        this.llmAnalyze.sendPrompt({
+                            userPrompt: hypothesesUserPrompt,
+                            onResponse: (response) => {
+                                const json = this.parseLLMResponse(response);
+                                if (!json) {
+                                    finish({ retry: false, failed: true, err: new Error("Could not parse LLM JSON.") });
+                                    return;
+                                }
+                                finish({ retry: false, failed: false, err: null, json });
+                            },
+                            onError: (err) => {
+                                const isTimeout = this.isMechanismTimeoutError(err);
+                                if (isTimeout && attempt < maxAttempts) {
+                                    finish({ retry: true, failed: false, err });
+                                } else {
+                                    finish({ retry: false, failed: true, err });
+                                }
+                            },
+                            onEnd: () => {
+                                if (done) return;
+                                finish({ retry: false, failed: true, err: new Error("Incomplete LLM response.") });
+                            },
                         });
-                        this.setLoadStatus("Ready", true);
-                        this.loadComplete = true;
-                        return;
-                    }
-                    groups = gr.groups;
-                    break;
-                }
-                if (!groups) {
-                    this.error_mechanisms = true;
-                    this.error_msg_mechanisms = "Semantic groupings failed after 3 attempts (timeout).";
-                    this.setLoadStatus("Ready", true);
-                    this.loadComplete = true;
-                    return;
-                }
-
-                this.semanticGroupedPairKeys = this.buildSemanticGroupedPairKeysFromGroups(groups);
-                this.prepareSemanticGroupApproval(groups);
-
-                this.setStep({
-                    id: "8",
-                    substep: {
-                        id: "8.1",
-                        title: "Context-relevant semantic groups",
-                        result: {
-                            title: "Context-relevant grouped pairs (ungrouped pairs appear under Remaining)",
-                            result: groups,
-                        },
-                    },
-                });
-                await this.waitForStepApproval(
-                    "8",
-                    "Review semantic groups before generating mechanistic hypotheses.",
-                    true
-                );
-                this.remainingSemanticGroupRows = this.getUnselectedSemanticGroupsForApproval();
-                groups = this.getSelectedSemanticGroupsForApproval();
-                if (!groups || groups.length === 0) {
-                    this.error_mechanisms = true;
-                    this.error_msg_mechanisms = "No semantic groups selected for hypothesis generation.";
-                    this.setStep({
-                        type: "error",
-                        title: "No semantic groups selected.",
                     });
-                    this.setLoadStatus("Ready", true);
-                    this.loadComplete = true;
-                    return;
-                }
-                this.semanticGroupedPairKeys = this.buildSemanticGroupedPairKeysFromGroups(groups);
-                this.setStep({
-                    id: "8.2",
-                    title: "LLM: Generating mechanistic hypotheses per group",
-                });
-
-                this.mechanismHypothesisStreamTotal = groups.length;
-                this.mechanismHypothesisStreamDone = 0;
-                this.mechanismHypothesisActiveGroupName = "";
-                this.mechanisms = [];
-                if (groups.length > 0) {
-                    this.startMechanismHypothesisStreamTimer();
-                }
-                for (let gi = 0; gi < groups.length; gi++) {
-                    const group = groups[gi];
-                    const gName =
-                        (group.group_name != null && String(group.group_name).trim() !== "")
-                            ? String(group.group_name).trim()
-                            : `Group ${gi + 1}`;
-                    this.mechanismHypothesisActiveGroupName = gName;
-                    this.setStep({
-                        id: "8.2",
-                        substep: {
-                            id: `8.2.${gi + 1}`,
-                            title: gName,
-                        },
-                    });
-                    let got = null;
-                    let lastFailed = null;
-                    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                        this.setLoadStatus(
-                            `Generating mechanistic hypothesis for: ${gName}… (attempt ${attempt}/${maxAttempts})`
-                        );
-                        const res = await runHypothesisAttemptForGroup(attempt, group, gi);
-                        if (res.retry) continue;
-                        if (res.failed) {
-                            lastFailed = res.err;
-                            break;
-                        }
-                        got = res.hypothesis;
+                    if (res.retry) continue;
+                    if (res.failed) {
+                        lastFailed = res.err;
                         break;
                     }
-                    if (!got) {
-                        this.stopMechanismHypothesisStreamTimer();
-                        this.mechanismHypothesisStreamTotal = 0;
-                        this.mechanismHypothesisStreamDone = 0;
-                        this.mechanismHypothesisActiveGroupName = "";
-                        this.error_mechanisms = true;
-                        this.error_msg_mechanisms =
-                            lastFailed && lastFailed.message
-                                ? lastFailed.message
-                                : "Mechanistic hypothesis generation failed for a group.";
-                        this.setStep({
-                            type: "error",
-                            title: "Mechanistic hypothesis generation failed.",
-                        });
-                        this.setLoadStatus("Ready", true);
-                        this.loadComplete = true;
-                        return;
-                    }
-                    const normalized = this.normalizeMechanismHypotheses([got]);
-                    this.mechanisms = [...(this.mechanisms || []), ...normalized];
-                    this.mechanismHypothesisStreamDone = gi + 1;
-                    if (gi === 0) {
-                        this.showTab = "results";
-                    }
-                    this.setLoadStatus(`Generated ${gi + 1} of ${groups.length} mechanistic hypotheses…`);
+                    parsed = res.json;
+                    break;
                 }
 
-                this.stopMechanismHypothesisStreamTimer();
-                this.mechanismHypothesisStreamTotal = 0;
-                this.mechanismHypothesisStreamDone = 0;
-                this.mechanismHypothesisActiveGroupName = "";
+                if (!parsed) {
+                    this.error_mechanisms = true;
+                    this.error_msg_mechanisms =
+                        lastFailed && lastFailed.message
+                            ? lastFailed.message
+                            : "Mechanistic hypothesis generation failed.";
+                    this.setStep({
+                        type: "error",
+                        title: "Mechanistic hypothesis generation failed.",
+                    });
+                    this.setLoadStatus("Ready", true);
+                    this.loadComplete = true;
+                    return;
+                }
+
+                if (parsed && typeof parsed.overall_summary === "string") {
+                    this.mechanisms_summary = parsed.overall_summary;
+                } else {
+                    this.mechanisms_summary = null;
+                }
+                const hypotheses = Array.isArray(parsed.hypotheses)
+                    ? parsed.hypotheses
+                    : (parsed.hypothesis && typeof parsed.hypothesis === "object" ? [parsed.hypothesis] : []);
+                if (!hypotheses.length) {
+                    this.error_mechanisms = true;
+                    this.error_msg_mechanisms = "No hypotheses were returned.";
+                    this.setStep({
+                        type: "error",
+                        title: "No mechanistic hypotheses returned.",
+                    });
+                    this.setLoadStatus("Ready", true);
+                    this.loadComplete = true;
+                    return;
+                }
+
+                this.mechanisms = this.normalizeMechanismHypotheses(hypotheses);
                 this.setLoadStatus("Ready", true);
                 this.setStep(
                     {
-                        id: "9",
-                        title: "Complete.",
+                        id: "4",
+                        substep: {
+                            id: "4.9",
+                            title: "Complete.",
+                        },
                     },
                     true
                 );
@@ -4933,126 +3187,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 },
             };
         },
-        getRemainingGroupKey(group, idx) {
-            const gName = group && group.group_name != null ? String(group.group_name).trim() : "";
-            return `${idx}|${gName}`;
-        },
-        buildFactorDataForSemanticGroup(group) {
-            if (!group || !Array.isArray(group.associated_pairs) || !group.associated_pairs.length) return null;
-            const subset = {};
-            const findFactorByLabelOrId = (pData, factorRaw) => {
-                const target = this.collapseWsLower(factorRaw);
-                const pool = [...(pData.factors || []), ...(pData.allFactors || [])];
-                return pool.find((f) => {
-                    const label = f.label != null ? String(f.label).trim() : "";
-                    const idStr = f.factor != null ? String(f.factor).trim() : "";
-                    return this.collapseWsLower(label) === target || this.collapseWsLower(idStr) === target;
-                }) || null;
-            };
-            group.associated_pairs.forEach((pair) => {
-                const phenotype = pair && pair.phenotype != null ? String(pair.phenotype).trim() : "";
-                const factorLabel = pair && pair.factor != null ? String(pair.factor).trim() : "";
-                if (!phenotype || !factorLabel) return;
-                const pData = this.factorData && this.factorData[phenotype];
-                if (!pData) return;
-                const factorItem = findFactorByLabelOrId(pData, factorLabel);
-                if (!factorItem) return;
-                if (!subset[phenotype]) {
-                    subset[phenotype] = { genes: {}, factors: [] };
-                }
-                if (subset[phenotype].factors.some((f) => String(f.factor) === String(factorItem.factor))) return;
-                const factorClone = JSON.parse(JSON.stringify(factorItem));
-                subset[phenotype].factors.push(factorClone);
-                const genesInFactor = Object.keys(factorItem.genes || {});
-                genesInFactor.forEach((g) => {
-                    if (pData.genes && pData.genes[g] != null && subset[phenotype].genes[g] == null) {
-                        subset[phenotype].genes[g] = JSON.parse(JSON.stringify(pData.genes[g]));
-                    }
-                });
-            });
-            const phenotypes = Object.keys(subset);
-            if (!phenotypes.length) return null;
-            const totalFactors = phenotypes.reduce((acc, p) => acc + ((subset[p] && subset[p].factors) ? subset[p].factors.length : 0), 0);
-            return totalFactors > 0 ? subset : null;
-        },
-        generateHypothesisForRemainingGroup(group, idx) {
-            if (!group || !Array.isArray(group.associated_pairs) || !group.associated_pairs.length) return;
-            const groupKey = this.getRemainingGroupKey(group, idx);
-            this.remainingGroupGenerateError = "";
-            const subset = this.buildFactorDataForSemanticGroup(group);
-            if (!subset) {
-                this.remainingGroupGenerateError = "Could not build data for this group.";
-                return;
-            }
-            const kgTriples = this.transformMergedDataToKG(subset, "factors");
-            if (!kgTriples || !kgTriples.length) {
-                this.remainingGroupGenerateError = "No knowledge graph triples for this group.";
-                return;
-            }
-            this.generatingRemainingGroupKey = groupKey;
-            this.startRemainingGenerateTimer();
-            const flattened = this.flattenKGData(kgTriples);
-            const researchContext =
-                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-            const factorSummary = this.serializeFactorDataForPrompt(subset);
-            const kgBlock = this.flattenedKGToCSV(flattened);
-            const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
-            const fixedGroup = {
-                group_name:
-                    group.group_name != null && String(group.group_name).trim() !== ""
-                        ? String(group.group_name).trim()
-                        : `Remaining group ${idx + 1}`,
-                associated_pairs: (group.associated_pairs || []).map((p) => ({
-                    phenotype: p && p.phenotype != null ? String(p.phenotype).trim() : "",
-                    factor: p && p.factor != null ? String(p.factor).trim() : "",
-                })).filter((p) => p.phenotype && p.factor),
-                grouping_rationale:
-                    group.grouping_rationale != null && String(group.grouping_rationale).trim() !== ""
-                        ? String(group.grouping_rationale).trim()
-                        : "Generated from remaining semantic group table.",
-            };
-            const fullPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${JSON.stringify(fixedGroup, null, 2)}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
-
-            let finished = false;
-            const finish = () => {
-                if (finished) return;
-                finished = true;
-                this.generatingRemainingGroupKey = "";
-                this.stopRemainingGenerateTimer();
-            };
-
-            this.llmAnalyze.sendPrompt({
-                userPrompt: fullPrompt,
-                onResponse: (response) => {
-                    const json = this.parseLLMResponse(response);
-                    if (!json) {
-                        this.remainingGroupGenerateError = "Could not parse LLM response.";
-                        return;
-                    }
-                    if (!Array.isArray(json.hypotheses) || !json.hypotheses.length) {
-                        this.remainingGroupGenerateError =
-                            typeof json.error === "string" && json.error
-                                ? json.error
-                                : "No hypotheses in response.";
-                        return;
-                    }
-                    const normalized = this.normalizeMechanismHypotheses(json.hypotheses, flattened);
-                    const prev = Array.isArray(this.mechanisms) ? this.mechanisms : [];
-                    this.mechanisms = [...prev, ...normalized];
-                    this.remainingSemanticGroupRows = (this.remainingSemanticGroupRows || []).filter((_, i) => i !== idx);
-                    this.showTab = "results";
-                },
-                onError: (err) => {
-                    console.warn("FactorBaseReveal: remaining-group mechanism LLM error", err);
-                    this.remainingGroupGenerateError =
-                        err && err.message ? err.message : "Request failed or timed out.";
-                    finish();
-                },
-                onEnd: finish,
-            });
-        },
         /**
          * Generate mechanistic hypothesis for one remaining phenotype–factor pair (same LLM step as main run, subset data only).
          */
@@ -5086,7 +3220,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                     : row.factor != null
                       ? String(row.factor).trim()
                       : "";
-            const singleGroup = {
+            const singlePairRequest = {
                 group_name: factorLabelForKg ? `${factorLabelForKg} × ${row.phenotype}` : `Remaining pair ${pairKey}`,
                 associated_pairs: [
                     {
@@ -5094,9 +3228,8 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                         factor: factorLabelForKg,
                     },
                 ],
-                grouping_rationale: "Generated from remaining phenotype–gene set cluster table.",
             };
-            const fullPrompt = `**Fixed semantic group (single group — do not change membership):**\n\`\`\`json\n${JSON.stringify(singleGroup, null, 2)}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this group (hypotheses[0] only).`;
+            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this pair (hypotheses[0] only).`;
 
             let finished = false;
             const finish = () => {
@@ -5549,241 +3682,6 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const m = s.match(/^factor(\d+)$/i);
             return m ? m[1] : s;
         },
-        /**
-         * Query data using the configured searchApis entry.
-         * @param {string} apiName - Key in searchApis (e.g. 'factor', 'factorGenes', 'factorGeneSets').
-         * @param {Object} parameters - Key-value pairs to substitute in the URL (e.g. { phenotype: 'T2D', factor: 2 }).
-         *   Placeholders in the URL like $phenotype, $factor are replaced by parameters.phenotype, parameters.factor.
-         * @returns {Promise<Object>} - Parsed JSON response (typically { data: [...], ... }).
-         */
-        async querySearchApi(apiName, parameters = {}) {
-            const baseUrl = this.searchApis[apiName];
-            if (!baseUrl || typeof baseUrl !== "string") {
-                throw new Error(`Unknown or missing API: ${apiName}`);
-            }
-            let url = baseUrl;
-            Object.keys(parameters).forEach((key) => {
-                const placeholder = `$${key}`;
-                const value = parameters[key] != null ? String(parameters[key]) : "";
-                url = url.split(placeholder).join(encodeURIComponent(value));
-            });
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`API ${apiName} failed: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        },
-
-        /**
-         * Split factorItem's top_gene_sets (;) and parallel description / program (|) fields into aligned arrays.
-         */
-        splitGeneSetFieldsFromFactorItem(factorItem) {
-            const ids = (factorItem && factorItem.top_gene_sets && String(factorItem.top_gene_sets).trim())
-                ? String(factorItem.top_gene_sets).split(";").map((s) => s.trim()).filter(Boolean)
-                : [];
-            const descs = (factorItem && factorItem.gene_set_description && String(factorItem.gene_set_description).trim())
-                ? String(factorItem.gene_set_description).split(/\s*\|\s*/).map((s) => s.trim())
-                : [];
-            const progs = (factorItem && factorItem.gene_set_program && String(factorItem.gene_set_program).trim())
-                ? String(factorItem.gene_set_program).split(/\s*\|\s*/).map((s) => s.trim())
-                : [];
-            while (descs.length < ids.length) descs.push("");
-            while (progs.length < ids.length) progs.push("");
-            return { ids, descs, progs };
-        },
-
-        /**
-         * Apply an ordered list of gene set ids (max 5) back onto factorItem; matches descriptions/programs by id index. Fallback: first 5 by API rank if orderedIds empty or none match.
-         */
-        applyNarrowedGeneSetsToFactorItem(factorItem, orderedGeneSetIds, sourceIds, sourceDescs, sourceProgs) {
-            const outIds = [];
-            const outDescs = [];
-            const outProgs = [];
-            const seen = new Set();
-            const candidates = Array.isArray(orderedGeneSetIds) ? orderedGeneSetIds : [];
-            for (const gid of candidates) {
-                if (outIds.length >= 5) break;
-                const g = String(gid).trim();
-                if (!g || seen.has(g)) continue;
-                const idx = sourceIds.findIndex((x) => String(x).trim() === g);
-                if (idx === -1) continue;
-                seen.add(g);
-                outIds.push(sourceIds[idx]);
-                outDescs.push(sourceDescs[idx] != null ? sourceDescs[idx] : "");
-                outProgs.push(sourceProgs[idx] != null ? sourceProgs[idx] : "");
-            }
-            if (outIds.length === 0 && sourceIds.length > 0) {
-                for (let i = 0; i < Math.min(5, sourceIds.length); i++) {
-                    outIds.push(sourceIds[i]);
-                    outDescs.push(sourceDescs[i] != null ? sourceDescs[i] : "");
-                    outProgs.push(sourceProgs[i] != null ? sourceProgs[i] : "");
-                }
-            }
-            this.$set(factorItem, "top_gene_sets", outIds.join(";"));
-            this.$set(factorItem, "gene_set_description", outDescs.join(" | "));
-            this.$set(factorItem, "gene_set_program", outProgs.join(" | "));
-        },
-
-        /**
-         * LLM: up to 5 gene sets per factor from the current candidate lists (research context). items: { phenotype, factorItem }[].
-         */
-        async narrowGeneSetsForFactorItems(items) {
-            const list = Array.isArray(items) ? items.filter((x) => x && x.factorItem && x.phenotype != null) : [];
-            if (!list.length) return;
-
-            const researchContext =
-                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-
-            const factorsPayload = [];
-            const dataKeys = Object.keys(this.factorData || {});
-            for (const { phenotype, factorItem } of list) {
-                const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(factorItem);
-                if (!ids.length) continue;
-                factorsPayload.push({
-                    phenotype: String(phenotype),
-                    factor_id: String(factorItem.factor),
-                    label: factorItem.label != null ? String(factorItem.label) : String(factorItem.factor),
-                    gene_set_candidates: ids.map((id, i) => ({
-                        gene_set: id,
-                        description: descs[i] || "",
-                        program: progs[i] || "",
-                    })),
-                });
-            }
-            if (!factorsPayload.length) return;
-
-            const needsLlm = factorsPayload.some((f) => (f.gene_set_candidates || []).length > 5);
-            if (!needsLlm) return;
-
-            const userPrompt = `**Research Context:**\n${researchContext || "(none)"}\n\n**Factors and candidate gene sets (choose up to 5 gene sets per factor most relevant to the research context):**\n${JSON.stringify(factorsPayload, null, 2)}\n\nFor each factor (phenotype + factor_id), select up to 5 gene_set values from that factor's gene_set_candidates. You are NOT required to return 5. Return fewer than 5 if only some are clearly relevant (ideally 1–5 when relevant candidates exist). Use description and program to judge relevance. Copy gene_set strings exactly as given.\n\nReturn ONLY JSON: { "selections": [ { "phenotype": "<exact from input>", "factor_id": "<exact from input>", "gene_sets": ["id1", ...] } ] } with one entry per factor in the input. Order gene_sets by relevance (most relevant first). No markdown or preamble.`;
-
-            const selections = await new Promise((resolve) => {
-                this.llmGeneSetPick.sendPrompt({
-                    userPrompt,
-                    onResponse: (response) => {
-                        const json = this.parseLLMResponse(response);
-                        const arr = json && Array.isArray(json.selections) ? json.selections : [];
-                        resolve(arr);
-                    },
-                    onError: (err) => {
-                        console.warn("FactorBaseReveal: gene set pick LLM error", err);
-                        resolve(null);
-                    },
-                    onEnd: () => {},
-                });
-            });
-
-            const applyFallbackBeta5 = () => {
-                for (const { factorItem } of list) {
-                    const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(factorItem);
-                    if (ids.length > 5) {
-                        this.applyNarrowedGeneSetsToFactorItem(factorItem, ids.slice(0, 5), ids, descs, progs);
-                    }
-                }
-            };
-
-            if (!selections || !selections.length) {
-                console.warn("FactorBaseReveal: gene set pick returned no selections; using top 5 by beta per factor.");
-                applyFallbackBeta5();
-                return;
-            }
-
-            const byKey = new Map();
-            selections.forEach((sel) => {
-                const p = sel && sel.phenotype != null ? String(sel.phenotype).trim() : "";
-                const fid = sel && sel.factor_id != null ? String(sel.factor_id).trim() : "";
-                if (!p || !fid) return;
-                const gs = Array.isArray(sel.gene_sets) ? sel.gene_sets.map((x) => String(x).trim()).filter(Boolean) : [];
-                byKey.set(`${p}\0${fid}`, gs);
-            });
-
-            for (const { phenotype, factorItem } of list) {
-                const { ids, descs, progs } = this.splitGeneSetFieldsFromFactorItem(factorItem);
-                if (!ids.length) continue;
-                const dataKey = this.resolveLlmPhenotypeToFactorDataKey(phenotype, dataKeys) || String(phenotype);
-                const picked =
-                    byKey.get(`${String(phenotype)}\0${String(factorItem.factor)}`) ||
-                    byKey.get(`${dataKey}\0${String(factorItem.factor)}`);
-                if (picked != null && picked.length) {
-                    this.applyNarrowedGeneSetsToFactorItem(factorItem, picked, ids, descs, progs);
-                } else if (ids.length > 5) {
-                    this.applyNarrowedGeneSetsToFactorItem(factorItem, ids.slice(0, 5), ids, descs, progs);
-                }
-            }
-        },
-
-        /** Narrow gene sets for every factor under the given phenotype keys (after context filtering). */
-        async narrowGeneSetsPerFactorWithLlm(phenotypes) {
-            const items = [];
-            for (const phenotype of phenotypes || []) {
-                const factors = (this.factorData[phenotype] && this.factorData[phenotype].factors) || [];
-                for (const factorItem of factors) {
-                    items.push({ phenotype, factorItem });
-                }
-            }
-            await this.narrowGeneSetsForFactorItems(items);
-        },
-
-        /**
-         * Fetch gene sets for a (phenotype, factor) via phenotypeGeneSetFactor API. Used on both phenotype and association paths.
-         * Filters out gene_set_program === 'none'; keeps top 10 by beta_uncorrected (highest first).
-         * A later LLM step may further narrow to up to 5 per factor.
-         * @param {string} phenotype
-         * @param {string} factor
-         * @returns {Promise<{ top_gene_sets: string, gene_set_description: string }>}
-         */
-        async fetchGeneSetsForPhenotypeFactor(phenotype, factor) {
-            const out = { top_gene_sets: "", gene_set_description: "", gene_set_program: "" };
-            try {
-                //get gene sets for phenotype/factor assoc.
-                const raw = await this.querySearchApi("phenotypeGeneSetFactor", { phenotype, factor });
-                const rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.data) ? raw.data : []);
-                //filter out gene sets with "None" as program (MsigDB; mouse)
-                const filtered = rows.filter((row) => {
-                    const program = row.gene_set_program;
-                    if (program == null) return true;
-                    if (String(program).trim().toLowerCase() === "none") return false;
-                    return true;
-                });
-                //sort desc. by beta uncorrected
-                const withBeta = filtered.map((r) => {
-                    const b = r.beta_uncorrected;
-                    const num = b != null && b !== "" && !isNaN(Number(b)) ? Number(b) : null;
-                    return { ...r, _beta: num };
-                }).sort((a, b) => (b._beta ?? -1) - (a._beta ?? -1));
-                const maxGeneSetsForLlmFiltering = 10;
-                const selected = withBeta.slice(0, maxGeneSetsForLlmFiltering);
-
-                const names = selected.map((r) => (r.gene_set != null ? String(r.gene_set).trim() : "")).filter(Boolean);
-                const descs = selected.map((r) => (r.gene_set_description != null ? String(r.gene_set_description).trim() : "")).filter(Boolean);
-                const programs = selected.map((r) => (r.gene_set_program != null ? String(r.gene_set_program).trim() : "")).filter(Boolean);
-                out.top_gene_sets = names.join(";");
-                out.gene_set_description = descs.join(" | ");
-                out.gene_set_program = programs.join(" | ");
-            } catch (err) {
-                console.warn(`FactorBaseReveal: phenotypeGeneSetFactor failed for ${phenotype}/${factor}`, err);
-            }
-            return out;
-        },
-
-        /**
-         * Normalize response from the factor API (pigean-factor).
-         * Preserves only factor, label, top_gene_sets. (genes/geneSets live on factorData[phenotype].)
-         * @param {Object} rawResponse - Raw API response (e.g. { data: [...] }).
-         * @returns {Array} - Normalized list of factor records for use in the component.
-         */
-        normalizeFactorData(rawResponse) {
-            const rows = rawResponse && Array.isArray(rawResponse.data) ? rawResponse.data : [];
-            return rows.map((row) => ({
-                factor: row.factor,
-                label: row.label,
-                top_gene_sets: row.top_gene_sets,
-                genes: {},
-                geneSets: {},
-            }));
-        },
     },
 });
 </script>
@@ -5958,85 +3856,4 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
     color: #383d41;
 }
 
-/* Fixed toast while incremental mechanism hypotheses still run (top-right avoids page footer clipping) */
-.mechanism-hypothesis-stream-bubble {
-    position: fixed;
-    top: max(24px, env(safe-area-inset-top, 0px));
-    right: max(24px, env(safe-area-inset-right, 0px));
-    z-index: 10050;
-    max-width: min(360px, calc(100vw - 32px));
-    pointer-events: none;
-}
-.mechanism-hypothesis-stream-bubble__inner {
-    background: #ff6600;
-    color: #fff;
-    padding: 14px 18px 16px;
-    border-radius: 18px;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-.mechanism-hypothesis-stream-bubble__title-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-.mechanism-hypothesis-stream-bubble__pulse {
-    flex-shrink: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-    animation: mechanism-stream-pulse 1.4s ease-out infinite;
-}
-@keyframes mechanism-stream-pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55);
-    }
-    70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-    }
-}
-.mechanism-hypothesis-stream-bubble__title {
-    font-weight: 700;
-    font-size: 1.05rem;
-    line-height: 1.25;
-    letter-spacing: 0.01em;
-}
-.mechanism-hypothesis-stream-bubble__text {
-    margin: 0 0 10px;
-    font-size: 0.9rem;
-    line-height: 1.45;
-    opacity: 0.98;
-}
-.mechanism-hypothesis-stream-bubble__current {
-    font-size: 0.88rem;
-    line-height: 1.4;
-    padding-top: 4px;
-    border-top: 1px solid rgba(255, 255, 255, 0.35);
-}
-.mechanism-hypothesis-stream-bubble__current-label {
-    opacity: 0.85;
-    margin-right: 6px;
-}
-.mechanism-hypothesis-stream-bubble__progress {
-    margin-top: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    opacity: 0.95;
-    letter-spacing: 0.02em;
-}
-.mechanism-hypothesis-stream-bubble__elapsed {
-    margin-top: 8px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    opacity: 0.92;
-    letter-spacing: 0.03em;
-}
 </style>
