@@ -12,6 +12,76 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2">
+                    <div class="query-guidelines-panel border rounded bg-light">
+                        <button
+                            type="button"
+                            class="query-guidelines-toggle btn btn-link text-left w-100 d-flex justify-content-between align-items-center text-decoration-none"
+                            :aria-expanded="queryGuidelinesExpanded ? 'true' : 'false'"
+                            aria-controls="query-guidelines-content"
+                            id="query-guidelines-label"
+                            @click="queryGuidelinesExpanded = !queryGuidelinesExpanded"
+                        >
+                            <span class="font-weight-bold text-dark">How to build your query</span>
+                            <span class="small text-muted ml-2">{{ queryGuidelinesExpanded ? "Hide" : "Show" }}</span>
+                        </button>
+                        <div
+                            v-show="queryGuidelinesExpanded"
+                            id="query-guidelines-content"
+                            role="region"
+                            aria-labelledby="query-guidelines-label"
+                            class="query-guidelines-content px-3 pb-3 small text-secondary border-top"
+                        >
+                            <h5 class="text-dark font-weight-bold mt-3 mb-3">Best Practices for Structuring Search Queries</h5>
+                            <p class="mb-3">
+                                To maximize the precision of the Discovery Engine and retrieve highly specific, actionable biological mechanisms, structure your query around the principles below. The hybrid search combines exact-match (lexical) and conceptual (semantic) parsing; clearer queries yield higher-fidelity results.
+                            </p>
+
+                            <h6 class="text-dark font-weight-bold mt-3 mb-2">1. Specify the Molecular Entity or Class (Lexical Precision)</h6>
+                            <p class="mb-2">
+                                Avoid overly broad processes (e.g., &quot;metabolism,&quot; &quot;glycosylation,&quot; &quot;inflammation&quot;). Name the class of actor, enzyme, or molecular family you care about so the engine has a strong lexical hook for specific gene sets.
+                            </p>
+                            <ul class="mb-3 pl-3">
+                                <li><em>Suboptimal:</em> &quot;Find a glycosylation mechanism…&quot;</li>
+                                <li><em>Optimal:</em> &quot;Find a protein galactosylation enzyme…&quot; or &quot;Find a specific kinase…&quot;</li>
+                            </ul>
+
+                            <h6 class="text-dark font-weight-bold mt-3 mb-2">2. Define the Anatomical or Cellular Context (Spatial Anchoring)</h6>
+                            <p class="mb-2">
+                                Mechanisms are localized. State tissue, cell type, or subcellular compartment to avoid generic systemic hits and keep results tied to your area of interest.
+                            </p>
+                            <ul class="mb-3 pl-3">
+                                <li><em>Suboptimal:</em> &quot;Find a mechanism for metabolite handling.&quot;</li>
+                                <li><em>Optimal:</em> &quot;Find a mechanism for metabolite handling in the renal proximal tubule.&quot;</li>
+                            </ul>
+
+                            <h6 class="text-dark font-weight-bold mt-3 mb-2">3. Limit the Phenotypic Scope (Avoid &quot;Gravity Wells&quot;)</h6>
+                            <p class="mb-2">
+                                Many broad diseases in one query dilutes the search vector and pulls in generic disease genes. Prefer one or two specific traits, biomarkers, or intermediate phenotypes.
+                            </p>
+                            <ul class="mb-3 pl-3">
+                                <li><em>Suboptimal:</em> &quot;Find a mechanism that drives blood clotting and heart disease.&quot;</li>
+                                <li><em>Optimal:</em> &quot;Find a mechanism that alters the hepatic secretion of LDL cholesterol and fibrinogen.&quot;</li>
+                            </ul>
+
+                            <h6 class="text-dark font-weight-bold mt-3 mb-2">4. Utilize Relational Syntax (Semantic Bridging)</h6>
+                            <p class="mb-2">
+                                Connect mechanism to outcome explicitly. Suggested template:
+                            </p>
+                            <p class="mb-2 font-weight-bold text-dark">
+                                &quot;Find a [Molecular Class/Mechanism] in [Cell/Tissue Type] that regulates [Specific Biomarker/Phenotype].&quot;
+                            </p>
+                            <p class="mb-1 font-weight-bold text-dark small">Example of a fully optimized query:</p>
+                            <blockquote class="query-guidelines-example mb-3 pl-3 border-left">
+                                <em>&quot;Find a protein galactosylation enzyme in hepatocytes that regulates the secretion and receptor-mediated clearance of LDL cholesterol.&quot;</em>
+                            </blockquote>
+
+                            <p class="mb-0 pt-2 border-top">
+                                <strong class="text-dark">Why this matters:</strong>
+                                Following these guidelines helps the system move past broad, canonical answers and use deep search to surface more specific, pathway- and context-aware findings.
+                            </p>
+                        </div>
+                    </div>
+
                     <div class="d-flex align-items-baseline justify-content-between">
                         <!--
                         <label class="font-weight-bold text-secondary mb-0">Describe what you're researching or curious about:</label>
@@ -197,7 +267,11 @@
                                         </span>
                                     </div>
                                     <div v-if="step.expanded" class="sub-status" style="display:flex; flex-direction: column;">
-                                        <div v-for="(substep, ii) in step.substeps" style="padding:0 0 0 18px">
+                                        <div
+                                            v-for="(substep, ii) in step.substeps"
+                                            :key="(substep && substep.id != null ? substep.id : ii) + '-' + ii"
+                                            style="padding:0 0 0 18px"
+                                        >
                                             <div @click="toggleStep(i, ii)" style="cursor: pointer;">
                                                 <span v-if="substep.result">{{ substep.expanded ? "▼" : "▶" }} </span>
                                                 {{ substep.title }}
@@ -223,8 +297,30 @@
                                                             <span>{{ row.item.type }}</span>
                                                         </template>
                                                         <template #cell(term)="row">
+                                                            <div
+                                                                v-if="row.item.type === 'Alternative queries'"
+                                                                class="d-flex flex-column gap-2"
+                                                            >
+                                                                <div
+                                                                    v-if="Array.isArray(row.item.options) && row.item.options.length"
+                                                                    class="d-flex flex-wrap gap-2"
+                                                                >
+                                                                    <button
+                                                                        v-for="(opt, idx) in row.item.options"
+                                                                        :key="`alt-query-${idx}-${opt}`"
+                                                                        type="button"
+                                                                        class="btn btn-outline-secondary btn-sm text-left"
+                                                                        style="white-space: normal;"
+                                                                        :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                                        @click="onAlternativeQuerySelected(opt)"
+                                                                    >
+                                                                        {{ opt }}
+                                                                    </button>
+                                                                </div>
+                                                                <span v-else class="text-muted">(none suggested)</span>
+                                                            </div>
                                                             <textarea
-                                                                v-if="row.item.type === 'Research context'"
+                                                                v-else-if="row.item.type === 'Research context'"
                                                                 class="form-control form-control-sm"
                                                                 v-model="row.item.term"
                                                                 rows="4"
@@ -256,7 +352,7 @@
                                                             Reset
                                                         </button>
                                                         <button class="btn btn-cfde btn-sm" @click="approveStepGate">
-                                                            Continue
+                                                            Continue with current query
                                                         </button>
                                                     </div>
                                                 </div>
@@ -287,6 +383,16 @@
 
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
                             <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
+                            <div
+                                v-if="hybridSearchMetaSummaryLines.length"
+                                class="alert alert-light border small mb-3"
+                                role="status"
+                            >
+                                <div class="font-weight-bold text-dark mb-1">Hybrid retrieval</div>
+                                <ul class="mb-0 pl-3 text-secondary">
+                                    <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
+                                </ul>
+                            </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
                                 <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
@@ -457,6 +563,7 @@
                                                                     :items="getGenesForFactor(row.phenotype, row.factor)"
                                                                     :fields="[
                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                        { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
                                                                         { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                         { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
@@ -610,6 +717,7 @@
                                                             :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
                                                             :fields="[
                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
                                                                 { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                 { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
@@ -947,6 +1055,7 @@
                                                                                     :items="getGenesForFactor(row.phenotype, row.factor)"
                                                                                     :fields="[
                                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                                        { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
                                                                                         { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                                         { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
@@ -1088,6 +1197,7 @@
                                                                             :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
                                                                             :fields="[
                                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
+                                                                                { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
                                                                                 { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                                 { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
@@ -1202,6 +1312,8 @@ export default Vue.component("factor-base-reveal", {
             userQuery: "",
             searchMode: "auto",
             display_examples: false,
+            /** Collapsed by default; expands query-building documentation above the search box. */
+            queryGuidelinesExpanded: false,
             exampleQueries: [
                 "What novel genes might be candidates for rare congenital myopathies",
                 "I'm looking to find mechanisms that underlie body mass index in humans",
@@ -1213,6 +1325,11 @@ export default Vue.component("factor-base-reveal", {
             prev_search_criteria: null,
             searchCriteriaEditRows: [],
             searchCriteriaEditRowsDefault: [],
+            lastAlternativeQueries: [],
+            /** Gene symbols from LLM extraction (and gate edits), forwarded to hybrid-search as genes_of_interest. */
+            lastGenesOfInterest: [],
+            /** Latest hybrid-search response meta (lexical fusion, genes-of-interest resolution). */
+            lastHybridSearchMeta: {},
             /** After user continues past step-1 review, keep extracted-terms table available when re-expanding the substep. */
             searchCriteriaExtractionGateDone: false,
             loading_search_criteria: false,
@@ -1273,6 +1390,20 @@ export default Vue.component("factor-base-reveal", {
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
 
+            /** Reveal hybrid-search API (dev default; override via VUE_APP_REVEAL_HYBRID_BASE_URL if set). */
+            hybridSearchBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
+                ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
+                : "http://127.0.0.1:8000",
+            /** When false, omit query_embedding; backend embeds (ALLOW_SERVER_SIDE_EMBEDDING). When true, FE must call Ollama and send query_embedding. */
+            hybridSearchUseClientEmbedding: (typeof process !== "undefined" && process.env && process.env.VUE_APP_HYBRID_CLIENT_EMBEDDING === "true"),
+            /** POST timeout for hybrid search (ms); server may run DB + Ollama. */
+            hybridSearchTimeoutMs: 120000,
+            ollamaEmbedUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_OLLAMA_EMBED_URL)
+                ? String(process.env.VUE_APP_OLLAMA_EMBED_URL)
+                : "http://127.0.0.1:11434/api/embed",
+            hybridEmbedModel: "mxbai-embed-large",
+            hybridEmbedExpectedDim: 1024,
+
             all_supporting_network: null,
             gene_set_sources: {},
 
@@ -1285,46 +1416,70 @@ export default Vue.component("factor-base-reveal", {
 
             showTab: 'process',
 
-extractSystemPropmpt: `### Task
-Deconstruct biological research queries into structured keywords for high-precision semantic search. Focus on mapping user input to canonical scientific nomenclature, providing broad search variations, and strictly balancing term counts to prevent semantic vector dilution.
+extractSystemPrompt:`You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with five fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (comma-separated string), "research_context" (string), and "suggested_queries" (array of strings). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
 
-### JSON Schema
-Return ONLY a JSON object:
+CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
+1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
+2. Broad Disease Queries: ONLY populate the "phenotype_terms" array if the user is asking a purely generic, broad question about a disease or trait (e.g., "Find genes for Type 2 Diabetes") with no specific mechanism attached.
+
+INSTRUCTIONS FOR "genes_of_interest":
+Extract specific, explicit gene or protein symbols mentioned by the user (e.g., TRAP1, CNDP2, SIRT1, PCSK9). Output this as an array of strings formatted exactly as mentioned (e.g., ["TRAP1", "SIRT1"]). Do NOT put metabolites (e.g., lactate), broad protein classes (e.g., kinases), or pathways in this list. If no specific genes are explicitly mentioned in the query, leave the array EMPTY [].
+
+INSTRUCTIONS FOR "mechanism_terms":
+Extract the core biological mechanisms, specific metabolites, or molecular targets EXPLICITLY mentioned in the query. DO NOT over-expand the list with downstream pathways, unmentioned gene families, or tangentially related biological processes (e.g., if the user asks about TRAP1, do not list every senescence pathway). Distill the user's intent into a STRICT MAXIMUM of 3 to 5 highly precise, comma-separated search terms to ensure targeted exact-matching. 
+
+INSTRUCTIONS FOR "research_context":
+Write a clear, 1-2 sentence summary of the biological investigation including both the mechanisms and diseases.
+
+INSTRUCTIONS FOR "suggested_queries":
+Generate 2 to 3 highly specific, optimized alternative search queries based on the user's original intent. These suggestions should help guide the user toward better discovery. A perfect query follows these rules:
+- Names a specific molecular class (e.g., kinase, transferase, receptor).
+- Anchors the anatomy (e.g., liver, proximal tubule, skeletal muscle).
+- Limits the phenotype to a specific clinical trait or biomarker.
+- Uses relational syntax: "Find a [Mechanism] in [Tissue] that regulates [Phenotype]."
+
+OUT OF DOMAIN INSTRUCTION:
+If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, and suggested_queries; use empty strings for mechanism_terms and research_context.
+
+EXAMPLES:
+
+User: "Find how TRAP1 dysfunction in vascular smooth muscle cells alters oxidative phosphorylation to promote atherosclerosis."
+Output:
 {
-  "phenotype_terms": ["List of formal clinical diagnoses, PLUS broad root keywords and common variations to maximize database text-matching. Max 6."],
-  "mechanism_terms": ["Expanded list of biological processes, biochemical pathways, cell types, or localized anatomies. Max 6."],
-  "search_type": "phenotypes | mechanisms | both",
-  "research_context": "A concise (10-20 word) synthesis of the research intent, explicitly stating the target organ, tissue, or cell type."
-}
-
-### Extraction Logic & Constraints
-1. **Phenotype Keyword Expansion (CRITICAL)**: Because 'phenotype_terms' are used for strict database text-matching, provide variations. Break compound traits into root words. 
-   - *Example:* "waist-to-hip ratio" -> ["waist-to-hip ratio", "waist", "hip", "waist-hip", "adiposity"].
-2. **Mechanism Keyword Expansion & Vector Balancing (CRITICAL)**: Expand cellular processes and anatomical terms into their deeper biochemical components and specific cell-types. 
-   - *Example:* "senescence" -> ["cellular senescence", "cell cycle arrest", "senescence-associated secretory phenotype", "SASP", "oxidative stress"].
-   - *Example:* "vascular smooth muscle" -> ["vascular smooth muscle cells", "VSMC", "myofibroblast-like phenotype", "arterial intima"].
-3. **Semantic Parity (The Golden Rule)**: Never let the number of 'phenotype_terms' drastically outnumber 'mechanism_terms'. If you generate 5 phenotypes, you MUST generate at least 4-5 mechanism terms to ensure the mathematical vector heavily prioritizes the specific biology over the generic disease.
-4. **Canonicalization & Formalization**: Upgrade colloquial biological terms to formal equivalents (e.g., "fat" to "adipose tissue", "BBB" to "blood-brain barrier").
-5. **Anatomical Anchoring**: If a target organ/tissue is mentioned, explicitly include that precise anatomical context in the 'research_context' string.
-6. **Null Safety**: If a query contains only a phenotype or only a mechanism, the other list MUST be empty [].
-7. **Exclusions**: Omit broad stop-words like "study", "data", "mouse", "mechanisms", or software names.
-
-### Example 1 (Mechanism Only)
-Input: "Find an endothelial glycocalyx / O-glycosylation mechanism linked to BBB maintenance."
-Output: {
   "phenotype_terms": [],
-  "mechanism_terms": ["endothelial glycocalyx", "O-linked glycosylation", "blood-brain barrier maintenance", "tight junctions", "cerebral endothelium"],
-  "search_type": "mechanisms",
-  "research_context": "Investigating how the endothelial glycocalyx and O-linked glycosylation regulate cerebral endothelium and blood-brain barrier integrity."
+  "genes_of_interest": ["TRAP1"],
+  "mechanism_terms": "oxidative phosphorylation, mitochondrial dysfunction, metabolic reprogramming",
+  "research_context": "Investigating how TRAP1 mitochondrial chaperone loss or dysfunction alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
+  "suggested_queries": [
+    "Find a TRAP1 chaperone mechanism in vascular smooth muscle cells that alters mitochondrial respiration and drives plaque progression.",
+    "Find a mitochondrial electron transport chain dysfunction mechanism in arterial smooth muscle cells linked to atherosclerosis."
+  ]
 }
 
-### Example 2 (Both with Expansion and Parity)
-Input: "Find a vascular smooth-muscle senescence mechanism linked to atherosclerosis."
-Output: {
-  "phenotype_terms": ["atherosclerosis", "atherosclerotic plaque", "coronary artery disease", "atheroma"],
-  "mechanism_terms": ["vascular smooth muscle cell senescence", "VSMC", "cellular senescence", "senescence-associated secretory phenotype", "SASP", "arterial wall remodeling"],
-  "search_type": "both",
-  "research_context": "Investigating how vascular smooth muscle cell senescence in the arterial wall contributes to atherosclerotic plaque development."
+User: "Find a microbiome-metabolite mechanism linking host signaling to insulin resistance."
+Output:
+{
+  "phenotype_terms": [],
+  "genes_of_interest": [],
+  "mechanism_terms": "gut microbiota-derived metabolites, short-chain fatty acids (SCFAs), microbial metabolite receptors",
+  "research_context": "Investigating how gut microbiome-derived metabolites modulate host signaling pathways to influence insulin resistance and Type 2 Diabetes.",
+  "suggested_queries": [
+    "Find a short-chain fatty acid receptor mechanism in the intestinal epithelium that alters systemic insulin sensitivity.",
+    "Find a secondary bile acid signaling mechanism in hepatocytes linked to glucose tolerance."
+  ]
+}
+
+User: "What are the genes for early-onset Alzheimer's disease?"
+Output:
+{
+  "phenotype_terms": ["Alzheimer's disease", "early-onset Alzheimer's", "dementia", "neurodegeneration"],
+  "genes_of_interest": [],
+  "mechanism_terms": "",
+  "research_context": "Investigating the primary genetic drivers and risk factors associated with early-onset Alzheimer's disease.",
+  "suggested_queries": [
+    "Find a microglial phagocytosis mechanism in the cortex linked to amyloid-beta clearance.",
+    "Find a lipid transport mechanism in astrocytes associated with early-onset neurodegeneration."
+  ]
 }`,
 
 mechanismHypothesisSystemPrompt: `
@@ -1373,6 +1528,18 @@ The \`hypotheses\` array MUST contain at least one element.
 - **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes; otherwise as many as are strongly supported.
 - **Sorting:** Order \`genes\` by impact (higher combined_score first when inferable from context).
+
+CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
+You have been provided a list of candidate genes retrieved from the database. Because broad phenotypes (like "LDL" or "Diabetes") have massive statistical weight, the top retrieved genes are often canonical, generic disease drivers. 
+
+Your job is to act as a strict semantic filter. You must cross-reference every retrieved gene against the user's requested "mechanism_terms". 
+
+1. MECHANISTIC PRIORITIZATION: You must elevate and highlight any gene in the retrieved list that directly executes the requested biochemical mechanism (e.g., if the user asked for a "transferase", prioritize transferase genes, even if they are ranked lower in the raw data).
+2. CANONICAL SEGREGATION: You must explicitly separate generic disease genes from the novel mechanistic targets. 
+
+When formatting your candidate gene list, structure it into two distinct categories:
+- "Primary Mechanistic Candidates": Genes that directly execute or mediate the requested mechanism.
+- "Supporting Canonical Network": Highly ranked generic genes (like LDLR for cholesterol, or INS for diabetes) that provide the downstream phenotypic context, but are NOT the mechanism themselves.
 `,
         };
     },
@@ -1572,12 +1739,34 @@ The \`hypotheses\` array MUST contain at least one element.
             const remKeys = new Set((this.remainingGeneSetClusterRows || []).map((r) => this.getRowKey(r)));
             return (this.factorDataTableRowsWithRationaleMeta || []).filter((r) => remKeys.has(this.getRowKey(r)));
         },
+        /** Human-readable lines for hybrid-search meta (fusion, genes of interest resolution). */
+        hybridSearchMetaSummaryLines() {
+            const m = this.lastHybridSearchMeta || {};
+            const lines = [];
+            if (m.lexical_fusion_used === true) {
+                lines.push("Lexical fusion was used (dense retrieval + Postgres full-text search, merged with RRF).");
+            }
+            if (Array.isArray(m.genes_of_interest_requested) && m.genes_of_interest_requested.length) {
+                lines.push(`Genes of interest sent to the server: ${m.genes_of_interest_requested.join(", ")}.`);
+            }
+            if (Array.isArray(m.genes_of_interest_absent_from_db) && m.genes_of_interest_absent_from_db.length) {
+                lines.push(
+                    `No row in genes_to_factors for: ${m.genes_of_interest_absent_from_db.join(", ")} (cannot be fabricated).`
+                );
+            }
+            if (Array.isArray(m.genes_of_interest_missing_from_response) && m.genes_of_interest_missing_from_response.length) {
+                lines.push(
+                    `Not present on any factor gene list after merge: ${m.genes_of_interest_missing_from_response.join(", ")} (e.g. factor budget or data gaps).`
+                );
+            }
+            return lines;
+        },
     },
     created() {
         this.llmExtract = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
-            system_prompt: this.extractSystemPropmpt
+            system_prompt: this.extractSystemPrompt
         });
 
         this.llmAnalyze = createLLMClient({
@@ -1999,6 +2188,8 @@ The \`hypotheses\` array MUST contain at least one element.
         buildSearchCriteriaEditRows() {
             const phen = Array.isArray(this.lastPhenotypeTerms) ? this.lastPhenotypeTerms : [];
             const mech = Array.isArray(this.lastMechanismTerms) ? this.lastMechanismTerms : [];
+            const goi = Array.isArray(this.lastGenesOfInterest) ? this.lastGenesOfInterest : [];
+            const alternatives = Array.isArray(this.lastAlternativeQueries) ? this.lastAlternativeQueries : [];
             const researchContext =
                 this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
                     ? String(this.searchCriteria[1].values)
@@ -2006,7 +2197,9 @@ The \`hypotheses\` array MUST contain at least one element.
             this.searchCriteriaEditRows = [
                 { type: "Phenotype terms", term: phen.join(", ") },
                 { type: "Mechanism terms", term: mech.join(", ") },
+                { type: "Genes of interest", term: goi.join(", ") },
                 { type: "Research context", term: researchContext },
+                { type: "Alternative queries", term: "", options: alternatives },
             ];
             this.searchCriteriaEditRowsDefault = JSON.parse(JSON.stringify(this.searchCriteriaEditRows));
         },
@@ -2017,7 +2210,9 @@ The \`hypotheses\` array MUST contain at least one element.
             const rows = Array.isArray(this.searchCriteriaEditRows) ? this.searchCriteriaEditRows : [];
             const phenotypeRow = rows.find((r) => r && r.type === "Phenotype terms");
             const mechanismRow = rows.find((r) => r && r.type === "Mechanism terms");
+            const goiRow = rows.find((r) => r && r.type === "Genes of interest");
             const contextRow = rows.find((r) => r && r.type === "Research context");
+            const alternativeRow = rows.find((r) => r && r.type === "Alternative queries");
             const phenotypeTerms = String((phenotypeRow && phenotypeRow.term) || "")
                 .split(",")
                 .map((s) => s.trim())
@@ -2026,10 +2221,18 @@ The \`hypotheses\` array MUST contain at least one element.
                 .split(",")
                 .map((s) => s.trim())
                 .filter(Boolean);
+            const genesOfInterest = String((goiRow && goiRow.term) || "")
+                .split(/[,;\n]/)
+                .map((s) => s.trim())
+                .filter(Boolean);
             const researchContext = contextRow ? String(contextRow.term || "").trim() : "";
 
             this.lastPhenotypeTerms = phenotypeTerms;
             this.lastMechanismTerms = mechanismTerms;
+            this.lastGenesOfInterest = genesOfInterest;
+            this.lastAlternativeQueries = Array.isArray(alternativeRow && alternativeRow.options)
+                ? alternativeRow.options
+                : [];
             const searchTerms = [...phenotypeTerms, ...mechanismTerms];
             this.searchTerm = searchTerms.join(", ");
             this.searchCriteria = [
@@ -2048,6 +2251,38 @@ The \`hypotheses\` array MUST contain at least one element.
                         "This context will be used to tailor mechanistic hypotheses to your research.",
                 },
             ];
+        },
+        normalizeAlternativeQueries(raw) {
+            if (raw == null) return [];
+            if (Array.isArray(raw)) {
+                return raw
+                    .map((q) => String(q || "").trim())
+                    .filter(Boolean);
+            }
+            const s = String(raw).trim();
+            if (!s) return [];
+            return s
+                .split(/\n|;/)
+                .map((q) => q.replace(/^\d+[\).\s-]+/, "").trim())
+                .filter(Boolean);
+        },
+        onAlternativeQuerySelected(query) {
+            const nextQuery = String(query || "").trim();
+            if (!nextQuery) return;
+            this.userQuery = nextQuery;
+            if (this.stepApprovalGateActive && this.stepApprovalGateStepId === "1") {
+                this.cancelStepGate(false);
+            }
+            this.queryParse();
+        },
+        cancelStepGate(approved = false) {
+            const resolver = this.stepApprovalGateResolver;
+            this.stepApprovalGateActive = false;
+            this.stepApprovalGateStepId = "";
+            this.stepApprovalGateMessage = "";
+            this.stepApprovalGateResolver = null;
+            this.resumeStepsElapsedAfterReview();
+            if (typeof resolver === "function") resolver(!!approved);
         },
         isPairIncluded(row) {
             const key = this.getRowKey(row);
@@ -2123,11 +2358,6 @@ The \`hypotheses\` array MUST contain at least one element.
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
             }
-            const resolver = this.stepApprovalGateResolver;
-            this.stepApprovalGateActive = false;
-            this.stepApprovalGateStepId = "";
-            this.stepApprovalGateMessage = "";
-            this.stepApprovalGateResolver = null;
             const stepIdx = this.steps.findIndex((s) => s && s.id === gateStepId);
             if (stepIdx !== -1) {
                 this.$set(this.steps[stepIdx], "expanded", false);
@@ -2136,9 +2366,8 @@ The \`hypotheses\` array MUST contain at least one element.
                     this.$set(this.steps[stepIdx].substeps[subIdx], "expanded", false);
                 });
             }
-            this.resumeStepsElapsedAfterReview();
+            this.cancelStepGate(true);
             this.setLoadStatus("Continuing workflow…");
-            if (typeof resolver === "function") resolver();
         },
         toggleStep(i, ii=null){
             if(ii !== null){
@@ -2406,21 +2635,42 @@ The \`hypotheses\` array MUST contain at least one element.
                 || allFactors.find((x) => x.factor === factor || String(x.factor) === String(factor));
             if (!f || !f.genes) return [];
             const globalGenes = pData.genes || {};
-            return Object.keys(f.genes).map((geneName) => {
+            const rows = Object.keys(f.genes).map((geneName) => {
                 const rel = f.genes[geneName];
                 const global = globalGenes[geneName] || {};
                 const rawVal = rel.factor_value ?? rel.factorRelevance;
                 const factorValue = rawVal != null && rawVal !== ""
                     ? (typeof rawVal === "number" && !isNaN(rawVal) ? Number(rawVal).toFixed(3) : String(rawVal))
                     : "—";
+                const numForSort = typeof rawVal === "number" && !isNaN(rawVal)
+                    ? rawVal
+                    : (rel.factorRelevance != null && !isNaN(Number(rel.factorRelevance))
+                        ? Number(rel.factorRelevance)
+                        : 0);
+                const pinned = rel.includedFromRequest === true;
                 return {
                     gene: geneName,
+                    userRequested: pinned ? "Yes" : "—",
                     factorRelevance: factorValue,
                     combined: global.combined != null ? Number(global.combined).toFixed(2) : "—",
                     gwasSupport: global.gwasSupport != null ? Number(global.gwasSupport).toFixed(2) : "—",
                     geneSetSupport: global.geneSetSupport != null ? Number(global.geneSetSupport).toFixed(2) : "—",
+                    _sortPin: pinned ? 1 : 0,
+                    _sortAbs: Math.abs(numForSort),
                 };
             });
+            rows.sort((a, b) => {
+                if (b._sortPin !== a._sortPin) return b._sortPin - a._sortPin;
+                return b._sortAbs - a._sortAbs;
+            });
+            return rows.map((r) => ({
+                gene: r.gene,
+                userRequested: r.userRequested,
+                factorRelevance: r.factorRelevance,
+                combined: r.combined,
+                gwasSupport: r.gwasSupport,
+                geneSetSupport: r.geneSetSupport,
+            }));
         },
         /**
          * Ensure row expansion state for a single (phenotype, factor) without extra API loading.
@@ -2466,14 +2716,16 @@ The \`hypotheses\` array MUST contain at least one element.
         },
         queryParse() {
             if (!this.userQuery || !this.userQuery.trim()) return;
+            if (this.stepApprovalGateActive) {
+                this.cancelStepGate(false);
+            }
             this.loadComplete = false;
             this.searchCriteria = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
-            this.stepApprovalGateActive = false;
-            this.stepApprovalGateStepId = "";
-            this.stepApprovalGateMessage = "";
-            this.stepApprovalGateResolver = null;
+            this.lastAlternativeQueries = [];
+            this.lastGenesOfInterest = [];
+            this.lastHybridSearchMeta = {};
             this.searchCriteriaEditRows = [];
             this.searchCriteriaEditRowsDefault = [];
             this.searchCriteriaExtractionGateDone = false;
@@ -2548,10 +2800,18 @@ The \`hypotheses\` array MUST contain at least one element.
             console.log('phenoptype terms', json.phenotype_terms)
             console.log('mechanism terms', json.mechanism_terms)
 
-            const searchTerms = [
-                ...(Array.isArray(json.phenotype_terms) ? json.phenotype_terms : []),
-                ...(Array.isArray(json.mechanism_terms) ? json.mechanism_terms : []),
-            ].filter(Boolean);
+            const phenotypeTerms = this.normalizeLlmTermList(json.phenotype_terms);
+            const mechanismTerms = this.normalizeLlmTermList(json.mechanism_terms);
+            const genesOfInterest = this.normalizeLlmTermList(json.genes_of_interest);
+            const alternativeQueries = this.normalizeAlternativeQueries(
+                json.suggested_queries != null
+                    ? json.suggested_queries
+                    : (json.alternative_queries != null
+                        ? json.alternative_queries
+                        : json.alternativeQueries)
+            );
+
+            const searchTerms = [...phenotypeTerms, ...mechanismTerms];
 
             const researchContext = typeof json.research_context === "string" ? json.research_context : "";
             
@@ -2573,12 +2833,11 @@ The \`hypotheses\` array MUST contain at least one element.
             ];
 
             this.searchTerm = searchTerms.join(", ");
-            
-            const phenotypeTerms = Array.isArray(json.phenotype_terms) ? json.phenotype_terms : [];
-            const mechanismTerms = Array.isArray(json.mechanism_terms) ? json.mechanism_terms : [];
 
             this.lastPhenotypeTerms = phenotypeTerms;
             this.lastMechanismTerms = mechanismTerms;
+            this.lastGenesOfInterest = genesOfInterest;
+            this.lastAlternativeQueries = alternativeQueries;
 
             this.setStep({
                 id: "1",
@@ -2589,25 +2848,24 @@ The \`hypotheses\` array MUST contain at least one element.
                         result: {
                             phenotypeTerms,
                             mechanismTerms,
-                            researchContext
+                            genesOfInterest,
+                            researchContext,
+                            alternativeQueries
                         }
                     }
                 }
             })
             this.buildSearchCriteriaEditRows();
 
-            await this.waitForStepApproval(
+            const approved = await this.waitForStepApproval(
                 "1",
                 "Review terms and continue when ready.",
                 true
             );
+            if (!approved) return;
 
             if (this.searchMode === "auto") {
-                if (mechanismTerms.length > 0) {
-                    this.onResearchPhenotypeFactorsOnly();
-                } else if (phenotypeTerms.length > 0) {
-                    this.onResearch(phenotypeTerms);
-                }
+                this.onResearch();
             }
         },
         onExtractError(err) {
@@ -2653,50 +2911,201 @@ The \`hypotheses\` array MUST contain at least one element.
             }
         },
         buildHybridQueryText({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
-            return [...(mechanismTerms || []), ...(phenotypeTerms || []), researchContext]
+            const skip = (s) => !s || s === "(none extracted)";
+            const parts = [...(mechanismTerms || []), ...(phenotypeTerms || []), researchContext]
                 .map((v) => String(v || "").trim())
-                .filter(Boolean)
-                .join("\n");
+                .filter((v) => !skip(v));
+            return parts.join("\n");
+        },
+        /**
+         * LLM may return null, a string (comma-separated), or an array for term fields.
+         */
+        normalizeLlmTermList(raw) {
+            if (raw == null) return [];
+            if (Array.isArray(raw)) {
+                return raw
+                    .map((t) => String(t || "").trim())
+                    .filter((t) => t && t !== "(none extracted)");
+            }
+            const s = String(raw).trim();
+            if (!s || s === "(none extracted)") return [];
+            return s
+                .split(/[,;]|\n/)
+                .map((x) => x.trim())
+                .filter(Boolean);
+        },
+        /**
+         * Backend requires non-empty phenotype_terms (hard filter). Derive from mechanisms, context, or the raw user query when the LLM left phenotypes empty.
+         */
+        resolveHybridPhenotypeFilterTerms(phenotypeTerms, mechanismTerms, researchContext) {
+            const NONE = "(none extracted)";
+            const trimmedP = (phenotypeTerms || [])
+                .map((t) => String(t || "").trim())
+                .filter((t) => t && t !== NONE);
+            if (trimmedP.length) return trimmedP;
+            const m = Array.isArray(mechanismTerms) ? mechanismTerms : [];
+            if (m.length) return [...m];
+            let ctx = researchContext != null ? String(researchContext).trim() : "";
+            if (ctx === NONE) ctx = "";
+            if (ctx.length) {
+                const first = ctx.split(/[.;\n]/)[0].trim();
+                if (first) return [first.slice(0, 256)];
+            }
+            const q = String(this.userQuery || "").trim();
+            if (q) return [q.slice(0, 256)];
+            return [];
+        },
+        /**
+         * Server rule: need query_embedding OR non-empty mechanism_terms OR non-whitespace research_context
+         * (phenotype_terms alone is not enough without embedding when server-side embedding is off).
+         */
+        prepareHybridSearchRequestFields(phenotypeTerms, mechanismTerms, researchContext, queryEmbedding) {
+            const NONE = "(none extracted)";
+            const phenotype_terms = (phenotypeTerms || [])
+                .map((t) => String(t || "").trim())
+                .filter((t) => t && t !== NONE);
+            let mechanism_terms = (mechanismTerms || [])
+                .map((t) => String(t || "").trim())
+                .filter((t) => t && t !== NONE);
+            let research_context = researchContext != null ? String(researchContext).trim() : "";
+            if (research_context === NONE) research_context = "";
+
+            const hasEmbedding = Array.isArray(queryEmbedding) && queryEmbedding.length > 0;
+            const hasMech = mechanism_terms.length > 0;
+            const hasContext = research_context.length > 0;
+            if (!hasEmbedding && !hasMech && !hasContext) {
+                research_context = `Phenotype-focused retrieval: ${phenotype_terms.join("; ")}.`;
+            }
+
+            return { phenotype_terms, mechanism_terms, research_context };
+        },
+        buildHybridSearchRequestBody(phenotypeTerms, mechanismTerms, researchContext, queryEmbedding, genesOfInterest = null) {
+            const useClient = !!this.hybridSearchUseClientEmbedding;
+            const fields = this.prepareHybridSearchRequestFields(
+                phenotypeTerms,
+                mechanismTerms,
+                researchContext,
+                useClient ? queryEmbedding : null
+            );
+            const body = {
+                phenotype_terms: fields.phenotype_terms,
+                mechanism_terms: fields.mechanism_terms,
+                research_context: fields.research_context,
+            };
+            const goi = this.normalizeLlmTermList(genesOfInterest != null ? genesOfInterest : this.lastGenesOfInterest);
+            if (goi.length) {
+                body.genes_of_interest = goi;
+            }
+            if (useClient && Array.isArray(queryEmbedding) && queryEmbedding.length > 0) {
+                body.query_embedding = queryEmbedding;
+            }
+            return body;
+        },
+        async fetchWithTimeout(url, options = {}, timeoutMs) {
+            const ms = timeoutMs != null ? timeoutMs : this.hybridSearchTimeoutMs;
+            const controller = new AbortController();
+            const tid = setTimeout(() => controller.abort(), ms);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(tid);
+            }
+        },
+        hybridSearchErrorMessage(status, json) {
+            if (json == null || typeof json !== "object") {
+                return `HTTP ${status}`;
+            }
+            if (typeof json.message === "string" && json.message.trim()) return json.message.trim();
+            if (typeof json.detail === "string" && json.detail.trim()) return json.detail.trim();
+            if (json.detail != null && typeof json.detail === "object") {
+                try {
+                    return JSON.stringify(json.detail);
+                } catch (e) {
+                    return String(json.detail);
+                }
+            }
+            if (typeof json.error === "string" && json.error.trim()) return json.error.trim();
+            try {
+                return JSON.stringify(json);
+            } catch (e) {
+                return `HTTP ${status}`;
+            }
         },
         async fetchHybridQueryEmbedding(queryText) {
             const text = String(queryText || "").trim();
-            if (!text) throw new Error("Hybrid search requires non-empty query text for embedding.");
-            const embResp = await fetch("http://127.0.0.1:11434/api/embed", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "mxbai-embed-large",
-                    input: text,
-                }),
-            });
+            if (!text) throw new Error("Client embedding requires non-empty query text for embedding.");
+            const embResp = await this.fetchWithTimeout(
+                this.ollamaEmbedUrl,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: this.hybridEmbedModel,
+                        input: text,
+                    }),
+                },
+                this.hybridSearchTimeoutMs
+            );
             const embJson = await embResp.json().catch(() => ({}));
             const embedding = embJson && Array.isArray(embJson.embeddings) ? embJson.embeddings[0] : null;
             if (!embResp.ok) {
                 throw new Error(`Embedding API failed: ${embResp.status} ${JSON.stringify(embJson)}`);
             }
-            if (!Array.isArray(embedding) || embedding.length !== 1024) {
-                throw new Error("Invalid embedding from Ollama: expected 1024 floats from mxbai-embed-large.");
+            const dim = this.hybridEmbedExpectedDim;
+            if (!Array.isArray(embedding) || embedding.length !== dim) {
+                throw new Error(`Invalid embedding from Ollama: expected ${dim} floats (${this.hybridEmbedModel}).`);
             }
             return embedding;
         },
-        async callHybridRevealSearch({ queryEmbedding, phenotypeTerms, mechanismTerms, researchContext }) {
-            const payload = {
-                query_embedding: queryEmbedding,
-                phenotype_terms: phenotypeTerms,
-                mechanism_terms: mechanismTerms,
-                research_context: researchContext,
-            };
-            const url = "http://127.0.0.1:8000/api/reveal/hybrid-search";
-            const resp = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            const json = await resp.json().catch(() => ({}));
-            if (!resp.ok || !json || json.status !== "success") {
-                throw new Error(`Hybrid search failed at ${url}: ${resp.status} ${JSON.stringify(json)}`);
+        async callHybridRevealSearch({ queryEmbedding, phenotypeTerms, mechanismTerms, researchContext, genesOfInterest }) {
+            const base = String(this.hybridSearchBaseUrl || "").replace(/\/$/, "");
+            const url = `${base}/api/reveal/hybrid-search`;
+            const body = this.buildHybridSearchRequestBody(
+                phenotypeTerms,
+                mechanismTerms,
+                researchContext,
+                queryEmbedding,
+                genesOfInterest
+            );
+            if (!body.phenotype_terms.length) {
+                throw new Error("422 phenotype_terms is required and must be non-empty.");
             }
-            return json;
+            let resp;
+            try {
+                resp = await this.fetchWithTimeout(
+                    url,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(body),
+                    },
+                    this.hybridSearchTimeoutMs
+                );
+            } catch (err) {
+                if (err && err.name === "AbortError") {
+                    throw new Error("504 Hybrid search request timed out. Try again or increase hybridSearchTimeoutMs.");
+                }
+                throw err;
+            }
+            const json = await resp.json().catch(() => ({}));
+            if (resp.ok && json && json.status === "success") {
+                console.log("FactorBaseReveal: hybrid-search response", json);
+                return json;
+            }
+            const detail = this.hybridSearchErrorMessage(resp.status, json);
+            if (resp.status === 404) {
+                throw new Error(`404 ${detail}`);
+            }
+            if (resp.status === 422) {
+                throw new Error(`422 ${detail}`);
+            }
+            if (resp.status === 504) {
+                throw new Error(`504 ${detail || "Hybrid search timed out."}`);
+            }
+            if (resp.status >= 500) {
+                throw new Error(`500 ${detail}`);
+            }
+            throw new Error(`Hybrid search failed at ${url}: ${resp.status} ${detail}`);
         },
         normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms = []) {
             const out = {};
@@ -2745,9 +3154,11 @@ The \`hypotheses\` array MUST contain at least one element.
                     const gene = g && g.gene != null ? String(g.gene).trim() : "";
                     if (!gene) return;
                     const rel = g && g.relevance != null && !isNaN(Number(g.relevance)) ? Number(g.relevance) : null;
+                    const includedFromRequest = g && g.included_from_request === true;
                     factorObj.genes[gene] = {
                         factorRelevance: rel != null ? rel : 1,
                         factor_value: rel,
+                        includedFromRequest,
                     };
                     if (out[phenotype].genes[gene] == null) {
                         out[phenotype].genes[gene] = {
@@ -2767,37 +3178,78 @@ The \`hypotheses\` array MUST contain at least one element.
             return out;
         },
         async runHybridRetrievalWorkflow({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
-            if (!Array.isArray(phenotypeTerms) || phenotypeTerms.length === 0) return false;
-            const queryText = this.buildHybridQueryText({ phenotypeTerms, mechanismTerms, researchContext });
-            if (!queryText) return false;
+            const NONE = "(none extracted)";
+            let ctx = researchContext != null ? String(researchContext).trim() : "";
+            if (ctx === NONE) ctx = "";
 
-            this.setLoadStatus("Hybrid retrieval: generating embedding…");
+            const rawPhenos = this.normalizeLlmTermList(phenotypeTerms);
+            const mechs = this.normalizeLlmTermList(mechanismTerms);
+
+            const phenos = this.resolveHybridPhenotypeFilterTerms(rawPhenos, mechs, ctx);
+            if (!phenos.length) return false;
+
             this.setStep({
                 id: "2",
                 title: "API: Hybrid retrieval of phenotype–gene set cluster associations",
             });
-            const embedding = await this.fetchHybridQueryEmbedding(queryText);
-            this.setStep({
-                id: "2",
-                substep: {
-                    id: "2.h1",
-                    title: "Generated query embedding",
-                    result: { result: { dims: embedding.length, model: "mxbai-embed-large" } },
-                },
-            });
+
+            let queryEmbedding = null;
+            if (this.hybridSearchUseClientEmbedding) {
+                let queryText = this.buildHybridQueryText({
+                    phenotypeTerms: phenos,
+                    mechanismTerms: mechs,
+                    researchContext: ctx,
+                });
+                if (!queryText) queryText = String(this.userQuery || "").trim();
+                if (!queryText) return false;
+                this.setLoadStatus("Hybrid retrieval: generating embedding (client)…");
+                queryEmbedding = await this.fetchHybridQueryEmbedding(queryText);
+                this.setStep({
+                    id: "2",
+                    substep: {
+                        id: "2.h1",
+                        title: "Client embedding",
+                        result: {
+                            result: {
+                                dims: queryEmbedding.length,
+                                model: this.hybridEmbedModel,
+                                embedding_provider_used: "client",
+                            },
+                        },
+                    },
+                });
+            } else {
+                this.setLoadStatus("Hybrid retrieval: calling API (server-side embedding)…");
+                this.setStep({
+                    id: "2",
+                    substep: {
+                        id: "2.h1",
+                        title: "Server-side embedding",
+                        result: {
+                            result: {
+                                note: "query_embedding omitted; backend embeds from mechanism_terms and research_context.",
+                            },
+                        },
+                    },
+                });
+            }
 
             this.setLoadStatus("Hybrid retrieval: searching factors and gene sets…");
             const hybridJson = await this.callHybridRevealSearch({
-                queryEmbedding: embedding,
-                phenotypeTerms,
-                mechanismTerms,
-                researchContext,
+                queryEmbedding,
+                phenotypeTerms: phenos,
+                mechanismTerms: mechs,
+                researchContext: ctx,
+                genesOfInterest: this.normalizeLlmTermList(this.lastGenesOfInterest),
             });
-            const normalized = this.normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms);
+            const normalized = this.normalizeHybridFactorsToFactorData(hybridJson, phenos);
             const phenotypes = Object.keys(normalized).filter((p) => (normalized[p].factors || []).length > 0);
             if (!phenotypes.length) return false;
 
             this.factorData = normalized;
+            const data = hybridJson && hybridJson.data ? hybridJson.data : {};
+            const meta = hybridJson && hybridJson.meta ? hybridJson.meta : {};
+            this.lastHybridSearchMeta = meta && typeof meta === "object" ? { ...meta } : {};
             this.setStep({
                 id: "2",
                 substep: {
@@ -2805,9 +3257,11 @@ The \`hypotheses\` array MUST contain at least one element.
                     title: "Hybrid retrieval result",
                     result: {
                         result: {
-                            phenotype: hybridJson && hybridJson.data ? hybridJson.data.phenotype : phenotypes[0],
+                            phenotype: data.phenotype != null ? data.phenotype : phenotypes[0],
+                            queried_phenotypes: data.queried_phenotypes,
                             phenotype_count: phenotypes.length,
                             factor_count: phenotypes.reduce((acc, p) => acc + ((normalized[p].factors || []).length), 0),
+                            meta,
                         },
                     },
                 },
@@ -2847,27 +3301,22 @@ The \`hypotheses\` array MUST contain at least one element.
         },
         /**
          * Hybrid-only retrieval path:
-         * Uses local embedding + local hybrid-search backend to get phenotype↔factor↔gene-set candidates,
-         * then builds KG and runs hypothesis generation.
+         * POST {hybridSearchBaseUrl}/api/reveal/hybrid-search.
+         * Default: server-side embedding (omit query_embedding). Set VUE_APP_HYBRID_CLIENT_EMBEDDING=true for Ollama client embeddings.
          */
         async onResearch(phenotypeTermsFromExtract) {
-            const phenotypeTerms = phenotypeTermsFromExtract != null
+            const rawPhenotype = phenotypeTermsFromExtract != null
                 ? phenotypeTermsFromExtract
-                : this.lastPhenotypeTerms.length
+                : this.lastPhenotypeTerms && this.lastPhenotypeTerms.length
                     ? this.lastPhenotypeTerms
                     : (this.searchCriteria && this.searchCriteria[0] && this.searchCriteria[0].values)
                         ? this.searchCriteria[0].values.filter((v) => v && String(v) !== "(none extracted)")
                         : [];
-            if (phenotypeTerms.length === 0) {
-                if (this.lastMechanismTerms && this.lastMechanismTerms.length > 0) {
-                    return this.onResearchPhenotypeFactorsOnly();
-                }
-                console.log("FactorBaseReveal: No phenotype terms, skipping hybrid retrieval.");
-                return;
-            }
+            const phenotypeTerms = this.normalizeLlmTermList(rawPhenotype);
             try {
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
+                this.lastHybridSearchMeta = {};
                 this.lastKgTriples = [];
                 this.mechanisms = null;
                 this.phenotypeDescriptionById = {};
@@ -2876,7 +3325,7 @@ The \`hypotheses\` array MUST contain at least one element.
                     : "";
                 const usedHybrid = await this.runHybridRetrievalWorkflow({
                     phenotypeTerms,
-                    mechanismTerms: this.lastMechanismTerms || [],
+                    mechanismTerms: this.normalizeLlmTermList(this.lastMechanismTerms),
                     researchContext,
                 });
                 if (!usedHybrid) {
@@ -2885,12 +3334,26 @@ The \`hypotheses\` array MUST contain at least one element.
             } catch (err) {
                 console.warn("FactorBaseReveal: Hybrid retrieval workflow failed", err);
                 const msg = err && err.message ? String(err.message) : "";
-                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found/i.test(msg);
+                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(msg);
+                const isValidation = /(^|\s)422(\s|$)/.test(msg);
+                const isTimeout = /(^|\s)504(\s|$)|timed out|AbortError/i.test(msg);
                 if (isNoResults) {
                     this.setLoadStatus("No exact matches found for those terms.", true);
                     this.setStep({
                         type: "error",
                         title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms."
+                    });
+                } else if (isValidation) {
+                    this.setLoadStatus("Request could not be validated. Check phenotype terms and research context.", true);
+                    this.setStep({
+                        type: "error",
+                        title: msg.replace(/^\s*422\s*/, "") || "Invalid hybrid search request (422)."
+                    });
+                } else if (isTimeout) {
+                    this.setLoadStatus("Hybrid search timed out. Try again in a moment.", true);
+                    this.setStep({
+                        type: "error",
+                        title: "Hybrid search timed out (504). The database or embedding service may be busy."
                     });
                 } else {
                     this.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
@@ -2903,56 +3366,10 @@ The \`hypotheses\` array MUST contain at least one element.
             }
         },
         /**
-         * Mechanism-only entry now routes to the same hybrid-only retrieval workflow.
+         * Kept as an alias for callers that used the mechanism-only hybrid path; resolution of empty phenotype_terms happens inside runHybridRetrievalWorkflow.
          */
         async onResearchPhenotypeFactorsOnly() {
-            const mechanismTerms = this.lastMechanismTerms && this.lastMechanismTerms.length
-                ? this.lastMechanismTerms
-                : (this.searchCriteria && this.searchCriteria[0] && this.searchCriteria[0].values)
-                    ? this.searchCriteria[0].values.filter((v) => v && String(v) !== "(none extracted)")
-                    : [];
-            if (mechanismTerms.length === 0) {
-                console.log("FactorBaseReveal: No mechanism terms, skipping hybrid retrieval.");
-                return;
-            }
-            try {
-                this.genesAndFactorValuesLoaded = false;
-                this.factorData = {};
-                this.lastKgTriples = [];
-                this.mechanisms = null;
-                this.phenotypeDescriptionById = {};
-                const hybridResearchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-                const usedHybrid = await this.runHybridRetrievalWorkflow({
-                    phenotypeTerms: this.lastPhenotypeTerms && this.lastPhenotypeTerms.length
-                        ? this.lastPhenotypeTerms
-                        : mechanismTerms,
-                    mechanismTerms,
-                    researchContext: hybridResearchContext,
-                });
-                if (!usedHybrid) {
-                    throw new Error("Hybrid retrieval returned no phenotype–factor results.");
-                }
-            } catch (err) {
-                console.warn("FactorBaseReveal: Hybrid retrieval workflow failed (mechanism path)", err);
-                const msg = err && err.message ? String(err.message) : "";
-                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found/i.test(msg);
-                if (isNoResults) {
-                    this.setLoadStatus("No exact matches found for those terms.", true);
-                    this.setStep({
-                        type: "error",
-                        title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms."
-                    });
-                } else {
-                    this.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
-                    this.setStep({
-                        type: "error",
-                        title: "Hybrid retrieval failed due to a server error."
-                    });
-                }
-                this.loadComplete = true;
-            }
+            return this.onResearch();
         },
         /**
          * Flatten an array of objects to CSV (header row + data rows). Escapes fields containing comma or quote.
@@ -3591,8 +4008,14 @@ The \`hypotheses\` array MUST contain at least one element.
                             relevance: factorGenes[gName] && factorGenes[gName].factorRelevance != null
                                 ? factorGenes[gName].factorRelevance
                                 : 0,
+                            includedFromRequest: !!(factorGenes[gName] && factorGenes[gName].includedFromRequest),
                         }))
-                        .sort((a, b) => Math.abs(b.relevance) - Math.abs(a.relevance));
+                        .sort((a, b) => {
+                            if (b.includedFromRequest !== a.includedFromRequest) {
+                                return (b.includedFromRequest ? 1 : 0) - (a.includedFromRequest ? 1 : 0);
+                            }
+                            return Math.abs(b.relevance) - Math.abs(a.relevance);
+                        });
 
                     const globalGenes = pData.genes || {};
 
@@ -3615,6 +4038,7 @@ The \`hypotheses\` array MUST contain at least one element.
                                 gwas_support: gwasSupport,
                                 functional_support: geneSetSupport,
                                 category,
+                                included_from_request: gene.includedFromRequest === true,
                             },
                         });
 
@@ -3854,6 +4278,28 @@ The \`hypotheses\` array MUST contain at least one element.
 ::v-deep .candidate-genes-th-raw {
     background: #e2e3e5 !important;
     color: #383d41;
+}
+
+.query-guidelines-panel {
+    width: 100%;
+}
+.query-guidelines-toggle {
+    border: none;
+    box-shadow: none;
+    padding: 0.65rem 1rem;
+}
+.query-guidelines-toggle:hover,
+.query-guidelines-toggle:focus {
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.03);
+}
+.query-guidelines-content {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.query-guidelines-example {
+    border-left: 3px solid #f16822;
+    margin: 0;
 }
 
 </style>
