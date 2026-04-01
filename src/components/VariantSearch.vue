@@ -113,7 +113,7 @@
                                             @click="filters['phenotypes'] = []"
                                             >Unselect All</b-btn
                                         >
-                                    </div> 
+                                    </div>
 
                                     <div style="padding-left: 15px">
                                         <template
@@ -160,7 +160,7 @@
                 hover
                 small
                 sort-icon-left
-                responsive="sm"
+                responsive
                 :fields="fields"
                 :items="tableData"
                 :per-page="perPage"
@@ -210,16 +210,20 @@
                         class="border-color"
                         :class="data.item.Max_Impact"
                     >
-                    {{data.item.max_consequence.substring(1, data.item.max_consequence.length-1)}}
-                    <!--    <span v-for="(c, i) in data.item.max_consequence"
+                        {{
+                            data.item.max_consequence.substring(
+                                1,
+                                data.item.max_consequence.length - 1
+                            )
+                        }}
+                        <!--    <span v-for="(c, i) in data.item.max_consequence"
                             :key="c">
                             {{ consequenceFormatter(c)}}{{i < data.item.max_consequence.length - 1 ? ", " : "" }}
                         </span> -->
                     </div>
                     <div v-else class="border-color NONE"></div>
                 </template>
-                
-                
+
                 <!-- <template #cell(consequence)="data">
                     <div class="border-color" :class="data.item.impact">
                         {{ consequenceFormatter(data.item.consequence) }}
@@ -641,10 +645,13 @@ export default Vue.component("VariantSearch", {
                         //Max_Impact	Biotype Gene_Symbol	Transcript_count	Amino_Acids	Protein_Position	CDS_position	Refgene	max_consequence
                     }
                 }
-                
+
                 this.variantData = structuredClone(this.variants);
                 //if default filters are set, filter the variants
-                if (this.filters.impacts.length > 0 || this.filters.phenotypes.length > 0) {
+                if (
+                    this.filters.impacts.length > 0 ||
+                    this.filters.phenotypes.length > 0
+                ) {
                     this.addfilter();
                 }
             }

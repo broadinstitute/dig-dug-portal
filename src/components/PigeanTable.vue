@@ -87,7 +87,7 @@ export default Vue.component("pigean-table", {
         genesetSize() {
             return keyParams.genesetSize;
         },
-        traitGroup(){
+        traitGroup() {
             return keyParams.traitGroup;
         },
         suffix() {
@@ -175,8 +175,9 @@ export default Vue.component("pigean-table", {
             if (this.config.queryParam === "cluster") {
                 return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
-            return `${item.phenotype},${item[this.config.queryParam]},${
-                DEFAULT_SIGMA},${this.genesetSize}`;
+            return `${item.phenotype},${
+                item[this.config.queryParam]
+            },${DEFAULT_SIGMA},${this.genesetSize}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
@@ -186,8 +187,8 @@ export default Vue.component("pigean-table", {
             return a / (1 + a);
         },
         computeProbabilities() {
-            let data = this.isSubtable 
-                ? this.pigeanData 
+            let data = this.isSubtable
+                ? this.pigeanData
                 : this.describePhenotypes(this.pigeanData);
             for (let i = 0; i < this.config.fields.length; i++) {
                 let fieldConfig = this.config.fields[i];
@@ -218,28 +219,30 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
-        describePhenotypes(data){
+        describePhenotypes(data) {
             let inputData = structuredClone(data);
-            for (let i = 0; i < inputData.length; i++){
-                if (!inputData[i].phenotype){
+            for (let i = 0; i < inputData.length; i++) {
+                if (!inputData[i].phenotype) {
                     continue;
                 }
                 let desc = this.phenotypeMap[inputData[i].phenotype];
-                if (desc === undefined){
-                    desc = { phenotype_name : inputData[i].phenotype}
+                if (desc === undefined) {
+                    desc = { phenotype_name: inputData[i].phenotype };
                 }
                 let phenotypeDesc = desc.phenotype_name.trim();
                 inputData[i]["phenotypeDesc"] = phenotypeDesc;
             }
             return inputData;
         },
-        hideLocusButton(phenotype){
-            if (!!this.phenotypeMap){
-                return this.phenotypeMap[phenotype] === undefined 
-                    || this.phenotypeMap[phenotype].trait_group !== "portal";
+        hideLocusButton(phenotype) {
+            if (!!this.phenotypeMap) {
+                return (
+                    this.phenotypeMap[phenotype] === undefined ||
+                    this.phenotypeMap[phenotype].trait_group !== "portal"
+                );
             }
             return this.traitGroup !== "portal";
-        }
+        },
     },
 });
 </script>
@@ -256,7 +259,7 @@ export default Vue.component("pigean-table", {
             <b-table
                 :hover="isSubtable"
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="probFields"
                 :per-page="perPage"
@@ -326,7 +329,11 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="showDetails(row, 1)"
                     >
-                        {{ row.detailsShowing && row.item.subtableActive !== 3 ? "Hide" : "Show" }}
+                        {{
+                            row.detailsShowing && row.item.subtableActive !== 3
+                                ? "Hide"
+                                : "Show"
+                        }}
                     </b-button>
                 </template>
                 <template #cell(expand1)="row">
@@ -390,7 +397,11 @@ export default Vue.component("pigean-table", {
                         :disabled="hideLocusButton(row.item.phenotype)"
                         @click="showDetails(row, 3)"
                     >
-                        {{ row.detailsShowing && row.item.subtableActive === 3  ? "Hide" : "Show" }}
+                        {{
+                            row.detailsShowing && row.item.subtableActive === 3
+                                ? "Hide"
+                                : "Show"
+                        }}
                     </b-button>
                 </template>
                 <template #row-details="row">
@@ -406,7 +417,9 @@ export default Vue.component("pigean-table", {
                         )}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
                         :phenotypes-data="phewasData[phewasKey(row.item)]"
-                        :phenotype-map="phenotypeMap || $store.state.bioPortal.phenotypeMap"
+                        :phenotype-map="
+                            phenotypeMap || $store.state.bioPortal.phenotypeMap
+                        "
                         :linkPhenotypes="true"
                         :isPigean="true"
                         :colors="plotColors"

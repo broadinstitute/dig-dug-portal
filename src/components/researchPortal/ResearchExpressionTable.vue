@@ -4,7 +4,7 @@
             v-if="tableData.length > 0"
             id="big-table"
             small
-            responsive="sm"
+            responsive
             :items="tableData"
             :fields="tableConfig['top rows']"
             :per-page="perPage"

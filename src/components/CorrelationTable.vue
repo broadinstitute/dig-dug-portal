@@ -10,7 +10,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -57,7 +57,7 @@ export default Vue.component("CorrelationTable", {
                 {
                     key: "other_phenotype",
                     label: "Phenotype",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "pValue",
@@ -68,20 +68,20 @@ export default Vue.component("CorrelationTable", {
                             ? "variant-table-cell pValue-flag high"
                             : "";
                     },
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "rg",
                     label: "Correlation",
                     formatter: Formatters.effectFormatter,
                     tdClass: "variant-table-cell rg-flag",
-                    sortable: true
+                    sortable: true,
                 },
                 {
                     key: "stdErr",
                     label: "Standard error",
                     formatter: Formatters.effectFormatter,
-                    sortable: true
+                    sortable: true,
                 },
             ],
         };
@@ -128,5 +128,5 @@ export default Vue.component("CorrelationTable", {
 });
 </script>
 <style scoped>
-    @import url("/css/effectorGenes.css");
+@import url("/css/effectorGenes.css");
 </style>

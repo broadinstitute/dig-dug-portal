@@ -65,7 +65,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"

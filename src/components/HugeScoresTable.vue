@@ -28,9 +28,13 @@
             v-if="pageKey && rows > 0"
             hover
             small
-            responsive="sm"
+            responsive
             :items="tableDataWithDetails"
-            :fields="leadTableField !== 'phenotype' ? fields.filter(f => f.key !== 'group') : fields"
+            :fields="
+                leadTableField !== 'phenotype'
+                    ? fields.filter((f) => f.key !== 'group')
+                    : fields
+            "
             :per-page="perPage"
             :current-page="currentPage"
             detail-key="_rowKey"
@@ -64,7 +68,8 @@
                 </a>
             </template>
             <template #cell(link)="r">
-                <a class="btn view-features-btn btn-secondary"
+                <a
+                    class="btn view-features-btn btn-secondary"
                     style="color: #ffffff !important"
                     :href="`/hugecalculator.html?gene=${r.item.gene}&phenotype=${r.item.phenotype}&prior=0.3696`"
                     >Open</a
@@ -79,21 +84,40 @@
                 </button>
             </template>
             <template #row-details="row">
-                <div class="p-3" style="background-color: #eeeeee; border-left: 5px solid #cccccc;">
-                    <div v-if="getGeneSetSubtableLoading(row.item)" class="text-muted">
+                <div
+                    class="p-3"
+                    style="
+                        background-color: #eeeeee;
+                        border-left: 5px solid #cccccc;
+                    "
+                >
+                    <div
+                        v-if="getGeneSetSubtableLoading(row.item)"
+                        class="text-muted"
+                    >
                         Loading gene sets...
                     </div>
-                    <div v-else-if="getGeneSetSubtableError(row.item)" class="text-danger">
+                    <div
+                        v-else-if="getGeneSetSubtableError(row.item)"
+                        class="text-danger"
+                    >
                         {{ getGeneSetSubtableError(row.item) }}
                     </div>
-                    
+
                     <template v-else>
-                        <div class="kc-logo-container" style="    position: relative;height: 70px;margin-top: -20px;">
+                        <div
+                            class="kc-logo-container"
+                            style="
+                                position: relative;
+                                height: 70px;
+                                margin-top: -20px;
+                            "
+                        >
                             <kc-cfde-logo></kc-cfde-logo>
                         </div>
                         <b-table
                             small
-                            responsive="sm"
+                            responsive
                             :items="getGeneSetSubtableData(row.item)"
                             :fields="geneSetSubtableFields"
                             :per-page="geneSetSubtablePerPage"
@@ -103,19 +127,32 @@
                         >
                             <template v-slot:[geneSetCellSlot]="cell">
                                 <a
-                                    :href="`https://cfdeknowledge.org/r/kc_gsb?geneSet=${encodeURIComponent(cell.value || '')}`"
+                                    :href="`https://cfdeknowledge.org/r/kc_gsb?geneSet=${encodeURIComponent(
+                                        cell.value || ''
+                                    )}`"
                                     :title="cell.value"
-                                >{{ formatGeneSetCell(cell.value) }}</a>
+                                    >{{ formatGeneSetCell(cell.value) }}</a
+                                >
                             </template>
                             <template #cell(Source)="cell">
-                                <a :href="`https://cfdeknowledge.org/r/kc_gsb?source=${encodeURIComponent(cell.value || '')}`">{{ cell.value }}</a>
+                                <a
+                                    :href="`https://cfdeknowledge.org/r/kc_gsb?source=${encodeURIComponent(
+                                        cell.value || ''
+                                    )}`"
+                                    >{{ cell.value }}</a
+                                >
                             </template>
                         </b-table>
                         <b-pagination
-                            v-if="getGeneSetSubtableData(row.item).length > geneSetSubtablePerPage"
+                            v-if="
+                                getGeneSetSubtableData(row.item).length >
+                                geneSetSubtablePerPage
+                            "
                             :value="getGeneSetSubtablePage(row.item)"
                             class="pagination-sm justify-content-center mt-2"
-                            :total-rows="getGeneSetSubtableData(row.item).length"
+                            :total-rows="
+                                getGeneSetSubtableData(row.item).length
+                            "
                             :per-page="geneSetSubtablePerPage"
                             @input="setGeneSetSubtablePage(row.item, $event)"
                         ></b-pagination>
@@ -155,37 +192,94 @@ const GENE_SET_TABLE_FORMAT = {
     "data convert": [
         { type: "raw", "field name": "Phenotype", "raw field": "phenotype" },
         { type: "raw", "field name": "Gene set", "raw field": "gene_set" },
-        { type: "raw", "field name": "Description", "raw field": "gene_set_description" },
+        {
+            type: "raw",
+            "field name": "Description",
+            "raw field": "gene_set_description",
+        },
         { type: "raw", "field name": "Model", "raw field": "gene_set_size" },
-        { type: "raw", "field name": "Joint effect", "raw field": "beta", "if no value": "0" },
+        {
+            type: "raw",
+            "field name": "Joint effect",
+            "raw field": "beta",
+            "if no value": "0",
+        },
         {
             type: "translate to categories",
             "field name": "Evidence range (Joint effect)",
             "raw field": "Joint effect",
             categories: [
-                { name: "Not Significant", condition: "less than", range: 0.01 },
+                {
+                    name: "Not Significant",
+                    condition: "less than",
+                    range: 0.01,
+                },
                 { name: "Significant", condition: "and", range: [0.01, 0.1] },
-                { name: "Strongly Significant", condition: "and", range: [0.1, 1] },
-                { name: "Extremely Significant", condition: "greater than", range: 1 },
+                {
+                    name: "Strongly Significant",
+                    condition: "and",
+                    range: [0.1, 1],
+                },
+                {
+                    name: "Extremely Significant",
+                    condition: "greater than",
+                    range: 1,
+                },
             ],
         },
-        { type: "raw", "field name": "Marginal effect", "raw field": "beta_uncorrected", "if no value": "0" },
+        {
+            type: "raw",
+            "field name": "Marginal effect",
+            "raw field": "beta_uncorrected",
+            "if no value": "0",
+        },
         {
             type: "translate to categories",
             "field name": "Evidence range (Marginal effect)",
             "raw field": "Marginal effect",
             categories: [
-                { name: "Not Significant", condition: "less than", range: 0.01 },
+                {
+                    name: "Not Significant",
+                    condition: "less than",
+                    range: 0.01,
+                },
                 { name: "Significant", condition: "and", range: [0.01, 0.1] },
-                { name: "Strongly Significant", condition: "and", range: [0.1, 1] },
-                { name: "Extremely Significant", condition: "greater than", range: 1 },
+                {
+                    name: "Strongly Significant",
+                    condition: "and",
+                    range: [0.1, 1],
+                },
+                {
+                    name: "Extremely Significant",
+                    condition: "greater than",
+                    range: 1,
+                },
             ],
         },
-        { type: "raw", "field name": "Number of genes in gene set", "raw field": "n" },
+        {
+            type: "raw",
+            "field name": "Number of genes in gene set",
+            "raw field": "n",
+        },
         { type: "raw", "field name": "Source", "raw field": "source" },
-        { type: "join multi", "field name": "Genes in gene set", "fields to join": ["phenotype", "gene_set"], "join by": [","] },
-        { type: "join multi", "field name": "Hypothesis", "fields to join": ["phenotype", "gene_set"], "join by": [","] },
-        { type: "join multi", "field name": "BYOGL", "fields to join": ["phenotype", "gene_set"], "join by": [","] },
+        {
+            type: "join multi",
+            "field name": "Genes in gene set",
+            "fields to join": ["phenotype", "gene_set"],
+            "join by": [","],
+        },
+        {
+            type: "join multi",
+            "field name": "Hypothesis",
+            "fields to join": ["phenotype", "gene_set"],
+            "join by": [","],
+        },
+        {
+            type: "join multi",
+            "field name": "BYOGL",
+            "fields to join": ["phenotype", "gene_set"],
+            "join by": [","],
+        },
     ],
     "top rows": [
         "Gene set",
@@ -235,12 +329,19 @@ export default Vue.component("HugeScoresTable", {
     components: {
         DataDownload,
     },
-    props: ["leadTableField", "pageKey", "hugeScores", "phenotypeMap", "filter"],
+    props: [
+        "leadTableField",
+        "pageKey",
+        "hugeScores",
+        "phenotypeMap",
+        "filter",
+    ],
     data() {
         return {
             perPage: 10,
             currentPage: 1,
-            geneSetsApi: "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=$phenotype,cfde&limit=10000",
+            geneSetsApi:
+                "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype?q=$phenotype,cfde&limit=10000",
             expandedRowKey: null,
             geneSetDataByRow: {},
             geneSetSubtablePerPage: 10,
@@ -248,7 +349,9 @@ export default Vue.component("HugeScoresTable", {
             fields: [
                 {
                     key: `${this.$props.leadTableField}`,
-                    label: `${this.capitalizedFormatter(this.$props.leadTableField)}`,
+                    label: `${this.capitalizedFormatter(
+                        this.$props.leadTableField
+                    )}`,
                 },
                 {
                     key: "group",
@@ -299,7 +402,7 @@ export default Vue.component("HugeScoresTable", {
                 {
                     key: "cfde_gene_set",
                     label: "CFDE Gene Sets",
-                }
+                },
             ],
         };
     },
@@ -330,8 +433,8 @@ export default Vue.component("HugeScoresTable", {
             if (!phenotypeMap) {
                 return [];
             }
-            assocs.forEach(item => {
-                if (!item.range){
+            assocs.forEach((item) => {
+                if (!item.range) {
                     item.range = this.getRange(item.huge);
                 }
             });
@@ -353,7 +456,7 @@ export default Vue.component("HugeScoresTable", {
         phenotypeFormatter: Formatters.phenotypeFormatter,
         floatFormatter: Formatters.floatFormatter,
         capitalizedFormatter: Formatters.capitalizedFormatter,
-        getRange(x){
+        getRange(x) {
             return x
                 ? x >= 350
                     ? "Compelling"
@@ -368,7 +471,7 @@ export default Vue.component("HugeScoresTable", {
                     : x > 1
                     ? "Anecdotal"
                     : "No evidence"
-                : "";  
+                : "";
         },
         getRowKey(item) {
             return `${item.phenotype || ""}|${item.gene || ""}`;
@@ -382,14 +485,28 @@ export default Vue.component("HugeScoresTable", {
                     const fieldName = c["field name"];
                     if (c.type === "raw") {
                         let v = row[c["raw field"]];
-                        if (v === undefined || v === null) v = c["if no value"] !== undefined ? c["if no value"] : "";
+                        if (v === undefined || v === null)
+                            v =
+                                c["if no value"] !== undefined
+                                    ? c["if no value"]
+                                    : "";
                         if (v === 0) v = "0";
                         obj[fieldName] = v;
                     } else if (c.type === "translate to categories") {
-                        const rawVal = obj[c["raw field"]] !== undefined ? obj[c["raw field"]] : (row[c["raw field"]] ?? 0);
-                        obj[fieldName] = translateToCategory(rawVal, c.categories);
+                        const rawVal =
+                            obj[c["raw field"]] !== undefined
+                                ? obj[c["raw field"]]
+                                : row[c["raw field"]] ?? 0;
+                        obj[fieldName] = translateToCategory(
+                            rawVal,
+                            c.categories
+                        );
                     } else if (c.type === "join multi") {
-                        obj[fieldName] = joinMultiValues(c["fields to join"], c["join by"], row);
+                        obj[fieldName] = joinMultiValues(
+                            c["fields to join"],
+                            c["join by"],
+                            row
+                        );
                     }
                 }
                 out.push(obj);
@@ -433,7 +550,10 @@ export default Vue.component("HugeScoresTable", {
             }
             this.expandedRowKey = key;
             const state = this.geneSetDataByRow[key];
-            if (!state || (!state.loading && !(state.data && state.data.length))) {
+            if (
+                !state ||
+                (!state.loading && !(state.data && state.data.length))
+            ) {
                 this.fetchGeneSetForRow(item);
             }
         },
@@ -441,15 +561,29 @@ export default Vue.component("HugeScoresTable", {
             const key = this.getRowKey(item);
             const phenotype = item.phenotype;
             if (!phenotype) return;
-            this.$set(this.geneSetDataByRow, key, { loading: true, data: [], error: null });
-            const url = this.geneSetsApi.replace("$phenotype", encodeURIComponent(phenotype));
+            this.$set(this.geneSetDataByRow, key, {
+                loading: true,
+                data: [],
+                error: null,
+            });
+            const url = this.geneSetsApi.replace(
+                "$phenotype",
+                encodeURIComponent(phenotype)
+            );
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                if (!response.ok)
+                    throw new Error(
+                        `HTTP ${response.status}: ${response.statusText}`
+                    );
                 const json = await response.json();
                 const rawRows = json.data || json || [];
                 const data = this.applyGeneSetDataConvert(rawRows);
-                this.$set(this.geneSetDataByRow, key, { loading: false, data, error: null });
+                this.$set(this.geneSetDataByRow, key, {
+                    loading: false,
+                    data,
+                    error: null,
+                });
             } catch (err) {
                 this.$set(this.geneSetDataByRow, key, {
                     loading: false,
