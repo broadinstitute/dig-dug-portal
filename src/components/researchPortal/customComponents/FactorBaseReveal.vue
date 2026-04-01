@@ -35,6 +35,12 @@
                             <p class="mb-3">
                                 To maximize precision and retrieve actionable mechanisms, structure your query around the principles below. The hybrid engine combines exact-match (lexical) and conceptual (semantic) retrieval—clear, entity-aware wording helps you bypass generic &quot;canonical&quot; results and align the graph with your intent.
                             </p>
+                            <p class="mb-3 small border-left pl-3" style="border-left: 3px solid #f16822;">
+                                <strong class="text-dark">Four checks</strong> the extractor uses before suggesting alternate wording:
+                                explicit <strong>anchor</strong> (gene, protein, or concrete entity), a <strong>semantic net</strong> (mechanism or pathway concept),
+                                <strong>spatial</strong> anchoring (tissue or cell type), and a focused <strong>phenotypic</strong> outcome.
+                                When all four are satisfied, suggested queries are omitted on purpose.
+                            </p>
 
                             <h6 class="text-dark font-weight-bold mt-3 mb-2">1. Anchor Your Query with Explicit Targets (Entity Forcing)</h6>
                             <p class="mb-2">
@@ -106,7 +112,7 @@
                             v-model="userQuery"
                             placeholder="Describe what you're researching or curious about"
                             @keydown.enter.prevent="queryParse()"
-                            style="padding: 10px 150px 10px 10px; font-size: 14px; height: auto;"
+                            style="padding: 10px 150px 10px 10px; font-size: 11pt; height: auto;"
                         />
                         <button class="btn btn-cfde" style="min-width: 120px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" @click="queryParse()">Reveal</button>
                     </div>
@@ -230,158 +236,194 @@
                 </template>
 
                 <div v-if="steps && steps.length" style="display:flex; flex-direction: column;">
+                    <div v-if="workflowErrorSteps.length" class="mb-2">
+                        <div
+                            v-for="(errStep, ei) in workflowErrorSteps"
+                            :key="'reveal-wf-err-' + ei + '-' + (errStep.title || '')"
+                            class="alert alert-danger py-2 small mb-1"
+                            role="alert"
+                        >
+                            <strong>Error:</strong> {{ errStep.title }}
+                        </div>
+                    </div>
                     <div style="display:flex; gap:20px">
-                        <h4 class="reveal-tab" 
-                            :class="{'tab-active':showTab==='process'}" 
-                            @click="showTab='process'">
-                            Process
+                        <h4
+                            class="reveal-tab"
+                            :class="{ 'tab-active': showTab === 'terms' }"
+                            @click="showTab = 'terms'"
+                        >
+                            Search terms
                         </h4>
-                        <h4 class="reveal-tab" 
-                            :class="{'tab-active':showTab==='data', 'tab-inactive': !loadComplete}" 
-                            @click="showTab='data'">
+                        <h4
+                            class="reveal-tab"
+                            :class="{ 'tab-active': showTab === 'data', 'tab-inactive': !revealDataTabEnabled }"
+                            @click="revealDataTabEnabled && (showTab = 'data')"
+                        >
                             Data
                         </h4>
-                        <h4 class="reveal-tab" 
-                            :class="{'tab-active':showTab==='results', 'tab-inactive': !loadComplete}" 
-                            @click="showTab='results'">
+                        <h4
+                            class="reveal-tab"
+                            :class="{ 'tab-active': showTab === 'results', 'tab-inactive': !revealResultsTabEnabled }"
+                            @click="revealResultsTabEnabled && (showTab = 'results')"
+                        >
                             Results
                         </h4>
                     </div>
                     <div>
-                        <div style="display:flex; flex-direction: column; gap:5px; color: #555;" :style="`display: ${showTab==='process'?'flex':'none'}`">
-                            <div v-if="loadComplete" class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">Process took {{ currTotalTime() }}</div>
-                            <div v-for="(step, i) in steps" class="status" :key="i">
-                                <template v-if="step.type!=='error'">
-                                    <div @click="step.substeps.length>0 && i!==steps.length-1 ? toggleStep(i) : null" 
-                                        style="display:flex; gap: 5px; align-items: center;" 
-                                        :style="`cursor: ${step.substeps.length>0 && i!==steps.length-1?'pointer':'default'}`"
-                                    >
-                                        <b-spinner v-if="i===steps.length-1 && !loadComplete && !stepApprovalGateActive" small></b-spinner>
-                                        <span v-else-if="i===steps.length-1 && !loadComplete && stepApprovalGateActive">▶</span>
-                                        <span v-else-if="step.substeps.length>0">{{ step.expanded ? "▼" : "▶" }}</span>
-                                        <span v-else>♦</span>
-                                        <span style="font-weight:bold">{{ step.title }}</span>
-                                        <span>{{ formatTime(step.time) || currStepTime(step) }}</span>
-                                        <span v-if="i === steps.length - 1 && step.substeps.length">
-                                            {{ step.substeps[step.substeps.length - 1].title }}
-                                        </span>
-                                    </div>
-                                    <div v-if="step.expanded" class="sub-status" style="display:flex; flex-direction: column;">
-                                        <div
-                                            v-for="(substep, ii) in step.substeps"
-                                            :key="(substep && substep.id != null ? substep.id : ii) + '-' + ii"
-                                            style="padding:0 0 0 18px"
-                                        >
-                                            <div @click="toggleStep(i, ii)" style="cursor: pointer;">
-                                                <span v-if="substep.result">{{ substep.expanded ? "▼" : "▶" }} </span>
-                                                {{ substep.title }}
-                                            </div>
-                                            <div v-if="substep.result && substep.expanded" style="padding:0 0 0 18px">
-                                                <div v-if="!(step.id === '1' && substep.id === '1.1')" v-html="substep.result.title"></div>
-                                                <div
-                                                    v-if="step.id === '1' && substep.id === '1.1' && searchCriteriaEditRows.length && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
-                                                >
-                                                    <b-table
-                                                        :items="searchCriteriaEditRows"
-                                                        :fields="[
-                                                            { key: 'type', label: 'Type', thStyle: { width: '34%' } },
-                                                            { key: 'term', label: 'Term' }
-                                                        ]"
-                                                        small
-                                                        striped
-                                                        responsive="sm"
-                                                        head-variant="light"
-                                                        class="mb-2"
-                                                    >
-                                                        <template #cell(type)="row">
-                                                            <span>{{ row.item.type }}</span>
-                                                        </template>
-                                                        <template #cell(term)="row">
-                                                            <div
-                                                                v-if="row.item.type === 'Alternative queries'"
-                                                                class="d-flex flex-column gap-2"
-                                                            >
-                                                                <div
-                                                                    v-if="Array.isArray(row.item.options) && row.item.options.length"
-                                                                    class="d-flex flex-wrap gap-2"
-                                                                >
-                                                                    <button
-                                                                        v-for="(opt, idx) in row.item.options"
-                                                                        :key="`alt-query-${idx}-${opt}`"
-                                                                        type="button"
-                                                                        class="btn btn-outline-secondary btn-sm text-left"
-                                                                        style="white-space: normal;"
-                                                                        :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                                        @click="onAlternativeQuerySelected(opt)"
-                                                                    >
-                                                                        {{ opt }}
-                                                                    </button>
-                                                                </div>
-                                                                <span v-else class="text-muted">(none suggested)</span>
-                                                            </div>
-                                                            <textarea
-                                                                v-else-if="row.item.type === 'Research context'"
-                                                                class="form-control form-control-sm"
-                                                                v-model="row.item.term"
-                                                                rows="4"
-                                                                style="min-height: 6.5em; resize: vertical;"
-                                                                placeholder="Enter research context"
-                                                                :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                            ></textarea>
-                                                            <input
-                                                                v-else
-                                                                type="text"
-                                                                class="form-control form-control-sm"
-                                                                v-model="row.item.term"
-                                                                placeholder="Comma-separated terms"
-                                                                :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                            />
-                                                        </template>
-                                                    </b-table>
-                                                </div>
-                                                <pre v-else-if="!(step.id === '1' && substep.id === '1.1')" style="background: #eee; padding: 10px; height: 100px; resize:vertical; overflow: auto;">{{ substep.result.result }}</pre>
-                                                <div
-                                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '1' && step.id === '1' && substep.id === '1.1'"
-                                                    style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"
-                                                >
-                                                    <div class="text-muted" style="font-size: 1rem; font-weight: 700;">
-                                                        Extracted search terms and research context. Review terms, then continue.
-                                                    </div>
-                                                    <div style="display:flex; gap:10px;">
-                                                        <button class="btn btn-outline-secondary btn-sm" @click="resetSearchCriteriaGateEdits">
-                                                            Reset
-                                                        </button>
-                                                        <button class="btn btn-cfde btn-sm" @click="approveStepGate">
-                                                            Continue with current query
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            v-if="stepApprovalGateActive && stepApprovalGateStepId === step.id && step.id !== '1'"
-                                            style="padding: 10px 0 0 18px;"
-                                        >
-                                            <div class="text-muted mb-2" style="font-size: 1rem; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
-                                            <button
-                                                class="btn btn-cfde btn-sm"
-                                                @click="approveStepGate"
-                                            >
-                                                Continue
-                                            </button>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <div style="display:flex; gap: 5px; align-items: center;">
-                                        <span style="font-weight:bold; color: red">Error: {{ step.title }}</span>
-                                    </div>
-                                </template>
+                        <div
+                            v-if="showTab === 'terms'"
+                            style="display:flex; flex-direction: column; gap: 12px; color: #555;"
+                        >
+                            <div v-if="!loadComplete && steps.length" class="small text-muted">
+                                Total process time: {{ currTotalTime() }}
                             </div>
-                            <div v-if="!loadComplete">Total process time: {{ currTotalTime() }}</div>
+                            <template v-if="revealExtractionStep">
+                                <div style="display:flex; gap: 8px; align-items: center;">
+                                    <b-spinner v-if="loading_search_criteria" small></b-spinner>
+                                    <span v-else>♦</span>
+                                    <span style="font-weight:bold">{{ revealExtractionStep.title }}</span>
+                                    <span>{{ formatTime(revealExtractionStep.time) || currStepTime(revealExtractionStep) }}</span>
+                                </div>
+                                <div
+                                    v-for="(substep, ii) in revealExtractionSubstepsForTermsTab"
+                                    :key="'ext-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
+                                    class="mt-2"
+                                >
+                                    <div class="small text-muted mb-1">{{ substep.title }}</div>
+                                    <div
+                                        v-if="searchCriteriaEditRows.length && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
+                                    >
+                                        <b-table
+                                            :items="searchCriteriaEditRows"
+                                            :fields="[
+                                                { key: 'type', label: 'Type', thStyle: { width: '34%' } },
+                                                { key: 'term', label: 'Term' }
+                                            ]"
+                                            small
+                                            striped
+                                            responsive="sm"
+                                            head-variant="light"
+                                            class="mb-2"
+                                        >
+                                            <template #cell(type)="row">
+                                                <span>{{ row.item.type }}</span>
+                                            </template>
+                                            <template #cell(term)="row">
+                                                <div
+                                                    v-if="row.item.type === 'Alternative queries'"
+                                                    class="d-flex flex-column gap-2"
+                                                >
+                                                    <div
+                                                        v-if="Array.isArray(row.item.options) && row.item.options.length"
+                                                        class="d-flex flex-wrap gap-2"
+                                                    >
+                                                        <button
+                                                            v-for="(opt, idx) in row.item.options"
+                                                            :key="`alt-query-${idx}-${opt}`"
+                                                            type="button"
+                                                            class="btn btn-outline-secondary btn-sm text-left"
+                                                            style="white-space: normal;"
+                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                            @click="onAlternativeQuerySelected(opt)"
+                                                        >
+                                                            {{ opt }}
+                                                        </button>
+                                                    </div>
+                                                    <span v-else class="text-muted">(none suggested)</span>
+                                                    <p
+                                                        v-if="!(row.item.options && row.item.options.length)"
+                                                        class="text-muted small mb-0 mt-1"
+                                                    >
+                                                        The extractor omits alternatives when your query already meets the four checks: explicit anchor, semantic net (mechanism), tissue or cell context, and focused phenotypic scope.
+                                                    </p>
+                                                </div>
+                                                <textarea
+                                                    v-else-if="row.item.type === 'Research context'"
+                                                    class="form-control form-control-sm"
+                                                    v-model="row.item.term"
+                                                    rows="4"
+                                                    style="min-height: 6.5em; resize: vertical;"
+                                                    placeholder="Enter research context"
+                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                ></textarea>
+                                                <input
+                                                    v-else
+                                                    type="text"
+                                                    class="form-control form-control-sm"
+                                                    v-model="row.item.term"
+                                                    placeholder="Comma-separated terms"
+                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                />
+                                            </template>
+                                        </b-table>
+                                    </div>
+                                </div>
+                                <div
+                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
+                                    style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"
+                                >
+                                    <div class="text-muted" style="font-size: 11pt; font-weight: 700;">
+                                        Extracted search terms and research context. Review terms, then continue.
+                                    </div>
+                                    <div style="display:flex; gap:10px;">
+                                        <button class="btn btn-outline-secondary btn-sm" @click="resetSearchCriteriaGateEdits">
+                                            Reset
+                                        </button>
+                                        <button class="btn btn-cfde btn-sm" @click="approveStepGate">
+                                            Continue with current query
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
-                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length" :style="`display: ${showTab==='data'?'block':'none'}`">
+                        <div
+                            v-if="showTab === 'data'"
+                            style="display:flex; flex-direction: column; gap: 12px; color: #555;"
+                        >
+                            <div v-if="loadComplete" class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">
+                                Process took {{ currTotalTime() }}
+                            </div>
+                            <div v-for="step in revealDataSteps" :key="'reveal-data-' + step.id" class="status">
+                                <div style="display:flex; gap: 5px; align-items: center;">
+                                    <b-spinner v-if="dataStepShowsSpinner(step)" small></b-spinner>
+                                    <span v-else-if="dataStepShowsGatePause(step)">▶</span>
+                                    <span v-else-if="step.substeps && step.substeps.length">▼</span>
+                                    <span v-else>♦</span>
+                                    <span style="font-weight:bold">{{ step.title }}</span>
+                                    <span>{{ formatTime(step.time) || currStepTime(step) }}</span>
+                                </div>
+                                <div class="sub-status mt-1" style="display:flex; flex-direction: column; padding-left: 18px;">
+                                    <div
+                                        v-for="(substep, ii) in (step.substeps || [])"
+                                        :key="'ds-' + step.id + '-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
+                                        class="mb-2"
+                                    >
+                                        <div class="small font-weight-bold mb-1">{{ substep.title }}</div>
+                                        <div v-if="substep.result" style="padding-left: 8px;">
+                                            <div v-if="substep.result.title" v-html="substep.result.title"></div>
+                                            <pre
+                                                v-if="substep.result.result != null"
+                                                style="background: #eee; padding: 10px; max-height: 160px; resize:vertical; overflow: auto;"
+                                            >{{ substep.result.result }}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '3'"
+                                class="border rounded p-3 bg-light"
+                            >
+                                <div class="text-muted mb-2" style="font-size: 11pt; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
+                                <button class="btn btn-cfde btn-sm" @click="approveStepGate">
+                                    Continue
+                                </button>
+                            </div>
+                            <div v-if="!loadComplete && revealDataSteps.length" class="small text-muted">
+                                Total process time: {{ currTotalTime() }}
+                            </div>
+
+                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
                             <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
                             <div
                                 v-if="hybridSearchMetaSummaryLines.length"
@@ -408,7 +450,7 @@
                                 <span class="small text-muted">{{ display_phenotypes_factors ? 'show less' : 'show more' }}</span>
                             </div>
                             -->
-                            <div :class="{ collapsed: !display_phenotypes_factors }" class="criteria-detail">
+                            <div class="criteria-detail">
                             <div class="mt-2">
                                 <div class="mb-4" style="margin-top:20px;">
                                     <factor-base-reveal-heatmap
@@ -748,13 +790,83 @@
                             </div>
                             </div>
                         </div>
+                        </div>
     
-                        <div v-if="mechanisms && mechanisms.length" :style="`display: ${showTab==='results'?'block':'none'}`">
+                        <div v-if="showTab === 'results'" style="display:flex; flex-direction: column; gap: 12px;">
+                            <div
+                                v-if="isMechanismHypothesisLoading"
+                                class="d-flex align-items-center gap-2 my-2"
+                                style="color: #555;"
+                            >
+                                <b-spinner small></b-spinner>
+                                <span class="font-weight-bold">LLM: Generating mechanistic hypotheses</span>
+                                <span v-if="revealHypothesisStep" class="text-muted small">{{ formatTime(revealHypothesisStep.time) || currStepTime(revealHypothesisStep) }}</span>
+                            </div>
+                            <div
+                                v-if="!isMechanismHypothesisLoading && error_mechanisms"
+                                class="alert alert-danger d-flex align-items-center justify-content-between mt-2"
+                                role="alert"
+                            >
+                                <span>{{ error_msg_mechanisms }}</span>
+                                <button type="button" class="btn btn-sm btn-primary" @click="retryMechanismHypotheses">Retry</button>
+                            </div>
+                            <div v-if="!isMechanismHypothesisLoading && showMechanismResultsPanel">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">Generated {{ mechanisms.length }} mechanistic hypotheses.</div>
-                                <button class="btn btn-outline-secondary btn-sm" @click="downloadReport">
+                                <div class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">
+                                    <template v-if="mechanisms && mechanisms.length">Generated {{ mechanisms.length }} mechanistic hypotheses.</template>
+                                    <template v-else>Mechanistic hypotheses</template>
+                                </div>
+                                <button
+                                    v-if="canDownloadMechanismReport"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    @click="downloadReport"
+                                >
                                     Download report
                                 </button>
+                            </div>
+                            <div
+                                v-if="mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.warning_flag"
+                                class="alert alert-warning small mb-3"
+                                role="status"
+                            >
+                                <div class="font-weight-bold text-dark mb-1">Diagnostic warning</div>
+                                <div class="mb-0">{{ mechanismDiagnosticAssessment.warning_flag }}</div>
+                                <div
+                                    v-if="mechanismDiagnosticAssessment.suggested_optimized_query"
+                                    class="mt-2 pt-2 border-top"
+                                    style="border-color: rgba(0,0,0,0.08) !important;"
+                                >
+                                    <div class="font-weight-bold small mb-1">Suggested optimized query</div>
+                                    <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm"
+                                        @click="applySuggestedOptimizedQuery(mechanismDiagnosticAssessment.suggested_optimized_query)"
+                                    >
+                                        Use this query and run Reveal
+                                    </button>
+                                    <span class="small text-muted ml-2">Starts a new run from extraction.</span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.can_generate_hypothesis === false"
+                                class="alert alert-secondary border small mb-3"
+                                role="status"
+                            >
+                                <div class="font-weight-bold text-dark mb-1">No hypothesis generated (diagnostic assessment)</div>
+                                <p class="mb-2 small mb-0 text-secondary">{{ mechanismDiagnosticAssessment.rejection_reason || "The model declined to invent connections not supported by the retrieved graph." }}</p>
+                                <div v-if="mechanismDiagnosticAssessment.suggested_optimized_query" class="mt-2 pt-2 border-top">
+                                    <div class="font-weight-bold small mb-1">Suggested optimized query</div>
+                                    <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-cfde btn-sm"
+                                        @click="applySuggestedOptimizedQuery(mechanismDiagnosticAssessment.suggested_optimized_query)"
+                                    >
+                                        Use this query and run Reveal
+                                    </button>
+                                    <span class="small text-muted ml-2">Starts a new run from extraction.</span>
+                                </div>
                             </div>
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_mechanisms = !display_mechanisms">
                                 <div v-if="searchCriteria && searchCriteria[1]" class="text-muted">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
@@ -815,7 +927,7 @@
                                                                 :items="mechanism.candidate_genes || mechanism.genes || []"
                                                                 :fields="[
                                                                     { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
-                                                                    //{ key: 'group', label: 'Group', thStyle: { width: '110px' } },
+                                                                    { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
                                                                     { key: 'reason', label: 'Reason' },
                                                                     { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' } },
                                                                     { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' } },
@@ -835,7 +947,10 @@
                                                                     {{ row.item.reason != null ? row.item.reason : row.item.role }}<span class="ai-gen">AI</span>
                                                                 </template>
                                                                 <template #cell(gene)="row">
-                                                                    <span class="small pill" :style="`background:${row.item.group==='Balanced'?'#984ea3':row.item.group==='High Functional'?'#7570b3':row.item.group==='High GWAS'?'#d95f02':'#acacad'}; color:white`">{{ row.item.gene }}</span>
+                                                                    <span class="small pill" :style="mechanismGeneGroupPillStyle(row.item.group)">{{ row.item.gene }}</span>
+                                                                </template>
+                                                                <template #cell(group)="row">
+                                                                    <span class="small">{{ row.item.group || "—" }}</span>
                                                                 </template>
                                                             </b-table>
                                                         </template>
@@ -1229,6 +1344,7 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1287,8 +1403,6 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import BootstrapVue from "bootstrap-vue";
-import JSZip from "jszip";
-
 import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
 import { kcURL, resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils";
@@ -1359,6 +1473,8 @@ export default Vue.component("factor-base-reveal", {
             error_msg_mechanisms: "",
             mechanisms: null,
             mechanisms_summary: null,
+            /** From mechanism LLM when can_generate_hypothesis is false or partial warnings. */
+            mechanismDiagnosticAssessment: null,
             /** User approval gates at key workflow breakpoints. */
             stepApprovalGateActive: false,
             stepApprovalGateStepId: "",
@@ -1414,9 +1530,12 @@ export default Vue.component("factor-base-reveal", {
                 Gene: "#984ea3",
             },
 
-            showTab: 'process',
+            showTab: 'terms',
+            /** After user continues past KG gate, enable the Results tab until the next full reset. */
+            revealResultsTabUnlocked: false,
 
-extractSystemPrompt:`You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with five fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (comma-separated string), "research_context" (string), and "suggested_queries" (array of strings). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
+extractSystemPrompt:`
+You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with five fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (comma-separated string), "research_context" (string), and "suggested_queries" (array of strings). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
 
 CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
 1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
@@ -1431,30 +1550,33 @@ Extract the core biological mechanisms, specific metabolites, or molecular targe
 INSTRUCTIONS FOR "research_context":
 Write a clear, 1-2 sentence summary of the biological investigation including both the mechanisms and diseases.
 
-INSTRUCTIONS FOR "suggested_queries":
-Generate 2 to 3 highly specific, optimized alternative search queries based on the user's original intent. These suggestions should help guide the user toward better discovery. A perfect query follows these rules:
-- Names a specific molecular class (e.g., kinase, transferase, receptor).
-- Anchors the anatomy (e.g., liver, proximal tubule, skeletal muscle).
-- Limits the phenotype to a specific clinical trait or biomarker.
-- Uses relational syntax: "Find a [Mechanism] in [Tissue] that regulates [Phenotype]."
+CRITICAL INSTRUCTIONS FOR "suggested_queries":
+First, strictly evaluate the user's query against the following four Optimal Query Guidelines:
+1. Anchor: Explicitly names a specific gene, protein, metabolite, or cellular structure/state to force graph anchoring.
+2. Semantic Net: Defines a specific conceptual biochemical mechanism or pathway.
+3. Spatial Anchoring: Specifies a tissue, cell type, or anatomical location.
+4. Phenotypic Scope: Limits the outcome to a specific clinical trait, biomarker, or focused disease state.
+
+EVALUATION ACTION:
+- If the user's query successfully meets ALL FOUR of these guidelines, it is already fully optimized. You MUST leave the "suggested_queries" array EMPTY [] to avoid confusing the user with redundant alternatives.
+- If the user's query FAILS ANY of these guidelines (e.g., it is a broad disease search, lacks a tissue context, or lacks a specific anchor), generate 2 to 3 highly specific, optimized alternative search queries based on their original intent. These suggestions MUST strictly follow the "Anchor + Semantic Net" formula:
+"Find a [Broad Mechanism/Semantic Net] involving [Explicit Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
 
 OUT OF DOMAIN INSTRUCTION:
 If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, and suggested_queries; use empty strings for mechanism_terms and research_context.
 
 EXAMPLES:
 
-User: "Find how TRAP1 dysfunction in vascular smooth muscle cells alters oxidative phosphorylation to promote atherosclerosis."
+User: "Find an oxidative phosphorylation mechanism involving TRAP1 in vascular smooth muscle cells that promotes atherosclerosis."
 Output:
 {
   "phenotype_terms": [],
   "genes_of_interest": ["TRAP1"],
   "mechanism_terms": "oxidative phosphorylation, mitochondrial dysfunction, metabolic reprogramming",
-  "research_context": "Investigating how TRAP1 mitochondrial chaperone loss or dysfunction alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
-  "suggested_queries": [
-    "Find a TRAP1 chaperone mechanism in vascular smooth muscle cells that alters mitochondrial respiration and drives plaque progression.",
-    "Find a mitochondrial electron transport chain dysfunction mechanism in arterial smooth muscle cells linked to atherosclerosis."
-  ]
+  "research_context": "Investigating how the TRAP1 mitochondrial chaperone alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
+  "suggested_queries": [] 
 }
+// (Note: suggested_queries is empty because the user's prompt perfectly met all 4 Optimal Query Guidelines.)
 
 User: "Find a microbiome-metabolite mechanism linking host signaling to insulin resistance."
 Output:
@@ -1464,10 +1586,11 @@ Output:
   "mechanism_terms": "gut microbiota-derived metabolites, short-chain fatty acids (SCFAs), microbial metabolite receptors",
   "research_context": "Investigating how gut microbiome-derived metabolites modulate host signaling pathways to influence insulin resistance and Type 2 Diabetes.",
   "suggested_queries": [
-    "Find a short-chain fatty acid receptor mechanism in the intestinal epithelium that alters systemic insulin sensitivity.",
-    "Find a secondary bile acid signaling mechanism in hepatocytes linked to glucose tolerance."
+    "Find a short-chain fatty acid receptor mechanism involving GPR43 in the intestinal epithelium that alters systemic insulin sensitivity.",
+    "Find a secondary bile acid signaling mechanism involving FXR in hepatocytes linked to glucose tolerance."
   ]
 }
+// (Note: suggested_queries populated because the user lacked a specific anchor and tissue context.)
 
 User: "What are the genes for early-onset Alzheimer's disease?"
 Output:
@@ -1477,28 +1600,59 @@ Output:
   "mechanism_terms": "",
   "research_context": "Investigating the primary genetic drivers and risk factors associated with early-onset Alzheimer's disease.",
   "suggested_queries": [
-    "Find a microglial phagocytosis mechanism in the cortex linked to amyloid-beta clearance.",
-    "Find a lipid transport mechanism in astrocytes associated with early-onset neurodegeneration."
+    "Find a microglial phagocytosis mechanism involving TREM2 in the cortex linked to amyloid-beta clearance.",
+    "Find a lipid transport mechanism involving APOE in astrocytes associated with early-onset neurodegeneration."
   ]
-}`,
+}
+`,
 
 mechanismHypothesisSystemPrompt: `
-You are an expert in bioinformatics. Each request gives you a full set of context-relevant Phenotype–Factor (gene set cluster) pairs, plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON, and (4) research context.
+You are an expert in bioinformatics. Each request gives you a full set of context-relevant Phenotype–Factor (gene set cluster) pairs, plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON (including critical metadata about requested/missing genes), and (4) research context.
 
 ### Task
-Produce one or more mechanistic hypotheses across the provided pairs. Return \`hypotheses\` as a non-empty array.
+Produce one or more mechanistic hypotheses across the provided pairs, OR strictly reject the prompt if graph topology fails to support the query. 
 
 ### Discovery logic
 1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
 2. **Gene sets:** Explicitly connect factors in that group to the gene sets (pathways) in the KG (\`linked_to_pathway\`, \`contributes_to_pathway\`).
 3. **Support priority:** Prefer genes with combined_score context in the data; prioritize strong functional signal where appropriate.
 4. **Data fidelity:** Use only labels and categories present in the KG CSV.
-5. Site of Action Constraint: The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
+5. **Site of Action Constraint:** The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
+
+### STRICT ANTI-HALLUCINATION DIRECTIVES (THE "SAY NO" RULES)
+Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block and graph topology. LLMs naturally try to invent biological cross-talk—DO NOT DO THIS. You must rely STRICTLY on the data. If the data triggers any of the following cases, adjust the \`diagnostic_assessment\` object accordingly.
+
+* **Case 1: The "Missing Edge" Phenomenon (Dropped Entities)**
+  * *Trigger:* \`genes_of_interest_missing_from_response\` is NOT empty.
+  * *Action:* * If ALL requested genes are missing: Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "While [Missing Genes] were queried, the Knowledge Graph topology does not contain strong enough direct edges linking them to the retrieved factors. No mechanism can be confirmed." Leave \`hypotheses\` empty.
+    * If PARTIAL HIT (some found, some missing): Set \`can_generate_hypothesis\` to true. Set \`warning_flag\` to: "Note: While [Found Genes] anchored the mechanism, [Missing Genes] lacked sufficient graph edges to be included in this specific network." Generate hypothesis using ONLY found genes.
+
+* **Case 2: The "Unmapped Entity" (Absent from Database)**
+  * *Trigger:* \`genes_of_interest_absent_from_db\` is NOT empty.
+  * *Action:* (Same logic as Case 1: Reject if all are absent. Warn and proceed if partial hit).
+
+* **Case 3: The "Hub Gravity" Hijack (Phenotypic Disconnect)**
+  * *Trigger:* Evaluate the \`label\` and \`phenotype\` fields of the retrieved factors in the JSON. If the retrieved factors belong to a distinct, unrelated disease domain compared to the user's queried phenotype (e.g., user asks for "Diabetes" but all retrieved factors are labeled "NEUROLOGICAL" or "ORPHANET"), you MUST reject. Do not invent cross-talk.
+  * *Action:* Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "The forced entities act as massive hubs for [Retrieved Factor Labels]. The Knowledge Graph prioritized these pathways over your requested context of [Queried Phenotype], indicating the targeted mechanism is eclipsed by stronger canonical edges." Leave \`hypotheses\` empty.
+
+* **Case 4: The "Canonical Shadow" Warning (Missing Anchor)**
+  * *Trigger:* The \`genes_of_interest_requested\` array in the metadata is empty [].
+  * *Action:* Set \`can_generate_hypothesis\` to true. Set \`warning_flag\` to: "Your query relied on broad concepts without a specific gene anchor. Consequently, the graph retrieved heavily weighted canonical pathways. For more specific or novel results, try explicitly naming a target gene." Generate the hypothesis.
+
+### SUGGESTED OPTIMIZED QUERY
+If you trigger any of the 4 cases above, you MUST generate a \`suggested_optimized_query\` based on the \`research_context\`. Use the "Anchor + Semantic Net" formula:
+"Find a [Broad Mechanism/Semantic Net] involving [Explicit Gene Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
 
 ### Output (strict JSON)
-Return ONLY:
+Return ONLY valid JSON in the following structure:
 {
   "data_tracing_scratchpad": "Briefly list the specific row IDs from the CSV that connect the phenotype to the factor, and the factor to the highest-scoring genes. Do not use outside knowledge.",
+  "diagnostic_assessment": {
+    "can_generate_hypothesis": true,
+    "rejection_reason": "String or null. Populate if an absolute rejection in Case 1, 2, or 3 is triggered.",
+    "warning_flag": "String or null. Populate if a partial hit in Case 1/2, or the missing anchor in Case 4 is triggered.",
+    "suggested_optimized_query": "String or null. MUST be populated if a rejection or warning occurs."
+  },
   "hypotheses": [
     {
       "group_name": "Short mechanistic headline",
@@ -1508,38 +1662,27 @@ Return ONLY:
       "genes": [
         { 
          "gene": "SYMBOL", 
-         "group": "High GWAS | High Functional | Balanced", 
+         "group": "Primary Mechanistic Candidate OR Supporting Canonical Network", 
          "role": "Brief bridge role.",
          "source_row_id": "Must match a 'contains_gene' row ID from the provided CSV exactly."
-  }
+        }
       ],
       "supporting_row_ids": [0, 1, 2]
     }
   ]
 }
 
-The \`hypotheses\` array MUST contain at least one element.
-
-(Do NOT return 'scores' in genes; scores are filled by the system.)
-
 ### Guidelines
+- **hypotheses array:** MUST contain at least one element UNLESS \`can_generate_hypothesis\` is false.
 - **associated_pairs:** Must match phenotype/factor pairs exactly from the provided list.
 - **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in the core \`associated_pairs\` array.
 - **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
-- **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes; otherwise as many as are strongly supported.
-- **Sorting:** Order \`genes\` by impact (higher combined_score first when inferable from context).
+- **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
 
 CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
-You have been provided a list of candidate genes retrieved from the database. Because broad phenotypes (like "LDL" or "Diabetes") have massive statistical weight, the top retrieved genes are often canonical, generic disease drivers. 
-
-Your job is to act as a strict semantic filter. You must cross-reference every retrieved gene against the user's requested "mechanism_terms". 
-
-1. MECHANISTIC PRIORITIZATION: You must elevate and highlight any gene in the retrieved list that directly executes the requested biochemical mechanism (e.g., if the user asked for a "transferase", prioritize transferase genes, even if they are ranked lower in the raw data).
-2. CANONICAL SEGREGATION: You must explicitly separate generic disease genes from the novel mechanistic targets. 
-
-When formatting your candidate gene list, structure it into two distinct categories:
-- "Primary Mechanistic Candidates": Genes that directly execute or mediate the requested mechanism.
-- "Supporting Canonical Network": Highly ranked generic genes (like LDLR for cholesterol, or INS for diabetes) that provide the downstream phenotypic context, but are NOT the mechanism themselves.
+Because broad phenotypes have massive statistical weight, top retrieved genes are often canonical disease drivers. Your job is to act as a strict semantic filter.
+1. MECHANISTIC PRIORITIZATION: Elevate any gene in the retrieved list that directly executes the requested biochemical mechanism.
+2. CANONICAL SEGREGATION: You must explicitly segregate genes in the JSON output using the "group" field. Assign them as either "Primary Mechanistic Candidate" (directly executes the requested mechanism) or "Supporting Canonical Network" (generic hubs providing downstream phenotypic context).
 `,
         };
     },
@@ -1639,7 +1782,6 @@ When formatting your candidate gene list, structure it into two distinct categor
                 }
                 i = j;
             }
-            console.log('factorDataTableRowsWithRationaleMeta', rows)
             return rows;
         },
         factorDataTableRowsFiltered() {
@@ -1676,6 +1818,53 @@ When formatting your candidate gene list, structure it into two distinct categor
                 if (!current.has(k)) return true;
             }
             return false;
+        },
+        /** Results tab: hypotheses cards or explicit LLM rejection (no hallucination). */
+        showMechanismResultsPanel() {
+            if (!this.loadComplete || this.error_mechanisms) return false;
+            if (this.mechanisms && this.mechanisms.length) return true;
+            const d = this.mechanismDiagnosticAssessment;
+            return !!(d && d.can_generate_hypothesis === false);
+        },
+        workflowErrorSteps() {
+            return (this.steps || []).filter((s) => s && s.type === "error");
+        },
+        revealExtractionStep() {
+            const list = this.steps || [];
+            return list.find((s) => s && s.type !== "error" && s.id === "1") || null;
+        },
+        /** Only extraction-review substep(s); keeps Search terms tab from showing other step payloads. */
+        revealExtractionSubstepsForTermsTab() {
+            const step = this.revealExtractionStep;
+            if (!step || !Array.isArray(step.substeps)) return [];
+            return step.substeps.filter((s) => s && String(s.id) === "1.1");
+        },
+        revealDataSteps() {
+            return (this.steps || []).filter(
+                (s) => s && s.type !== "error" && (s.id === "2" || s.id === "3")
+            );
+        },
+        isMechanismHypothesisLoading() {
+            if (this.loadComplete) return false;
+            return (this.steps || []).some((s) => s && s.id === "4");
+        },
+        revealHypothesisStep() {
+            const list = this.steps || [];
+            return list.find((s) => s && s.id === "4") || null;
+        },
+        revealDataTabEnabled() {
+            if (this.searchCriteriaExtractionGateDone) return true;
+            return this.revealDataSteps.length > 0;
+        },
+        revealResultsTabEnabled() {
+            if (this.revealResultsTabUnlocked) return true;
+            if ((this.steps || []).some((s) => s && s.id === "4")) return true;
+            if (this.loadComplete && (this.error_mechanisms || this.showMechanismResultsPanel)) return true;
+            return false;
+        },
+        /** ZIP report exists only after at least one hypothesis card was generated. */
+        canDownloadMechanismReport() {
+            return Array.isArray(this.mechanisms) && this.mechanisms.length > 0;
         },
         phenotypeCount() {
             const rows = this.factorDataTableRowsFiltered || [];
@@ -1804,7 +1993,6 @@ When formatting your candidate gene list, structure it into two distinct categor
             const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance?q=${geneset}`
             const res = await fetch(url);
             if (!res.ok) {
-                console.log('provenance fetch err')
             }
             const json = await res.json();
             return json.data;
@@ -1845,12 +2033,9 @@ When formatting your candidate gene list, structure it into two distinct categor
         },
         async onGeneSetRowToggled(row){
             row.toggleDetails();
-            console.log('onGeneSetRowToggled', row.item);
-            console.log('gene_set_sources', this.gene_set_sources);
             //if (!row._showDetails) return;
             const key = row.item.geneset;
             if(this.gene_set_sources[key]) {
-                console.log('available')
                 return;
             }
             const data = await this.fetchProvenance(key);
@@ -1858,135 +2043,393 @@ When formatting your candidate gene list, structure it into two distinct categor
             this.$set(this.gene_set_sources, key, result);
         },
         async downloadReport() {
-            if (!this.mechanisms || !this.mechanisms.length) return;
+            if (!this.canDownloadMechanismReport) return;
             try {
-                const zip = new JSZip();
-
                 const researchContext =
                     (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
                         ? String(this.searchCriteria[1].values)
                         : "";
-
-                let report = "";
-                report += "Factor-based reveal mechanistic report\n";
-                report += "======================================\n\n";
-                if (researchContext) {
-                    report += `Research context: ${researchContext}\n\n`;
-                }
-                if (this.mechanisms_summary) {
-                    report += "Overall summary:\n";
-                    report += `${this.mechanisms_summary}\n\n`;
-                }
-                this.mechanisms.forEach((m, idx) => {
-                    report += `Mechanism ${idx + 1}: ${m.group_name || "(unnamed)"}\n`;
-                    if (m.hypothesis) {
-                        report += `  Mechanistic hypothesis: ${m.hypothesis}\n`;
-                    }
-                    if (m.novelty_explanation || m.novelty) {
-                        report += `  Rationale: ${m.novelty_explanation || m.novelty}\n`;
-                    }
-                    if (m.relevance) {
-                        report += `  Relevance: ${m.relevance}\n`;
-                    }
-                    if (Array.isArray(m.relevant_phenotypes) && m.relevant_phenotypes.length) {
-                        const phenotypeLabels = m.relevant_phenotypes.map((id) => this.getPhenotypeDisplay(id));
-                        report += `  RELEVANT PHENOTYPES: ${phenotypeLabels.join(", ")}\n`;
-                    }
-                    if (Array.isArray(m.relevant_factors) && m.relevant_factors.length) {
-                        report += `  RELEVANT FACTORS: ${m.relevant_factors.join(", ")}\n`;
-                    }
-                    if (Array.isArray(m.relevant_gene_sets) && m.relevant_gene_sets.length) {
-                        const geneSetInfoMap = this.buildGeneSetInfoMap();
-                        const geneSetLines = m.relevant_gene_sets.map((gs) => {
-                            const info = geneSetInfoMap[gs];
-                            if (!info) return gs;
-                            const desc = (info.description != null && String(info.description).trim() !== "") ? String(info.description).trim() : "";
-                            const program = (info.gene_set_program != null && String(info.gene_set_program).trim() !== "") ? String(info.gene_set_program).trim() : "";
-                            if (desc && program) return `${gs} (${desc}, ${program})`;
-                            if (desc) return `${gs} (${desc})`;
-                            if (program) return `${gs} (${program})`;
-                            return gs;
-                        });
-                        report += `  RELEVANT GENE SETS: ${geneSetLines.join(", ")}\n`;
-                    }
-
-                    const genes = m.candidate_genes || m.genes || [];
-                    if (genes.length) {
-                        report += "  Candidate genes (matching table columns):\n";
-                        report += "    Gene | Group | Reason | Combined | GWAS | Functional | Relevant factors | Relevant gene sets\n";
-                        genes.forEach((g) => {
-                            const scores = g.scores || {};
-                            const combined = scores.combined ?? scores.c;
-                            const gwas = scores.gwas ?? scores.g;
-                            const functional = scores.functional ?? scores.f;
-                            const reason = g.reason != null ? g.reason : g.role;
-                            const geneName = g.gene != null ? String(g.gene).trim() : "";
-                            const conn =
-                                m.gene_connections &&
-                                geneName &&
-                                m.gene_connections[geneName]
-                                    ? m.gene_connections[geneName]
-                                    : { factors: [], gene_sets: [] };
-                            const relFactors =
-                                Array.isArray(conn.factors) && conn.factors.length
-                                    ? conn.factors.join(", ")
-                                    : "-";
-                            const relGeneSets =
-                                Array.isArray(conn.gene_sets) && conn.gene_sets.length
-                                    ? conn.gene_sets.join(", ")
-                                    : "-";
-                            report += `    ${geneName || "-"} | ${g.group || "-"} | ${reason || "-"} | ${combined ?? "-"} | ${gwas ?? "-"} | ${functional ?? "-"} | ${relFactors} | ${relGeneSets}\n`;
-                        });
-                    }
-
-                    if (m.genes_collective_reason) {
-                        report += `  Genes collective reason: ${m.genes_collective_reason}\n`;
-                    }
-
-                    const net = m.supporting_network || m.network;
-                    if (net && (Array.isArray(net.nodes) || Array.isArray(net.edges))) {
-                        const nodeCount = Array.isArray(net.nodes) ? net.nodes.length : 0;
-                        const edgeCount = Array.isArray(net.edges) ? net.edges.length : 0;
-                        report += `  Supporting network: ${nodeCount} nodes, ${edgeCount} edges\n`;
-                    }
-
-                    report += "\n";
+                const mechanismImages = await this.collectMechanismReportImages();
+                const html = this.buildHtmlReportDocument({
+                    researchContext,
+                    mechanismImages,
+                    factorSummary: this.serializeFactorDataForPrompt(this.factorData || {}),
+                    rawKgCsv: this.lastFlattenedKG && this.lastFlattenedKG.length
+                        ? this.flattenedKGToCSV(this.lastFlattenedKG)
+                        : "",
                 });
-
-                zip.file("report.txt", report);
-
-                const imagePromises = (this.mechanisms || []).map(async (m, idx) => {
-                    const refKey = `mechanismNetwork-${idx}`;
-                    const compRef = this.$refs[refKey];
-                    const comp = Array.isArray(compRef) ? compRef[0] : compRef;
-                    if (comp && typeof comp.exportPng === "function") {
-                        const blob = await comp.exportPng(3);
-                        if (blob) {
-                            zip.file(`mechanism-network-${idx + 1}.png`, blob);
-                        }
-                        if (typeof comp.exportSvg === "function") {
-                            const svgBlob = await comp.exportSvg();
-                            if (svgBlob) {
-                                zip.file(`mechanism-network-${idx + 1}.svg`, svgBlob);
-                            }
-                        }
-                    }
-                });
-
-                await Promise.all(imagePromises);
-
-                const blob = await zip.generateAsync({ type: "blob" });
+                const blob = new Blob([html], { type: "text/html;charset=utf-8" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "factor-base-reveal-report.zip";
+                a.download = "factor-base-reveal-report.html";
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-            } catch (err) {
-                console.warn("FactorBaseReveal: downloadReport failed", err);
+            } catch {
             }
+        },
+        async collectMechanismReportImages() {
+            const images = await Promise.all((this.mechanisms || []).map(async (m, idx) => {
+                const refKey = `mechanismNetwork-${idx}`;
+                const compRef = this.$refs[refKey];
+                const comp = Array.isArray(compRef) ? compRef[0] : compRef;
+                if (!comp) return null;
+                let blob = null;
+                let format = "png";
+                if (typeof comp.exportSvg === "function") {
+                    blob = await comp.exportSvg();
+                    format = "svg";
+                }
+                if (!blob && typeof comp.exportPng === "function") {
+                    blob = await comp.exportPng(3);
+                    format = "png";
+                }
+                if (!blob) return null;
+                const dataUrl = await this.blobToDataUrl(blob);
+                const net = m.supporting_network || m.network || {};
+                return {
+                    idx,
+                    dataUrl,
+                    format,
+                    nodeCount: Array.isArray(net.nodes) ? net.nodes.length : 0,
+                    edgeCount: Array.isArray(net.edges) ? net.edges.length : 0,
+                };
+            }));
+            return images;
+        },
+        blobToDataUrl(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        },
+        escapeHtml(value) {
+            return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        },
+        buildReportList(items, transform = (x) => x) {
+            const list = Array.isArray(items) ? items.map(transform).filter(Boolean) : [];
+            if (!list.length) return '<span class="report-empty">—</span>';
+            return `<ul>${list.map((item) => `<li>${this.escapeHtml(item)}</li>`).join("")}</ul>`;
+        },
+        buildReportGeneTableHtml(genes) {
+            const rows = Array.isArray(genes) ? genes : [];
+            if (!rows.length) return '<div class="report-empty">No genes listed.</div>';
+            return `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Gene</th>
+                            <th>Query gene</th>
+                            <th>Relevant to cluster</th>
+                            <th>Combined</th>
+                            <th>GWAS</th>
+                            <th>Functional</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map((g) => `
+                            <tr>
+                                <td>${this.escapeHtml(g.gene)}</td>
+                                <td>${this.escapeHtml(g.userRequested || "—")}</td>
+                                <td>${this.escapeHtml(g.factorRelevance || "—")}</td>
+                                <td>${this.escapeHtml(g.combined || "—")}</td>
+                                <td>${this.escapeHtml(g.gwasSupport || "—")}</td>
+                                <td>${this.escapeHtml(g.geneSetSupport || "—")}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        },
+        buildReportGeneSetTableHtml(geneSets) {
+            const rows = Array.isArray(geneSets) ? geneSets : [];
+            if (!rows.length) return '<div class="report-empty">No gene sets listed.</div>';
+            return `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Gene set</th>
+                            <th>Program</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map((gs) => `
+                            <tr>
+                                <td>${this.escapeHtml(gs.geneset || "—")}</td>
+                                <td>${this.escapeHtml(gs.program || "—")}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        },
+        buildReportFactorCards(rows, title) {
+            const items = Array.isArray(rows) ? rows : [];
+            const summaryTable = items.length ? `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Phenotype</th>
+                            <th>Gene set cluster</th>
+                            <th>Included</th>
+                            <th>Rationale</th>
+                            <th>Gene sets</th>
+                            <th>Genes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${items.map((row) => `
+                            <tr>
+                                <td>${this.escapeHtml(this.getPhenotypeDisplay(row.phenotype || ""))}</td>
+                                <td>${this.escapeHtml(row.factorLabel || row.factor || "—")}</td>
+                                <td>${row.included ? "Yes" : "No"}</td>
+                                <td>${this.escapeHtml(row.rationale || "—")}</td>
+                                <td>${this.escapeHtml(this.getGenesetForFactor(row.phenotype, row.factor).length)}</td>
+                                <td>${this.escapeHtml(this.getGenesForFactor(row.phenotype, row.factor).length)}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            ` : '<div class="report-empty">No rows available.</div>';
+            const cards = items.map((row) => {
+                const phenotype = this.getPhenotypeDisplay(row.phenotype || "");
+                const genes = this.getGenesForFactor(row.phenotype, row.factor);
+                const geneSets = this.getGenesetForFactor(row.phenotype, row.factor);
+                return `
+                    <article class="report-card">
+                        <h4>${this.escapeHtml(phenotype)} | ${this.escapeHtml(row.factorLabel || row.factor || "")}</h4>
+                        <div class="report-keyvals">
+                            <div><strong>Included:</strong> ${row.included ? "Yes" : "No"}</div>
+                            <div><strong>Rationale:</strong> ${this.escapeHtml(row.rationale || "—")}</div>
+                        </div>
+                        <div class="report-subsection">
+                            <h5>Gene sets in cluster</h5>
+                            ${this.buildReportGeneSetTableHtml(geneSets)}
+                        </div>
+                        <div class="report-subsection">
+                            <h5>Genes in factor</h5>
+                            ${this.buildReportGeneTableHtml(genes)}
+                        </div>
+                    </article>
+                `;
+            }).join("");
+            return `
+                <section class="report-section">
+                    <h2>${this.escapeHtml(title)}</h2>
+                    ${summaryTable}
+                    <div class="report-subsection"></div>
+                    ${cards || '<div class="report-empty">No rows available.</div>'}
+                </section>
+            `;
+        },
+        buildMechanismReportSections(mechanismImages) {
+            const images = Array.isArray(mechanismImages) ? mechanismImages : [];
+            return (this.mechanisms || []).map((m, idx) => {
+                const img = images[idx];
+                const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
+                const geneRows = genes.map((g) => {
+                    const scores = g.scores || {};
+                    const geneName = g.gene != null ? String(g.gene).trim() : "";
+                    const conn =
+                        m.gene_connections && geneName && m.gene_connections[geneName]
+                            ? m.gene_connections[geneName]
+                            : { factors: [], gene_sets: [] };
+                    return `
+                        <tr>
+                            <td>${this.escapeHtml(g.gene || "—")}</td>
+                            <td>${this.escapeHtml(g.group || "—")}</td>
+                            <td>${this.escapeHtml(g.reason != null ? g.reason : g.role || "—")}</td>
+                            <td>${this.escapeHtml(scores.combined ?? scores.c ?? "—")}</td>
+                            <td>${this.escapeHtml(scores.gwas ?? scores.g ?? "—")}</td>
+                            <td>${this.escapeHtml(scores.functional ?? scores.f ?? "—")}</td>
+                            <td>${this.escapeHtml(Array.isArray(conn.factors) && conn.factors.length ? conn.factors.join(", ") : "—")}</td>
+                            <td>${this.escapeHtml(Array.isArray(conn.gene_sets) && conn.gene_sets.length ? conn.gene_sets.join(", ") : "—")}</td>
+                        </tr>
+                    `;
+                }).join("");
+                return `
+                    <section class="report-section report-card">
+                        <h2>Mechanism ${idx + 1}: ${this.escapeHtml(m.group_name || "(unnamed)")}</h2>
+                        <div class="report-subsection"><strong>Mechanistic hypothesis:</strong> ${this.escapeHtml(m.hypothesis || "—")}</div>
+                        <div class="report-subsection"><strong>Rationale:</strong> ${this.escapeHtml(m.novelty_explanation || m.novelty || "—")}</div>
+                        <div class="report-subsection"><strong>Relevance:</strong> ${this.escapeHtml(m.relevance || "—")}</div>
+                        <div class="report-subsection">
+                            <strong>Relevant phenotypes:</strong>
+                            ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
+                        </div>
+                        <div class="report-subsection">
+                            <strong>Relevant gene set clusters:</strong>
+                            ${this.buildReportList(m.relevant_factors)}
+                        </div>
+                        <div class="report-subsection">
+                            <strong>Supplementary / similar clusters:</strong>
+                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${pair.factor}`)}
+                        </div>
+                        <div class="report-subsection">
+                            <strong>Relevant gene sets:</strong>
+                            ${this.buildReportList(this.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
+                        </div>
+                        ${m.genes_collective_reason ? `<div class="report-subsection"><strong>Genes collective reason:</strong> ${this.escapeHtml(m.genes_collective_reason)}</div>` : ""}
+                        <div class="report-subsection">
+                            <h3>Candidate genes</h3>
+                            ${genes.length ? `
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Gene</th>
+                                            <th>Gene role</th>
+                                            <th>Reason</th>
+                                            <th>Combined</th>
+                                            <th>GWAS</th>
+                                            <th>Functional</th>
+                                            <th>Relevant factors</th>
+                                            <th>Relevant gene sets</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${geneRows}</tbody>
+                                </table>
+                            ` : '<div class="report-empty">No candidate genes listed.</div>'}
+                        </div>
+                        <div class="report-subsection">
+                            <h3>Supporting network</h3>
+                            ${img && img.dataUrl ? `
+                                <div class="report-network-meta">${img.nodeCount} nodes, ${img.edgeCount} edges</div>
+                                <img class="report-network-image" src="${img.dataUrl}" alt="Mechanism network ${idx + 1}">
+                            ` : '<div class="report-empty">No network image available.</div>'}
+                        </div>
+                    </section>
+                `;
+            }).join("");
+        },
+        buildHtmlReportDocument({ researchContext, mechanismImages, factorSummary, rawKgCsv }) {
+            const extractedTerms = `
+                <section class="report-section">
+                    <h2>Extracted terms</h2>
+                    <table class="report-table">
+                        <tbody>
+                            <tr><th>Phenotype terms</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Mechanism terms</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Genes of interest</th><td>${this.escapeHtml((this.lastGenesOfInterest || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
+                            <tr><th>Suggested queries</th><td>${(this.lastAlternativeQueries || []).length ? this.buildReportList(this.lastAlternativeQueries) : '<span class="report-empty">None returned.</span>'}</td></tr>
+                        </tbody>
+                    </table>
+                </section>
+            `;
+            const hybridMeta = `
+                <section class="report-section">
+                    <h2>Hybrid retrieval diagnostics</h2>
+                    ${this.hybridSearchMetaSummaryLines.length
+                        ? this.buildReportList(this.hybridSearchMetaSummaryLines)
+                        : '<div class="report-empty">No hybrid diagnostics available.</div>'}
+                </section>
+            `;
+            const mechanismDiag = this.mechanismDiagnosticAssessment
+                ? `
+                    <section class="report-section">
+                        <h2>Mechanism diagnostic assessment</h2>
+                        <table class="report-table">
+                            <tbody>
+                                <tr><th>Can generate hypothesis</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.can_generate_hypothesis)}</td></tr>
+                                <tr><th>Warning</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.warning_flag || "—")}</td></tr>
+                                <tr><th>Rejection reason</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.rejection_reason || "—")}</td></tr>
+                                <tr><th>Suggested optimized query</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.suggested_optimized_query || "—")}</td></tr>
+                            </tbody>
+                        </table>
+                    </section>
+                `
+                : "";
+            const summarySection = `
+                <section class="report-section">
+                    <h2>Summary</h2>
+                    <table class="report-table">
+                        <tbody>
+                            <tr><th>Original query</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
+                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
+                            <tr><th>Mechanism summary</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
+                            <tr><th>Selected phenotypes</th><td>${this.escapeHtml(this.phenotypeCount)}</td></tr>
+                            <tr><th>Selected gene set clusters</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
+                            <tr><th>Generated hypotheses</th><td>${this.escapeHtml((this.mechanisms || []).length)}</td></tr>
+                        </tbody>
+                    </table>
+                </section>
+            `;
+            const appendix = `
+                <section class="report-section report-page-break">
+                    <h2>Appendix: factor summary JSON</h2>
+                    <pre class="report-pre">${this.escapeHtml(factorSummary || "{}")}</pre>
+                </section>
+                <section class="report-section">
+                    <h2>Appendix: raw KG CSV fed to the LLM</h2>
+                    <pre class="report-pre">${this.escapeHtml(rawKgCsv || "")}</pre>
+                </section>
+            `;
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Factor-based Reveal Report</title>
+    <style>
+        html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
+        body, body * { box-sizing: border-box; }
+        body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
+        .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
+        .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
+        .report-header h1 { font-size: 24pt; margin: 0 0 8px; }
+        .report-header p { margin: 0; }
+        .report-section { margin-bottom: 28px; }
+        .report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
+        .report-section h3 { font-size: 15pt; margin: 0 0 8px; }
+        .report-section h4 { font-size: 14pt; margin: 0 0 10px; }
+        .report-section h5 { font-size: 11pt; margin: 0 0 8px; }
+        .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
+        .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
+        .report-table th { background: #f3f4f6; width: 24%; }
+        .report-subsection { margin-bottom: 14px; }
+        .report-empty { color: #667; font-style: italic; }
+        .report-network-image { width: 100%; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
+        .report-network-meta { margin-bottom: 8px; color: #555; }
+        .report-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: #f7f7f8; border: 1px solid #d8dee4; padding: 12px; border-radius: 6px; }
+        .report-keyvals > div { margin-bottom: 6px; }
+        .report-page-break { page-break-before: always; }
+        @media print {
+            html, body { background: #fff; }
+            .report { max-width: none; padding: 0; }
+            .report-card, .report-section { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report">
+        <header class="report-header">
+            <h1>Factor-based Reveal Report</h1>
+            <p>Generated ${this.escapeHtml(new Date().toLocaleString())}</p>
+        </header>
+        ${summarySection}
+        ${hybridMeta}
+        ${mechanismDiag}
+        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Selected factor rows")}
+        <section class="report-section">
+            <h2>Mechanistic hypotheses</h2>
+            ${this.buildMechanismReportSections(mechanismImages)}
+        </section>
+        ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Remaining gene set clusters")}
+        ${extractedTerms}
+        ${appendix}
+    </div>
+</body>
+</html>`;
         },
         startStepTimer() {
             this.stopStepTimer();
@@ -2059,7 +2502,6 @@ When formatting your candidate gene list, structure it into two distinct categor
 
             const ID = step.id;
             if(!ID) {
-                console.warn(`Step is missing id`)
                 return;
             }
 
@@ -2099,7 +2541,6 @@ When formatting your candidate gene list, structure it into two distinct categor
             if(step.substep){
                 const sID = step.substep.id;
                 if(!sID) {
-                    console.warn(`Step ${ID} is missing substep id`)
                     return;
                 }
                 const sIDidx = this.steps[IDidx].substeps.findIndex(o => o.id === sID);
@@ -2146,7 +2587,9 @@ When formatting your candidate gene list, structure it into two distinct categor
             });
         },
         waitForStepApproval(stepId, message, expandToResult = false) {
-            this.showTab = "process";
+            const sid = String(stepId);
+            if (sid === "1") this.showTab = "terms";
+            else if (sid === "3") this.showTab = "data";
             if (expandToResult) this.expandStepToResult(stepId);
             else this.expandStepById(stepId);
             this.pauseStepsElapsedForReview();
@@ -2275,6 +2718,23 @@ When formatting your candidate gene list, structure it into two distinct categor
             }
             this.queryParse();
         },
+        /**
+         * From mechanism diagnostics: fill the main search box and restart the workflow (extraction-first via queryParse).
+         */
+        applySuggestedOptimizedQuery(text) {
+            let q = text != null ? String(text).trim() : "";
+            if (!q && this.mechanismDiagnosticAssessment && this.mechanismDiagnosticAssessment.suggested_optimized_query) {
+                q = String(this.mechanismDiagnosticAssessment.suggested_optimized_query).trim();
+            }
+            if (!q) return;
+            this.userQuery = q;
+            this.showTab = "terms";
+            this.queryParse();
+            this.$nextTick(() => {
+                const el = this.$refs.queryInput;
+                if (el) el.focus();
+            });
+        },
         cancelStepGate(approved = false) {
             const resolver = this.stepApprovalGateResolver;
             this.stepApprovalGateActive = false;
@@ -2351,12 +2811,29 @@ When formatting your candidate gene list, structure it into two distinct categor
             });
             return subset;
         },
+        globalStepIndexForStep(step) {
+            return (this.steps || []).findIndex((s) => s === step);
+        },
+        dataStepShowsSpinner(step) {
+            const idx = this.globalStepIndexForStep(step);
+            if (idx < 0) return false;
+            return idx === this.steps.length - 1 && !this.loadComplete && !this.stepApprovalGateActive;
+        },
+        dataStepShowsGatePause(step) {
+            const idx = this.globalStepIndexForStep(step);
+            if (idx < 0) return false;
+            return idx === this.steps.length - 1 && !this.loadComplete && this.stepApprovalGateActive;
+        },
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;
             const gateStepId = this.stepApprovalGateStepId;
             if (this.stepApprovalGateStepId === "1") {
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
+                this.showTab = "data";
+            } else if (gateStepId === "3") {
+                this.revealResultsTabUnlocked = true;
+                this.showTab = "results";
             }
             const stepIdx = this.steps.findIndex((s) => s && s.id === gateStepId);
             if (stepIdx !== -1) {
@@ -2610,7 +3087,6 @@ When formatting your candidate gene list, structure it into two distinct categor
             const f = factors.find((x) => x.factor === factor || String(x.factor) === String(factor))
                 || allFactors.find((x) => x.factor === factor || String(x.factor) === String(factor));
             if (!f) return [];
-            //console.log('getGenesetForFactor', f);
             const topGeneSetsStr = f.top_gene_sets;
             const topGeneSetProgramsStr = f.gene_set_program;
             const topGeneSets = (typeof topGeneSetsStr === "string" && topGeneSetsStr)
@@ -2723,6 +3199,7 @@ When formatting your candidate gene list, structure it into two distinct categor
             this.searchCriteria = null;
             this.mechanisms = null;
             this.mechanisms_summary = null;
+            this.mechanismDiagnosticAssessment = null;
             this.lastAlternativeQueries = [];
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
@@ -2739,7 +3216,8 @@ When formatting your candidate gene list, structure it into two distinct categor
             this.stepsTimer = null;
             this.stepsPausedAt = null;
             this.now = Date.now();
-            this.showTab = 'process';
+            this.showTab = 'terms';
+            this.revealResultsTabUnlocked = false;
             this.display_examples = false;
             this.get_set_sources = [],
             this.beginFlow();
@@ -2776,7 +3254,6 @@ When formatting your candidate gene list, structure it into two distinct categor
                     type: "error",
                     title: "Malformed response from LLM"
                 })
-                console.error("FactorBaseReveal: Failed to parse LLM JSON", e);
                 return null;
             }
         },
@@ -2796,9 +3273,7 @@ When formatting your candidate gene list, structure it into two distinct categor
                 return;
             }
 
-            console.log("FactorBaseReveal: JSON", json);
-            console.log('phenoptype terms', json.phenotype_terms)
-            console.log('mechanism terms', json.mechanism_terms)
+            console.log("FactorBaseReveal: extraction LLM raw object", json);
 
             const phenotypeTerms = this.normalizeLlmTermList(json.phenotype_terms);
             const mechanismTerms = this.normalizeLlmTermList(json.mechanism_terms);
@@ -3089,7 +3564,7 @@ When formatting your candidate gene list, structure it into two distinct categor
             }
             const json = await resp.json().catch(() => ({}));
             if (resp.ok && json && json.status === "success") {
-                console.log("FactorBaseReveal: hybrid-search response", json);
+                console.log("FactorBaseReveal: hybrid search raw response", json);
                 return json;
             }
             const detail = this.hybridSearchErrorMessage(resp.status, json);
@@ -3319,6 +3794,7 @@ When formatting your candidate gene list, structure it into two distinct categor
                 this.lastHybridSearchMeta = {};
                 this.lastKgTriples = [];
                 this.mechanisms = null;
+                this.mechanismDiagnosticAssessment = null;
                 this.phenotypeDescriptionById = {};
                 const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
                     ? String(this.searchCriteria[1].values)
@@ -3332,7 +3808,6 @@ When formatting your candidate gene list, structure it into two distinct categor
                     throw new Error("Hybrid retrieval returned no phenotype–factor results.");
                 }
             } catch (err) {
-                console.warn("FactorBaseReveal: Hybrid retrieval workflow failed", err);
                 const msg = err && err.message ? String(err.message) : "";
                 const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(msg);
                 const isValidation = /(^|\s)422(\s|$)/.test(msg);
@@ -3387,8 +3862,11 @@ When formatting your candidate gene list, structure it into two distinct categor
         retryMechanismHypotheses() {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
+            this.mechanismDiagnosticAssessment = null;
             this.setLoadStatus("Generating hypotheses…");
             this.loadComplete = false;
+            this.showTab = "results";
+            this.revealResultsTabUnlocked = true;
             this.setStep({
                 id: "4",
                 title: "LLM: Generating mechanistic hypotheses",
@@ -3461,6 +3939,7 @@ When formatting your candidate gene list, structure it into two distinct categor
         requestMechanismHypotheses(factorData, kgTriples) {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
+            this.mechanismDiagnosticAssessment = null;
 
             const researchContext =
                 (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
@@ -3475,7 +3954,8 @@ When formatting your candidate gene list, structure it into two distinct categor
                 phenotype: String(r.phenotype || "").trim(),
                 factor: String((r.factorLabel != null && String(r.factorLabel).trim() !== "") ? r.factorLabel : r.factor || "").trim(),
             })).filter((p) => p.phenotype && p.factor);
-            const hypothesesUserPrompt = `**Phenotype–Factor pairs to explain:**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses directly for these pairs. Return ONLY JSON with a non-empty "hypotheses" array.`;
+            const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
+            const hypothesesUserPrompt = `**Phenotype–Factor pairs to explain:**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
             const maxAttempts = 3;
 
             (async () => {
@@ -3493,6 +3973,7 @@ When formatting your candidate gene list, structure it into two distinct categor
                         this.llmAnalyze.sendPrompt({
                             userPrompt: hypothesesUserPrompt,
                             onResponse: (response) => {
+                                console.log("FactorBaseReveal: hypotheses LLM raw response", response);
                                 const json = this.parseLLMResponse(response);
                                 if (!json) {
                                     finish({ retry: false, failed: true, err: new Error("Could not parse LLM JSON.") });
@@ -3538,6 +4019,12 @@ When formatting your candidate gene list, structure it into two distinct categor
                     return;
                 }
 
+                const diag =
+                    parsed.diagnostic_assessment != null && typeof parsed.diagnostic_assessment === "object"
+                        ? parsed.diagnostic_assessment
+                        : null;
+                this.mechanismDiagnosticAssessment = diag;
+
                 if (parsed && typeof parsed.overall_summary === "string") {
                     this.mechanisms_summary = parsed.overall_summary;
                 } else {
@@ -3547,6 +4034,26 @@ When formatting your candidate gene list, structure it into two distinct categor
                     ? parsed.hypotheses
                     : (parsed.hypothesis && typeof parsed.hypothesis === "object" ? [parsed.hypothesis] : []);
                 if (!hypotheses.length) {
+                    if (diag && diag.can_generate_hypothesis === false) {
+                        this.mechanisms = [];
+                        if (!this.mechanisms_summary && typeof diag.rejection_reason === "string" && diag.rejection_reason.trim()) {
+                            this.mechanisms_summary = diag.rejection_reason.trim();
+                        }
+                        this.setLoadStatus("Ready", true);
+                        this.setStep(
+                            {
+                                id: "4",
+                                substep: {
+                                    id: "4.9",
+                                    title: "Complete (no hypothesis; diagnostics).",
+                                },
+                            },
+                            true
+                        );
+                        this.loadComplete = true;
+                        this.showTab = "results";
+                        return;
+                    }
                     this.error_mechanisms = true;
                     this.error_msg_mechanisms = "No hypotheses were returned.";
                     this.setStep({
@@ -3646,7 +4153,8 @@ When formatting your candidate gene list, structure it into two distinct categor
                     },
                 ],
             };
-            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON with a "hypotheses" array of length **1** for this pair (hypotheses[0] only).`;
+            const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
+            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
 
             let finished = false;
             const finish = () => {
@@ -3659,12 +4167,22 @@ When formatting your candidate gene list, structure it into two distinct categor
             this.llmAnalyze.sendPrompt({
                 userPrompt: fullPrompt,
                 onResponse: (response) => {
+                    console.log("FactorBaseReveal: hypotheses LLM raw response", response);
                     const json = this.parseLLMResponse(response);
                     if (!json) {
                         this.remainingPairGenerateError = "Could not parse LLM response.";
                         return;
                     }
                     if (!Array.isArray(json.hypotheses) || !json.hypotheses.length) {
+                        const rd = json.diagnostic_assessment;
+                        if (rd && rd.can_generate_hypothesis === false && typeof rd.rejection_reason === "string" && rd.rejection_reason.trim()) {
+                            let msg = rd.rejection_reason.trim();
+                            if (typeof rd.suggested_optimized_query === "string" && rd.suggested_optimized_query.trim()) {
+                                msg += ` Suggested query: ${rd.suggested_optimized_query.trim()}`;
+                            }
+                            this.remainingPairGenerateError = msg;
+                            return;
+                        }
                         this.remainingPairGenerateError =
                             typeof json.error === "string" && json.error
                                 ? json.error
@@ -3689,7 +4207,6 @@ When formatting your candidate gene list, structure it into two distinct categor
                     }
                 },
                 onError: (err) => {
-                    console.warn("FactorBaseReveal: remaining-pair mechanism LLM error", err);
                     this.remainingPairGenerateError =
                         err && err.message ? err.message : "Request failed or timed out.";
                     finish();
@@ -3877,6 +4394,16 @@ When formatting your candidate gene list, structure it into two distinct categor
                 functional: num(row.context_functional_support),
             };
         },
+        /** Pill colors for mechanism hypothesis gene rows (legacy GWAS/functional buckets + new canonical segregation labels). */
+        mechanismGeneGroupPillStyle(group) {
+            const g = String(group || "").trim();
+            if (/primary mechanistic/i.test(g)) return { background: "#1b7837", color: "#fff" };
+            if (/supporting canonical/i.test(g)) return { background: "#666666", color: "#fff" };
+            if (g === "Balanced") return { background: "#984ea3", color: "#fff" };
+            if (g === "High Functional") return { background: "#7570b3", color: "#fff" };
+            if (g === "High GWAS") return { background: "#d95f02", color: "#fff" };
+            return { background: "#acacad", color: "#fff" };
+        },
         /**
          * Normalize mechanism hypotheses for display. LLM returns genes (no scores); we attach scores from the KG.
          * @param {Array} hypotheses - Raw hypotheses from LLM.
@@ -3901,7 +4428,12 @@ When formatting your candidate gene list, structure it into two distinct categor
                             reason: g.role != null ? g.role : g.reason,
                         };
                     });
-                    withScores.sort((a, b) => (b.scores?.combined ?? -Infinity) - (a.scores?.combined ?? -Infinity));
+                    const primaryBoost = (row) => (/primary mechanistic/i.test(String(row.group || "")) ? 1 : 0);
+                    withScores.sort((a, b) => {
+                        const pb = primaryBoost(b) - primaryBoost(a);
+                        if (pb !== 0) return pb;
+                        return (b.scores?.combined ?? -Infinity) - (a.scores?.combined ?? -Infinity);
+                    });
                     out.candidate_genes = withScores;
                 }
                 if (h.novelty != null && out.novelty_explanation == null) out.novelty_explanation = h.novelty;
@@ -4111,6 +4643,26 @@ When formatting your candidate gene list, structure it into two distinct categor
 </script>
 
 <style scoped>
+.factor-base-reveal {
+    --reveal-min-font-size: 11pt;
+}
+.factor-base-reveal .small,
+.factor-base-reveal .btn-sm,
+.factor-base-reveal .form-control-sm,
+.factor-base-reveal .text-muted,
+.factor-base-reveal .page-link,
+.factor-base-reveal td,
+.factor-base-reveal th,
+.factor-base-reveal label,
+.factor-base-reveal li,
+.factor-base-reveal a,
+.factor-base-reveal p,
+.factor-base-reveal input,
+.factor-base-reveal textarea,
+.factor-base-reveal select,
+.factor-base-reveal button {
+    font-size: max(var(--reveal-min-font-size), 1em);
+}
 .closed {
     overflow: hidden;
     height: 50px;
@@ -4260,7 +4812,7 @@ When formatting your candidate gene list, structure it into two distinct categor
     align-items: center;
     padding: 0.2em 0.5em;
     border-radius: 4px;
-    font-size: 0.85em;
+    font-size: 11pt;
     font-weight: 500;
 }
 .candidate-genes-legend-pill.ai-generated {
