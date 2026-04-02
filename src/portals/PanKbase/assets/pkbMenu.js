@@ -26,7 +26,7 @@ export const pkbMenu = {
                 { label: "Gene Browser", path: "/gene.html" },
                 { label: "PCA Explorer", path: "/pca-explorer.html" },
                 { label: "Analytical Library", path: "/analytical-library.html" },
-                { label: "Metadata Standards", path: "/metadata-data-standards.html" },
+                { label: "Standards", path: "/metadata-data-standards.html" },
                 { label: "Tools | Pipelines", path: "/tools-pipelines.html" },
                 { label: "Publications", path: "/publications.html" },
             ],
