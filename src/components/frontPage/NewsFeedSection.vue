@@ -62,7 +62,6 @@ export default Vue.component("news-feed-section", {
 }
 .thumbnail {
 	width: 100px;
-	height: 100px;
 	margin-right: 15px;
 	float: left;
 	background-color: #eeeeee;
