@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import "../../assets/phewas.css";
@@ -13,15 +14,24 @@ import regionUtils from "@/utils/regionUtils";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
 new Vue({
+    store,
     components: {
     },
     mixins: [pankbaseMixin],
     data() {
         return {
-            rawFilesLocation: `${PANKBASE_BIOINDEX}/api/raw/file/functional_data/functional_dataset_v1/`
+            
+            files: {
+
+                allTraits: "HIPP_all_traits.pankbase.txt",
+                gcg: "HIPP_gcg_ieq.pankbase.txt",
+                ins: "HIPP_ins_ieq.pankbase.txt",
+                metadata: "meta-data.merged.pankbase.txt"
+            },
         };
     },
     async created() {
+        this.$store.dispatch("populateData", this.files);
     },
     computed: {
         utilsBox() {
