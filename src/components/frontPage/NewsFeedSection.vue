@@ -6,7 +6,7 @@
 			:key="item.nid"
 		>
 			<template v-if="itemIndex < 5">
-				<div class="thumbnail">
+				<div :class="`thumbnail ${item.field_image === '' ? 'no-image' : 'has-image'}`">
 					<img
 						:src="item.field_image"
 						v-if="item.field_image != ''"
@@ -65,10 +65,12 @@ export default Vue.component("news-feed-section", {
 	margin-right: 15px;
 	float: left;
 	background-color: #eeeeee;
-	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
 	border-radius: 5px;
 	border: solid 1px #ccc;
 	overflow: hidden;
 	text-align: center;
+}
+.no-image {
+	background-image: url("https://kp4cd.org/sites/default/files/images/news.svg");
 }
 </style>
