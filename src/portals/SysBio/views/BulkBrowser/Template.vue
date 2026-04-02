@@ -140,7 +140,7 @@
                                                 for all differentially expressed genes from the above-selected dataset
                                                 and p-value filters (<strong>{{ $parent.upGenes.length }}</strong> upregulated,
                                                 <strong>{{ $parent.downGenes.length}}</strong> downregulated genes).
-                                                If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
+                                                If you use data from this tool, please review our <a href="about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
                                             </div>

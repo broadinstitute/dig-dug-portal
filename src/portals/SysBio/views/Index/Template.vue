@@ -4,7 +4,7 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body" style="gap:70px">
-            <div class="section hero f-row grow-children align-v-center" style="gap:50px;">
+            <div class="section hero f-row grow-children align-v-center" :style="{ gap: '50px', backgroundImage: `url('images/sysbio/images/sysbio_hero.png')` }">
                 <div class="f-col" style="gap:20px; margin-top: -100px;">
                     <div class="f-col" style="width:500px">
                         <div class="hero-title">SysBio FAIRplex</div>
@@ -17,7 +17,7 @@
                         discovering and analyzing biomedical data across 
                         Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem
                     </div>
-                    <a href="/about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
+                    <a href="about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
                 </div>
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <!-- <input class="hero-search" type="text" placeholder="Search gene"> -->
@@ -82,7 +82,7 @@
                             </div>
                             <div class="tab-content f-col" data-tab="expression">
                                 <div class="multi-bar-top-row">
-                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Browse full gene expression data.</a>
+                                    <a href="diffexp.html" class="multi-bar-summary-btn">Browse full gene expression data.</a>
                                 </div>
                                 <div>Explore visualizations of differential gene expression within human tissues derived
                                     from the Accelerating Medicines Partnership (AMP) programs. Differential expression
@@ -92,19 +92,19 @@
                                     shows all differentially expressed genes between the two groups.</div>
                                 <div class="tab-content-img-wrapper">
                                     <img style="width: 450px;"
-                                        src="/images/sysbio/images/sysbio_volcano.jpg" />
+                                        :src="'images/sysbio/images/sysbio_volcano.jpg'" />
 
                                 </div>
                             </div>
                             <div class="tab-content f-col" data-tab="clustering">
                                 <div class="multi-bar-top-row">
-                                    <a href="/about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
+                                    <a href="about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
                                 </div>
                                 <div>Learn about the Accelerating Medicines Partnership (AMP) programs and how to request access to their data.</div>
                                 <div class="tab-content-img-wrapper">
                                     <img style="width: 850px;"
                                         :alt="$parent.ampScreenshotAltText"
-                                        src="/images/sysbio/images/amp_screenshot.jpg" />
+                                        src="images/sysbio/images/amp_screenshot.jpg" />
                                 </div>
                             </div>
                         </div>
@@ -198,7 +198,6 @@ export default {
     height: 500px;
     margin: -40px -5vw 0;
     padding: 100px;
-    background-image: url('/images/sysbio/images/sysbio_hero.png');
     background-size: cover;
     background-position: bottom center;
     color: white;

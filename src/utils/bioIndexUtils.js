@@ -5,6 +5,7 @@
 
 import querystring from "query-string";
 import cookie from "cookie";
+import { BIOINDEX_HOST, BIOINDEX_HOST_PRIVATE } from "./runtimeConfig";
 
 // set cookie for authenticated requests
 let session_cookie = undefined;
@@ -14,9 +15,8 @@ if (!!document.cookie) {
     session_cookie = cookie.parse(document.cookie).session;
 }
 
-// updated at compile-time to the dev or production BioIndex server
-export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
-export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
+export const BIO_INDEX_HOST = BIOINDEX_HOST;
+export const BIO_INDEX_HOST_PRIVATE = BIOINDEX_HOST_PRIVATE;
 
 /* Returns the path for any BioIndex API end-point.
  */

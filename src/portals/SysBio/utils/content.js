@@ -1,11 +1,10 @@
 import dataConvert from "@/utils/dataConvert";
+import { MOTRPAC_AUTH, SYSBIO_HOST } from "@/utils/runtimeConfig";
 
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=";
 const NEWSFEED_URL = "https://hugeampkpncms.org/rest/news_list?project=";
 const NEWSITEM_URL = "https://hugeampkpncms.org/rest/news?id=";
-//const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
-const MOTRPAC_AUTH = process.env.MOTRPAC;
+const BIO_INDEX_HOST = SYSBIO_HOST;
 export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
 export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
 export const ACCESSIBLE_GRAY = "rgb(249 249 249)";

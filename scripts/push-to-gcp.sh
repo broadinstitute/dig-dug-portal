@@ -36,7 +36,7 @@ VERSION="latest"
 PROJECT_ID="${GCP_PROJECT_ID:-}"
 REGION="${GCP_REGION:-us-central1}"
 REPOSITORY="${GCP_REPOSITORY:-portal}"
-CLOUD_RUN_SERVICE="${GCP_CLOUD_RUN_SERVICE:-sysbio-portal}"
+CLOUD_RUN_SERVICE="${GCP_CLOUD_RUN_SERVICE:-portal}"
 SERVICE_ACCOUNT_KEY="${GCP_SERVICE_ACCOUNT_KEY:-}"
 IMAGE_NAME="sysbio-portal"
 DEPLOY=false
@@ -132,6 +132,7 @@ echo ""
 # Build the image
 echo "🏗️  Building Docker image for linux/amd64..."
 docker build --platform linux/amd64 \
+    --no-cache \
     --build-arg BUILD_TIMESTAMP="${BUILD_TIMESTAMP}" \
     -t ${IMAGE_NAME}:${VERSION} \
     "$PROJECT_ROOT"

@@ -11,6 +11,7 @@
 import queryString from "query-string";
 import host from "@/utils/hostUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { DEFAULT_PORTAL } from "@/utils/runtimeConfig";
 
 export default {
     namespaced: true,
@@ -102,10 +103,10 @@ export default {
         defaultGroup(state) {
             if (state.diseaseGroups.length > 0) {
                 //if defaultPortal is set, use that
-                if (state.defaultPortal || process.env.VUE_APP_DEFAULT_PORTAL) {
+                if (state.defaultPortal || DEFAULT_PORTAL) {
                     const portalToUse =
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL;
+                        DEFAULT_PORTAL;
                     for (let i in state.diseaseGroups) {
                         let group = state.diseaseGroups[i];
                         if (group.name == portalToUse) {
@@ -168,7 +169,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -186,7 +187,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -204,7 +205,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -222,7 +223,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },
@@ -242,7 +243,7 @@ export default {
                 {
                     q:
                         state.defaultPortal ||
-                        process.env.VUE_APP_DEFAULT_PORTAL ||
+                        DEFAULT_PORTAL ||
                         state.host.subDomain?.replace(/\.?dev/, "") ||
                         "md",
                 },

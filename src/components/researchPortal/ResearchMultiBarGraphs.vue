@@ -15,7 +15,7 @@
           <span class="legend-label">{{ src }}</span>
         </span>
       </div>
-      <a href="/datasetsSummary.html" class="multi-bar-summary-btn">Browse full data summary.</a>
+      <a href="datasetsSummary.html" class="multi-bar-summary-btn">Browse full data summary.</a>
     </div>
     <div class="multi-bar-grid">
       <div

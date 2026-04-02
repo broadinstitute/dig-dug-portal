@@ -37,7 +37,7 @@ new Vue({
     data() {
         return {
             pageInfo: null,
-            datasetFile: '/files/pca_3d_full.tsv',
+            datasetFile: 'files/pca_3d_full.tsv',
             ready: false,
             totalCells: 0,
             coordinates: null,

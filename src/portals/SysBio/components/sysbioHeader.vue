@@ -1,7 +1,7 @@
 <template>
     <div class="header f-row align-v-center spread-out">
-        <a class="logo f-row align-v-center" href="/">
-            <img src="/images/sysbio/logos/sb-color-h.svg" />
+        <a class="logo f-row align-v-center" href="./">
+            <img :src="'images/sysbio/logos/sb-color-h.svg'" />
         </a>
         <div class="beta">beta</div>
         <div class="menu f-row">
@@ -56,7 +56,7 @@
                             />
                         </g>
                     </svg>
-                    {{ userInfo ? "Account" : "Login" }}
+                    {{ userInfo || "Login" }}
                 </a>
             </div>
         </div>
@@ -80,15 +80,14 @@ export default Vue.component("sysbio-header", {
     },
     computed: {},
     mounted() {
-        fetch("/", { method: "HEAD" })
+        fetch("runtime-config.js", { method: "HEAD" })
             .then((res) => {
-                userInfo = res.headers.get("X-Fairplex-User-Info");
-                //console.log(userInfo);
+                this.userInfo = res.headers.get("X-Fairplex-User");
             })
             .catch(() => {});
     },
     created() {
-        this.injectFavicon("/images/sysbio/logos/sb-color-icon.svg");
+        this.injectFavicon("images/sysbio/logos/sb-color-icon.svg");
         this.injectFont(
             "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
         );
