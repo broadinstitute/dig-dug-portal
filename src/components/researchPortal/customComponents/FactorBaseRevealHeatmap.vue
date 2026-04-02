@@ -3,15 +3,15 @@
     <div v-if="error" class="error-alert">
       {{ error }}
     </div>
-    <div v-if="useFactorBaseRevealData && phenotypeOptions.length" class="mb-2 d-flex align-items-center gap-2">
-      <label for="fbr-heatmap-phenotype-select" class="mb-0 font-weight-bold small text-secondary">Phenotype:</label>
+    <div v-if="useFactorBaseRevealData && traitGroupOptions.length" class="mb-2 d-flex align-items-center gap-2">
+      <label for="fbr-heatmap-trait-group-select" class="mb-0 font-weight-bold small text-secondary">Trait group:</label>
       <b-form-select
-        id="fbr-heatmap-phenotype-select"
-        v-model="selectedPhenotype"
-        :options="phenotypeOptions"
+        id="fbr-heatmap-trait-group-select"
+        v-model="selectedTraitGroup"
+        :options="traitGroupOptions"
         size="sm"
         class="form-control form-control-sm"
-        style="max-width: 280px;"
+        style="max-width: 420px;"
       />
     </div>
     <div class="viz-legend" v-if="!loading && (useFactorBaseRevealData ? (heatmapDataFromFactorData && heatmapDataFromFactorData.ready) : (heatmapData && heatmapData.genes && heatmapData.genes.length > 0))">
@@ -36,7 +36,7 @@
           </span>
         </div>
         <div class="legend-item">
-          <span class="legend-label">Gene set cluster relevance:</span>
+          <span class="legend-label">Trait group (gene–gene-set cluster) relevance:</span>
           <span class="legend-color factor-relevance"></span>
           <span class="legend-text">Darker = more relevant</span>
         </div>
@@ -48,8 +48,13 @@
       </div>
     </div>
     <div id="factor-base-reveal-heatmap-wrapper" class="heatmap-container">
-      <div v-if="useFactorBaseRevealData && (!heatmapDataFromFactorData || !heatmapDataFromFactorData.ready)" class="text-center p-3 text-muted">
-        {{ useFactorBaseRevealData && phenotypeOptions.length && !selectedPhenotype ? 'Select a phenotype.' : 'No factor data to plot.' }}
+      <div
+        v-if="useFactorBaseRevealData && (!heatmapDataFromFactorData || !heatmapDataFromFactorData.ready)"
+        class="text-center p-3 text-muted"
+      >
+        <template v-if="!traitGroupOptions.length">No trait groups available to plot.</template>
+        <template v-else-if="!selectedTraitGroup">Select a trait group.</template>
+        <template v-else>No matrix data for this trait group.</template>
       </div>
       <div v-else-if="!useFactorBaseRevealData && (!heatmapData || !heatmapData.genes || heatmapData.genes.length === 0)" class="text-center p-3 text-muted">
         Loading heatmap data...
@@ -65,7 +70,7 @@
 <script>
 import Vue from "vue";
 import JSZip from "jszip";
-import { resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils";
+import { resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
 
 export default Vue.component("pigean-factors-viz", {
   props: {
@@ -109,7 +114,8 @@ export default Vue.component("pigean-factors-viz", {
     return {
       loading: false,
       error: null,
-      selectedPhenotype: "",
+      /** Resolved trait group label (gene set cluster display); heatmap shows only this group’s phenotype rows. */
+      selectedTraitGroup: "",
     };
   },
   computed: {
@@ -119,56 +125,99 @@ export default Vue.component("pigean-factors-viz", {
       const hasFactorData = this.factorData && typeof this.factorData === "object" && Object.keys(this.factorData).length > 0;
       return hasRows || hasFactorData;
     },
-    /** Phenotype options for the dropdown when using factorData (FactorBaseReveal mode). */
-    phenotypeOptions() {
+    /** Sorted unique trait groups for the dropdown (same resolution as matrix rows). */
+    traitGroupOptions() {
       const factorData = this.factorData || {};
-      const keys = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
-      keys.sort();
-      const descById = this.phenotypeDescriptionById || {};
-      return keys.map((p) => {
-        const fromSearch = descById[p] != null && String(descById[p]).trim() !== "" ? String(descById[p]).trim() : "";
-        const fromCfde = resolveCfdePhenotypeLabel(p);
-        const text = fromSearch || fromCfde || p;
-        return { value: p, text };
+      const phenotypeIds = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
+      const seen = new Set();
+      const labels = [];
+      phenotypeIds.forEach((phenotype) => {
+        (factorData[phenotype].factors || []).forEach((f) => {
+          const clusterKey =
+            f.label != null && String(f.label).trim() !== ""
+              ? String(f.label).trim()
+              : f.factor != null
+                ? String(f.factor)
+                : "";
+          const traitGroupLabel = resolveCfdeFactorClusterDisplayLabel(clusterKey);
+          if (traitGroupLabel && !seen.has(traitGroupLabel)) {
+            seen.add(traitGroupLabel);
+            labels.push(traitGroupLabel);
+          }
+        });
       });
+      labels.sort((a, b) => String(a).localeCompare(String(b)));
+      return labels.map((text) => ({ value: text, text }));
     },
     /**
-     * Derived heatmap data for the selected phenotype: columns = gene sets first, then genes;
-     * 3 rows of circles (Combined, GWAS, Gene set) from that phenotype's genes; row labels = factor labels only.
+     * CFDE-REVEAL heatmap for the selected trait group: one row per phenotype in that group.
+     * Columns = gene sets then genes (unions within this trait group’s rows / phenotypes).
+     * Three header rows = gene scores (max across phenotypes in view when multiple).
      */
     heatmapDataFromFactorData() {
       const out = {
         ready: false,
         columnLabels: [],
         geneSetCount: 0,
-        rowLabels: [],
         factorRows: [],
         data: [],
         geneScoresForHeader: [],
-        relevanceToTrait: [],
         specialRowLabels: ["Combined score", "GWAS support", "Gene set support"]
       };
       const factorData = this.factorData || {};
-      const selected = this.selectedPhenotype;
-      if (!selected || !factorData[selected]) return out;
-      const pData = factorData[selected];
-      const factors = pData.factors || [];
-      const genes = pData.genes || {};
-      if (factors.length === 0) return out;
+      const phenotypeIds = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
+      if (!phenotypeIds.length) return out;
+
+      const descById = this.phenotypeDescriptionById || {};
+      const phenoDisplay = (pid) => {
+        const fromSearch = descById[pid] != null && String(descById[pid]).trim() !== "" ? String(descById[pid]).trim() : "";
+        const fromCfde = resolveCfdePhenotypeLabel(pid);
+        return fromSearch || fromCfde || pid;
+      };
+
+      const pairs = [];
+      phenotypeIds.forEach((phenotype) => {
+        const factors = factorData[phenotype].factors || [];
+        factors.forEach((f) => {
+          const clusterKey =
+            f.label != null && String(f.label).trim() !== ""
+              ? String(f.label).trim()
+              : f.factor != null
+                ? String(f.factor)
+                : "";
+          const traitGroupLabel = resolveCfdeFactorClusterDisplayLabel(clusterKey);
+          pairs.push({ phenotype, traitGroupLabel, factorObj: f });
+        });
+      });
+      if (!pairs.length) return out;
+
+      const byGroup = new Map();
+      pairs.forEach((p) => {
+        if (!byGroup.has(p.traitGroupLabel)) byGroup.set(p.traitGroupLabel, []);
+        byGroup.get(p.traitGroupLabel).push(p);
+      });
+
+      const selected = String(this.selectedTraitGroup || "").trim();
+      if (!selected || !byGroup.has(selected)) return out;
+
+      const itemsInGroup = byGroup.get(selected);
+      const orderedPairs = [...itemsInGroup].sort((a, b) =>
+        phenoDisplay(a.phenotype).localeCompare(phenoDisplay(b.phenotype))
+      );
+
+      const phenotypeIdsForView = [];
+      const phenoSeen = new Set();
+      orderedPairs.forEach((p) => {
+        if (!phenoSeen.has(p.phenotype)) {
+          phenoSeen.add(p.phenotype);
+          phenotypeIdsForView.push(p.phenotype);
+        }
+      });
 
       const geneSetOrder = [];
       const geneSetSeen = new Set();
-      const geneOrder = Object.keys(genes).sort();
-      const factorRows = [];
-
-      factors.forEach((f) => {
-        factorRows.push({
-          phenotype: selected,
-          factor: f.factor,
-          label: f.label != null ? f.label : f.factor,
-          factorObj: f
-        });
-        const topStr = f.top_gene_sets;
+      orderedPairs.forEach(({ factorObj }) => {
+        const topStr = factorObj.top_gene_sets;
         if (typeof topStr === "string" && topStr) {
           topStr.split(";").map((s) => s.trim()).filter(Boolean).forEach((id) => {
             if (!geneSetSeen.has(id)) {
@@ -179,30 +228,54 @@ export default Vue.component("pigean-factors-viz", {
         }
       });
 
+      const geneSeen = new Set();
+      phenotypeIdsForView.forEach((pid) => {
+        const genes = factorData[pid].genes || {};
+        Object.keys(genes).forEach((g) => geneSeen.add(g));
+      });
+      const geneOrder = Array.from(geneSeen).sort();
+
       const columnLabels = [...geneSetOrder, ...geneOrder];
       const geneSetCount = geneSetOrder.length;
-      out.columnLabels = columnLabels;
-      out.geneSetCount = geneSetCount;
-      out.factorRows = factorRows;
-      out.rowLabels = factorRows.map((r) => r.label);
+
+      const mergeGeneScoresAcrossPhenotypes = (geneId) => {
+        let combined = null;
+        let gwasSupport = null;
+        let geneSetSupport = null;
+        for (let i = 0; i < phenotypeIdsForView.length; i++) {
+          const pid = phenotypeIdsForView[i];
+          const g = factorData[pid].genes && factorData[pid].genes[geneId];
+          if (!g) continue;
+          if (g.combined != null && !isNaN(Number(g.combined))) {
+            const v = Number(g.combined);
+            combined = combined == null ? v : Math.max(combined, v);
+          }
+          if (g.gwasSupport != null && !isNaN(Number(g.gwasSupport))) {
+            const v = Number(g.gwasSupport);
+            gwasSupport = gwasSupport == null ? v : Math.max(gwasSupport, v);
+          }
+          if (g.geneSetSupport != null && !isNaN(Number(g.geneSetSupport))) {
+            const v = Number(g.geneSetSupport);
+            geneSetSupport = geneSetSupport == null ? v : Math.max(geneSetSupport, v);
+          }
+        }
+        return { combined, gwasSupport, geneSetSupport };
+      };
+
+      const factorRows = orderedPairs.map((p) => ({
+        phenotype: p.phenotype,
+        phenotypeDisplay: phenoDisplay(p.phenotype),
+        traitGroupLabel: p.traitGroupLabel,
+        factor: p.factorObj.factor,
+        factorObj: p.factorObj
+      }));
 
       if (columnLabels.length === 0 || factorRows.length === 0) return out;
 
       const geneScoresForHeader = columnLabels.map((colLabel, c) => {
         if (c < geneSetCount) return { combined: null, gwasSupport: null, geneSetSupport: null };
-        const gene = colLabel;
-        const g = genes[gene];
-        if (!g) return { combined: null, gwasSupport: null, geneSetSupport: null };
-        return {
-          combined: g.combined != null ? Number(g.combined) : null,
-          gwasSupport: g.gwasSupport != null ? Number(g.gwasSupport) : null,
-          geneSetSupport: g.geneSetSupport != null ? Number(g.geneSetSupport) : null
-        };
+        return mergeGeneScoresAcrossPhenotypes(colLabel);
       });
-      out.geneScoresForHeader = geneScoresForHeader;
-
-      const relevanceToTrait = factorRows.map(() => null);
-      out.relevanceToTrait = relevanceToTrait;
 
       const data = factorRows.map((rowInfo) => {
         const factorObj = rowInfo.factorObj;
@@ -218,6 +291,11 @@ export default Vue.component("pigean-factors-viz", {
           return raw != null && raw !== "" && !isNaN(Number(raw)) ? Number(raw) : null;
         });
       });
+
+      out.columnLabels = columnLabels;
+      out.geneSetCount = geneSetCount;
+      out.factorRows = factorRows;
+      out.geneScoresForHeader = geneScoresForHeader;
       out.data = data;
       out.ready = data.length > 0 && data[0].length > 0;
       return out;
@@ -235,9 +313,11 @@ export default Vue.component("pigean-factors-viz", {
 
       if (this.useFactorBaseRevealData && this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
         const headerRows = 4;
+        const rowCellHeight = 24;
         const gridRows = (this.heatmapDataFromFactorData.data && this.heatmapDataFromFactorData.data.length) || 0;
         const totalRows = headerRows + gridRows;
-        const calculatedHeight = totalRows * cellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight + extraPadding;
+        const calculatedHeight =
+          headerRows * cellHeight + gridRows * rowCellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight + extraPadding;
         dynamicHeight = Math.min(Math.max(calculatedHeight, minHeight), maxHeight) + "px";
       } else if (this.heatmapData && this.heatmapData.factors && this.heatmapData.factors.length > 0) {
         const numSpecialRows = 3;
@@ -297,15 +377,20 @@ export default Vue.component("pigean-factors-viz", {
       deep: true,
       immediate: true
     },
-    phenotypeOptions: {
+    traitGroupOptions: {
       handler(opts) {
-        if (opts && opts.length > 0 && (!this.selectedPhenotype || !opts.some((o) => o.value === this.selectedPhenotype))) {
-          this.selectedPhenotype = opts[0].value;
+        if (!opts || !opts.length) {
+          this.selectedTraitGroup = "";
+          return;
+        }
+        const valid = opts.some((o) => o.value === this.selectedTraitGroup);
+        if (!this.selectedTraitGroup || !valid) {
+          this.selectedTraitGroup = opts[0].value;
         }
       },
-      immediate: true,
+      immediate: true
     },
-    selectedPhenotype() {
+    selectedTraitGroup() {
       if (!this.useFactorBaseRevealData) return;
       this.cleanupTooltips();
       this.$nextTick(() => {
@@ -376,8 +461,8 @@ export default Vue.component("pigean-factors-viz", {
       });
     },
     /**
-     * Renders the single heatmap: column labels above combined score row; columns = gene sets then genes;
-     * 3 rows of circles (gene cols only); factor rows with relevance bar; main grid = binary (gene set) or relevance (gene).
+     * Renders CFDE-REVEAL heatmap: phenotype row labels only (trait group is chosen in the dropdown above);
+     * columns = gene sets then genes; 3 score rows; body = gene set membership / gene–trait relevance.
      */
     renderFactorBaseRevealHeatmap() {
       const h = this.heatmapDataFromFactorData;
@@ -388,16 +473,17 @@ export default Vue.component("pigean-factors-viz", {
       this.$refs.heatmapContainer.innerHTML = "";
       this.$refs.heatmapLabelsContainer.innerHTML = "";
 
-      const { columnLabels, geneSetCount, rowLabels, data, geneScoresForHeader, specialRowLabels } = h;
+      const { columnLabels, geneSetCount, factorRows, data, geneScoresForHeader, specialRowLabels } = h;
       const numCols = columnLabels.length;
       const numFactorRows = data.length;
       const headerRows = 4;
       const cellWidth = Math.max(24, Math.min(40, 400 / Math.max(1, numCols)));
       const cellHeight = 20;
+      const cellHeightBody = 24;
       const margin = { top: 80, right: 20, bottom: 20, left: 0 };
       const labelMargin = { top: 80, right: 0, bottom: 20, left: 10 };
       const scrollableWidth = Math.max(500, numCols * cellWidth + margin.left + margin.right);
-      const totalContentHeight = headerRows * cellHeight + numFactorRows * cellHeight;
+      const totalContentHeight = headerRows * cellHeight + numFactorRows * cellHeightBody;
       const height = totalContentHeight + margin.top + margin.bottom;
 
       const getRelevanceColor = (value) => {
@@ -411,7 +497,7 @@ export default Vue.component("pigean-factors-viz", {
       const getBinaryColor = (value) => (value === 1 ? "rgb(156, 39, 176)" : "#f0f0f0");
 
       const labelsSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      const labelWidthNoRelevance = 220;
+      const labelWidthNoRelevance = 280;
       labelsSvg.setAttribute("width", labelWidthNoRelevance);
       labelsSvg.setAttribute("height", height);
       labelsSvg.setAttribute("class", "heatmap-labels-svg");
@@ -424,24 +510,28 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute("y", (1 + rowIndex) * cellHeight + cellHeight / 2);
         text.setAttribute("text-anchor", "end");
         text.setAttribute("alignment-baseline", "middle");
-        text.setAttribute("class", "heatmap-label");
+        text.setAttribute("class", "heatmap-label heatmap-label-score-row");
         text.setAttribute("font-size", "10pt");
         text.setAttribute("font-family", "Arial");
         text.textContent = label;
         labelsG.appendChild(text);
       });
-      rowLabels.forEach((label, rowIndex) => {
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", labelWidthNoRelevance - 10);
-        text.setAttribute("y", headerRows * cellHeight + rowIndex * cellHeight + cellHeight / 2);
-        text.setAttribute("text-anchor", "end");
-        text.setAttribute("alignment-baseline", "middle");
-        text.setAttribute("class", "heatmap-label");
-        text.setAttribute("font-size", "10pt");
-        text.setAttribute("font-family", "Arial");
-        text.textContent = this.truncateLabel(label, 35);
-        if (label.length > 35) text.setAttribute("title", label);
-        labelsG.appendChild(text);
+      const textX = labelWidthNoRelevance - 10;
+      factorRows.forEach((rowMeta, rowIndex) => {
+        const rowTop = headerRows * cellHeight + rowIndex * cellHeightBody;
+        const rowMid = rowTop + cellHeightBody / 2;
+        const phen = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        phen.setAttribute("x", textX);
+        phen.setAttribute("y", rowMid);
+        phen.setAttribute("text-anchor", "end");
+        phen.setAttribute("alignment-baseline", "middle");
+        phen.setAttribute("class", "heatmap-label");
+        phen.setAttribute("font-size", "10pt");
+        phen.setAttribute("font-family", "Arial");
+        const pFull = rowMeta.phenotypeDisplay;
+        phen.textContent = this.truncateLabel(pFull, 40);
+        phen.setAttribute("title", `${rowMeta.traitGroupLabel} — ${pFull}`);
+        labelsG.appendChild(phen);
       });
       labelsSvg.appendChild(labelsG);
       this.$refs.heatmapLabelsContainer.appendChild(labelsSvg);
@@ -475,6 +565,9 @@ export default Vue.component("pigean-factors-viz", {
         geneScoresForHeader.map((s) => s.gwasSupport),
         geneScoresForHeader.map((s) => s.geneSetSupport)
       ];
+      const phenosInHeatmapRows = new Set(factorRows.map((r) => r.phenotype));
+      const headerScoreSuffix = phenosInHeatmapRows.size > 1 ? " (max across phenotypes)" : "";
+
       for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
         const scores = specialScores[rowIndex];
         const rowLabel = specialRowLabels[rowIndex];
@@ -507,7 +600,7 @@ export default Vue.component("pigean-factors-viz", {
               this.cleanupTooltips();
               const tip = document.createElement("div");
               tip.className = "heatmap-tooltip";
-              tip.textContent = `${rowLabel} (${gene}): ${Number(value).toFixed(2)}`;
+              tip.textContent = `${rowLabel} (${gene}): ${Number(value).toFixed(2)}${headerScoreSuffix}`;
               tip.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;z-index:10000;pointer-events:none;";
               document.body.appendChild(tip);
               const place = (ev) => {
@@ -534,25 +627,27 @@ export default Vue.component("pigean-factors-viz", {
         for (let c = 0; c < numCols; c++) {
           const value = data[r][c];
           const x = c * cellWidth;
-          const y = headerRows * cellHeight + r * cellHeight;
+          const y = headerRows * cellHeight + r * cellHeightBody;
           const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
           rect.setAttribute("x", x);
           rect.setAttribute("y", y);
           rect.setAttribute("width", cellWidth);
-          rect.setAttribute("height", cellHeight);
+          rect.setAttribute("height", cellHeightBody);
           rect.setAttribute("fill", c < geneSetCount ? getBinaryColor(value) : getRelevanceColor(value));
           rect.setAttribute("stroke", "#fff");
           rect.setAttribute("stroke-width", "1");
-          const rowLabel = rowLabels[r];
+          const rowMeta = factorRows[r];
+          const rowLine = `${rowMeta.traitGroupLabel} / ${rowMeta.phenotypeDisplay}`;
           const colLabel = columnLabels[c];
           const showTooltip = (event) => {
             this.cleanupTooltips();
             const tip = document.createElement("div");
             tip.className = "heatmap-tooltip";
             if (c < geneSetCount) {
-              tip.textContent = `${rowLabel} × ${colLabel}: ${value === 1 ? "Yes" : "No"}`;
+              tip.textContent = `${rowLine} × ${colLabel}: ${value === 1 ? "Yes" : "No"}`;
             } else {
-              tip.textContent = value != null ? `${rowLabel} × ${colLabel}: ${Number(value).toFixed(3)}` : `${rowLabel} × ${colLabel}: —`;
+              tip.textContent =
+                value != null ? `${rowLine} × ${colLabel}: ${Number(value).toFixed(3)}` : `${rowLine} × ${colLabel}: —`;
             }
             tip.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;z-index:10000;pointer-events:none;";
             document.body.appendChild(tip);
@@ -2233,6 +2328,10 @@ export default Vue.component("pigean-factors-viz", {
   font-size: 12px !important;
   font-weight: 300 !important;
   fill: #333;
+}
+
+#factor-base-reveal-heatmap-wrapper .heatmap-label-score-row {
+  font-weight: 700 !important;
 }
 
 /* Global styles for tooltip since it's appended to body */

@@ -12,17 +12,28 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2">
-                    <div class="query-guidelines-panel border rounded bg-light">
+                    <div class="d-flex gap-2" style="position: relative;">
+                        <input
+                            type="text"
+                            class="form-control"
+                            ref="queryInput"
+                            v-model="userQuery"
+                            placeholder="Describe what you're researching or curious about"
+                            @keydown.enter.prevent="queryParse()"
+                            style="padding: 10px 150px 10px 10px; font-size: 11pt; height: auto;"
+                        />
+                        <button class="btn btn-cfde" style="min-width: 120px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" @click="queryParse()">Reveal</button>
+                    </div>
+                    <div class="query-guidelines-panel">
                         <button
                             type="button"
-                            class="query-guidelines-toggle btn btn-link text-left w-100 d-flex justify-content-between align-items-center text-decoration-none"
+                            class="query-guidelines-toggle btn btn-link w-100 d-flex align-items-center text-decoration-none text-right"
                             :aria-expanded="queryGuidelinesExpanded ? 'true' : 'false'"
                             aria-controls="query-guidelines-content"
                             id="query-guidelines-label"
                             @click="queryGuidelinesExpanded = !queryGuidelinesExpanded"
                         >
-                            <span class="font-weight-bold text-dark">How to build your query</span>
-                            <span class="small text-muted ml-2">{{ queryGuidelinesExpanded ? "Hide" : "Show" }}</span>
+                            <span>How to build your query</span>
                         </button>
                         <div
                             v-show="queryGuidelinesExpanded"
@@ -86,46 +97,6 @@
                                 These patterns teach you how to drive the hybrid pipeline: explicit entities engage exact-match and grounding behavior, while a clear semantic net keeps retrieval interpretable—moving away from generic LLM-style prompts toward queries tuned for this Discovery Engine.
                             </p>
                         </div>
-                    </div>
-
-                    <div class="d-flex align-items-baseline justify-content-between">
-                        <!--
-                        <label class="font-weight-bold text-secondary mb-0">Describe what you're researching or curious about:</label>
-                        <fieldset class="d-flex align-items-center gap-2 mb-0">
-                            <span class="small">mode:</span>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="radio" id="search_auto" name="search_mode" value="auto" v-model="searchMode"/>
-                                <label for="search_auto" class="mb-0 small">auto</label>
-                            </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="radio" id="search_step" name="search_mode" value="step" v-model="searchMode"/>
-                                <label for="search_step" class="mb-0 small">step</label>
-                            </div>
-                        </fieldset>
-                        -->
-                    </div>
-                    <div class="d-flex gap-2" style="position: relative;">
-                        <input
-                            type="text"
-                            class="form-control"
-                            ref="queryInput"
-                            v-model="userQuery"
-                            placeholder="Describe what you're researching or curious about"
-                            @keydown.enter.prevent="queryParse()"
-                            style="padding: 10px 150px 10px 10px; font-size: 11pt; height: auto;"
-                        />
-                        <button class="btn btn-cfde" style="min-width: 120px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" @click="queryParse()">Reveal</button>
-                    </div>
-                    <a role="button" class="small text-primary" @click="display_examples = !display_examples" style="padding: 5px 10px;">
-                        {{ display_examples ? 'hide' : 'show' }} examples
-                    </a>
-                    <div v-if="display_examples" class="d-flex flex-wrap gap-2" style="padding:0 10px;">
-                        <span
-                            v-for="ex in exampleQueries"
-                            :key="ex"
-                            class="pill query-sample"
-                            @click="userQuery = ex"
-                        >{{ ex }}</span>
                     </div>
                 </div>
 
@@ -274,9 +245,6 @@
                             v-if="showTab === 'terms'"
                             style="display:flex; flex-direction: column; gap: 12px; color: #555;"
                         >
-                            <div v-if="!loadComplete && steps.length" class="small text-muted">
-                                Total process time: {{ currTotalTime() }}
-                            </div>
                             <template v-if="revealExtractionStep">
                                 <div style="display:flex; gap: 8px; align-items: center;">
                                     <b-spinner v-if="loading_search_criteria" small></b-spinner>
@@ -289,7 +257,6 @@
                                     :key="'ext-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
                                     class="mt-2"
                                 >
-                                    <div class="small text-muted mb-1">{{ substep.title }}</div>
                                     <div
                                         v-if="searchCriteriaEditRows.length && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
                                     >
@@ -309,36 +276,8 @@
                                                 <span>{{ row.item.type }}</span>
                                             </template>
                                             <template #cell(term)="row">
-                                                <div
-                                                    v-if="row.item.type === 'Alternative queries'"
-                                                    class="d-flex flex-column gap-2"
-                                                >
-                                                    <div
-                                                        v-if="Array.isArray(row.item.options) && row.item.options.length"
-                                                        class="d-flex flex-wrap gap-2"
-                                                    >
-                                                        <button
-                                                            v-for="(opt, idx) in row.item.options"
-                                                            :key="`alt-query-${idx}-${opt}`"
-                                                            type="button"
-                                                            class="btn btn-outline-secondary btn-sm text-left"
-                                                            style="white-space: normal;"
-                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                            @click="onAlternativeQuerySelected(opt)"
-                                                        >
-                                                            {{ opt }}
-                                                        </button>
-                                                    </div>
-                                                    <span v-else class="text-muted">(none suggested)</span>
-                                                    <p
-                                                        v-if="!(row.item.options && row.item.options.length)"
-                                                        class="text-muted small mb-0 mt-1"
-                                                    >
-                                                        The extractor omits alternatives when your query already meets the four checks: explicit anchor, semantic net (mechanism), tissue or cell context, and focused phenotypic scope.
-                                                    </p>
-                                                </div>
                                                 <textarea
-                                                    v-else-if="row.item.type === 'Research context'"
+                                                    v-if="row.item.type === 'Research context'"
                                                     class="form-control form-control-sm"
                                                     v-model="row.item.term"
                                                     rows="4"
@@ -356,6 +295,24 @@
                                                 />
                                             </template>
                                         </b-table>
+                                        <div
+                                            v-if="lastAlternativeQueries.length"
+                                            class="reveal-alt-queries-block mt-2 mb-0"
+                                        >
+                                            <div class="font-weight-bold small text-muted mb-1">Alternative queries</div>
+                                            <ul class="reveal-alt-query-links mb-0">
+                                                <li
+                                                    v-for="(opt, idx) in lastAlternativeQueries"
+                                                    :key="'alt-below-' + idx + '-' + opt"
+                                                >
+                                                    <a
+                                                        href="#"
+                                                        class="reveal-alt-query-link"
+                                                        @click.prevent="onAlternativeQuerySelected(opt)"
+                                                    >{{ opt }}</a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                                 <div
@@ -381,9 +338,6 @@
                             v-if="showTab === 'data'"
                             style="display:flex; flex-direction: column; gap: 12px; color: #555;"
                         >
-                            <div v-if="loadComplete" class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">
-                                Process took {{ currTotalTime() }}
-                            </div>
                             <div v-for="step in revealDataSteps" :key="'reveal-data-' + step.id" class="status">
                                 <div style="display:flex; gap: 5px; align-items: center;">
                                     <b-spinner v-if="dataStepShowsSpinner(step)" small></b-spinner>
@@ -411,18 +365,13 @@
                                 </div>
                             </div>
                             <div
-                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '3'"
-                                class="border rounded p-3 bg-light"
+                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
                             >
                                 <div class="text-muted mb-2" style="font-size: 11pt; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
                                 <button class="btn btn-cfde btn-sm" @click="approveStepGate">
                                     Continue
                                 </button>
                             </div>
-                            <div v-if="!loadComplete && revealDataSteps.length" class="small text-muted">
-                                Total process time: {{ currTotalTime() }}
-                            </div>
-
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
                             <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
                             <div
@@ -444,7 +393,7 @@
                                     </div>
                                     <div class="d-flex flex-wrap align-items-baseline gap-2">
                                         <strong>Factors:</strong>
-                                        <span class="pill" v-for="f in factorLabelsList" :key="f">{{ f }}</span>
+                                        <span class="pill" v-for="f in factorLabelsListDisplay" :key="f">{{ f }}</span>
                                     </div>
                                 </div>
                                 <span class="small text-muted">{{ display_phenotypes_factors ? 'show less' : 'show more' }}</span>
@@ -477,7 +426,7 @@
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
                                                     <th style="width: auto;">Phenotype</th>
-                                                    <th style="width: auto;">Gene set cluster</th>
+                                                    <th style="width: auto;">Trait group</th>
                                                     <!--<th style="width: auto;">Top gene sets</th>-->
                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                 </tr>
@@ -496,7 +445,7 @@
                                                         </div>
                                                     </td>
                                                     <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                                    <td>{{ row.factorLabel }}</td>
+                                                    <td>{{ getFactorClusterDisplay(row) }}</td>
                                                     <!--
                                                     <td>
                                                         <div style="display:flex; flex-direction: column; gap: 3px">
@@ -518,7 +467,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr v-if="isFactorRowExpanded(row)">
-                                                    <td colspan="5" class="p-0 border-0">
+                                                    <td colspan="4" class="p-0 border-0">
                                                         <div class="bg-light" style="display:flex; gap: 20px;">
                                                             <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                 <div class="small text-muted mb-2">Gene sets in cluster</div>
@@ -605,8 +554,6 @@
                                                                     :items="getGenesForFactor(row.phenotype, row.factor)"
                                                                     :fields="[
                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                        { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
-                                                                        { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                         { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                         { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -635,7 +582,7 @@
                                             :fields="[
                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
+                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
                                                 //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
@@ -658,6 +605,9 @@
                                             </template>
                                             <template #cell(phenotype)="row">
                                                 {{ getPhenotypeDisplay(row.item.phenotype) }}
+                                            </template>
+                                            <template #cell(factorLabel)="row">
+                                                {{ getFactorClusterDisplay(row.item) }}
                                             </template>
                                             <template #cell(top_gene_sets)="row">
                                                 <span class="small">{{ row.item.top_gene_sets }}</span>
@@ -759,8 +709,6 @@
                                                             :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
                                                             :fields="[
                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
-                                                                { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                 { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                 { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -845,7 +793,6 @@
                                     >
                                         Use this query and run Reveal
                                     </button>
-                                    <span class="small text-muted ml-2">Starts a new run from extraction.</span>
                                 </div>
                             </div>
                             <div
@@ -854,7 +801,7 @@
                                 role="status"
                             >
                                 <div class="font-weight-bold text-dark mb-1">No hypothesis generated (diagnostic assessment)</div>
-                                <p class="mb-2 small mb-0 text-secondary">{{ mechanismDiagnosticAssessment.rejection_reason || "The model declined to invent connections not supported by the retrieved graph." }}</p>
+                                <p class="mb-2 small mb-0">{{ mechanismDiagnosticAssessment.rejection_reason || "The model declined to invent connections not supported by the retrieved graph." }}</p>
                                 <div v-if="mechanismDiagnosticAssessment.suggested_optimized_query" class="mt-2 pt-2 border-top">
                                     <div class="font-weight-bold small mb-1">Suggested optimized query</div>
                                     <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
@@ -865,9 +812,9 @@
                                     >
                                         Use this query and run Reveal
                                     </button>
-                                    <span class="small text-muted ml-2">Starts a new run from extraction.</span>
                                 </div>
                             </div>
+                            <div v-if="mechanismResultsDetailVisible">
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_mechanisms = !display_mechanisms">
                                 <div v-if="searchCriteria && searchCriteria[1]" class="text-muted">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
                                 <!--<span class="small text-muted">{{ display_mechanisms ? 'show less' : 'show more' }}</span>-->
@@ -990,19 +937,6 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div v-if="(mechanism.relevant_factors && mechanism.relevant_factors.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene set clusters</div>
-                                                            <div style="display:flex; flex-direction: column; gap:3px">
-                                                                <div
-                                                                    v-for="(factor, fidx) in mechanism.relevant_factors"
-                                                                    :key="'mech-' + idx + '-rfac-' + fidx + '-' + (factor || '')"
-                                                                    class="small pill"
-                                                                    :style="`background:${NODE_COLORS.Factor}; color:white`"
-                                                                >
-                                                                    {{ factor }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                         <div v-if="(mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)" class="mb-2">
                                                             <div class="font-weight-bold small text-uppercase text-muted mb-1">Supplementary / Similar Clusters</div>
                                                             <div style="display:flex; flex-wrap: wrap; gap:3px">
@@ -1012,7 +946,7 @@
                                                                     class="small pill"
                                                                     style="background:#e2e3e5; color:#383d41;"
                                                                 >
-                                                                    {{ getPhenotypeDisplay(pair.phenotype) }} - {{ pair.factor }}
+                                                                    {{ getPhenotypeDisplay(pair.phenotype) }} - {{ getFactorClusterDisplayString(pair.factor) }}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1061,9 +995,9 @@
                                                                 <tr>
                                                                     <th style="width: 72px;">Included</th>
                                                                     <th style="width: auto;">Phenotype</th>
-                                                                    <th style="width: auto;">Gene set cluster</th>
+                                                                    <th style="width: auto;">Trait group</th>
                                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
-                                                                    <th style="width: 130px;">Hypothesis.</th>
+                                                                    <th style="width: 130px;">Hypothesis</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody v-for="row in remainingFactorTableRowsPaged" :key="'rem-' + getRowKey(row)">
@@ -1074,7 +1008,7 @@
                                                                         </div>
                                                                     </td>
                                                                     <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                                                    <td>{{ row.factorLabel }}</td>
+                                                                    <td>{{ getFactorClusterDisplay(row) }}</td>
                                                                     <td style="text-align: center;">
                                                                         <button
                                                                             class="btn btn-sm btn-outline-primary"
@@ -1097,7 +1031,7 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr v-if="isFactorRowExpanded(row)">
-                                                                    <td colspan="6" class="p-0 border-0">
+                                                                    <td colspan="5" class="p-0 border-0">
                                                                         <div class="bg-light" style="display:flex; gap: 20px;">
                                                                             <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                                 <div class="small text-muted mb-2">Gene sets in cluster</div>
@@ -1170,8 +1104,6 @@
                                                                                     :items="getGenesForFactor(row.phenotype, row.factor)"
                                                                                     :fields="[
                                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                                        { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
-                                                                                        { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                                         { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                                         { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -1199,10 +1131,10 @@
                                                             :fields="[
                                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
+                                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
                                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } },
-                                                                { key: 'hypothesis', label: 'Hypothesis.', thStyle: { width: '130px' } }
+                                                                { key: 'hypothesis', label: 'Hypothesis', thStyle: { width: '130px' } }
                                                             ]"
                                                             small
                                                             striped
@@ -1216,6 +1148,9 @@
                                                             </template>
                                                             <template #cell(phenotype)="row">
                                                                 {{ getPhenotypeDisplay(row.item.phenotype) }}
+                                                            </template>
+                                                            <template #cell(factorLabel)="row">
+                                                                {{ getFactorClusterDisplay(row.item) }}
                                                             </template>
                                                             <template #cell(rationale)="row">
                                                                 <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
@@ -1312,8 +1247,6 @@
                                                                             :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
                                                                             :fields="[
                                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                                { key: 'userRequested', label: 'Query gene', thStyle: { width: '96px' } },
-                                                                                { key: 'factorRelevance', label: 'Relevant to cluster', thStyle: { width: '120px' } },
                                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
                                                                                 { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
                                                                                 { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
@@ -1343,6 +1276,7 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
                             </div>
                             </div>
                         </div>
@@ -1405,8 +1339,9 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 import BootstrapVue from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
-import { kcURL, resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils";
+import { kcURL, resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
 import uiUtils from "@/utils/uiUtils";
+import { colorForGeneRole } from "@/utils/factorRevealGeneColors";
 
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork.vue";
 import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap.vue";
@@ -1425,14 +1360,8 @@ export default Vue.component("factor-base-reveal", {
         return {
             userQuery: "",
             searchMode: "auto",
-            display_examples: false,
-            /** Collapsed by default; expands query-building documentation above the search box. */
+            /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
-            exampleQueries: [
-                "What novel genes might be candidates for rare congenital myopathies",
-                "I'm looking to find mechanisms that underlie body mass index in humans",
-                "What are druggable targets for obesity?",
-            ],
             searchCriteria: null,
             display_search_criteria: false,
             edit_search_criteria: false,
@@ -1506,10 +1435,10 @@ export default Vue.component("factor-base-reveal", {
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
 
-            /** Reveal hybrid-search API (dev default; override via VUE_APP_REVEAL_HYBRID_BASE_URL if set). */
+            /** Reveal hybrid-search API base (production: search.hugeamp.org; override via VUE_APP_REVEAL_HYBRID_BASE_URL for local dev). */
             hybridSearchBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
                 ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
-                : "http://127.0.0.1:8000",
+                : "https://search.hugeamp.org",
             /** When false, omit query_embedding; backend embeds (ALLOW_SERVER_SIDE_EMBEDDING). When true, FE must call Ollama and send query_embedding. */
             hybridSearchUseClientEmbedding: (typeof process !== "undefined" && process.env && process.env.VUE_APP_HYBRID_CLIENT_EMBEDDING === "true"),
             /** POST timeout for hybrid search (ms); server may run DB + Ollama. */
@@ -1607,15 +1536,15 @@ Output:
 `,
 
 mechanismHypothesisSystemPrompt: `
-You are an expert in bioinformatics. Each request gives you a full set of context-relevant Phenotype–Factor (gene set cluster) pairs, plus (2) the KG as CSV with row \`id\`s, (3) factor summary JSON (including critical metadata about requested/missing genes), and (4) research context.
+You are an expert in bioinformatics. Each request gives you (1) UI-selected phenotype–gene-set-cluster identifiers for grouping (\`associated_pairs\` must match those strings), (2) a **phenotype / gene / gene-set** knowledge graph as CSV with row \`id\`s (no separate gene-set-cluster nodes—only phenotypes, gene sets as pathway objects, and genes), (3) a JSON summary of phenotypes with merged genes and gene-set names from hybrid retrieval, plus critical metadata about requested/missing genes, and (4) research context.
 
 ### Task
 Produce one or more mechanistic hypotheses across the provided pairs, OR strictly reject the prompt if graph topology fails to support the query. 
 
 ### Discovery logic
 1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
-2. **Gene sets:** Explicitly connect factors in that group to the gene sets (pathways) in the KG (\`linked_to_pathway\`, \`contributes_to_pathway\`).
-3. **Support priority:** Prefer genes with combined_score context in the data; prioritize strong functional signal where appropriate.
+2. **Gene sets:** The CSV links phenotypes to gene sets with \`associated_with\` (phenotype subject, gene set object), genes to gene sets with \`contributes_to_pathway\`, and phenotypes to genes with \`contains_gene\`. Treat those as the full pathway layer—there is no factor/cluster node between phenotype and gene set.
+3. **Support priority:** Prefer genes with \`context_combined_score\` on \`contains_gene\` rows; prioritize strong functional signal where appropriate.
 4. **Data fidelity:** Use only labels and categories present in the KG CSV.
 5. **Site of Action Constraint:** The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
 
@@ -1624,7 +1553,7 @@ Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block
 
 * **Case 1: The "Missing Edge" Phenomenon (Dropped Entities)**
   * *Trigger:* \`genes_of_interest_missing_from_response\` is NOT empty.
-  * *Action:* * If ALL requested genes are missing: Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "While [Missing Genes] were queried, the Knowledge Graph topology does not contain strong enough direct edges linking them to the retrieved factors. No mechanism can be confirmed." Leave \`hypotheses\` empty.
+  * *Action:* * If ALL requested genes are missing: Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "While [Missing Genes] were queried, the Knowledge Graph topology does not contain strong enough direct edges linking them to the retrieved phenotypes, gene sets, and genes. No mechanism can be confirmed." Leave \`hypotheses\` empty.
     * If PARTIAL HIT (some found, some missing): Set \`can_generate_hypothesis\` to true. Set \`warning_flag\` to: "Note: While [Found Genes] anchored the mechanism, [Missing Genes] lacked sufficient graph edges to be included in this specific network." Generate hypothesis using ONLY found genes.
 
 * **Case 2: The "Unmapped Entity" (Absent from Database)**
@@ -1632,8 +1561,8 @@ Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block
   * *Action:* (Same logic as Case 1: Reject if all are absent. Warn and proceed if partial hit).
 
 * **Case 3: The "Hub Gravity" Hijack (Phenotypic Disconnect)**
-  * *Trigger:* Evaluate the \`label\` and \`phenotype\` fields of the retrieved factors in the JSON. If the retrieved factors belong to a distinct, unrelated disease domain compared to the user's queried phenotype (e.g., user asks for "Diabetes" but all retrieved factors are labeled "NEUROLOGICAL" or "ORPHANET"), you MUST reject. Do not invent cross-talk.
-  * *Action:* Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "The forced entities act as massive hubs for [Retrieved Factor Labels]. The Knowledge Graph prioritized these pathways over your requested context of [Queried Phenotype], indicating the targeted mechanism is eclipsed by stronger canonical edges." Leave \`hypotheses\` empty.
+  * *Trigger:* Compare gene set names and phenotype terms in the CSV and JSON summary to the user's queried phenotype in research context. If retrieved gene sets and annotations belong to a distinct, unrelated disease domain (e.g., user asks for "Diabetes" but the graph is dominated by unrelated domains), you MUST reject. Do not invent cross-talk.
+  * *Action:* Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "The retrieved graph is dominated by pathways and gene associations distant from [Queried Phenotype]; the targeted mechanism is eclipsed by stronger canonical edges." Leave \`hypotheses\` empty.
 
 * **Case 4: The "Canonical Shadow" Warning (Missing Anchor)**
   * *Trigger:* The \`genes_of_interest_requested\` array in the metadata is empty [].
@@ -1646,7 +1575,7 @@ If you trigger any of the 4 cases above, you MUST generate a \`suggested_optimiz
 ### Output (strict JSON)
 Return ONLY valid JSON in the following structure:
 {
-  "data_tracing_scratchpad": "Briefly list the specific row IDs from the CSV that connect the phenotype to the factor, and the factor to the highest-scoring genes. Do not use outside knowledge.",
+  "data_tracing_scratchpad": "Briefly list the CSV row IDs you use: \`associated_with\` (phenotype→gene set), \`contains_gene\` (phenotype→gene), and \`contributes_to_pathway\` (gene→gene set) for the hypothesis. Do not use outside knowledge.",
   "diagnostic_assessment": {
     "can_generate_hypothesis": true,
     "rejection_reason": "String or null. Populate if an absolute rejection in Case 1, 2, or 3 is triggered.",
@@ -1674,9 +1603,10 @@ Return ONLY valid JSON in the following structure:
 
 ### Guidelines
 - **hypotheses array:** MUST contain at least one element UNLESS \`can_generate_hypothesis\` is false.
-- **associated_pairs:** Must match phenotype/factor pairs exactly from the provided list.
-- **Row referencing (Phenotype–Factor):** \`supporting_row_ids\` must include every \`associated_with\` row id for each pair in the core \`associated_pairs\` array.
-- **Row referencing (gene sets / pathways — mandatory):** Include all \`linked_to_pathway\` rows for factors in the group and all \`contributes_to_pathway\` rows for each listed gene that appear in the KG for that story; do not omit pathway rows.
+- **associated_pairs:** Must match phenotype / \`factor\` strings exactly from the UI list (those are gene-set-cluster labels used for grouping even though the CSV graph omits cluster nodes).
+- **Row referencing (phenotype → gene set):** For each phenotype in the story, \`supporting_row_ids\` must include every \`associated_with\` row that links that phenotype to a gene set you rely on.
+- **Row referencing (phenotype → gene):** Include every \`contains_gene\` row for genes you name, for the phenotypes in scope.
+- **Row referencing (gene → gene set):** Include all \`contributes_to_pathway\` rows for those genes to the gene sets in your story; do not omit pathway rows.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
 
 CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
@@ -1731,6 +1661,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         phenotype,
                         factor: f.factor,
                         factorLabel: f.label != null ? f.label : f.factor,
+                        factorLabelFromApi:
+                            f.labelFromApi != null && String(f.labelFromApi).trim() !== ""
+                                ? String(f.labelFromApi).trim()
+                                : null,
                         top_gene_sets: topGeneSets,
                         top_gene_set_programs: topGeneSetPrograms,
                         rationale,
@@ -1826,6 +1760,11 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const d = this.mechanismDiagnosticAssessment;
             return !!(d && d.can_generate_hypothesis === false);
         },
+        /** Hide mechanism narrative (context, summary, cards, remaining clusters) when LLM rejected with no hypotheses. */
+        mechanismResultsDetailVisible() {
+            const d = this.mechanismDiagnosticAssessment;
+            return !(d && d.can_generate_hypothesis === false);
+        },
         workflowErrorSteps() {
             return (this.steps || []).filter((s) => s && s.type === "error");
         },
@@ -1841,7 +1780,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         },
         revealDataSteps() {
             return (this.steps || []).filter(
-                (s) => s && s.type !== "error" && (s.id === "2" || s.id === "3")
+                (s) => s && s.type !== "error" && s.id === "2"
             );
         },
         isMechanismHypothesisLoading() {
@@ -1881,14 +1820,20 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const rows = this.factorDataTableRowsFiltered || [];
             return [...new Set(rows.map((r) => r.factorLabel))].sort();
         },
+        /** Human-readable gene-set cluster labels for pills (CFDE maps + fallback to raw id). */
+        factorLabelsListDisplay() {
+            const rows = this.factorDataTableRowsFiltered || [];
+            return [...new Set(rows.map((r) => this.getFactorClusterDisplay(r)))].sort();
+        },
         /**
-         * Phenotype–factor pairs cited in mechanism results: from flattened KG rows
-         * (predicate associated_with) referenced by each hypothesis supporting_row_ids.
+         * Phenotype–table-row keys cited in mechanism results: inferred from supporting_row_ids
+         * plus merged factorData (hybrid KG has no cluster nodes; edges are phenotype–gene set / gene).
          */
         mechanismResultPhenotypeFactorPairKeys() {
             const keys = new Set();
             const flat = this.lastFlattenedKG;
             const mechs = this.mechanisms || [];
+            const data = this.factorData || {};
             if (!mechs.length) return keys;
             for (const m of mechs) {
                 if (m._fromRemainingPair && Array.isArray(m._remainingPairCoverKeys)) {
@@ -1898,13 +1843,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 if (!flat || !flat.length) continue;
                 if (!Array.isArray(m.supporting_row_ids) || !m.supporting_row_ids.length) continue;
                 const idSet = new Set(m.supporting_row_ids.map(Number));
-                flat.forEach((row) => {
-                    if (!idSet.has(Number(row.id))) return;
-                    if (String(row.predicate).trim() !== "associated_with") return;
-                    const p = row.subject != null ? String(row.subject).trim() : "";
-                    const f = row.object != null ? String(row.object).trim() : "";
-                    if (p && f) keys.add(`${p}|${this.collapseWsLower(f)}`);
-                });
+                this.addTableRowKeysFromCitedFlatRows(keys, flat, idSet, data);
             }
             return keys;
         },
@@ -2128,8 +2067,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     <thead>
                         <tr>
                             <th>Gene</th>
-                            <th>Query gene</th>
-                            <th>Relevant to cluster</th>
                             <th>Combined</th>
                             <th>GWAS</th>
                             <th>Functional</th>
@@ -2139,8 +2076,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         ${rows.map((g) => `
                             <tr>
                                 <td>${this.escapeHtml(g.gene)}</td>
-                                <td>${this.escapeHtml(g.userRequested || "—")}</td>
-                                <td>${this.escapeHtml(g.factorRelevance || "—")}</td>
                                 <td>${this.escapeHtml(g.combined || "—")}</td>
                                 <td>${this.escapeHtml(g.gwasSupport || "—")}</td>
                                 <td>${this.escapeHtml(g.geneSetSupport || "—")}</td>
@@ -2179,7 +2114,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     <thead>
                         <tr>
                             <th>Phenotype</th>
-                            <th>Gene set cluster</th>
+                            <th>Trait group</th>
                             <th>Included</th>
                             <th>Rationale</th>
                             <th>Gene sets</th>
@@ -2190,7 +2125,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         ${items.map((row) => `
                             <tr>
                                 <td>${this.escapeHtml(this.getPhenotypeDisplay(row.phenotype || ""))}</td>
-                                <td>${this.escapeHtml(row.factorLabel || row.factor || "—")}</td>
+                                <td>${this.escapeHtml(this.getFactorClusterDisplay(row))}</td>
                                 <td>${row.included ? "Yes" : "No"}</td>
                                 <td>${this.escapeHtml(row.rationale || "—")}</td>
                                 <td>${this.escapeHtml(this.getGenesetForFactor(row.phenotype, row.factor).length)}</td>
@@ -2206,7 +2141,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const geneSets = this.getGenesetForFactor(row.phenotype, row.factor);
                 return `
                     <article class="report-card">
-                        <h4>${this.escapeHtml(phenotype)} | ${this.escapeHtml(row.factorLabel || row.factor || "")}</h4>
+                        <h4>${this.escapeHtml(phenotype)} | ${this.escapeHtml(this.getFactorClusterDisplay(row))}</h4>
                         <div class="report-keyvals">
                             <div><strong>Included:</strong> ${row.included ? "Yes" : "No"}</div>
                             <div><strong>Rationale:</strong> ${this.escapeHtml(row.rationale || "—")}</div>
@@ -2242,7 +2177,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     const conn =
                         m.gene_connections && geneName && m.gene_connections[geneName]
                             ? m.gene_connections[geneName]
-                            : { factors: [], gene_sets: [] };
+                            : { gene_sets: [] };
+                    const gss = Array.isArray(conn.gene_sets) ? conn.gene_sets : [];
                     return `
                         <tr>
                             <td>${this.escapeHtml(g.gene || "—")}</td>
@@ -2251,8 +2187,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             <td>${this.escapeHtml(scores.combined ?? scores.c ?? "—")}</td>
                             <td>${this.escapeHtml(scores.gwas ?? scores.g ?? "—")}</td>
                             <td>${this.escapeHtml(scores.functional ?? scores.f ?? "—")}</td>
-                            <td>${this.escapeHtml(Array.isArray(conn.factors) && conn.factors.length ? conn.factors.join(", ") : "—")}</td>
-                            <td>${this.escapeHtml(Array.isArray(conn.gene_sets) && conn.gene_sets.length ? conn.gene_sets.join(", ") : "—")}</td>
+                            <td>${this.escapeHtml(gss.length ? gss.join(", ") : "—")}</td>
                         </tr>
                     `;
                 }).join("");
@@ -2267,12 +2202,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
                         </div>
                         <div class="report-subsection">
-                            <strong>Relevant gene set clusters:</strong>
-                            ${this.buildReportList(m.relevant_factors)}
-                        </div>
-                        <div class="report-subsection">
                             <strong>Supplementary / similar clusters:</strong>
-                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${pair.factor}`)}
+                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${this.getFactorClusterDisplayString(pair.factor)}`)}
                         </div>
                         <div class="report-subsection">
                             <strong>Relevant gene sets:</strong>
@@ -2291,7 +2222,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                             <th>Combined</th>
                                             <th>GWAS</th>
                                             <th>Functional</th>
-                                            <th>Relevant factors</th>
                                             <th>Relevant gene sets</th>
                                         </tr>
                                     </thead>
@@ -2373,6 +2303,11 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     <pre class="report-pre">${this.escapeHtml(rawKgCsv || "")}</pre>
                 </section>
             `;
+            const mechanismHypothesesSection = `
+        <section class="report-section">
+            <h2>Mechanistic hypotheses</h2>
+            ${this.buildMechanismReportSections(mechanismImages)}
+        </section>`;
             return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2416,14 +2351,11 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             <h1>Factor-based Reveal Report</h1>
             <p>Generated ${this.escapeHtml(new Date().toLocaleString())}</p>
         </header>
+        ${mechanismHypothesesSection}
         ${summarySection}
         ${hybridMeta}
         ${mechanismDiag}
         ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Selected factor rows")}
-        <section class="report-section">
-            <h2>Mechanistic hypotheses</h2>
-            ${this.buildMechanismReportSections(mechanismImages)}
-        </section>
         ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Remaining gene set clusters")}
         ${extractedTerms}
         ${appendix}
@@ -2564,9 +2496,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             if(seconds<0) return null;
             return `${String(minutes)}m${String(seconds).padStart(2, '0')}s`;
         },
-        currTotalTime() {
-            return this.formatTime(this.now - this.stepsTime);
-        },
         currStepTime(step){
             return this.formatTime(this.now - step.timeStart);
         },
@@ -2589,7 +2518,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         waitForStepApproval(stepId, message, expandToResult = false) {
             const sid = String(stepId);
             if (sid === "1") this.showTab = "terms";
-            else if (sid === "3") this.showTab = "data";
+            else if (sid === "2") this.showTab = "data";
             if (expandToResult) this.expandStepToResult(stepId);
             else this.expandStepById(stepId);
             this.pauseStepsElapsedForReview();
@@ -2632,7 +2561,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const phen = Array.isArray(this.lastPhenotypeTerms) ? this.lastPhenotypeTerms : [];
             const mech = Array.isArray(this.lastMechanismTerms) ? this.lastMechanismTerms : [];
             const goi = Array.isArray(this.lastGenesOfInterest) ? this.lastGenesOfInterest : [];
-            const alternatives = Array.isArray(this.lastAlternativeQueries) ? this.lastAlternativeQueries : [];
             const researchContext =
                 this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
                     ? String(this.searchCriteria[1].values)
@@ -2642,7 +2570,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 { type: "Mechanism terms", term: mech.join(", ") },
                 { type: "Genes of interest", term: goi.join(", ") },
                 { type: "Research context", term: researchContext },
-                { type: "Alternative queries", term: "", options: alternatives },
             ];
             this.searchCriteriaEditRowsDefault = JSON.parse(JSON.stringify(this.searchCriteriaEditRows));
         },
@@ -2655,7 +2582,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const mechanismRow = rows.find((r) => r && r.type === "Mechanism terms");
             const goiRow = rows.find((r) => r && r.type === "Genes of interest");
             const contextRow = rows.find((r) => r && r.type === "Research context");
-            const alternativeRow = rows.find((r) => r && r.type === "Alternative queries");
             const phenotypeTerms = String((phenotypeRow && phenotypeRow.term) || "")
                 .split(",")
                 .map((s) => s.trim())
@@ -2673,9 +2599,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             this.lastPhenotypeTerms = phenotypeTerms;
             this.lastMechanismTerms = mechanismTerms;
             this.lastGenesOfInterest = genesOfInterest;
-            this.lastAlternativeQueries = Array.isArray(alternativeRow && alternativeRow.options)
-                ? alternativeRow.options
-                : [];
             const searchTerms = [...phenotypeTerms, ...mechanismTerms];
             this.searchTerm = searchTerms.join(", ");
             this.searchCriteria = [
@@ -2831,7 +2754,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
                 this.showTab = "data";
-            } else if (gateStepId === "3") {
+            } else if (gateStepId === "2") {
                 this.revealResultsTabUnlocked = true;
                 this.showTab = "results";
             }
@@ -2866,6 +2789,21 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const cfdeLabel = resolveCfdePhenotypeLabel(phenotypeId);
             if (cfdeLabel) return String(cfdeLabel);
             return idStr;
+        },
+        /** Gene set cluster group column: resolve hybrid `label` (stored as factorLabel) via CFDE maps. */
+        getFactorClusterDisplay(row) {
+            if (!row) return "";
+            const key =
+                row.factorLabel != null && String(row.factorLabel).trim() !== ""
+                    ? String(row.factorLabel).trim()
+                    : row.factor != null
+                      ? String(row.factor).trim()
+                      : "";
+            return resolveCfdeFactorClusterDisplayLabel(key);
+        },
+        /** Pills / KG strings: same resolution as table (Orphanet_*, gcat_*, etc.). */
+        getFactorClusterDisplayString(raw) {
+            return resolveCfdeFactorClusterDisplayLabel(raw);
         },
         /** Comma-separated list of phenotype descriptions for on-screen report. */
         getRelevantPhenotypesDisplay(phenotypeIds) {
@@ -3172,6 +3110,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         rowMeta.factorLabel != null && String(rowMeta.factorLabel).trim() !== ""
                             ? String(rowMeta.factorLabel).trim()
                             : String(factorId),
+                    labelFromApi:
+                        rowMeta.factorLabelFromApi != null && String(rowMeta.factorLabelFromApi).trim() !== ""
+                            ? String(rowMeta.factorLabelFromApi).trim()
+                            : null,
                     top_gene_sets: "",
                     gene_set_description: "",
                     gene_set_program: "",
@@ -3218,7 +3160,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             this.now = Date.now();
             this.showTab = 'terms';
             this.revealResultsTabUnlocked = false;
-            this.display_examples = false;
             this.get_set_sources = [],
             this.beginFlow();
         },
@@ -3462,15 +3403,13 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 researchContext,
                 useClient ? queryEmbedding : null
             );
+            const goi = this.normalizeLlmTermList(genesOfInterest != null ? genesOfInterest : this.lastGenesOfInterest);
             const body = {
                 phenotype_terms: fields.phenotype_terms,
+                genes_of_interest: goi,
                 mechanism_terms: fields.mechanism_terms,
                 research_context: fields.research_context,
             };
-            const goi = this.normalizeLlmTermList(genesOfInterest != null ? genesOfInterest : this.lastGenesOfInterest);
-            if (goi.length) {
-                body.genes_of_interest = goi;
-            }
             if (useClient && Array.isArray(queryEmbedding) && queryEmbedding.length > 0) {
                 body.query_embedding = queryEmbedding;
             }
@@ -3600,9 +3539,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const factorId = item && item.factor_id != null && String(item.factor_id).trim() !== ""
                     ? String(item.factor_id).trim()
                     : `factor${idx + 1}`;
-                const factorLabel = item && item.label != null && String(item.label).trim() !== ""
+                const explicitApiLabel = item && item.label != null && String(item.label).trim() !== ""
                     ? String(item.label).trim()
-                    : factorId;
+                    : "";
+                const factorLabel = explicitApiLabel || factorId;
                 const topGeneSets = Array.isArray(item && item.top_gene_sets)
                     ? item.top_gene_sets.map((s) => String(s || "").trim()).filter(Boolean)
                     : (item && item.top_gene_sets != null ? String(item.top_gene_sets).split(/[;,]/).map((s) => s.trim()).filter(Boolean) : []);
@@ -3613,6 +3553,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const factorObj = {
                     factor: factorId,
                     label: factorLabel,
+                    labelFromApi: explicitApiLabel !== "" ? explicitApiLabel : null,
                     top_gene_sets: topGeneSets.join(";"),
                     gene_set_description: "",
                     gene_set_program: geneSetPrograms.join(" | "),
@@ -3665,7 +3606,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 
             this.setStep({
                 id: "2",
-                title: "API: Hybrid retrieval of phenotype–gene set cluster associations",
+                title: "Retrieving data",
             });
 
             let queryEmbedding = null;
@@ -3695,18 +3636,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 });
             } else {
                 this.setLoadStatus("Hybrid retrieval: calling API (server-side embedding)…");
-                this.setStep({
-                    id: "2",
-                    substep: {
-                        id: "2.h1",
-                        title: "Server-side embedding",
-                        result: {
-                            result: {
-                                note: "query_embedding omitted; backend embeds from mechanism_terms and research_context.",
-                            },
-                        },
-                    },
-                });
             }
 
             this.setLoadStatus("Hybrid retrieval: searching factors and gene sets…");
@@ -3729,7 +3658,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 id: "2",
                 substep: {
                     id: "2.h2",
-                    title: "Hybrid retrieval result",
+                    title: "Retrieved result",
                     result: {
                         result: {
                             phenotype: data.phenotype != null ? data.phenotype : phenotypes[0],
@@ -3747,22 +3676,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             this.setLoadStatus("Building knowledge graph from hybrid results…");
             const kgTriples = this.transformMergedDataToKG(this.factorData, "factors");
             this.lastKgTriples = kgTriples;
-            this.setStep({
-                id: "3",
-                title: "KG: Building and flattening knowledge graph for LLM",
-                substep: {
-                    id: "3.1",
-                    title: "Generated KG triples and flattened rows",
-                    result: {
-                        result: {
-                            triple_count: Array.isArray(kgTriples) ? kgTriples.length : 0,
-                            phenotype_count: phenotypes.length,
-                        },
-                    },
-                },
-            });
             await this.waitForStepApproval(
-                "3",
+                "2",
                 "Knowledge graph is ready. Continue to generate mechanistic hypotheses?",
                 true
             );
@@ -3776,8 +3691,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         },
         /**
          * Hybrid-only retrieval path:
-         * POST {hybridSearchBaseUrl}/api/reveal/hybrid-search.
-         * Default: server-side embedding (omit query_embedding). Set VUE_APP_HYBRID_CLIENT_EMBEDDING=true for Ollama client embeddings.
+         * POST https://search.hugeamp.org/api/reveal/hybrid-search (or VUE_APP_REVEAL_HYBRID_BASE_URL + /api/reveal/hybrid-search).
+         * Body: phenotype_terms, genes_of_interest, mechanism_terms, research_context; optional query_embedding if VUE_APP_HYBRID_CLIENT_EMBEDDING=true.
          */
         async onResearch(phenotypeTermsFromExtract) {
             const rawPhenotype = phenotypeTermsFromExtract != null
@@ -3845,6 +3760,59 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
          */
         async onResearchPhenotypeFactorsOnly() {
             return this.onResearch();
+        },
+        /**
+         * Map cited flattened KG rows plus merged factorData to main-table keys used by remaining-row coverage
+         * (phenotype|collapsed factor id or cluster label).
+         */
+        /** Gene-set-cluster display strings under phenotype that list geneSymbol in merged factor gene maps. */
+        factorLabelsForPhenotypeGene(factorData, phenotype, geneSymbol) {
+            const pData = factorData && factorData[phenotype];
+            const out = [];
+            if (!pData || !Array.isArray(pData.factors)) return out;
+            const g = String(geneSymbol || "").trim();
+            if (!g) return out;
+            pData.factors.forEach((f) => {
+                if (!f || !f.genes || !Object.prototype.hasOwnProperty.call(f.genes, g)) return;
+                out.push(
+                    f.label != null && String(f.label).trim() !== ""
+                        ? String(f.label).trim()
+                        : String(f.factor).trim()
+                );
+            });
+            return out;
+        },
+        addTableRowKeysFromCitedFlatRows(keysSet, flat, idSet, factorData) {
+            (flat || []).forEach((row) => {
+                if (!idSet.has(Number(row.id))) return;
+                const pred = String(row.predicate || "").trim();
+                const sub = row.subject != null ? String(row.subject).trim() : "";
+                const obj = row.object != null ? String(row.object).trim() : "";
+                Object.keys(factorData || {}).forEach((pheno) => {
+                    const pData = factorData[pheno];
+                    if (!pData || !Array.isArray(pData.factors)) return;
+                    pData.factors.forEach((f) => {
+                        const fid = f.factor != null ? String(f.factor).trim() : "";
+                        if (!fid) return;
+                        const gss =
+                            typeof f.top_gene_sets === "string" && f.top_gene_sets
+                                ? f.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
+                                : [];
+                        const geneKeys = Object.keys(f.genes || {});
+                        let hit = false;
+                        if (pred === "associated_with" && sub === pheno && gss.includes(obj)) hit = true;
+                        if (pred === "contains_gene" && sub === pheno && geneKeys.includes(obj)) hit = true;
+                        if (pred === "contributes_to_pathway" && geneKeys.includes(sub) && gss.includes(obj)) {
+                            hit = true;
+                        }
+                        if (!hit) return;
+                        keysSet.add(`${pheno}|${this.collapseWsLower(fid)}`);
+                        if (f.label != null && String(f.label).trim() !== "") {
+                            keysSet.add(`${pheno}|${this.collapseWsLower(String(f.label).trim())}`);
+                        }
+                    });
+                });
+            });
         },
         /**
          * Flatten an array of objects to CSV (header row + data rows). Escapes fields containing comma or quote.
@@ -3928,9 +3896,9 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const rows = flattened.map((row) => keys.map((k) => escape(row[k])).join(","));
             return [header, ...rows].join("\n");
         },
-        /** Shared KG + factor summary block for mechanism hypothesis LLM calls. */
-        buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext) {
-            return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+        /** Shared KG + phenotype/gene/gene-set summary for mechanism hypothesis LLM calls (no gene-set-cluster layer in KG). */
+        buildMechanismLlmContextBlock(kgBlock, phenoGeneSetSummary, researchContext) {
+            return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Phenotype / genes / gene sets (from hybrid; clusters are not separate graph nodes):**\n\`\`\`json\n${phenoGeneSetSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
         },
         /**
          * Single-pass mechanism generation: generate hypotheses directly from the hybrid KG package.
@@ -3948,14 +3916,14 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const flattened = this.flattenKGData(kgTriples);
             this.lastFlattenedKG = flattened;
             const kgBlock = this.flattenedKGToCSV(flattened);
-            const factorSummary = this.serializeFactorDataForPrompt(factorData);
-            const baseContextSuffix = this.buildMechanismLlmContextBlock(kgBlock, factorSummary, researchContext);
+            const phenoSummary = this.serializeFactorDataForPrompt(factorData);
+            const baseContextSuffix = this.buildMechanismLlmContextBlock(kgBlock, phenoSummary, researchContext);
             const selectedPairs = (this.factorDataTableRowsFiltered || []).map((r) => ({
                 phenotype: String(r.phenotype || "").trim(),
                 factor: String((r.factorLabel != null && String(r.factorLabel).trim() !== "") ? r.factorLabel : r.factor || "").trim(),
             })).filter((p) => p.phenotype && p.factor);
             const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
-            const hypothesesUserPrompt = `**Phenotype–Factor pairs to explain:**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
+            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
             const maxAttempts = 3;
 
             (async () => {
@@ -4215,20 +4183,17 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             });
         },
         /**
-         * Extract relevant phenotype ids, factor labels, and gene set names from flattened KG rows by supporting row ids.
-         * Phenotypes: from associated_with (subject). Factors: from associated_with (object) and linked_to_pathway/contains_gene (subject). Gene sets: from linked_to_pathway and contributes_to_pathway (object).
-         * @param {Array} flattened - Flat rows from flattenKGData.
-         * @param {Array<number>} rowIds - supporting_row_ids from LLM.
-         * @returns {{ relevant_phenotypes: string[], relevant_factors: string[], relevant_gene_sets: string[] }}
+         * Extract relevant phenotype ids, gene-set-cluster labels (inferred from merged factorData), and gene set names
+         * from flattened KG rows by supporting row ids (hybrid KG: phenotype–gene set via associated_with).
+         * @param {Object} [factorData] - Merged phenotype/factor payload; when omitted, relevant_factors stays empty.
          */
-        extractRelevantFactorsAndGeneSetsFromFlattened(flattened, rowIds) {
+        extractRelevantFactorsAndGeneSetsFromFlattened(flattened, rowIds, factorData) {
             const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
             const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
             const phenotypes = new Set();
-            const factors = new Set();
             const geneSets = new Set();
+            const inferredFactors = new Set();
             const ASSOCIATED_WITH = "associated_with";
-            const LINKED_TO_PATHWAY = "linked_to_pathway";
             const CONTAINS_GENE = "contains_gene";
             const CONTRIBUTES_TO_PATHWAY = "contributes_to_pathway";
             rows.forEach((row) => {
@@ -4236,25 +4201,53 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const sub = row.subject != null ? String(row.subject).trim() : "";
                 const obj = row.object != null ? String(row.object).trim() : "";
                 if (pred === ASSOCIATED_WITH && sub) phenotypes.add(sub);
-                if (pred === ASSOCIATED_WITH && obj) factors.add(obj);
-                if ((pred === LINKED_TO_PATHWAY || pred === CONTAINS_GENE) && sub) factors.add(sub);
-                if ((pred === LINKED_TO_PATHWAY || pred === CONTRIBUTES_TO_PATHWAY) && obj) geneSets.add(obj);
+                if (pred === ASSOCIATED_WITH && obj) geneSets.add(obj);
+                if (pred === CONTRIBUTES_TO_PATHWAY && obj) geneSets.add(obj);
             });
+            if (factorData) {
+                (flattened || []).forEach((row) => {
+                    if (!idSet.has(Number(row.id))) return;
+                    const pred = String(row.predicate || "").trim();
+                    const sub = row.subject != null ? String(row.subject).trim() : "";
+                    const obj = row.object != null ? String(row.object).trim() : "";
+                    Object.keys(factorData).forEach((pheno) => {
+                        const pData = factorData[pheno];
+                        if (!pData || !Array.isArray(pData.factors)) return;
+                        pData.factors.forEach((f) => {
+                            const fid = f.factor != null ? String(f.factor).trim() : "";
+                            if (!fid) return;
+                            const gss =
+                                typeof f.top_gene_sets === "string" && f.top_gene_sets
+                                    ? f.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
+                                    : [];
+                            const geneKeys = Object.keys(f.genes || {});
+                            let hit = false;
+                            if (pred === ASSOCIATED_WITH && sub === pheno && gss.includes(obj)) hit = true;
+                            if (pred === CONTAINS_GENE && sub === pheno && geneKeys.includes(obj)) hit = true;
+                            if (pred === CONTRIBUTES_TO_PATHWAY && geneKeys.includes(sub) && gss.includes(obj)) {
+                                hit = true;
+                            }
+                            if (!hit) return;
+                            inferredFactors.add(
+                                f.label != null && String(f.label).trim() !== ""
+                                    ? String(f.label).trim()
+                                    : fid
+                            );
+                        });
+                    });
+                });
+            }
             return {
                 relevant_phenotypes: [...phenotypes].sort(),
-                relevant_factors: [...factors].sort(),
+                relevant_factors: [...inferredFactors].sort(),
                 relevant_gene_sets: [...geneSets].sort(),
             };
         },
         /**
-         * Build per-gene connections (factors + gene sets) from flattened KG rows by supporting ids.
-         * - Factors directly connected to a gene: Factor --contains_gene--> Gene
-         * - Gene sets directly connected to a gene: Gene --contributes_to_pathway--> GeneSet
-         * @param {Array} flattened
-         * @param {Array<number>} rowIds
-         * @returns {{ [gene: string]: { factors: string[], gene_sets: string[] } }}
+         * Build per-gene connections (gene-set-cluster labels + gene sets) from flattened KG rows by supporting ids.
+         * Cluster labels are recovered from factorData for contains_gene (phenotype → gene) edges.
          */
-        extractGeneConnectionsFromFlattened(flattened, rowIds) {
+        extractGeneConnectionsFromFlattened(flattened, rowIds, factorData) {
             const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
             const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
             const map = {};
@@ -4274,7 +4267,13 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const obj = row.object != null ? String(row.object).trim() : "";
                 if (pred === CONTAINS_GENE) {
                     const gene = ensure(obj);
-                    if (gene && sub) map[gene].factors.add(sub);
+                    if (gene && sub) {
+                        if (factorData) {
+                            this.factorLabelsForPhenotypeGene(factorData, sub, obj).forEach((lb) =>
+                                map[gene].factors.add(lb)
+                            );
+                        }
+                    }
                 } else if (pred === CONTRIBUTES_TO_PATHWAY) {
                     const gene = ensure(sub);
                     if (gene && obj) map[gene].gene_sets.add(obj);
@@ -4300,13 +4299,20 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
             const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
             const CONTEXT_TO_TYPES = {
+                PhenotypeToGeneSet: { subject: "Phenotype", object: "Pathway" },
+                PhenotypeToGene: { subject: "Phenotype", object: "Gene" },
+                GeneToPathway: { subject: "Gene", object: "Pathway" },
                 PhenotypeToFactor: { subject: "Phenotype", object: "Factor" },
                 FactorToPathway: { subject: "Factor", object: "Pathway" },
                 FactorToGene: { subject: "Factor", object: "Gene" },
-                GeneToPathway: { subject: "Gene", object: "Pathway" },
             };
             const nodesMap = new Map();
             const edges = [];
+
+            const pickLabelFromApi = (row) =>
+                row.context_label_from_api != null && String(row.context_label_from_api).trim() !== ""
+                    ? String(row.context_label_from_api).trim()
+                    : null;
 
             rows.forEach((row) => {
                 const ctxType = row.context_type != null ? String(row.context_type).trim() : "";
@@ -4314,12 +4320,21 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 const subId = row.subject != null ? String(row.subject).trim() : "";
                 const objId = row.object != null ? String(row.object).trim() : "";
                 if (subId && !nodesMap.has(subId)) {
+                    const meta = {};
+                    const lfSub = pickLabelFromApi(row);
+                    if (types.subject === "Factor" && lfSub) meta.labelFromApi = lfSub;
                     nodesMap.set(subId, {
                         id: subId,
                         label: subId,
                         type: types.subject,
-                        metadata: {},
+                        metadata: meta,
                     });
+                } else if (subId) {
+                    const lfSub = pickLabelFromApi(row);
+                    if (types.subject === "Factor" && lfSub) {
+                        const n = nodesMap.get(subId);
+                        if (n && n.type === "Factor" && !n.metadata.labelFromApi) n.metadata.labelFromApi = lfSub;
+                    }
                 }
                 if (objId) {
                     const meta = {};
@@ -4328,6 +4343,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     if (row.context_functional_support != null) meta.functional_support = row.context_functional_support;
                     if (row.context_category != null) meta.category = row.context_category;
                     if (row.context_factor_relevance != null) meta.factor_relevance = row.context_factor_relevance;
+                    const lfObj = pickLabelFromApi(row);
+                    if (types.object === "Factor" && lfObj) meta.labelFromApi = lfObj;
                     if (nodesMap.has(objId)) {
                         if (Object.keys(meta).length) Object.assign(nodesMap.get(objId).metadata, meta);
                     } else {
@@ -4350,7 +4367,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         },
         /**
          * Keep only Gene nodes whose symbols appear in candidate_genes; drop other genes and edges that reference them.
-         * Phenotype / Factor / Pathway (gene set) nodes are unchanged.
+         * Phenotype / Pathway (gene set) nodes are unchanged; legacy Factor nodes, if present, are unchanged.
          */
         filterSupportingNetworkToCandidateGenes(network, candidateGenes) {
             const nodesIn = network && Array.isArray(network.nodes) ? network.nodes : [];
@@ -4383,26 +4400,34 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
          * @returns {{ combined: number|null, gwas: number|null, functional: number|null }}
          */
         getGeneScoresFromFlattenedKG(flattened, geneSymbol) {
-            const row = (flattened || []).find(
-                (r) => String(r.predicate || "").trim() === "contains_gene" && String(r.object || "").trim() === String(geneSymbol || "").trim()
+            const sym = String(geneSymbol || "").trim();
+            const rows = (flattened || []).filter(
+                (r) =>
+                    String(r.predicate || "").trim() === "contains_gene" &&
+                    String(r.object || "").trim() === sym
             );
-            if (!row) return { combined: null, gwas: null, functional: null };
+            if (!rows.length) return { combined: null, gwas: null, functional: null };
             const num = (v) => (v != null && v !== "" && !isNaN(Number(v)) ? Number(v) : null);
+            let best = rows[0];
+            let bestC = num(best.context_combined_score);
+            for (let i = 1; i < rows.length; i++) {
+                const r = rows[i];
+                const c = num(r.context_combined_score);
+                if (c != null && (bestC == null || c > bestC)) {
+                    best = r;
+                    bestC = c;
+                }
+            }
             return {
-                combined: num(row.context_combined_score),
-                gwas: num(row.context_gwas_support),
-                functional: num(row.context_functional_support),
+                combined: num(best.context_combined_score),
+                gwas: num(best.context_gwas_support),
+                functional: num(best.context_functional_support),
             };
         },
         /** Pill colors for mechanism hypothesis gene rows (legacy GWAS/functional buckets + new canonical segregation labels). */
+        /** Gene pill colors match supporting network nodes (see @/utils/factorRevealGeneColors). */
         mechanismGeneGroupPillStyle(group) {
-            const g = String(group || "").trim();
-            if (/primary mechanistic/i.test(g)) return { background: "#1b7837", color: "#fff" };
-            if (/supporting canonical/i.test(g)) return { background: "#666666", color: "#fff" };
-            if (g === "Balanced") return { background: "#984ea3", color: "#fff" };
-            if (g === "High Functional") return { background: "#7570b3", color: "#fff" };
-            if (g === "High GWAS") return { background: "#d95f02", color: "#fff" };
-            return { background: "#acacad", color: "#fff" };
+            return { background: colorForGeneRole(group), color: "#fff" };
         },
         /**
          * Normalize mechanism hypotheses for display. LLM returns genes (no scores); we attach scores from the KG.
@@ -4447,14 +4472,13 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     out.supporting_network = this.buildNetworkFromFlattenedRowIds(flattened, h.supporting_row_ids);
                 }
                 if (Array.isArray(h.supporting_row_ids) && flattened && flattened.length > 0) {
-                    const { relevant_phenotypes, relevant_factors, relevant_gene_sets } = this.extractRelevantFactorsAndGeneSetsFromFlattened(
-                        flattened,
-                        h.supporting_row_ids
-                    );
+                    const fd = this.factorData || {};
+                    const { relevant_phenotypes, relevant_factors, relevant_gene_sets } =
+                        this.extractRelevantFactorsAndGeneSetsFromFlattened(flattened, h.supporting_row_ids, fd);
                     out.relevant_phenotypes = relevant_phenotypes;
                     out.relevant_factors = relevant_factors;
                     out.relevant_gene_sets = relevant_gene_sets;
-                    out.gene_connections = this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids);
+                    out.gene_connections = this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids, fd);
                 }
                 const candForNet = out.candidate_genes || h.candidate_genes;
                 if (
@@ -4473,63 +4497,60 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             });
         },
         /**
-         * Serialize factorData into a compact JSON summary for the LLM prompt (phenotypes, factors, gene counts, pathway names, gene set descriptions).
+         * Compact JSON for the mechanism prompt: per phenotype, merged gene-set names, global gene scores map (no per-cluster list).
          */
         serializeFactorDataForPrompt(factorData) {
             const summary = {};
             Object.keys(factorData || {}).forEach((phenotype) => {
                 const p = factorData[phenotype];
                 if (!p) return;
-                const factors = (p.factors || []).map((f) => ({
-                    label: f.label,
-                    factor: f.factor,
-                    top_gene_sets: f.top_gene_sets,
-                    gene_set_description: f.gene_set_description != null ? String(f.gene_set_description) : "",
-                    gene_count: Object.keys(f.genes || {}).length,
-                    pathway_names: Object.keys(f.geneSets || {}),
-                }));
+                const geneSets = new Set();
+                (p.factors || []).forEach((f) => {
+                    if (typeof f.top_gene_sets !== "string" || !f.top_gene_sets) return;
+                    f.top_gene_sets.split(";").forEach((s) => {
+                        const t = s.trim();
+                        if (t) geneSets.add(t);
+                    });
+                });
                 summary[phenotype] = {
                     gene_count: Object.keys(p.genes || {}).length,
-                    factors,
+                    merged_gene_sets: [...geneSets].sort(),
+                    genes: p.genes || {},
                 };
             });
             return JSON.stringify(summary, null, 2);
         },
         /**
-         * Transforms the merged Phenotype-Factor-Gene-Pathway data into a Knowledge Graph (triples).
+         * Builds a factor-free KG from merged hybrid data: phenotype–gene set (\`associated_with\`),
+         * phenotype–gene (\`contains_gene\`), gene–gene set (\`contributes_to_pathway\`). Per-cluster
+         * rows in factor arrays are merged and deduped at the phenotype layer.
          * @param {Object} mergedData - factorData: { [phenotype]: { genes: {}, factors: [] } }
-         * @returns {Array} - Triples { subject, predicate, object, context }
+         * @returns {Array<{ subject, predicate, object, context }>}
          */
         transformMergedDataToKG(mergedData, factorsKey) {
             const triples = [];
+            const seenPhenoGs = new Set();
+            const phenoGeneTriple = new Map();
+            const seenGeneGs = new Set();
 
             Object.keys(mergedData || {}).forEach((phenotypeName) => {
                 const pData = mergedData[phenotypeName];
                 if (!pData || !Array.isArray(pData[factorsKey])) return;
 
                 pData[factorsKey].forEach((factorObj) => {
-                    const factorLabel = factorObj.label;
-
-                    triples.push({
-                        subject: phenotypeName,
-                        predicate: "associated_with",
-                        object: factorLabel,
-                        context: {
-                            type: "PhenotypeToFactor",
-                            original_factor_id: factorObj.factor,
-                        },
-                    });
-
                     const geneSets = (typeof factorObj.top_gene_sets === "string" && factorObj.top_gene_sets)
                         ? factorObj.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
                         : [];
 
                     geneSets.forEach((gsName) => {
+                        const pgKey = `${phenotypeName}\u0000${gsName}`;
+                        if (seenPhenoGs.has(pgKey)) return;
+                        seenPhenoGs.add(pgKey);
                         triples.push({
-                            subject: factorLabel,
-                            predicate: "linked_to_pathway",
+                            subject: phenotypeName,
+                            predicate: "associated_with",
                             object: gsName,
-                            context: { type: "FactorToPathway" },
+                            context: { type: "PhenotypeToGeneSet" },
                         });
                     });
 
@@ -4559,20 +4580,35 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             ? "Genetic (Established)"
                             : "Functional (Novel)";
 
-                        triples.push({
-                            subject: factorLabel,
-                            predicate: "contains_gene",
-                            object: gene.name,
-                            context: {
-                                type: "FactorToGene",
-                                factor_relevance: gene.relevance,
-                                combined_score: globalGeneStats.combined,
-                                gwas_support: gwasSupport,
-                                functional_support: geneSetSupport,
-                                category,
-                                included_from_request: gene.includedFromRequest === true,
-                            },
-                        });
+                        const newCtx = {
+                            type: "PhenotypeToGene",
+                            factor_relevance: gene.relevance,
+                            combined_score: globalGeneStats.combined,
+                            gwas_support: gwasSupport,
+                            functional_support: geneSetSupport,
+                            category,
+                            included_from_request: gene.includedFromRequest === true,
+                        };
+                        const gKey = `${phenotypeName}\u0000${gene.name}`;
+                        const existing = phenoGeneTriple.get(gKey);
+                        const scoreNew = newCtx.combined_score != null && !isNaN(Number(newCtx.combined_score))
+                            ? Number(newCtx.combined_score)
+                            : -Infinity;
+                        const scoreOld = existing && existing.context.combined_score != null
+                            ? Number(existing.context.combined_score)
+                            : -Infinity;
+                        if (!existing) {
+                            const t = {
+                                subject: phenotypeName,
+                                predicate: "contains_gene",
+                                object: gene.name,
+                                context: newCtx,
+                            };
+                            phenoGeneTriple.set(gKey, t);
+                            triples.push(t);
+                        } else if (scoreNew > scoreOld) {
+                            existing.context = newCtx;
+                        }
 
                         const factorGeneSets = factorObj.geneSets || {};
                         let geneLinkedToSomePathway = false;
@@ -4582,18 +4618,19 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                 : [];
                             if (!members.includes(gene.name)) return;
                             geneLinkedToSomePathway = true;
+                            const ggKey = `${gene.name}\u0000${gsName}`;
+                            if (seenGeneGs.has(ggKey)) return;
+                            seenGeneGs.add(ggKey);
                             triples.push({
                                 subject: gene.name,
                                 predicate: "contributes_to_pathway",
                                 object: gsName,
-                                context: { type: "GeneToPathway", context_factor: factorLabel },
+                                context: {
+                                    type: "GeneToPathway",
+                                    context_phenotype: phenotypeName,
+                                },
                             });
                         });
-                        /**
-                         * Ensure each gene under a factor has at least one pathway/gene-set edge in the KG so
-                         * Factor–GeneSet–Gene linkage exists for the LLM (linked_to_pathway + contributes_to_pathway).
-                         * Uses the first top gene set when membership lists omit the gene (API / threshold mismatch).
-                         */
                         if (!geneLinkedToSomePathway && geneSets.length > 0) {
                             const fallbackGs = geneSets[0];
                             if (!factorObj.geneSets) {
@@ -4608,16 +4645,20 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                 gens.push(gene.name);
                                 this.$set(gsEntry, "genes", gens);
                             }
-                            triples.push({
-                                subject: gene.name,
-                                predicate: "contributes_to_pathway",
-                                object: fallbackGs,
-                                context: {
-                                    type: "GeneToPathway",
-                                    context_factor: factorLabel,
-                                    linkage_fallback: true,
-                                },
-                            });
+                            const ggKey = `${gene.name}\u0000${fallbackGs}`;
+                            if (!seenGeneGs.has(ggKey)) {
+                                seenGeneGs.add(ggKey);
+                                triples.push({
+                                    subject: gene.name,
+                                    predicate: "contributes_to_pathway",
+                                    object: fallbackGs,
+                                    context: {
+                                        type: "GeneToPathway",
+                                        context_phenotype: phenotypeName,
+                                        linkage_fallback: true,
+                                    },
+                                });
+                            }
                         }
                     });
                 });
@@ -4719,6 +4760,32 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
     filter: brightness(1.08);
     text-decoration: underline;
 }
+
+.reveal-alt-query-links {
+    list-style-type: disc;
+    padding-left: 1.25rem;
+    margin: 0;
+}
+.reveal-alt-query-links li {
+    margin: 0 0 0.35rem 0;
+}
+.reveal-alt-query-links li:last-child {
+    margin-bottom: 0;
+}
+.reveal-alt-query-link {
+    color: #f16822 !important;
+    font-style: italic;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: normal;
+    line-height: 1.35;
+}
+.reveal-alt-query-link:hover,
+.reveal-alt-query-link:focus {
+    color: #d15618 !important;
+    text-decoration: underline;
+}
+
 .ai-gen {
     display: inline;
     background: #cce5ff;
@@ -4743,12 +4810,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
     font-size: inherit;
     line-height: initial;
     border-radius: 3px;
-}
-.query-sample {
-    cursor: pointer;
-}
-.query-sample:hover {
-    background: #dee2e6;
 }
 .criteria-detail.collapsed {
     display: none;
@@ -4838,16 +4899,16 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 .query-guidelines-toggle {
     border: none;
     box-shadow: none;
-    padding: 0.65rem 1rem;
+    padding: 0.35rem 0;
+    background: transparent;
 }
 .query-guidelines-toggle:hover,
 .query-guidelines-toggle:focus {
     text-decoration: none;
-    background: rgba(0, 0, 0, 0.03);
+    background: transparent;
 }
 .query-guidelines-content {
-    max-height: 70vh;
-    overflow-y: auto;
+    overflow: visible;
 }
 .query-guidelines-example {
     border-left: 3px solid #f16822;

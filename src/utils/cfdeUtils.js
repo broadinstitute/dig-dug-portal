@@ -20162,6 +20162,20 @@ export function resolveCfdePhenotypeLabel(phenotypeId) {
     return null;
 }
 
+/**
+ * Human-readable gene-set cluster label for UI (Data / Results tables, pills, heatmap, network).
+ * Resolves the hybrid **`label`** string (e.g. Orphanet_*, gcat_trait_*) via CFDE maps; if no mapping, returns the original string.
+ * When the app falls back to **`factor_id`** as the cluster key, pass that string here too — it is resolved the same way when present in the maps.
+ * @param {string|number|null|undefined} clusterLabelOrId - `label` from hybrid results, or `factor_id` when label is absent
+ * @returns {string}
+ */
+export function resolveCfdeFactorClusterDisplayLabel(clusterLabelOrId) {
+    const s = clusterLabelOrId != null ? String(clusterLabelOrId).trim() : "";
+    if (!s) return "";
+    const r = resolveCfdePhenotypeLabel(s);
+    return r != null && String(r).trim() !== "" ? String(r).trim() : s;
+}
+
 export function getCfdePhenotypes() {
     return cfdePhenotypes;
 }
@@ -20188,6 +20202,7 @@ export default {
     findPhenotypeByName,
     findPhenotypeById,
     resolveCfdePhenotypeLabel,
+    resolveCfdeFactorClusterDisplayLabel,
     getCfdePhenotypes,
     getCfdeMousePhenotypes,
     getCfdePhenotypesInList,

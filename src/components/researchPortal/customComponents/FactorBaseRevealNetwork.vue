@@ -45,21 +45,17 @@
 <script>
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
+import { resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
+import { colorForGeneRole, compareGeneRoleLegend, DEFAULT_GENE_NODE_COLOR } from "@/utils/factorRevealGeneColors";
 
 const NODE_COLORS = {
     Phenotype: "#e41a1c",
     Factor: "#377eb8",
     Pathway: "#4daf4a",
-    Gene: "#984ea3",
-};
-const GENE_GROUP_COLORS = {
-    "High GWAS": "#d95f02",
-    "High Functional": "#7570b3",
-    "Genetic (Established)": "#d95f02",
-    "Functional (Novel)": "#7570b3",
+    Gene: DEFAULT_GENE_NODE_COLOR,
 };
 const DEFAULT_NODE_COLOR = "#999";
-const DEFAULT_GENE_COLOR = NODE_COLORS.Gene;
+const DEFAULT_GENE_COLOR = DEFAULT_GENE_NODE_COLOR;
 
 export default {
     name: "FactorBaseRevealNetwork",
@@ -101,7 +97,7 @@ export default {
             const items = [];
             items.push(
                 { label: "Phenotype", color: NODE_COLORS.Phenotype },
-                { label: "Gene Set Cluster", color: NODE_COLORS.Factor },
+                { label: "Gene set cluster group.", color: NODE_COLORS.Factor },
                 { label: "Gene Set", color: NODE_COLORS.Pathway }
             );
             const groupsUsed = new Set();
@@ -109,14 +105,14 @@ export default {
                 if (g.group != null && String(g.group).trim()) groupsUsed.add(String(g.group).trim());
             });
             if (groupsUsed.size > 0) {
-                groupsUsed.forEach((grp) => {
+                [...groupsUsed].sort(compareGeneRoleLegend).forEach((grp) => {
                     items.push({
-                        label: `Gene (${grp})`,
-                        color: GENE_GROUP_COLORS[grp] || DEFAULT_GENE_COLOR,
+                        label: grp,
+                        color: colorForGeneRole(grp),
                     });
                 });
             } else {
-                items.push({ label: "Gene", color: DEFAULT_GENE_COLOR });
+                items.push({ label: "Unclassified role", color: DEFAULT_GENE_COLOR });
             }
             return items;
         },
@@ -257,14 +253,15 @@ export default {
                 if (type === "Gene") {
                     const name = (n.id || n.label || "").toString().trim();
                     const group = geneToGroup[name];
-                    if (group != null && group !== "") {
-                        color = GENE_GROUP_COLORS[group] || DEFAULT_GENE_COLOR;
-                    } else {
-                        color = DEFAULT_GENE_COLOR;
-                    }
+                    color = colorForGeneRole(group);
                 }
                 const meta = n.metadata || {};
-                const parts = [n.label || n.id, type];
+                const rawDisplay = (n.label || n.id || "").toString();
+                const headlineLabel =
+                    type === "Factor"
+                        ? resolveCfdeFactorClusterDisplayLabel(rawDisplay)
+                        : rawDisplay;
+                const parts = [headlineLabel, type];
                 if (type === "Gene") {
                     const geneName = (n.id || n.label || "").toString().trim();
                     const geneEntry = (this.genes || []).find(
@@ -282,7 +279,7 @@ export default {
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
                 }
                 const title = parts.join(" | ");
-                const label = (n.label || n.id || "").toString();
+                const label = headlineLabel.toString();
                 return {
                     id: n.id,
                     label: label.length > 12 ? label.slice(0, 10) + "…" : label,
