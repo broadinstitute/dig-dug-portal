@@ -6,7 +6,22 @@
         <div class="pkb-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    Functional Data: Coming Soon
+                    <h2>Filter Donors</h2>
+                    <div v-if="$store.state.metadata.length > 0">
+                        <template>
+                        <b-table
+                            :items="$store.state.metadata"
+                            :per-page="10"
+                            :current-page="$parent.currentPage">
+                        </b-table>
+                        <b-pagination
+                            class="pagination-sm justify-content-center"
+                            :v-model="$parent.currentPage"
+                            :per-page="10"
+                            :total-rows="$store.state.metadata.length">
+                        </b-pagination>
+                    </template>
+                    </div>
                 </div>
             </div>
         </div>

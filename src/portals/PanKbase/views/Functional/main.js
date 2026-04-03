@@ -20,7 +20,7 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
-            
+            currentPage: 1,
             files: {
 
                 allTraits: "HIPP_all_traits.pankbase.txt",
@@ -32,6 +32,7 @@ new Vue({
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
+        console.log(this.$store.state.metadata.length);
     },
     computed: {
         utilsBox() {
