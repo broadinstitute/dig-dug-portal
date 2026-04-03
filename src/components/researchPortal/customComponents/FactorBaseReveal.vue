@@ -954,7 +954,7 @@
                                                             <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene sets</div>
                                                             <div class="small" style="white-space: normal; display:flex; flex-direction: column; gap:3px">
                                                                 <div v-for="set in formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)" :key="set.gs">
-                                                                    <div style="display:flex; gap:10px; justify-content: space-between; align-items: center;">
+                                                                    <div style="display:flex; gap:10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                                                                         <a
                                                                             :href="cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
                                                                             target="_blank"
@@ -964,7 +964,25 @@
                                                                             :style="`background:${NODE_COLORS.Pathway}`"
                                                                             :title="set.desc || set.gs"
                                                                         >{{ set.gs }}</a>
-                                                                        <div class="pill">{{ set.program }}</div>
+                                                                        <div class="d-flex flex-wrap align-items-center" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
+                                                                            <template v-if="c2m2ProvenanceEntry(set.gs) && c2m2ProvenanceEntry(set.gs).status === 'ok' && (c2m2ProvenanceEntry(set.gs).nodes || []).length">
+                                                                                <a
+                                                                                    v-for="(pn, nidx) in c2m2ProvenanceEntry(set.gs).nodes"
+                                                                                    :key="'mech-' + idx + '-prov-' + set.gs + '-' + nidx + '-' + pn.id"
+                                                                                    :href="pn.dcc_url"
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    class="pill text-white text-decoration-none cfde-explore-geneset-link small"
+                                                                                    style="overflow: hidden; text-overflow: ellipsis; max-width: 280px;"
+                                                                                    :style="`background:${NODE_COLORS.C2M2Provenance}`"
+                                                                                    :title="pn.id"
+                                                                                >{{ truncateProvenanceNodeLabel(pn.id) }}</a>
+                                                                            </template>
+                                                                            <span v-else-if="c2m2ProvenanceEntry(set.gs) && c2m2ProvenanceEntry(set.gs).status === 'loading'" class="text-muted small">Provenance…</span>
+                                                                            <template v-else>
+                                                                                <div v-if="set.program" class="pill">{{ set.program }}</div>
+                                                                            </template>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1457,7 +1475,13 @@ export default Vue.component("factor-base-reveal", {
                 Factor: "#377eb8",
                 Pathway: "#4daf4a",
                 Gene: "#984ea3",
+                /** C2M2 provenance bubbles (distinct from pathway / gene-set green). */
+                C2M2Provenance: "#3182ce",
             },
+            /**
+             * c2m2-provenance API: { [geneSetId]: { status: 'loading'|'ok'|'empty'|'error', nodes: [{ id, dcc_url, labels }] } }
+             */
+            c2m2ProvenanceByGeneSet: {},
 
             showTab: 'terms',
             /** After user continues past KG gate, enable the Results tab until the next full reset. */
@@ -1890,6 +1914,17 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             return lines;
         },
     },
+    watch: {
+        mechanisms: {
+            handler(val) {
+                if (Array.isArray(val) && val.length) {
+                    this.$nextTick(() => this.prefetchC2m2ProvenanceForMechanisms());
+                }
+            },
+            deep: true,
+            immediate: true,
+        },
+    },
     created() {
         this.llmExtract = createLLMClient({
             llm: "openai",
@@ -1928,13 +1963,83 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 			const CONTENT_WRAPPER = 'rp_tabs_contents';
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
-        async fetchProvenance(geneset){
-            const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance?q=${geneset}`
-            const res = await fetch(url);
-            if (!res.ok) {
+        /**
+         * CFDE C2M2 provenance API. Returns json.data (array) or null.
+         * @see https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance
+         */
+        async fetchProvenance(geneset) {
+            const q = encodeURIComponent(String(geneset || "").trim());
+            if (!q) return null;
+            const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance?q=${q}`;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) return null;
+                const json = await res.json();
+                return Array.isArray(json.data) ? json.data : null;
+            } catch (e) {
+                return null;
             }
-            const json = await res.json();
-            return json.data;
+        },
+        /** Deduped nodes with dcc_url for provenance pills (Flattens data[].nodes). */
+        flattenC2m2ProvenanceNodes(data) {
+            if (!data || !data.length) return [];
+            const out = [];
+            const seen = new Set();
+            data.forEach((entry) => {
+                (entry.nodes || []).forEach((n) => {
+                    const url = n.dcc_url != null ? String(n.dcc_url).trim() : "";
+                    const id = n.id != null ? String(n.id) : "";
+                    if (!url || !id) return;
+                    if (seen.has(id)) return;
+                    seen.add(id);
+                    out.push({
+                        id,
+                        dcc_url: url,
+                        labels: Array.isArray(n.labels) ? n.labels : [],
+                    });
+                });
+            });
+            return out;
+        },
+        c2m2ProvenanceEntry(geneSetId) {
+            const key = geneSetId != null ? String(geneSetId) : "";
+            return (key && this.c2m2ProvenanceByGeneSet[key]) || null;
+        },
+        truncateProvenanceNodeLabel(id, maxLen = 38) {
+            const s = String(id || "");
+            if (s.length <= maxLen) return s;
+            return `${s.slice(0, Math.max(0, maxLen - 1))}…`;
+        },
+        async ensureC2m2ProvenanceForGeneSet(geneSetId) {
+            const key = String(geneSetId || "").trim();
+            if (!key) return;
+            const cur = this.c2m2ProvenanceByGeneSet[key];
+            if (cur && (cur.status === "loading" || cur.status === "ok" || cur.status === "empty" || cur.status === "error")) {
+                return;
+            }
+            this.$set(this.c2m2ProvenanceByGeneSet, key, { status: "loading", nodes: [] });
+            try {
+                const data = await this.fetchProvenance(key);
+                const nodes = this.flattenC2m2ProvenanceNodes(data);
+                this.$set(this.c2m2ProvenanceByGeneSet, key, {
+                    status: nodes.length ? "ok" : "empty",
+                    nodes,
+                });
+            } catch (e) {
+                this.$set(this.c2m2ProvenanceByGeneSet, key, { status: "error", nodes: [] });
+            }
+        },
+        prefetchC2m2ProvenanceForMechanisms() {
+            const mechs = this.mechanisms;
+            if (!Array.isArray(mechs)) return;
+            const ids = new Set();
+            mechs.forEach((m) => {
+                (m.relevant_gene_sets || []).forEach((gs) => {
+                    const id = String(gs || "").trim();
+                    if (id) ids.add(id);
+                });
+            });
+            ids.forEach((id) => this.ensureC2m2ProvenanceForGeneSet(id));
         },
         formatProvenance(entry) {
             const nodesById = Object.fromEntries(
@@ -2017,13 +2122,15 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 if (!comp) return null;
                 let blob = null;
                 let format = "png";
-                if (typeof comp.exportSvg === "function") {
-                    blob = await comp.exportSvg();
-                    format = "svg";
-                }
-                if (!blob && typeof comp.exportPng === "function") {
+                // Prefer PNG from vis-network’s canvas so the report matches on-screen styling (curves, arrows, fonts).
+                // Custom exportSvg is a simplified fallback when canvas capture is unavailable.
+                if (typeof comp.exportPng === "function") {
                     blob = await comp.exportPng(3);
                     format = "png";
+                }
+                if (!blob && typeof comp.exportSvg === "function") {
+                    blob = await comp.exportSvg();
+                    format = "svg";
                 }
                 if (!blob) return null;
                 const dataUrl = await this.blobToDataUrl(blob);
@@ -2351,10 +2458,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             <h1>Factor-based Reveal Report</h1>
             <p>Generated ${this.escapeHtml(new Date().toLocaleString())}</p>
         </header>
-        ${mechanismHypothesesSection}
         ${summarySection}
         ${hybridMeta}
         ${mechanismDiag}
+        ${mechanismHypothesesSection}
         ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Selected factor rows")}
         ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Remaining gene set clusters")}
         ${extractedTerms}
