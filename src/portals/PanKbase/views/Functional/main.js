@@ -9,6 +9,8 @@ import "../../assets/atacseq.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
@@ -21,6 +23,7 @@ new Vue({
     data() {
         return {
             currentPage: 1,
+            perPage: 10,
             files: {
 
                 allTraits: "HIPP_all_traits.pankbase.txt",

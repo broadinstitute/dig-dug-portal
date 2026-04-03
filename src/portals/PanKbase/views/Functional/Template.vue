@@ -8,19 +8,23 @@
                 <div class="card-body">
                     <h2>Filter Donors</h2>
                     <div v-if="$store.state.metadata.length > 0">
-                        <template>
-                        <b-table
-                            :items="$store.state.metadata"
-                            :per-page="10"
-                            :current-page="$parent.currentPage">
-                        </b-table>
-                        <b-pagination
-                            class="pagination-sm justify-content-center"
-                            :v-model="$parent.currentPage"
-                            :per-page="10"
-                            :total-rows="$store.state.metadata.length">
-                        </b-pagination>
-                    </template>
+                    <criterion-function-group>
+                            <template slot="filtered" slot-scope="{ filter }">
+                            <b-table 
+                                :items="$store.state.metadata"
+                                :sortable="true"
+                                :per-page="$parent.perPage"
+                                :current-page="$parent.currentPage"
+                            >
+                            </b-table>
+                            <b-pagination
+                                class="pagination-md justify-content-center"
+                                v-model="$parent.currentPage"
+                                :per-page="$parent.perPage"
+                                :total-rows="$store.state.metadata.length">
+                            </b-pagination>
+                            </template>
+                            </criterion-function-group>
                     </div>
                 </div>
             </div>
