@@ -31,7 +31,7 @@ new Vue({
         };
     },
     async created() {
-        this.$store.dispatch("populateData", this.files);
+        await this.$store.dispatch("populateData", this.files);
     },
     computed: {
         utilsBox() {

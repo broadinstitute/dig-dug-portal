@@ -41,12 +41,13 @@ export default new Vuex.Store({
         let rawFilesLocation = `${PANKBASE_BIOINDEX}/api/raw/file/functional_data/${context.state.dataset}/`;
         let files = Object.keys(fileLocations);
         for (let i = 0; i < files.length; i++){
-            let file = files[i];
-            let suffix = fileLocations[file];
+            let fileLabel = files[i];
+            let suffix = fileLocations[fileLabel];
             let url = rawFilesLocation.concat(suffix);
             const response = await fetch(url);
             const fileText = await response.text();
-            console.log(file, fileText.slice(0,100));
+            let tsv = dataConvert.tsv2Json(fileText);
+            context.state[fileLabel] = tsv;
         }
     }
   },
