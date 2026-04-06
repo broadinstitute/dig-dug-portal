@@ -354,35 +354,52 @@
                                         class="mb-2"
                                     >
                                         <div class="small font-weight-bold mb-1">{{ substep.title }}</div>
-                                        <div v-if="substep.result" style="padding-left: 8px;">
+                                        <div
+                                            v-if="substep.result && (substep.result.title || (substep.id !== '2.h2' && substep.result.result != null))"
+                                            style="padding-left: 8px;"
+                                        >
                                             <div v-if="substep.result.title" v-html="substep.result.title"></div>
                                             <pre
-                                                v-if="substep.result.result != null"
+                                                v-if="substep.id !== '2.h2' && substep.result.result != null"
                                                 style="background: #eee; padding: 10px; max-height: 160px; resize:vertical; overflow: auto;"
                                             >{{ substep.result.result }}</pre>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
+                            <div
+                                class="border rounded bg-white p-3 mb-3"
+                                style="border-color: #dee2e6 !important;"
+                                role="status"
+                            >
+                                <div class="d-flex justify-content-end align-items-start mb-2">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+                                        :disabled="!lastHybridSearchResponse"
+                                        @click="downloadLastHybridSearchRawJson"
+                                    >
+                                        <b-icon icon="download" class="mr-1" aria-hidden="true" />
+                                        Raw data
+                                    </button>
+                                </div>
+                                <div class="font-weight-bold mb-3" style="color: #FF6600; font-size: 1.2em;">
+                                    Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
+                                </div>
+                                <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-0 pl-3 text-secondary small">
+                                    <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
+                                </ul>
+                                <div v-else class="small text-muted mb-0 font-italic">No hybrid diagnostics available.</div>
+                            </div>
                             <div
                                 v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
+                                class="mb-3"
                             >
                                 <div class="text-muted mb-2" style="font-size: 11pt; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
                                 <button class="btn btn-cfde btn-sm" @click="approveStepGate">
                                     Continue
                                 </button>
-                            </div>
-                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
-                            <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set clusters{{ factorCount !== 1 ? 's' : '' }} relevant to research context.</div>
-                            <div
-                                v-if="hybridSearchMetaSummaryLines.length"
-                                class="alert alert-light border small mb-3"
-                                role="status"
-                            >
-                                <div class="font-weight-bold text-dark mb-1">Hybrid retrieval</div>
-                                <ul class="mb-0 pl-3 text-secondary">
-                                    <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
-                                </ul>
                             </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
@@ -840,14 +857,42 @@
                                             </button>
                                         </div>
                                         <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
-                                            <div class="" style="display:flex; gap:20px">
-                                                <div class="" style="flex:1">
-                                                    <div class="font-weight-bold small text-uppercase text-muted mb-1">Mechanistic hypothesis</div>
-                                                    <div class="font-size-1">{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
+                                            <div
+                                                class="d-flex flex-column flex-lg-row align-items-stretch"
+                                                style="gap: 20px;"
+                                            >
+                                                <div class="mechanism-hypothesis-rationale-col flex-grow-1" style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+                                                    <div class="">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Mechanistic hypothesis</div>
+                                                        <div class="font-size-1">{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
+                                                    </div>
+                                                    <div class="">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Rationale</div>
+                                                        <div class="small">{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
+                                                    </div>
                                                 </div>
-                                                <div class="" style="flex:1">
-                                                    <div class="font-weight-bold small text-uppercase text-muted mb-1">Rationale</div>
-                                                    <div class="small">{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
+                                                <div
+                                                    v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
+                                                    class="mechanism-hypothesis-map-col flex-grow-1"
+                                                    style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;"
+                                                >
+                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">Hypothesis map (biological mechanism)</div>
+                                                    <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="small text-muted mb-2">
+                                                        {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
+                                                    </p>
+                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px;">
+                                                        <factor-base-reveal-network
+                                                            :ref="'mechanismHypothesisMap-' + idx"
+                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
+                                                            :network="mechanism.core_spine_network"
+                                                            :genes="mechanism.candidate_genes || mechanism.genes || []"
+                                                            :width="640"
+                                                            :height="280"
+                                                            :show-popup-button="true"
+                                                            :is-mechanism-flow-map="true"
+                                                            @open-popup="openNetworkPopup(idx, { hypothesisMap: true })"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div v-if="mechanism.relevance" class="mb-3">
@@ -964,19 +1009,31 @@
                                                                             :style="`background:${NODE_COLORS.Pathway}`"
                                                                             :title="set.desc || set.gs"
                                                                         >{{ set.gs }}</a>
-                                                                        <div class="d-flex flex-wrap align-items-center" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
-                                                                            <template v-if="c2m2ProvenanceEntry(set.gs) && c2m2ProvenanceEntry(set.gs).status === 'ok' && (c2m2ProvenanceEntry(set.gs).nodes || []).length">
-                                                                                <a
-                                                                                    v-for="(pn, nidx) in c2m2ProvenanceEntry(set.gs).nodes"
-                                                                                    :key="'mech-' + idx + '-prov-' + set.gs + '-' + nidx + '-' + pn.id"
-                                                                                    :href="pn.dcc_url"
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    class="pill text-white text-decoration-none cfde-explore-geneset-link small"
-                                                                                    style="overflow: hidden; text-overflow: ellipsis; max-width: 280px;"
-                                                                                    :style="`background:${NODE_COLORS.C2M2Provenance}`"
-                                                                                    :title="pn.id"
-                                                                                >{{ truncateProvenanceNodeLabel(pn.id) }}</a>
+                                                                        <div class="d-flex flex-wrap align-items-center fbr-relevant-geneset-programs" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
+                                                                            <template v-if="c2m2GeneSetDownloadNodes(set.gs).length">
+                                                                                <div class="fbr-program-download-wrap">
+                                                                                    <div
+                                                                                        class="pill text-white small d-inline-flex align-items-center fbr-program-download-trigger"
+                                                                                        :style="{ background: NODE_COLORS.GeneSetProgramDownloads }"
+                                                                                        role="button"
+                                                                                        tabindex="0"
+                                                                                        :title="(set.program || 'Data files') + ' — hover for download links'"
+                                                                                    >
+                                                                                        <span class="fbr-program-download-label">{{ set.program || "Data files" }}</span>
+                                                                                        <b-icon icon="three-dots-vertical" class="fbr-program-download-icon ml-1 flex-shrink-0" aria-hidden="true" />
+                                                                                    </div>
+                                                                                    <div class="fbr-program-download-menu border rounded bg-white shadow-sm">
+                                                                                        <div class="fbr-program-download-menu-heading px-2 pt-2 pb-1 text-muted small text-uppercase">Open or download</div>
+                                                                                        <a
+                                                                                            v-for="(pn, nidx) in c2m2GeneSetDownloadNodes(set.gs)"
+                                                                                            :key="'mech-' + idx + '-prov-menu-' + set.gs + '-' + nidx + '-' + pn.id"
+                                                                                            :href="pn.dcc_url"
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            class="fbr-provenance-menu-link d-block px-2 py-1 small text-dark text-decoration-none"
+                                                                                        >{{ pn.id }}</a>
+                                                                                    </div>
+                                                                                </div>
                                                                             </template>
                                                                             <span v-else-if="c2m2ProvenanceEntry(set.gs) && c2m2ProvenanceEntry(set.gs).status === 'loading'" class="text-muted small">Provenance…</span>
                                                                             <template v-else>
@@ -987,6 +1044,21 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div v-if="mechanism.next_steps && mechanism.next_steps.length" class="mt-2 mb-1 border-top pt-3">
+                                                <div class="font-weight-bold small text-uppercase text-muted mb-2">Recommended next steps</div>
+                                                <div class="d-flex flex-column" style="gap:8px">
+                                                    <div
+                                                        v-for="(step, sidx) in mechanism.next_steps"
+                                                        :key="'step-' + idx + '-' + sidx"
+                                                        class="p-2 border rounded bg-white"
+                                                        style="border-left: 4px solid #f16822 !important;"
+                                                    >
+                                                        <span class="badge badge-secondary mr-2 mb-1">{{ step.category }}</span><br />
+                                                        <strong class="text-dark" style="font-size: 0.95em;">{{ step.action }}</strong>
+                                                        <span class="small text-muted"> {{ step.reason }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1328,21 +1400,41 @@
         </div>
 
         <!-- Network viz popup: 90% window size -->
-        <div v-if="networkPopupMechanismIndex !== null && mechanisms && mechanisms[networkPopupMechanismIndex]" class="network-popup-overlay" @click.self="closeNetworkPopup">
+        <div
+            v-if="
+                networkPopupMechanismIndex !== null &&
+                mechanisms &&
+                mechanisms[networkPopupMechanismIndex] &&
+                (!networkPopupIsHypothesisMap ||
+                    (mechanisms[networkPopupMechanismIndex].core_spine_network &&
+                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes &&
+                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes.length))
+            "
+            class="network-popup-overlay"
+            @click.self="closeNetworkPopup"
+        >
             <div class="network-popup-box">
                 <div class="network-popup-header d-flex justify-content-between align-items-center">
-                    <span class="font-weight-bold">Supporting network</span>
+                    <span class="font-weight-bold">{{
+                        networkPopupIsHypothesisMap ? "Hypothesis map (biological mechanism)" : "Supporting network"
+                    }}</span>
                     <button type="button" class="btn btn-sm btn-outline-secondary" aria-label="Close" @click="closeNetworkPopup">
                         <b-icon icon="x"></b-icon>
                     </button>
                 </div>
                 <div class="network-popup-body">
                     <factor-base-reveal-network
-                        :key="'popup-' + networkPopupMechanismIndex"
-                        :network="mechanisms[networkPopupMechanismIndex].supporting_network || mechanisms[networkPopupMechanismIndex].network"
+                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting')"
+                        :network="
+                            networkPopupIsHypothesisMap
+                                ? mechanisms[networkPopupMechanismIndex].core_spine_network
+                                : mechanisms[networkPopupMechanismIndex].supporting_network ||
+                                  mechanisms[networkPopupMechanismIndex].network
+                        "
                         :genes="mechanisms[networkPopupMechanismIndex].candidate_genes || mechanisms[networkPopupMechanismIndex].genes || []"
                         :width="popupNetworkWidth"
                         :height="popupNetworkHeight"
+                        :is-mechanism-flow-map="networkPopupIsHypothesisMap"
                     />
                 </div>
             </div>
@@ -1391,6 +1483,8 @@ export default Vue.component("factor-base-reveal", {
             lastGenesOfInterest: [],
             /** Latest hybrid-search response meta (lexical fusion, genes-of-interest resolution). */
             lastHybridSearchMeta: {},
+            /** Full JSON body from the last successful hybrid-search API (for raw download). */
+            lastHybridSearchResponse: null,
             /** After user continues past step-1 review, keep extracted-terms table available when re-expanding the substep. */
             searchCriteriaExtractionGateDone: false,
             loading_search_criteria: false,
@@ -1450,6 +1544,8 @@ export default Vue.component("factor-base-reveal", {
             loadingGenesForFactor: {},
             /** When set, show network viz in a floating overlay at 90% window size. Value = mechanism index. */
             networkPopupMechanismIndex: null,
+            /** When true, overlay shows core_spine_network (hypothesis map); when false, supporting network. */
+            networkPopupIsHypothesisMap: false,
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
 
@@ -1477,6 +1573,8 @@ export default Vue.component("factor-base-reveal", {
                 Gene: "#984ea3",
                 /** C2M2 provenance bubbles (distinct from pathway / gene-set green). */
                 C2M2Provenance: "#3182ce",
+                /** Program pill when C2M2 file downloads are available (hover for menu). */
+                GeneSetProgramDownloads: "#6f42c1",
             },
             /**
              * c2m2-provenance API: { [geneSetId]: { status: 'loading'|'ok'|'empty'|'error', nodes: [{ id, dcc_url, labels }] } }
@@ -1596,6 +1694,19 @@ Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block
 If you trigger any of the 4 cases above, you MUST generate a \`suggested_optimized_query\` based on the \`research_context\`. Use the "Anchor + Semantic Net" formula:
 "Find a [Broad Mechanism/Semantic Net] involving [Explicit Gene Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
 
+### Visual topology (biological mechanism map)
+To help the user quickly understand the biological mechanism, distill your hypothesis narrative into a **causal flow chart** (pathway cartography). This is **not** a copy of the database graph: do **not** build the map from CSV row IDs or gene-set library names alone.
+- Create custom nodes for key biological entities (e.g. Genes, Metabolites, Cellular processes, Phenotypes). Use short, meaningful labels consistent with your hypothesis text.
+- Create **directed** edges with a short **action label** (e.g. \`"activates"\`, \`"cleaves"\`, \`"increases"\`, \`"inhibits"\`, \`"mediates"\`).
+- Keep the map **simple**: **3 to 6 nodes** maximum, strictly linear or branching. Focus on the biological story, not data provenance.
+- Provide \`hypothesis_in_kg.caption\`: one short sentence summarizing the biological flow shown in the map.
+
+### Actionable next steps
+Provide **3** concrete, distinct next steps the user can take to validate or explore this hypothesis.
+- \`category\`: Must be one of: \`"Experimental Validation"\`, \`"In Silico Profiling"\`, \`"Literature Review"\`, \`"Drug Repurposing"\`.
+- \`action\`: A short, specific action (e.g., "Knockdown TREM2 in human microglia").
+- \`reason\`: Why this step would support or refute the mechanism.
+
 ### Output (strict JSON)
 Return ONLY valid JSON in the following structure:
 {
@@ -1612,6 +1723,23 @@ Return ONLY valid JSON in the following structure:
       "associated_pairs": [ { "phenotype": "...", "factor": "..." } ],
       "hypothesis": "2–3 sentences.",
       "novelty": "Contrast canonical vs non-canonical emphasis.",
+      "hypothesis_in_kg": {
+        "caption": "Short explanation of the biological flow.",
+        "nodes": [
+          { "id": "n1", "label": "TREM2", "group": "Gene" },
+          { "id": "n2", "label": "Lipid sensing", "group": "Process" },
+          { "id": "n3", "label": "Aβ clearance", "group": "Process" },
+          { "id": "n4", "label": "Dementia risk", "group": "Phenotype" }
+        ],
+        "edges": [
+          { "from": "n1", "to": "n2", "label": "mediates" },
+          { "from": "n2", "to": "n3", "label": "increases" },
+          { "from": "n3", "to": "n4", "label": "reduces" }
+        ]
+      },
+      "next_steps": [
+        { "category": "Experimental Validation", "action": "…", "reason": "…" }
+      ],
       "genes": [
         { 
          "gene": "SYMBOL", 
@@ -1631,6 +1759,8 @@ Return ONLY valid JSON in the following structure:
 - **Row referencing (phenotype → gene set):** For each phenotype in the story, \`supporting_row_ids\` must include every \`associated_with\` row that links that phenotype to a gene set you rely on.
 - **Row referencing (phenotype → gene):** Include every \`contains_gene\` row for genes you name, for the phenotypes in scope.
 - **Row referencing (gene → gene set):** Include all \`contributes_to_pathway\` rows for those genes to the gene sets in your story; do not omit pathway rows.
+- **hypothesis_in_kg (mechanism map):** \`nodes\` and \`edges\` must form a consistent DAG: every \`from\` / \`to\` must match a node \`id\`. Use **3–6 nodes**. \`group\` classifies the entity (e.g. \`Gene\`, \`Process\`, \`Phenotype\`, \`Metabolite\`). Omit \`hypothesis_in_kg\` only if you cannot summarize the hypothesis as a simple causal map without fabricating biology.
+- **next_steps:** Always provide exactly **3** items when \`hypotheses\` is non-empty, each with valid \`category\`, \`action\`, and \`reason\`.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
 
 CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
@@ -2005,6 +2135,12 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const key = geneSetId != null ? String(geneSetId) : "";
             return (key && this.c2m2ProvenanceByGeneSet[key]) || null;
         },
+        /** Nodes with a DCC URL for the hover "download options" menu (relevant gene sets row). */
+        c2m2GeneSetDownloadNodes(geneSetId) {
+            const ent = this.c2m2ProvenanceEntry(geneSetId);
+            if (!ent || ent.status !== "ok" || !Array.isArray(ent.nodes)) return [];
+            return ent.nodes.filter((n) => n && n.dcc_url != null && String(n.dcc_url).trim() !== "");
+        },
         truncateProvenanceNodeLabel(id, maxLen = 38) {
             const s = String(id || "");
             if (s.length <= maxLen) return s;
@@ -2086,9 +2222,33 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const result = data && data.length>0 ? this.formatProvenance(data[0]) : null
             this.$set(this.gene_set_sources, key, result);
         },
+        downloadLastHybridSearchRawJson() {
+            const payload = this.lastHybridSearchResponse;
+            if (!payload || typeof payload !== "object") return;
+            try {
+                const json = JSON.stringify(payload, null, 2);
+                const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `hybrid-search-response-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                /* ignore */
+            }
+        },
         async downloadReport() {
             if (!this.canDownloadMechanismReport) return;
+            const prevTab = this.showTab;
             try {
+                if (this.showTab !== "results") {
+                    this.showTab = "results";
+                    await this.$nextTick();
+                    await this.$nextTick();
+                }
                 const researchContext =
                     (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
                         ? String(this.searchCriteria[1].values)
@@ -2112,38 +2272,55 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch {
+            } finally {
+                if (this.showTab !== prevTab) {
+                    this.showTab = prevTab;
+                }
             }
         },
+        /**
+         * Capture a FactorBaseRevealNetwork instance as PNG (preferred) or SVG.
+         * @param {string} refKey - this.$refs key (e.g. mechanismNetwork-0, mechanismHypothesisMap-0).
+         * @param {{ nodes?: Array, edges?: Array }} net - For meta counts only.
+         * @returns {Promise<{ dataUrl: string, format: string, nodeCount: number, edgeCount: number } | null>}
+         */
+        async exportNetworkImageFromRef(refKey, net) {
+            const compRef = this.$refs[refKey];
+            const comp = Array.isArray(compRef) ? compRef[0] : compRef;
+            if (!comp) return null;
+            let blob = null;
+            let format = "png";
+            if (typeof comp.exportPng === "function") {
+                blob = await comp.exportPng(3);
+                format = "png";
+            }
+            if (!blob && typeof comp.exportSvg === "function") {
+                blob = await comp.exportSvg();
+                format = "svg";
+            }
+            if (!blob) return null;
+            const dataUrl = await this.blobToDataUrl(blob);
+            const n = net || {};
+            return {
+                dataUrl,
+                format,
+                nodeCount: Array.isArray(n.nodes) ? n.nodes.length : 0,
+                edgeCount: Array.isArray(n.edges) ? n.edges.length : 0,
+            };
+        },
         async collectMechanismReportImages() {
-            const images = await Promise.all((this.mechanisms || []).map(async (m, idx) => {
-                const refKey = `mechanismNetwork-${idx}`;
-                const compRef = this.$refs[refKey];
-                const comp = Array.isArray(compRef) ? compRef[0] : compRef;
-                if (!comp) return null;
-                let blob = null;
-                let format = "png";
-                // Prefer PNG from vis-network’s canvas so the report matches on-screen styling (curves, arrows, fonts).
-                // Custom exportSvg is a simplified fallback when canvas capture is unavailable.
-                if (typeof comp.exportPng === "function") {
-                    blob = await comp.exportPng(3);
-                    format = "png";
-                }
-                if (!blob && typeof comp.exportSvg === "function") {
-                    blob = await comp.exportSvg();
-                    format = "svg";
-                }
-                if (!blob) return null;
-                const dataUrl = await this.blobToDataUrl(blob);
-                const net = m.supporting_network || m.network || {};
-                return {
-                    idx,
-                    dataUrl,
-                    format,
-                    nodeCount: Array.isArray(net.nodes) ? net.nodes.length : 0,
-                    edgeCount: Array.isArray(net.edges) ? net.edges.length : 0,
-                };
-            }));
-            return images;
+            await this.$nextTick();
+            return Promise.all(
+                (this.mechanisms || []).map(async (m, idx) => {
+                    const supportingNet = m.supporting_network || m.network || {};
+                    const hypothesisNet = m.core_spine_network || { nodes: [], edges: [] };
+                    const [supporting, hypothesisMap] = await Promise.all([
+                        this.exportNetworkImageFromRef(`mechanismNetwork-${idx}`, supportingNet),
+                        this.exportNetworkImageFromRef(`mechanismHypothesisMap-${idx}`, hypothesisNet),
+                    ]);
+                    return { idx, supporting, hypothesisMap };
+                })
+            );
         },
         blobToDataUrl(blob) {
             return new Promise((resolve, reject) => {
@@ -2277,6 +2454,13 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const images = Array.isArray(mechanismImages) ? mechanismImages : [];
             return (this.mechanisms || []).map((m, idx) => {
                 const img = images[idx];
+                const supImg =
+                    img && img.supporting
+                        ? img.supporting
+                        : img && img.dataUrl
+                          ? img
+                          : null;
+                const hypImg = img && img.hypothesisMap ? img.hypothesisMap : null;
                 const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
                 const geneRows = genes.map((g) => {
                     const scores = g.scores || {};
@@ -2298,27 +2482,59 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         </tr>
                     `;
                 }).join("");
+                const nextSteps = Array.isArray(m.next_steps) ? m.next_steps : [];
+                const nextStepsSection =
+                    nextSteps.length > 0
+                        ? `
+                        <div class="report-subsection report-next-steps-block">
+                            <h3>Recommended next steps</h3>
+                            <ol class="report-next-steps-list">${nextSteps
+                                .map(
+                                    (s) => `
+                            <li>
+                                <div><strong>${this.escapeHtml(s.category || "—")}</strong></div>
+                                <div><em>Action:</em> ${this.escapeHtml(s.action || "—")}</div>
+                                <div><em>Reason:</em> ${this.escapeHtml(s.reason || "—")}</div>
+                            </li>`
+                                )
+                                .join("")}</ol>
+                        </div>`
+                        : "";
+                const hasHypothesisMapVisual =
+                    (m.core_spine_network &&
+                        Array.isArray(m.core_spine_network.nodes) &&
+                        m.core_spine_network.nodes.length > 0) ||
+                    (hypImg && hypImg.dataUrl) ||
+                    !!(m.hypothesis_in_kg && m.hypothesis_in_kg.caption);
+                const hypothesisMapSection = hasHypothesisMapVisual
+                    ? `
+                        <div class="report-subsection">
+                            <h3>Biological mechanism map</h3>
+                            ${
+                                m.hypothesis_in_kg && m.hypothesis_in_kg.caption
+                                    ? `<p class="report-map-caption"><strong>Summary:</strong> ${this.escapeHtml(m.hypothesis_in_kg.caption)}</p>`
+                                    : ""
+                            }
+                            ${
+                                hypImg && hypImg.dataUrl
+                                    ? `
+                                <div class="report-network-meta">${hypImg.nodeCount} nodes, ${hypImg.edgeCount} edges (${this.escapeHtml(hypImg.format)})</div>
+                                <img class="report-network-image" src="${hypImg.dataUrl}" alt="Biological mechanism map ${idx + 1}">
+                            `
+                                    : '<div class="report-empty">No map image in this export. Open the Results tab, let the map render, and download the report again.</div>'
+                            }
+                        </div>`
+                    : "";
+                const mechanismCardTitle = this.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
                 return `
                     <section class="report-section report-card">
-                        <h2>Mechanism ${idx + 1}: ${this.escapeHtml(m.group_name || "(unnamed)")}</h2>
-                        <div class="report-subsection"><strong>Mechanistic hypothesis:</strong> ${this.escapeHtml(m.hypothesis || "—")}</div>
-                        <div class="report-subsection"><strong>Rationale:</strong> ${this.escapeHtml(m.novelty_explanation || m.novelty || "—")}</div>
-                        <div class="report-subsection"><strong>Relevance:</strong> ${this.escapeHtml(m.relevance || "—")}</div>
+                        <h2>${mechanismCardTitle}</h2>
+                        <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${this.escapeHtml(m.hypothesis || "—")}</p></div>
+                        <div class="report-subsection"><strong>Rationale</strong><p class="report-body-tight">${this.escapeHtml(m.novelty_explanation || m.novelty || "—")}</p></div>
+                        ${hypothesisMapSection}
+                        ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${this.escapeHtml(m.relevance)}</p></div>` : ""}
                         <div class="report-subsection">
-                            <strong>Relevant phenotypes:</strong>
-                            ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
-                        </div>
-                        <div class="report-subsection">
-                            <strong>Supplementary / similar clusters:</strong>
-                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${this.getFactorClusterDisplayString(pair.factor)}`)}
-                        </div>
-                        <div class="report-subsection">
-                            <strong>Relevant gene sets:</strong>
-                            ${this.buildReportList(this.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
-                        </div>
-                        ${m.genes_collective_reason ? `<div class="report-subsection"><strong>Genes collective reason:</strong> ${this.escapeHtml(m.genes_collective_reason)}</div>` : ""}
-                        <div class="report-subsection">
-                            <h3>Candidate genes</h3>
+                            <h3>Candidate genes (${genes.length})</h3>
                             ${genes.length ? `
                                 <table class="report-table">
                                     <thead>
@@ -2336,13 +2552,28 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                 </table>
                             ` : '<div class="report-empty">No candidate genes listed.</div>'}
                         </div>
+                        ${m.genes_collective_reason ? `<div class="report-subsection"><strong>How these genes work together</strong><p class="report-body-tight">${this.escapeHtml(m.genes_collective_reason)}</p></div>` : ""}
                         <div class="report-subsection">
-                            <h3>Supporting network</h3>
-                            ${img && img.dataUrl ? `
-                                <div class="report-network-meta">${img.nodeCount} nodes, ${img.edgeCount} edges</div>
-                                <img class="report-network-image" src="${img.dataUrl}" alt="Mechanism network ${idx + 1}">
-                            ` : '<div class="report-empty">No network image available.</div>'}
+                            <h3>Data network behind this hypothesis</h3>
+                            <p class="report-fine-print">Connections from your selected phenotypes, genes, and gene sets (as in the app).</p>
+                            ${supImg && supImg.dataUrl ? `
+                                <div class="report-network-meta">${supImg.nodeCount} nodes, ${supImg.edgeCount} edges (${this.escapeHtml(supImg.format)})</div>
+                                <img class="report-network-image" src="${supImg.dataUrl}" alt="Data network ${idx + 1}">
+                            ` : '<div class="report-empty">No network image available for this export.</div>'}
                         </div>
+                        <div class="report-subsection">
+                            <strong>Phenotypes tied to this network</strong>
+                            ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
+                        </div>
+                        <div class="report-subsection">
+                            <strong>Related trait-group clusters</strong>
+                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${this.getFactorClusterDisplayString(pair.factor)}`)}
+                        </div>
+                        <div class="report-subsection">
+                            <strong>Gene sets in scope</strong>
+                            ${this.buildReportList(this.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
+                        </div>
+                        ${nextStepsSection}
                     </section>
                 `;
             }).join("");
@@ -2350,69 +2581,84 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         buildHtmlReportDocument({ researchContext, mechanismImages, factorSummary, rawKgCsv }) {
             const extractedTerms = `
                 <section class="report-section">
-                    <h2>Extracted terms</h2>
+                    <h2>Terms taken from your question</h2>
+                    <p class="report-fine-print">What the app pulled out to run the search and build your results.</p>
                     <table class="report-table">
                         <tbody>
-                            <tr><th>Phenotype terms</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Mechanism terms</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Genes of interest</th><td>${this.escapeHtml((this.lastGenesOfInterest || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
-                            <tr><th>Suggested queries</th><td>${(this.lastAlternativeQueries || []).length ? this.buildReportList(this.lastAlternativeQueries) : '<span class="report-empty">None returned.</span>'}</td></tr>
+                            <tr><th>Phenotypes or diseases</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Biological mechanisms</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Genes you named</th><td>${this.escapeHtml((this.lastGenesOfInterest || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Your research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
+                            <tr><th>Alternative ways to ask</th><td>${(this.lastAlternativeQueries || []).length ? this.buildReportList(this.lastAlternativeQueries) : '<span class="report-empty">None suggested.</span>'}</td></tr>
                         </tbody>
                     </table>
                 </section>
             `;
             const hybridMeta = `
                 <section class="report-section">
-                    <h2>Hybrid retrieval diagnostics</h2>
+                    <h2>Notes on how your search was run</h2>
+                    <p class="report-fine-print">Technical detail: how genes and terms were matched to the database (for transparency).</p>
                     ${this.hybridSearchMetaSummaryLines.length
                         ? this.buildReportList(this.hybridSearchMetaSummaryLines)
-                        : '<div class="report-empty">No hybrid diagnostics available.</div>'}
+                        : '<div class="report-empty">No extra notes for this run.</div>'}
                 </section>
             `;
             const mechanismDiag = this.mechanismDiagnosticAssessment
                 ? `
                     <section class="report-section">
-                        <h2>Mechanism diagnostic assessment</h2>
+                        <h2>Hypothesis generation: eligibility and messages</h2>
+                        <p class="report-fine-print">Whether the app could propose mechanisms from your data, and any guidance from the analysis.</p>
                         <table class="report-table">
                             <tbody>
-                                <tr><th>Can generate hypothesis</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.can_generate_hypothesis)}</td></tr>
-                                <tr><th>Warning</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.warning_flag || "—")}</td></tr>
-                                <tr><th>Rejection reason</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.rejection_reason || "—")}</td></tr>
-                                <tr><th>Suggested optimized query</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.suggested_optimized_query || "—")}</td></tr>
+                                <tr><th>Hypotheses produced</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.can_generate_hypothesis)}</td></tr>
+                                <tr><th>Heads-up</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.warning_flag || "—")}</td></tr>
+                                <tr><th>If none were produced, why</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.rejection_reason || "—")}</td></tr>
+                                <tr><th>Suggested follow-up question</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.suggested_optimized_query || "—")}</td></tr>
                             </tbody>
                         </table>
                     </section>
                 `
                 : "";
+            const altQueriesCell =
+                (this.lastAlternativeQueries || []).length > 0
+                    ? this.buildReportList(this.lastAlternativeQueries)
+                    : '<span class="report-empty">None suggested.</span>';
             const summarySection = `
                 <section class="report-section">
-                    <h2>Summary</h2>
+                    <h2>Overview</h2>
+                    <p class="report-fine-print">High-level snapshot of your question, extracted search terms, and this session’s results.</p>
                     <table class="report-table">
                         <tbody>
-                            <tr><th>Original query</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
+                            <tr><th>Your question</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
                             <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
-                            <tr><th>Mechanism summary</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
-                            <tr><th>Selected phenotypes</th><td>${this.escapeHtml(this.phenotypeCount)}</td></tr>
-                            <tr><th>Selected gene set clusters</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
-                            <tr><th>Generated hypotheses</th><td>${this.escapeHtml((this.mechanisms || []).length)}</td></tr>
+                            <tr><th>Phenotypes or diseases (extracted)</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Genes you named (extracted)</th><td>${this.escapeHtml((this.lastGenesOfInterest || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Alternative ways to ask</th><td>${altQueriesCell}</td></tr>
+                            <tr><th>Summary of findings</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
+                            <tr><th>Phenotypes in your selection</th><td>${this.escapeHtml(this.phenotypeCount)}</td></tr>
+                            <tr><th>Trait-group (gene set) clusters in your selection</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
+                            <tr><th>Mechanism cards in this report</th><td>${this.escapeHtml((this.mechanisms || []).length)}</td></tr>
                         </tbody>
                     </table>
                 </section>
             `;
             const appendix = `
                 <section class="report-section report-page-break">
-                    <h2>Appendix: factor summary JSON</h2>
+                    <h2>Appendix: technical summary (JSON)</h2>
+                    <p class="report-fine-print">Machine-readable merge of phenotypes, gene sets, and scores.</p>
                     <pre class="report-pre">${this.escapeHtml(factorSummary || "{}")}</pre>
                 </section>
                 <section class="report-section">
-                    <h2>Appendix: raw KG CSV fed to the LLM</h2>
+                    <h2>Appendix: knowledge graph table (CSV)</h2>
+                    <p class="report-fine-print">The relationship table used when proposing mechanisms.</p>
                     <pre class="report-pre">${this.escapeHtml(rawKgCsv || "")}</pre>
                 </section>
             `;
             const mechanismHypothesesSection = `
         <section class="report-section">
-            <h2>Mechanistic hypotheses</h2>
+            <h2>Suggested mechanisms</h2>
+            <p class="report-fine-print">Each card matches what you see under Results: hypothesis text, map, genes, data network, and optional next steps.</p>
             ${this.buildMechanismReportSections(mechanismImages)}
         </section>`;
             return `<!DOCTYPE html>
@@ -2440,8 +2686,15 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         .report-table th { background: #f3f4f6; width: 24%; }
         .report-subsection { margin-bottom: 14px; }
         .report-empty { color: #667; font-style: italic; }
-        .report-network-image { width: 100%; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
+        .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
         .report-network-meta { margin-bottom: 8px; color: #555; }
+        .report-map-caption { margin: 0 0 10px; }
+        .report-body-tight { margin: 6px 0 0; }
+        .report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
+        .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
+        .report-next-steps-list { margin: 0; padding-left: 1.35rem; }
+        .report-next-steps-list li { margin-bottom: 12px; }
+        .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
         .report-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: #f7f7f8; border: 1px solid #d8dee4; padding: 12px; border-radius: 6px; }
         .report-keyvals > div { margin-bottom: 6px; }
         .report-page-break { page-break-before: always; }
@@ -2462,8 +2715,8 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         ${hybridMeta}
         ${mechanismDiag}
         ${mechanismHypothesesSection}
-        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Selected factor rows")}
-        ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Remaining gene set clusters")}
+        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Your selected phenotypes and trait groups")}
+        ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Clusters not yet covered by a hypothesis card")}
         ${extractedTerms}
         ${appendix}
     </div>
@@ -3089,13 +3342,15 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const designUrl = kcURL(`/r/cfde_design?${params.toString()}`);
             window.open(designUrl, "_blank", "noopener");
         },
-        openNetworkPopup(mechanismIndex) {
+        openNetworkPopup(mechanismIndex, options = {}) {
             this.networkPopupMechanismIndex = mechanismIndex;
+            this.networkPopupIsHypothesisMap = !!(options && options.hypothesisMap);
             this.popupNetworkWidth = Math.max(400, Math.round((typeof window !== "undefined" && window.innerWidth) ? window.innerWidth * 0.9 : 960));
             this.popupNetworkHeight = Math.max(300, Math.round((typeof window !== "undefined" && window.innerHeight) ? window.innerHeight * 0.9 - 56 : 640));
         },
         closeNetworkPopup() {
             this.networkPopupMechanismIndex = null;
+            this.networkPopupIsHypothesisMap = false;
         },
         getRowKey(item) {
             if (!item || item.phenotype == null || item.factor == null) return "";
@@ -3252,6 +3507,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             this.lastAlternativeQueries = [];
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
+            this.lastHybridSearchResponse = null;
             this.searchCriteriaEditRows = [];
             this.searchCriteriaEditRowsDefault = [];
             this.searchCriteriaExtractionGateDone = false;
@@ -3761,6 +4017,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const data = hybridJson && hybridJson.data ? hybridJson.data : {};
             const meta = hybridJson && hybridJson.meta ? hybridJson.meta : {};
             this.lastHybridSearchMeta = meta && typeof meta === "object" ? { ...meta } : {};
+            this.lastHybridSearchResponse =
+                hybridJson != null && typeof hybridJson === "object"
+                    ? JSON.parse(JSON.stringify(hybridJson))
+                    : null;
             this.setStep({
                 id: "2",
                 substep: {
@@ -3814,6 +4074,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 this.genesAndFactorValuesLoaded = false;
                 this.factorData = {};
                 this.lastHybridSearchMeta = {};
+                this.lastHybridSearchResponse = null;
                 this.lastKgTriples = [];
                 this.mechanisms = null;
                 this.mechanismDiagnosticAssessment = null;
@@ -4397,6 +4658,75 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             return out;
         },
         /**
+         * LLM biological mechanism map: nodes (id, label, group) and edges (from, to, label) → network for vis.
+         * @param {Object} hik - hypothesis_in_kg from LLM.
+         * @returns {{ nodes: Array, edges: Array } | null}
+         */
+        buildMechanismFlowNetworkFromHypothesisKg(hik) {
+            if (!hik || typeof hik !== "object") return null;
+            const rawNodes = Array.isArray(hik.nodes) ? hik.nodes : [];
+            const rawEdges = Array.isArray(hik.edges) ? hik.edges : [];
+            if (!rawNodes.length || !rawEdges.length) return null;
+
+            const GROUP_ALIASES = {
+                gene: "Gene",
+                protein: "Gene",
+                phenotype: "Phenotype",
+                disease: "Phenotype",
+                metabolite: "Metabolite",
+                process: "Process",
+                cell: "Cell",
+                drug: "Drug",
+                pathway_db: "Pathway",
+                "gene set": "Pathway",
+                geneset: "Pathway",
+            };
+
+            const normalizeGroup = (g) => {
+                const s = g != null ? String(g).trim() : "";
+                if (!s) return "Entity";
+                const low = s.toLowerCase();
+                if (GROUP_ALIASES[low]) return GROUP_ALIASES[low];
+                return s.charAt(0).toUpperCase() + s.slice(1);
+            };
+
+            const customNodes = [];
+            const seenNodeIds = new Set();
+            for (let i = 0; i < rawNodes.length && customNodes.length < 12; i++) {
+                const n = rawNodes[i];
+                if (!n || n.id == null || String(n.id).trim() === "") continue;
+                const id = String(n.id).trim();
+                if (seenNodeIds.has(id)) continue;
+                seenNodeIds.add(id);
+                const label = n.label != null && String(n.label).trim() !== "" ? String(n.label).trim() : id;
+                customNodes.push({
+                    id,
+                    label,
+                    type: normalizeGroup(n.group != null ? n.group : n.type),
+                    metadata: {},
+                });
+            }
+
+            const nodeIds = new Set(customNodes.map((n) => n.id));
+            const customEdges = rawEdges
+                .filter((e) => e != null && e.from != null && e.to != null)
+                .map((e) => {
+                    const source = String(e.from).trim();
+                    const target = String(e.to).trim();
+                    const predRaw =
+                        e.label != null && String(e.label).trim() !== ""
+                            ? String(e.label).trim()
+                            : e.predicate != null
+                              ? String(e.predicate).trim()
+                              : "";
+                    return { source, target, predicate: predRaw };
+                })
+                .filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+
+            if (customNodes.length < 2 || customEdges.length === 0) return null;
+            return { nodes: customNodes, edges: customEdges };
+        },
+        /**
          * Build network { nodes, edges } from flattened KG rows by row ids (for LLM response with supporting_row_ids).
          * @param {Array} flattened - Flat rows from flattenKGData (id, subject, predicate, object, context_*).
          * @param {Array<number>} rowIds - Row id values from LLM (supporting_row_ids).
@@ -4599,6 +4929,57 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         out.supporting_network,
                         candForNet
                     );
+                }
+                out.next_steps = Array.isArray(h.next_steps) ? h.next_steps : [];
+                out.hypothesis_in_kg =
+                    h.hypothesis_in_kg != null && typeof h.hypothesis_in_kg === "object"
+                        ? { ...h.hypothesis_in_kg }
+                        : null;
+                out.core_spine_network = null;
+                const hik = h.hypothesis_in_kg;
+                if (
+                    hik &&
+                    Array.isArray(hik.nodes) &&
+                    hik.nodes.length > 0 &&
+                    Array.isArray(hik.edges) &&
+                    hik.edges.length > 0
+                ) {
+                    const flow = this.buildMechanismFlowNetworkFromHypothesisKg(hik);
+                    if (flow && flow.nodes.length && flow.edges.length) {
+                        out.core_spine_network = flow;
+                        if (out.hypothesis_in_kg && typeof out.hypothesis_in_kg === "object") {
+                            const cap =
+                                out.hypothesis_in_kg.caption != null ? String(out.hypothesis_in_kg.caption) : "";
+                            out.hypothesis_in_kg = cap ? { caption: cap } : null;
+                        }
+                    }
+                } else if (
+                    flattened &&
+                    flattened.length > 0 &&
+                    hik &&
+                    Array.isArray(hik.core_spine_row_ids) &&
+                    hik.core_spine_row_ids.length > 0
+                ) {
+                    const flatIdSet = new Set(
+                        (flattened || []).map((r) => Number(r.id)).filter((n) => !Number.isNaN(n))
+                    );
+                    const supportSet = new Set(
+                        (Array.isArray(h.supporting_row_ids) ? h.supporting_row_ids : [])
+                            .map(Number)
+                            .filter((n) => !Number.isNaN(n))
+                    );
+                    let spineIds = hik.core_spine_row_ids
+                        .map(Number)
+                        .filter((id) => !Number.isNaN(id) && flatIdSet.has(id) && supportSet.has(id));
+                    if (spineIds.length === 0) {
+                        spineIds = hik.core_spine_row_ids
+                            .map(Number)
+                            .filter((id) => !Number.isNaN(id) && flatIdSet.has(id));
+                    }
+                    spineIds = spineIds.slice(0, 8);
+                    if (spineIds.length > 0) {
+                        out.core_spine_network = this.buildNetworkFromFlattenedRowIds(flattened, spineIds);
+                    }
                 }
                 return out;
             });
@@ -5020,6 +5401,47 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 .query-guidelines-example {
     border-left: 3px solid #f16822;
     margin: 0;
+}
+
+/* Relevant gene sets: program source pill + hover menu for C2M2 file links */
+.fbr-program-download-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+.fbr-program-download-trigger {
+    cursor: default;
+    max-width: min(280px, 100%);
+}
+.fbr-program-download-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.fbr-program-download-menu {
+    display: none;
+    position: absolute;
+    z-index: 1060;
+    right: 0;
+    top: 100%;
+    margin-top: -1px;
+    min-width: 220px;
+    max-width: min(500px, 85vw);
+}
+.fbr-program-download-wrap:hover .fbr-program-download-menu,
+.fbr-program-download-wrap:focus-within .fbr-program-download-menu {
+    display: block;
+}
+.fbr-program-download-menu-heading {
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+}
+.fbr-provenance-menu-link {
+    word-break: break-word;
+}
+.fbr-provenance-menu-link:hover {
+    background: #f3f4f6;
 }
 
 </style>

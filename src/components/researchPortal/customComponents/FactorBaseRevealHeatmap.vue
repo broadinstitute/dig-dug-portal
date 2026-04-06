@@ -42,8 +42,13 @@
         </div>
       </div>
       <div class="legend-actions">
-        <button class="btn btn-sm btn-outline-primary" @click="downloadHeatmap">
-          Download
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+          @click="downloadHeatmap"
+        >
+          <b-icon icon="download" class="mr-1" aria-hidden="true" />
+          Heatmap
         </button>
       </div>
     </div>

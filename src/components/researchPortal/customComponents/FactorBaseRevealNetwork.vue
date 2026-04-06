@@ -53,6 +53,11 @@ const NODE_COLORS = {
     Factor: "#377eb8",
     Pathway: "#4daf4a",
     Gene: DEFAULT_GENE_NODE_COLOR,
+    Process: "#984ea3",
+    Metabolite: "#ff7f00",
+    Cell: "#7570b3",
+    Drug: "#e7298a",
+    Entity: "#666666",
 };
 const DEFAULT_NODE_COLOR = "#999";
 const DEFAULT_GENE_COLOR = DEFAULT_GENE_NODE_COLOR;
@@ -71,6 +76,8 @@ export default {
         width: { type: Number, default: 640 },
         height: { type: Number, default: 400 },
         showPopupButton: { type: Boolean, default: false },
+        /** LLM biological mechanism map: keep causal order, show action labels, legend from node types. */
+        isMechanismFlowMap: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -94,6 +101,22 @@ export default {
             return map;
         },
         legendItems() {
+            if (this.isMechanismFlowMap) {
+                const types = new Set();
+                (this.network.nodes || []).forEach((n) => {
+                    const t = n && n.type != null ? String(n.type).trim() : "";
+                    if (t) types.add(t);
+                });
+                if (!types.size) {
+                    return [{ label: "Entity", color: NODE_COLORS.Entity || DEFAULT_NODE_COLOR }];
+                }
+                return [...types]
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((t) => ({
+                        label: t,
+                        color: NODE_COLORS[t] || DEFAULT_NODE_COLOR,
+                    }));
+            }
             const items = [];
             items.push(
                 { label: "Phenotype", color: NODE_COLORS.Phenotype },
@@ -129,6 +152,9 @@ export default {
                 this.$nextTick(() => this.render());
             },
             deep: true,
+        },
+        isMechanismFlowMap() {
+            this.$nextTick(() => this.render());
         },
     },
     mounted() {
@@ -279,10 +305,16 @@ export default {
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
                 }
                 const title = parts.join(" | ");
-                const label = headlineLabel.toString();
+                const rawLabel = headlineLabel.toString();
+                const label =
+                    this.isMechanismFlowMap
+                        ? rawLabel
+                        : rawLabel.length > 12
+                          ? `${rawLabel.slice(0, 10)}…`
+                          : rawLabel;
                 return {
                     id: n.id,
-                    label: label.length > 12 ? label.slice(0, 10) + "…" : label,
+                    label,
                     title,
                     color: {
                         background: color,
@@ -299,10 +331,10 @@ export default {
         },
         buildVisEdges(edges) {
             const typeOrder = {
-                "Gene": 0,
-                "Pathway": 1,
-                "Factor": 2,
-                "Phenotype": 3
+                Gene: 0,
+                Pathway: 1,
+                Factor: 2,
+                Phenotype: 3,
             };
 
             return (edges || []).map((e, i) => {
@@ -312,32 +344,37 @@ export default {
                 let from = e.source;
                 let to = e.target;
 
-                if (sourceNode && targetNode) {
-                const sourceRank = typeOrder[sourceNode.type] ?? 0;
-                const targetRank = typeOrder[targetNode.type] ?? 0;
-
-                // enforce left → right flow
-                if (sourceRank > targetRank) {
+                if (!this.isMechanismFlowMap && sourceNode && targetNode) {
+                    const sourceRank = typeOrder[sourceNode.type] ?? 0;
+                    const targetRank = typeOrder[targetNode.type] ?? 0;
+                    if (sourceRank > targetRank) {
                         from = e.target;
                         to = e.source;
                     }
                 }
-                return{
+
+                const action = String(e.predicate || e.label || "").trim();
+
+                const edge = {
                     id: `e-${i}-${from}-${to}`,
-                    from: from,
-                    to: to,
-                    title: e.predicate || "",
-                    //label: e.predicate || "",
+                    from,
+                    to,
+                    title: action,
                     width: 1.5,
                     color: { color: "#999", opacity: 0.6 },
                     smooth: { type: "continuous", roundness: 0.5 },
                     arrows: {
-                        to: { 
+                        to: {
                             enabled: true,
                             scaleFactor: 0.5,
-                        }
-                    }
+                        },
+                    },
+                };
+                if (this.isMechanismFlowMap && action) {
+                    edge.label = action;
+                    edge.font = { size: 11, color: "#444", strokeWidth: 0, align: "horizontal" };
                 }
+                return edge;
             });
         },
         render() {
@@ -351,7 +388,8 @@ export default {
             const edges = (this.network.edges || []).map((e) => ({
                 source: e.source,
                 target: e.target,
-                predicate: e.predicate,
+                predicate: e.predicate != null && String(e.predicate) !== "" ? e.predicate : e.label,
+                label: e.label,
             }));
 
             if (nodes.length === 0) return;
@@ -379,6 +417,11 @@ export default {
                 },
                 edges: {
                     shadow: false,
+                    ...(this.isMechanismFlowMap
+                        ? {
+                              font: { size: 11, color: "#444", strokeWidth: 0 },
+                          }
+                        : {}),
                 },
                 physics: {
                     enabled: true,
