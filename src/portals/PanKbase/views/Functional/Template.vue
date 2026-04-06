@@ -75,6 +75,11 @@
                             </template>
                         </criterion-function-group>
                     </div>
+                    <div>
+                        Visualize perifusion time-series data
+                        <b-table :items="$parent.donorInsData">
+                        </b-table>
+                    </div>
                 </div>
             </div>
         </div>

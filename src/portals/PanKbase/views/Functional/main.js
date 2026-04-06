@@ -40,7 +40,7 @@ new Vue({
     async created() {
         await this.$store.dispatch("populateData", this.files);
         this.availableDonors = Object.keys(this.$store.state.ins[0]);
-        console.log((Object.keys(this.$store.state.gcg[0])).length);
+        console.log(this.availableDonors);
     },
     computed: {
         availableDonorsMetadata(){
@@ -58,6 +58,18 @@ new Vue({
             };
             return utils;
         },
+        donorInsData(){
+            let results = [];
+            this.filteredDonors.forEach(donor => {
+                let donorResults = {};
+                donorResults.donor = donor;
+                this.$store.state.ins.forEach(timePoint => {
+                    donorResults[`${timePoint.time}`] = timePoint[donor];
+                });
+                results.push(donorResults);
+            });
+            return results;
+        }
     },
     methods: {
         getDonors(donors){
