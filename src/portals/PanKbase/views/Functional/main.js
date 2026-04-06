@@ -64,7 +64,7 @@ new Vue({
                 let donorResults = {};
                 donorResults.donor = donor;
                 this.$store.state.ins.forEach(timePoint => {
-                    donorResults[`${timePoint.time}`] = timePoint[donor];
+                    donorResults[`time ${timePoint.time}`] = timePoint[donor];
                 });
                 results.push(donorResults);
             });
