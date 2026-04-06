@@ -28,8 +28,8 @@ export default Vue.component("time-series-line-plot", {
   data() {
       return {
         chart: null,
-        chartWidth: 300,
-        chartHeight: 200,
+        chartWidth: 900,
+        chartHeight: 300,
         svg: null,
         xScale: null,
         yScale: null,
@@ -117,7 +117,7 @@ export default Vue.component("time-series-line-plot", {
         .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
       this.svg.append("g")
-        .call(d3.axisLeft(this.yScale).tickFormat(t => t/1000))
+        .call(d3.axisLeft(this.yScale))
           .selectAll("text")
             .style("font-size", "13px");
       this.svg.append("text")
@@ -125,7 +125,7 @@ export default Vue.component("time-series-line-plot", {
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
-        .text(`${this.config.yAxisLabel || this.config.yField} (thousands)`);
+        .text(`${this.config.yAxisLabel || this.config.yField}`);
 
         const sortedData = [...this.chartData].sort(
           (a, b) => a[this.config.xField] - b[this.config.xField]
@@ -151,7 +151,7 @@ export default Vue.component("time-series-line-plot", {
 
 
       // add dots
-      this.svg.append("g")
+/*       this.svg.append("g")
         .selectAll("dot")
         .data(this.chartData)
         .enter()
@@ -169,7 +169,7 @@ export default Vue.component("time-series-line-plot", {
           .attr("fill", "red")
           .attr("stroke", this.dotOutlineColor)
           .on("mouseover", (g) =>
-              this.hoverDot(JSON.stringify(g)));           
+              this.hoverDot(JSON.stringify(g)));    */        
     },
     hoverDot(dotString) {
       this.unHoverDot();
