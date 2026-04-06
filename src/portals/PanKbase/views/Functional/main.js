@@ -27,24 +27,31 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
-            currentPage: 1,
-            perPage: 10,
             files: {
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
                 ins: "HIPP_ins_ieq.pankbase.txt",
                 metadata: "meta-data.merged.pankbase.txt"
             },
+            availableDonors: [],
+            filteredDonors: []
         };
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
-        console.log(this.$store.state.allTraits.length);
-        console.log(JSON.stringify(Object.keys(this.$store.state.metadata[0])));
-        let available = new Set(this.$store.state.metadata.map(m => m.Data_available_Pankbase));
-        console.log(JSON.stringify(Array.from(available)));
+        this.availableDonors = Object.keys(this.$store.state.ins[0]);
+        console.log((Object.keys(this.$store.state.gcg[0])).length);
     },
     computed: {
+        availableDonorsMetadata(){
+            if (this.availableDonors.length === 0){
+                return [];
+            }
+            console.log("Available donors:", this.availableDonors.length);
+            return this.$store.state.metadata.filter(m => 
+                this.availableDonors.includes(m.Accession)
+            );
+        },
         utilsBox() {
             let utils = {
                 regionUtils: regionUtils,
@@ -53,6 +60,9 @@ new Vue({
         },
     },
     methods: {
+        getDonors(donors){
+            this.filteredDonors = donors;
+        }
     },
     render(createElement, context) {
         return createElement(Template);

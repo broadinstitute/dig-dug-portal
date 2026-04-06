@@ -6,61 +6,73 @@
         <div class="pkb-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h2>Filter Donors</h2>
+                    <h2>Data Explorer</h2>
+                    <div id="stats" class="row" v-if="$store.state.metadata.length > 0">
+                        <div class="col-md-6">
+                            Total Donors
+                            <h3>{{ $store.state.metadata.length }}</h3>
+                        </div>
+                        <div class="col-md-6">
+                            Donors with Functional Data
+                            <h3>{{ Object.keys(this.$store.state.ins[0]).length - 2 }}</h3>
+                        </div>
+                    </div>
                     <div v-if="$store.state.metadata.length > 0">
-                    <criterion-function-group>
-                        <filter-enumeration-control
-                            :field="'Gender'"
-                            :multiple="true"
-                            :options="
-                                $store.state.metadata.map(m => m.Gender)
-                            "
-                        >
-                            <div class="label">Gender</div>
-                        </filter-enumeration-control>
-                        <filter-enumeration-control
-                            :field="'Derived diabetes status'"
-                            :multiple="true"
-                            :options="
-                                $store.state.metadata.map(m => m['Derived diabetes status'])
-                            "
-                        >
-                            <div class="label">Diabetes Status</div>
-                        </filter-enumeration-control>
-                        <filter-enumeration-control
-                            :field="'Cause of Death'"
-                            :multiple="true"
-                            :options="
-                                $store.state.metadata.map(m => m['Cause of Death'])
-                            "
-                        >
-                            <div class="label">Cause of Death</div>
-                        </filter-enumeration-control>
-                        <filter-enumeration-control
-                            :field="'Collections'"
-                            :multiple="true"
-                            :options="
-                                $store.state.metadata.map(m => m.Collections)
-                            "
-                        >
-                            <div class="label">Collection Center</div>
-                        </filter-enumeration-control>
-                        <filter-enumeration-control
-                            :field="'Ethnicities'"
-                            :multiple="true"
-                            :options="
-                                $store.state.metadata.map(m => m.Ethnicities)
-                            "
-                        >
-                            <div class="label">Ethnicity</div>
-                        </filter-enumeration-control>
-                        <template slot="filtered" slot-scope="{ filter }">
-                            <donor-metadata-table
-                                :metadata="$store.state.metadata"
-                                :filter="filter">
+                        Filter and explore donor data
+                        <criterion-function-group>
+                            <filter-enumeration-control
+                                :field="'Gender'"
+                                :multiple="true"
+                                :options="
+                                    $store.state.metadata.map(m => m.Gender)
+                                "
+                            >
+                                <div class="label">Gender</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'Derived diabetes status'"
+                                :multiple="true"
+                                :options="
+                                    $store.state.metadata.map(m => m['Derived diabetes status'])
+                                "
+                            >
+                                <div class="label">Diabetes Status</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'Cause of Death'"
+                                :multiple="true"
+                                :options="
+                                    $store.state.metadata.map(m => m['Cause of Death'])
+                                "
+                            >
+                                <div class="label">Cause of Death</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'Collections'"
+                                :multiple="true"
+                                :options="
+                                    $store.state.metadata.map(m => m.Collections)
+                                "
+                            >
+                                <div class="label">Collection Center</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'Ethnicities'"
+                                :multiple="true"
+                                :options="
+                                    $store.state.metadata.map(m => m.Ethnicities)
+                                "
+                            >
+                                <div class="label">Ethnicity</div>
+                            </filter-enumeration-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <donor-metadata-table
+                                    :metadata="$parent.availableDonorsMetadata"
+                                    :filter="filter"
+                                    @filteredDonors="data => $parent.getDonors(data)">
 
-                            </donor-metadata-table>
-                        </template>
+                                </donor-metadata-table>
+                            </template>
                         </criterion-function-group>
                     </div>
                 </div>
@@ -108,5 +120,8 @@
     background-color: #efefef;
     border: 1px solid #dddddd;
     border-radius: 5px;
+}
+.stats {
+    margin-bottom: 10px;;
 }
 </style>

@@ -1,13 +1,15 @@
 <template>
     <div>
+        {{ tableData.length }} results
         <b-table
+            small
             :items="tableData"
             :fields="fields"
             :sortable="true"
             :per-page="perPage"
             :current-page="currentPage"
-    >
-    </b-table>
+        >
+        </b-table>
     <b-pagination
         class="pagination-md justify-content-center"
         v-model="currentPage"
@@ -40,10 +42,8 @@ export default Vue.component("donor-metadata-table", {
     },
     computed: {
         tableData() {
-            console.log("Filtering table data");
             let data = structuredClone(this.metadata);
             if (this.filter) {
-                console.log("We are filtering")
                 data = data.filter(this.filter);
             }
             return data;
@@ -63,13 +63,17 @@ export default Vue.component("donor-metadata-table", {
                     "Diabetes Duration (years)",
                     "Donation Type",
                     "HbA1C (percentage)",
-                    "Predicted Genetic Ancestry",
                     "Cause of Death"
                 ]
             return rawFields;
         }
     },
     methods: {},
-    watch: {}
+    watch: {
+        tableData(newData){
+            let filteredDonors = newData.map(m => m.Accession);
+            this.$emit("filteredDonors", filteredDonors);
+        }
+    }
 });
 </script>
