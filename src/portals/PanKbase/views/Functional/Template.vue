@@ -22,7 +22,6 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'Gender'"
-                                :multiple="true"
                                 :options="
                                     $store.state.metadata.map(m => m.Gender)
                                 "
@@ -31,7 +30,6 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'Derived diabetes status'"
-                                :multiple="true"
                                 :options="
                                     $store.state.metadata.map(m => m['Derived diabetes status'])
                                 "
@@ -40,7 +38,6 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'Cause of Death'"
-                                :multiple="true"
                                 :options="
                                     $store.state.metadata.map(m => m['Cause of Death'])
                                 "
@@ -49,7 +46,6 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'Collections'"
-                                :multiple="true"
                                 :options="
                                     $store.state.metadata.map(m => m.Collections)
                                 "
@@ -58,7 +54,6 @@
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'Ethnicities'"
-                                :multiple="true"
                                 :options="
                                     $store.state.metadata.map(m => m.Ethnicities)
                                 "
