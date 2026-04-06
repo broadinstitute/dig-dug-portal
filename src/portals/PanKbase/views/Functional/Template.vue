@@ -77,8 +77,13 @@
                     </div>
                     <div>
                         Visualize perifusion time-series data
-                        <b-table :items="$parent.donorInsData">
-                        </b-table>
+                        <time-series-line-plot
+                            :plotData="$parent.insData"
+                            :donors="$parent.filteredDonors"
+                            :config="$parent.linePlotConfig"
+                            :plotId="`insulin_ieq`">
+
+                        </time-series-line-plot>
                     </div>
                 </div>
             </div>

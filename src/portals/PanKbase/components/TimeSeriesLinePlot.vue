@@ -8,7 +8,7 @@
             <ul class="options" >
               <li>
                     <a href="javascript:;"
-                    @click="downloadImage(plotId, `ins_ieq${tx[0]}`, 'svg')">Download SVG</a>
+                    @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">Download SVG</a>
                 </li>
             </ul>
         </div>
@@ -20,10 +20,11 @@ import * as d3 from "d3";
 import DownloadChart from "@/components/DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import Formatters from "@/utils/formatters";
+import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "tx", "config", "plotId", "utils", "showLine"],
+  props: ["plotData", "filter", "tightenLeft", "donors", "config", "plotId", "utils", "showLine"],
   data() {
       return {
         chart: null,
@@ -47,13 +48,12 @@ export default Vue.component("time-series-line-plot", {
   computed: {
     chartData(){
       let data = structuredClone(this.plotData);
+      console.log("Received data:", JSON.stringify(data));
       if (this.filter){
         data = data.filter(this.filter);
       }
-      // Tx is concatenated with gene; need to separate them
-      let transcripts = this.tx.map(t => !!t ? t.split("___")[1] : ""); 
-      if (this.tx.length > 0){
-        data = data.filter(d => transcripts.includes(d.transcript_id));
+      if (this.donors.length > 0){
+        data = data.filter(d => this.donors.includes(d.donor));
       }
       return data;
     },
@@ -241,7 +241,7 @@ export default Vue.component("time-series-line-plot", {
     downloadImage(ID, NAME, TYPE) {
       if (TYPE == "svg") {
         let svgId = `chart_${this.plotId}`;
-        this.utils.uiUtils.downloadImg(
+        uiUtils.downloadImg(
             ID,
             NAME,
             TYPE,
@@ -249,7 +249,7 @@ export default Vue.component("time-series-line-plot", {
         );
       }
 			if (TYPE == 'png') {
-				this.utils.uiUtils.downloadImg(ID, NAME, TYPE)
+				uiUtils.downloadImg(ID, NAME, TYPE)
 			}
 		},
   },
@@ -257,7 +257,7 @@ export default Vue.component("time-series-line-plot", {
     chartData(){
       this.drawChart();
     },
-    tx(){
+    donors(){
         this.drawChart();
     }
   }
