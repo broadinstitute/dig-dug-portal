@@ -1,5 +1,6 @@
 <template>
     <div>
+        {{ availableDonors }} donors available
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
@@ -57,6 +58,10 @@ export default Vue.component("time-series-line-plot", {
       }
       return data;
     },
+    availableDonors(){
+      let donorsPresent = new Set(this.chartData.map(m => m.donor));
+      return donorsPresent.size;
+    }
   },
   methods: {
     drawChart(){

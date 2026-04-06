@@ -9,11 +9,11 @@
                     <h2>Data Explorer</h2>
                     <div id="stats" class="row" v-if="$store.state.metadata.length > 0">
                         <div class="col-md-6">
-                            Total Donors
+                            Total donors
                             <h3>{{ $store.state.metadata.length }}</h3>
                         </div>
                         <div class="col-md-6">
-                            Donors with Functional Data
+                            Donors with available functional data
                             <h3>{{ Object.keys(this.$store.state.ins[0]).length - 2 }}</h3>
                         </div>
                     </div>
