@@ -57,12 +57,13 @@
                                 :options="
                                     $store.state.metadata.map(m => m.Ethnicities)
                                 "
+                                :multiple="true"
                             >
                                 <div class="label">Ethnicity</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <donor-metadata-table
-                                    :metadata="$parent.availableDonorsMetadata"
+                                    :metadata="$parent.allMetadata"
                                     :filter="filter"
                                     @filteredDonors="data => $parent.getDonors(data)">
 

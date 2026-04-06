@@ -37,24 +37,18 @@ new Vue({
             },
             availableDonors: [],
             filteredDonors: [],
-            insData: null,
             maxTime: null,
             maxScore: null,
         };
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
-        this.availableDonors = Object.keys(this.$store.state.ins[0]);
+        this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         this.insData = this.collateInsData();
     },
     computed: {
-        availableDonorsMetadata(){
-            if (this.availableDonors.length === 0){
-                return [];
-            }
-            return this.$store.state.metadata.filter(m => 
-                this.availableDonors.includes(m.Accession)
-            );
+        allMetadata(){
+            return this.$store.state.metadata;
         },
         utilsBox() {
             let utils = {
@@ -75,19 +69,18 @@ new Vue({
                 dotKey: "donor",
             };
             return config;
-        }
-    },
-    methods: {
-        getDonors(donors){
-            this.filteredDonors = donors;
         },
-        collateInsData(){
+        insData(){
             let maxTime = null;
             let maxScore = null;
             let results = [];
             let donors = this.availableDonors.filter(d =>!d.startsWith("time"));
+            let ins = this.$store.state.ins;
             donors.forEach(donor => {
-                this.$store.state.ins.forEach(timePoint => {
+                if (!ins[0][donor]){
+                    return;
+                }
+                ins.forEach(timePoint => {
                     let donorResults = {};
                     donorResults.donor = donor;
                     donorResults.time = timePoint.time;
@@ -101,11 +94,15 @@ new Vue({
                     }
                 });
             });
-            console.log(JSON.stringify(results));
             this.maxTime = maxTime;
             this.maxScore = maxScore;
             return results;
         },
+    },
+    methods: {
+        getDonors(donors){
+            this.filteredDonors = donors;
+        }
     },
     render(createElement, context) {
         return createElement(Template);
