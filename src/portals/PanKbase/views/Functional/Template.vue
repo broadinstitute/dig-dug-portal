@@ -12,6 +12,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                             <b-table 
                                 :items="$store.state.metadata"
+                                :fields="$parent.fields"
                                 :sortable="true"
                                 :per-page="$parent.perPage"
                                 :current-page="$parent.currentPage"

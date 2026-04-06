@@ -25,7 +25,6 @@ new Vue({
             currentPage: 1,
             perPage: 10,
             files: {
-
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
                 ins: "HIPP_ins_ieq.pankbase.txt",
@@ -35,7 +34,10 @@ new Vue({
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
-        console.log(this.$store.state.metadata.length);
+        console.log(this.$store.state.allTraits.length);
+        console.log(JSON.stringify(Object.keys(this.$store.state.metadata[0])));
+        let available = new Set(this.$store.state.metadata.map(m => m.Data_available_Pankbase));
+        console.log(JSON.stringify(Array.from(available)));
     },
     computed: {
         utilsBox() {
@@ -44,6 +46,25 @@ new Vue({
             };
             return utils;
         },
+        fields(){
+            let rawFields = 
+                [
+                    "Accession",
+                    "Center Donor ID",
+                    "RRID",
+                    "Collections",
+                    "Ethnicities",
+                    "Age (years)",
+                    "Gender","BMI",
+                    "C-Peptide (ng/ml)",
+                    "Derived diabetes status",
+                    "Diabetes Duration (years)",
+                    "Donation Type",
+                    "HbA1C (percentage)",
+                    "Predicted Genetic Ancestry"
+                ]
+            return rawFields;
+        }
     },
     methods: {
     },
