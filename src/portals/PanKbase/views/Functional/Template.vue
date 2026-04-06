@@ -9,23 +9,59 @@
                     <h2>Filter Donors</h2>
                     <div v-if="$store.state.metadata.length > 0">
                     <criterion-function-group>
-                            <template slot="filtered" slot-scope="{ filter }">
-                            <b-table 
-                                :items="$store.state.metadata"
-                                :fields="$parent.fields"
-                                :sortable="true"
-                                :per-page="$parent.perPage"
-                                :current-page="$parent.currentPage"
-                            >
-                            </b-table>
-                            <b-pagination
-                                class="pagination-md justify-content-center"
-                                v-model="$parent.currentPage"
-                                :per-page="$parent.perPage"
-                                :total-rows="$store.state.metadata.length">
-                            </b-pagination>
-                            </template>
-                            </criterion-function-group>
+                        <filter-enumeration-control
+                            :field="'Gender'"
+                            :multiple="true"
+                            :options="
+                                $store.state.metadata.map(m => m.Gender)
+                            "
+                        >
+                            <div class="label">Gender</div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'Derived diabetes status'"
+                            :multiple="true"
+                            :options="
+                                $store.state.metadata.map(m => m['Derived diabetes status'])
+                            "
+                        >
+                            <div class="label">Diabetes Status</div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'Cause of Death'"
+                            :multiple="true"
+                            :options="
+                                $store.state.metadata.map(m => m['Cause of Death'])
+                            "
+                        >
+                            <div class="label">Cause of Death</div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'Collections'"
+                            :multiple="true"
+                            :options="
+                                $store.state.metadata.map(m => m.Collections)
+                            "
+                        >
+                            <div class="label">Collection Center</div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'Ethnicities'"
+                            :multiple="true"
+                            :options="
+                                $store.state.metadata.map(m => m.Ethnicities)
+                            "
+                        >
+                            <div class="label">Ethnicity</div>
+                        </filter-enumeration-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <donor-metadata-table
+                                :metadata="$store.state.metadata"
+                                :filter="filter">
+
+                            </donor-metadata-table>
+                        </template>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>

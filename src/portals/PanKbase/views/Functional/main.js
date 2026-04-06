@@ -11,6 +11,7 @@ import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
@@ -18,6 +19,10 @@ const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pank
 new Vue({
     store,
     components: {
+        ResearchSingleSearch,
+        CriterionFunctionGroup,
+        FilterEnumeration,
+        DonorMetadataTable
     },
     mixins: [pankbaseMixin],
     data() {
@@ -46,25 +51,6 @@ new Vue({
             };
             return utils;
         },
-        fields(){
-            let rawFields = 
-                [
-                    "Accession",
-                    "Center Donor ID",
-                    "RRID",
-                    "Collections",
-                    "Ethnicities",
-                    "Age (years)",
-                    "Gender","BMI",
-                    "C-Peptide (ng/ml)",
-                    "Derived diabetes status",
-                    "Diabetes Duration (years)",
-                    "Donation Type",
-                    "HbA1C (percentage)",
-                    "Predicted Genetic Ancestry"
-                ]
-            return rawFields;
-        }
     },
     methods: {
     },
