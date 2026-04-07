@@ -33,6 +33,7 @@
                 <template v-slot:[geneSetCellSlot]="cell">
                     <a
                         v-if="cell.value"
+                        class="gene-set-link"
                         :href="
                             'https://cfdeknowledge.org/r/kc_gsb?geneSet=' +
                             encodeURIComponent(cell.value)
@@ -520,6 +521,10 @@ export default Vue.component("gene-set-2-phenotype", {
 </script>
 
 <style scoped>
+#gene-set-phenotype-table a.gene-set-link{
+    overflow-wrap: anywhere;
+}
+
 .genes-subtable-wrapper {
     position: relative;
     background-color: #efefef;
