@@ -1453,8 +1453,8 @@ import { kcURL, resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel 
 import uiUtils from "@/utils/uiUtils";
 import { colorForGeneRole } from "@/utils/factorRevealGeneColors";
 
-import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork.vue";
-import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap.vue";
+import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
+import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap2.vue";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
