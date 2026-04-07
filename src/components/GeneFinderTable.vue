@@ -28,7 +28,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="rowsPerPage"

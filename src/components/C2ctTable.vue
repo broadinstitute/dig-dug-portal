@@ -7,13 +7,16 @@
                     class="table-total-rows"
                 ></div>
                 <div class="text-right mb-2">
-                    <data-download :data="c2ctData" :filename="`c2ct_${phenotype}`"></data-download>
+                    <data-download
+                        :data="c2ctData"
+                        :filename="`c2ct_${phenotype}`"
+                    ></data-download>
                 </div>
             </div>
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
@@ -41,10 +44,9 @@
                     </a>
                 </template>
                 <template #cell(chromosome)="r">
-                        {{
-                            `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
-                        }}
-                    
+                    {{
+                        `${r.item.chromosome}:${r.item.clumpStart}-${r.item.clumpEnd}`
+                    }}
                 </template>
                 <template #cell(overlapLeadSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.overlapLeadSNP}`">
@@ -141,8 +143,8 @@ export default Vue.component("c2ct-table", {
                     key: "variantSifter",
                     label: "variantSifter",
                     sortable: false,
-                    tdClass: "text-center"
-                }
+                    tdClass: "text-center",
+                },
             ],
         };
     },
@@ -173,12 +175,17 @@ export default Vue.component("c2ct-table", {
             let center = parseInt(location[1]);
             let start = center - expanded;
             start = start < minimum ? minimum : start;
-            let end  = center + expanded;
-            return '/research.html?pageid=kp_variant_sifter&phenotype=' +
-				item.phenotype + '&region=' +
-                chr + ':' +
-                start + '-' +
-                end;
+            let end = center + expanded;
+            return (
+                "/research.html?pageid=kp_variant_sifter&phenotype=" +
+                item.phenotype +
+                "&region=" +
+                chr +
+                ":" +
+                start +
+                "-" +
+                end
+            );
         },
     },
 });

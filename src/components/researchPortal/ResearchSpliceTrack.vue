@@ -1,17 +1,25 @@
 <template>
 	<div class="mbm-plot-content row">
-			<span v-if="!!this.selectedSplice">
-				Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}
-			</span>
-			<span v-else>
-				Select a splice track to view from the table below.
-			</span>
+		<div v-if="!!this.selectedSplice">
+			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
+			<p>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</p>
+			<p>Dot-and-line diagrams represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</p>
+			<p>The splicing event indicated by an arrow corresponds to the selected row from the table.</p>
+		</div>
+		<div v-else>
+			Select a splice track to view from the table below.
+		</div>
 		<div class="col-md-12">
 			<!-- place info modal here-->
+			<div v-if="!!this.selectedSplice">
+				<strong>{{ this.exonData[0].gene_name }} {{ this.exonData[0].strand }}</strong>
+			</div>
 			<div
 				:id="'spliceTrackWrapper' + sectionId"
 				class="genes-plot-wrapper"
 			>
+
+				<canvas :id="`xaxis_${sectionId}`"></canvas>
 				<canvas :class="!exonData ? 'hidden' : ''"
 					:id="'spliceTrack'+sectionId"
 					@resize="onResize"
@@ -45,13 +53,28 @@ export default Vue.component("research-splice-track", {
 		return {
 			plotRendered: 0,
 			localGenesData: null,
-			renderingGenes: [],
 			biHost: "https://vision.hugeampkpnbi.org/api/bio/query",
 			spliceData: null,
 			exonData: null,
 			gene: null,
 			spliceVisualMap: [],
-			hoverTent: -1
+			exonVisualMap: [],
+			hoverTent: -1,
+			hoverExon: -1,
+			colors: {
+				green: "#00FF00",
+				gray: "#DDDDDD99",
+				charcoal: "#333333",
+				purple: "#AA4499",
+				blue: "#2F67B1", // colorblind safe blue from UCSB
+				red: "#BF2C23", // colorblind safe red from UCSB,
+				magenta: "#9F4A96", // Paul Tol's Muted colorblind safe palette
+				teal: "#5DA899", // Paul Tol's Muted colorblind safe palette
+				gold: "#DCCD7D" // Paul Tol's Muted colorblind safe palette
+			},
+			dotRadius: 6,
+			selectedSpliceStart: null,
+			selectedSpliceEnd: null
 		};
 	},
 	modules: {
@@ -78,7 +101,7 @@ export default Vue.component("research-splice-track", {
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
-				top: customPlotMargin.top * 2,
+				top: customPlotMargin.top * 3,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
 			} :
@@ -122,10 +145,15 @@ export default Vue.component("research-splice-track", {
 			immediate: true,
 		},
 		async selectedSplice(newData){
+			console.log(newData);
 			let spliceParams = newData.split("___");
 			let gene = spliceParams[0];
 			let ensembl = spliceParams[1];
 			let tissue = spliceParams[2];
+			let start = spliceParams[3];
+			let end = spliceParams[4];
+			this.selectedSpliceStart = parseInt(start);
+			this.selectedSpliceEnd = parseInt(end);
 			this.gene = await(this.getGene(gene));
 			this.spliceData = await(this.getSplices(ensembl, tissue));
 			this.exonData = await(this.getExons(gene));
@@ -134,6 +162,12 @@ export default Vue.component("research-splice-track", {
 		},
 		hoverTent(newTent, oldTent){
 			if (newTent === -1 || newTent === oldTent){
+				return;
+			}
+			this.renderTrack(this.exonData);
+		},
+		hoverExon(newExon, oldExon){
+			if (newExon === -1 || newExon === oldExon){
 				return;
 			}
 			this.renderTrack(this.exonData);
@@ -156,25 +190,6 @@ export default Vue.component("research-splice-track", {
 			
 		},
 
-		sortGenesByRegion(GENES) {
-			let tracks = [];
-			let gIndex = 0;
-
-			// canvas is required to use getWidth function
-			let canvas = document.createElement('canvas'),
-				context = canvas.getContext('2d');
-
-			GENES.map(g => {
-				tracks[gIndex] = [];
-				gIndex ++;
-			})
-
-			GENES.map(g => tracks[0].push(g));
-
-			tracks = tracks.filter(t => t.length > 0);
-
-			return tracks;
-		},
 
 		getWidth (ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
@@ -182,9 +197,14 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
+			// TODO consult MultiRegionPlot component for how to get the coordinates track in there.
 			if (this.gene === null){
 				return;
 			}
+			let c = document.getElementById("spliceTrack" + this.sectionId);
+			let ctx = c.getContext("2d");
+			let xMin = this.viewingRegion.start,
+					xMax = this.viewingRegion.end;
 
 			let canvasRenderWidth, canvasRenderHeight;
 
@@ -207,43 +227,20 @@ export default Vue.component("research-splice-track", {
 							this.adjPlotMargin.right);
 
 
-				let xMin = this.viewingRegion.start,
-					xMax = this.viewingRegion.end;
+				
 
 				let xStart = this.adjPlotMargin.left;
-				let yStart = this.adjPlotMargin.top;
-				console.log("Plot width: ", plotWidth);
 				let xposbypixel = plotWidth / (xMax - xMin);
 
 				let genesSorted = this.utils.sortUtils.sortArrOfObjects(GENES, 'start', 'number', 'asc')
 									.filter(g => g.exon_start <= xMax && g.exon_end >= xMin);
-
-				genesSorted.map(gene =>{
-
-					let xStartPos =
-						gene.exon_start > xMin
-							? xStart + (gene.exon_start - xMin) * xposbypixel
-							: xStart;
-					let xEndPos =
-						gene.exon_end < xMax
-							? xStart + (gene.exon_end - xMin) * xposbypixel
-							: xStart + (xMax - xMin) * xposbypixel;
-
-					gene["xStartPos"] = xStartPos;
-					gene["xEndPos"] = xEndPos;
-				})
-
-				let geneTracksArray = this.sortGenesByRegion(genesSorted);
-
-				this.renderingGenes = geneTracksArray;
+				let genesTiled = this.tileExons(genesSorted);
 
 				canvasRenderHeight =
 					this.adjPlotMargin.top +
-					eachGeneTrackHeight * 10; // Arbitrarily making this 10 tracks deep
+					eachGeneTrackHeight * genesTiled.length;
 
-				let bump = this.adjPlotMargin.bump;
-
-				let c = document.getElementById("spliceTrack" + this.sectionId);
+				
 				c.setAttribute("width", canvasRenderWidth);
 				c.setAttribute("height", canvasRenderHeight);
 				c.setAttribute(
@@ -254,7 +251,7 @@ export default Vue.component("research-splice-track", {
 						canvasRenderHeight / 2 +
 						"px;"
 				);
-				let ctx = c.getContext("2d");
+				
 
 				ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
@@ -267,35 +264,44 @@ export default Vue.component("research-splice-track", {
 				ctx.textAlign = "center";
 				ctx.fillStyle = "#000000";
 
-				geneTracksArray.map((genesArray, geneIndex) => {
-					genesArray.map((gene, geneSubIndex) => {
+				let exonVisualMap = [];
+				
+				let geneCounter = 0;
+				genesTiled.map((tiledRow, rowIndex) => {
+					tiledRow.map(gene => {
+						let xStartPos = xStart + (gene.exon_start - xMin) * xposbypixel;
+						let xEndPos = xStart + (gene.exon_end - xMin) * xposbypixel;
 
-						let yPos = this.adjPlotMargin.top + (geneSubIndex % 10) * eachGeneTrackHeight;
+						let yPos = this.adjPlotMargin.top + (rowIndex * eachGeneTrackHeight);
 
-						var left = "\u{2190}";
-						var right = "\u{2192}";
-
-						let geneName =
-							gene.strand == "+"
-								? gene.gene_name + " " + right
-								: left + " " + gene.gene_name;
-
-						let xonWidth =
-									gene.xEndPos - gene.xStartPos <= 1
+						let xonWidth = xEndPos - xStartPos <= 1
 										? 1
-										: gene.xEndPos - gene.xStartPos;
+										: xEndPos - xStartPos;
 
 						let highlight = this.highlightExon(gene);
-						ctx.fillStyle = highlight ? "#00FF00" : "#000000";
+						let hover = geneCounter === this.hoverExon;
+						ctx.fillStyle = highlight ? this.colors.teal
+							: hover ? this.colors.magenta
+							: this.colors.charcoal;
 
-						ctx.fillRect(
-									gene.xStartPos,
-									yPos + 10,
-									xonWidth,
-									20
-								);
+						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
+						exonVisualMap.push({
+							exonStart: xStartPos,
+							exonEnd: xStartPos + xonWidth,
+							exonTop: yPos + 10,
+							exonBottom: yPos + 30,
+
+							// Raw region data; this mapping pulls double duty
+							exon_start: gene.exon_start,
+							exon_end: gene.exon_end
+						});
+						geneCounter++;
 					})
 				});
+				
+				
+				this.exonVisualMap = exonVisualMap;
+
 				// Add splicing events
 				let spliceVisualMap = [];
 				for (let i = 0; i < this.spliceData.length; i++){
@@ -303,29 +309,87 @@ export default Vue.component("research-splice-track", {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					let spliceWidth = spliceEnd - spliceStart;
 					spliceVisualMap.push({
 						spliceStart: spliceStart,
-						spliceEnd: spliceEnd
+						spliceEnd: spliceEnd,
+						spliceMidpoint: spliceMidpoint
 					});
-					let yPos = this.adjPlotMargin.top / 2;
-					let paleGray = "#efefef99";
+					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
-					ctx.fillStyle = highlight ? "#00FF00" : paleGray;
-					ctx.fillRect(spliceStart, yPos ,spliceWidth,20);
+					let isSelected = splice.splice_start === this.selectedSpliceStart
+						&& splice.splice_end === this.selectedSpliceEnd;
+					if (isSelected){
+						console.log("Found it");
+					}
+					let hover = this.highlightTent(splice);
+					ctx.fillStyle = highlight ? this.colors.teal
+						: hover ? this.colors.magenta
+						: isSelected ? this.colors.gold
+						: "black";
+					ctx.strokeStyle = ctx.fillStyle;
+					ctx.lineWidth = 2;
+					// Draw the tents as triangles of height 20
+					ctx.beginPath();
+					ctx.moveTo(spliceStart, yPos * 2);
+					ctx.lineTo(spliceMidpoint, yPos);
+					ctx.stroke();
+					ctx.lineTo(spliceEnd, yPos * 2);
+					ctx.stroke();
+					ctx.moveTo(spliceMidpoint, yPos);
+					ctx.beginPath();
+					ctx.arc(spliceMidpoint, yPos, this.dotRadius, 0, Math.PI * 2, true);
+					ctx.fill();
+					if(isSelected){
+						// Draw an arrow
+						ctx.strokeStyle = "black";
+						ctx.fillStyle = "black";
+						let arrowPoint = yPos - (this.dotRadius * 2);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint, arrowPoint - 27);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint - 6, arrowPoint - 9);
+						ctx.moveTo(spliceMidpoint, arrowPoint);
+						ctx.lineTo(spliceMidpoint + 6, arrowPoint - 9);
+						ctx.stroke();
+					}
 				}
 				this.spliceVisualMap = spliceVisualMap;
-			}			
+			}
+			this.renderAxis(canvasRenderWidth, xMax, xMin);
+			console.log("X max:", xMax, "X min:", xMin);
 			
 		},
-		renderDot(CTX, XPOS, YPOS, DOT_COLOR, WIDTH) {
-			// Taken from ResearchRegionPlot
-			CTX.fillStyle = DOT_COLOR;
-			CTX.lineWidth = 0;
-			CTX.beginPath();
-			let width = !!WIDTH? WIDTH: 9;
-			CTX.arc(XPOS, YPOS, width, 0, 2 * Math.PI);
-			CTX.fill();
+		tileExons(exonsInput){
+			let allRows = [];
+			let exons = structuredClone(exonsInput);
+
+			// Initiate first row with first exon
+			allRows.push([exons.shift()]);
+			
+			while (exons.length > 0){
+				// Initiate row with the first unshelved exon
+				let row = allRows[allRows.length - 1];
+				let lastExon = row[row.length - 1];
+				let next = this.findNextTileIndex(lastExon, exons);
+				if (next === null){
+					allRows.push([exons.shift()]);
+					continue;
+				} else {
+					let nextExon = exons[next];
+					row.push(nextExon);
+					exons = exons.slice(0,next).concat(exons.slice(next + 1));
+				}
+			}
+			return allRows;
+		},
+		findNextTileIndex(last, unshelvedExons){
+			for (let i = 0; i < unshelvedExons.length; i++){
+				let u = unshelvedExons[i];
+				if (u.exon_start > last.exon_end){
+					return i;
+				}
+			}
+			return null;
 		},
 		async getSplices(ensembl, tissue){
 			let splices = await fetch(`${this.biHost}/splices?q=${ensembl},${tissue}`)
@@ -381,35 +445,152 @@ export default Vue.component("research-splice-track", {
 			if (this.hoverTent === -1){
 				return false;
 			}
-			let highlightedTent = this.spliceData[this.hoverTent];
-			return (exon.exon_start >= highlightedTent.splice_start 
-				&& exon.exon_start <= highlightedTent.splice_end)
-				|| (exon.exon_end >= highlightedTent.splice_start
-					&& exon.exon_end <= highlightedTent.spliceEnd
-				);
+			let tent = this.spliceData[this.hoverTent];
+			if (tent === undefined){
+				return false;
+			}
+			return this.overlap(tent.splice_start, tent.splice_end, exon.exon_start, exon.exon_end);
+		},
+		highlightTent(tent){
+			if (this.hoverExon === -1){
+				return false;
+			}
+			let exon = this.exonVisualMap[this.hoverExon];
+			if (exon === undefined){
+				return false;
+			}
+			return this.overlap(tent.splice_start, tent.splice_end, exon.exon_start, exon.exon_end);
+		},
+		overlap(start1, end1, start2, end2){
+			return !(start2 > end1 || start1 > end2);
 		},
 		checkPosition(event) {
 			let e = event;
 			let rect = e.target.getBoundingClientRect();
-			let width = e.target.clientWidth - this.adjPlotMargin.left - this.adjPlotMargin.right;
-			//let xPos = Math.floor(e.clientX - rect.left - this.adjPlotMargin.left);
-			let xPos = Math.floor(e.clientX - rect.left);
-			let xPercentPos = xPos / width;
-			let yPos = Math.floor(e.clientY - rect.top);
-			if (yPos < this.adjPlotMargin.top/2){
-				let tent = this.getTent(xPos * 2);
+			// Need scale factor of 2 as rendered
+			let xPos = Math.floor(e.clientX - rect.left) * 2;
+			let yPos = Math.floor(e.clientY - rect.top)  * 2;
+			if (yPos < this.adjPlotMargin.top){
+				let tent = this.getTent(xPos, yPos);
 				this.hoverTent = tent;
+				if (tent != -1){
+					this.hoverExon = -1;
+				}
+			} else {
+				let exon = this.getExon(xPos, yPos);
+				this.hoverExon = exon;
+				if (exon != -1){
+					this.hoverTent = -1;
+				}
 			}
 		},
-		getTent(xPos){
+		getTent(xPos, yPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				if (xPos >= t.spliceStart && xPos <= t.spliceEnd){
+				let dotHeight = this.adjPlotMargin.top / 3;
+				let xDist = t.spliceMidpoint - xPos;
+				let yDist = dotHeight - yPos;
+				if (Math.abs(xDist) <= this.dotRadius && Math.abs(yDist) <= this.dotRadius){
 					return i;
 				}
 			}
 			return -1;
-		}
+		},
+		getExon(xPos, yPos){
+			for (let i = 0; i < this.exonVisualMap.length; i++){
+				let e = this.exonVisualMap[i];
+				let xMatch = xPos >= e.exonStart && xPos <= e.exonEnd;
+				let yMatch = yPos >= e.exonTop && yPos <= e.exonBottom;
+				if (xMatch && yMatch){
+					return i;
+				}
+			}
+			return -1;
+		},
+		renderAxis(
+			WIDTH,
+			xMax,
+			xMin,
+		) {
+			// Adapted from MultiRegionPlot
+			let c = document.getElementById("xaxis_" + this.sectionId);
+			let CTX = c.getContext("2d");
+			let HEIGHT = 50;
+			c.setAttribute("width", WIDTH);
+			c.setAttribute("height", HEIGHT);
+			c.setAttribute(
+					"style",
+					"width:" +
+						WIDTH / 2 +
+						"px;height:" +
+						HEIGHT / 2 +
+						"px;"
+				);
+			CTX.clearRect(0, 0, WIDTH, HEIGHT);
+
+			CTX.beginPath();
+			CTX.lineWidth = 1;
+			CTX.strokeStyle = "#000000";
+			CTX.font = "24px Arial";
+			CTX.fillStyle = "#000000";
+			CTX.setLineDash([]); // cancel dashed line incase dashed lines rendered some where
+
+			let axisTop = 10;
+			//render x axis
+			CTX.moveTo(
+				this.adjPlotMargin.left, axisTop
+			);
+			CTX.lineTo(
+				WIDTH + this.adjPlotMargin.left,
+				axisTop
+			);
+			CTX.stroke();
+
+			// X ticks
+			let xStep = Math.ceil((xMax - xMin) / 5);
+			let xTickDistance = WIDTH / 5;
+
+			for (let i = 0; i < 6; i++) {
+				let tickXPos = this.adjPlotMargin.left + i * xTickDistance;
+				let adjTickXPos = Math.floor(tickXPos); // .5 is needed to render crisp line
+				CTX.moveTo(
+					adjTickXPos,
+					axisTop
+				);
+				CTX.lineTo(
+					adjTickXPos,
+					axisTop
+				);
+				CTX.stroke();
+				CTX.lineTo(
+					adjTickXPos,
+					axisTop + 10
+				);
+				CTX.stroke();
+
+				CTX.textAlign = "center";
+
+				
+				let positionLabel = xMin + i * xStep;
+
+				CTX.fillText(
+					positionLabel,
+					adjTickXPos,
+					HEIGHT - 5
+				);
+			}
+
+			//Render x axis label
+			CTX.rotate((-(Math.PI * 2) / 4) * 3);
+			CTX.fillText(
+				"Position",
+				WIDTH / 2 + this.adjPlotMargin.left,
+				this.adjPlotMargin.top +
+				this.adjPlotMargin.bottom +
+				HEIGHT -
+				24
+			);
+		},
 	},
 });
 

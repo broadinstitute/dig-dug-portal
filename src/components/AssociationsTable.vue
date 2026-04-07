@@ -18,7 +18,7 @@
                 :class="!!showBottomLine ? 'assoc-table-bottom-line' : ''"
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="groupedAssociations"
                 :fields="fields"
                 :per-page="perPage"

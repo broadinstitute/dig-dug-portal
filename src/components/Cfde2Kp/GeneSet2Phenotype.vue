@@ -1,97 +1,130 @@
 <template>
-
-<div>
-    <div v-if="loading" class="text-muted">Loading…</div>
-    <b-alert v-else-if="fetchError" show variant="danger">{{ fetchError }}</b-alert>
-    <div v-else-if="geneSetPhenotypeData.length === 0 && !loading">
-        No gene set–phenotype data for this phenotype.
-    </div>
-    <template v-else>
-        <div v-if="filteredTableData.length > 0" class="mb-2">
-            {{ filteredTableData.length }} most significant gene sets out of {{ geneSetPhenotypeData.length }} are showing. Try full list <a :href="'https://cfdeknowledge.org/r/kc_gsb?phenotype=' + (phenotype && phenotype.name)">here</a>.
+    <div>
+        <div v-if="loading" class="text-muted">Loading…</div>
+        <b-alert v-else-if="fetchError" show variant="danger">{{
+            fetchError
+        }}</b-alert>
+        <div v-else-if="geneSetPhenotypeData.length === 0 && !loading">
+            No gene set–phenotype data for this phenotype.
         </div>
-        <b-table
-            id="gene-set-phenotype-table"
-            small
-            responsive="sm"
-            :items="filteredTableData"
-            :fields="tableFields"
-            :per-page="perPage"
-            :current-page="currentPage"
-            :sort-null-last="true"
-            sortable
-        >
-            <template v-slot:[geneSetCellSlot]="cell">
-                <a v-if="cell.value" :href="'https://cfdeknowledge.org/r/kc_gsb?geneSet=' + encodeURIComponent(cell.value)">
-                    {{ cell.value }}
-                </a>
-                <span v-else>{{ cell.value }}</span>
-            </template>
-            <template v-slot:[sourceCellSlot]="cell">
-                <a v-if="cell.value" :href="'https://cfdeknowledge.org/r/kc_gsb?source=' + encodeURIComponent(cell.value)">
-                    {{ cell.value }}
-                </a>
-                <span v-else>{{ cell.value }}</span>
-            </template>
-            <template #cell(GenesInGeneSet)="row">
-                <b-button
-                    size="sm"
-                    variant="outline-primary"
-                    @click="showGenesDetails(row)"
-                >
-                    {{ row.detailsShowing ? "Hide" : "Show" }}
-                </b-button>
-            </template>
-            <template #row-details="row">
-                <div class="genes-subtable-wrapper">
-                    <div v-if="getGenesSubtableLoading(row.item)" class="text-muted py-2">
-                        Loading genes…
-                    </div>
-                    <template v-else>
-                        
-                        <b-table
-                            small
-                            responsive="sm"
-                            :items="getGenesSubtableData(row.item)"
-                            :fields="genesSubtableFields"
-                            :per-page="genesSubtablePerPage"
-                            :current-page="getGenesSubtablePage(row.item)"
-                            class="genes-subtable"
+        <template v-else>
+            <div v-if="filteredTableData.length > 0" class="mb-2">
+                {{ filteredTableData.length }} most significant gene sets out of
+                {{ geneSetPhenotypeData.length }} are showing. Try full list
+                <a
+                    :href="
+                        'https://cfdeknowledge.org/r/kc_gsb?phenotype=' +
+                        (phenotype && phenotype.name)
+                    "
+                    >here</a
+                >.
+            </div>
+            <b-table
+                id="gene-set-phenotype-table"
+                small
+                responsive
+                :items="filteredTableData"
+                :fields="tableFields"
+                :per-page="perPage"
+                :current-page="currentPage"
+                :sort-null-last="true"
+                sortable
+            >
+                <template v-slot:[geneSetCellSlot]="cell">
+                    <a
+                        v-if="cell.value"
+                        :href="
+                            'https://cfdeknowledge.org/r/kc_gsb?geneSet=' +
+                            encodeURIComponent(cell.value)
+                        "
+                    >
+                        {{ cell.value }}
+                    </a>
+                    <span v-else>{{ cell.value }}</span>
+                </template>
+                <template v-slot:[sourceCellSlot]="cell">
+                    <a
+                        v-if="cell.value"
+                        :href="
+                            'https://cfdeknowledge.org/r/kc_gsb?source=' +
+                            encodeURIComponent(cell.value)
+                        "
+                    >
+                        {{ cell.value }}
+                    </a>
+                    <span v-else>{{ cell.value }}</span>
+                </template>
+                <template #cell(GenesInGeneSet)="row">
+                    <b-button
+                        size="sm"
+                        variant="outline-primary"
+                        @click="showGenesDetails(row)"
+                    >
+                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                    </b-button>
+                </template>
+                <template #row-details="row">
+                    <div class="genes-subtable-wrapper">
+                        <div
+                            v-if="getGenesSubtableLoading(row.item)"
+                            class="text-muted py-2"
                         >
-                            <template #cell(Gene)="cell">
-                                <a :href="'https://cfdeknowledge.org/r/kc_gsb?gene=' + encodeURIComponent(cell.value)">
-                                    {{ cell.value }}
-                                </a>
-                            </template>
-                        </b-table>
-                        <div class="genes-subtable-total-rows">
-                            Total rows: {{ getGenesSubtableData(row.item).length }}
+                            Loading genes…
                         </div>
-                        <b-pagination
-                            v-if="getGenesSubtableData(row.item).length > genesSubtablePerPage"
-                            :value="getGenesSubtablePage(row.item)"
-                            class="pagination-sm justify-content-center mt-2"
-                            :total-rows="getGenesSubtableData(row.item).length"
-                            :per-page="genesSubtablePerPage"
-                            @input="setGenesSubtablePage(row.item, $event)"
-                        >
-                        </b-pagination>
-                    </template>
-                </div>
-            </template>
-        </b-table>
-        <b-pagination
-            v-if="filteredTableData.length > 0"
-            v-model="currentPage"
-            class="pagination-sm justify-content-center mt-2"
-            :total-rows="filteredTableData.length"
-            :per-page="perPage"
-            aria-controls="gene-set-phenotype-table"
-        >
-        </b-pagination>
-    </template>
-</div>
-
+                        <template v-else>
+                            <b-table
+                                small
+                                responsive
+                                :items="getGenesSubtableData(row.item)"
+                                :fields="genesSubtableFields"
+                                :per-page="genesSubtablePerPage"
+                                :current-page="getGenesSubtablePage(row.item)"
+                                class="genes-subtable"
+                            >
+                                <template #cell(Gene)="cell">
+                                    <a
+                                        :href="
+                                            'https://cfdeknowledge.org/r/kc_gsb?gene=' +
+                                            encodeURIComponent(cell.value)
+                                        "
+                                    >
+                                        {{ cell.value }}
+                                    </a>
+                                </template>
+                            </b-table>
+                            <div class="genes-subtable-total-rows">
+                                Total rows:
+                                {{ getGenesSubtableData(row.item).length }}
+                            </div>
+                            <b-pagination
+                                v-if="
+                                    getGenesSubtableData(row.item).length >
+                                    genesSubtablePerPage
+                                "
+                                :value="getGenesSubtablePage(row.item)"
+                                class="pagination-sm justify-content-center mt-2"
+                                :total-rows="
+                                    getGenesSubtableData(row.item).length
+                                "
+                                :per-page="genesSubtablePerPage"
+                                @input="setGenesSubtablePage(row.item, $event)"
+                            >
+                            </b-pagination>
+                        </template>
+                    </div>
+                </template>
+            </b-table>
+            <b-pagination
+                v-if="filteredTableData.length > 0"
+                v-model="currentPage"
+                class="pagination-sm justify-content-center mt-2"
+                :total-rows="filteredTableData.length"
+                :per-page="perPage"
+                aria-controls="gene-set-phenotype-table"
+            >
+            </b-pagination>
+        </template>
+    </div>
 </template>
 
 <script>
@@ -109,7 +142,12 @@ const DATA_CONVERT = [
     { type: "raw", "field name": "Phenotype", "raw field": "phenotype" },
     { type: "raw", "field name": "Gene set", "raw field": "gene_set" },
     { type: "raw", "field name": "Model", "raw field": "gene_set_size" },
-    { type: "raw", "field name": "Joint effect", "raw field": "beta", "if no value": "0" },
+    {
+        type: "raw",
+        "field name": "Joint effect",
+        "raw field": "beta",
+        "if no value": "0",
+    },
     {
         type: "translate to categories",
         "field name": "Evidence range (Joint effect)",
@@ -118,10 +156,19 @@ const DATA_CONVERT = [
             { name: "Not Significant", condition: "less than", range: 0.01 },
             { name: "Significant", condition: "and", range: [0.01, 0.1] },
             { name: "Strongly Significant", condition: "and", range: [0.1, 1] },
-            { name: "Extremely Significant", condition: "greater than", range: 1 },
+            {
+                name: "Extremely Significant",
+                condition: "greater than",
+                range: 1,
+            },
         ],
     },
-    { type: "raw", "field name": "Marginal effect", "raw field": "beta_uncorrected", "if no value": "0" },
+    {
+        type: "raw",
+        "field name": "Marginal effect",
+        "raw field": "beta_uncorrected",
+        "if no value": "0",
+    },
     {
         type: "translate to categories",
         "field name": "Evidence range (Marginal effect)",
@@ -130,10 +177,18 @@ const DATA_CONVERT = [
             { name: "Not Significant", condition: "less than", range: 0.01 },
             { name: "Significant", condition: "and", range: [0.01, 0.1] },
             { name: "Strongly Significant", condition: "and", range: [0.1, 1] },
-            { name: "Extremely Significant", condition: "greater than", range: 1 },
+            {
+                name: "Extremely Significant",
+                condition: "greater than",
+                range: 1,
+            },
         ],
     },
-    { type: "raw", "field name": "Number of genes in gene set", "raw field": "n" },
+    {
+        type: "raw",
+        "field name": "Number of genes in gene set",
+        "raw field": "n",
+    },
     { type: "raw", "field name": "Source", "raw field": "source" },
 ];
 
@@ -149,13 +204,22 @@ const TABLE_COLUMN_ORDER = [
     GENES_IN_GENE_SET_KEY,
 ];
 
-const EVIDENCE_FILTER_VALUES = ["Extremely Significant", "Strongly Significant"];
+const EVIDENCE_FILTER_VALUES = [
+    "Extremely Significant",
+    "Strongly Significant",
+];
 const FALLBACK_TOP_N = 25;
-const SOURCE_EXCLUDED = ["gene_set_list_mouse_2024", "gene_set_list_msigdb_nohp"];
+const SOURCE_EXCLUDED = [
+    "gene_set_list_mouse_2024",
+    "gene_set_list_msigdb_nohp",
+];
 
 const PIGEAN_JOINED_GENE_SET_BASE =
     "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-joined-gene-set";
-const SUBTABLE_SOURCE_EXCLUDED = ["gene_set_list_msigdb_nohp", "gene_set_list_mouse_2024"];
+const SUBTABLE_SOURCE_EXCLUDED = [
+    "gene_set_list_msigdb_nohp",
+    "gene_set_list_mouse_2024",
+];
 const SUBTABLE_MODEL_EXCLUDED = ["mouse"];
 const SUBTABLE_TOP_ROWS = [
     "Gene",
@@ -169,7 +233,11 @@ const SUBTABLE_TOP_ROWS = [
 const SUBTABLE_DATA_CONVERT = [
     { type: "raw", "field name": "Gene", "raw field": "gene" },
     { type: "raw", "field name": "Model", "raw field": "gene_set_size" },
-    { type: "raw", "field name": "Overall score (GWAS support + gene set support)", "raw field": "combined" },
+    {
+        type: "raw",
+        "field name": "Overall score (GWAS support + gene set support)",
+        "raw field": "combined",
+    },
     { type: "raw", "field name": "GWAS support", "raw field": "log_bf" },
     { type: "raw", "field name": "Gene set support", "raw field": "prior" },
     {
@@ -254,7 +322,8 @@ export default Vue.component("gene-set-2-phenotype", {
         tableFields() {
             return TABLE_COLUMN_ORDER.map((key) => ({
                 key,
-                label: key === GENES_IN_GENE_SET_KEY ? "Genes in gene set" : key,
+                label:
+                    key === GENES_IN_GENE_SET_KEY ? "Genes in gene set" : key,
                 sortable: key !== GENES_IN_GENE_SET_KEY,
             }));
         },
@@ -274,14 +343,21 @@ export default Vue.component("gene-set-2-phenotype", {
                     if (col.type === "raw") {
                         let v = row[col["raw field"]];
                         if (v === undefined || v === null) {
-                            v = col["if no value"] !== undefined ? col["if no value"] : "";
+                            v =
+                                col["if no value"] !== undefined
+                                    ? col["if no value"]
+                                    : "";
                         }
                         out[fieldName] = v;
                     } else if (col.type === "translate to categories") {
-                        const rawVal = out[col["raw field"]] !== undefined
-                            ? out[col["raw field"]]
-                            : (row[col["raw field"]] ?? 0);
-                        out[fieldName] = translateToCategory(rawVal, col.categories);
+                        const rawVal =
+                            out[col["raw field"]] !== undefined
+                                ? out[col["raw field"]]
+                                : row[col["raw field"]] ?? 0;
+                        out[fieldName] = translateToCategory(
+                            rawVal,
+                            col.categories
+                        );
                     }
                 }
                 converted.push(out);
@@ -326,19 +402,24 @@ export default Vue.component("gene-set-2-phenotype", {
             const phenotypeName = this.phenotype && this.phenotype.name;
             if (!phenotypeName) return;
             const q = `${phenotypeName},cfde`;
-            const url = `${PIGEAN_GENE_SET_PHENOTYPE_BASE}?q=${encodeURIComponent(q)}&limit=10000`;
+            const url = `${PIGEAN_GENE_SET_PHENOTYPE_BASE}?q=${encodeURIComponent(
+                q
+            )}&limit=10000`;
             this.loading = true;
             this.fetchError = null;
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(
+                        `HTTP ${response.status}: ${response.statusText}`
+                    );
                 }
                 const json = await response.json();
                 this.geneSetPhenotypeData = json.data || [];
                 this.currentPage = 1;
             } catch (err) {
-                this.fetchError = err.message || "Failed to load gene set–phenotype data.";
+                this.fetchError =
+                    err.message || "Failed to load gene set–phenotype data.";
                 this.geneSetPhenotypeData = [];
             } finally {
                 this.loading = false;
@@ -375,7 +456,8 @@ export default Vue.component("gene-set-2-phenotype", {
         convertSubtableRows(rawRows) {
             let rows = rawRows.filter((r) => {
                 if (SUBTABLE_SOURCE_EXCLUDED.includes(r.source)) return false;
-                if (SUBTABLE_MODEL_EXCLUDED.includes(r.gene_set_size)) return false;
+                if (SUBTABLE_MODEL_EXCLUDED.includes(r.gene_set_size))
+                    return false;
                 return true;
             });
             const converted = [];
@@ -388,10 +470,14 @@ export default Vue.component("gene-set-2-phenotype", {
                         if (v === undefined || v === null) v = "";
                         out[fieldName] = v;
                     } else if (col.type === "translate to categories") {
-                        const rawVal = out[col["raw field"]] !== undefined
-                            ? out[col["raw field"]]
-                            : (row[col["raw field"]] ?? 0);
-                        out[fieldName] = translateToCategory(rawVal, col.categories);
+                        const rawVal =
+                            out[col["raw field"]] !== undefined
+                                ? out[col["raw field"]]
+                                : row[col["raw field"]] ?? 0;
+                        out[fieldName] = translateToCategory(
+                            rawVal,
+                            col.categories
+                        );
                     }
                 }
                 converted.push(out);
@@ -403,14 +489,20 @@ export default Vue.component("gene-set-2-phenotype", {
             const phenotype = item["Phenotype"];
             const geneSet = item["Gene set"];
             if (!phenotype || !geneSet) return;
-            if (this.genesSubtableState[key] && this.genesSubtableState[key].data.length > 0) return;
+            if (
+                this.genesSubtableState[key] &&
+                this.genesSubtableState[key].data.length > 0
+            )
+                return;
             this.$set(this.genesSubtableState, key, {
                 data: [],
                 loading: true,
                 currentPage: 1,
             });
             const q = `${phenotype},${geneSet}`;
-            const url = `${PIGEAN_JOINED_GENE_SET_BASE}?q=${encodeURIComponent(q)}&limit=10000`;
+            const url = `${PIGEAN_JOINED_GENE_SET_BASE}?q=${encodeURIComponent(
+                q
+            )}&limit=10000`;
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -457,5 +549,4 @@ export default Vue.component("gene-set-2-phenotype", {
     border: none !important;
     background-color: #fff !important;
 }
-
 </style>
