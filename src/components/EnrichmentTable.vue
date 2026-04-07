@@ -10,7 +10,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="fields"
                 :sort-by="sortBy"

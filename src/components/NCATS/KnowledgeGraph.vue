@@ -1,17 +1,14 @@
 <template>
-    <network 
+    <div
         v-if="nodes.length > 0 && edges.length > 0"
-        ref="network"
-        :nodes="nodes"
-        :edges="edges"
-        :options="{
-          height: '800px' 
-        }">
-    </network>
+        ref="networkContainer"
+        style="height: 800px; width: 100%;">
+    </div>
 </template>
 <script>
 import Vue from "vue";
-import { Network } from "vue-vis-network";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 import _ from "lodash"
 import trapi from "./trapi"
 const makeLink = (from, to, label, index) => ({
@@ -36,18 +33,43 @@ function translateGraph(knowledge_graph) {
 
 export default Vue.component("translator-knowledge-graph", {
     props: ['knowledge_graph', 'query_graph'],
-    components: {
-      Network
-    },
     computed: {
         graph: function() { return translateGraph(this.knowledge_graph) },
         nodes: function() { return this.graph.nodes },
         edges: function() { return this.graph.edges },
     },
+    watch: {
+        knowledge_graph: {
+            handler() {
+                this.$nextTick(() => this.renderNetwork());
+            },
+            deep: true,
+        },
+    },
+    mounted() {
+        this.$nextTick(() => this.renderNetwork());
+    },
+    beforeDestroy() {
+        if (this.network) {
+            this.network.destroy();
+        }
+    },
     methods: {
-      onNodeHovered() {
-        console.log(arguments)
-      }
+        renderNetwork() {
+            const container = this.$refs.networkContainer;
+            if (!container || this.nodes.length === 0) return;
+            if (this.network) {
+                this.network.destroy();
+            }
+            const data = {
+                nodes: new DataSet(this.nodes),
+                edges: new DataSet(this.edges),
+            };
+            this.network = new Network(container, data, {});
+        },
+        onNodeHovered() {
+            console.log(arguments)
+        }
     }
 })
 </script>
