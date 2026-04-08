@@ -849,12 +849,30 @@
                                     >
                                         <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
                                             <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
-                                            <button
-                                                class="btn btn-cfde btn-sm ml-auto"
-                                                @click.stop="openDesignProtocolForMechanism(mechanism)"
-                                            >
-                                                Design experiment protocol
-                                            </button>
+                                            <div class="ml-auto d-flex flex-wrap align-items-center" style="gap: 8px;">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-light"
+                                                    @click.stop="copyMechanismForLlm(mechanism, idx)"
+                                                >
+                                                    <b-icon icon="clipboard" class="mr-1"></b-icon>
+                                                    {{ handoffCopiedMechanismIndex === idx ? 'Copied!' : 'Copy for LLM' }}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-light"
+                                                    @click.stop="downloadMechanismHandoffPackage(mechanism, idx)"
+                                                >
+                                                    <b-icon icon="download" class="mr-1"></b-icon>
+                                                    Download handoff data
+                                                </button>
+                                                <button
+                                                    class="btn btn-cfde btn-sm"
+                                                    @click.stop="openDesignProtocolForMechanism(mechanism)"
+                                                >
+                                                    Design experiment protocol
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
                                             <div
@@ -1060,6 +1078,21 @@
                                                         <strong class="text-dark" style="font-size: 0.95em;">{{ step.action }}</strong>
                                                         <span class="small text-muted"> {{ step.reason }}</span>
                                                     </div>
+                                                </div>
+                                            </div>
+                                            <div v-if="mechanism.next_queries && mechanism.next_queries.length" class="mt-3 mb-2 border-top pt-3">
+                                                <div class="font-weight-bold small text-uppercase text-muted mb-2">Explore further (next queries)</div>
+                                                <div class="d-flex flex-wrap" style="gap:8px;">
+                                                    <button
+                                                        v-for="(query, qidx) in mechanism.next_queries"
+                                                        :key="'nq-' + idx + '-' + qidx"
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-cfde text-left"
+                                                        style="white-space: normal; line-height: 1.35;"
+                                                        @click="onAlternativeQuerySelected(query)"
+                                                    >
+                                                        <b-icon icon="search" class="mr-1"></b-icon>{{ query }}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1514,6 +1547,9 @@ export default Vue.component("factor-base-reveal", {
             error_msg_mechanisms: "",
             mechanisms: null,
             mechanisms_summary: null,
+            /** Last mechanism index whose copy-to-clipboard succeeded (for transient "Copied!" state). */
+            handoffCopiedMechanismIndex: null,
+            handoffCopiedResetTimerId: null,
             /** From mechanism LLM when can_generate_hypothesis is false or partial warnings. */
             mechanismDiagnosticAssessment: null,
             /** User approval gates at key workflow breakpoints. */
@@ -1707,6 +1743,11 @@ Provide **3** concrete, distinct next steps the user can take to validate or exp
 - \`action\`: A short, specific action (e.g., "Knockdown TREM2 in human microglia").
 - \`reason\`: Why this step would support or refute the mechanism.
 
+### NEW: Follow-up Queries (Next Queries)
+Provide 2 to 3 optimized follow-up queries that allow the user to dig deeper into the specific biology of this hypothesis.
+- These queries MUST follow the "Anchor + Semantic Net" formula: "Find a [Mechanism] involving [Gene Anchor] in [Tissue] that regulates [Phenotype]."
+- Focus these queries on testing the downstream consequences, interacting genes, or specific cellular processes you just proposed.
+
 ### Output (strict JSON)
 Return ONLY valid JSON in the following structure:
 {
@@ -1738,7 +1779,11 @@ Return ONLY valid JSON in the following structure:
         ]
       },
       "next_steps": [
-        { "category": "Experimental Validation", "action": "…", "reason": "…" }
+        { "category": "Experimental Validation", "action": "...", "reason": "..." }
+      ],
+      "next_queries": [
+        "Find a lipid scavenger receptor mechanism involving CD36 in microglia that drives amyloid-beta uptake.",
+        "Find a lipid transport mechanism involving APOE in astrocytes that modulates neuroinflammation."
       ],
       "genes": [
         { 
@@ -2450,27 +2495,24 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 </section>
             `;
         },
-        buildMechanismReportSections(mechanismImages) {
-            const images = Array.isArray(mechanismImages) ? mechanismImages : [];
-            return (this.mechanisms || []).map((m, idx) => {
-                const img = images[idx];
-                const supImg =
-                    img && img.supporting
-                        ? img.supporting
-                        : img && img.dataUrl
-                          ? img
-                          : null;
-                const hypImg = img && img.hypothesisMap ? img.hypothesisMap : null;
-                const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
-                const geneRows = genes.map((g) => {
-                    const scores = g.scores || {};
-                    const geneName = g.gene != null ? String(g.gene).trim() : "";
-                    const conn =
-                        m.gene_connections && geneName && m.gene_connections[geneName]
-                            ? m.gene_connections[geneName]
-                            : { gene_sets: [] };
-                    const gss = Array.isArray(conn.gene_sets) ? conn.gene_sets : [];
-                    return `
+        /**
+         * One mechanism card for HTML reports (full report + per-hypothesis handoff).
+         * @param {*} m - mechanism object
+         * @param {number} idx - zero-based index
+         * @param {{ dataUrl?: string, format?: string, nodeCount?: number, edgeCount?: number } | null} supImg - supporting network export
+         * @param {{ dataUrl?: string, format?: string, nodeCount?: number, edgeCount?: number } | null} hypImg - biological flow map export
+         */
+        buildMechanismReportOneCardHtml(m, idx, supImg, hypImg) {
+            const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
+            const geneRows = genes.map((g) => {
+                const scores = g.scores || {};
+                const geneName = g.gene != null ? String(g.gene).trim() : "";
+                const conn =
+                    m.gene_connections && geneName && m.gene_connections[geneName]
+                        ? m.gene_connections[geneName]
+                        : { gene_sets: [] };
+                const gss = Array.isArray(conn.gene_sets) ? conn.gene_sets : [];
+                return `
                         <tr>
                             <td>${this.escapeHtml(g.gene || "—")}</td>
                             <td>${this.escapeHtml(g.group || "—")}</td>
@@ -2481,11 +2523,11 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             <td>${this.escapeHtml(gss.length ? gss.join(", ") : "—")}</td>
                         </tr>
                     `;
-                }).join("");
-                const nextSteps = Array.isArray(m.next_steps) ? m.next_steps : [];
-                const nextStepsSection =
-                    nextSteps.length > 0
-                        ? `
+            }).join("");
+            const nextSteps = Array.isArray(m.next_steps) ? m.next_steps : [];
+            const nextStepsSection =
+                nextSteps.length > 0
+                    ? `
                         <div class="report-subsection report-next-steps-block">
                             <h3>Recommended next steps</h3>
                             <ol class="report-next-steps-list">${nextSteps
@@ -2499,15 +2541,27 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                 )
                                 .join("")}</ol>
                         </div>`
-                        : "";
-                const hasHypothesisMapVisual =
-                    (m.core_spine_network &&
-                        Array.isArray(m.core_spine_network.nodes) &&
-                        m.core_spine_network.nodes.length > 0) ||
-                    (hypImg && hypImg.dataUrl) ||
-                    !!(m.hypothesis_in_kg && m.hypothesis_in_kg.caption);
-                const hypothesisMapSection = hasHypothesisMapVisual
+                    : "";
+            const nextQueries = Array.isArray(m.next_queries) ? m.next_queries : [];
+            const nextQueriesSection =
+                nextQueries.length > 0
                     ? `
+                        <div class="report-subsection">
+                            <h3>Next queries</h3>
+                            <p class="report-fine-print">Click these in the app to continue exploring this mechanism with a focused follow-up search.</p>
+                            <ol class="report-next-steps-list">${nextQueries
+                                .map((q) => `<li>${this.escapeHtml(q || "—")}</li>`)
+                                .join("")}</ol>
+                        </div>`
+                    : "";
+            const hasHypothesisMapVisual =
+                (m.core_spine_network &&
+                    Array.isArray(m.core_spine_network.nodes) &&
+                    m.core_spine_network.nodes.length > 0) ||
+                (hypImg && hypImg.dataUrl) ||
+                !!(m.hypothesis_in_kg && m.hypothesis_in_kg.caption);
+            const hypothesisMapSection = hasHypothesisMapVisual
+                ? `
                         <div class="report-subsection">
                             <h3>Biological mechanism map</h3>
                             ${
@@ -2524,9 +2578,9 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                                     : '<div class="report-empty">No map image in this export. Open the Results tab, let the map render, and download the report again.</div>'
                             }
                         </div>`
-                    : "";
-                const mechanismCardTitle = this.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
-                return `
+                : "";
+            const mechanismCardTitle = this.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
+            return `
                     <section class="report-section report-card">
                         <h2>${mechanismCardTitle}</h2>
                         <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${this.escapeHtml(m.hypothesis || "—")}</p></div>
@@ -2574,9 +2628,330 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             ${this.buildReportList(this.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
                         </div>
                         ${nextStepsSection}
+                        ${nextQueriesSection}
                     </section>
                 `;
+        },
+        buildMechanismReportSections(mechanismImages) {
+            const images = Array.isArray(mechanismImages) ? mechanismImages : [];
+            return (this.mechanisms || []).map((m, idx) => {
+                const img = images[idx];
+                const supImg =
+                    img && img.supporting
+                        ? img.supporting
+                        : img && img.dataUrl
+                          ? img
+                          : null;
+                const hypImg = img && img.hypothesisMap ? img.hypothesisMap : null;
+                return this.buildMechanismReportOneCardHtml(m, idx, supImg, hypImg);
             }).join("");
+        },
+        /** Strip vis-only / internal fields from networks for handoff JSON. */
+        sanitizeHandoffNetwork(net) {
+            const n = net || {};
+            const nodes = Array.isArray(n.nodes)
+                ? n.nodes
+                    .map((node) => ({
+                        id: node.id != null ? String(node.id) : "",
+                        label: node.label != null ? String(node.label) : "",
+                        type:
+                            node.type != null
+                                ? String(node.type)
+                                : node.group != null
+                                  ? String(node.group)
+                                  : "",
+                    }))
+                    .filter((x) => x.id)
+                : [];
+            const edges = Array.isArray(n.edges)
+                ? n.edges
+                    .map((e) => ({
+                        source:
+                            e.source != null ? String(e.source) : e.from != null ? String(e.from) : "",
+                        target:
+                            e.target != null ? String(e.target) : e.to != null ? String(e.to) : "",
+                        label: e.label != null ? String(e.label) : "",
+                    }))
+                    .filter((x) => x.source && x.target)
+                : [];
+            return { nodes, edges };
+        },
+        sanitizeHandoffFlattenedRows(rows) {
+            return (rows || []).map((row) => {
+                const out = {
+                    subject: row.subject != null ? String(row.subject) : "",
+                    predicate: row.predicate != null ? String(row.predicate) : "",
+                    object: row.object != null ? String(row.object) : "",
+                };
+                Object.keys(row || {}).forEach((k) => {
+                    if (k === "id" || k === "subject" || k === "predicate" || k === "object") return;
+                    if (!/^context_/.test(k)) return;
+                    const v = row[k];
+                    out[k] = v != null ? String(v) : "";
+                });
+                return out;
+            });
+        },
+        sanitizeHandoffSelectionRows(rows) {
+            return (rows || [])
+                .map((r) => ({
+                    phenotype: r.phenotype != null ? String(r.phenotype) : "",
+                    trait_group:
+                        r.factorLabel != null && String(r.factorLabel).trim() !== ""
+                            ? String(r.factorLabel).trim()
+                            : r.factor != null
+                              ? String(r.factor)
+                              : "",
+                }))
+                .filter((x) => x.phenotype && x.trait_group);
+        },
+        sanitizeHandoffCandidateGenes(mechanism) {
+            const genes =
+                Array.isArray(mechanism?.candidate_genes) && mechanism.candidate_genes.length
+                    ? mechanism.candidate_genes
+                    : Array.isArray(mechanism?.genes)
+                      ? mechanism.genes
+                      : [];
+            return genes.map((g) => ({
+                gene: g?.gene != null ? String(g.gene) : "",
+                role: g?.group != null ? String(g.group) : "",
+                reason:
+                    g?.reason != null ? String(g.reason) : g?.role != null ? String(g.role) : "",
+                scores: {
+                    combined: g?.scores?.combined ?? g?.scores?.c ?? null,
+                    gwas: g?.scores?.gwas ?? g?.scores?.g ?? null,
+                    functional: g?.scores?.functional ?? g?.scores?.f ?? null,
+                },
+            }));
+        },
+        sanitizeHandoffGeneConnections(gc) {
+            if (!gc || typeof gc !== "object") return null;
+            const out = {};
+            Object.keys(gc).forEach((gene) => {
+                const entry = gc[gene];
+                if (!entry || typeof entry !== "object") return;
+                out[String(gene)] = {
+                    gene_sets: Array.isArray(entry.gene_sets) ? entry.gene_sets.map((s) => String(s)) : [],
+                };
+            });
+            return Object.keys(out).length ? out : null;
+        },
+        buildMechanismHandoffAppendixObject({
+            idx,
+            mechanism,
+            researchContext,
+            supportingNet,
+            hypothesisNet,
+            supportingRows,
+            assocRows,
+            supportingImage,
+            hypothesisImage,
+        }) {
+            const flowCap =
+                mechanism?.hypothesis_in_kg?.caption != null
+                    ? String(mechanism.hypothesis_in_kg.caption)
+                    : "";
+            return {
+                handoff_version: 1,
+                generated_at: new Date().toISOString(),
+                your_question: this.userQuery || "",
+                research_context: researchContext || "",
+                session_mechanisms_summary: this.mechanisms_summary || "",
+                extracted_terms: {
+                    phenotype_terms: [...(this.lastPhenotypeTerms || [])],
+                    mechanism_terms: [...(this.lastMechanismTerms || [])],
+                    genes_of_interest: [...(this.lastGenesOfInterest || [])],
+                },
+                hypothesis: {
+                    index: idx + 1,
+                    title: mechanism?.group_name != null ? String(mechanism.group_name) : "",
+                    mechanistic_hypothesis: mechanism?.hypothesis != null ? String(mechanism.hypothesis) : "",
+                    rationale:
+                        mechanism?.novelty_explanation != null
+                            ? String(mechanism.novelty_explanation)
+                            : mechanism?.novelty != null
+                              ? String(mechanism.novelty)
+                              : "",
+                    relevance: mechanism?.relevance != null ? String(mechanism.relevance) : "",
+                    biological_flow_summary: flowCap,
+                    genes_collective_reason:
+                        mechanism?.genes_collective_reason != null
+                            ? String(mechanism.genes_collective_reason)
+                            : "",
+                    candidate_genes: this.sanitizeHandoffCandidateGenes(mechanism),
+                    gene_set_links_by_gene: this.sanitizeHandoffGeneConnections(mechanism?.gene_connections),
+                    next_steps: Array.isArray(mechanism?.next_steps)
+                        ? mechanism.next_steps.map((s) => ({
+                            category: s?.category != null ? String(s.category) : "",
+                            action: s?.action != null ? String(s.action) : "",
+                            reason: s?.reason != null ? String(s.reason) : "",
+                        }))
+                        : [],
+                    next_queries: Array.isArray(mechanism?.next_queries)
+                        ? mechanism.next_queries.map((q) => String(q))
+                        : [],
+                    related_phenotypes: Array.isArray(mechanism?.relevant_phenotypes)
+                        ? mechanism.relevant_phenotypes.map((id) => this.getPhenotypeDisplay(id))
+                        : [],
+                    related_trait_group_clusters: Array.isArray(mechanism?.redundant_associated_pairs)
+                        ? mechanism.redundant_associated_pairs.map((pair) => ({
+                            phenotype: this.getPhenotypeDisplay(pair.phenotype),
+                            trait_group: this.getFactorClusterDisplayString(pair.factor),
+                        }))
+                        : [],
+                    relevant_gene_sets: (
+                        this.formatRelevantGeneSetsForDisplay(mechanism?.relevant_gene_sets || []) || []
+                    ).map((set) => ({
+                        gene_set: set.gs,
+                        program: set.program || "",
+                    })),
+                },
+                evidence: {
+                    supporting_kg_facts: this.sanitizeHandoffFlattenedRows(supportingRows),
+                    ui_phenotype_trait_rows: this.sanitizeHandoffSelectionRows(assocRows),
+                    data_network: this.sanitizeHandoffNetwork(supportingNet),
+                    biological_flow_network: this.sanitizeHandoffNetwork(hypothesisNet),
+                },
+                exports: {
+                    supporting_network_image: supportingImage
+                        ? {
+                            format: supportingImage.format,
+                            node_count: supportingImage.nodeCount,
+                            edge_count: supportingImage.edgeCount,
+                            included_in_html: !!supportingImage.dataUrl,
+                        }
+                        : null,
+                    biological_flow_image: hypothesisImage
+                        ? {
+                            format: hypothesisImage.format,
+                            node_count: hypothesisImage.nodeCount,
+                            edge_count: hypothesisImage.edgeCount,
+                            included_in_html: !!hypothesisImage.dataUrl,
+                        }
+                        : null,
+                },
+            };
+        },
+        /**
+         * Print-friendly single-hypothesis handoff HTML; JSON appendix via separate download link (data URL).
+         */
+        buildMechanismHandoffHtmlDocument({
+            idx,
+            mechanism,
+            researchContext,
+            supportingImage,
+            hypothesisImage,
+            appendix,
+        }) {
+            const slug = String(mechanism.group_name || `hypothesis-${idx + 1}`)
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 80);
+            const jsonStr = JSON.stringify(appendix, null, 2);
+            const jsonDownloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(jsonStr)}`;
+            const jsonFilename = `reveal-handoff-appendix-${slug || `hypothesis-${idx + 1}`}.json`;
+            const overview = `
+                <section class="report-section">
+                    <h2>Overview</h2>
+                    <p class="report-fine-print">Context for this hypothesis handoff (one card from your session).</p>
+                    <table class="report-table">
+                        <tbody>
+                            <tr><th>Your question</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
+                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
+                            <tr><th>Phenotypes or diseases (extracted)</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Genes you named (extracted)</th><td>${this.escapeHtml((this.lastGenesOfInterest || []).join(", ") || "—")}</td></tr>
+                            <tr><th>Summary of findings (session)</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
+                        </tbody>
+                    </table>
+                </section>
+            `;
+            const card = this.buildMechanismReportOneCardHtml(
+                mechanism,
+                idx,
+                supportingImage,
+                hypothesisImage
+            );
+            const appendixBlock = `
+                <section class="report-section report-page-break">
+                    <h2>Machine-readable appendix</h2>
+                    <p class="report-fine-print">Compact JSON for tools, scripting, or archiving. Internal-only debugging fields are omitted.</p>
+                    <p class="report-handoff-json-actions">
+                        <a class="report-json-download" download="${this.escapeHtml(jsonFilename)}" href="${jsonDownloadHref}">Download JSON appendix</a>
+                    </p>
+                    <p class="report-fine-print report-print-hide">Use the button above in your browser to save the JSON file. Printed pages omit this control.</p>
+                </section>
+            `;
+            const titleSafe = this.escapeHtml(
+                mechanism.group_name || `Hypothesis handoff ${idx + 1}`
+            );
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reveal handoff — ${titleSafe}</title>
+    <style>
+        html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
+        body, body * { box-sizing: border-box; }
+        body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
+        .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
+        .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
+        .report-header h1 { font-size: 22pt; margin: 0 0 8px; }
+        .report-header p { margin: 0; }
+        .report-section { margin-bottom: 28px; }
+        .report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
+        .report-section h3 { font-size: 15pt; margin: 0 0 8px; }
+        .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
+        .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
+        .report-table th { background: #f3f4f6; width: 24%; }
+        .report-subsection { margin-bottom: 14px; }
+        .report-empty { color: #667; font-style: italic; }
+        .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
+        .report-network-meta { margin-bottom: 8px; color: #555; }
+        .report-map-caption { margin: 0 0 10px; }
+        .report-body-tight { margin: 6px 0 0; }
+        .report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
+        .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
+        .report-next-steps-list { margin: 0; padding-left: 1.35rem; }
+        .report-next-steps-list li { margin-bottom: 12px; }
+        .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
+        .report-page-break { page-break-before: always; }
+        .report-json-download {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 8px 14px;
+            background: #f16822;
+            color: #fff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .report-json-download:hover { filter: brightness(0.95); }
+        .report-handoff-json-actions { margin: 0; }
+        @media print {
+            html, body { background: #fff; }
+            .report { max-width: none; padding: 0; }
+            .report-card, .report-section { break-inside: avoid; }
+            .report-print-hide { display: none; }
+            .report-json-download { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report">
+        <header class="report-header">
+            <h1>Reveal — hypothesis handoff</h1>
+            <p>${this.escapeHtml(mechanism.group_name || `Hypothesis ${idx + 1}`)} · generated ${this.escapeHtml(new Date().toLocaleString())}</p>
+        </header>
+        ${overview}
+        ${card}
+        ${appendixBlock}
+    </div>
+</body>
+</html>`;
         },
         buildHtmlReportDocument({ researchContext, mechanismImages, factorSummary, rawKgCsv }) {
             const extractedTerms = `
@@ -3341,6 +3716,182 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 
             const designUrl = kcURL(`/r/cfde_design?${params.toString()}`);
             window.open(designUrl, "_blank", "noopener");
+        },
+        getMechanismTopGenes(mechanism, limit = 10) {
+            const genes = Array.isArray(mechanism?.candidate_genes) && mechanism.candidate_genes.length
+                ? mechanism.candidate_genes
+                : (Array.isArray(mechanism?.genes) ? mechanism.genes : []);
+            return genes.slice(0, Math.max(1, limit));
+        },
+        buildMechanismClipboardText(mechanism, idx) {
+            const context =
+                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
+                    ? String(this.searchCriteria[1].values).trim()
+                    : "";
+            const topGenes = this.getMechanismTopGenes(mechanism, 10);
+            const topGenesBlock = topGenes.length
+                ? topGenes.map((g, i) => {
+                    const score = g && g.scores && (g.scores.combined ?? g.scores.c) != null
+                        ? Number(g.scores.combined ?? g.scores.c).toFixed(2)
+                        : "—";
+                    const gene = g && g.gene != null ? String(g.gene) : "—";
+                    const role = g && g.group != null ? String(g.group) : "—";
+                    return `${i + 1}. ${gene} - ${role} (Combined: ${score})`;
+                }).join("\n")
+                : "None listed.";
+            const flow = mechanism?.hypothesis_in_kg || {};
+            const flowCaption = flow.caption != null ? String(flow.caption) : "";
+            const flowEdges = Array.isArray(flow.edges)
+                ? flow.edges.slice(0, 8).map((e) => `${e.from} -> ${e.to}${e.label ? ` (${e.label})` : ""}`).join("\n")
+                : "";
+            const nextSteps = Array.isArray(mechanism?.next_steps) ? mechanism.next_steps.slice(0, 3) : [];
+            const nextStepsBlock = nextSteps.length
+                ? nextSteps.map((s) => {
+                    const cat = s && s.category != null && String(s.category).trim() !== ""
+                        ? String(s.category).trim()
+                        : "Uncategorized";
+                    const action = s && s.action != null && String(s.action).trim() !== ""
+                        ? String(s.action).trim()
+                        : "—";
+                    const reason = s && s.reason != null && String(s.reason).trim() !== ""
+                        ? ` (Reason: ${String(s.reason).trim()})`
+                        : "";
+                    return `[${cat}] ${action}${reason}`;
+                }).join("\n")
+                : "None listed.";
+            const nextQueries = Array.isArray(mechanism?.next_queries) ? mechanism.next_queries.slice(0, 3) : [];
+            const nextQueriesBlock = nextQueries.length
+                ? nextQueries.map((q, i) => `${i + 1}. ${q}`).join("\n")
+                : "None listed.";
+
+            return [
+                "Instruction for assistant:",
+                "Act as an expert principal investigator and systems biologist. Use only the evidence below; mark assumptions explicitly.",
+                "",
+                `Research Context: ${context || "—"}`,
+                "",
+                `Hypothesis ${idx + 1}: ${mechanism?.group_name || "(unnamed)"}`,
+                `${mechanism?.hypothesis || "—"}`,
+                "",
+                "Rationale / Novelty:",
+                `${mechanism?.novelty_explanation || mechanism?.novelty || "—"}`,
+                "",
+                "Biological Flow (Visual Spine):",
+                `${flowCaption || "—"}`,
+                `${flowEdges || ""}`,
+                "",
+                "Top Candidate Genes (max 10):",
+                topGenesBlock,
+                "",
+                "Suggested Next Steps:",
+                nextStepsBlock,
+                "",
+                "Next Queries:",
+                nextQueriesBlock,
+                "",
+                "Task options:",
+                "A) Critically evaluate biological plausibility.",
+                "B) Draft a step-by-step experimental validation plan.",
+                "C) Expand or refine next steps.",
+                "D) Suggest confounders and alternative pathways.",
+            ].join("\n");
+        },
+        async copyMechanismForLlm(mechanism, idx) {
+            const text = this.buildMechanismClipboardText(mechanism, idx);
+            try {
+                if (navigator && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    throw new Error("Clipboard API unavailable");
+                }
+            } catch (e) {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.setAttribute("readonly", "");
+                ta.style.position = "fixed";
+                ta.style.opacity = "0";
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+            }
+            this.handoffCopiedMechanismIndex = idx;
+            if (this.handoffCopiedResetTimerId != null) clearTimeout(this.handoffCopiedResetTimerId);
+            this.handoffCopiedResetTimerId = setTimeout(() => {
+                this.handoffCopiedMechanismIndex = null;
+                this.handoffCopiedResetTimerId = null;
+            }, 1800);
+        },
+        getMechanismAssociatedSelectionRows(mechanism) {
+            const pairs = Array.isArray(mechanism?.associated_pairs) ? mechanism.associated_pairs : [];
+            if (!pairs.length) return [];
+            const normalize = (s) => String(s == null ? "" : s).trim().toLowerCase().replace(/\s+/g, " ");
+            const pairSet = new Set(
+                pairs.map((p) => `${normalize(p.phenotype)}|${normalize(p.factor)}`)
+            );
+            return (this.factorDataTableRowsFiltered || []).filter((r) => {
+                const p = normalize(r.phenotype);
+                const f1 = normalize(r.factorLabel);
+                const f2 = normalize(r.factor);
+                return pairSet.has(`${p}|${f1}`) || pairSet.has(`${p}|${f2}`);
+            });
+        },
+        async downloadMechanismHandoffPackage(mechanism, idx) {
+            if (!mechanism || typeof mechanism !== "object") return;
+            const context =
+                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
+                    ? String(this.searchCriteria[1].values).trim()
+                    : "";
+            const supportingNet = mechanism.supporting_network || mechanism.network || { nodes: [], edges: [] };
+            const hypothesisNet = mechanism.core_spine_network || { nodes: [], edges: [] };
+            const [supportingImage, hypothesisImage] = await Promise.all([
+                this.exportNetworkImageFromRef(`mechanismNetwork-${idx}`, supportingNet),
+                this.exportNetworkImageFromRef(`mechanismHypothesisMap-${idx}`, hypothesisNet),
+            ]);
+            const supportIds = Array.isArray(mechanism.supporting_row_ids)
+                ? mechanism.supporting_row_ids.map(Number).filter((n) => !Number.isNaN(n))
+                : [];
+            const supportSet = new Set(supportIds);
+            const supportingRows = Array.isArray(this.lastFlattenedKG)
+                ? this.lastFlattenedKG.filter((r) => supportSet.has(Number(r.id)))
+                : [];
+            const assocRows = this.getMechanismAssociatedSelectionRows(mechanism);
+            const appendix = this.buildMechanismHandoffAppendixObject({
+                idx,
+                mechanism,
+                researchContext: context,
+                supportingNet,
+                hypothesisNet,
+                supportingRows,
+                assocRows,
+                supportingImage,
+                hypothesisImage,
+            });
+            const html = this.buildMechanismHandoffHtmlDocument({
+                idx,
+                mechanism,
+                researchContext: context,
+                supportingImage,
+                hypothesisImage,
+                appendix,
+            });
+            try {
+                const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                const slug = String(mechanism.group_name || `hypothesis-${idx + 1}`)
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/^-+|-+$/g, "")
+                    .slice(0, 80);
+                a.download = `reveal-handoff-${slug || `hypothesis-${idx + 1}`}-${new Date().toISOString().replace(/[:.]/g, "-")}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch {
+            }
         },
         openNetworkPopup(mechanismIndex, options = {}) {
             this.networkPopupMechanismIndex = mechanismIndex;
@@ -4931,6 +5482,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     );
                 }
                 out.next_steps = Array.isArray(h.next_steps) ? h.next_steps : [];
+                out.next_queries = Array.isArray(h.next_queries) ? h.next_queries : [];
                 out.hypothesis_in_kg =
                     h.hypothesis_in_kg != null && typeof h.hypothesis_in_kg === "object"
                         ? { ...h.hypothesis_in_kg }
@@ -5225,6 +5777,18 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
   background-color: #d15618;
   border-color: #f16822;
   color: #fff;
+}
+.btn-outline-cfde {
+    background: #fff;
+    border-color: #f16822;
+    color: #f16822;
+}
+.btn-outline-cfde:hover,
+.btn-outline-cfde:focus,
+.btn-outline-cfde:active {
+    background: #f16822;
+    border-color: #f16822;
+    color: #fff;
 }
 
 .pill {
