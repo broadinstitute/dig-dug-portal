@@ -34,32 +34,7 @@
                                     $store.state.metadata.map(m => m['Derived diabetes status'])
                                 "
                             >
-                                <div class="label">Diabetes Status</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'Cause of Death'"
-                                :options="
-                                    $store.state.metadata.map(m => m['Cause of Death'])
-                                "
-                            >
-                                <div class="label">Cause of Death</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'Collections'"
-                                :options="
-                                    $store.state.metadata.map(m => m.Collections)
-                                "
-                            >
-                                <div class="label">Collection Center</div>
-                            </filter-enumeration-control>
-                            <filter-enumeration-control
-                                :field="'Ethnicities'"
-                                :options="
-                                    $store.state.metadata.map(m => m.Ethnicities)
-                                "
-                                :multiple="true"
-                            >
-                                <div class="label">Ethnicity</div>
+                                <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <donor-metadata-table

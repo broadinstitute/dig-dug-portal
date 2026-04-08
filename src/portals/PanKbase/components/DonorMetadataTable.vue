@@ -53,17 +53,16 @@ export default Vue.component("donor-metadata-table", {
                 [
                     "Accession",
                     "Center Donor ID",
-                    "RRID",
-                    "Collections",
-                    "Ethnicities",
                     "Age (years)",
-                    "Gender","BMI",
-                    "C-Peptide (ng/ml)",
-                    "Derived diabetes status",
-                    "Diabetes Duration (years)",
-                    "Donation Type",
+                    "Gender",
+                    "BMI",
+                    "Description of diabetes status",
                     "HbA1C (percentage)",
-                    "Cause of Death"
+                    "Derived diabetes status",
+                    "T1D stage",
+                    "Isolation_center",
+                    "Cold Ischaemia Time (hours)",
+                    "Pre-Shipment Culture Time (hours)",
                 ]
             return rawFields;
         }
