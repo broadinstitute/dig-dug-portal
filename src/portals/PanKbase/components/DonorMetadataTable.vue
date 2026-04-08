@@ -9,6 +9,11 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(Accession)="r">
+                <a :href="`https://data.pankbase.org/human-donors/${r.item.Accession}/`">
+                    {{ r.item.Accession }}
+                </a>
+            </template>
         </b-table>
     <b-pagination
         class="pagination-md justify-content-center"
