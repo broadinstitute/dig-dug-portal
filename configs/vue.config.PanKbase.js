@@ -42,7 +42,7 @@ let pages = {
         entry: "src/portals/PanKbase/views/MetadataDataStandards/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "metadata-data-standards.html",
-        title: "Metadata | Data Standards",
+        title: "Standards",
         chunks: ["chunk-vendors", "chunk-common", "metadata"],
     },
     tools: {
@@ -240,6 +240,13 @@ let pages = {
         filename: "nmf.html",
         title: "NMF",
         chunks: ["chunk-vendors", "chunk-common", "nmf"]
+    },
+    functional: {
+        entry: "src/portals/PanKbase/views/Functional/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "functional.html",
+        title: "Functional Data",
+        chunks: ["chunk-vendors", "chunk-common", "functional"]
     }
 };
 
