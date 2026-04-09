@@ -59,6 +59,41 @@ const NODE_COLORS = {
     Drug: "#e7298a",
     Entity: "#666666",
 };
+const BIOLINK_COLORS = {
+    "biolink:Gene": "#984ea3",
+    "biolink:Protein": "#984ea3",
+    "biolink:SmallMolecule": "#ff7f00",
+    "biolink:ChemicalEntity": "#ff7f00",
+    "biolink:ChemicalSubstance": "#ff7f00",
+    "biolink:MolecularEntity": "#ff7f00",
+    "biolink:BiologicalProcess": "#e41a1c",
+    "biolink:PhenotypicFeature": "#e41a1c",
+    "biolink:Disease": "#e41a1c",
+};
+
+function colorFromBiolinkClass(biolinkClass) {
+    const raw = String(biolinkClass || "").trim();
+    if (!raw) return null;
+    if (BIOLINK_COLORS[raw]) return BIOLINK_COLORS[raw];
+    const c = raw.toLowerCase().replace(/\s+/g, "");
+    if (c.includes("gene") || c.includes("protein")) return BIOLINK_COLORS["biolink:Gene"];
+    if (
+        c.includes("smallmolecule") ||
+        c.includes("chemicalentity") ||
+        c.includes("chemicalsubstance") ||
+        c.includes("molecularentity") ||
+        c.includes("drug")
+    ) {
+        return BIOLINK_COLORS["biolink:SmallMolecule"];
+    }
+    if (c.includes("biologicalprocess") || c.includes("pathway") || c.includes("activity")) {
+        return BIOLINK_COLORS["biolink:BiologicalProcess"];
+    }
+    if (c.includes("phenotypicfeature") || c.includes("disease") || c.includes("phenotype")) {
+        return BIOLINK_COLORS["biolink:PhenotypicFeature"];
+    }
+    return null;
+}
 const DEFAULT_NODE_COLOR = "#999";
 const DEFAULT_GENE_COLOR = DEFAULT_GENE_NODE_COLOR;
 
@@ -78,6 +113,8 @@ export default {
         showPopupButton: { type: Boolean, default: false },
         /** LLM biological mechanism map: keep causal order, show action labels, legend from node types. */
         isMechanismFlowMap: { type: Boolean, default: false },
+        /** When true, render Biolink-oriented legend labels/colors for mechanism flow maps. */
+        isBiolinkMap: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -101,6 +138,16 @@ export default {
             return map;
         },
         legendItems() {
+            if (this.isMechanismFlowMap && this.isBiolinkMap) {
+                return [
+                    { label: "Gene / Protein", color: BIOLINK_COLORS["biolink:Gene"] },
+                    { label: "Small molecule / chemical", color: BIOLINK_COLORS["biolink:SmallMolecule"] },
+                    { label: "Biological process / phenotype", color: BIOLINK_COLORS["biolink:BiologicalProcess"] },
+                    { label: "Unmapped concept (gray border)", color: "#6b7280" },
+                    { label: "Edge supported in Translator (solid)", color: "#333333" },
+                    { label: "Edge inferred / not in Translator (dashed)", color: "#bbbbbb" },
+                ];
+            }
             if (this.isMechanismFlowMap) {
                 const types = new Set();
                 (this.network.nodes || []).forEach((n) => {
@@ -154,6 +201,9 @@ export default {
             deep: true,
         },
         isMechanismFlowMap() {
+            this.$nextTick(() => this.render());
+        },
+        isBiolinkMap() {
             this.$nextTick(() => this.render());
         },
     },
@@ -276,12 +326,16 @@ export default {
             return (nodes || []).map((n) => {
                 const type = n.type || "Gene";
                 let color = NODE_COLORS[type] || DEFAULT_NODE_COLOR;
+                const meta = n.metadata || {};
+                const biolinkClass = meta.biolink_class != null ? String(meta.biolink_class).trim() : "";
+                const biolinkColor = colorFromBiolinkClass(biolinkClass);
+                if (biolinkColor) color = biolinkColor;
                 if (type === "Gene") {
                     const name = (n.id || n.label || "").toString().trim();
                     const group = geneToGroup[name];
                     color = colorForGeneRole(group);
+                    if (biolinkColor) color = biolinkColor;
                 }
-                const meta = n.metadata || {};
                 const rawDisplay = (n.label || n.id || "").toString();
                 const headlineLabel =
                     type === "Factor"
@@ -304,6 +358,25 @@ export default {
                     parts.push(`GWAS support: ${gwasVal != null ? Number(gwasVal).toFixed(2) : "—"}`);
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
                 }
+                if (biolinkClass) {
+                    parts.push(`Biolink class: ${biolinkClass}`);
+                }
+                if (meta.primary_identifier && String(meta.primary_identifier) !== String(headlineLabel)) {
+                    parts.push(`ID: ${meta.primary_identifier}`);
+                }
+                if (meta.curie) {
+                    parts.push(`CURIE: ${meta.curie}`);
+                }
+                if (
+                    meta.original_label &&
+                    this.isMechanismFlowMap &&
+                    String(meta.original_label) !== String(headlineLabel)
+                ) {
+                    parts.push(`Original label: ${meta.original_label}`);
+                }
+                if (meta.biolink_unmapped) {
+                    parts.push("Biolink mapping: unmapped concept");
+                }
                 const title = parts.join(" | ");
                 const rawLabel = headlineLabel.toString();
                 const label =
@@ -318,13 +391,13 @@ export default {
                     title,
                     color: {
                         background: color,
-                        border: "#fff",
+                        border: meta.biolink_unmapped ? "#6b7280" : "#fff",
                     },
                     font: {
                         size: 14,
                         color: "#333",
                     },
-                    borderWidth: 1.5,
+                    borderWidth: meta.biolink_unmapped ? 3 : 1.5,
                     size: type === "Gene" ? 16 : 20,
                 };
             });
@@ -374,6 +447,9 @@ export default {
                     edge.label = action;
                     edge.font = { size: 11, color: "#444", strokeWidth: 0, align: "horizontal" };
                 }
+                if (this.isMechanismFlowMap && (e.dashes || (e.metadata && e.metadata.inferred_edge))) {
+                    edge.dashes = true;
+                }
                 return edge;
             });
         },
@@ -390,6 +466,8 @@ export default {
                 target: e.target,
                 predicate: e.predicate != null && String(e.predicate) !== "" ? e.predicate : e.label,
                 label: e.label,
+                dashes: !!e.dashes,
+                metadata: e.metadata || null,
             }));
 
             if (nodes.length === 0) return;

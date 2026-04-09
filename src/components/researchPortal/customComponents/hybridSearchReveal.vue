@@ -894,20 +894,80 @@
                                                     class="mechanism-hypothesis-map-col flex-grow-1"
                                                     style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;"
                                                 >
-                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">Hypothesis map (biological mechanism)</div>
+                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">
+                                                        Hypothesis map (biological mechanism)
+                                                    </div>
+                                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" style="gap: 8px;">
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-sm btn-outline-secondary"
+                                                            :disabled="!!biolinkMappingByMechanism[idx]"
+                                                            @click.stop="remapMechanismToBiolink(idx)"
+                                                        >
+                                                            <b-spinner
+                                                                v-if="biolinkMappingByMechanism[idx]"
+                                                                small
+                                                                type="border"
+                                                                class="mr-1"
+                                                            />
+                                                            <b-icon v-else icon="diagram-3" class="mr-1"></b-icon>
+                                                            {{ isMechanismBiolinkMapped(mechanism) ? 'Remap to Biolink' : 'Map to Biolink' }}
+                                                        </button>
+                                                    </div>
                                                     <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="small text-muted mb-2">
                                                         {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
                                                     </p>
-                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px;">
+                                                    <p v-if="mechanism.biolink_map_meta && mechanism.biolink_map_meta.mappedNodeCount > 0" class="small text-muted mb-2">
+                                                        Biolink mapped nodes: {{ mechanism.biolink_map_meta.mappedNodeCount }}/{{ mechanism.biolink_map_meta.totalNodeCount }}
+                                                        <span v-if="mechanism.biolink_map_meta.unmappedNodeCount > 0">
+                                                            ({{ mechanism.biolink_map_meta.unmappedNodeCount }} unmapped)
+                                                        </span>
+                                                        <span v-if="biolinkTrapiValidatingByMechanism[idx]" class="ml-1">
+                                                            · Checking Translator edges…
+                                                        </span>
+                                                        <span v-if="mechanism.biolink_map_meta.trapi_edge_validation">
+                                                            · Translator edges:
+                                                            {{ mechanism.biolink_map_meta.trapi_edge_validation.supported }}/{{ mechanism.biolink_map_meta.trapi_edge_validation.checked }} supported
+                                                            <span v-if="mechanism.biolink_map_meta.trapi_edge_validation.skipped > 0">
+                                                                ({{ mechanism.biolink_map_meta.trapi_edge_validation.skipped }} skipped)
+                                                            </span>
+                                                        </span>
+                                                    </p>
+                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px; position: relative;">
+                                                        <div
+                                                            v-if="hasMechanismBiolinkNetwork(mechanism)"
+                                                            class="d-flex flex-wrap align-items-center justify-content-end px-2 pt-2"
+                                                            style="gap: 6px;"
+                                                        >
+                                                            <div class="btn-group btn-group-sm" role="group" aria-label="Hypothesis map view">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn"
+                                                                    :class="isMechanismUsingBiolinkMap(mechanism) ? 'btn-outline-secondary' : 'btn-secondary'"
+                                                                    @click.stop="setMechanismMapViewMode(idx, 'original')"
+                                                                >
+                                                                    Original map
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn"
+                                                                    :class="isMechanismUsingBiolinkMap(mechanism) ? 'btn-secondary' : 'btn-outline-secondary'"
+                                                                    @click.stop="setMechanismMapViewMode(idx, 'biolink')"
+                                                                >
+                                                                    Biolink map
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                         <factor-base-reveal-network
                                                             :ref="'mechanismHypothesisMap-' + idx"
-                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
+                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '') + '-' + (mechanism.biolink_map_meta && mechanism.biolink_map_meta.trapi_validation_revision != null ? mechanism.biolink_map_meta.trapi_validation_revision : 0)"
                                                             :network="mechanism.core_spine_network"
                                                             :genes="mechanism.candidate_genes || mechanism.genes || []"
                                                             :width="640"
                                                             :height="280"
                                                             :show-popup-button="true"
                                                             :is-mechanism-flow-map="true"
+                                                            :is-biolink-map="isMechanismUsingBiolinkMap(mechanism)"
                                                             @open-popup="openNetworkPopup(idx, { hypothesisMap: true })"
                                                         />
                                                     </div>
@@ -1457,7 +1517,7 @@
                 </div>
                 <div class="network-popup-body">
                     <factor-base-reveal-network
-                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting')"
+                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting') + '-' + (networkPopupIsHypothesisMap && mechanisms[networkPopupMechanismIndex].biolink_map_meta && mechanisms[networkPopupMechanismIndex].biolink_map_meta.trapi_validation_revision != null ? mechanisms[networkPopupMechanismIndex].biolink_map_meta.trapi_validation_revision : 0)"
                         :network="
                             networkPopupIsHypothesisMap
                                 ? mechanisms[networkPopupMechanismIndex].core_spine_network
@@ -1468,6 +1528,7 @@
                         :width="popupNetworkWidth"
                         :height="popupNetworkHeight"
                         :is-mechanism-flow-map="networkPopupIsHypothesisMap"
+                        :is-biolink-map="networkPopupIsHypothesisMap && isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])"
                     />
                 </div>
             </div>
@@ -1550,6 +1611,16 @@ export default Vue.component("factor-base-reveal", {
             /** Last mechanism index whose copy-to-clipboard succeeded (for transient "Copied!" state). */
             handoffCopiedMechanismIndex: null,
             handoffCopiedResetTimerId: null,
+            /** Per-card loading state for post-hoc Biolink mapping calls. */
+            biolinkMappingByMechanism: {},
+            /** Per-card: TRAPI edge validation running after Biolink nodes are mapped. */
+            biolinkTrapiValidatingByMechanism: {},
+            /** Bumped when a mechanism is remapped; stale TRAPI runs stop patching. */
+            biolinkTrapiValidationGeneration: {},
+            /** Cache: normalized free-text label -> { curie, resolverLabel } from Name Resolution. */
+            biolinkNameResolveByLabelCache: {},
+            /** Cache: CURIE -> normalized node details from NodeNormalizer. */
+            biolinkNodeByCurieCache: {},
             /** From mechanism LLM when can_generate_hypothesis is false or partial warnings. */
             mechanismDiagnosticAssessment: null,
             /** User approval gates at key workflow breakpoints. */
@@ -1589,6 +1660,14 @@ export default Vue.component("factor-base-reveal", {
             hybridSearchBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
                 ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
                 : "https://search.hugeamp.org",
+            /**
+             * Optional Biolink CORS proxy (translatorRelay): Name Resolution + NodeNorm + TRAPI (edge validation).
+             * When unset, NameRes/NodeNorm call SRI directly (may fail CORS); Biolink edges stay dashed (inferred).
+             * Example dev: VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL=http://localhost:3000
+             */
+            revealBiolinkProxyBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL)
+                ? String(process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL).replace(/\/$/, "")
+                : "",
             /** When false, omit query_embedding; backend embeds (ALLOW_SERVER_SIDE_EMBEDDING). When true, FE must call Ollama and send query_embedding. */
             hybridSearchUseClientEmbedding: (typeof process !== "undefined" && process.env && process.env.VUE_APP_HYBRID_CLIENT_EMBEDDING === "true"),
             /** POST timeout for hybrid search (ms); server may run DB + Ollama. */
@@ -3796,6 +3875,682 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 "D) Suggest confounders and alternative pathways.",
             ].join("\n");
         },
+        isMechanismBiolinkMapped(mechanism) {
+            return !!(
+                mechanism &&
+                mechanism.biolink_map_meta &&
+                Number(mechanism.biolink_map_meta.mappedNodeCount || 0) > 0
+            );
+        },
+        hasMechanismBiolinkNetwork(mechanism) {
+            return !!(
+                mechanism &&
+                mechanism.biolink_core_spine_network &&
+                Array.isArray(mechanism.biolink_core_spine_network.nodes) &&
+                mechanism.biolink_core_spine_network.nodes.length > 0
+            );
+        },
+        isMechanismUsingBiolinkMap(mechanism) {
+            return !!(
+                mechanism &&
+                mechanism.map_view_mode === "biolink" &&
+                this.hasMechanismBiolinkNetwork(mechanism)
+            );
+        },
+        cloneNetworkForMapView(net) {
+            const n = net || {};
+            return {
+                ...(n || {}),
+                nodes: Array.isArray(n.nodes) ? n.nodes.map((x) => ({ ...x })) : [],
+                edges: Array.isArray(n.edges) ? n.edges.map((x) => ({ ...x })) : [],
+            };
+        },
+        setMechanismMapViewMode(idx, mode) {
+            if (!Array.isArray(this.mechanisms) || !this.mechanisms[idx]) return;
+            const mechanism = this.mechanisms[idx];
+            const next = { ...mechanism };
+            if (mode === "biolink" && this.hasMechanismBiolinkNetwork(mechanism)) {
+                next.map_view_mode = "biolink";
+                next.core_spine_network = this.cloneNetworkForMapView(mechanism.biolink_core_spine_network);
+            } else {
+                const original = mechanism.original_core_spine_network || mechanism.core_spine_network || { nodes: [], edges: [] };
+                next.map_view_mode = "original";
+                next.core_spine_network = this.cloneNetworkForMapView(original);
+            }
+            this.$set(this.mechanisms, idx, next);
+        },
+        normalizeBiolinkLookupLabel(label) {
+            return String(label == null ? "" : label).trim().replace(/\s+/g, " ").toLowerCase();
+        },
+        classifyBiolinkNodeType(className, fallbackType = "Entity") {
+            const c = String(className || "").toLowerCase().replace(/\s+/g, "");
+            if (c.includes("gene") || c.includes("protein")) return "Gene";
+            if (
+                c.includes("smallmolecule") ||
+                c.includes("chemicalentity") ||
+                c.includes("chemical_substance") ||
+                c.includes("molecular_entity") ||
+                c.includes("chemical")
+            ) return "Metabolite";
+            if (c.includes("biologicalprocess") || c.includes("pathway") || c.includes("activity")) return "Process";
+            if (c.includes("phenotypicfeature") || c.includes("disease") || c.includes("trait")) return "Phenotype";
+            if (c.includes("cell")) return "Cell";
+            if (c.includes("drug")) return "Drug";
+            return fallbackType || "Entity";
+        },
+        inferBiolinkPredicate(actionLabel) {
+            const s = String(actionLabel || "").trim().toLowerCase();
+            if (!s) return "biolink:related_to";
+            if (/inhibit|suppress|downreg|reduce|decrease|block/.test(s)) return "biolink:decreases_activity_of";
+            if (/activat|increase|upreg|promot|induce|trigger/.test(s)) return "biolink:increases_activity_of";
+            if (/cleav|degrad/.test(s)) return "biolink:affects";
+            if (/mediat|modulat|regulat/.test(s)) return "biolink:regulates";
+            return "biolink:related_to";
+        },
+        /**
+         * Name Resolution responses vary (array of hits, bulk map keyed by query, matches[], etc.).
+         * @returns {{ curie: string | null, resolverLabel: string }}
+         */
+        extractTopHitFromNameResolutionResponse(json, queryLabel) {
+            const q = String(queryLabel || "").trim();
+            let arr = null;
+            if (Array.isArray(json)) {
+                arr = json;
+            } else if (json && typeof json === "object") {
+                if (q && Array.isArray(json[q])) arr = json[q];
+                if (!arr && q) {
+                    const lk = Object.keys(json).find((k) => k.toLowerCase() === q.toLowerCase());
+                    if (lk && Array.isArray(json[lk])) arr = json[lk];
+                }
+                if (!arr && Array.isArray(json.matches)) arr = json.matches;
+                if (!arr && Array.isArray(json.results)) arr = json.results;
+                if (!arr && Array.isArray(json.items)) arr = json.items;
+            }
+            if (!arr || !arr.length) return { curie: null, resolverLabel: "" };
+            const top = arr[0];
+            if (!top || typeof top !== "object") return { curie: null, resolverLabel: "" };
+            const curie = top.curie || top.identifier || top.id || null;
+            const resolverLabel =
+                top.label != null && String(top.label).trim() !== "" ? String(top.label).trim() : "";
+            return {
+                curie: curie != null ? String(curie) : null,
+                resolverLabel,
+            };
+        },
+        /**
+         * NCATS Name Resolution: prefers query-string style POST (see NameResolution docs);
+         * JSON-body variants are attempted as fallback.
+         * @returns {{ curie: string | null, resolverLabel: string }}
+         */
+        async resolveLabelViaNameResolution(label) {
+            const key = this.normalizeBiolinkLookupLabel(label);
+            if (!key) return { curie: null, resolverLabel: "" };
+            if (Object.prototype.hasOwnProperty.call(this.biolinkNameResolveByLabelCache, key)) {
+                return this.biolinkNameResolveByLabelCache[key];
+            }
+            const text = String(label || "").trim();
+            if (!text) {
+                const empty = { curie: null, resolverLabel: "" };
+                this.$set(this.biolinkNameResolveByLabelCache, key, empty);
+                return empty;
+            }
+            const proxyBase = this.revealBiolinkProxyBaseUrl;
+            if (proxyBase) {
+                let best = { curie: null, resolverLabel: "" };
+                try {
+                    const resp = await this.fetchWithTimeout(
+                        `${proxyBase}/api/reveal/biolink/name-lookup`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", Accept: "application/json" },
+                            body: JSON.stringify({ label: text, limit: 8 }),
+                        },
+                        30000
+                    );
+                    if (resp.ok) {
+                        const json = await resp.json().catch(() => null);
+                        best = this.extractTopHitFromNameResolutionResponse(json, text);
+                    }
+                } catch {
+                }
+                this.$set(this.biolinkNameResolveByLabelCache, key, best);
+                return best;
+            }
+            const attempts = [];
+            const bases = [
+                "https://name-resolution-sri.renci.org/lookup",
+                "https://name-resolution-sri.renci.org/1.3/lookup",
+            ];
+            bases.forEach((base) => {
+                const qs = new URLSearchParams({ string: text, limit: "8" }).toString();
+                attempts.push({
+                    url: `${base}?${qs}`,
+                    init: { method: "POST", headers: { Accept: "application/json" } },
+                });
+                attempts.push({
+                    url: `${base}?${qs}`,
+                    init: { method: "GET", headers: { Accept: "application/json" } },
+                });
+            });
+            attempts.push({
+                url: "https://name-resolution-sri.renci.org/1.3/lookup",
+                init: {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify({ string: text, offset: 0, limit: 8 }),
+                },
+            });
+            attempts.push({
+                url: "https://name-resolution-sri.renci.org/1.3/lookup",
+                init: {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify({ strings: [text], offset: 0, limit: 8 }),
+                },
+            });
+            let best = { curie: null, resolverLabel: "" };
+            for (const { url, init } of attempts) {
+                try {
+                    const resp = await this.fetchWithTimeout(url, init, 30000);
+                    if (!resp.ok) continue;
+                    const json = await resp.json().catch(() => null);
+                    const hit = this.extractTopHitFromNameResolutionResponse(json, text);
+                    if (hit.curie) {
+                        best = hit;
+                        break;
+                    }
+                    if (!best.resolverLabel && hit.resolverLabel) best = { ...hit };
+                } catch {
+                }
+            }
+            this.$set(this.biolinkNameResolveByLabelCache, key, best);
+            return best;
+        },
+        /** When NodeNorm omits types, infer a Biolink-style category from CURIE prefix for coloring. */
+        inferBiolinkClassHintFromCurie(curie) {
+            const c = String(curie || "").trim();
+            if (!c) return "";
+            const u = c.toUpperCase();
+            if (/^(NCBIGENE|HGNC|ENSEMBL|ENSG|UNIPROT|PR):/i.test(c) || /^OMIM:/i.test(c)) return "biolink:Gene";
+            if (/^(PUBCHEM|CHEBI|CHEMBL|DRUGBANK|HMDB|KEGG\.COMPOUND|MESH):/i.test(u)) return "biolink:SmallMolecule";
+            if (/^(GO|REACTOME|WIKIPATHWAYS|PW):/i.test(c)) return "biolink:BiologicalProcess";
+            if (/^(HP|MONDO|DOID|EFO|UMLS|SNOMED|NCIT):/i.test(c)) return "biolink:PhenotypicFeature";
+            return "";
+        },
+        pickPrimaryBiolinkType(types) {
+            const list = Array.isArray(types) ? types.map((t) => String(t || "").trim()).filter(Boolean) : [];
+            if (!list.length) return "";
+            const tagged = list.find((t) => /biolink:/i.test(t));
+            return String(tagged || list[0]);
+        },
+        findNormalizedNodeEntry(normPayload, requestedCurie) {
+            const req = String(requestedCurie || "").trim();
+            if (!req || !normPayload || typeof normPayload !== "object") return null;
+            if (normPayload[req]) return normPayload[req];
+            const lower = req.toLowerCase();
+            const key = Object.keys(normPayload).find((k) => String(k).toLowerCase() === lower);
+            return key ? normPayload[key] : null;
+        },
+        async fetchBiolinkNodeDetails(curies) {
+            const need = (curies || [])
+                .map((c) => String(c || "").trim())
+                .filter((c) => c && !Object.prototype.hasOwnProperty.call(this.biolinkNodeByCurieCache, c));
+            if (need.length) {
+                try {
+                    const proxyBase = this.revealBiolinkProxyBaseUrl;
+                    const normUrl = proxyBase
+                        ? `${proxyBase}/api/reveal/biolink/normalize-nodes`
+                        : "https://nodenormalization-sri.renci.org/1.3/get_normalized_nodes";
+                    const resp = await this.fetchWithTimeout(
+                        normUrl,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", Accept: "application/json" },
+                            body: JSON.stringify({ curies: need }),
+                        },
+                        30000
+                    );
+                    const json = await resp.json().catch(() => ({}));
+                    if (resp.ok && json && typeof json === "object") {
+                        need.forEach((curie) => {
+                            const entry = this.findNormalizedNodeEntry(json, curie);
+                            this.$set(this.biolinkNodeByCurieCache, curie, entry);
+                        });
+                    } else {
+                        need.forEach((curie) => this.$set(this.biolinkNodeByCurieCache, curie, null));
+                    }
+                } catch {
+                    need.forEach((curie) => this.$set(this.biolinkNodeByCurieCache, curie, null));
+                }
+            }
+            const out = {};
+            (curies || []).forEach((curie) => {
+                const key = String(curie || "").trim();
+                if (!key) return;
+                out[key] = this.biolinkNodeByCurieCache[key] ?? null;
+            });
+            return out;
+        },
+        /** TRAPI message: treat non-empty results as evidence the constrained edge can be supported by Translator. */
+        trapiKnowledgeIndicatesEdgeSupport(trapiJson) {
+            if (!trapiJson || typeof trapiJson !== "object" || trapiJson.error === true) return false;
+            const msg = trapiJson.message;
+            if (!msg || typeof msg !== "object") return false;
+            const results = msg.results;
+            if (Array.isArray(results) && results.length > 0) return true;
+            return false;
+        },
+        trapiCategoriesArray(biolinkClass) {
+            const c = String(biolinkClass || "").trim();
+            return c ? [c] : ["biolink:NamedThing"];
+        },
+        isTrapiGeneLikeCategory(biolinkClass) {
+            const c = String(biolinkClass || "").toLowerCase();
+            return c.includes("gene") || c.includes("protein");
+        },
+        isTrapiDiseaseLikeCategory(biolinkClass) {
+            const c = String(biolinkClass || "").toLowerCase();
+            return (
+                c.includes("disease") ||
+                c.includes("phenotyp") ||
+                c.includes("condition") ||
+                c.includes("syndrome")
+            );
+        },
+        async trapiRelayPostTrapiMessage(trapiEnvelope) {
+            const base = this.revealBiolinkProxyBaseUrl;
+            if (!base) return null;
+            try {
+                const resp = await this.fetchWithTimeout(
+                    `${base}/api/reveal/biolink/trapi-query`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Accept: "application/json" },
+                        body: JSON.stringify(trapiEnvelope),
+                    },
+                    35000
+                );
+                if (!resp.ok) return null;
+                return await resp.json().catch(() => null);
+            } catch {
+                return null;
+            }
+        },
+        /**
+         * One-hop TRAPI via translatorRelay. Tries several QGs: inferred predicate, related_to,
+         * standard gene↔disease predicates, swapped ends, and relaxed NamedThing categories —
+         * because many KPs never index biolink:related_to for Gene–Disease pairs.
+         * @returns {Promise<boolean>}
+         */
+        async edgeSupportedByTrapiRelay(subjectId, subjectBiolinkCategory, objectId, objectBiolinkCategory, predicate) {
+            if (!this.revealBiolinkProxyBaseUrl) return false;
+            const sId = String(subjectId || "").trim();
+            const oId = String(objectId || "").trim();
+            if (!sId || !oId || sId === oId) return false;
+
+            const catA = this.trapiCategoriesArray(subjectBiolinkCategory);
+            const catB = this.trapiCategoriesArray(objectBiolinkCategory);
+            const nt = ["biolink:NamedThing"];
+            const predPrimary =
+                String(predicate || "biolink:related_to").trim() || "biolink:related_to";
+
+            const aGene = this.isTrapiGeneLikeCategory(subjectBiolinkCategory);
+            const aDis = this.isTrapiDiseaseLikeCategory(subjectBiolinkCategory);
+            const bGene = this.isTrapiGeneLikeCategory(objectBiolinkCategory);
+            const bDis = this.isTrapiDiseaseLikeCategory(objectBiolinkCategory);
+
+            /** @type {{ n0: string, c0: string[], n1: string, c1: string[], p: string }[]} */
+            const plan = [];
+            const add = (n0, c0, n1, c1, p) => {
+                const pr = String(p || "biolink:related_to").trim() || "biolink:related_to";
+                plan.push({ n0, c0: [...c0], n1, c1: [...c1], p: pr });
+            };
+
+            add(sId, catA, oId, catB, predPrimary);
+            if (predPrimary !== "biolink:related_to") add(sId, catA, oId, catB, "biolink:related_to");
+
+            if (aGene && bDis) add(sId, catA, oId, catB, "biolink:gene_associated_with_condition");
+            if (aDis && bGene) add(sId, catA, oId, catB, "biolink:condition_associated_with_gene");
+
+            add(oId, catB, sId, catA, "biolink:related_to");
+
+            if (bGene && aDis) add(oId, catB, sId, catA, "biolink:gene_associated_with_condition");
+            if (bDis && aGene) add(oId, catB, sId, catA, "biolink:condition_associated_with_gene");
+
+            add(sId, nt, oId, nt, "biolink:related_to");
+            add(oId, nt, sId, nt, "biolink:related_to");
+
+            if (aGene && bDis) add(sId, nt, oId, nt, "biolink:gene_associated_with_condition");
+            if (aDis && bGene) add(sId, nt, oId, nt, "biolink:condition_associated_with_gene");
+
+            const seen = new Set();
+            for (const t of plan) {
+                const body = {
+                    message: {
+                        query_graph: {
+                            nodes: {
+                                n0: { ids: [t.n0], categories: t.c0 },
+                                n1: { ids: [t.n1], categories: t.c1 },
+                            },
+                            edges: {
+                                e0: {
+                                    subject: "n0",
+                                    object: "n1",
+                                    predicates: [t.p],
+                                },
+                            },
+                        },
+                    },
+                };
+                const sig = JSON.stringify(body.message.query_graph);
+                if (seen.has(sig)) continue;
+                seen.add(sig);
+                const json = await this.trapiRelayPostTrapiMessage(body);
+                if (this.trapiKnowledgeIndicatesEdgeSupport(json)) return true;
+            }
+            return false;
+        },
+        edgeEndpointIdsFromMappedNode(node) {
+            if (!node || !node.metadata || typeof node.metadata !== "object") return { subId: "", biolinkClass: "" };
+            const m = node.metadata;
+            const subId = String(m.primary_identifier || m.curie || "").trim();
+            const biolinkClass = String(m.biolink_class || "").trim();
+            return { subId, biolinkClass };
+        },
+        /**
+         * Run one edge through Translator (relay); used for progressive and batch validation.
+         */
+        async validateSingleMappedBiolinkEdge(edge, nodeById) {
+            const srcKey =
+                edge.source != null
+                    ? String(edge.source)
+                    : edge.from != null
+                      ? String(edge.from)
+                      : "";
+            const tgtKey =
+                edge.target != null
+                    ? String(edge.target)
+                    : edge.to != null
+                      ? String(edge.to)
+                      : "";
+            const srcNode = nodeById[srcKey];
+            const tgtNode = nodeById[tgtKey];
+            const a = this.edgeEndpointIdsFromMappedNode(srcNode);
+            const b = this.edgeEndpointIdsFromMappedNode(tgtNode);
+            const pred = String(edge.predicate || "biolink:related_to").trim() || "biolink:related_to";
+            let validated = false;
+            let checkedDelta = 0;
+            let supportedDelta = 0;
+            let skippedDelta = 0;
+            if (a.subId && b.subId) {
+                checkedDelta = 1;
+                validated = await this.edgeSupportedByTrapiRelay(
+                    a.subId,
+                    a.biolinkClass,
+                    b.subId,
+                    b.biolinkClass,
+                    pred
+                );
+                if (validated) supportedDelta = 1;
+            } else {
+                skippedDelta = 1;
+            }
+            const builtEdge = {
+                ...edge,
+                dashes: !validated,
+                metadata: {
+                    ...(edge.metadata || {}),
+                    inferred_edge: !validated,
+                    ...(a.subId && b.subId
+                        ? { trapi_validated: validated }
+                        : { trapi_validation_skipped: true }),
+                },
+            };
+            return { builtEdge, checkedDelta, supportedDelta, skippedDelta };
+        },
+        /**
+         * After Biolink node mapping, check each edge against Translator via relay (batch).
+         */
+        async validateBiolinkMappedEdgesViaRelay(mappedNodes, mappedEdges) {
+            const proxyBase = this.revealBiolinkProxyBaseUrl;
+            if (!proxyBase) {
+                return { edges: mappedEdges, trapiStats: null };
+            }
+            const nodeById = {};
+            (mappedNodes || []).forEach((n) => {
+                if (n && n.id != null) nodeById[String(n.id)] = n;
+            });
+            const out = [];
+            let checked = 0;
+            let supported = 0;
+            let skipped = 0;
+            for (const edge of mappedEdges || []) {
+                const { builtEdge, checkedDelta, supportedDelta, skippedDelta } =
+                    await this.validateSingleMappedBiolinkEdge(edge, nodeById);
+                checked += checkedDelta;
+                supported += supportedDelta;
+                skipped += skippedDelta;
+                out.push(builtEdge);
+            }
+            return { edges: out, trapiStats: { checked, supported, skipped } };
+        },
+        patchMechanismBiolinkTrapiProgress(idx, edges, mappedNodes, trapiStats) {
+            const m = this.mechanisms[idx];
+            if (!m || !m.biolink_core_spine_network) return;
+            const mappedNetwork = {
+                ...m.biolink_core_spine_network,
+                nodes: mappedNodes,
+                edges,
+            };
+            const prevRev = m.biolink_map_meta && m.biolink_map_meta.trapi_validation_revision != null
+                ? Number(m.biolink_map_meta.trapi_validation_revision)
+                : 0;
+            const next = {
+                ...m,
+                biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
+                biolink_map_meta: {
+                    ...m.biolink_map_meta,
+                    trapi_edge_validation: { ...trapiStats },
+                    trapi_validation_revision: prevRev + 1,
+                },
+            };
+            if (next.map_view_mode === "biolink") {
+                next.core_spine_network = this.cloneNetworkForMapView(mappedNetwork);
+            }
+            this.$set(this.mechanisms, idx, next);
+        },
+        async runBiolinkTrapiValidationForMechanism(idx, gen) {
+            if (!this.revealBiolinkProxyBaseUrl) return;
+            if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
+            const m0 = this.mechanisms[idx];
+            if (!m0?.biolink_core_spine_network?.nodes) return;
+            const initialEdges0 = Array.isArray(m0.biolink_core_spine_network.edges)
+                ? m0.biolink_core_spine_network.edges
+                : [];
+            if (initialEdges0.length === 0) return;
+            this.$set(this.biolinkTrapiValidatingByMechanism, idx, true);
+            try {
+                const m = this.mechanisms[idx];
+                if (!m?.biolink_core_spine_network?.nodes) return;
+                const baseNet = m.biolink_core_spine_network;
+                const mappedNodes = baseNet.nodes;
+                const initialEdges = Array.isArray(baseNet.edges) ? baseNet.edges : [];
+                const nodeById = {};
+                mappedNodes.forEach((n) => {
+                    if (n && n.id != null) nodeById[String(n.id)] = n;
+                });
+                const out = [];
+                let checked = 0;
+                let supported = 0;
+                let skipped = 0;
+                for (let i = 0; i < initialEdges.length; i++) {
+                    if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
+                    const edge = initialEdges[i];
+                    const { builtEdge, checkedDelta, supportedDelta, skippedDelta } =
+                        await this.validateSingleMappedBiolinkEdge(edge, nodeById);
+                    checked += checkedDelta;
+                    supported += supportedDelta;
+                    skipped += skippedDelta;
+                    out.push(builtEdge);
+                    const rest = initialEdges.slice(i + 1).map((e) => ({ ...e }));
+                    this.patchMechanismBiolinkTrapiProgress(idx, [...out, ...rest], mappedNodes, {
+                        checked,
+                        supported,
+                        skipped,
+                    });
+                }
+            } finally {
+                if ((this.biolinkTrapiValidationGeneration[idx] || 0) === gen) {
+                    this.$set(this.biolinkTrapiValidatingByMechanism, idx, false);
+                }
+            }
+        },
+        queueBiolinkTrapiValidation(idx, gen) {
+            if (!this.revealBiolinkProxyBaseUrl) return;
+            void this.runBiolinkTrapiValidationForMechanism(idx, gen);
+        },
+        /**
+         * NameRes + NodeNorm → show Biolink map immediately (dashed edges), then TRAPI validation in the background.
+         */
+        async mapMechanismBiolinkPhase1Only(idx) {
+            const mechanism = Array.isArray(this.mechanisms) ? this.mechanisms[idx] : null;
+            if (!mechanism || !mechanism.core_spine_network || !Array.isArray(mechanism.core_spine_network.nodes)) {
+                return;
+            }
+            const nextGen = (this.biolinkTrapiValidationGeneration[idx] || 0) + 1;
+            this.$set(this.biolinkTrapiValidationGeneration, idx, nextGen);
+            const gen = nextGen;
+            this.$set(this.biolinkTrapiValidatingByMechanism, idx, false);
+            this.$set(this.biolinkMappingByMechanism, idx, true);
+            try {
+                const src = mechanism.original_core_spine_network || mechanism.core_spine_network || {};
+                const nodes = Array.isArray(src.nodes) ? src.nodes : [];
+                const edges = Array.isArray(src.edges) ? src.edges : [];
+                if (!nodes.length) return;
+
+                const resolveByLabel = {};
+                for (const node of nodes) {
+                    const label = String(node.label || node.id || "").trim();
+                    if (!label) continue;
+                    if (!Object.prototype.hasOwnProperty.call(resolveByLabel, label)) {
+                        resolveByLabel[label] = await this.resolveLabelViaNameResolution(label);
+                    }
+                }
+                const curies = [...new Set(Object.values(resolveByLabel).map((r) => r.curie).filter(Boolean))];
+                const normByCurie = await this.fetchBiolinkNodeDetails(curies);
+
+                let mappedNodeCount = 0;
+                let unmappedNodeCount = 0;
+                const mappedNodes = nodes.map((node) => {
+                    const originalLabel = String(node.label || node.id || "").trim();
+                    const nameHit = resolveByLabel[originalLabel] || { curie: null, resolverLabel: "" };
+                    const curie = nameHit.curie || null;
+                    const resolverLabel = nameHit.resolverLabel || "";
+                    const normalized = curie ? this.findNormalizedNodeEntry(normByCurie, curie) : null;
+                    const normId = normalized && normalized.id ? normalized.id : {};
+                    const types = normalized && Array.isArray(normalized.type) ? normalized.type : [];
+                    let biolinkClass = this.pickPrimaryBiolinkType(types);
+                    if (!biolinkClass && curie) biolinkClass = this.inferBiolinkClassHintFromCurie(curie);
+                    const normalizedLabel =
+                        normId.label != null && String(normId.label).trim() !== ""
+                            ? String(normId.label).trim()
+                            : "";
+                    const preferredId =
+                        normId.identifier != null && String(normId.identifier).trim() !== ""
+                            ? String(normId.identifier).trim()
+                            : curie || "";
+                    const hasNodeNorm = !!(normalized && (normId.identifier || normId.label));
+                    const displayLabel =
+                        normalizedLabel ||
+                        (hasNodeNorm ? preferredId : "") ||
+                        resolverLabel ||
+                        originalLabel ||
+                        String(node.id || "");
+                    const metadata = {
+                        ...(node.metadata || {}),
+                        original_label: originalLabel,
+                    };
+                    if (curie) metadata.curie = String(curie);
+                    if (preferredId) metadata.primary_identifier = preferredId;
+                    if (biolinkClass) metadata.biolink_class = biolinkClass;
+                    if (resolverLabel && resolverLabel !== displayLabel) {
+                        metadata.name_resolver_label = resolverLabel;
+                    }
+                    const resolvedLexically = !!curie;
+                    if (resolvedLexically) mappedNodeCount += 1;
+                    else unmappedNodeCount += 1;
+                    if (!resolvedLexically) metadata.biolink_unmapped = true;
+                    const nextType = resolvedLexically
+                        ? this.classifyBiolinkNodeType(biolinkClass, node.type || "Entity")
+                        : (node.type || "Entity");
+                    return {
+                        ...node,
+                        type: nextType,
+                        label: displayLabel,
+                        metadata,
+                    };
+                });
+                const mappedEdges = edges.map((edge) => {
+                    const action = String(edge.label || edge.predicate || "").trim();
+                    return {
+                        ...edge,
+                        label: action || String(edge.label || edge.predicate || ""),
+                        predicate: this.inferBiolinkPredicate(action),
+                        dashes: true,
+                        metadata: {
+                            ...(edge.metadata || {}),
+                            biolink_mapped: true,
+                            inferred_edge: true,
+                        },
+                    };
+                });
+
+                const mappedNetwork = {
+                    ...src,
+                    nodes: mappedNodes,
+                    edges: mappedEdges,
+                };
+                const mCurrent = this.mechanisms[idx];
+                if (!mCurrent) return;
+                if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
+
+                const nextMechanism = {
+                    ...mCurrent,
+                    original_core_spine_network: mechanism.original_core_spine_network
+                        ? this.cloneNetworkForMapView(mechanism.original_core_spine_network)
+                        : this.cloneNetworkForMapView(src),
+                    biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
+                    map_view_mode: "biolink",
+                    core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
+                    biolink_map_meta: {
+                        mappedNodeCount,
+                        unmappedNodeCount,
+                        totalNodeCount: nodes.length,
+                        mappedAt: new Date().toISOString(),
+                        trapi_validation_revision: 0,
+                    },
+                };
+                this.$set(this.mechanisms, idx, nextMechanism);
+                this.queueBiolinkTrapiValidation(idx, gen);
+            } finally {
+                this.$set(this.biolinkMappingByMechanism, idx, false);
+            }
+        },
+        async remapMechanismToBiolink(idx) {
+            return this.mapMechanismBiolinkPhase1Only(idx);
+        },
+        async autoMapAllMechanismsToBiolink() {
+            const arr = this.mechanisms;
+            if (!Array.isArray(arr) || !arr.length) return;
+            const jobs = [];
+            for (let i = 0; i < arr.length; i++) {
+                const m = arr[i];
+                if (!m?.core_spine_network?.nodes?.length) continue;
+                if (this.hasMechanismBiolinkNetwork(m)) continue;
+                jobs.push(this.mapMechanismBiolinkPhase1Only(i));
+            }
+            await Promise.all(jobs);
+        },
         async copyMechanismForLlm(mechanism, idx) {
             const text = this.buildMechanismClipboardText(mechanism, idx);
             try {
@@ -4953,6 +5708,9 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 }
 
                 this.mechanisms = this.normalizeMechanismHypotheses(hypotheses);
+                this.$nextTick(() => {
+                    void this.autoMapAllMechanismsToBiolink();
+                });
                 this.setLoadStatus("Ready", true);
                 this.setStep(
                     {
@@ -5089,6 +5847,9 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     }));
                     const prev = Array.isArray(this.mechanisms) ? this.mechanisms : [];
                     this.mechanisms = [...prev, ...normalized];
+                    this.$nextTick(() => {
+                        void this.autoMapAllMechanismsToBiolink();
+                    });
                     if (!this.adHocCoveredRowKeys.includes(pairKey)) {
                         this.adHocCoveredRowKeys = [...this.adHocCoveredRowKeys, pairKey];
                     }
