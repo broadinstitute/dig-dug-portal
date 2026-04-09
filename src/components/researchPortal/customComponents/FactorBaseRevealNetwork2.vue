@@ -25,6 +25,18 @@
                         @input="applyZoom"
                     />
                 </div>
+                <template v-if="showHypothesisMapViewToggle">
+                    <span class="zoom-slider-divider" aria-hidden="true">|</span>
+                    <label class="hypothesis-map-original-label">
+                        <input
+                            type="checkbox"
+                            class="hypothesis-map-original-input"
+                            :checked="showOriginalHypothesisMap"
+                            @change="$emit('hypothesis-original-map', $event.target.checked)"
+                        />
+                        Original map
+                    </label>
+                </template>
                 <template v-if="showPopupButton">
                     <span class="zoom-slider-divider" aria-hidden="true">|</span>
                     <button
@@ -115,6 +127,10 @@ export default {
         isMechanismFlowMap: { type: Boolean, default: false },
         /** When true, render Biolink-oriented legend labels/colors for mechanism flow maps. */
         isBiolinkMap: { type: Boolean, default: false },
+        /** Show “Original map” checkbox between zoom and fullscreen (when Biolink network exists). */
+        showHypothesisMapViewToggle: { type: Boolean, default: false },
+        /** Checked ⇒ LLM/original spine; unchecked ⇒ Biolink map (default). */
+        showOriginalHypothesisMap: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -321,6 +337,25 @@ export default {
             this.nodesDataSet = null;
             this.edgesDataSet = null;
         },
+        /** First GO:####### found in metadata or node fields (Biolink tooltips). */
+        extractGoIdForBiolinkTooltip(meta, n) {
+            const tryStr = (v) => {
+                const t = String(v || "").trim();
+                const m = t.match(/\bGO:\d+\b/i);
+                return m ? m[0].replace(/^go:/i, "GO:") : "";
+            };
+            let id = tryStr(meta.primary_identifier) || tryStr(meta.curie);
+            if (!id) id = tryStr(n && n.id != null ? n.id : "");
+            if (!id) id = tryStr(n && n.label != null ? n.label : "");
+            const eq = meta.equivalents;
+            if (!id && Array.isArray(eq)) {
+                for (const x of eq) {
+                    id = tryStr(typeof x === "string" ? x : x && x.identifier);
+                    if (id) break;
+                }
+            }
+            return id;
+        },
         buildVisNodes(nodes) {
             const geneToGroup = this.geneNameToGroup;
             return (nodes || []).map((n) => {
@@ -360,6 +395,10 @@ export default {
                 }
                 if (biolinkClass) {
                     parts.push(`Biolink class: ${biolinkClass}`);
+                }
+                if (this.isBiolinkMap && this.isMechanismFlowMap) {
+                    const goId = this.extractGoIdForBiolinkTooltip(meta, n);
+                    if (goId) parts.push(`GO ID: ${goId}`);
                 }
                 if (meta.primary_identifier && String(meta.primary_identifier) !== String(headlineLabel)) {
                     parts.push(`ID: ${meta.primary_identifier}`);
@@ -627,5 +666,22 @@ export default {
     height: 6px;
     accent-color: #377eb8;
     cursor: pointer;
+}
+.hypothesis-map-original-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #444;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+.hypothesis-map-original-input {
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 </style>

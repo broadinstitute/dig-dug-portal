@@ -897,70 +897,13 @@
                                                     <div class="font-weight-bold small text-uppercase text-muted mb-2">
                                                         Hypothesis map (biological mechanism)
                                                     </div>
-                                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2" style="gap: 8px;">
-                                                        <button
-                                                            type="button"
-                                                            class="btn btn-sm btn-outline-secondary"
-                                                            :disabled="!!biolinkMappingByMechanism[idx]"
-                                                            @click.stop="remapMechanismToBiolink(idx)"
-                                                        >
-                                                            <b-spinner
-                                                                v-if="biolinkMappingByMechanism[idx]"
-                                                                small
-                                                                type="border"
-                                                                class="mr-1"
-                                                            />
-                                                            <b-icon v-else icon="diagram-3" class="mr-1"></b-icon>
-                                                            {{ isMechanismBiolinkMapped(mechanism) ? 'Remap to Biolink' : 'Map to Biolink' }}
-                                                        </button>
-                                                    </div>
                                                     <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="small text-muted mb-2">
                                                         {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
                                                     </p>
-                                                    <p v-if="mechanism.biolink_map_meta && mechanism.biolink_map_meta.mappedNodeCount > 0" class="small text-muted mb-2">
-                                                        Biolink mapped nodes: {{ mechanism.biolink_map_meta.mappedNodeCount }}/{{ mechanism.biolink_map_meta.totalNodeCount }}
-                                                        <span v-if="mechanism.biolink_map_meta.unmappedNodeCount > 0">
-                                                            ({{ mechanism.biolink_map_meta.unmappedNodeCount }} unmapped)
-                                                        </span>
-                                                        <span v-if="biolinkTrapiValidatingByMechanism[idx]" class="ml-1">
-                                                            · Checking Translator edges…
-                                                        </span>
-                                                        <span v-if="mechanism.biolink_map_meta.trapi_edge_validation">
-                                                            · Translator edges:
-                                                            {{ mechanism.biolink_map_meta.trapi_edge_validation.supported }}/{{ mechanism.biolink_map_meta.trapi_edge_validation.checked }} supported
-                                                            <span v-if="mechanism.biolink_map_meta.trapi_edge_validation.skipped > 0">
-                                                                ({{ mechanism.biolink_map_meta.trapi_edge_validation.skipped }} skipped)
-                                                            </span>
-                                                        </span>
-                                                    </p>
-                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px; position: relative;">
-                                                        <div
-                                                            v-if="hasMechanismBiolinkNetwork(mechanism)"
-                                                            class="d-flex flex-wrap align-items-center justify-content-end px-2 pt-2"
-                                                            style="gap: 6px;"
-                                                        >
-                                                            <div class="btn-group btn-group-sm" role="group" aria-label="Hypothesis map view">
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn"
-                                                                    :class="isMechanismUsingBiolinkMap(mechanism) ? 'btn-outline-secondary' : 'btn-secondary'"
-                                                                    @click.stop="setMechanismMapViewMode(idx, 'original')"
-                                                                >
-                                                                    Original map
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn"
-                                                                    :class="isMechanismUsingBiolinkMap(mechanism) ? 'btn-secondary' : 'btn-outline-secondary'"
-                                                                    @click.stop="setMechanismMapViewMode(idx, 'biolink')"
-                                                                >
-                                                                    Biolink map
-                                                                </button>
-                                                            </div>
-                                                        </div>
+                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px;">
                                                         <factor-base-reveal-network
                                                             :ref="'mechanismHypothesisMap-' + idx"
-                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '') + '-' + (mechanism.biolink_map_meta && mechanism.biolink_map_meta.trapi_validation_revision != null ? mechanism.biolink_map_meta.trapi_validation_revision : 0)"
+                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
                                                             :network="mechanism.core_spine_network"
                                                             :genes="mechanism.candidate_genes || mechanism.genes || []"
                                                             :width="640"
@@ -968,6 +911,11 @@
                                                             :show-popup-button="true"
                                                             :is-mechanism-flow-map="true"
                                                             :is-biolink-map="isMechanismUsingBiolinkMap(mechanism)"
+                                                            :show-hypothesis-map-view-toggle="hasMechanismBiolinkNetwork(mechanism)"
+                                                            :show-original-hypothesis-map="!isMechanismUsingBiolinkMap(mechanism)"
+                                                            @hypothesis-original-map="
+                                                                setMechanismMapViewMode(idx, $event ? 'original' : 'biolink')
+                                                            "
                                                             @open-popup="openNetworkPopup(idx, { hypothesisMap: true })"
                                                         />
                                                     </div>
@@ -1517,7 +1465,7 @@
                 </div>
                 <div class="network-popup-body">
                     <factor-base-reveal-network
-                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting') + '-' + (networkPopupIsHypothesisMap && mechanisms[networkPopupMechanismIndex].biolink_map_meta && mechanisms[networkPopupMechanismIndex].biolink_map_meta.trapi_validation_revision != null ? mechanisms[networkPopupMechanismIndex].biolink_map_meta.trapi_validation_revision : 0)"
+                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting')"
                         :network="
                             networkPopupIsHypothesisMap
                                 ? mechanisms[networkPopupMechanismIndex].core_spine_network
@@ -1527,8 +1475,23 @@
                         :genes="mechanisms[networkPopupMechanismIndex].candidate_genes || mechanisms[networkPopupMechanismIndex].genes || []"
                         :width="popupNetworkWidth"
                         :height="popupNetworkHeight"
+                        :show-popup-button="false"
                         :is-mechanism-flow-map="networkPopupIsHypothesisMap"
                         :is-biolink-map="networkPopupIsHypothesisMap && isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])"
+                        :show-hypothesis-map-view-toggle="
+                            networkPopupIsHypothesisMap &&
+                            hasMechanismBiolinkNetwork(mechanisms[networkPopupMechanismIndex])
+                        "
+                        :show-original-hypothesis-map="
+                            networkPopupIsHypothesisMap &&
+                            !isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])
+                        "
+                        @hypothesis-original-map="
+                            setMechanismMapViewMode(
+                                networkPopupMechanismIndex,
+                                $event ? 'original' : 'biolink'
+                            )
+                        "
                     />
                 </div>
             </div>
@@ -4334,24 +4297,61 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             }
             return { edges: out, trapiStats: { checked, supported, skipped } };
         },
+        /** Edges-only visual state for TRAPI progress: skip network reclone when unchanged (e.g. empty TRAPI results). */
+        biolinkEdgeVisualSignature(edges) {
+            const list = Array.isArray(edges) ? edges : [];
+            return JSON.stringify(
+                list.map((e) => {
+                    const src =
+                        e.source != null
+                            ? String(e.source)
+                            : e.from != null
+                              ? String(e.from)
+                              : "";
+                    const tgt =
+                        e.target != null
+                            ? String(e.target)
+                            : e.to != null
+                              ? String(e.to)
+                              : "";
+                    const md = e.metadata || {};
+                    return {
+                        src,
+                        tgt,
+                        dashes: !!e.dashes,
+                        inferred: !!md.inferred_edge,
+                        validated: !!md.trapi_validated,
+                    };
+                })
+            );
+        },
         patchMechanismBiolinkTrapiProgress(idx, edges, mappedNodes, trapiStats) {
             const m = this.mechanisms[idx];
             if (!m || !m.biolink_core_spine_network) return;
+            const prevEdges = m.biolink_core_spine_network.edges;
+            const sigPrev = this.biolinkEdgeVisualSignature(prevEdges);
+            const sigNext = this.biolinkEdgeVisualSignature(edges);
+            if (sigPrev === sigNext) {
+                this.$set(this.mechanisms, idx, {
+                    ...m,
+                    biolink_map_meta: {
+                        ...m.biolink_map_meta,
+                        trapi_edge_validation: { ...trapiStats },
+                    },
+                });
+                return;
+            }
             const mappedNetwork = {
                 ...m.biolink_core_spine_network,
                 nodes: mappedNodes,
                 edges,
             };
-            const prevRev = m.biolink_map_meta && m.biolink_map_meta.trapi_validation_revision != null
-                ? Number(m.biolink_map_meta.trapi_validation_revision)
-                : 0;
             const next = {
                 ...m,
                 biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
                 biolink_map_meta: {
                     ...m.biolink_map_meta,
                     trapi_edge_validation: { ...trapiStats },
-                    trapi_validation_revision: prevRev + 1,
                 },
             };
             if (next.map_view_mode === "biolink") {
@@ -4527,7 +4527,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                         unmappedNodeCount,
                         totalNodeCount: nodes.length,
                         mappedAt: new Date().toISOString(),
-                        trapi_validation_revision: 0,
                     },
                 };
                 this.$set(this.mechanisms, idx, nextMechanism);
@@ -4535,9 +4534,6 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             } finally {
                 this.$set(this.biolinkMappingByMechanism, idx, false);
             }
-        },
-        async remapMechanismToBiolink(idx) {
-            return this.mapMechanismBiolinkPhase1Only(idx);
         },
         async autoMapAllMechanismsToBiolink() {
             const arr = this.mechanisms;
