@@ -1431,12 +1431,12 @@
                 const format = this.renderConfig.format;
                 const format_dataset = format?.[this.datasetId];
                 const format_default = format?.default;
-                if(format_dataset.stratifyPlotType){
+                if(format_dataset?.stratifyPlotType){
                     if(this.stratifyPlotTypeOptions.includes(format_dataset.stratifyPlotType)){
                         this.stratifyPlotType = format_dataset.stratifyPlotType;
                     }
                 }
-                if(format_dataset.expressionColorScale){
+                if(format_dataset?.expressionColorScale){
                     if(this.expressionColorScaleOptions.includes(format_dataset.expressionColorScale)){
                         this.expressionColorScale = format_dataset.expressionColorScale;
                     }
