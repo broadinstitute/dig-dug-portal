@@ -26,7 +26,7 @@
             system_prompt: "You are a pirate"
         });
 
-        // Send a prompt with per-call handlers
+        // Send a prompt with per-call handlers (optional systemPrompt overrides the client default)
         summarizer.sendPrompt({
             userPrompt: "Summarize this paragraph...",
             onToken: token => console.log("token:", token),
@@ -38,6 +38,7 @@
 
         pirate.sendPrompt({
             userPrompt: "Grep this grog",
+            systemPrompt: "You are a privateer",
             onResponse: resp => console.log("response:", resp)
         });
 
@@ -49,7 +50,7 @@
 export function createLLMClient({ llm = "gemini", model, system_prompt, stream = false }) {
   let abortController = null;
 
-  async function sendPrompt({ userPrompt, onResponse, onToken, onError, onState, onEnd }) {
+  async function sendPrompt({ userPrompt, systemPrompt, onResponse, onToken, onError, onState, onEnd }) {
     if (!userPrompt) {
       onError?.(new Error("Missing prompt"));
       return;
@@ -67,9 +68,12 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
         ? "https://llm.hugeamp.org/openai"
         : "https://llm.hugeamp.org/gemini";
 
+    const effectiveSystem =
+      systemPrompt !== undefined && systemPrompt !== null ? systemPrompt : system_prompt;
+
     const payload = {
       model,
-      systemPrompt: system_prompt,
+      systemPrompt: effectiveSystem,
       userPrompt,
     };
 

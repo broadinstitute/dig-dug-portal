@@ -12,6 +12,30 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div
+                            class="reveal-hypothesis-mode-toggle small"
+                            title="Strict: graph-grounded “say no” rules. Relaxed: best-effort mechanisms with explicit gap warnings (entities still limited to the retrieved CSV)."
+                        >
+                            <span
+                                class="reveal-mode-label reveal-mode-label-strict"
+                                :class="hypothesisGenerationMode === 'strict' ? 'font-weight-bold text-dark' : 'text-muted'"
+                            >Strict</span>
+                            <!-- Slot reserves space: B-V switch draws ::before with left: ~-2.25rem over the control’s left edge. -->
+                            <div class="reveal-switch-slot">
+                                <b-form-checkbox
+                                    v-model="hypothesisModeRelaxedSwitch"
+                                    switch
+                                    class="reveal-mode-switch mb-0"
+                                    aria-label="Toggle relaxed exploratory hypothesis mode"
+                                />
+                            </div>
+                            <span
+                                class="reveal-mode-label reveal-mode-label-relaxed"
+                                :class="hypothesisGenerationMode === 'relaxed' ? 'font-weight-bold text-dark' : 'text-muted'"
+                            >Relaxed</span>
+                        </div>
+                    </div>
                     <div class="d-flex gap-2" style="position: relative;">
                         <input
                             type="text"
@@ -819,6 +843,18 @@
                             >
                                 <div class="font-weight-bold text-dark mb-1">No hypothesis generated (diagnostic assessment)</div>
                                 <p class="mb-2 small mb-0">{{ mechanismDiagnosticAssessment.rejection_reason || "The model declined to invent connections not supported by the retrieved graph." }}</p>
+                                <div
+                                    v-if="hypothesisGenerationMode === 'strict'"
+                                    class="mt-2 pt-2 border-top"
+                                    style="border-color: rgba(0,0,0,0.08) !important;"
+                                >
+                                    <p class="small mb-2">
+                                        Retrieval and strict graph rules blocked a mechanism. You can run again in <strong>Relaxed</strong> mode to ask the model for a best-effort, explicitly warned hypothesis (still grounded in the retrieved CSV).
+                                    </p>
+                                    <button type="button" class="btn btn-cfde btn-sm" @click="retryMechanismHypothesesRelaxed">
+                                        Try in relaxed (exploratory) mode
+                                    </button>
+                                </div>
                                 <div v-if="mechanismDiagnosticAssessment.suggested_optimized_query" class="mt-2 pt-2 border-top">
                                     <div class="font-weight-bold small mb-1">Suggested optimized query</div>
                                     <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
@@ -847,6 +883,15 @@
                                         :key="idx"
                                         class="mechanism-card rounded border shadow-sm bg-light overflow-hidden"
                                     >
+                                        <div
+                                            v-if="hypothesisLastRunMode === 'relaxed' || mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.exploratory_mode === true"
+                                            class="px-3 py-2 small mb-0 border-bottom"
+                                            style="background: #fff8e6; border-color: #f0d060 !important; color: #5c4a00;"
+                                            role="status"
+                                        >
+                                            <strong>Exploratory hypothesis.</strong>
+                                            This run used relaxed mode: check diagnostic warnings and Biolink map edge validation—speculative interpretation may bridge gaps not proven by single-hop graph evidence.
+                                        </div>
                                         <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
                                             <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
                                         </div>
@@ -1810,7 +1855,8 @@ Return ONLY valid JSON in the following structure:
     "can_generate_hypothesis": true,
     "rejection_reason": "String or null. Populate if an absolute rejection in Case 1, 2, or 3 is triggered.",
     "warning_flag": "String or null. Populate if a partial hit in Case 1/2, or the missing anchor in Case 4 is triggered.",
-    "suggested_optimized_query": "String or null. MUST be populated if a rejection or warning occurs."
+    "suggested_optimized_query": "String or null. MUST be populated if a rejection or warning occurs.",
+    "exploratory_mode": "Boolean; set true when relaxed/exploratory mode instructions apply (omitted in strict mode)."
   },
   "hypotheses": [
     {
@@ -1867,9 +1913,42 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 1. MECHANISTIC PRIORITIZATION: Elevate any gene in the retrieved list that directly executes the requested biochemical mechanism.
 2. CANONICAL SEGREGATION: You must explicitly segregate genes in the JSON output using the "group" field. Assign them as either "Primary Mechanistic Candidate" (directly executes the requested mechanism) or "Supporting Canonical Network" (generic hubs providing downstream phenotypic context).
 `,
+            /** strict | relaxed — relaxed appends mechanismHypothesisExploratoryModeSuffix for the mechanism LLM only. */
+            hypothesisGenerationMode: "strict",
+            /** Mirrors the mode used for the last completed mechanism hypothesis LLM call (card banner). */
+            hypothesisLastRunMode: null,
+            mechanismHypothesisExploratoryModeSuffix: `
+### EXPLORATORY (RELAXED) MODE — ACTIVE FOR THIS REQUEST
+The user enabled **relaxed / exploratory** hypothesis generation. Apply these **OVERRIDES** to the **STRICT ANTI-HALLUCINATION DIRECTIVES** above. **Data fidelity still applies:** use only genes, gene sets, phenotypes, and \`contains_gene\` / \`associated_with\` / \`contributes_to_pathway\` relationships present in the provided CSV—you must not invent entities that are absent from that graph.
+
+**Case 1 — all requested genes missing from response (\`genes_of_interest_missing_from_response\` covers the full request):** Do **not** reject solely for this reason if the CSV still has a coherent phenotype–gene set–gene structure. Set \`can_generate_hypothesis\` to **true**. Build the best mechanism you can from **supported** subgraphs. In \`warning_flag\`, start with \`Exploratory mode:\` and explain which queried genes are missing from the merged response and that the story does not chain those genes through direct edges.
+
+**Case 2 — all requested genes absent from DB (\`genes_of_interest_absent_from_db\` covers the full request):** Same as Case 1: prefer **proceed** with \`can_generate_hypothesis\` **true** when the CSV is non-empty and interpretable; document absent symbols in \`warning_flag\`.
+
+**Case 3 — hub gravity / phenotypic disconnect:** Prefer **proceed** rather than reject. Set \`can_generate_hypothesis\` to **true** when any usable CSV structure exists. State the domain mismatch explicitly in \`warning_flag\` and keep \`data_tracing_scratchpad\` and \`supporting_row_ids\` tied to real rows. Do not fabricate cross-domain edges missing from the CSV.
+
+**diagnostic_assessment object:** Include \`"exploratory_mode": true\` (boolean) on every response under relaxed mode. Merge exploratory warnings into \`warning_flag\` (do not leave \`warning_flag\` null when you would have strictly rejected or issued a strong Case 3 warning).
+
+**suggested_optimized_query:** Still supply when it would help the user tighten their question; relaxed mode does not remove this obligation.
+`,
         };
     },
     computed: {
+        hypothesisModeRelaxedSwitch: {
+            get() {
+                return this.hypothesisGenerationMode === "relaxed";
+            },
+            set(v) {
+                this.hypothesisGenerationMode = v ? "relaxed" : "strict";
+            },
+        },
+        /** Full system prompt for mechanism hypothesis LLM (strict base ± exploratory suffix). */
+        mechanismHypothesisSystemPromptEffective() {
+            if (this.hypothesisGenerationMode === "relaxed") {
+                return `${this.mechanismHypothesisSystemPrompt}\n\n${this.mechanismHypothesisExploratoryModeSuffix}`;
+            }
+            return this.mechanismHypothesisSystemPrompt;
+        },
         factorDataTableRows() {
             const rows = [];
             const data = this.factorData || {};
@@ -3287,6 +3366,28 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
         },
         currStepTime(step){
             return this.formatTime(this.now - step.timeStart);
+        },
+        /**
+         * Hypothesis retry: step 4 already exists and setStep(..., true) on completion stopped stepsTimer.
+         * Reset elapsed origin, clear completion substeps, and restart the interval so UI time updates again.
+         */
+        restartMechanismHypothesisStepTimer() {
+            const idx = (this.steps || []).findIndex((s) => s && s.id === "4");
+            const t = Date.now();
+            if (idx !== -1) {
+                this.$set(this.steps[idx], "timeStart", t);
+                this.$set(this.steps[idx], "time", null);
+                this.$set(this.steps[idx], "substeps", []);
+            }
+            this.now = t;
+            this.stepsPausedAt = null;
+            if (this.stepsTimer) {
+                clearInterval(this.stepsTimer);
+                this.stepsTimer = null;
+            }
+            this.stepsTimer = setInterval(() => {
+                this.now = Date.now();
+            }, 500);
         },
         expandStepById(stepId) {
             const idx = this.steps.findIndex((s) => s.id === stepId);
@@ -4846,6 +4947,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             this.mechanisms = null;
             this.mechanisms_summary = null;
             this.mechanismDiagnosticAssessment = null;
+            this.hypothesisLastRunMode = null;
             this.lastAlternativeQueries = [];
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
@@ -5420,6 +5522,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 this.lastKgTriples = [];
                 this.mechanisms = null;
                 this.mechanismDiagnosticAssessment = null;
+                this.hypothesisLastRunMode = null;
                 this.phenotypeDescriptionById = {};
                 const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
                     ? String(this.searchCriteria[1].values)
@@ -5537,6 +5640,10 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 .replace(/\s+/g, " ");
         },
 
+        retryMechanismHypothesesRelaxed() {
+            this.hypothesisGenerationMode = "relaxed";
+            this.retryMechanismHypotheses();
+        },
         retryMechanismHypotheses() {
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
@@ -5549,6 +5656,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 id: "4",
                 title: "LLM: Generating mechanistic hypotheses",
             });
+            this.restartMechanismHypothesisStepTimer();
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
                 : this.transformMergedDataToKG(this.factorData, 'factors');
@@ -5633,8 +5741,13 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 factor: String((r.factorLabel != null && String(r.factorLabel).trim() !== "") ? r.factorLabel : r.factor || "").trim(),
             })).filter((p) => p.phenotype && p.factor);
             const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
-            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseContextSuffix}\n\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
+            const modeLine =
+                this.hypothesisGenerationMode === "relaxed"
+                    ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply the relaxed overrides in your system prompt; set diagnostic_assessment.exploratory_mode to true.\n"
+                    : "";
+            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseContextSuffix}\n${modeLine}\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
             const maxAttempts = 3;
+            const systemPromptForRun = this.mechanismHypothesisSystemPromptEffective;
 
             (async () => {
                 let parsed = null;
@@ -5649,6 +5762,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                             resolve(payload);
                         };
                         this.llmAnalyze.sendPrompt({
+                            systemPrompt: systemPromptForRun,
                             userPrompt: hypothesesUserPrompt,
                             onResponse: (response) => {
                                 console.log("FactorBaseReveal: hypotheses LLM raw response", response);
@@ -5683,6 +5797,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 }
 
                 if (!parsed) {
+                    this.hypothesisLastRunMode = null;
                     this.error_mechanisms = true;
                     this.error_msg_mechanisms =
                         lastFailed && lastFailed.message
@@ -5696,6 +5811,9 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                     this.loadComplete = true;
                     return;
                 }
+
+                const modeSnapshot = this.hypothesisGenerationMode;
+                this.hypothesisLastRunMode = modeSnapshot;
 
                 const diag =
                     parsed.diagnostic_assessment != null && typeof parsed.diagnostic_assessment === "object"
@@ -5835,7 +5953,12 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 ],
             };
             const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
-            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
+            const pairModeLine =
+                this.hypothesisGenerationMode === "relaxed"
+                    ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply relaxed system-prompt overrides; set diagnostic_assessment.exploratory_mode to true.\n"
+                    : "";
+            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}${pairModeLine}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
+            const systemPromptForPair = this.mechanismHypothesisSystemPromptEffective;
 
             let finished = false;
             const finish = () => {
@@ -5846,6 +5969,7 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             };
 
             this.llmAnalyze.sendPrompt({
+                systemPrompt: systemPromptForPair,
                 userPrompt: fullPrompt,
                 onResponse: (response) => {
                     console.log("FactorBaseReveal: hypotheses LLM raw response", response);
@@ -6803,6 +6927,47 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
 }
 .fbr-provenance-menu-link:hover {
     background: #f3f4f6;
+}
+
+/* Strict / Relaxed toggle: B-V .custom-switch positions the track with negative left (~2.25rem); keep that bleed inside .reveal-switch-slot only. */
+.reveal-hypothesis-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    max-width: 100%;
+}
+.reveal-hypothesis-mode-toggle .reveal-mode-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    line-height: 1.25;
+    user-select: none;
+}
+.reveal-hypothesis-mode-toggle .reveal-mode-label-strict {
+    text-align: right;
+    padding-right: 0.2rem;
+}
+.reveal-hypothesis-mode-toggle .reveal-mode-label-relaxed {
+    min-width: 3.25rem;
+    text-align: left;
+    padding-left: 0.2rem;
+}
+.reveal-hypothesis-mode-toggle .reveal-switch-slot {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Room for switch track drawn left of the control’s box (BS4 custom-switch). */
+    /*- ;min-width: 3.5rem;
+    padding: 0 0.35rem 0 2.65rem;*/
+    margin-left: 30px;
+    margin-right: -10px;
+    box-sizing: content-box;
+}
+.reveal-hypothesis-mode-toggle .reveal-mode-switch {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
 }
 
 </style>

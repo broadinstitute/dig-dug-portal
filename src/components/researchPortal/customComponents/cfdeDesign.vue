@@ -1377,11 +1377,8 @@ export default {
 			this.showWelcomePopup = true;
 		}
 
-		// Check for URL parameters and populate fields
-		// Use nextTick to ensure utilsBox is fully loaded
-		this.$nextTick(async () => {
-			await this.initializeFromKeyParams();
-		});
+		// URL / keyParams hydration runs in the utilsBox watcher (immediate: true).
+		// Do not call initializeFromKeyParams() here: that duplicated `constraints` into experimentNotes.
 	},
 	beforeDestroy() {
 		// Clean up timer when component is destroyed
