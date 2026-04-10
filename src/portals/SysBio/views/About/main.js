@@ -28,7 +28,9 @@ new Vue({
                 about: "sysbiofairplex_aboutus",
                 access: "sysbiofairplex_howtoaccessampdatadirectly",
                 glossary: "sysbiofairplex_glossary",
-                ampdata: "sysbiofairplex_ampdata"
+                ampdata: "sysbiofairplex_ampdata",
+                harmonization: "sysbiofairplex_dataharmonization",
+                feedback: "sysbiofairplex_sharefeedback"
             }
         };
     },

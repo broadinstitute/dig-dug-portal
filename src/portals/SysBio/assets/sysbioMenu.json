@@ -70,6 +70,10 @@
         {
           "label": "AMP data",
           "path": "/about.html?page=ampdata"
+        },
+        {
+          "label": "Data harmonization",
+          "path": "/about.html?page=harmonization"
         }
       ]
     },
@@ -84,6 +88,10 @@
         {
           "label": "Collaborate",
           "path": "/about.html?page=collaborate"
+        },
+        {
+          "label": "Share feedback",
+          "path": "/about.html?page=feedback"
         }
       ]
     }
