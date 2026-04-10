@@ -79,6 +79,8 @@ const VIEW_PADDING = 0.1;
 const RESET_CAMERA_DISTANCE_3D_MULTIPLIER = 0.9;
 const PAN_SENSITIVITY_3D = 1.2;
 const AXIS_INDICATOR_SIZE = 50;
+const MIN_ZOOM_RATIO_2D = 0.1;
+const MAX_ZOOM_RATIO_2D = 20;
 const IDENTITY_MATRIX = new Float32Array([
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -1255,7 +1257,19 @@ export default Vue.component('research-umap-plot-gl', {
 
         onWheel(e) {
             const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
-            this.camera.distance = clamp(this.camera.distance * zoomFactor, this.pointBounds.radius * 0.2, this.pointBounds.radius * 30);
+            if (this.is3dMode) {
+                this.camera.distance = clamp(
+                    this.camera.distance * zoomFactor,
+                    this.pointBounds.radius * 0.2,
+                    this.pointBounds.radius * 30
+                );
+            } else {
+                this.camera.distance = clamp(
+                    this.camera.distance * zoomFactor,
+                    this.resetCamera.distance * MIN_ZOOM_RATIO_2D,
+                    this.resetCamera.distance * MAX_ZOOM_RATIO_2D
+                );
+            }
             this.scheduleSync();
             this.requestRender(true);
         },
