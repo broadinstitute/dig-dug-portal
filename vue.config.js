@@ -369,9 +369,9 @@ module.exports = {
             },
         });
 
-        // Add the rule for handling .js files with babel-loader
+        // Add the rule for handling .js/.mjs/.cjs files with babel-loader
         config.module.rules.push({
-            test: /\.js$/,
+            test: /\.(js|mjs|cjs)$/,
             include: [/node_modules\/vis-network/, /node_modules\/vis-data/],
             use: {
                 loader: "babel-loader",
@@ -381,11 +381,6 @@ module.exports = {
                 },
             },
         });
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            "vis-network": "vis-network/standalone/umd/vis-network.min.js",
-            "vis-data": "vis-data/standalone/umd/vis-data.min.js",
-        };
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
             //config.devtool = "inline-source-map";
