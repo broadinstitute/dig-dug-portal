@@ -1,5 +1,24 @@
 <template>
-    <div ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden;">
+    <div ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
+        <div style="display:flex; gap:5px; justify-content: flex-end;" class="legends">
+            <div style="display:flex; flex-direction: column;" class="legend">
+                <div class="label">Mean Expression</div>
+                <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray()});`"></div>
+                <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
+            </div>
+            <div style="display:flex; flex-direction: column;" class="legend">
+                <div class="label">% Cells Expressing</div>
+                <div style="display:flex" class="circles">
+                    <div class="circleBorder"><div class="circle" style="height:20%"></div></div>
+                    <div class="circleBorder"><div class="circle" style="height:40%"></div></div>
+                    <div class="circleBorder"><div class="circle" style="height:60%"></div></div>
+                    <div class="circleBorder"><div class="circle" style="height:80%"></div></div>
+                    <div class="circleBorder"><div class="circle" style="height:100%"></div></div>
+                </div>
+                <div style="display:flex" class="marks"><div>0</div><div>100</div></div>
+            </div>
+        </div>
+
         <div ref="plot"></div>
     </div>
   </template>
@@ -67,6 +86,11 @@
         showYLabels: {
             type: Boolean,
             default: true,
+        },
+        colorScale: {
+            type: String,
+            required: false,
+            default: "blue"
         }
     },
     data() {
@@ -75,7 +99,12 @@
             marginRight: 20,
             marginTop: 20,
             marginBottom: 20,
-            resizeTimeout: null
+            resizeTimeout: null,
+
+            colorOptions: {
+                red: d3.interpolateReds,
+                blue: d3.interpolate("lightgrey", "blue")
+            },
         }
     },
     watch: {
@@ -89,6 +118,14 @@
             this.renderPlot();
         }
     },
+    computed: {
+        currColorOption(){
+            return this.colorOptions[this.colorScale];
+        },
+        markerGenesMaxMean(){
+            return d3.max(this.data.map(d => d[this.fillKey])).toFixed(1);
+        }
+    },
     mounted() {
         this.renderPlot();
         window.addEventListener('resize', this.handleResize);
@@ -97,6 +134,9 @@
        window.removeEventListener('resize', this.handleResize);
     },
     methods: {
+        colorScaleArray() {
+            return d3.range(0, 1.01, 0.1).map(t => this.currColorOption(t)).join(', ');
+        },
         handleResize(){
             clearTimeout(this.resizeTimeout);
             //d3.select(this.$refs.plot).html('');
@@ -109,17 +149,26 @@
             d3.select(this.$refs.plot).style('position', 'relative');
             llog('---DotPlot')
             llog('   data', this.data);
+            llog('   keys', {x:this.xKey, y:this.yKey, fill:this.fillKey, size:this.sizeKey});
 
             if(!this.data || this.data.length===0){
                 llog('   expression data required');
                 return;
             }
-            if(!this.xKey){
+            if(!this.xKey || this.xKey===undefined){
                 llog('   xKey required');
                 return;
             }
-            if(!this.yKey){
+            if(!this.yKey || this.yKey===undefined){
                 llog('   yKey required');
+                return;
+            }
+            if(!this.fillKey || this.fillKey===undefined){
+                llog('   fillKey required');
+                return;
+            }
+            if(!this.sizeKey || this.sizeKey===undefined){
+                llog('   sizeKey required');
                 return;
             }
 
@@ -197,7 +246,17 @@
                 height = plotHeight + margin.top + margin.left;
             }
 
-            this.$refs.plotWrapper.style.height = height+'px';
+            if(cellWidth < 13) {
+                cellWidth = 13;
+                plotWidth = xKeyLabels.length * cellWidth;
+                width = plotWidth + margin.left + margin.right;
+                plotHeight = yKeyLabels.length * cellWidth;
+                height = plotHeight + margin.top + margin.bottom;
+            }
+
+            console.log("!!!!!!!!!!!!", cellWidth);
+
+            //this.$refs.plotWrapper.style.height = height+'px';
 
             //llog('   dimentions', {margin, width, height});
     
@@ -217,9 +276,14 @@
                 .domain([0, 100])
                 .nice();
             
+            /*
             const colorScale = d3.scaleLinear()
                 .domain([0, d3.max(allMeans)])
                 .range(["lightgrey", "blue"]);
+            */
+
+           const colorScale = d3.scaleSequential(this.currColorOption)
+                .domain([0, d3.max(allMeans)]);
     
             // Create the color scale
             //const color = d3.scaleSequential(d3.interpolatePlasma)
@@ -239,20 +303,20 @@
                     .append('text')
                     .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
-                    .text(this.yLabel ? this.yLabel : this.yKey)
+                    .text(this.xLabel ? this.xLabel : this.xKey)
                     const bbox = label.node().getBBox();
-                    const xAxisLabelTopPosition = (margin.top + plotHeight / 2) + (bbox.width / 2);
-                    label.attr('transform', `rotate(-90) translate( -${(xAxisLabelTopPosition)}, 10)`);
+                    const yAxisLabelLeftPosition = width - (plotWidth/2) - (bbox.width / 2);
+                    label.attr('transform', `translate(${yAxisLabelLeftPosition}, 10)`);
             }
             {
                 const label = svg.append('g')
                     .append('text')
                     .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
                     .attr('class', 'chart-label')
-                    .text(this.xLabel ? this.xLabel : this.xKey)
+                    .text(this.yLabel ? this.yLabel : this.yKey)
                     const bbox = label.node().getBBox();
-                    const yAxisLabelLeftPosition = width - (plotWidth/2) - (bbox.width / 2);
-                    label.attr('transform', `translate(${yAxisLabelLeftPosition}, 10)`);
+                    const xAxisLabelTopPosition = (margin.top + plotHeight / 2) + (bbox.width / 2);
+                    label.attr('transform', `rotate(-90) translate( -${(xAxisLabelTopPosition)}, 10)`);
             }
     
     
@@ -279,6 +343,9 @@
                         .select(".domain").remove()
                 }   
             }
+
+            //detect if pct_cells_expression is used 0-1 or 0-100 scale
+            const scaleAdjust = Math.max(...this.data.map(d => d.pct_cells_expression)) <= 1 ? 100 : 1;
     
             //render cells
             const cells = svg.append('g');
@@ -300,7 +367,7 @@
                     cells.append('circle')
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
                         .attr('cy', yScale(d[yKey]) + yScale.bandwidth() / 2 )
-                        .attr('r', cellScale(d[sizeKey]*100))
+                        .attr('r', cellScale(d[sizeKey]*scaleAdjust))
                         .style('fill', colorScale(d[fillKey]))
                         .style('pointer-events', 'none')
                         .attr('data-key', d[yKey])
@@ -312,7 +379,7 @@
                             <div style="font-weight:bold">${xKey}</div>     <div>${d[xKey]}</div>
                             <div style="font-weight:bold">${yKey}</div>     <div>${d[yKey]}</div>
                             <div style="font-weight:bold">Mean Expr.</div>  <div>${d[fillKey].toFixed(4)}</div>
-                            <div style="font-weight:bold">% Expr.</div>     <div>${(d[sizeKey]*100).toFixed(4)}</div>
+                            <div style="font-weight:bold">% Expr.</div>     <div>${(d[sizeKey]*scaleAdjust).toFixed(4)}</div>
                         </div>`;
                         mouseTooltip.show(tooltipContent);
                     })
@@ -337,5 +404,51 @@
     ::v-deep .chart-label {
         font-size: 12px;
         opacity: 0.5;
+    }
+    .legends {
+        gap: 20px;
+    }
+    .legend {
+        margin: 0 10px 0 0;
+        gap:1px;
+    }
+    .legend .label {
+        font-size: 11px !important;
+        line-height: 11px;
+    }
+    .legend .gradient {
+        height: 10px;
+        width: 100px;
+        border-radius: 20px;
+    }
+    .legend .gradient-tall {
+        height: 100px;
+        width: 15px;
+        border-radius: 20px;
+    }
+    .legend .circles {
+        height: 10px;
+        width: -webkit-fill-available;
+        justify-content: space-between;
+        padding: 0 0;
+    }
+    .legend .circleBorder {
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .legend .circle {
+        aspect-ratio: 1;
+        background: #ccc;
+        border-radius: 50%;
+        align-self: center;
+    }
+    .legend .marks {
+        justify-content: space-between;
+        font-size: 11px;
+        line-height: 11px;
     }
 </style>

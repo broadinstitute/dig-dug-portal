@@ -154,7 +154,7 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
         });
     }
 
-    return result;
+    return sortGroupedResults(fields, result, [primaryKey, subsetKey].filter(Boolean));
 }
 
 export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, facetKey){
@@ -240,7 +240,7 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         });
     }
 
-    return result;
+    return sortGroupedResults(fields, result, [primaryKey, facetKey, subsetKey].filter(Boolean));
 }
 
 /**
@@ -715,7 +715,36 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
         });
     }
 
-    return result;
+    return sortGroupedResults(fields, result, [primaryKey, subsetKey].filter(Boolean));
+}
+
+function sortGroupedResults(fields, rows, keys) {
+    if (!rows || rows.length === 0) return rows;
+
+    const sortedLabels = fields.metadata_labels_sorted || {};
+    const orderMaps = {};
+
+    keys.forEach(key => {
+        const orderedValues = sortedLabels[key] || fields.metadata_labels[key];
+        if (orderedValues) {
+            orderMaps[key] = new Map(orderedValues.map((value, index) => [value, index]));
+        }
+    });
+
+    return [...rows].sort((a, b) => {
+        for (const key of keys) {
+            const orderMap = orderMaps[key];
+            if (!orderMap) continue;
+
+            const aIndex = orderMap.get(a[key]);
+            const bIndex = orderMap.get(b[key]);
+
+            if (aIndex !== bIndex) {
+                return (aIndex ?? Number.MAX_SAFE_INTEGER) - (bIndex ?? Number.MAX_SAFE_INTEGER);
+            }
+        }
+        return 0;
+    });
 }
 
 
