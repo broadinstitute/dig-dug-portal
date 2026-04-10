@@ -19,7 +19,7 @@
                 </a>
                 <div v-if="item.subMenuItems" class="submenu">
                     <a
-                        v-for="subItem in item.subMenuItems"
+                        v-for="subItem in item.subMenuItems.filter(i => !i.hide)"
                         class="submenu-item"
                         :class="{ active: isActive(subItem.path) }"
                         :href="subItem.path || null"
