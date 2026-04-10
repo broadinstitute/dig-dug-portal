@@ -128,7 +128,7 @@
                                     </select>
                                     <div style="width: 100%; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
                                         <research-single-cell-selector 
-                                            :data="fields['metadata_labels']"
+                                            :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                                             :displayData="displayFields"
                                             :selectedField="cellCompositionVars.colorByField"
                                             layout="list"
@@ -292,7 +292,7 @@
                                     />
                                     <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                     <research-single-cell-selector 
-                                        :data="fields['metadata_labels']"
+                                        :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                                         layout="list"
                                         listDirection="horizontal"
                                         listAlignment="start"
@@ -386,7 +386,7 @@
                                         />
                                         <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                         <research-single-cell-selector
-                                            :data="fields['metadata_labels']"
+                                            :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                                             layout="list"
                                             listDirection="horizontal"
                                             listAlignment="start"
@@ -413,7 +413,7 @@
                                         />
                                         <template v-else>
                                             <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                            <div v-for="value in fields['metadata_labels'][cellCompositionVars.segmentByLabel]">
+                                            <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
                                                 <div style="display:flex; gap:3px; align-items: baseline;">
                                                     <div style="font-weight: bold;">{{ value }}</div>
                                                 </div>
@@ -567,7 +567,7 @@
                 />
                 <div v-if="dataReady" style="display:flex; gap:40px; flex:1">
                     <research-single-cell-selector 
-                        :data="fields['metadata_labels']"
+                        :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                         layout="dropdown-list"
                         :showSelect="false"
                         :colors="labelColors"
@@ -660,7 +660,7 @@
                                     </select>
                                     <div style="width: 100%; flex-grow:1; overflow-x: hidden; overflow-y: auto;">
                                         <research-single-cell-selector 
-                                            :data="fields['metadata_labels']"
+                                            :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                                             :displayData="displayFields"
                                             :selectedField="cellCompositionVars.colorByField"
                                             layout="list"
@@ -746,7 +746,7 @@
                                 />
                                 <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                 <research-single-cell-selector 
-                                    :data="fields['metadata_labels']"
+                                    :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
                                     layout="list"
                                     listDirection="horizontal"
                                     listAlignment="start"
@@ -920,7 +920,6 @@
     import {llog} from "./llog.js";
     import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
     import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
-    import ResearchUmapPlot from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlot.vue";
     import ResearchUmapPlotGL from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
     import ResearchStackedBarPlot from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot.vue";
     import ResearchStackedBarPlot2 from "@/components/researchPortal/singleCellBrowser/ResearchStackedBarPlot2.vue";
@@ -935,7 +934,6 @@
 
     export default Vue.component('research-single-cell-browser', {
         components: {
-            ResearchUmapPlot,
             ResearchUmapPlotGL,
             ResearchStackedBarPlot,
             ResearchDotPlot,
@@ -1475,21 +1473,18 @@
                 const fieldsEnpoint = this.selectedBI+this.BIendpoints.fields;
                 this.fields = await scUtils.fetchFields(fieldsEnpoint, this.datasetId);
                 if(this.fields){
-                    //sort metadata_labels naturally (alpha/num)
+                    this.fields.metadata_labels_sorted = {};
                     Object.keys(this.fields.metadata_labels).forEach(key => {
                         const customSortOrder = this.displayFields?.[key]?.customSortOrder;
                         const values = this.fields.metadata_labels[key];
-                        //if config specifies a custom sort order
-                        //and the config array is like the fields arrays
+
                         if (
                             customSortOrder &&
                             arraysHaveSameElements(customSortOrder, values)
                         ) {
-                            //replace field sort order with custom sort order
-                            this.fields.metadata_labels[key] = [...customSortOrder];
+                            this.fields.metadata_labels_sorted[key] = [...customSortOrder];
                         } else {
-                            //otherwise, by default, sort naturally
-                            this.fields.metadata_labels[key] = [...values].sort((a, b) =>
+                            this.fields.metadata_labels_sorted[key] = [...values].sort((a, b) =>
                                 a.localeCompare(b, undefined, { numeric: true })
                             );
                         }
@@ -1698,7 +1693,9 @@
                             //latest markers includes gene stats
                             this.markersList = [...new Set(this.markers.map(x=>x.gene.toUpperCase()))];
                             //this.markerCellTypes = [...new Set(this.markers.map(x=>x[markerFile.markerKey]))];
-                            this.markerCellTypes = this.fields.metadata_labels[markerFile.marker_gene_level]
+                            this.markerCellTypes =
+                                this.fields.metadata_labels_sorted?.[markerFile.marker_gene_level] ||
+                                this.fields.metadata_labels[markerFile.marker_gene_level]
 
                             /*
                             //sort metadata_labels naturally (alpha/num)
@@ -1822,7 +1819,10 @@
             },
             getAllStats(){
                 const data = [];
-                for(const value of this.fields['metadata_labels'][this.cellCompositionVars.segmentByLabel]){
+                const displayLabels =
+                    this.fields['metadata_labels_sorted']?.[this.cellCompositionVars.segmentByLabel] ||
+                    this.fields['metadata_labels'][this.cellCompositionVars.segmentByLabel];
+                for(const value of displayLabels){
                     const row = this.getStatsByPropValue(this.geneExpressionVars.expressionStats, this.cellCompositionVars.segmentByLabel, value);
                     data.push(...row);
                 }
