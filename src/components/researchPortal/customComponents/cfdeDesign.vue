@@ -1929,6 +1929,16 @@ export default {
 						await this.addGenesFromUrl(sortedGeneList);
 					}
 				}
+
+				// Reveal hybrid search: experimental validation next step → Additional notes / constraints context
+				if (this.utilsBox.keyParams['constraints'] && typeof this.utilsBox.keyParams['constraints'] === 'string') {
+					const cons = String(this.utilsBox.keyParams['constraints']).trim();
+					if (cons) {
+						this.experimentNotes = this.experimentNotes && String(this.experimentNotes).trim()
+							? `${String(this.experimentNotes).trim()}\n\n---\n${cons}`
+							: cons;
+					}
+				}
 			}
 		},
 		toggleManualGeneInput() {

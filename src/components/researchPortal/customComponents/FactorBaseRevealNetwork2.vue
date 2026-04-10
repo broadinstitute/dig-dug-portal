@@ -129,7 +129,7 @@ export default {
         isBiolinkMap: { type: Boolean, default: false },
         /** Show “Original map” checkbox between zoom and fullscreen (when Biolink network exists). */
         showHypothesisMapViewToggle: { type: Boolean, default: false },
-        /** Checked ⇒ LLM/original spine; unchecked ⇒ Biolink map (default). */
+        /** Checked ⇒ LLM/original spine; unchecked ⇒ Biolink map. */
         showOriginalHypothesisMap: { type: Boolean, default: false },
     },
     data() {

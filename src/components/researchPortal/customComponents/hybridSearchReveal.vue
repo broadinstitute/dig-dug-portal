@@ -849,30 +849,6 @@
                                     >
                                         <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
                                             <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
-                                            <div class="ml-auto d-flex flex-wrap align-items-center" style="gap: 8px;">
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-outline-light"
-                                                    @click.stop="copyMechanismForLlm(mechanism, idx)"
-                                                >
-                                                    <b-icon icon="clipboard" class="mr-1"></b-icon>
-                                                    {{ handoffCopiedMechanismIndex === idx ? 'Copied!' : 'Copy for LLM' }}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-outline-light"
-                                                    @click.stop="downloadMechanismHandoffPackage(mechanism, idx)"
-                                                >
-                                                    <b-icon icon="download" class="mr-1"></b-icon>
-                                                    Download handoff data
-                                                </button>
-                                                <button
-                                                    class="btn btn-cfde btn-sm"
-                                                    @click.stop="openDesignProtocolForMechanism(mechanism)"
-                                                >
-                                                    Design experiment protocol
-                                                </button>
-                                            </div>
                                         </div>
                                         <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
                                             <div
@@ -1085,23 +1061,59 @@
                                                         <span class="badge badge-secondary mr-2 mb-1">{{ step.category }}</span><br />
                                                         <strong class="text-dark" style="font-size: 0.95em;">{{ step.action }}</strong>
                                                         <span class="small text-muted"> {{ step.reason }}</span>
+                                                        <div
+                                                            v-if="isNextStepExperimentalValidation(step)"
+                                                            class="mt-2"
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                class="btn btn-cfde btn-sm"
+                                                                @click.stop="openDesignProtocolForMechanism(mechanism, step)"
+                                                            >
+                                                                Design experiment protocol
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div v-if="mechanism.next_queries && mechanism.next_queries.length" class="mt-3 mb-2 border-top pt-3">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-2">Explore further (next queries)</div>
-                                                <div class="d-flex flex-wrap" style="gap:8px;">
-                                                    <button
+                                            <div
+                                                v-if="mechanism.next_queries && mechanism.next_queries.length"
+                                                class="reveal-alt-queries-block mt-3 mb-0 border-top pt-3"
+                                            >
+                                                <div class="font-weight-bold small text-muted mb-1">Explore further (next queries)</div>
+                                                <ul class="reveal-alt-query-links mb-0">
+                                                    <li
                                                         v-for="(query, qidx) in mechanism.next_queries"
                                                         :key="'nq-' + idx + '-' + qidx"
-                                                        type="button"
-                                                        class="btn btn-sm btn-outline-cfde text-left"
-                                                        style="white-space: normal; line-height: 1.35;"
-                                                        @click="onAlternativeQuerySelected(query)"
                                                     >
-                                                        <b-icon icon="search" class="mr-1"></b-icon>{{ query }}
-                                                    </button>
-                                                </div>
+                                                        <a
+                                                            href="#"
+                                                            class="reveal-alt-query-link"
+                                                            @click.prevent="onAlternativeQuerySelected(query)"
+                                                        >{{ query }}</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div
+                                                class="mechanism-llm-handoff-actions d-flex flex-wrap align-items-center mt-3 pt-3 border-top"
+                                                style="gap: 8px;"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    @click.stop="copyMechanismForLlm(mechanism, idx)"
+                                                >
+                                                    <b-icon icon="clipboard" class="mr-1"></b-icon>
+                                                    {{ handoffCopiedMechanismIndex === idx ? 'Copied!' : 'Copy for LLM' }}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    @click.stop="downloadMechanismHandoffPackage(mechanism, idx)"
+                                                >
+                                                    <b-icon icon="download" class="mr-1"></b-icon>
+                                                    Download handoff data
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -3731,7 +3743,24 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             const hypothesis = mechanism && mechanism.hypothesis != null ? String(mechanism.hypothesis).trim() : "";
             return this.cfdeExploreAssociationHref(phenotype, geneSet, source, hypothesis);
         },
-        openDesignProtocolForMechanism(mechanism) {
+        isNextStepExperimentalValidation(step) {
+            const c = step && step.category != null ? String(step.category).trim().toLowerCase() : "";
+            return c === "experimental validation";
+        },
+        /** Plain text for cfde_design ?constraints= from one next_steps item (no category line). */
+        formatExperimentalValidationStepForDesignConstraints(step) {
+            if (!step || typeof step !== "object") return "";
+            const action = step.action != null ? String(step.action).trim() : "";
+            const reason = step.reason != null ? String(step.reason).trim() : "";
+            const lines = [];
+            if (action) lines.push(`Action: ${action}`);
+            if (reason) lines.push(`Reason: ${reason}`);
+            return lines.join("\n");
+        },
+        /**
+         * Open DESIGN in a new tab. Pass optional `experimentalValidationStep` to send `constraints` (that step's text).
+         */
+        openDesignProtocolForMechanism(mechanism, experimentalValidationStep) {
             if (!mechanism || typeof mechanism !== "object") return;
 
             const researchContext = this.getRevealResearchContextForExplore();
@@ -3755,6 +3784,15 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
             params.set("researchContext", researchContext);
             params.set("hypothesis", hypothesis);
             params.set("genes", genes);
+            if (
+                experimentalValidationStep &&
+                this.isNextStepExperimentalValidation(experimentalValidationStep)
+            ) {
+                const cons = this.formatExperimentalValidationStepForDesignConstraints(
+                    experimentalValidationStep
+                );
+                if (cons) params.set("constraints", cons);
+            }
 
             const designUrl = kcURL(`/r/cfde_design?${params.toString()}`);
             window.open(designUrl, "_blank", "noopener");
@@ -4514,14 +4552,16 @@ Because broad phenotypes have massive statistical weight, top retrieved genes ar
                 if (!mCurrent) return;
                 if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
 
+                const originalStored = mechanism.original_core_spine_network
+                    ? this.cloneNetworkForMapView(mechanism.original_core_spine_network)
+                    : this.cloneNetworkForMapView(src);
                 const nextMechanism = {
                     ...mCurrent,
-                    original_core_spine_network: mechanism.original_core_spine_network
-                        ? this.cloneNetworkForMapView(mechanism.original_core_spine_network)
-                        : this.cloneNetworkForMapView(src),
+                    original_core_spine_network: originalStored,
                     biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
-                    map_view_mode: "biolink",
-                    core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
+                    /** Default original spine until relay/APIs are ready; user switches via “Original map” checkbox. */
+                    map_view_mode: "original",
+                    core_spine_network: this.cloneNetworkForMapView(originalStored),
                     biolink_map_meta: {
                         mappedNodeCount,
                         unmappedNodeCount,
