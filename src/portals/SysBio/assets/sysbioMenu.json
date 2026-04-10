@@ -9,11 +9,13 @@
       "path": "",
       "subMenuItems": [
         {
+          "hide": true,
           "label": "Workbench",
           "path": "https://workbench.verily.com",
           "external": true
         },
         {
+          "hide": true,
           "label": "FAIRkit",
           "path": "https://staging.sysbio-fairplex.org/fairkit",
           "external": true
@@ -60,6 +62,14 @@
         {
           "label": "Policies",
           "path": "/about.html?page=policies"
+        },
+        {
+          "label": "Glossary of terms",
+          "path": "/about.html?page=glossary"
+        },
+        {
+          "label": "AMP data",
+          "path": "/about.html?page=ampdata"
         }
       ]
     },
