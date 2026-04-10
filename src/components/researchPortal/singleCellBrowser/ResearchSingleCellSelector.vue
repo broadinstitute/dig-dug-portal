@@ -178,7 +178,8 @@ export default Vue.component('research-single-cell-selector', {
         }
     },
     watch: {
-        data(){
+        data(newVal, oldVal){
+            if(newVal===oldVal) return;
             this.init();
         },
         selectedField(newVal){
@@ -194,7 +195,6 @@ export default Vue.component('research-single-cell-selector', {
     
     },
     mounted() {
-        
         this.init();
     },
     computed: {
@@ -202,31 +202,36 @@ export default Vue.component('research-single-cell-selector', {
     },
     methods: {
         init(){
+            console.log('init data', this.data);
             if(!this.data) return;
 
             //check if data is array
-            const isArray = Array.isArray(this.data);
+            let isArray = Array.isArray(this.data);
+            let data = this.data;
 
-            /*if(this.displayData){
-                this.filteredData = Object.fromEntries(
-                    Object.keys(this.displayData)
-                    .filter(key => key in this.data)
-                    .map(key => [key, this.data[key]])
-                );
-            }else{
-                this.filteredData = this.data;
-            }*/
+            //check if data is object and a key has been selected and if that field is an array
+            if(!isArray && this.selectedField){
+                data = this.data[this.selectedField];
+                if(!data) return;
+                isArray = Array.isArray(data);
+            }
+
             this.filteredData = this.data;
             
             //llog('filteredData', this.filteredData);
 
-            if(isArray || this.layout==='list' || this.layout === 'dropdown-list'){
+            if(isArray && (this.layout==='list' || this.layout === 'dropdown-list')){
                 //isArray
                 //this.selectedOption = this.selectedOption === this.selectedField ? '' : this.selectedField;
                 this.selectedOption = this.selectedField;
                 this.coloredOption = this.selectedField;
                 //this.coloredLabels[0] = this.selectedField;
-                this.listData = isArray ? this.data : this.data[this.selectedField];
+                //const data = isArray ? this.data : this.data[this.selectedField];
+                //console.log('...', data);
+                //if(data){
+                //const sorted = data.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+                this.listData = data;
+                //}
                 //this.layout = 'list';
             }else{
                 //this.selectOption(this.selectedField)
