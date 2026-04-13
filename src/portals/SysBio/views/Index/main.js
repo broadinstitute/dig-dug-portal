@@ -75,7 +75,7 @@ new Vue({
                         body: "Performing single cell-level analyses of tissue and blood samples from people with rheumatoid arthritis and systemic lupus erythematosus to pinpoint genes, proteins, pathways, and signaling networks. ",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-rheumatoid-arthritis-and-lupus/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_RA-SLE.png",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_RA_SLE.png",
                         type: "medium"
                     },
                     {
