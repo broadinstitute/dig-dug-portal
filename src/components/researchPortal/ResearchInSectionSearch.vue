@@ -6,6 +6,7 @@
 			v-if="searchParameters != null"
 		>
 			<h4 class="card-title">Build search criteria</h4>
+			{{ searchParameters }}
 			<div class="filtering-ui-content row">
 				<div
 					class="col"
@@ -151,7 +152,7 @@
 					</div>
 					<input
 						v-if="parameter.type == 'input' &&
-							parameter.values != 'kp genes'
+							parameter.values != 'kp genes' && parameter.values != 'kp variant'
 							"
 						type="text"
 						class="form-control"

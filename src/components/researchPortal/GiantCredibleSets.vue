@@ -1117,9 +1117,11 @@ export default Vue.component("giant-credible-sets-plot", {
 					? this.renderConfig["credible variants index"]
 					: "credible-variants";
 
+				let wildCardString = !!this.utils.keyParams["wCard"] ? this.utils.keyParams["wCard"] : null;
+
                 let searchingAncestry = this.getSearchingAncestry();
 
-                let queryString = (this.renderConfig["ancestry parameter"] && searchingAncestry != '*')? phenotype + "," + searchingAncestry + "," + CSID : phenotype + "," + CSID;
+                let queryString = (this.renderConfig["ancestry parameter"] && searchingAncestry != '*' && searchingAncestry != wildCardString)? phenotype + "," + searchingAncestry + "," + CSID : phenotype + "," + CSID;
 
 				let CSURL = 
 					CSServer +
@@ -1168,8 +1170,10 @@ export default Vue.component("giant-credible-sets-plot", {
 		},
         async getCredibleSetsList(REGION, PHENOTYPE, ANCESTRY) {
 
+			let wildCardString = !!this.utils.keyParams["wCard"] ? this.utils.keyParams["wCard"] : null;
+
             let CSServer = "https://giant.hugeampkpnbi.org/api/bio/query/credible-sets?q=";
-            let queryString = (ANCESTRY != null && ANCESTRY != '*')? PHENOTYPE + "," + ANCESTRY + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end : PHENOTYPE + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end;
+            let queryString = (ANCESTRY != null && ANCESTRY != '*' && ANCESTRY != wildCardString)? PHENOTYPE + "," + ANCESTRY + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end : PHENOTYPE + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end;
 
             let CSURL = CSServer + queryString;
 

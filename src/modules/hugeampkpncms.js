@@ -5,6 +5,9 @@
 
 import Vue from "vue";
 import VueCookies from "vue-cookies";
+
+import keyParams from "@/utils/keyParams";
+
 Vue.use(VueCookies);
 
 export default {
@@ -119,6 +122,14 @@ export default {
         async getResearchData(context, param) {
 
             let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+
+            let wildCardString = !!keyParams["wCard"] ? keyParams["wCard"] : null;
+
+            if (wildCardString) {
+                fetchUrl = fetchUrl.replaceAll(wildCardString + ",", "");
+                fetchUrl = fetchUrl.replaceAll("," + wildCardString, "");
+            }
+
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
             context.commit("setResearchData", csv);
