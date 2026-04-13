@@ -126,8 +126,8 @@
                                 </bulk-table>
                             </div>
                         </div>
-                                <div class="flex-gap" id="enrichr-legend" v-if="$parent.enrichrReady && $parent.dataReady">
-                                    <div class="tabs-group">
+                                <div class="flex-gap" id="enrichr-legend">
+                                    <div class="tabs-group" v-if="$parent.enrichrReady && $parent.dataReady">
                                         <div class="tabs-wrapper">
                                             <div class="tab">
                                                 ENRICHR: Top pathways for differentially expressed genes
@@ -230,6 +230,9 @@
                                                             :utils="$parent.utils"
                                                             :truncate="$parent.truncateEnrichr"
                                                         ></enrichr-plot>
+                                                        <div v-else>
+                                                            Loading ENRICHR...
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -348,6 +351,7 @@
   #enrichr {
     margin-bottom: 25px;
     display: flex;
+    background: white;
   }
   #enrichr .tabs-group{
     width: 680px;
