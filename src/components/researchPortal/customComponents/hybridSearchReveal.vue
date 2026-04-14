@@ -940,6 +940,13 @@
                                                             @open-popup="openNetworkPopup(idx, { hypothesisMap: true })"
                                                         />
                                                     </div>
+                                                    <p
+                                                        v-if="isMechanismUsingBiolinkMap(mechanism)"
+                                                        class="small text-muted mt-2 mb-0"
+                                                    >
+                                                        Nodes in this view are mapped to Biolink Model categories (classes), and edges are labeled with Biolink predicates to standardize relationship types across knowledge graphs.
+                                                        Edge support is then checked through the NCATS Biomedical Data Translator using TRAPI queries against Translator knowledge sources.
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div v-if="mechanism.relevance" class="mb-3">
@@ -1681,13 +1688,15 @@ export default Vue.component("factor-base-reveal", {
                 ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
                 : "https://search.hugeamp.org",
             /**
-             * Optional Biolink CORS proxy (translatorRelay): Name Resolution + NodeNorm + TRAPI (edge validation).
-             * When unset, NameRes/NodeNorm call SRI directly (may fail CORS); Biolink edges stay dashed (inferred).
+             * Biolink API base for Name Resolution + NodeNorm + TRAPI edge validation.
+             * Defaults to search.hugeamp.org deployment; override via VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL for local dev.
              * Example dev: VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL=http://localhost:3000
              */
             revealBiolinkProxyBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL)
                 ? String(process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL).replace(/\/$/, "")
-                : "",
+                : (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
+                    ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
+                : "https://search.hugeamp.org",
             /** When false, omit query_embedding; backend embeds (ALLOW_SERVER_SIDE_EMBEDDING). When true, FE must call Ollama and send query_embedding. */
             hybridSearchUseClientEmbedding: (typeof process !== "undefined" && process.env && process.env.VUE_APP_HYBRID_CLIENT_EMBEDDING === "true"),
             /** POST timeout for hybrid search (ms); server may run DB + Ollama. */
@@ -4279,7 +4288,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
         },
         /**
-         * One-hop TRAPI via translatorRelay. Tries several QGs: inferred predicate, related_to,
+         * One-hop TRAPI via the REVEAL Biolink endpoint. Tries several QGs: inferred predicate, related_to,
          * standard gene↔disease predicates, swapped ends, and relaxed NamedThing categories —
          * because many KPs never index biolink:related_to for Gene–Disease pairs.
          * @returns {Promise<boolean>}
@@ -4411,7 +4420,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return { builtEdge, checkedDelta, supportedDelta, skippedDelta };
         },
         /**
-         * After Biolink node mapping, check each edge against Translator via relay (batch).
+         * After Biolink node mapping, check each edge against Translator via REVEAL Biolink API (batch).
          */
         async validateBiolinkMappedEdgesViaRelay(mappedNodes, mappedEdges) {
             const proxyBase = this.revealBiolinkProxyBaseUrl;
@@ -4531,13 +4540,13 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     supported += supportedDelta;
                     skipped += skippedDelta;
                     out.push(builtEdge);
-                    const rest = initialEdges.slice(i + 1).map((e) => ({ ...e }));
-                    this.patchMechanismBiolinkTrapiProgress(idx, [...out, ...rest], mappedNodes, {
-                        checked,
-                        supported,
-                        skipped,
-                    });
                 }
+                if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
+                this.patchMechanismBiolinkTrapiProgress(idx, out, mappedNodes, {
+                    checked,
+                    supported,
+                    skipped,
+                });
             } finally {
                 if ((this.biolinkTrapiValidationGeneration[idx] || 0) === gen) {
                     this.$set(this.biolinkTrapiValidatingByMechanism, idx, false);
@@ -4660,9 +4669,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     ...mCurrent,
                     original_core_spine_network: originalStored,
                     biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
-                    /** Default original spine until relay/APIs are ready; user switches via “Original map” checkbox. */
-                    map_view_mode: "original",
-                    core_spine_network: this.cloneNetworkForMapView(originalStored),
+                    /** Default to Biolink spine after phase-1 mapping; users can toggle back to original map. */
+                    map_view_mode: "biolink",
+                    core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
                     biolink_map_meta: {
                         mappedNodeCount,
                         unmappedNodeCount,
