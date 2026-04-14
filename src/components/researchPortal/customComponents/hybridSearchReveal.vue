@@ -42,7 +42,10 @@
                             class="form-control"
                             ref="queryInput"
                             v-model="userQuery"
-                            placeholder="Describe what you're researching or curious about"
+                            :placeholder="searchInputPlaceholder"
+                            @focus="onQueryInputFocus"
+                            @blur="onQueryInputBlur"
+                            @input="onQueryInput"
                             @keydown.enter.prevent="queryParse()"
                             style="padding: 10px 150px 10px 10px; font-size: 11pt; height: auto;"
                         />
@@ -1591,6 +1594,18 @@ export default Vue.component("factor-base-reveal", {
         return {
             userQuery: "",
             searchMode: "auto",
+            /** Rotating best-practice placeholder examples (Strict Anchor + Semantic Net + Context + Phenotype). */
+            placeholderExamples: [
+                "Describe what you're researching or curious about...",
+                "e.g., Find a microglial phagocytosis mechanism involving TREM2 in the cortex linked to amyloid-beta clearance.",
+                "e.g., Find a short-chain fatty acid receptor mechanism involving FFAR3 in the intestinal epithelium that alters systemic insulin sensitivity.",
+                "e.g., Find a lipid droplet biogenesis mechanism involving GPAM in hepatocytes that drives triglyceride accumulation and NAFLD.",
+            ],
+            currentPlaceholderIndex: 0,
+            placeholderIntervalId: null,
+            placeholderRotationPaused: false,
+            /** Avoid pausing rotation from the component's initial programmatic focus(). */
+            suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
             searchCriteria: null,
@@ -1943,6 +1958,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         };
     },
     computed: {
+        searchInputPlaceholder() {
+            const list = Array.isArray(this.placeholderExamples) ? this.placeholderExamples : [];
+            if (!list.length) return "Describe what you're researching or curious about...";
+            const idx = Math.max(0, Math.min(this.currentPlaceholderIndex, list.length - 1));
+            return String(list[idx] || list[0]);
+        },
         hypothesisModeRelaxedSwitch: {
             get() {
                 return this.hypothesisGenerationMode === "relaxed";
@@ -2260,13 +2281,19 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         if (keyParams.query) {
             this.userQuery = keyParams.query;
         }
+        this.currentPlaceholderIndex = 0;
+        this.startPlaceholderRotation();
         this.$nextTick(() => {
-            if (this.$refs.queryInput) this.$refs.queryInput.focus();
+            if (this.$refs.queryInput) {
+                this.suppressNextQueryFocusPause = true;
+                this.$refs.queryInput.focus();
+            }
         });
     },
     beforeDestroy() {
         this.stopStepTimer();
         this.stopRemainingGenerateTimer();
+        this.stopPlaceholderRotation();
         if (typeof this.stepApprovalGateResolver === "function") {
             this.stepApprovalGateResolver();
             this.stepApprovalGateResolver = null;
@@ -2279,6 +2306,44 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 			const TAB_WRAPPER = 'rp_tabs';
 			const CONTENT_WRAPPER = 'rp_tabs_contents';
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
+        },
+        startPlaceholderRotation() {
+            if (this.placeholderIntervalId != null) return;
+            if (String(this.userQuery || "").trim()) return;
+            this.placeholderIntervalId = setInterval(() => {
+                if (this.placeholderRotationPaused) return;
+                if (String(this.userQuery || "").trim()) return;
+                const n = Array.isArray(this.placeholderExamples) ? this.placeholderExamples.length : 0;
+                if (!n) return;
+                this.currentPlaceholderIndex = (this.currentPlaceholderIndex + 1) % n;
+            }, 7000);
+        },
+        stopPlaceholderRotation() {
+            if (this.placeholderIntervalId != null) {
+                clearInterval(this.placeholderIntervalId);
+                this.placeholderIntervalId = null;
+            }
+        },
+        onQueryInputFocus() {
+            if (this.suppressNextQueryFocusPause) {
+                this.suppressNextQueryFocusPause = false;
+                return;
+            }
+            this.placeholderRotationPaused = true;
+        },
+        onQueryInputBlur() {
+            this.suppressNextQueryFocusPause = false;
+            if (String(this.userQuery || "").trim()) return;
+            this.placeholderRotationPaused = false;
+            this.startPlaceholderRotation();
+        },
+        onQueryInput() {
+            if (String(this.userQuery || "").trim()) {
+                this.placeholderRotationPaused = true;
+                return;
+            }
+            this.placeholderRotationPaused = false;
+            this.startPlaceholderRotation();
         },
         /**
          * CFDE C2M2 provenance API. Returns json.data (array) or null.
