@@ -1117,7 +1117,7 @@ export default Vue.component("giant-credible-sets-plot", {
 					? this.renderConfig["credible variants index"]
 					: "credible-variants";
 
-				let wildCardString = !!this.utils.keyParams["wCard"] ? this.utils.keyParams["wCard"] : null;
+				let wildCardString = !!this.renderConfig["ancestry wild card"] ? this.renderConfig["ancestry wild card"] : null;
 
                 let searchingAncestry = this.getSearchingAncestry();
 
@@ -1170,7 +1170,7 @@ export default Vue.component("giant-credible-sets-plot", {
 		},
         async getCredibleSetsList(REGION, PHENOTYPE, ANCESTRY) {
 
-			let wildCardString = !!this.utils.keyParams["wCard"] ? this.utils.keyParams["wCard"] : null;
+			let wildCardString = !!this.renderConfig["ancestry wild card"] ? this.renderConfig["ancestry wild card"] : null;
 
             let CSServer = "https://giant.hugeampkpnbi.org/api/bio/query/credible-sets?q=";
             let queryString = (ANCESTRY != null && ANCESTRY != '*' && ANCESTRY != wildCardString)? PHENOTYPE + "," + ANCESTRY + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end : PHENOTYPE + "," + REGION.chr + ":" + REGION.start + "-" + REGION.end;
@@ -1179,7 +1179,7 @@ export default Vue.component("giant-credible-sets-plot", {
 
             let CSJson = await fetch(CSURL).then((resp) => resp.json());
 
-            //console.log('CSJson',CSJson);
+            console.log('CSJson',CSJson);
 
             if (CSJson.error == null) {
 				if (this.dataComparison == "newSearch") {

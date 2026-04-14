@@ -24,6 +24,7 @@ export default {
             genesInRegion: [],
             genesData: null,
             researchDataEmpty: null,
+            wildCard: null,
         };
     },
 
@@ -60,6 +61,9 @@ export default {
         },
         setGenesData(state, data) {
             state.genesData = data;
+        },
+        setWildCard(state, data) {
+            state.wildCard = data;
         },
     },
 
@@ -115,19 +119,30 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchPage", json);
+
+            if (
+                !!json && !!json[0]["field_api_parameters"]
+            ) {
+                let apiConfig = JSON.parse(json[0]["field_api_parameters"]);
+
+                console.log("apiConfig", apiConfig);
+                if (apiConfig["wild card"]) {
+                    context.commit("setWildCard", apiConfig["wild card"]);
+                }
+            }
         },
         cancelResearchData(context) {
             context.commit("setResearchData", []);
         },
         async getResearchData(context, param) {
 
+            console.log("wildCard here", param.wildCard);
+
             let fetchUrl = (param.domain == "hugeampkpn") ? "https://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
 
-            let wildCardString = !!keyParams["wCard"] ? keyParams["wCard"] : null;
-
-            if (wildCardString) {
-                fetchUrl = fetchUrl.replaceAll(wildCardString + ",", "");
-                fetchUrl = fetchUrl.replaceAll("," + wildCardString, "");
+            if (param.wildCard) {
+                fetchUrl = fetchUrl.replaceAll(param.wildCard + ",", "");
+                fetchUrl = fetchUrl.replaceAll("," + param.wildCard, "");
             }
 
             let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
