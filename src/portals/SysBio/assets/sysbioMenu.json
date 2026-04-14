@@ -21,20 +21,21 @@
           "external": true
         },
         {
+          "label": "Data Summary Browser",
+          "path": "/datasetsSummary.html"
+        },
+        {
           "label": "Gene Expression Browser",
           "path": "/diffexp.html"
         },
         {
+          "hide": true,
           "label": "Single Cell Browser",
           "path": "/singlecell.html"
         },
         {
           "label": "Genetic Studies",
           "path": "/gwas.html"
-        },
-        {
-          "label": "Data Summary Browser",
-          "path": "/datasetsSummary.html"
         },
         {
           "label": "FAIRgit",
@@ -56,25 +57,25 @@
           "path": "/about.html?page=team"
         },
         {
-          "label": "How To Access AMP Data Directly",
-          "path": "/about.html?page=access"
-        },
-        {
           "label": "Policies",
           "path": "/about.html?page=policies"
-        },
-        {
-          "label": "Glossary of terms",
-          "path": "/about.html?page=glossary"
         },
         {
           "label": "AMP data",
           "path": "/about.html?page=ampdata"
         },
         {
+          "label": "How To Access AMP Data Directly",
+          "path": "/about.html?page=access"
+        },
+        {
           "label": "Data harmonization",
           "path": "/about.html?page=harmonization"
-        }
+        },
+        {
+          "label": "Glossary of terms",
+          "path": "/about.html?page=glossary"
+        }        
       ]
     },
     {
@@ -86,6 +87,7 @@
           "path": "/about.html?page=contact"
         },
         {
+          "hide": true,
           "label": "Collaborate",
           "path": "/about.html?page=collaborate"
         },
