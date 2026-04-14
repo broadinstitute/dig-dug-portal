@@ -255,7 +255,7 @@
 				</div>
 				<div class="col">
 					<div @click="queryAPI()" class="btn btn-sm btn-primary">
-						Search test
+						Search
 					</div>
 				</div>
 				<!--<div class="col">
