@@ -12,7 +12,7 @@
 			>
 				Close search
 			</div>-->
-			<h4 class="card-title">Build search criteria</h4>
+			<h4 class="card-title">Build search criteria test</h4>
 			<div class="filtering-ui-content row">
 				<div
 					class="col"
@@ -174,9 +174,16 @@
 								</template>
 							</div>
 						</div>
-						<!-- -->
+						<!-- kp variant is a one off case only for Giant project-->
+						<div v-if="parameter.type == 'input' && parameter.values == 'kp variant'">
+							<input
+								v-model="variantSearch"
+								class="form-control"
+								:id="'search_param_' + parameter.parameter"
+							/>
+						</div>
 						<div
-							v-if="!!parameter['expand region']"
+							v-if="!!parameter['expand region'] && parameter.values != 'kp variant'"
 							class="expand-region"
 						>
 							<select
@@ -220,7 +227,7 @@
 					<input
 						v-if="
 							parameter.type == 'input' &&
-							parameter.values != 'kp genes'
+							parameter.values != 'kp genes' && parameter.values != 'kp variant'
 						"
 						type="text"
 						class="form-control"
@@ -248,7 +255,7 @@
 				</div>
 				<div class="col">
 					<div @click="queryAPI()" class="btn btn-sm btn-primary">
-						Search
+						Search test
 					</div>
 				</div>
 				<!--<div class="col">
@@ -511,6 +518,7 @@ export default Vue.component("research-page-filters", {
 			searchParamsIndex: {},
 			paramSearch: "",
 			geneSearch: "",
+			variantSearch: "",
 			kpGenes: [],
 			lastFilter: { field: null, value: null },
 			suggestions: { field: null, suggestions: [] },
@@ -636,7 +644,17 @@ export default Vue.component("research-page-filters", {
 			}
 		}
 	},
-	computed: {},
+	computed: {
+		isRegionExpanded() {
+			let regionExpand = null;
+			this.apiParameters.parameters.forEach(param => {
+				if (param.parameter === 'region' && !!param['expand region by']) {
+					regionExpand = param['expand region by'];
+				}
+			});
+			return regionExpand;
+		}
+	},
 	watch: {},
 	methods: {
 		//...uiUtils,
@@ -908,15 +926,21 @@ export default Vue.component("research-page-filters", {
 						document.getElementById("search_param_region").value
 					)
 				) {
+					console.log("this.apiParameters.query", this.apiParameters.query);
+
 					let currentRegion = document
 						.getElementById("search_param_region")
 						.value.split(":");
 
+					console.log("currentRegion", currentRegion);
+
 					let chr = currentRegion[0];
 					let pos = currentRegion[1].replace(/\D/g, "");
 
-					let regionStart = Number(pos) - 1;
-					let regionEnd = Number(pos) + 1;
+					let regionExpand = (this.isRegionExpanded)? this.isRegionExpanded / 2 : 1;
+
+					let regionStart = Number(pos) - regionExpand;
+					let regionEnd = Number(pos) + regionExpand;
 					let newRegion = chr + ":" + regionStart + "-" + regionEnd;
 
 					regionFromVariant = newRegion;

@@ -709,15 +709,15 @@ new Vue({
                                 "cont?token=" + convertedData.continuation;
                         }
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: APIPoint,
                             domain: "external",
+                            wildCard: wildCard
                         };
 
-                        this.$store.dispatch(
-                            "hugeampkpncms/getResearchData",
-                            fetchParam
-                        );
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                     } else if (
                         convertedData.continuation == null &&
                         convertedData.page != 1
@@ -1090,6 +1090,7 @@ new Vue({
             }
         },
         researchPage(content) {
+
             if (content.length != 0 && content != null) {
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
@@ -1173,9 +1174,12 @@ new Vue({
                                 ? "external"
                                 : "hugeampkpn";
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: dataPoint,
                             domain: domain,
+                            wildCard: wildCard
                         };
 
                         if (this.isAPI != null && this.isAPI == false) {
@@ -2100,6 +2104,7 @@ new Vue({
             }
         },
         queryAPI() {
+
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
                 let parametersArrLength = parametersArr.length;
@@ -2146,10 +2151,14 @@ new Vue({
                         APIPoint += queryParams;
                     }
 
+                    let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                     let fetchParam = {
                         dataPoint: APIPoint,
                         domain: "external",
+                        wildCard: wildCard
                     };
+
 
                     this.$store.dispatch(
                         "hugeampkpncms/getResearchData",
