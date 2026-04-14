@@ -20,7 +20,10 @@
                     <a href="/about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
                 </div>
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
-                    <input class="hero-search" type="text" placeholder="Search gene">
+                    <!-- <input class="hero-search" type="text" placeholder="Search gene"> -->
+                    <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
+
+                    </gene-selectpicker>
                     <div class="f-row spread-out" style="gap:15px">
                         <div class="stat f-row">
                             <div class="stat-num">08</div>

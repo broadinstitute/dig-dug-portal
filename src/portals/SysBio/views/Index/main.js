@@ -8,13 +8,14 @@ import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
 import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
-
+import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import dataConvert from "@/utils/dataConvert";
 
 new Vue({
     components: {
         ResearchBarInCellPlot,
         ResearchMultiBarGraphs,
+        GeneSelectPicker
     },
     mixins: [sysbioMixin],
     data: {
@@ -266,6 +267,9 @@ new Vue({
             })
             const tabContent = document.querySelector(`.tab-content[data-tab="${tab}"]`);
             tabContent.classList.add('active');
+        },
+        highlight(gene){
+            window.location = `/diffexp.html?gene=${gene}`;
         }
     },
     render: (h) => h(Template),
