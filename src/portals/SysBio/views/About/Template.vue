@@ -5,7 +5,7 @@
         <!-- BODY -->
         <div class="sysbio-body" v-if="!!$parent.pageContent">
             <h2 class="static-header">{{ $parent.pageContent.title }}</h2>
-            <div v-if="$parent.keyParamsPage != 'team'" v-html="$parent.pageContent.body"  class="static-content"></div>
+            <div v-if="!$parent.showData" v-html="$parent.pageContent.body"  class="static-content"></div>
             <div v-else-if="$parent.keyParamsPage == 'team'" class="static-content">
                 
                 <template v-for="(member,mIndex) in $parent.csv2Json($parent.pageContent.field_data_points)">
@@ -19,6 +19,13 @@
                             <span>{{ member["Role External"] }}</span></div>
                     </div>
                 </template>
+            </div>
+            <div v-else>
+                <div v-html="$parent.pageContent.body" class="static-content"></div>
+                <b-table
+                    small
+                    :items="$parent.csv2Json($parent.pageContent.field_data_points)">
+                </b-table>
             </div>
         </div>
         <!-- FOOTER -->

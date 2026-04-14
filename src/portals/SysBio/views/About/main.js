@@ -31,6 +31,11 @@ new Vue({
                 ampdata: "sysbiofairplex_ampdata",
                 harmonization: "sysbiofairplex_dataharmonization",
                 feedback: "sysbiofairplex_sharefeedback"
+            },
+            showDataPoints: {
+                glossary: true,
+                ampdata: true,
+                team: true
             }
         };
     },
@@ -47,6 +52,9 @@ new Vue({
         keyParamsPage() {
             return keyParams.page;
         },
+        showData(){
+            return this.showDataPoints[this.keyParamsPage] || false;
+        }
     },
 
     mounted() {
@@ -64,7 +72,6 @@ new Vue({
             return dataConvert.csv2Json(DATA);
         },
         async getContent(page){
-            console.log("Is this thing on?");
             let byorPage = this.pages[page];
             let pageContent = await getTextContent(byorPage, false, true);
             this.pageContent = pageContent;
