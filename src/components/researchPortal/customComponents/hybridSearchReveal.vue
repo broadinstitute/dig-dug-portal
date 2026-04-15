@@ -33,7 +33,7 @@
                             <span
                                 class="reveal-mode-label reveal-mode-label-strict"
                                 :class="hypothesisGenerationMode === 'strict' ? 'font-weight-bold text-dark' : 'text-muted'"
-                            >Strict</span>
+                            >Evidence-grounded</span>
                             <!-- Slot reserves space: B-V switch draws ::before with left: ~-2.25rem over the control’s left edge. -->
                             <div class="reveal-switch-slot">
                                 <b-form-checkbox
@@ -46,7 +46,7 @@
                             <span
                                 class="reveal-mode-label reveal-mode-label-relaxed"
                                 :class="hypothesisGenerationMode === 'relaxed' ? 'font-weight-bold text-dark' : 'text-muted'"
-                            >Relaxed</span>
+                            >Exploratory</span>
                         </div>
                     </div>
                     <div class="d-flex gap-2" style="position: relative;">
