@@ -80,7 +80,6 @@
 						:searchParameters="getSearchParameters()" :phenotypesInUse="phenotypesInUse"
 						:section="sectionConfig" :utils="utils">
 					</research-in-section-search>
-
 					<research-page-description v-if="!!sectionDescription" :content="utils.Formatters.replaceWithParams(sectionDescription, pageParams)"
 						:utils="utils"></research-page-description>
 
