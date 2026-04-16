@@ -20,6 +20,7 @@ new Vue({
     mixins: [sysbioMixin],
     data: {
         newsFeed: null,
+        hideNews: true,
         content: {
             news: {
                 feedUrl: "https://hugeampkpncms.org/rest/news_list?project=sysbio",

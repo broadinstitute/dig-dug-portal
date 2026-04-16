@@ -142,7 +142,7 @@
                 </div>
             </div>
 
-            <div class="f-row grow-children" style="gap:40px">
+            <div class="f-row grow-children" style="gap:40px" v-if="!$parent.hideNews">
                 <div class="section">
                     <h2>News</h2>
                     <div class="section-body">
