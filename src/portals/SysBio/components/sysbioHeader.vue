@@ -29,7 +29,7 @@
                     </a>
                 </div>
             </div>
-            <div
+            <div v-if="false"
                 style="
                     height: 2em;
                     width: 0;
@@ -38,7 +38,7 @@
                     align-self: center;
                 "
             ></div>
-            <div class="menu-item-wrapper">
+            <div class="menu-item-wrapper" v-if="false">
                 <a class="menu-item" :href="'/account'">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
