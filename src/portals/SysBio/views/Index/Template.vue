@@ -60,8 +60,8 @@
                                 <div class="tab-body">Differential gene expression across AMP programs</div>
                             </div>
                             <div class="tab f-col" data-tab="clustering" @click="$parent.showTab($event)">
-                                <div class="tab-title">Sample Clustering</div>
-                                <div class="tab-body">PCA of cases and controls</div>
+                                <div class="tab-title">Learn More</div>
+                                <div class="tab-body">AMP information and data access guidelines</div>
                             </div>
                         </div>
                         <div class="tab-contents f-col">
@@ -97,13 +97,13 @@
                                 </div>
                             </div>
                             <div class="tab-content f-col" data-tab="clustering">
-                                <div>Explore principal component analyses (PCA) of cases and controls derived from
-                                    the following Accelerating Medicines Partnership (AMP) programs: AMP AD, AMP PD,
-                                    and AMP CMD. </div>
+                                <div class="multi-bar-top-row">
+                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
+                                </div>
                                 <div class="tab-content-img-wrapper">
 
                                     <img style="width: 850px;"
-                                        src="/images/sysbio/images/sysbio_pca_collected.jpg" />
+                                        src="/images/sysbio/images/amp_screenshot.jpg" />
                                 </div>
                             </div>
                         </div>
