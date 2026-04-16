@@ -81,6 +81,9 @@
                                 />
                             </div>
                             <div class="tab-content f-col" data-tab="expression">
+                                <div class="multi-bar-top-row">
+                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Browse full gene expression data.</a>
+                                </div>
                                 <div>Explore visualizations of differential gene expression within human tissues derived
                                     from the Accelerating Medicines Partnership (AMP) programs. Differential expression
                                     analyses were performed on blood-derived bulk RNA sequencing datasets from
@@ -398,5 +401,29 @@ export default {
 }
 .news-thumbnail img {
     mix-blend-mode: darken;
+}
+.multi-bar-top-row {
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: right;
+  justify-content: right;
+}
+
+.multi-bar-summary-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9rem;
+  background-color: #eeeeee;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.multi-bar-summary-btn:hover {
+  background-color: #cccccc;
+  text-decoration: none;
 }
 </style>
