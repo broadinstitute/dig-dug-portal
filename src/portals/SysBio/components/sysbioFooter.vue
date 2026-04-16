@@ -15,7 +15,7 @@
                         {{ item.label }}
                     </a>
                     <div v-if="item.subMenuItems" class="submenu">
-                        <a v-for="subItem in item.subMenuItems" 
+                        <a v-for="subItem in item.subMenuItems.filter(i => !i.hide)" 
                            class="submenu-item" 
                            :href="subItem.path || null"
                            :target="subItem.external ? '_blank' : null"
