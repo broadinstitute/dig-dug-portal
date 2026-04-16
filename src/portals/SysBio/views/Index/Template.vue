@@ -47,7 +47,7 @@
 
             <div class="section">
                 <h2>Resources</h2>
-                <div>Explore data from programs across the Accelerating Medicines Partnership (AMP)</div>
+                <div>Explore information and summary-level harmonized analyses & visualizations from across the Accelerating Medicines Partnership (AMP)</div>
                 <div class="section-body">
                     <div class="f-row">
                         <div class="tabs f-col">
@@ -60,8 +60,8 @@
                                 <div class="tab-body">Differential gene expression across AMP programs</div>
                             </div>
                             <div class="tab f-col" data-tab="clustering" @click="$parent.showTab($event)">
-                                <div class="tab-title">Sample Clustering</div>
-                                <div class="tab-body">PCA of cases and controls</div>
+                                <div class="tab-title">Learn More</div>
+                                <div class="tab-body">AMP information and data access guidelines</div>
                             </div>
                         </div>
                         <div class="tab-contents f-col">
@@ -81,6 +81,9 @@
                                 />
                             </div>
                             <div class="tab-content f-col" data-tab="expression">
+                                <div class="multi-bar-top-row">
+                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Browse full gene expression data.</a>
+                                </div>
                                 <div>Explore visualizations of differential gene expression within human tissues derived
                                     from the Accelerating Medicines Partnership (AMP) programs. Differential expression
                                     analyses were performed on blood-derived bulk RNA sequencing datasets from
@@ -94,13 +97,14 @@
                                 </div>
                             </div>
                             <div class="tab-content f-col" data-tab="clustering">
-                                <div>Explore principal component analyses (PCA) of cases and controls derived from
-                                    the following Accelerating Medicines Partnership (AMP) programs: AMP AD, AMP PD,
-                                    and AMP CMD. </div>
+                                <div class="multi-bar-top-row">
+                                    <a href="/about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
+                                </div>
+                                <div>Learn about the Accelerating Medicines Partnership (AMP) programs and how to request access to their data.</div>
                                 <div class="tab-content-img-wrapper">
-
                                     <img style="width: 850px;"
-                                        src="/images/sysbio/images/sysbio_pca_collected.jpg" />
+                                        :alt="$parent.ampScreenshotAltText"
+                                        src="/images/sysbio/images/amp_screenshot.jpg" />
                                 </div>
                             </div>
                         </div>
@@ -142,7 +146,7 @@
                 </div>
             </div>
 
-            <div class="f-row grow-children" style="gap:40px">
+            <div class="f-row grow-children" style="gap:40px" v-if="!$parent.hideNews">
                 <div class="section">
                     <h2>News</h2>
                     <div class="section-body">
@@ -398,5 +402,29 @@ export default {
 }
 .news-thumbnail img {
     mix-blend-mode: darken;
+}
+.multi-bar-top-row {
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: right;
+  justify-content: right;
+}
+
+.multi-bar-summary-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.9rem;
+  background-color: #eeeeee;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.multi-bar-summary-btn:hover {
+  background-color: #cccccc;
+  text-decoration: none;
 }
 </style>

@@ -106,7 +106,7 @@
                         name="header.menu"
                         :contentMap="$store.state.bioPortal.documentations"
                     ></menu-item>
-                    <div class="login-menu-wrapper">
+                    <div class="login-menu-wrapper" v-if="false">
                         <ul>
                             <li v-if="!!user">
                                 <a

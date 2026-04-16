@@ -1,0 +1,26 @@
+The National Institution of Health (NIH) created an ecosystem of public-private partnerships, known as Accelerating Medicines Partnership
+(AMP), with the primary goal of fostering research to accelerate new and effective therapies for relevant disease groups. AMP projects are
+managed through the Foundation for the NIH (FNIH), NIH and AMP partners. The SysBio FAIRPlex platform aims to develop a centralized
+portal and analysis tools that will enable cross-program analyses of integrated datasets to yield novel scientific insights.
+Each AMP project has a variety of data offerings accessible to researchers through their specific data access framework. This introductory
+guide provides an overview of data access and registration requirements among AMP programs.
+
+Overview of AMP Projects
+AMP AD
+The Accelerating Medicines Partnership Alzheimer’s Disease (AMP AD) focuses on discovering new drug targets and
+developing biomarkers to track disease progression and treatment response. The first phase of AMP for Alzheimer’s Disease
+(AMP AD 1.0) focused on discovering new therapeutic targets and evaluating biomarkers with the second phase (AMP AD
+2.0) aimed to enhance these efforts and support precision medicine approaches. Data in AMP AD is stored and curated via
+the Synapse platform, which is a cloud-based Sage Bionetworks data platform. A web portal interface called the AD
+Knowledge Portal is used to explore and access data in the Synapse platform. The AD Knowledge Portal distributes data
+from a variety of Alzheimer's and Related Dementia programs which are not limited to AMP AD.
+
+AMP PD
+The Accelerating Medicines Partnership Parkinson’s Disease (AMP PD) focus is on identifying and validating the most
+promising biological targets for therapeutics, and accelerating the development of novel therapies for Parkinson’s Disease
+(PD) and other related disorders. AMP PD performed large-scale harmonization of previously collected clinical data and
+analyzed biospecimens from over 10,000 subjects across nine cohorts (BioFIND, HBS, LBD, LCC, PDBP, PPMI, STEADY-PD3,
+SURE-PD3, and the SN Brain Cohort). Data in AMP PD is hosted on Terra, with a public knowledge portal to explore summary
+statistics of participant demographics and data offerings. AMP PD has partnered with The Global Parkinson’s Genetics
+Program (GP2) and offers access to harmonized AMP AD data and federated data (GP2) through a single Data Use
+Agreement. Read more here.
