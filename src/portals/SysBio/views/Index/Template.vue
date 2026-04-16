@@ -100,9 +100,10 @@
                                 <div class="multi-bar-top-row">
                                     <a href="/about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
                                 </div>
+                                <div>Learn about the Accelerating Medicines Partnership (AMP) programs and how to request access to their data.</div>
                                 <div class="tab-content-img-wrapper">
-
                                     <img style="width: 850px;"
+                                        :alt="$parent.ampScreenshotAltText"
                                         src="/images/sysbio/images/amp_screenshot.jpg" />
                                 </div>
                             </div>

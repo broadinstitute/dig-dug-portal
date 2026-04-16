@@ -21,6 +21,7 @@ new Vue({
     data: {
         newsFeed: null,
         hideNews: true,
+        ampScreenshotAltText: "",
         content: {
             news: {
                 feedUrl: "https://hugeampkpncms.org/rest/news_list?project=sysbio",
@@ -206,6 +207,9 @@ new Vue({
     async created() {
         this.getNews();
         this.getDataComposition();
+        const screenshotAltText = await fetch("/images/sysbio/images/amp_screenshot_alt_text.txt")
+            .then(r => r.text());
+        this.ampScreenshotAltText = screenshotAltText;
     },
     methods: {
         ...dataConvert,
