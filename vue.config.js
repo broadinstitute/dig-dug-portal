@@ -38,6 +38,27 @@ let pages = {
         title: "Variant Info",
         chunks: ["chunk-vendors", "chunk-common", "variant"],
     },
+    krFront: {
+        entry: "src/views/KrFront/main.js",
+        template: "public/index.html",
+        filename: "krFront.html",
+        title: "KR Front",
+        chunks: ["chunk-vendors", "chunk-common", "krFront"],
+    },
+    krPhenotype: {
+        entry: "src/views/KrPhenotype/main.js",
+        template: "public/index.html",
+        filename: "krPhenotype.html",
+        title: "KR Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "krPhenotype"],
+    },
+    krVariant: {
+        entry: "src/views/KrVariant/main.js",
+        template: "public/index.html",
+        filename: "krVariant.html",
+        title: "KR Variant",
+        chunks: ["chunk-vendors", "chunk-common", "krVariant"],
+    },
     gene: {
         entry: "src/views/Gene/main.js",
         template: "public/index.html",
