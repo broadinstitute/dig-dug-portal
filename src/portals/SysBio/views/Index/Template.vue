@@ -98,7 +98,7 @@
                             </div>
                             <div class="tab-content f-col" data-tab="clustering">
                                 <div class="multi-bar-top-row">
-                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
+                                    <a href="/about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
                                 </div>
                                 <div class="tab-content-img-wrapper">
 
