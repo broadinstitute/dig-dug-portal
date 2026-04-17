@@ -167,7 +167,18 @@ export default Vue.component("time-series-line-plot", {
       }
       if (!!this.timepoints){
         let timepointLines = this.extractTimepoints(this.timepoints);
-        console.log(timepointLines);
+        const vertLine = d3.line()
+          .x(d => this.xScale(d.x))
+          .y(d => this.yScale(d.y));
+        timepointLines.forEach(t => {
+          let top = { x: t.time, y: this.config.yMax};
+          let bottom = { x: t.time, y: 0}
+          this.svg.append("path")
+            .datum([top, bottom])
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("d", vertLine);
+        });
       }
 
 

@@ -47,7 +47,7 @@
                         </criterion-function-group>
                     </div>
                     <div>
-                        Visualize perifusion time-series data
+                        Visualize perifusion time-series data: Insulin IEQ
                         <time-series-line-plot v-if="$parent.timepoints.length > 0"
                             :plotData="$parent.insData"
                             :donors="$parent.filteredDonors"
