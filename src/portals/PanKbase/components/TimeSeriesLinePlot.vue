@@ -170,6 +170,7 @@ export default Vue.component("time-series-line-plot", {
         const vertLine = d3.line()
           .x(d => this.xScale(d.x))
           .y(d => this.yScale(d.y));
+        let even = true;
         timepointLines.forEach(t => {
           let top = { x: t.time, y: this.config.yMax};
           let bottom = { x: t.time, y: 0}
@@ -178,11 +179,14 @@ export default Vue.component("time-series-line-plot", {
             .attr("stroke", "gray")
             .attr("stroke-width", 1)
             .attr("d", vertLine);
+          let labelHeight = even ? 0.9 : 0.8;
+          let labelText = t.Condition === undefined ? "" : `←${t.Condition}`;
           this.svg.append("text")
             .attr("text-anchor", "left")
-            .attr("y", this.yScale(this.config.yMax * 0.9))
-            .attr("x", this.xScale(t.time + 1))
-            .text(t.Condition);
+            .attr("y", this.yScale(this.config.yMax * labelHeight))
+            .attr("x", this.xScale(t.time))
+            .text(labelText);
+          even = !even;
         });
       }
 
