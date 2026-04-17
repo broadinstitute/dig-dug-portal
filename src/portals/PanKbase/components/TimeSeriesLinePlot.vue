@@ -25,7 +25,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "donors", "config", "plotId", "utils", "showLine"],
+  props: ["plotData", "filter", "tightenLeft", "donors", "config", "plotId", "utils", "showLine", "timepoints"],
   data() {
       return {
         chart: null,
@@ -49,7 +49,6 @@ export default Vue.component("time-series-line-plot", {
   computed: {
     chartData(){
       let data = structuredClone(this.plotData);
-      console.log("Received data:", JSON.stringify(data));
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -61,9 +60,22 @@ export default Vue.component("time-series-line-plot", {
     availableDonors(){
       let donorsPresent = new Set(this.chartData.map(m => m.donor));
       return donorsPresent.size;
-    }
+    },
   },
   methods: {
+    extractTimepoints(data){
+      let points = data.sort((a,b) => a.time - b.time);
+      let output = points.slice(0,1);
+      for (let i = 1; i < points.length; i++){
+        let thisEntry = points[i];
+        let lastEntry = output[output.length - 1];
+        if (lastEntry.Condition === thisEntry.Condition){
+          continue;
+        }
+        output.push(thisEntry);
+      }
+      return output;
+    },
     drawChart(){
       let margin = {
         top: 10,
@@ -152,6 +164,10 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke-width", 1)
           .attr("class", "line-path")
           .attr("d", lineGenerator);
+      }
+      if (!!this.timepoints){
+        let timepointLines = this.extractTimepoints(this.timepoints);
+        console.log(timepointLines);
       }
 
 
@@ -264,7 +280,7 @@ export default Vue.component("time-series-line-plot", {
     },
     donors(){
         this.drawChart();
-    }
+    },
   }
 });
 </script>

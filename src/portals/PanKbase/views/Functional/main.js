@@ -50,7 +50,6 @@ new Vue({
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const timepointsData = await fetch(timepointsFile).then(r => r.text());
         this.timepoints = dataConvert.tsv2Json(timepointsData);
-        console.log(this.timepoints);
     },
     computed: {
         allMetadata(){

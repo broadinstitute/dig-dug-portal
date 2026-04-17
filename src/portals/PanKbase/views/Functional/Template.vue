@@ -48,12 +48,12 @@
                     </div>
                     <div>
                         Visualize perifusion time-series data
-                        <time-series-line-plot
+                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
                             :plotData="$parent.insData"
                             :donors="$parent.filteredDonors"
                             :config="$parent.linePlotConfig"
-                            :plotId="`insulin_ieq`">
-
+                            :plotId="`insulin_ieq`"
+                            :timepoints="$parent.timepoints">
                         </time-series-line-plot>
                     </div>
                 </div>
