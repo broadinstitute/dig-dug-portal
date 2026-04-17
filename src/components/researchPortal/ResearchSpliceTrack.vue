@@ -33,8 +33,21 @@
 		</div>
 		<div class="col-md-2">
 			<div class="highlighted-data" v-if="!!this.selectedSplice">
+				<strong>Highlighted splicing event:</strong>
+				<div id="spliceData">
+					<div v-if="this.hoverTent !== -1">
+						<div>Chromosome: {{ this.hoverTentData.chr }}</div>
+						<div>Start position: {{ this.hoverTentData.splice_start }}</div>
+						<div>End position: {{ this.hoverTentData.splice_end }}</div>
+						<div>Gene ID: {{this.hoverTentData.gene_id}}</div>
+						<div>Gene symbol: {{ this.exonData[0].gene_name }}</div>
+						<div>Tissue: {{ this.hoverTentData.tissue }}</div>
+						<div>Cluster ID: {{ getClusterID(hoverTentData.full_id) }}</div>
+					</div>
+					<div v-else>Hover over the diagram to highlight a splicing event.</div>	
+				</div>
 				<strong>Highlighted exon:</strong>
-				<div id="exonData" v-if="this.hoverExon !== -1">
+				<div v-if="this.hoverExon !== -1">
 					<div>Chromosome: {{ this.hoverExonData.chr }}</div>
 					<div>Start position: {{ this.hoverExonData.exon_start }}</div>
 					<div>End position: {{ this.hoverExonData.exon_end }}</div>
@@ -155,6 +168,12 @@ export default Vue.component("research-splice-track", {
 				return null;
 			}
 			return this.exonVisualMap[this.hoverExon];
+		},
+		hoverTentData(){
+			if (this.hoverTent === -1){
+				return null;
+			}
+			return this.spliceVisualMap[this.hoverTent];
 		}
 	},
 	watch: {
@@ -213,7 +232,16 @@ export default Vue.component("research-splice-track", {
 			
 		},
 
-
+		getClusterID(full_id){
+			let elements = full_id.split(":");
+			for (let i = 0; i < elements.length; i++){
+				let element = elements[i];
+				if (element.slice(0,4) === "clu_"){
+					return element;
+				}
+			}
+			return "";
+		},
 		getWidth (ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
 			return ctx.measureText(text).width;
@@ -328,11 +356,11 @@ export default Vue.component("research-splice-track", {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					spliceVisualMap.push({
-						spliceStart: spliceStart,
-						spliceEnd: spliceEnd,
-						spliceMidpoint: spliceMidpoint
-					});
+					let mappedSplice = structuredClone(splice);
+					mappedSplice.spliceStart = spliceStart;
+					mappedSplice.spliceEnd = spliceEnd;
+					mappedSplice.spliceMidpoint = spliceMidpoint;
+					spliceVisualMap.push(mappedSplice);
 					let highlight = i === this.hoverTent;
 					let isSelected = splice.splice_start === this.selectedSpliceStart
 						&& splice.splice_end === this.selectedSpliceEnd;
@@ -679,6 +707,10 @@ $(function () {});
 	background-color: #efefef;
 	border-radius: 5px;
 	padding: 10px;
+	height: 100%;
+}
+#spliceData {
+	min-height: 175px;
 }
 </style>
 
