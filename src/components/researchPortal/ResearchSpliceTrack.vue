@@ -707,7 +707,7 @@ $(function () {});
 	background-color: #efefef;
 	border-radius: 5px;
 	padding: 10px;
-	height: 100%;
+	min-height: 350px;
 }
 #spliceData {
 	min-height: 175px;
