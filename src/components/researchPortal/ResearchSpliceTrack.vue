@@ -101,9 +101,10 @@ export default Vue.component("research-splice-track", {
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
-				top: customPlotMargin.top * 3,
+				top: customPlotMargin.top * 4,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+				tentHeightFactor: 0.4
 			} :
 				{
 					left: this.plotMargin.leftMargin,
@@ -111,6 +112,7 @@ export default Vue.component("research-splice-track", {
 					top: this.plotMargin.topMargin,
 					bottom: this.plotMargin.bottomMargin,
 					bump: this.plotMargin.bump,
+					tentHeightFactor: 0.33
 				};
 
 			return plotMargin;
@@ -314,7 +316,6 @@ export default Vue.component("research-splice-track", {
 						spliceEnd: spliceEnd,
 						spliceMidpoint: spliceMidpoint
 					});
-					let yPos = this.adjPlotMargin.top / 3;
 					let highlight = i === this.hoverTent;
 					let isSelected = splice.splice_start === this.selectedSpliceStart
 						&& splice.splice_end === this.selectedSpliceEnd;
@@ -328,24 +329,28 @@ export default Vue.component("research-splice-track", {
 						: "black";
 					ctx.strokeStyle = ctx.fillStyle;
 					ctx.lineWidth = 2;
-					// Draw the tents as triangles of height 20
+					// Draw the tents as triangles
+					let space = 2;
+					let tentBottom = this.adjPlotMargin.top - space;
+					let tentTop = tentBottom * this.adjPlotMargin.tentHeightFactor;
 					ctx.beginPath();
-					ctx.moveTo(spliceStart, yPos * 2);
-					ctx.lineTo(spliceMidpoint, yPos);
+					ctx.moveTo(spliceStart, tentBottom);
+					ctx.lineTo(spliceMidpoint, tentTop);
 					ctx.stroke();
-					ctx.lineTo(spliceEnd, yPos * 2);
+					ctx.lineTo(spliceEnd, tentBottom);
 					ctx.stroke();
-					ctx.moveTo(spliceMidpoint, yPos);
+					ctx.moveTo(spliceMidpoint, tentTop);
 					ctx.beginPath();
-					ctx.arc(spliceMidpoint, yPos, this.dotRadius, 0, Math.PI * 2, true);
+					ctx.arc(spliceMidpoint, tentTop, this.dotRadius, 0, Math.PI * 2, true);
 					ctx.fill();
 					if(isSelected){
 						// Draw an arrow
-						ctx.strokeStyle = "black";
-						ctx.fillStyle = "black";
-						let arrowPoint = yPos - (this.dotRadius * 2);
+						ctx.strokeStyle = "red";
+						ctx.fillStyle = "red";
+						ctx.lineWidth = 3;
+						let arrowPoint = tentTop - (this.dotRadius * 2);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
-						ctx.lineTo(spliceMidpoint, arrowPoint - 27);
+						ctx.lineTo(spliceMidpoint, 0);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
 						ctx.lineTo(spliceMidpoint - 6, arrowPoint - 9);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
@@ -487,7 +492,7 @@ export default Vue.component("research-splice-track", {
 		getTent(xPos, yPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				let dotHeight = this.adjPlotMargin.top / 3;
+				let dotHeight = (this.adjPlotMargin.top - 2) * this.adjPlotMargin.tentHeightFactor;
 				let xDist = t.spliceMidpoint - xPos;
 				let yDist = dotHeight - yPos;
 				if (Math.abs(xDist) <= this.dotRadius && Math.abs(yDist) <= this.dotRadius){
