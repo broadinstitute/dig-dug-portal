@@ -35,8 +35,11 @@
 			<div class="highlighted-data" v-if="!!this.selectedSplice">
 				<strong>Highlighted exon:</strong>
 				<div id="exonData" v-if="this.hoverExon !== -1">
+					<div>Chromosome: {{ this.hoverExonData.chr }}</div>
 					<div>Start position: {{ this.hoverExonData.exon_start }}</div>
 					<div>End position: {{ this.hoverExonData.exon_end }}</div>
+					<div>Gene ID: {{this.hoverExonData.gene_id}}</div>
+					<div>Gene symbol: {{ this.hoverExonData.gene_name }}</div>
 				</div>
 				<div v-else>Hover over the diagram to highlight an exon.</div>
 			</div>
@@ -217,7 +220,7 @@ export default Vue.component("research-splice-track", {
 		},
 
 		renderTrack(GENES) {
-			// TODO consult MultiRegionPlot component for how to get the coordinates track in there.
+			console.log("Exon data format", JSON.stringify(GENES[0]));
 			if (this.gene === null){
 				return;
 			}
@@ -305,16 +308,12 @@ export default Vue.component("research-splice-track", {
 							: this.colors.charcoal;
 
 						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
-						exonVisualMap.push({
-							exonStart: xStartPos,
-							exonEnd: xStartPos + xonWidth,
-							exonTop: yPos + 10,
-							exonBottom: yPos + 30,
-
-							// Raw region data; this mapping pulls double duty
-							exon_start: gene.exon_start,
-							exon_end: gene.exon_end
-						});
+						let mappedExon = structuredClone(gene);
+						mappedExon.exonStart = xStartPos;
+						mappedExon.exonEnd = xStartPos + xonWidth;
+						mappedExon.exonTop = yPos + 10;
+						mappedExon.exonBottom = yPos + 30;
+						exonVisualMap.push(mappedExon);
 						geneCounter++;
 					})
 				});
