@@ -37,6 +37,16 @@
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
+                                <div class="insulin-plot">
+                                    <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
+                                    <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                        :plotData="$parent.insData"
+                                        :donors="$parent.filteredDonors"
+                                        :config="$parent.linePlotConfig"
+                                        :plotId="`insulin_ieq`"
+                                        :timepoints="$parent.timepoints">
+                                    </time-series-line-plot>
+                                </div>
                                 <donor-metadata-table
                                     :metadata="$parent.allMetadata"
                                     :filter="filter"
@@ -45,16 +55,6 @@
                                 </donor-metadata-table>
                             </template>
                         </criterion-function-group>
-                    </div>
-                    <div>
-                        Visualize perifusion time-series data
-                        <time-series-line-plot
-                            :plotData="$parent.insData"
-                            :donors="$parent.filteredDonors"
-                            :config="$parent.linePlotConfig"
-                            :plotId="`insulin_ieq`">
-
-                        </time-series-line-plot>
                     </div>
                 </div>
             </div>
@@ -104,5 +104,9 @@
 }
 .stats {
     margin-bottom: 10px;;
+}
+.insulin-plot{
+    align-items: center;
+    margin: 20px;
 }
 </style>

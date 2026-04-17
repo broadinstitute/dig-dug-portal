@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="download-button">
+            <data-download
+                :data="tableData"
+                filename="pankbase_functional_donor_metadata_filtered">
+            </data-download>
+        </div>
         {{ tableData.length }} results
         <b-table
             small
@@ -81,3 +87,9 @@ export default Vue.component("donor-metadata-table", {
     }
 });
 </script>
+<style scoped>
+    .download-button {
+        display: flex;
+        justify-content: right;
+    }
+</style>

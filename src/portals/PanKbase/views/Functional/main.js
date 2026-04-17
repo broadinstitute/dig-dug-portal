@@ -15,8 +15,11 @@ import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
+import dataConvert from "@/utils/dataConvert";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
+const timepointsFile = "/data/pankbase/HIPP_gcg_ieq.timepoints.txt";
+
 new Vue({
     store,
     components: {
@@ -39,12 +42,14 @@ new Vue({
             filteredDonors: [],
             maxTime: null,
             maxScore: null,
+            timepoints: [],
         };
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
-        this.insData = this.collateInsData();
+        const timepointsData = await fetch(timepointsFile).then(r => r.text());
+        this.timepoints = dataConvert.tsv2Json(timepointsData);
     },
     computed: {
         allMetadata(){
