@@ -9,7 +9,7 @@
 		<div v-else>
 			Select a splice track to view from the table below.
 		</div>
-		<div class="col-md-12">
+		<div class="col-md-10">
 			<!-- place info modal here-->
 			<div v-if="!!this.selectedSplice">
 				<strong>{{ this.exonData[0].gene_name }} {{ this.exonData[0].strand }}</strong>
@@ -28,6 +28,14 @@
 					height=""
 				></canvas>
 			</div>
+		</div>
+		<div class="col-md-2">
+			<strong>Highlighted exon:</strong>
+			<div id="exonData" v-if="this.hoverExon !== -1">
+				<div>Start position: {{ this.hoverExonData.exon_start }}</div>
+				<div>End position: {{ this.hoverExonData.exon_end }}</div>
+			</div>
+			<div v-else>Hover over the diagram to highlight an exon.</div>
 		</div>
 	</div>
 </template>
@@ -135,6 +143,12 @@ export default Vue.component("research-splice-track", {
 		selectedSplice(){
 			return this.$store.state.selectedSplice;
 		},
+		hoverExonData(){
+			if (this.hoverExon === -1){
+				return null;
+			}
+			return this.exonVisualMap[this.hoverExon];
+		}
 	},
 	watch: {
 		viewingRegion: {
