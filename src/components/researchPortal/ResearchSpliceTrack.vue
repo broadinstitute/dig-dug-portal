@@ -1,10 +1,12 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div v-if="!!this.selectedSplice">
-			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
-			<p>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</p>
-			<p>Dot-and-line diagrams represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</p>
-			<p>The splicing event indicated by an arrow corresponds to the selected row from the table.</p>
+			<h4>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</h4>
+			<ul id="explanation">
+				<li>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</li>
+				<li>Dot-and-line symbols represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</li>
+				<li>The splicing event indicated by an arrow corresponds to the selected row from the table.</li>
+			</ul>
 		</div>
 		<div v-else>
 			Select a splice track to view from the table below.
@@ -30,12 +32,14 @@
 			</div>
 		</div>
 		<div class="col-md-2">
-			<strong>Highlighted exon:</strong>
-			<div id="exonData" v-if="this.hoverExon !== -1">
-				<div>Start position: {{ this.hoverExonData.exon_start }}</div>
-				<div>End position: {{ this.hoverExonData.exon_end }}</div>
+			<div class="highlighted-data" v-if="!!this.selectedSplice">
+				<strong>Highlighted exon:</strong>
+				<div id="exonData" v-if="this.hoverExon !== -1">
+					<div>Start position: {{ this.hoverExonData.exon_start }}</div>
+					<div>End position: {{ this.hoverExonData.exon_end }}</div>
+				</div>
+				<div v-else>Hover over the diagram to highlight an exon.</div>
 			</div>
-			<div v-else>Hover over the diagram to highlight an exon.</div>
 		</div>
 	</div>
 </template>
@@ -671,6 +675,11 @@ $(function () {});
 }
 .hidden {
 	display: none;
+}
+.highlighted-data {
+	background-color: #efefef;
+	border-radius: 5px;
+	padding: 10px;
 }
 </style>
 
