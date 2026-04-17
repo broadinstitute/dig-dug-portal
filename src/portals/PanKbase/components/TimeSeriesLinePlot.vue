@@ -175,9 +175,14 @@ export default Vue.component("time-series-line-plot", {
           let bottom = { x: t.time, y: 0}
           this.svg.append("path")
             .datum([top, bottom])
-            .attr("stroke", "black")
+            .attr("stroke", "gray")
             .attr("stroke-width", 1)
             .attr("d", vertLine);
+          this.svg.append("text")
+            .attr("text-anchor", "left")
+            .attr("y", this.yScale(this.config.yMax * 0.9))
+            .attr("x", this.xScale(t.time + 1))
+            .text(t.Condition);
         });
       }
 
