@@ -1,15 +1,17 @@
 <template>
 	<div class="mbm-plot-content row">
 		<div v-if="!!this.selectedSplice">
-			<p>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</p>
-			<p>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</p>
-			<p>Dot-and-line diagrams represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</p>
-			<p>The splicing event indicated by an arrow corresponds to the selected row from the table.</p>
+			<h4>Splicing event data for {{ this.exonData[0].gene_name }}, {{ this.spliceData[0].tissue }}</h4>
+			<ul id="explanation">
+				<li>Rectangles represent exons. Hover to highlight splicing events overlapping the exon.</li>
+				<li>Dot-and-line symbols represent splicing events. Hover over the dot to highlight exons overlapping the splicing event.</li>
+				<li>The splicing event indicated by an arrow corresponds to the selected row from the table.</li>
+			</ul>
 		</div>
 		<div v-else>
 			Select a splice track to view from the table below.
 		</div>
-		<div class="col-md-12">
+		<div class="col-md-10">
 			<!-- place info modal here-->
 			<div v-if="!!this.selectedSplice">
 				<strong>{{ this.exonData[0].gene_name }} {{ this.exonData[0].strand }}</strong>
@@ -27,6 +29,32 @@
 					width=""
 					height=""
 				></canvas>
+			</div>
+		</div>
+		<div class="col-md-2">
+			<div class="highlighted-data" v-if="!!this.selectedSplice">
+				<strong>Highlighted splicing event:</strong>
+				<div id="spliceData">
+					<div v-if="this.hoverTent !== -1">
+						<div>Chromosome: {{ this.hoverTentData.chr }}</div>
+						<div>Start position: {{ this.hoverTentData.splice_start }}</div>
+						<div>End position: {{ this.hoverTentData.splice_end }}</div>
+						<div>Gene ID: {{this.hoverTentData.gene_id}}</div>
+						<div>Gene symbol: {{ this.exonData[0].gene_name }}</div>
+						<div>Tissue: {{ this.hoverTentData.tissue }}</div>
+						<div>Cluster ID: {{ getClusterID(hoverTentData.full_id) }}</div>
+					</div>
+					<div v-else>Hover over the diagram to highlight a splicing event.</div>	
+				</div>
+				<strong>Highlighted exon:</strong>
+				<div v-if="this.hoverExon !== -1">
+					<div>Chromosome: {{ this.hoverExonData.chr }}</div>
+					<div>Start position: {{ this.hoverExonData.exon_start }}</div>
+					<div>End position: {{ this.hoverExonData.exon_end }}</div>
+					<div>Gene ID: {{this.hoverExonData.gene_id}}</div>
+					<div>Gene symbol: {{ this.hoverExonData.gene_name }}</div>
+				</div>
+				<div v-else>Hover over the diagram to highlight an exon.</div>
 			</div>
 		</div>
 	</div>
@@ -64,7 +92,7 @@ export default Vue.component("research-splice-track", {
 			colors: {
 				green: "#00FF00",
 				gray: "#DDDDDD99",
-				charcoal: "#333333",
+				charcoal: "#999999",
 				purple: "#AA4499",
 				blue: "#2F67B1", // colorblind safe blue from UCSB
 				red: "#BF2C23", // colorblind safe red from UCSB,
@@ -101,9 +129,10 @@ export default Vue.component("research-splice-track", {
 			let plotMargin = !!customPlotMargin ? {
 				left: customPlotMargin.left,
 				right: customPlotMargin.right,
-				top: customPlotMargin.top * 3,
+				top: customPlotMargin.top * 4,
 				bottom: customPlotMargin.bottom,
 				bump: !!customPlotMargin.bump ? customPlotMargin.bump : 10,
+				tentHeightFactor: 0.4
 			} :
 				{
 					left: this.plotMargin.leftMargin,
@@ -111,6 +140,7 @@ export default Vue.component("research-splice-track", {
 					top: this.plotMargin.topMargin,
 					bottom: this.plotMargin.bottomMargin,
 					bump: this.plotMargin.bump,
+					tentHeightFactor: 0.33
 				};
 
 			return plotMargin;
@@ -133,6 +163,18 @@ export default Vue.component("research-splice-track", {
 		selectedSplice(){
 			return this.$store.state.selectedSplice;
 		},
+		hoverExonData(){
+			if (this.hoverExon === -1){
+				return null;
+			}
+			return this.exonVisualMap[this.hoverExon];
+		},
+		hoverTentData(){
+			if (this.hoverTent === -1){
+				return null;
+			}
+			return this.spliceVisualMap[this.hoverTent];
+		}
 	},
 	watch: {
 		viewingRegion: {
@@ -190,14 +232,23 @@ export default Vue.component("research-splice-track", {
 			
 		},
 
-
+		getClusterID(full_id){
+			let elements = full_id.split(":");
+			for (let i = 0; i < elements.length; i++){
+				let element = elements[i];
+				if (element.slice(0,4) === "clu_"){
+					return element;
+				}
+			}
+			return "";
+		},
 		getWidth (ctx, text, fontSize, fontFace) {
 			ctx.font = fontSize + 'px ' + fontFace;
 			return ctx.measureText(text).width;
 		},
 
 		renderTrack(GENES) {
-			// TODO consult MultiRegionPlot component for how to get the coordinates track in there.
+			console.log("Exon data format", JSON.stringify(GENES[0]));
 			if (this.gene === null){
 				return;
 			}
@@ -285,16 +336,12 @@ export default Vue.component("research-splice-track", {
 							: this.colors.charcoal;
 
 						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
-						exonVisualMap.push({
-							exonStart: xStartPos,
-							exonEnd: xStartPos + xonWidth,
-							exonTop: yPos + 10,
-							exonBottom: yPos + 30,
-
-							// Raw region data; this mapping pulls double duty
-							exon_start: gene.exon_start,
-							exon_end: gene.exon_end
-						});
+						let mappedExon = structuredClone(gene);
+						mappedExon.exonStart = xStartPos;
+						mappedExon.exonEnd = xStartPos + xonWidth;
+						mappedExon.exonTop = yPos + 10;
+						mappedExon.exonBottom = yPos + 30;
+						exonVisualMap.push(mappedExon);
 						geneCounter++;
 					})
 				});
@@ -309,12 +356,11 @@ export default Vue.component("research-splice-track", {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					spliceVisualMap.push({
-						spliceStart: spliceStart,
-						spliceEnd: spliceEnd,
-						spliceMidpoint: spliceMidpoint
-					});
-					let yPos = this.adjPlotMargin.top / 3;
+					let mappedSplice = structuredClone(splice);
+					mappedSplice.spliceStart = spliceStart;
+					mappedSplice.spliceEnd = spliceEnd;
+					mappedSplice.spliceMidpoint = spliceMidpoint;
+					spliceVisualMap.push(mappedSplice);
 					let highlight = i === this.hoverTent;
 					let isSelected = splice.splice_start === this.selectedSpliceStart
 						&& splice.splice_end === this.selectedSpliceEnd;
@@ -328,24 +374,28 @@ export default Vue.component("research-splice-track", {
 						: "black";
 					ctx.strokeStyle = ctx.fillStyle;
 					ctx.lineWidth = 2;
-					// Draw the tents as triangles of height 20
+					// Draw the tents as triangles
+					let space = 2;
+					let tentBottom = this.adjPlotMargin.top - space;
+					let tentTop = tentBottom * this.adjPlotMargin.tentHeightFactor;
 					ctx.beginPath();
-					ctx.moveTo(spliceStart, yPos * 2);
-					ctx.lineTo(spliceMidpoint, yPos);
+					ctx.moveTo(spliceStart, tentBottom);
+					ctx.lineTo(spliceMidpoint, tentTop);
 					ctx.stroke();
-					ctx.lineTo(spliceEnd, yPos * 2);
+					ctx.lineTo(spliceEnd, tentBottom);
 					ctx.stroke();
-					ctx.moveTo(spliceMidpoint, yPos);
+					ctx.moveTo(spliceMidpoint, tentTop);
 					ctx.beginPath();
-					ctx.arc(spliceMidpoint, yPos, this.dotRadius, 0, Math.PI * 2, true);
+					ctx.arc(spliceMidpoint, tentTop, this.dotRadius, 0, Math.PI * 2, true);
 					ctx.fill();
 					if(isSelected){
 						// Draw an arrow
-						ctx.strokeStyle = "black";
-						ctx.fillStyle = "black";
-						let arrowPoint = yPos - (this.dotRadius * 2);
+						ctx.strokeStyle = "red";
+						ctx.fillStyle = "red";
+						ctx.lineWidth = 3;
+						let arrowPoint = tentTop - (this.dotRadius * 2);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
-						ctx.lineTo(spliceMidpoint, arrowPoint - 27);
+						ctx.lineTo(spliceMidpoint, 0);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
 						ctx.lineTo(spliceMidpoint - 6, arrowPoint - 9);
 						ctx.moveTo(spliceMidpoint, arrowPoint);
@@ -487,7 +537,7 @@ export default Vue.component("research-splice-track", {
 		getTent(xPos, yPos){
 			for (let i = 0; i < this.spliceVisualMap.length; i++){
 				let t = this.spliceVisualMap[i];
-				let dotHeight = this.adjPlotMargin.top / 3;
+				let dotHeight = (this.adjPlotMargin.top - 2) * this.adjPlotMargin.tentHeightFactor;
 				let xDist = t.spliceMidpoint - xPos;
 				let yDist = dotHeight - yPos;
 				if (Math.abs(xDist) <= this.dotRadius && Math.abs(yDist) <= this.dotRadius){
@@ -652,6 +702,15 @@ $(function () {});
 }
 .hidden {
 	display: none;
+}
+.highlighted-data {
+	background-color: #efefef;
+	border-radius: 5px;
+	padding: 10px;
+	min-height: 350px;
+}
+#spliceData {
+	min-height: 175px;
 }
 </style>
 
