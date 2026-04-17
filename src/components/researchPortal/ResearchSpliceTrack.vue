@@ -92,7 +92,7 @@ export default Vue.component("research-splice-track", {
 			colors: {
 				green: "#00FF00",
 				gray: "#DDDDDD99",
-				charcoal: "#333333",
+				charcoal: "#999999",
 				purple: "#AA4499",
 				blue: "#2F67B1", // colorblind safe blue from UCSB
 				red: "#BF2C23", // colorblind safe red from UCSB,
