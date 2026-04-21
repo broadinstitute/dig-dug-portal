@@ -6,17 +6,17 @@
         <div class="sysbio-body" style="gap:70px">
             <div class="section hero f-row grow-children align-v-center" style="gap:50px;">
                 <div class="f-col" style="gap:20px; margin-top: -100px;">
-                    <div class="f-col">
+                    <div class="f-col" style="width:500px">
                         <div class="hero-title">SysBio FAIRplex</div>
                         <h4 style="line-height: 1em;">
-                            a FAIR PLatform for EXploration<br />
-                            of Systems Biology
+                            a FAIR PLatform for EXploration of Systems Biology 
                         </h4>
                     </div>
-                    <div>
-                        Integrated multi-tissue and multi-modal data from<br />
-                        the Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem<br />
-                        to generate novel insights.</div>
+                    <div style="width:500px">
+                        A unified research gateway for 
+                        discovering and analyzing biomedical data across 
+                        Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem
+                    </div>
                     <a href="/about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
                 </div>
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">

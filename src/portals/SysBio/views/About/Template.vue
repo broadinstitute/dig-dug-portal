@@ -13,10 +13,6 @@
                         <div class="member-photo"><img :src="member.Photo" /></div>
                         <div class="member-name">{{ member.Name }}</div>
                         <div class="member-affiliation">{{ member.Affiliation }}</div>
-                        <div class="member-role"><span class="role">Role Internal</span>
-                            <span>{{ member["Role Internal"] }}</span></div>
-                        <div class="member-role"><span class="role">Role External</span>
-                            <span>{{ member["Role External"] }}</span></div>
                     </div>
                 </template>
             </div>
@@ -46,7 +42,7 @@ export default {
 
 .sysbio-team-member {
     display:inline-grid;
-    width: 30%;
+    width: 20%;
     padding: 2%;
 }
 

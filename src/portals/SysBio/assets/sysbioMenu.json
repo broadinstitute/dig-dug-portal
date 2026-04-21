@@ -36,11 +36,6 @@
         {
           "label": "Genetic Studies",
           "path": "/gwas.html"
-        },
-        {
-          "label": "FAIRgit",
-          "path": "https://github.com/SysBio-FAIRplex/FAIRgit",
-          "external": true
         }
       ]
     },
@@ -61,16 +56,8 @@
           "path": "/about.html?page=policies"
         },
         {
-          "label": "AMP data",
-          "path": "/about.html?page=ampdata"
-        },
-        {
           "label": "How To Access AMP Data Directly",
           "path": "/about.html?page=access"
-        },
-        {
-          "label": "Data harmonization",
-          "path": "/about.html?page=harmonization"
         },
         {
           "label": "Glossary of terms",
