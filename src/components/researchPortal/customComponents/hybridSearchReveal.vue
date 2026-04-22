@@ -49,7 +49,7 @@
                             >Exploratory</span>
                         </div>
                     </div>
-                    <div class="d-flex gap-2" style="position: relative;">
+                    <div class="reveal-query-input-wrap">
                         <input
                             type="text"
                             class="form-control"
@@ -60,10 +60,261 @@
                             @blur="onQueryInputBlur"
                             @input="onQueryInput"
                             @keydown.enter.prevent="queryParse()"
-                            style="padding: 10px 150px 10px 10px; font-size: 11pt; height: auto;"
+                            style="padding: 10px 300px 10px 10px; font-size: 11pt; height: auto;"
                         />
-                        <button class="btn btn-cfde" style="min-width: 120px; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);" @click="queryParse()">Reveal</button>
+                        <div class="reveal-query-input-actions">
+                            <button type="button" class="btn btn-link p-0 query-helper-link" @click="openQueryHelperModal">Need help?</button>
+                            <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="queryParse()">Reveal</button>
+                        </div>
                     </div>
+                    <b-modal
+                        v-model="queryHelperOpen"
+                        size="xl"
+                        title="Query helper"
+                        hide-footer
+                        no-close-on-backdrop
+                    >
+                        <div class="small text-muted mb-3">
+                            Start by searching phenotypes. Pick phenotypes, select associated gene set clusters, and add mechanisms/genes of interest.
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold mb-1">Phenotypes</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="queryHelperPhenotypeInput"
+                                placeholder="Type to search CFDE phenotypes..."
+                            />
+                            <ul
+                                v-if="queryHelperPhenotypeSuggestions.length"
+                                class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
+                            >
+                                <li
+                                    v-for="opt in queryHelperPhenotypeSuggestions"
+                                    :key="'qh-pheno-' + opt.value"
+                                    class="query-helper-suggest-item px-2 py-1"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 text-left w-100"
+                                        @click="onQueryHelperPickPhenotype(opt)"
+                                    >
+                                        <span class="font-weight-bold">{{ opt.label }}</span>
+                                        <span class="text-muted"> ({{ opt.value }})</span>
+                                    </button>
+                                </li>
+                            </ul>
+                            <div v-if="queryHelperSelectedPhenotypes.length" class="d-flex flex-wrap mt-2">
+                                <span
+                                    v-for="item in queryHelperSelectedPhenotypes"
+                                    :key="'qh-pheno-chip-' + item.value"
+                                    class="pill query-helper-pill mr-2 mb-2"
+                                >
+                                    {{ item.label }}
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 ml-1"
+                                        @click="removeQueryHelperPhenotype(item.value)"
+                                        aria-label="Remove phenotype"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            </div>
+                            <div
+                                v-if="queryHelperNoFactorPhenotypeLabels.length"
+                                class="small text-warning mt-1"
+                            >
+                                No factors returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
+                            </div>
+                        </div>
+
+                        <div class="mb-2 font-weight-bold">Associated gene set clusters</div>
+                        <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
+                            <b-spinner small class="mr-2"></b-spinner>
+                            Loading factors for selected phenotypes...
+                        </div>
+                        <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
+                            {{ queryHelperFactorError }}
+                        </div>
+                        <div v-else-if="queryHelperFactorRows.length" class="table-responsive mb-3">
+                            <div class="form-group mb-2">
+                                <input
+                                    type="text"
+                                    class="form-control form-control-sm"
+                                    v-model="queryHelperClusterFilterInput"
+                                    placeholder="Filter gene set clusters (comma-separated keywords)"
+                                    @input="applyQueryHelperClusterFilterSelection"
+                                />
+                            </div>
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th style="width: 90px;">
+                                            <div class="d-flex align-items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    class="query-helper-factor-checkbox mr-2"
+                                                    :checked="queryHelperAllFactorsSelected"
+                                                    :indeterminate.prop="queryHelperSomeFactorsSelected"
+                                                    @change="toggleQueryHelperAllFactors($event)"
+                                                />
+                                                <span>Select</span>
+                                            </div>
+                                        </th>
+                                        <th style="width: 260px;">Phenotype</th>
+                                        <th>Gene set cluster</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in queryHelperFactorRows" :key="'qh-factor-' + row.key">
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                class="query-helper-factor-checkbox"
+                                                :checked="!!queryHelperFactorSelection[row.key]"
+                                                @change="toggleQueryHelperFactor(row.key, $event)"
+                                            />
+                                        </td>
+                                        <td>{{ row.phenotypeLabel }}</td>
+                                        <td>{{ row.factorLabel }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="small text-muted mb-3">
+                            {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'Select at least one phenotype to load associated gene set clusters.' }}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold mb-1">Mechanisms</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="queryHelperMechanismInput"
+                                placeholder="Add a mechanism term, then press Enter"
+                                @keydown.enter.prevent="addQueryHelperMechanismFromInput"
+                            />
+                            <div v-if="queryHelperMechanismTerms.length" class="d-flex flex-wrap mt-2">
+                                <span
+                                    v-for="term in queryHelperMechanismTerms"
+                                    :key="'qh-mech-chip-' + term"
+                                    class="pill query-helper-pill mr-2 mb-2"
+                                >
+                                    {{ term }}
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 ml-1"
+                                        @click="removeQueryHelperMechanism(term)"
+                                        aria-label="Remove mechanism term"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold mb-1">Genes</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                v-model="queryHelperGeneInput"
+                                placeholder="Search and select a gene symbol"
+                                @input="onQueryHelperGeneInput"
+                                @keydown.enter.prevent="addQueryHelperGeneFromInput"
+                            />
+                            <ul
+                                v-if="queryHelperGeneSuggestions.length"
+                                class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
+                            >
+                                <li
+                                    v-for="gene in queryHelperGeneSuggestions"
+                                    :key="'qh-gene-suggest-' + gene"
+                                    class="query-helper-suggest-item px-2 py-1"
+                                >
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 text-left w-100"
+                                        @click="selectQueryHelperGeneSuggestion(gene)"
+                                    >
+                                        {{ gene }}
+                                    </button>
+                                </li>
+                            </ul>
+                            <div v-if="queryHelperGenesOfInterest.length" class="d-flex flex-wrap mt-2">
+                                <span
+                                    v-for="gene in queryHelperGenesOfInterest"
+                                    :key="'qh-gene-chip-' + gene"
+                                    class="pill query-helper-pill mr-2 mb-2"
+                                >
+                                    {{ gene }}
+                                    <button
+                                        type="button"
+                                        class="btn btn-link btn-sm p-0 ml-1"
+                                        @click="removeQueryHelperGene(gene)"
+                                        aria-label="Remove gene"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
+                            <label class="font-weight-bold mb-1">Research context (optional draft)</label>
+                            <textarea
+                                v-model="queryHelperDraftResearchContext"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Optional: add context you want included when composing your query."
+                            ></textarea>
+                        </div>
+                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
+                            <label class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
+                                <input
+                                    type="checkbox"
+                                    :checked="queryHelperHardConstraintEnabled"
+                                    :disabled="!queryHelperHardConstraintEligible"
+                                    @change="queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
+                                />
+                                <span class="font-weight-bold">Preserve selected terms only (hard constraint mode)</span>
+                            </label>
+                            <div class="small text-muted">
+                                When enabled, helper selections are sent as hard constraints to backend search.
+                            </div>
+                            <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
+                                Hard constraint mode is available after selecting at least one phenotype and one gene set cluster.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div v-if="queryHelperError" class="small text-danger">{{ queryHelperError }}</div>
+                            <div class="ml-auto d-flex align-items-center">
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary mr-2"
+                                    @click="queryHelperOpen = false"
+                                    :disabled="queryHelperComposing"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    v-if="queryHelperCanContinue"
+                                    type="button"
+                                    class="btn btn-cfde"
+                                    @click="continueWithQueryHelper"
+                                    :disabled="queryHelperComposing"
+                                >
+                                    <span v-if="queryHelperComposing">
+                                        <b-spinner small class="mr-1"></b-spinner>
+                                        Building...
+                                    </span>
+                                    <span v-else>Continue</span>
+                                </button>
+                            </div>
+                        </div>
+                    </b-modal>
                     <div class="query-guidelines-panel">
                         <button
                             type="button"
@@ -1586,7 +1837,13 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 import BootstrapVue from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
 import { createLLMClient } from "@/utils/llmClient";
-import { kcURL, resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
+import {
+    kcURL,
+    resolveCfdePhenotypeLabel,
+    resolveCfdeFactorClusterDisplayLabel,
+    getCfdePhenotypesInList,
+    getCfdeMousePhenotypesInList,
+} from "@/utils/cfdeUtils";
 import uiUtils from "@/utils/uiUtils";
 import { colorForGeneRole } from "@/utils/factorRevealGeneColors";
 
@@ -1596,6 +1853,13 @@ import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap2.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { divide } from "lodash";
+
+/**
+ * TEMPORARY: full POST URL for hybrid-search while exercising a local backend.
+ * Set to null (or "") before merging / deploying; production then uses hybridSearchBaseUrl + /api/reveal/hybrid-search.
+ * When set, VUE_APP_REVEAL_HYBRID_SEARCH_URL still wins if defined at build time.
+ */
+const TEMP_HYBRID_SEARCH_ENDPOINT_URL = "http://127.0.0.1:8000/api/reveal/hybrid-search";
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -1621,6 +1885,27 @@ export default Vue.component("factor-base-reveal", {
             suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
+            queryHelperOpen: false,
+            queryHelperPhenotypeInput: "",
+            queryHelperMechanismInput: "",
+            queryHelperGeneInput: "",
+            queryHelperGeneSuggestions: [],
+            queryHelperGeneLookupLoading: false,
+            queryHelperGeneLookupSeq: 0,
+            queryHelperPhenotypeCatalog: [],
+            queryHelperSelectedPhenotypes: [],
+            queryHelperLoadingFactors: false,
+            queryHelperFactorError: "",
+            queryHelperFactorRows: [],
+            queryHelperFactorSelection: {},
+            queryHelperClusterFilterInput: "",
+            queryHelperMechanismTerms: [],
+            queryHelperNoFactorPhenotypeLabels: [],
+            queryHelperGenesOfInterest: [],
+            queryHelperDraftResearchContext: "",
+            queryHelperHardConstraintEnabled: false,
+            queryHelperComposing: false,
+            queryHelperError: "",
             searchCriteria: null,
             display_search_criteria: false,
             edit_search_criteria: false,
@@ -1716,6 +2001,34 @@ export default Vue.component("factor-base-reveal", {
                 ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
                 : "https://search.hugeamp.org",
             /**
+             * Full POST URL for hybrid-search when set; otherwise callHybridRevealSearch uses hybridSearchBaseUrl + /api/reveal/hybrid-search.
+             * Build-time VUE_APP_REVEAL_HYBRID_SEARCH_URL overrides TEMP_HYBRID_SEARCH_ENDPOINT_URL (see module constant above).
+             */
+            hybridSearchEndpointUrl: (() => {
+                const env =
+                    typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_SEARCH_URL
+                        ? String(process.env.VUE_APP_REVEAL_HYBRID_SEARCH_URL).trim()
+                        : "";
+                if (env) return env.replace(/\/$/, "");
+                const temp =
+                    TEMP_HYBRID_SEARCH_ENDPOINT_URL != null ? String(TEMP_HYBRID_SEARCH_ENDPOINT_URL).trim() : "";
+                if (temp) return temp.replace(/\/$/, "");
+                return null;
+            })(),
+            /**
+             * Query-helper factors endpoint template. "$phenotype" is replaced by the selected phenotype id.
+             * Example: https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=t2d,cfde
+             */
+            queryHelperPigeanFactorUrlTemplate:
+                typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE
+                    ? String(process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE).trim()
+                    : "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=$phenotype,cfde",
+            /** Optional explicit endpoint override for helper factor options API. */
+            revealFactorOptionsEndpointUrl:
+                typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_FACTOR_OPTIONS_ENDPOINT_URL
+                    ? String(process.env.VUE_APP_REVEAL_FACTOR_OPTIONS_ENDPOINT_URL).trim()
+                    : "",
+            /**
              * Biolink API base for Name Resolution + NodeNorm + TRAPI edge validation.
              * Defaults to search.hugeamp.org deployment; override via VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL for local dev.
              * Example dev: VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL=http://localhost:3000
@@ -1765,7 +2078,10 @@ CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
 2. Broad Disease Queries: ONLY populate the "phenotype_terms" array if the user is asking a purely generic, broad question about a disease or trait (e.g., "Find genes for Type 2 Diabetes") with no specific mechanism attached.
 
 INSTRUCTIONS FOR "genes_of_interest":
-Extract specific, explicit gene or protein symbols mentioned by the user (e.g., TRAP1, CNDP2, SIRT1, PCSK9). Output this as an array of strings formatted exactly as mentioned (e.g., ["TRAP1", "SIRT1"]). Do NOT put metabolites (e.g., lactate), broad protein classes (e.g., kinases), or pathways in this list. If no specific genes are explicitly mentioned in the query, leave the array EMPTY [].
+Extract specific, explicit gene or protein targets mentioned by the user. 
+CRITICAL RULE 1 (Official Symbols Only): You MUST convert any protein names or aliases into their official, primary human gene symbols (HGNC). For example, if the user asks for "ALK7", you must output "ACVR1C". If the user asks for "Activin E", output "INHBE".
+CRITICAL RULE 2 (Strip Parentheses): If the user provides a symbol alongside an alias or description in parentheses (e.g., "ACVR1C(ALK7)" or "INHBE (Activin E)"), extract ONLY the primary official gene symbol and discard the parentheses (e.g., output exactly "ACVR1C" and "INHBE"). 
+Output this as an array of strings containing ONLY the clean, official gene symbols (e.g., ["ACVR1C", "INHBE"]). Do NOT put metabolites (e.g., lactate), broad protein classes (e.g., kinases), or pathways in this list. If no specific genes or proteins are explicitly mentioned in the query, leave the array EMPTY [].
 
 INSTRUCTIONS FOR "mechanism_terms":
 Extract the core biological mechanisms, specific metabolites, or molecular targets EXPLICITLY mentioned in the query. DO NOT over-expand the list with downstream pathways, unmentioned gene families, or tangentially related biological processes (e.g., if the user asks about TRAP1, do not list every senescence pathway). Distill the user's intent into a STRICT MAXIMUM of 3 to 5 highly precise, comma-separated search terms to ensure targeted exact-matching. 
@@ -1827,6 +2143,44 @@ Output:
     "Find a lipid transport mechanism involving APOE in astrocytes associated with early-onset neurodegeneration."
   ]
 }
+
+User: "what are novel candidate genes for waist-hip ratio in the ACVR1C(ALK7) / Activin E pathway?"
+Output:
+{
+  "phenotype_terms": [],
+  "genes_of_interest": ["ACVR1C", "INHBE"],
+  "mechanism_terms": "activin/TGF-beta receptor signaling, ligand signaling",
+  "research_context": "Investigating candidate genes within the ACVR1C (ALK7) / INHBE (Activin E) pathway that modulate fat distribution and influence waist-to-hip ratio.",
+  "suggested_queries": [] 
+}
+`,
+
+queryHelperComposeSystemPrompt: `
+You are a biomedical query-construction assistant.
+
+Given selected phenotypes, factor clusters, and optional genes/research notes, return ONLY valid JSON with:
+- "generated_query" (string): one concise natural-language query that explicitly includes the selected concepts so they can be reconstructed later.
+- "phenotype_terms" (array of strings): terms to use as phenotype filters.
+- "mechanism_terms" (array of strings): concise mechanism/factor terms (3-8 items preferred).
+- "genes_of_interest" (array of strings): explicit gene symbols only.
+- "research_context" (string): 1-2 sentences aligned to the selections.
+
+Rules:
+- Do not invent phenotypes, factors, or genes not present in the provided selection payload.
+- If selected_genes_of_interest is non-empty, genes_of_interest MUST be non-empty.
+- Gene preservation rule: when selected_genes_of_interest is provided, you MUST carry those genes into genes_of_interest and mention them in generated_query/research_context.
+- If a selected gene entry contains aliases or delimiters (e.g., "ACVR1C(ALK7) / INHBE (Activin E)" or "PPARG, SLC30A8"), normalize to clean official symbols (e.g., ["ACVR1C","INHBE"] or ["PPARG","SLC30A8"]) rather than dropping them.
+- Phenotype strictness rule to avoid kitchen-sink retrieval:
+  - If selected_factors is non-empty OR selected_mechanism_terms is non-empty, set phenotype_terms to [].
+  - Only use phenotype_terms when the request is phenotype-only (no selected factors and no selected_mechanism_terms).
+- mechanism_terms must stay tightly grounded to selected_factors.factor_label and/or selected_mechanism_terms; do not add broad extra synonyms unless they are explicitly present in the selection payload.
+- Keep generated_query grounded and specific.
+- Output JSON only (no markdown, no prose).
+
+Final self-check before returning JSON:
+1) If selected_genes_of_interest exists, genes_of_interest is not empty.
+2) generated_query explicitly contains at least one mechanism term and the selected genes (when provided).
+3) phenotype_terms follows the strictness rule above.
 `,
 
 mechanismHypothesisSystemPrompt: `
@@ -1991,6 +2345,66 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 return `${this.mechanismHypothesisSystemPrompt}\n\n${this.mechanismHypothesisExploratoryModeSuffix}`;
             }
             return this.mechanismHypothesisSystemPrompt;
+        },
+        queryHelperPhenotypeSuggestions() {
+            const raw = String(this.queryHelperPhenotypeInput || "").trim().toLowerCase();
+            if (!raw) return [];
+            const selected = new Set((this.queryHelperSelectedPhenotypes || []).map((x) => String(x.value)));
+            return (this.queryHelperPhenotypeCatalog || [])
+                .filter((item) => !selected.has(String(item.value)))
+                .filter((item) => {
+                    const label = String(item.label || "").toLowerCase();
+                    const value = String(item.value || "").toLowerCase();
+                    return this.queryHelperMatchesClauses(raw, `${label} ${value}`);
+                })
+                .sort((a, b) => {
+                    const la = String(a.label || "");
+                    const lb = String(b.label || "");
+                    if (la.length !== lb.length) return la.length - lb.length;
+                    return la.localeCompare(lb);
+                })
+                .slice(0, 30);
+        },
+        queryHelperSelectedFactorRows() {
+            const selected = [];
+            (this.queryHelperFactorRows || []).forEach((row) => {
+                if (this.queryHelperFactorSelection[row.key]) selected.push(row);
+            });
+            return selected;
+        },
+        queryHelperHasRequiredSelections() {
+            return (
+                Array.isArray(this.queryHelperSelectedPhenotypes) &&
+                this.queryHelperSelectedPhenotypes.length > 0 &&
+                Array.isArray(this.queryHelperSelectedFactorRows) &&
+                this.queryHelperSelectedFactorRows.length > 0
+            );
+        },
+        queryHelperCanContinue() {
+            if (this.queryHelperHasRequiredSelections) return true;
+            return Array.isArray(this.queryHelperMechanismTerms) && this.queryHelperMechanismTerms.length > 0;
+        },
+        queryHelperHardConstraintEligible() {
+            return (
+                Array.isArray(this.queryHelperSelectedPhenotypes) &&
+                this.queryHelperSelectedPhenotypes.length > 0 &&
+                Array.isArray(this.queryHelperSelectedFactorRows) &&
+                this.queryHelperSelectedFactorRows.length > 0
+            );
+        },
+        queryHelperAllFactorsSelected() {
+            const rows = this.queryHelperFactorRows || [];
+            if (!rows.length) return false;
+            return rows.every((row) => !!this.queryHelperFactorSelection[row.key]);
+        },
+        queryHelperSomeFactorsSelected() {
+            const rows = this.queryHelperFactorRows || [];
+            if (!rows.length) return false;
+            const selectedCount = rows.reduce(
+                (acc, row) => acc + (this.queryHelperFactorSelection[row.key] ? 1 : 0),
+                0
+            );
+            return selectedCount > 0 && selectedCount < rows.length;
         },
         factorDataTableRows() {
             const rows = [];
@@ -2288,6 +2702,11 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             model: "gpt-5-mini",
             system_prompt: this.mechanismHypothesisSystemPrompt,
         });
+        this.llmQueryHelper = createLLMClient({
+            llm: "openai",
+            model: "gpt-5-mini",
+            system_prompt: this.queryHelperComposeSystemPrompt,
+        });
 
     },
     async mounted() {
@@ -2319,6 +2738,715 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 			const TAB_WRAPPER = 'rp_tabs';
 			const CONTENT_WRAPPER = 'rp_tabs_contents';
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
+        },
+        ensureQueryHelperPhenotypeCatalog() {
+            if (Array.isArray(this.queryHelperPhenotypeCatalog) && this.queryHelperPhenotypeCatalog.length) return;
+            const list = [...(getCfdePhenotypesInList() || []), ...(getCfdeMousePhenotypesInList() || [])];
+            const seen = new Set();
+            this.queryHelperPhenotypeCatalog = list
+                .filter((x) => x && x.value != null && x.label != null)
+                .map((x) => ({ value: String(x.value), label: String(x.label) }))
+                .filter((x) => {
+                    const key = `${x.value}::${x.label}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+        },
+        resetQueryHelperState() {
+            this.queryHelperPhenotypeInput = "";
+            this.queryHelperMechanismInput = "";
+            this.queryHelperGeneInput = "";
+            this.queryHelperGeneSuggestions = [];
+            this.queryHelperGeneLookupLoading = false;
+            this.queryHelperGeneLookupSeq = 0;
+            this.queryHelperSelectedPhenotypes = [];
+            this.queryHelperLoadingFactors = false;
+            this.queryHelperFactorError = "";
+            this.queryHelperFactorRows = [];
+            this.queryHelperFactorSelection = {};
+            this.queryHelperClusterFilterInput = "";
+            this.queryHelperMechanismTerms = [];
+            this.queryHelperNoFactorPhenotypeLabels = [];
+            this.queryHelperGenesOfInterest = [];
+            this.queryHelperDraftResearchContext = "";
+            this.queryHelperHardConstraintEnabled = false;
+            this.queryHelperComposing = false;
+            this.queryHelperError = "";
+        },
+        openQueryHelperModal() {
+            this.ensureQueryHelperPhenotypeCatalog();
+            this.resetQueryHelperState();
+            this.queryHelperOpen = true;
+        },
+        onQueryHelperPickPhenotype(item) {
+            if (!item || item.value == null) return;
+            const value = String(item.value);
+            if ((this.queryHelperSelectedPhenotypes || []).some((x) => String(x.value) === value)) return;
+            this.queryHelperSelectedPhenotypes.push({
+                value,
+                label: String(item.label || value),
+            });
+            this.queryHelperPhenotypeInput = "";
+            this.refreshQueryHelperFactors();
+        },
+        removeQueryHelperPhenotype(value) {
+            const target = String(value || "");
+            this.queryHelperSelectedPhenotypes = (this.queryHelperSelectedPhenotypes || []).filter(
+                (x) => String(x.value) !== target
+            );
+            if (!this.queryHelperHardConstraintEligible) {
+                this.queryHelperHardConstraintEnabled = false;
+            }
+            this.refreshQueryHelperFactors();
+        },
+        toggleQueryHelperFactor(rowKey, evt) {
+            const checked = !!(evt && evt.target && evt.target.checked);
+            this.$set(this.queryHelperFactorSelection, String(rowKey || ""), checked);
+            if (!this.queryHelperHardConstraintEligible) {
+                this.queryHelperHardConstraintEnabled = false;
+            }
+        },
+        toggleQueryHelperAllFactors(evt) {
+            const checked = !!(evt && evt.target && evt.target.checked);
+            const next = {};
+            (this.queryHelperFactorRows || []).forEach((row) => {
+                next[row.key] = checked;
+            });
+            this.queryHelperFactorSelection = next;
+            if (!this.queryHelperHardConstraintEligible) {
+                this.queryHelperHardConstraintEnabled = false;
+            }
+        },
+        queryHelperMatchesClauses(rawQuery, haystackText) {
+            const raw = String(rawQuery || "").trim().toLowerCase();
+            if (!raw) return true;
+            const clauses = raw
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+            if (!clauses.length) return true;
+            const haystack = String(haystackText || "").toLowerCase();
+            return clauses.every((clause) => {
+                if (haystack.includes(clause)) return true;
+                const words = clause.split(/\s+/).filter(Boolean);
+                return words.length > 0 && words.every((w) => haystack.includes(w));
+            });
+        },
+        applyQueryHelperClusterFilterSelection() {
+            const rows = this.queryHelperFactorRows || [];
+            if (!rows.length) return;
+            const raw = String(this.queryHelperClusterFilterInput || "").trim();
+            const next = {};
+            if (!raw) {
+                rows.forEach((row) => {
+                    next[row.key] = true;
+                });
+                this.queryHelperFactorSelection = next;
+                return;
+            }
+            rows.forEach((row) => {
+                const haystack = `${row.factorLabel || ""} ${row.factorLabelRaw || ""} ${row.factorId || ""}`
+                    .toLowerCase()
+                    .replace(/\s+/g, " ")
+                    .trim();
+                const clauses = raw
+                    .toLowerCase()
+                    .split(",")
+                    .map((s) => s.replace(/\s+/g, " ").trim())
+                    .filter(Boolean);
+                next[row.key] = clauses.some((clause) => haystack.includes(clause));
+            });
+            this.queryHelperFactorSelection = next;
+        },
+        normalizeGeneSymbolInput(raw) {
+            return String(raw || "")
+                .trim()
+                .replace(/[,\s]+$/g, "")
+                .toUpperCase();
+        },
+        extractGeneSuggestionLabel(item) {
+            if (item == null) return "";
+            if (typeof item === "string") return item.trim();
+            if (typeof item === "object") {
+                const candidates = ["gene", "symbol", "name", "id"];
+                for (const k of candidates) {
+                    if (item[k] != null && String(item[k]).trim() !== "") {
+                        return String(item[k]).trim();
+                    }
+                }
+            }
+            return "";
+        },
+        async onQueryHelperGeneInput() {
+            const q = String(this.queryHelperGeneInput || "").trim();
+            if (q.length < 2 || q.includes(",")) {
+                this.queryHelperGeneSuggestions = [];
+                return;
+            }
+            const seq = this.queryHelperGeneLookupSeq + 1;
+            this.queryHelperGeneLookupSeq = seq;
+            this.queryHelperGeneLookupLoading = true;
+            try {
+                const url = `${uiUtils.biDomain()}/api/bio/match/gene?q=${encodeURIComponent(q)}&limit=15`;
+                const resp = await this.fetchWithTimeout(url, { method: "GET" }, this.hybridSearchTimeoutMs);
+                const json = await resp.json().catch(() => ({}));
+                if (seq !== this.queryHelperGeneLookupSeq) return;
+                if (!resp.ok || !Array.isArray(json && json.data)) {
+                    this.queryHelperGeneSuggestions = [];
+                    return;
+                }
+                const selected = new Set((this.queryHelperGenesOfInterest || []).map((g) => String(g).toUpperCase()));
+                const out = [];
+                const seen = new Set();
+                (json.data || []).forEach((entry) => {
+                    const label = this.extractGeneSuggestionLabel(entry);
+                    if (!label) return;
+                    const canon = label.toUpperCase();
+                    if (selected.has(canon) || seen.has(canon)) return;
+                    seen.add(canon);
+                    out.push(canon);
+                });
+                this.queryHelperGeneSuggestions = out.slice(0, 15);
+            } catch (err) {
+                if (seq === this.queryHelperGeneLookupSeq) {
+                    this.queryHelperGeneSuggestions = [];
+                }
+            } finally {
+                if (seq === this.queryHelperGeneLookupSeq) {
+                    this.queryHelperGeneLookupLoading = false;
+                }
+            }
+        },
+        selectQueryHelperGeneSuggestion(gene) {
+            const g = this.normalizeGeneSymbolInput(gene);
+            if (!g) return;
+            if (!(this.queryHelperGenesOfInterest || []).includes(g)) {
+                this.queryHelperGenesOfInterest.push(g);
+            }
+            this.queryHelperGeneInput = "";
+            this.queryHelperGeneSuggestions = [];
+            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
+                this.refreshQueryHelperFactors();
+            }
+        },
+        normalizeMechanismInput(raw) {
+            return String(raw || "")
+                .trim()
+                .replace(/[,\s]+$/g, "");
+        },
+        addQueryHelperMechanismFromInput() {
+            const term = this.normalizeMechanismInput(this.queryHelperMechanismInput);
+            if (!term) return;
+            if (!(this.queryHelperMechanismTerms || []).includes(term)) {
+                this.queryHelperMechanismTerms.push(term);
+            }
+            this.queryHelperMechanismInput = "";
+        },
+        removeQueryHelperMechanism(term) {
+            const target = String(term || "");
+            this.queryHelperMechanismTerms = (this.queryHelperMechanismTerms || []).filter((x) => String(x) !== target);
+        },
+        addQueryHelperGeneFromInput() {
+            if (this.queryHelperGeneSuggestions.length) {
+                this.selectQueryHelperGeneSuggestion(this.queryHelperGeneSuggestions[0]);
+                return;
+            }
+            const g = this.normalizeGeneSymbolInput(this.queryHelperGeneInput);
+            if (!g) return;
+            if (!(this.queryHelperGenesOfInterest || []).includes(g)) {
+                this.queryHelperGenesOfInterest.push(g);
+            }
+            this.queryHelperGeneInput = "";
+            this.queryHelperGeneSuggestions = [];
+            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
+                this.refreshQueryHelperFactors();
+            }
+        },
+        removeQueryHelperGene(gene) {
+            const target = String(gene || "");
+            this.queryHelperGenesOfInterest = (this.queryHelperGenesOfInterest || []).filter((x) => String(x) !== target);
+            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
+                this.refreshQueryHelperFactors();
+            }
+        },
+        resolveRevealApiBaseUrl() {
+            const explicitEndpoint = String(this.hybridSearchEndpointUrl || "").trim();
+            if (explicitEndpoint) {
+                const idx = explicitEndpoint.indexOf("/api/");
+                if (idx > 0) return explicitEndpoint.slice(0, idx).replace(/\/$/, "");
+                const m = explicitEndpoint.match(/^(https?:\/\/[^/]+)/i);
+                if (m && m[1]) return String(m[1]).replace(/\/$/, "");
+            }
+            return String(this.hybridSearchBaseUrl || "").replace(/\/$/, "");
+        },
+        resolveFactorOptionsEndpointUrl() {
+            const explicit = String(this.revealFactorOptionsEndpointUrl || "").trim();
+            if (explicit) return explicit.replace(/\/$/, "");
+            const base = this.resolveRevealApiBaseUrl();
+            return `${base}/api/reveal/factor-options`;
+        },
+        normalizeQueryHelperFactorOptionsResponse(json) {
+            if (!json || typeof json !== "object") return [];
+            if (Array.isArray(json.data && json.data.factors)) return json.data.factors;
+            if (Array.isArray(json.factors)) return json.factors;
+            if (Array.isArray(json.data)) return json.data;
+            return [];
+        },
+        async refreshQueryHelperFactors() {
+            const phenotypeTerms = (this.queryHelperSelectedPhenotypes || []).map((x) => String(x.value)).filter(Boolean);
+            this.queryHelperFactorError = "";
+            this.queryHelperFactorRows = [];
+            this.queryHelperFactorSelection = {};
+            this.queryHelperNoFactorPhenotypeLabels = [];
+            if (!phenotypeTerms.length) return;
+            this.queryHelperLoadingFactors = true;
+            try {
+                const selectedById = {};
+                (this.queryHelperSelectedPhenotypes || []).forEach((p) => {
+                    if (!p || p.value == null) return;
+                    selectedById[String(p.value)] = String(p.label || p.value);
+                });
+                const endpoint = this.resolveFactorOptionsEndpointUrl();
+                const goiHint = this.normalizeHelperSelectedGenes(this.queryHelperGenesOfInterest || []);
+                const payload = {
+                    phenotype_labels: phenotypeTerms,
+                    limit: 200,
+                    // Always send as array to avoid backend SQL optional-param typing ambiguity (e.g., $2 unknown).
+                    genes_of_interest: goiHint,
+                };
+                const resp = await this.fetchWithTimeout(
+                    endpoint,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    },
+                    this.hybridSearchTimeoutMs
+                );
+                const json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    const detail = this.hybridSearchErrorMessage(resp.status, json);
+                    throw new Error(`Factor options API failed: ${resp.status} ${detail}`);
+                }
+                const factors = this.normalizeQueryHelperFactorOptionsResponse(json);
+                const rows = [];
+                const seen = new Set();
+                factors.forEach((item) => {
+                    const phenotypeId =
+                        item && item.phenotype_label != null && String(item.phenotype_label).trim() !== ""
+                            ? String(item.phenotype_label).trim()
+                            : item && item.phenotype_id != null && String(item.phenotype_id).trim() !== ""
+                                ? String(item.phenotype_id).trim()
+                                : phenotypeTerms[0];
+                    const factorId =
+                        item && item.factor_id != null && String(item.factor_id).trim() !== ""
+                            ? String(item.factor_id).trim()
+                            : item && item.factor != null && String(item.factor).trim() !== ""
+                                ? String(item.factor).trim()
+                                : item && item.cluster != null && String(item.cluster).trim() !== ""
+                                    ? String(item.cluster).trim()
+                                    : "";
+                    if (!factorId) return;
+                    const factorLabelRaw =
+                        item && item.factor_label != null && String(item.factor_label).trim() !== ""
+                            ? String(item.factor_label).trim()
+                            : item && item.label != null && String(item.label).trim() !== ""
+                                ? String(item.label).trim()
+                                : factorId;
+                    const key = `${phenotypeId}|${factorId}`;
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    rows.push({
+                        key,
+                        phenotypeId: String(phenotypeId),
+                        phenotypeLabel: selectedById[String(phenotypeId)] || this.getPhenotypeDisplay(phenotypeId),
+                        factorId,
+                        factorLabelRaw,
+                        factorLabel: factorLabelRaw || factorId,
+                        hasAnyGeneMatch: item && item.has_any_gene_match === true,
+                        hasAllGeneMatch: item && item.has_all_gene_match === true,
+                        genesMatched: Array.isArray(item && item.genes_matched)
+                            ? item.genes_matched.map((g) => String(g || "")).filter(Boolean)
+                            : [],
+                    });
+                });
+                this.queryHelperFactorRows = rows;
+                const prevSelection = this.queryHelperFactorSelection || {};
+                const selection = {};
+                rows.forEach((row) => {
+                    selection[row.key] = Object.prototype.hasOwnProperty.call(prevSelection, row.key)
+                        ? !!prevSelection[row.key]
+                        : true;
+                });
+                this.queryHelperFactorSelection = selection;
+                this.queryHelperNoFactorPhenotypeLabels = phenotypeTerms
+                    .filter((pid) => !rows.some((r) => String(r.phenotypeId) === String(pid)))
+                    .map((pid) => selectedById[String(pid)] || this.getPhenotypeDisplay(pid));
+                this.applyQueryHelperClusterFilterSelection();
+                if (!this.queryHelperHardConstraintEligible) {
+                    this.queryHelperHardConstraintEnabled = false;
+                }
+                if (!rows.length) {
+                    this.queryHelperFactorError = "";
+                }
+            } catch (err) {
+                this.queryHelperFactorError =
+                    err && err.message ? String(err.message) : "Failed to load factors for selected phenotypes.";
+            } finally {
+                this.queryHelperLoadingFactors = false;
+            }
+        },
+        buildHelperFallbackQuery({ phenotypes = [], factorLabels = [], genes = [], context = "" } = {}) {
+            const p = (phenotypes || []).slice(0, 3).join(", ");
+            const f = (factorLabels || []).slice(0, 3).join(", ");
+            const g = (genes || []).slice(0, 5).join(", ");
+            const pieces = [];
+            if (p) pieces.push(`for phenotypes ${p}`);
+            if (f) pieces.push(`involving factor clusters ${f}`);
+            if (g) pieces.push(`with genes ${g}`);
+            if (context) pieces.push(`in the context of ${String(context).trim()}`);
+            return `Find candidate mechanisms ${pieces.join(" ")}`.trim();
+        },
+        normalizeHelperGeneSymbolToken(raw) {
+            const token = String(raw || "")
+                .trim()
+                .replace(/\(.*/g, "")
+                .replace(/[^A-Za-z0-9-]/g, "")
+                .toUpperCase();
+            return token && token.length >= 2 ? token : "";
+        },
+        normalizeHelperSelectedGenes(list) {
+            const input = Array.isArray(list) ? list : [];
+            const out = [];
+            const seen = new Set();
+            input.forEach((entry) => {
+                const text = String(entry || "").trim();
+                if (!text) return;
+                text
+                    .split(/[\/,;]+/)
+                    .map((part) => this.normalizeHelperGeneSymbolToken(part))
+                    .filter(Boolean)
+                    .forEach((g) => {
+                        if (seen.has(g)) return;
+                        seen.add(g);
+                        out.push(g);
+                    });
+            });
+            return out;
+        },
+        buildHelperSelectedMechanismTerms(selectedMechanisms, selectedFactors) {
+            const out = [];
+            const seen = new Set();
+            const add = (raw) => {
+                const s = String(raw || "").trim();
+                if (!s) return;
+                if (seen.has(s.toLowerCase())) return;
+                seen.add(s.toLowerCase());
+                out.push(s);
+            };
+            (Array.isArray(selectedMechanisms) ? selectedMechanisms : []).forEach(add);
+            if (!out.length) {
+                (Array.isArray(selectedFactors) ? selectedFactors : []).forEach((f) => {
+                    const human =
+                        f && f.factor_label != null && String(f.factor_label).trim() !== ""
+                            ? resolveCfdeFactorClusterDisplayLabel(String(f.factor_label).trim())
+                            : "";
+                    const raw =
+                        f && f.factor_label_raw != null && String(f.factor_label_raw).trim() !== ""
+                            ? resolveCfdeFactorClusterDisplayLabel(String(f.factor_label_raw).trim())
+                            : "";
+                    const fallback =
+                        f && f.factor_id != null && String(f.factor_id).trim() !== ""
+                            ? resolveCfdeFactorClusterDisplayLabel(String(f.factor_id).trim())
+                            : "";
+                    add(human || raw || fallback);
+                });
+            }
+            return out;
+        },
+        buildHelperDeterministicTerms({ selectedPhenotypes = [], selectedFactors = [], selectedMechanisms = [], selectedGenes = [] } = {}) {
+            const normalizedGenes = this.normalizeHelperSelectedGenes(selectedGenes);
+            const mechanismTerms = this.buildHelperSelectedMechanismTerms(selectedMechanisms, selectedFactors);
+            const phenotypeIds = (Array.isArray(selectedPhenotypes) ? selectedPhenotypes : [])
+                .map((p) => (p && p.id != null ? String(p.id).trim() : ""))
+                .filter(Boolean);
+            // Keep extracted phenotype terms strict to avoid broad kitchen-sink phenotypes when constraints exist.
+            const phenotypeTermsForExtract = mechanismTerms.length ? [] : phenotypeIds;
+            return {
+                phenotypeTermsForExtract,
+                phenotypeTermsForRetrieval: phenotypeIds,
+                mechanismTerms,
+                genesOfInterest: normalizedGenes,
+            };
+        },
+        buildHelperConstraintSpec({ selectedPhenotypes = [], selectedFactors = [], genesOfInterest = [] } = {}) {
+            if (!this.queryHelperHardConstraintEnabled) return null;
+            if (!this.queryHelperHardConstraintEligible) return null;
+            const cleanArray = (arr) => {
+                const seen = new Set();
+                const out = [];
+                (Array.isArray(arr) ? arr : []).forEach((v) => {
+                    const s = String(v || "").trim();
+                    if (!s) return;
+                    const key = s.toLowerCase();
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    out.push(s);
+                });
+                return out;
+            };
+            const phenotype_labels = cleanArray(
+                (Array.isArray(selectedPhenotypes) ? selectedPhenotypes : []).map((p) =>
+                    p && p.label != null ? String(p.label).trim() : ""
+                )
+            );
+            const factor_ids = cleanArray(
+                (Array.isArray(selectedFactors) ? selectedFactors : []).map((f) =>
+                    f && f.factor_id != null ? String(f.factor_id).trim() : ""
+                )
+            );
+            const factor_labels = cleanArray(
+                (Array.isArray(selectedFactors) ? selectedFactors : []).map((f) =>
+                    f && f.factor_label != null ? String(f.factor_label).trim() : ""
+                )
+            );
+            const goi = cleanArray(this.normalizeLlmTermList(genesOfInterest));
+            const scope = {};
+            if (phenotype_labels.length) scope.phenotype_labels = phenotype_labels;
+            if (factor_ids.length) scope.factor_ids = factor_ids;
+            if (factor_labels.length) scope.factor_labels = factor_labels;
+            if (goi.length) scope.genes_of_interest = goi;
+            if (!Object.keys(scope).length) return null;
+            return {
+                constraint_mode: "hard",
+                constraint_scope: scope,
+                constraint_behavior: {
+                    gene_match: "all",
+                    on_empty: "return_empty",
+                },
+            };
+        },
+        async continueWithQueryHelper() {
+            this.queryHelperError = "";
+            if (!this.queryHelperCanContinue) return;
+            const selectedPhenotypes = (this.queryHelperSelectedPhenotypes || []).map((x) => ({
+                id: String(x.value),
+                label: String(x.label || x.value),
+            }));
+            const selectedFactors = (this.queryHelperSelectedFactorRows || []).map((row) => ({
+                phenotype_id: String(row.phenotypeId),
+                phenotype_label: String(row.phenotypeLabel),
+                factor_id: String(row.factorId),
+                factor_label: String(
+                    resolveCfdeFactorClusterDisplayLabel(row.factorLabel || row.factorLabelRaw || row.factorId) ||
+                        row.factorLabel ||
+                        row.factorId
+                ),
+                factor_label_raw: String(row.factorLabelRaw || row.factorLabel),
+            }));
+            const selectedMechanisms = [...(this.queryHelperMechanismTerms || [])];
+            const selectedGenes = [...(this.queryHelperGenesOfInterest || [])];
+            const contextDraft = String(this.queryHelperDraftResearchContext || "").trim();
+            const payload = {
+                selected_phenotypes: selectedPhenotypes,
+                selected_factors: selectedFactors,
+                selected_mechanism_terms: selectedMechanisms,
+                selected_genes_of_interest: selectedGenes,
+                user_context_draft: contextDraft,
+            };
+            const deterministic = this.buildHelperDeterministicTerms({
+                selectedPhenotypes,
+                selectedFactors,
+                selectedMechanisms,
+                selectedGenes,
+            });
+            const helperConstraintSpec = this.buildHelperConstraintSpec({
+                selectedPhenotypes,
+                selectedFactors,
+                genesOfInterest: deterministic.genesOfInterest,
+            });
+            const userPrompt = `Build query inputs from this selection payload so the resulting query can reconstruct the same phenotype/factor/gene intent:\n${JSON.stringify(payload, null, 2)}`;
+            this.queryHelperComposing = true;
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    let done = false;
+                    const finish = (err, out) => {
+                        if (done) return;
+                        done = true;
+                        if (err) reject(err);
+                        else resolve(out);
+                    };
+                    this.llmQueryHelper.sendPrompt({
+                        userPrompt,
+                        onResponse: (resp) => finish(null, resp),
+                        onError: (err) => finish(err || new Error("Failed to build helper query.")),
+                        onEnd: () => {
+                            if (!done) finish(new Error("Incomplete helper LLM response."));
+                        },
+                    });
+                });
+                const json = this.parseLLMResponse(response);
+                if (!json || typeof json !== "object") {
+                    throw new Error("Could not parse helper LLM response.");
+                }
+                const phenotypeTerms = deterministic.phenotypeTermsForExtract;
+                const mechanismTerms = deterministic.mechanismTerms;
+                const genesOfInterest = deterministic.genesOfInterest.length
+                    ? deterministic.genesOfInterest
+                    : this.normalizeLlmTermList(json.genes_of_interest);
+                if (selectedGenes.length && !genesOfInterest.length) {
+                    throw new Error("Could not preserve selected genes. Please select genes from suggestions and try again.");
+                }
+                const researchContext =
+                    json.research_context != null && String(json.research_context).trim() !== ""
+                        ? String(json.research_context).trim()
+                        : contextDraft;
+                const generatedQuery =
+                    json.generated_query != null && String(json.generated_query).trim() !== ""
+                        ? String(json.generated_query).trim()
+                        : this.buildHelperFallbackQuery({
+                            phenotypes: selectedPhenotypes.map((p) => p.label),
+                            factorLabels: selectedMechanisms.length
+                                ? selectedMechanisms
+                                : selectedFactors.map((f) => f.factor_label),
+                            genes: genesOfInterest,
+                            context: researchContext,
+                        });
+                this.queryHelperOpen = false;
+                await this.startWorkflowFromExtractedTerms({
+                    queryText: generatedQuery,
+                    phenotypeTerms,
+                    mechanismTerms,
+                    genesOfInterest,
+                    researchContext,
+                    retrievalPhenotypeTerms: deterministic.phenotypeTermsForRetrieval,
+                    helperConstraintSpec,
+                });
+            } catch (err) {
+                this.queryHelperError =
+                    err && err.message ? String(err.message) : "Failed to build query from helper selections.";
+            } finally {
+                this.queryHelperComposing = false;
+            }
+        },
+        resetWorkflowStateForNewRun() {
+            this.loadComplete = false;
+            this.searchCriteria = null;
+            this.mechanisms = null;
+            this.mechanisms_summary = null;
+            this.mechanismDiagnosticAssessment = null;
+            this.hypothesisLastRunMode = null;
+            this.lastAlternativeQueries = [];
+            this.lastGenesOfInterest = [];
+            this.lastHybridSearchMeta = {};
+            this.lastHybridSearchResponse = null;
+            this.searchCriteriaEditRows = [];
+            this.searchCriteriaEditRowsDefault = [];
+            this.searchCriteriaExtractionGateDone = false;
+            this.pairSelectionOverrides = {};
+            this.llmFilteredPairKeysBaseline = [];
+            this.error_search_criteria = false;
+            this.mainTableCurrentPage = 1;
+            this.remainingTableCurrentPage = 1;
+            this.steps = [];
+            this.stepsTime = null;
+            this.stepsTimer = null;
+            this.stepsPausedAt = null;
+            this.now = Date.now();
+            this.showTab = "terms";
+            this.revealResultsTabUnlocked = false;
+            this.get_set_sources = [];
+        },
+        async startWorkflowFromExtractedTerms({
+            queryText = "",
+            phenotypeTerms = [],
+            mechanismTerms = [],
+            genesOfInterest = [],
+            researchContext = "",
+            alternativeQueries = [],
+            retrievalPhenotypeTerms = null,
+            helperConstraintSpec = null,
+        } = {}) {
+            const q = String(queryText || "").trim();
+            if (!q) return;
+            if (this.stepApprovalGateActive) {
+                this.cancelStepGate(false);
+            }
+            this.userQuery = q;
+            this.resetWorkflowStateForNewRun();
+            this.loading_search_criteria = false;
+            this.allow_retry = true;
+
+            const phen = this.normalizeLlmTermList(phenotypeTerms);
+            const mech = this.normalizeLlmTermList(mechanismTerms);
+            const goi = this.normalizeLlmTermList(genesOfInterest);
+            const alt = this.normalizeAlternativeQueries(alternativeQueries);
+            const ctx = String(researchContext || "").trim();
+            const searchTerms = [...phen, ...mech];
+            const retrievalPhenotypeList = this.normalizeLlmTermList(retrievalPhenotypeTerms);
+
+            this.setStep(
+                {
+                    id: "1",
+                    title: "LLM: Extracting search terms from user query",
+                    substep: {
+                        id: "1.1",
+                        title: q,
+                    },
+                },
+                true
+            );
+            this.searchCriteria = [
+                {
+                    search_criteria: "Search Terms",
+                    values: searchTerms.length ? searchTerms : ["(none extracted)"],
+                    why: "Built from your helper selections.",
+                    purpose:
+                        "These terms will be used to search for related phenotype↔signature associations via semantic search.",
+                },
+                {
+                    search_criteria: "Research Context",
+                    values: ctx || "(none extracted)",
+                    why: "Built from your helper selections.",
+                    purpose:
+                        "This context will be used to tailor mechanistic hypotheses to your research.",
+                },
+            ];
+            this.searchTerm = searchTerms.join(", ");
+            this.lastPhenotypeTerms = phen;
+            this.lastMechanismTerms = mech;
+            this.lastGenesOfInterest = goi;
+            this.lastAlternativeQueries = alt;
+            this.setStep({
+                id: "1",
+                substep: {
+                    id: "1.1",
+                    result: {
+                        title: "Extracted search terms and research context. Review terms, then continue.",
+                        result: {
+                            phenotypeTerms: phen,
+                            mechanismTerms: mech,
+                            genesOfInterest: goi,
+                            researchContext: ctx,
+                            alternativeQueries: alt,
+                        },
+                    },
+                },
+            });
+            this.buildSearchCriteriaEditRows();
+            const approved = await this.waitForStepApproval(
+                "1",
+                "Review terms and continue when ready.",
+                true
+            );
+            if (!approved) return;
+            if (this.searchMode === "auto") {
+                this.onResearch(
+                    retrievalPhenotypeList.length ? retrievalPhenotypeList : undefined,
+                    helperConstraintSpec != null ? { helperConstraintSpec } : undefined
+                );
+            }
         },
         startPlaceholderRotation() {
             if (this.placeholderIntervalId != null) return;
@@ -5029,32 +6157,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (this.stepApprovalGateActive) {
                 this.cancelStepGate(false);
             }
-            this.loadComplete = false;
-            this.searchCriteria = null;
-            this.mechanisms = null;
-            this.mechanisms_summary = null;
-            this.mechanismDiagnosticAssessment = null;
-            this.hypothesisLastRunMode = null;
-            this.lastAlternativeQueries = [];
-            this.lastGenesOfInterest = [];
-            this.lastHybridSearchMeta = {};
-            this.lastHybridSearchResponse = null;
-            this.searchCriteriaEditRows = [];
-            this.searchCriteriaEditRowsDefault = [];
-            this.searchCriteriaExtractionGateDone = false;
-            this.pairSelectionOverrides = {};
-            this.llmFilteredPairKeysBaseline = [];
-            this.error_search_criteria = false;
-            this.mainTableCurrentPage = 1;
-            this.remainingTableCurrentPage = 1;
-            this.steps = [];
-            this.stepsTime = null;
-            this.stepsTimer = null;
-            this.stepsPausedAt = null;
-            this.now = Date.now();
-            this.showTab = 'terms';
-            this.revealResultsTabUnlocked = false;
-            this.get_set_sources = [],
+            this.resetWorkflowStateForNewRun();
             this.beginFlow();
         },
         beginFlow() {
@@ -5289,7 +6392,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 
             return { phenotype_terms, mechanism_terms, research_context };
         },
-        buildHybridSearchRequestBody(phenotypeTerms, mechanismTerms, researchContext, queryEmbedding, genesOfInterest = null) {
+        buildHybridSearchRequestBody(
+            phenotypeTerms,
+            mechanismTerms,
+            researchContext,
+            queryEmbedding,
+            genesOfInterest = null,
+            constraintSpec = null
+        ) {
             const useClient = !!this.hybridSearchUseClientEmbedding;
             const fields = this.prepareHybridSearchRequestFields(
                 phenotypeTerms,
@@ -5306,6 +6416,11 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             };
             if (useClient && Array.isArray(queryEmbedding) && queryEmbedding.length > 0) {
                 body.query_embedding = queryEmbedding;
+            }
+            if (constraintSpec && typeof constraintSpec === "object") {
+                if (constraintSpec.constraint_mode != null) body.constraint_mode = constraintSpec.constraint_mode;
+                if (constraintSpec.constraint_scope != null) body.constraint_scope = constraintSpec.constraint_scope;
+                if (constraintSpec.constraint_behavior != null) body.constraint_behavior = constraintSpec.constraint_behavior;
             }
             return body;
         },
@@ -5365,15 +6480,26 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
             return embedding;
         },
-        async callHybridRevealSearch({ queryEmbedding, phenotypeTerms, mechanismTerms, researchContext, genesOfInterest }) {
-            const base = String(this.hybridSearchBaseUrl || "").replace(/\/$/, "");
-            const url = `${base}/api/reveal/hybrid-search`;
+        async callHybridRevealSearch({
+            queryEmbedding,
+            phenotypeTerms,
+            mechanismTerms,
+            researchContext,
+            genesOfInterest,
+            constraintSpec = null,
+        }) {
+            const configured =
+                this.hybridSearchEndpointUrl != null && String(this.hybridSearchEndpointUrl).trim() !== "";
+            const url = configured
+                ? String(this.hybridSearchEndpointUrl).trim().replace(/\/$/, "")
+                : `${String(this.hybridSearchBaseUrl || "").replace(/\/$/, "")}/api/reveal/hybrid-search`;
             const body = this.buildHybridSearchRequestBody(
                 phenotypeTerms,
                 mechanismTerms,
                 researchContext,
                 queryEmbedding,
-                genesOfInterest
+                genesOfInterest,
+                constraintSpec
             );
             if (!body.phenotype_terms.length) {
                 throw new Error("422 phenotype_terms is required and must be non-empty.");
@@ -5487,7 +6613,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             });
             return out;
         },
-        async runHybridRetrievalWorkflow({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
+        async runHybridRetrievalWorkflow({
+            phenotypeTerms = [],
+            mechanismTerms = [],
+            researchContext = "",
+            constraintSpec = null,
+        } = {}) {
             const NONE = "(none extracted)";
             let ctx = researchContext != null ? String(researchContext).trim() : "";
             if (ctx === NONE) ctx = "";
@@ -5539,6 +6670,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 mechanismTerms: mechs,
                 researchContext: ctx,
                 genesOfInterest: this.normalizeLlmTermList(this.lastGenesOfInterest),
+                constraintSpec,
             });
             const normalized = this.normalizeHybridFactorsToFactorData(hybridJson, phenos);
             const phenotypes = Object.keys(normalized).filter((p) => (normalized[p].factors || []).length > 0);
@@ -5589,10 +6721,11 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         /**
          * Hybrid-only retrieval path:
-         * POST https://search.hugeamp.org/api/reveal/hybrid-search (or VUE_APP_REVEAL_HYBRID_BASE_URL + /api/reveal/hybrid-search).
+         * POST hybrid-search (hybridSearchEndpointUrl, or hybridSearchBaseUrl + /api/reveal/hybrid-search).
          * Body: phenotype_terms, genes_of_interest, mechanism_terms, research_context; optional query_embedding if VUE_APP_HYBRID_CLIENT_EMBEDDING=true.
          */
-        async onResearch(phenotypeTermsFromExtract) {
+        async onResearch(phenotypeTermsFromExtract, options = {}) {
+            const opts = options && typeof options === "object" ? options : {};
             const rawPhenotype = phenotypeTermsFromExtract != null
                 ? phenotypeTermsFromExtract
                 : this.lastPhenotypeTerms && this.lastPhenotypeTerms.length
@@ -5618,6 +6751,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     phenotypeTerms,
                     mechanismTerms: this.normalizeLlmTermList(this.lastMechanismTerms),
                     researchContext,
+                    constraintSpec: opts.helperConstraintSpec != null ? opts.helperConstraintSpec : null,
                 });
                 if (!usedHybrid) {
                     throw new Error("Hybrid retrieval returned no phenotype–factor results.");
@@ -7055,6 +8189,45 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
     flex: 0 0 auto;
     margin: 0;
     padding: 0;
+}
+
+.query-helper-link {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    line-height: 1;
+}
+.reveal-query-input-wrap {
+    position: relative;
+}
+.reveal-query-input-actions {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+.reveal-query-submit-btn {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+.query-helper-pill {
+    display: inline-flex;
+    align-items: center;
+}
+.query-helper-suggest-list {
+    max-height: 180px;
+    overflow-y: auto;
+    background: #fff;
+}
+.query-helper-suggest-item:hover {
+    background: #f8f9fa;
+}
+.query-helper-factor-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
 </style>
