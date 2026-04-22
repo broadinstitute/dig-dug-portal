@@ -2023,11 +2023,6 @@ export default Vue.component("factor-base-reveal", {
                 typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE
                     ? String(process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE).trim()
                     : "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=$phenotype,cfde",
-            /** Optional explicit endpoint override for helper factor options API. */
-            revealFactorOptionsEndpointUrl:
-                typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_FACTOR_OPTIONS_ENDPOINT_URL
-                    ? String(process.env.VUE_APP_REVEAL_FACTOR_OPTIONS_ENDPOINT_URL).trim()
-                    : "",
             /**
              * Biolink API base for Name Resolution + NodeNorm + TRAPI edge validation.
              * Defaults to search.hugeamp.org deployment; override via VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL for local dev.
@@ -2926,9 +2921,6 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
             this.queryHelperGeneInput = "";
             this.queryHelperGeneSuggestions = [];
-            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
-                this.refreshQueryHelperFactors();
-            }
         },
         normalizeMechanismInput(raw) {
             return String(raw || "")
@@ -2959,39 +2951,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
             this.queryHelperGeneInput = "";
             this.queryHelperGeneSuggestions = [];
-            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
-                this.refreshQueryHelperFactors();
-            }
         },
         removeQueryHelperGene(gene) {
             const target = String(gene || "");
             this.queryHelperGenesOfInterest = (this.queryHelperGenesOfInterest || []).filter((x) => String(x) !== target);
-            if ((this.queryHelperSelectedPhenotypes || []).length > 0) {
-                this.refreshQueryHelperFactors();
-            }
-        },
-        resolveRevealApiBaseUrl() {
-            const explicitEndpoint = String(this.hybridSearchEndpointUrl || "").trim();
-            if (explicitEndpoint) {
-                const idx = explicitEndpoint.indexOf("/api/");
-                if (idx > 0) return explicitEndpoint.slice(0, idx).replace(/\/$/, "");
-                const m = explicitEndpoint.match(/^(https?:\/\/[^/]+)/i);
-                if (m && m[1]) return String(m[1]).replace(/\/$/, "");
-            }
-            return String(this.hybridSearchBaseUrl || "").replace(/\/$/, "");
-        },
-        resolveFactorOptionsEndpointUrl() {
-            const explicit = String(this.revealFactorOptionsEndpointUrl || "").trim();
-            if (explicit) return explicit.replace(/\/$/, "");
-            const base = this.resolveRevealApiBaseUrl();
-            return `${base}/api/reveal/factor-options`;
-        },
-        normalizeQueryHelperFactorOptionsResponse(json) {
-            if (!json || typeof json !== "object") return [];
-            if (Array.isArray(json.data && json.data.factors)) return json.data.factors;
-            if (Array.isArray(json.factors)) return json.factors;
-            if (Array.isArray(json.data)) return json.data;
-            return [];
         },
         async refreshQueryHelperFactors() {
             const phenotypeTerms = (this.queryHelperSelectedPhenotypes || []).map((x) => String(x.value)).filter(Boolean);
@@ -3007,68 +2970,53 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     if (!p || p.value == null) return;
                     selectedById[String(p.value)] = String(p.label || p.value);
                 });
-                const endpoint = this.resolveFactorOptionsEndpointUrl();
-                const goiHint = this.normalizeHelperSelectedGenes(this.queryHelperGenesOfInterest || []);
-                const payload = {
-                    phenotype_labels: phenotypeTerms,
-                    limit: 200,
-                    // Always send as array to avoid backend SQL optional-param typing ambiguity (e.g., $2 unknown).
-                    genes_of_interest: goiHint,
-                };
-                const resp = await this.fetchWithTimeout(
-                    endpoint,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                    },
-                    this.hybridSearchTimeoutMs
-                );
-                const json = await resp.json().catch(() => ({}));
-                if (!resp.ok) {
-                    const detail = this.hybridSearchErrorMessage(resp.status, json);
-                    throw new Error(`Factor options API failed: ${resp.status} ${detail}`);
+                const template = String(this.queryHelperPigeanFactorUrlTemplate || "").trim();
+                if (!template || !template.includes("$phenotype")) {
+                    throw new Error("Query helper factor API template is missing or invalid.");
                 }
-                const factors = this.normalizeQueryHelperFactorOptionsResponse(json);
+                const perPhenotypeResults = await Promise.all(
+                    phenotypeTerms.map(async (phenotypeId) => {
+                        const url = template.replace("$phenotype", encodeURIComponent(String(phenotypeId)));
+                        const resp = await this.fetchWithTimeout(url, { method: "GET" }, this.hybridSearchTimeoutMs);
+                        const json = await resp.json().catch(() => ({}));
+                        if (!resp.ok) {
+                            const detail = this.hybridSearchErrorMessage(resp.status, json);
+                            throw new Error(`Factor API failed for ${phenotypeId}: ${resp.status} ${detail}`);
+                        }
+                        const factors = Array.isArray(json && json.data) ? json.data : [];
+                        return { phenotypeId: String(phenotypeId), factors };
+                    })
+                );
                 const rows = [];
                 const seen = new Set();
-                factors.forEach((item) => {
-                    const phenotypeId =
-                        item && item.phenotype_label != null && String(item.phenotype_label).trim() !== ""
-                            ? String(item.phenotype_label).trim()
-                            : item && item.phenotype_id != null && String(item.phenotype_id).trim() !== ""
-                                ? String(item.phenotype_id).trim()
-                                : phenotypeTerms[0];
-                    const factorId =
-                        item && item.factor_id != null && String(item.factor_id).trim() !== ""
-                            ? String(item.factor_id).trim()
-                            : item && item.factor != null && String(item.factor).trim() !== ""
+                perPhenotypeResults.forEach(({ phenotypeId, factors }) => {
+                    factors.forEach((item) => {
+                        const factorId =
+                            item && item.factor != null && String(item.factor).trim() !== ""
                                 ? String(item.factor).trim()
                                 : item && item.cluster != null && String(item.cluster).trim() !== ""
                                     ? String(item.cluster).trim()
                                     : "";
-                    if (!factorId) return;
-                    const factorLabelRaw =
-                        item && item.factor_label != null && String(item.factor_label).trim() !== ""
-                            ? String(item.factor_label).trim()
-                            : item && item.label != null && String(item.label).trim() !== ""
+                        if (!factorId) return;
+                        const factorLabelRaw =
+                            item && item.label != null && String(item.label).trim() !== ""
                                 ? String(item.label).trim()
                                 : factorId;
-                    const key = `${phenotypeId}|${factorId}`;
-                    if (seen.has(key)) return;
-                    seen.add(key);
-                    rows.push({
-                        key,
-                        phenotypeId: String(phenotypeId),
-                        phenotypeLabel: selectedById[String(phenotypeId)] || this.getPhenotypeDisplay(phenotypeId),
-                        factorId,
-                        factorLabelRaw,
-                        factorLabel: factorLabelRaw || factorId,
-                        hasAnyGeneMatch: item && item.has_any_gene_match === true,
-                        hasAllGeneMatch: item && item.has_all_gene_match === true,
-                        genesMatched: Array.isArray(item && item.genes_matched)
-                            ? item.genes_matched.map((g) => String(g || "")).filter(Boolean)
-                            : [],
+                        const key = `${phenotypeId}|${factorId}`;
+                        if (seen.has(key)) return;
+                        seen.add(key);
+                        rows.push({
+                            key,
+                            phenotypeId: String(phenotypeId),
+                            phenotypeLabel: selectedById[String(phenotypeId)] || this.getPhenotypeDisplay(phenotypeId),
+                            factorId,
+                            factorLabelRaw,
+                            factorLabel: factorLabelRaw || factorId,
+                            topGeneSetsRaw:
+                                item && item.top_gene_sets != null && String(item.top_gene_sets).trim() !== ""
+                                    ? String(item.top_gene_sets).trim()
+                                    : "",
+                        });
                     });
                 });
                 this.queryHelperFactorRows = rows;
@@ -3180,50 +3128,54 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 genesOfInterest: normalizedGenes,
             };
         },
-        buildHelperConstraintSpec({ selectedPhenotypes = [], selectedFactors = [], genesOfInterest = [] } = {}) {
+        buildHelperConstraintSpec({ selectedFactors = [] } = {}) {
             if (!this.queryHelperHardConstraintEnabled) return null;
             if (!this.queryHelperHardConstraintEligible) return null;
-            const cleanArray = (arr) => {
-                const seen = new Set();
-                const out = [];
-                (Array.isArray(arr) ? arr : []).forEach((v) => {
-                    const s = String(v || "").trim();
-                    if (!s) return;
-                    const key = s.toLowerCase();
-                    if (seen.has(key)) return;
-                    seen.add(key);
-                    out.push(s);
+            const associations = [];
+            const allTopGeneSets = [];
+            const seen = new Set();
+            const seenGeneSets = new Set();
+            (Array.isArray(selectedFactors) ? selectedFactors : []).forEach((f) => {
+                const phenotypeId =
+                    f && f.phenotype_id != null && String(f.phenotype_id).trim() !== ""
+                        ? String(f.phenotype_id).trim()
+                        : "";
+                const factorId =
+                    f && f.factor_id != null && String(f.factor_id).trim() !== ""
+                        ? String(f.factor_id).trim()
+                        : "";
+                if (!phenotypeId || !factorId) return;
+                const key = `${phenotypeId}||${factorId}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                const topGeneSets = [];
+                const rawTopGeneSets = f && f.top_gene_sets != null ? String(f.top_gene_sets) : "";
+                rawTopGeneSets
+                    .split(/[;,]/)
+                    .map((s) => String(s || "").trim())
+                    .filter(Boolean)
+                    .forEach((gs) => {
+                        const gsKey = gs.toLowerCase();
+                        if (!topGeneSets.some((x) => x.toLowerCase() === gsKey)) {
+                            topGeneSets.push(gs);
+                        }
+                        if (!seenGeneSets.has(gsKey)) {
+                            seenGeneSets.add(gsKey);
+                            allTopGeneSets.push(gs);
+                        }
+                    });
+                associations.push({
+                    phenotype_id: phenotypeId,
+                    factor_id: factorId,
+                    ...(topGeneSets.length ? { top_gene_sets: topGeneSets } : {}),
                 });
-                return out;
-            };
-            const phenotype_labels = cleanArray(
-                (Array.isArray(selectedPhenotypes) ? selectedPhenotypes : []).map((p) =>
-                    p && p.label != null ? String(p.label).trim() : ""
-                )
-            );
-            const factor_ids = cleanArray(
-                (Array.isArray(selectedFactors) ? selectedFactors : []).map((f) =>
-                    f && f.factor_id != null ? String(f.factor_id).trim() : ""
-                )
-            );
-            const factor_labels = cleanArray(
-                (Array.isArray(selectedFactors) ? selectedFactors : []).map((f) =>
-                    f && f.factor_label != null ? String(f.factor_label).trim() : ""
-                )
-            );
-            const goi = cleanArray(this.normalizeLlmTermList(genesOfInterest));
-            const scope = {};
-            if (phenotype_labels.length) scope.phenotype_labels = phenotype_labels;
-            if (factor_ids.length) scope.factor_ids = factor_ids;
-            if (factor_labels.length) scope.factor_labels = factor_labels;
-            if (goi.length) scope.genes_of_interest = goi;
-            if (!Object.keys(scope).length) return null;
+            });
+            if (!associations.length) return null;
             return {
                 constraint_mode: "hard",
-                constraint_scope: scope,
-                constraint_behavior: {
-                    gene_match: "all",
-                    on_empty: "return_empty",
+                constraint_scope: {
+                    associations,
+                    ...(allTopGeneSets.length ? { top_gene_sets: allTopGeneSets } : {}),
                 },
             };
         },
@@ -3244,6 +3196,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         row.factorId
                 ),
                 factor_label_raw: String(row.factorLabelRaw || row.factorLabel),
+                top_gene_sets: String(row.topGeneSetsRaw || ""),
             }));
             const selectedMechanisms = [...(this.queryHelperMechanismTerms || [])];
             const selectedGenes = [...(this.queryHelperGenesOfInterest || [])];
@@ -3262,9 +3215,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 selectedGenes,
             });
             const helperConstraintSpec = this.buildHelperConstraintSpec({
-                selectedPhenotypes,
                 selectedFactors,
-                genesOfInterest: deterministic.genesOfInterest,
             });
             const userPrompt = `Build query inputs from this selection payload so the resulting query can reconstruct the same phenotype/factor/gene intent:\n${JSON.stringify(payload, null, 2)}`;
             this.queryHelperComposing = true;
