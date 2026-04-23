@@ -63,7 +63,15 @@
                             style="padding: 10px 300px 10px 10px; font-size: 11pt; height: auto;"
                         />
                         <div class="reveal-query-input-actions">
-                            <button type="button" class="btn btn-link p-0 query-helper-link" @click="openQueryHelperModal">Need help?</button>
+                            <!-- Temporarily hidden while query helper is refined; set queryHelperLinkVisible to true to restore. -->
+                            <button
+                                v-if="queryHelperLinkVisible"
+                                type="button"
+                                class="btn btn-link p-0 query-helper-link"
+                                @click="openQueryHelperModal"
+                            >
+                                Need help?
+                            </button>
                             <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="queryParse()">Reveal</button>
                         </div>
                     </div>
@@ -1935,6 +1943,8 @@ export default Vue.component("factor-base-reveal", {
             suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
+            /** Toggle to show the Query helper link (temporarily off for release). */
+            queryHelperLinkVisible: false,
             queryHelperOpen: false,
             queryHelperPhenotypeInput: "",
             queryHelperMechanismInput: "",
