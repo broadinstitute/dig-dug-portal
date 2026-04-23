@@ -71,6 +71,7 @@
                         v-model="queryHelperOpen"
                         size="xl"
                         title="Query helper"
+                        body-class="pb-4"
                         hide-footer
                         no-close-on-backdrop
                     >
@@ -137,7 +138,7 @@
                         <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
                             {{ queryHelperFactorError }}
                         </div>
-                        <div v-else-if="queryHelperFactorRows.length" class="table-responsive mb-3">
+                        <div v-else-if="queryHelperFactorRows.length" class="mb-3">
                             <div class="form-group mb-2">
                                 <input
                                     type="text"
@@ -147,40 +148,51 @@
                                     @input="applyQueryHelperClusterFilterSelection"
                                 />
                             </div>
-                            <table class="table table-sm table-striped mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th style="width: 90px;">
-                                            <div class="d-flex align-items-center">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped mb-0">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th style="width: 90px;">
+                                                <div class="d-flex align-items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        class="query-helper-factor-checkbox mr-2"
+                                                        :checked="queryHelperAllFactorsSelected"
+                                                        :indeterminate.prop="queryHelperSomeFactorsSelected"
+                                                        @change="toggleQueryHelperAllFactors($event)"
+                                                    />
+                                                    <span>Select</span>
+                                                </div>
+                                            </th>
+                                            <th style="width: 260px;">Phenotype</th>
+                                            <th>Gene set cluster</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="row in queryHelperFactorPageRows" :key="'qh-factor-' + row.key">
+                                            <td>
                                                 <input
                                                     type="checkbox"
-                                                    class="query-helper-factor-checkbox mr-2"
-                                                    :checked="queryHelperAllFactorsSelected"
-                                                    :indeterminate.prop="queryHelperSomeFactorsSelected"
-                                                    @change="toggleQueryHelperAllFactors($event)"
+                                                    class="query-helper-factor-checkbox"
+                                                    :checked="!!queryHelperFactorSelection[row.key]"
+                                                    @change="toggleQueryHelperFactor(row.key, $event)"
                                                 />
-                                                <span>Select</span>
-                                            </div>
-                                        </th>
-                                        <th style="width: 260px;">Phenotype</th>
-                                        <th>Gene set cluster</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in queryHelperFactorRows" :key="'qh-factor-' + row.key">
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                class="query-helper-factor-checkbox"
-                                                :checked="!!queryHelperFactorSelection[row.key]"
-                                                @change="toggleQueryHelperFactor(row.key, $event)"
-                                            />
-                                        </td>
-                                        <td>{{ row.phenotypeLabel }}</td>
-                                        <td>{{ row.factorLabel }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            </td>
+                                            <td>{{ row.phenotypeLabel }}</td>
+                                            <td>{{ row.factorLabel }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div v-if="queryHelperFactorRows.length > queryHelperFactorsPerPage" class="d-flex justify-content-end mt-2">
+                                <b-pagination
+                                    v-model="queryHelperFactorPage"
+                                    :total-rows="queryHelperFactorRows.length"
+                                    :per-page="queryHelperFactorsPerPage"
+                                    size="sm"
+                                    pills
+                                />
+                            </div>
                         </div>
                         <div v-else class="small text-muted mb-3">
                             {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'Select at least one phenotype to load associated gene set clusters.' }}
@@ -278,13 +290,14 @@
                                     :disabled="!queryHelperHardConstraintEligible"
                                     @change="queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
                                 />
-                                <span class="font-weight-bold">Preserve selected terms only (hard constraint mode)</span>
+                                <span class="font-weight-bold">Use helper selections as hard retrieval constraints</span>
                             </label>
                             <div class="small text-muted">
-                                When enabled, helper selections are sent as hard constraints to backend search.
+                                Next, the LLM will extract search terms and generate research context for retrieval.
+                                When this option is enabled, your selected phenotype and gene set cluster choices are still enforced during data retrieval.
                             </div>
                             <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
-                                Hard constraint mode is available after selecting at least one phenotype and one gene set cluster.
+                                This option becomes available after selecting at least one phenotype and one gene set cluster.
                             </div>
                         </div>
 
@@ -549,6 +562,24 @@
                                     class="mt-2"
                                 >
                                     <div
+                                        v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
+                                        class="border rounded px-3 py-2 mt-2 mb-2"
+                                        style="border-color: #f16822 !important; border-width: 2px !important; margin-bottom: 25px !important;"
+                                    >
+                                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
+                                            <div class="small text-muted" style="line-height: 1.35;">
+                                                Search terms and research context are extracted from your query. Please review terms, edit them if necessary. When you are ready, hit the Continue button.
+                                                <br />
+                                                We will use these terms to retrieve phenotype-gene set cluster and gene-set evidence data from the
+                                                <a href="https://cfdeknowledge.org/r/kc_gsb?source=all&model=cfde" target="_blank" rel="noopener noreferrer">PIGEAN</a>
+                                                knowledge graph.
+                                            </div>
+                                            <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
+                                                Continue
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div
                                         v-if="searchCriteriaEditRows.length && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
                                     >
                                         <b-table
@@ -587,10 +618,41 @@
                                             </template>
                                         </b-table>
                                         <div
+                                            v-if="
+                                                extractionAmbiguityCheck &&
+                                                extractionAmbiguityCheck.has_ambiguity &&
+                                                !extractionAmbiguityDismissed
+                                            "
+                                            class="alert alert-warning py-2 px-3 mb-2"
+                                            role="alert"
+                                        >
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="small pr-2">
+                                                    <strong>Interpretation note:</strong>
+                                                    {{ extractionAmbiguityCheck.warning_message }}
+                                                    <div
+                                                        v-if="extractionAmbiguityCheck.anti_anchor_terms && extractionAmbiguityCheck.anti_anchor_terms.length"
+                                                        class="mt-1"
+                                                    >
+                                                        <strong>Detected anti-anchor terms:</strong>
+                                                        {{ extractionAmbiguityCheck.anti_anchor_terms.join(", ") }}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="close p-0 m-0"
+                                                    aria-label="Dismiss"
+                                                    @click="extractionAmbiguityDismissed = true"
+                                                >
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div
                                             v-if="lastAlternativeQueries.length"
                                             class="reveal-alt-queries-block mt-2 mb-0"
                                         >
-                                            <div class="font-weight-bold small text-muted mb-1">Alternative queries</div>
+                                            <div class="font-weight-bold small text-muted mb-1">Suggested pro-anchor paths</div>
                                             <ul class="reveal-alt-query-links mb-0">
                                                 <li
                                                     v-for="(opt, idx) in lastAlternativeQueries"
@@ -604,22 +666,6 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                    </div>
-                                </div>
-                                <div
-                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
-                                    style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"
-                                >
-                                    <div class="text-muted" style="font-size: 11pt; font-weight: 700;">
-                                        Extracted search terms and research context. Review terms, then continue.
-                                    </div>
-                                    <div style="display:flex; gap:10px;">
-                                        <button class="btn btn-outline-secondary btn-sm" @click="resetSearchCriteriaGateEdits">
-                                            Reset
-                                        </button>
-                                        <button class="btn btn-cfde btn-sm" @click="approveStepGate">
-                                            Continue with current query
-                                        </button>
                                     </div>
                                 </div>
                             </template>
@@ -660,37 +706,31 @@
                             </div>
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
                             <div
-                                class="border rounded bg-white p-3 mb-3"
-                                style="border-color: #dee2e6 !important;"
-                                role="status"
+                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
+                                class="border rounded px-3 py-2 mb-3"
+                                style="border-color: #f16822 !important; border-width: 2px !important;"
                             >
-                                <div class="d-flex justify-content-end align-items-start mb-2">
-                                    <button
-                                        type="button"
-                                        class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
-                                        :disabled="!lastHybridSearchResponse"
-                                        @click="downloadLastHybridSearchRawJson"
-                                    >
-                                        <b-icon icon="download" class="mr-1" aria-hidden="true" />
-                                        Raw data
+                                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
+                                    <div class="small text-muted" style="line-height: 1.35;">
+                                        Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
+                                        Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
+                                        REVEAL will generate mechanistic hypotheses using the data.
+                                    </div>
+                                    <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
+                                        Continue
                                     </button>
                                 </div>
-                                <div class="font-weight-bold mb-3" style="color: #FF6600; font-size: 1.2em;">
-                                    Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
-                                </div>
-                                <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-0 pl-3 text-secondary small">
-                                    <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
-                                </ul>
-                                <div v-else class="small text-muted mb-0 font-italic">No hybrid diagnostics available.</div>
                             </div>
-                            <div
-                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
-                                class="mb-3"
-                            >
-                                <div class="text-muted mb-2" style="font-size: 11pt; font-weight: 700;">{{ stepApprovalGateMessage }}</div>
-                                <button class="btn btn-cfde btn-sm" @click="approveStepGate">
-                                    Continue
-                                </button>
+                            <div class="mb-3">
+                                <div class="flex-grow-1">
+                                    <div class="font-weight-bold mb-3" style="color: #FF6600; font-size: 1.2em;">
+                                        Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
+                                    </div>
+                                    <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-2 pl-3 text-secondary small">
+                                        <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
+                                    </ul>
+                                    <div v-else class="small text-muted mb-2 font-italic">No hybrid diagnostics available.</div>
+                                </div>
                             </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
@@ -726,6 +766,16 @@
                                                 <strong>{{ getPhenotypeDisplay(item.phenotype) }}:</strong> {{ item.rationale }}
                                             </li>
                                         </ul>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-2">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+                                            @click="downloadLastHybridSearchRawJson"
+                                        >
+                                            <b-icon icon="download" class="mr-1" aria-hidden="true" />
+                                            Raw data
+                                        </button>
                                     </div>
                                     <div>
                                         <!-- Phenotype path: custom table, no rationale column -->
@@ -851,7 +901,7 @@
                                                             </div>
                                                             <div class="subtable-container py-2 px-3" style="flex:1">
                                                                 <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                <div v-else class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.phenotype, row.factor).length }} rows)</div>
+                                                                <div v-else class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                 <b-table
                                                                     v-if="!loadingGenesForFactor[getRowKey(row)]"
                                                                     striped
@@ -1007,7 +1057,7 @@
                                                         </b-table>
                                                     </div>
                                                     <div class="subtable-container py-2" style="flex:1">
-                                                        <div class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.item.phenotype, row.item.factor).length }} rows)</div>
+                                                        <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                         <b-table
                                                             striped
                                                             hover
@@ -1555,7 +1605,7 @@
                                                                             </div>
                                                                             <div class="subtable-container py-2 px-3" style="flex:1">
                                                                                 <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                                <div v-else class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.phenotype, row.factor).length }} rows)</div>
+                                                                                <div v-else class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                                 <b-table
                                                                                     v-if="!loadingGenesForFactor[getRowKey(row)]"
                                                                                     striped
@@ -1699,7 +1749,7 @@
                                                                         </b-table>
                                                                     </div>
                                                                     <div class="subtable-container py-2" style="flex:1">
-                                                                        <div class="small text-muted mb-2">Genes in factor ({{ getGenesForFactor(row.item.phenotype, row.item.factor).length }} rows)</div>
+                                                                        <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                         <b-table
                                                                             striped
                                                                             hover
@@ -1859,7 +1909,7 @@ import { divide } from "lodash";
  * Set to null (or "") before merging / deploying; production then uses hybridSearchBaseUrl + /api/reveal/hybrid-search.
  * When set, VUE_APP_REVEAL_HYBRID_SEARCH_URL still wins if defined at build time.
  */
-const TEMP_HYBRID_SEARCH_ENDPOINT_URL = "http://127.0.0.1:8000/api/reveal/hybrid-search";
+const TEMP_HYBRID_SEARCH_ENDPOINT_URL = null;
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -1899,6 +1949,8 @@ export default Vue.component("factor-base-reveal", {
             queryHelperFactorRows: [],
             queryHelperFactorSelection: {},
             queryHelperClusterFilterInput: "",
+            queryHelperFactorPage: 1,
+            queryHelperFactorsPerPage: 10,
             queryHelperMechanismTerms: [],
             queryHelperNoFactorPhenotypeLabels: [],
             queryHelperGenesOfInterest: [],
@@ -1906,6 +1958,8 @@ export default Vue.component("factor-base-reveal", {
             queryHelperHardConstraintEnabled: false,
             queryHelperComposing: false,
             queryHelperError: "",
+            lastHardConstraintFactorLabelByPair: {},
+            lastRunUsedHardConstraint: false,
             searchCriteria: null,
             display_search_criteria: false,
             edit_search_criteria: false,
@@ -1913,6 +1967,9 @@ export default Vue.component("factor-base-reveal", {
             searchCriteriaEditRows: [],
             searchCriteriaEditRowsDefault: [],
             lastAlternativeQueries: [],
+            /** Optional extraction warning when subjective/ambiguous terms were interpreted. */
+            extractionAmbiguityCheck: null,
+            extractionAmbiguityDismissed: false,
             /** Gene symbols from LLM extraction (and gate edits), forwarded to hybrid-search as genes_of_interest. */
             lastGenesOfInterest: [],
             /** Latest hybrid-search response meta (lexical fusion, genes-of-interest resolution). */
@@ -2066,7 +2123,7 @@ export default Vue.component("factor-base-reveal", {
             revealResultsTabUnlocked: false,
 
 extractSystemPrompt:`
-You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with five fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (comma-separated string), "research_context" (string), and "suggested_queries" (array of strings). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
+You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with these fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (array of strings), "research_context" (string), "suggested_queries" (array of strings), and optional "ambiguity_check" (object). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
 
 CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
 1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
@@ -2096,8 +2153,41 @@ EVALUATION ACTION:
 - If the user's query FAILS ANY of these guidelines (e.g., it is a broad disease search, lacks a tissue context, or lacks a specific anchor), generate 2 to 3 highly specific, optimized alternative search queries based on their original intent. These suggestions MUST strictly follow the "Anchor + Semantic Net" formula:
 "Find a [Broad Mechanism/Semantic Net] involving [Explicit Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
 
+AMBIGUITY AND SUBJECTIVE TERMS RULE:
+If you detect subjective or ambiguous wording (e.g., "novel", "new", "top", "best", "unexplored"), include an "ambiguity_check" object and keep extraction moving:
+1. Set "ambiguity_check.has_ambiguity" to true.
+2. Add a concise "ambiguity_check.warning_message" explaining your default interpretation.
+3. Still produce actionable extraction fields and include 1-2 pivot options in "ambiguity_check.alternative_queries".
+4. For "novel", default interpretation is "contextually novel" (known biology used as a potentially underappreciated link to this phenotype) and reflect that in "research_context".
+
+NEGATIVE CONSTRAINTS (ANTI-ANCHORS) RULE:
+Vector/semantic retrieval is weak at pure exclusions like "non-X", "without X", "independent of X", or "except X". When these appear:
+1. Set "ambiguity_check.has_ambiguity" to true.
+2. In "ambiguity_check.warning_message", explicitly state the pro-anchor substitution. The message MUST include language equivalent to:
+   "we translated the anti-anchor constraint into pro-anchor alternatives"
+   and mention at least one positive mechanism/pathway anchor used for the substitution.
+3. Add 2-3 "ambiguity_check.alternative_queries" that convert the negative request into positive, testable mechanism anchors while preserving the user's tissue/process context.
+4. Include "ambiguity_check.anti_anchor_terms" as an array of detected excluded anchors (e.g., ["UCP1"]).
+
+ANTI-ANCHOR LEAKAGE PROHIBITION (STRICT):
+If anti-anchor terms are detected, DO NOT carry anti-anchor connotations into:
+- "mechanism_terms"
+- "research_context"
+Keep anti-anchor references only inside "ambiguity_check.anti_anchor_terms" and the explanatory warning message.
+Do not include negative constraint wording in mechanism_terms or research_context (e.g., "non-", "without", "independent of", "except", "excluding", "other than").
+
+FINAL SELF-CHECK (REQUIRED BEFORE OUTPUT):
+If "ambiguity_check.anti_anchor_terms" is non-empty:
+1) mechanism_terms contain only positive pro-anchor mechanisms.
+2) research_context contains only positive pro-anchor framing.
+3) warning_message explicitly states anti-anchor -> pro-anchor translation.
+4) alternative_queries are positive-anchor rewrites only.
+If any check fails, revise and regenerate JSON before responding.
+
+When no ambiguity is detected, set "ambiguity_check.has_ambiguity" to false and leave warning_message/alternative_queries empty.
+
 OUT OF DOMAIN INSTRUCTION:
-If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, and suggested_queries; use empty strings for mechanism_terms and research_context.
+If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, mechanism_terms, and suggested_queries; use empty string for research_context; and set ambiguity_check.has_ambiguity to false.
 
 EXAMPLES:
 
@@ -2106,9 +2196,10 @@ Output:
 {
   "phenotype_terms": [],
   "genes_of_interest": ["TRAP1"],
-  "mechanism_terms": "oxidative phosphorylation, mitochondrial dysfunction, metabolic reprogramming",
+  "mechanism_terms": ["oxidative phosphorylation", "mitochondrial dysfunction", "metabolic reprogramming"],
   "research_context": "Investigating how the TRAP1 mitochondrial chaperone alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
-  "suggested_queries": [] 
+  "suggested_queries": [],
+  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
 }
 // (Note: suggested_queries is empty because the user's prompt perfectly met all 4 Optimal Query Guidelines.)
 
@@ -2117,12 +2208,13 @@ Output:
 {
   "phenotype_terms": [],
   "genes_of_interest": [],
-  "mechanism_terms": "gut microbiota-derived metabolites, short-chain fatty acids (SCFAs), microbial metabolite receptors",
+  "mechanism_terms": ["gut microbiota-derived metabolites", "short-chain fatty acids (SCFAs)", "microbial metabolite receptors"],
   "research_context": "Investigating how gut microbiome-derived metabolites modulate host signaling pathways to influence insulin resistance and Type 2 Diabetes.",
   "suggested_queries": [
     "Find a short-chain fatty acid receptor mechanism involving GPR43 in the intestinal epithelium that alters systemic insulin sensitivity.",
     "Find a secondary bile acid signaling mechanism involving FXR in hepatocytes linked to glucose tolerance."
-  ]
+  ],
+  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
 }
 // (Note: suggested_queries populated because the user lacked a specific anchor and tissue context.)
 
@@ -2131,12 +2223,13 @@ Output:
 {
   "phenotype_terms": ["Alzheimer's disease", "early-onset Alzheimer's", "dementia", "neurodegeneration"],
   "genes_of_interest": [],
-  "mechanism_terms": "",
+  "mechanism_terms": [],
   "research_context": "Investigating the primary genetic drivers and risk factors associated with early-onset Alzheimer's disease.",
   "suggested_queries": [
     "Find a microglial phagocytosis mechanism involving TREM2 in the cortex linked to amyloid-beta clearance.",
     "Find a lipid transport mechanism involving APOE in astrocytes associated with early-onset neurodegeneration."
-  ]
+  ],
+  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
 }
 
 User: "what are novel candidate genes for waist-hip ratio in the ACVR1C(ALK7) / Activin E pathway?"
@@ -2144,9 +2237,37 @@ Output:
 {
   "phenotype_terms": [],
   "genes_of_interest": ["ACVR1C", "INHBE"],
-  "mechanism_terms": "activin/TGF-beta receptor signaling, ligand signaling",
-  "research_context": "Investigating candidate genes within the ACVR1C (ALK7) / INHBE (Activin E) pathway that modulate fat distribution and influence waist-to-hip ratio.",
-  "suggested_queries": [] 
+  "mechanism_terms": ["activin/TGF-beta receptor signaling", "ligand signaling"],
+  "research_context": "Investigating contextually novel candidate genes within the ACVR1C (ALK7) / INHBE (Activin E) pathway that modulate fat distribution and influence waist-to-hip ratio.",
+  "suggested_queries": [],
+  "ambiguity_check": {
+    "has_ambiguity": true,
+    "warning_message": "You used 'novel'. We interpreted this as contextually novel mechanisms for this phenotype.",
+    "alternative_queries": [
+      "Find completely uncharacterized candidate genes for waist-hip ratio in the ACVR1C / INHBE pathway.",
+      "Find established canonical GWAS-linked genes for waist-hip ratio in the ACVR1C / INHBE pathway."
+    ]
+  }
+}
+
+User: "Tell me about interesting genes that drive non-UCP1 thermogenesis in white/beige adipocytes."
+Output:
+{
+  "phenotype_terms": [],
+  "genes_of_interest": [],
+  "mechanism_terms": ["adipocyte thermogenesis", "calcium cycling thermogenesis", "creatine substrate cycling"],
+  "research_context": "Investigating calcium cycling, creatine substrate cycling, and lipid cycling thermogenic mechanisms in white/beige adipocytes.",
+  "suggested_queries": [],
+  "ambiguity_check": {
+    "has_ambiguity": true,
+    "warning_message": "You asked for non-UCP1 mechanisms. We translated the anti-anchor constraint into pro-anchor alternatives, focusing on calcium cycling and creatine substrate cycling pathways in adipocytes.",
+    "anti_anchor_terms": ["UCP1"],
+    "alternative_queries": [
+      "Find candidate genes driving calcium-cycling thermogenesis in white/beige adipocytes.",
+      "Find candidate genes driving creatine substrate cycling thermogenesis in white/beige adipocytes.",
+      "Find candidate genes driving lipid-cycling thermogenesis in white/beige adipocytes."
+    ]
+  }
 }
 `,
 
@@ -2367,6 +2488,15 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             });
             return selected;
         },
+        queryHelperFactorPageRows() {
+            const rows = this.queryHelperFactorRows || [];
+            if (!rows.length) return [];
+            const perPage = Math.max(1, Number(this.queryHelperFactorsPerPage) || 10);
+            const pageCount = Math.max(1, Math.ceil(rows.length / perPage));
+            const page = Math.min(Math.max(1, Number(this.queryHelperFactorPage) || 1), pageCount);
+            const start = (page - 1) * perPage;
+            return rows.slice(start, start + perPage);
+        },
         queryHelperHasRequiredSelections() {
             return (
                 Array.isArray(this.queryHelperSelectedPhenotypes) &&
@@ -2438,13 +2568,19 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         ? true
                         : (filteredSet.has(String(f.factor)) || (f.label != null && filteredSet.has(String(f.label).trim())));
                     const rowKey = `${phenotype}|${f.factor}`;
+                    const hardConstraintLabel =
+                        this.lastRunUsedHardConstraint &&
+                        this.lastHardConstraintFactorLabelByPair &&
+                        this.lastHardConstraintFactorLabelByPair[rowKey]
+                            ? String(this.lastHardConstraintFactorLabelByPair[rowKey]).trim()
+                            : "";
                     const included = Object.prototype.hasOwnProperty.call(this.pairSelectionOverrides, rowKey)
                         ? !!this.pairSelectionOverrides[rowKey]
                         : isIncluded;
                     rows.push({
                         phenotype,
                         factor: f.factor,
-                        factorLabel: f.label != null ? f.label : f.factor,
+                        factorLabel: hardConstraintLabel || (f.label != null ? f.label : f.factor),
                         factorLabelFromApi:
                             f.labelFromApi != null && String(f.labelFromApi).trim() !== ""
                                 ? String(f.labelFromApi).trim()
@@ -2771,7 +2907,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         openQueryHelperModal() {
             this.ensureQueryHelperPhenotypeCatalog();
-            this.resetQueryHelperState();
+            this.queryHelperError = "";
+            this.queryHelperComposing = false;
+            this.queryHelperGeneSuggestions = [];
+            this.queryHelperGeneLookupLoading = false;
             this.queryHelperOpen = true;
         },
         onQueryHelperPickPhenotype(item) {
@@ -2962,6 +3101,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.queryHelperFactorRows = [];
             this.queryHelperFactorSelection = {};
             this.queryHelperNoFactorPhenotypeLabels = [];
+            this.queryHelperFactorPage = 1;
             if (!phenotypeTerms.length) return;
             this.queryHelperLoadingFactors = true;
             try {
@@ -3217,6 +3357,13 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const helperConstraintSpec = this.buildHelperConstraintSpec({
                 selectedFactors,
             });
+            const hardConstraintLabelMap = {};
+            selectedFactors.forEach((f) => {
+                const k = `${String(f.phenotype_id)}|${String(f.factor_id)}`;
+                hardConstraintLabelMap[k] = String(f.factor_label || f.factor_id);
+            });
+            this.lastHardConstraintFactorLabelByPair = hardConstraintLabelMap;
+            this.lastRunUsedHardConstraint = !!helperConstraintSpec;
             const userPrompt = `Build query inputs from this selection payload so the resulting query can reconstruct the same phenotype/factor/gene intent:\n${JSON.stringify(payload, null, 2)}`;
             this.queryHelperComposing = true;
             try {
@@ -3289,6 +3436,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.mechanismDiagnosticAssessment = null;
             this.hypothesisLastRunMode = null;
             this.lastAlternativeQueries = [];
+            this.extractionAmbiguityCheck = null;
+            this.extractionAmbiguityDismissed = false;
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
             this.lastHybridSearchResponse = null;
@@ -4687,6 +4836,126 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 .split(/\n|;/)
                 .map((q) => q.replace(/^\d+[\).\s-]+/, "").trim())
                 .filter(Boolean);
+        },
+        normalizeExtractionAmbiguity(raw) {
+            if (!raw || typeof raw !== "object") return null;
+            const warningMessage =
+                raw.warning_message != null
+                    ? String(raw.warning_message).trim()
+                    : (raw.warningMessage != null ? String(raw.warningMessage).trim() : "");
+            const alternativeQueries = this.normalizeAlternativeQueries(
+                raw.alternative_queries != null
+                    ? raw.alternative_queries
+                    : raw.alternativeQueries
+            );
+            const antiAnchorTerms = this.normalizeLlmTermList(
+                raw.anti_anchor_terms != null
+                    ? raw.anti_anchor_terms
+                    : raw.antiAnchorTerms
+            );
+            const hasAmbiguityExplicit = raw.has_ambiguity === true || raw.hasAmbiguity === true;
+            const hasAmbiguity = hasAmbiguityExplicit || !!warningMessage || alternativeQueries.length > 0;
+            if (!hasAmbiguity) return null;
+            return {
+                has_ambiguity: true,
+                warning_message: warningMessage || "Some terms in your query were interpreted using a default assumption.",
+                alternative_queries: alternativeQueries,
+                anti_anchor_terms: antiAnchorTerms,
+            };
+        },
+        mergeAlternativeQueries(...lists) {
+            const out = [];
+            const seen = new Set();
+            lists.forEach((list) => {
+                (Array.isArray(list) ? list : []).forEach((q) => {
+                    const text = String(q || "").trim();
+                    if (!text) return;
+                    const key = text.toLowerCase();
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    out.push(text);
+                });
+            });
+            return out;
+        },
+        detectAntiAnchorTerms(queryText) {
+            const text = String(queryText || "").trim();
+            if (!text) return [];
+            const out = [];
+            const seen = new Set();
+            const add = (term) => {
+                const t = String(term || "")
+                    .replace(/^[\s"'`]+|[\s"'`.,;:!?]+$/g, "")
+                    .trim();
+                if (!t || t.length < 2) return;
+                const key = t.toLowerCase();
+                if (seen.has(key)) return;
+                seen.add(key);
+                out.push(t);
+            };
+            const patterns = [
+                /\bnon[-\s]+([A-Za-z0-9-]{2,})\b/gi,
+                /\bwithout\s+([A-Za-z0-9-]{2,})\b/gi,
+                /\bindependent(?:ly)?\s+of\s+([A-Za-z0-9-]{2,})\b/gi,
+                /\bexcept(?:\s+for)?\s+([A-Za-z0-9-]{2,})\b/gi,
+                /\ball\s+other\s+than\s+([A-Za-z0-9-]{2,})\b/gi,
+            ];
+            patterns.forEach((re) => {
+                let m;
+                while ((m = re.exec(text)) !== null) {
+                    add(m[1]);
+                }
+            });
+            return out;
+        },
+        buildAntiAnchorFallbackAlternatives({ antiAnchorTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
+            const excludes = (Array.isArray(antiAnchorTerms) ? antiAnchorTerms : [])
+                .map((t) => String(t || "").trim())
+                .filter(Boolean);
+            const mechs = (Array.isArray(mechanismTerms) ? mechanismTerms : [])
+                .map((t) => String(t || "").trim())
+                .filter(Boolean);
+            if (!excludes.length) return [];
+            const excludedLabel = excludes.join(", ");
+            const contextHint = String(researchContext || "").trim();
+            const out = [];
+            out.push(
+                `Find candidate genes for non-canonical mechanisms in the same biological context, using anchors other than ${excludedLabel}.`
+            );
+            mechs.slice(0, 2).forEach((m) => {
+                out.push(
+                    `Find candidate genes for ${m} in the same tissue/process context, using positive anchors instead of ${excludedLabel}.`
+                );
+            });
+            if (contextHint && out.length < 3) {
+                out.push(
+                    `Find candidate genes for alternative pathways consistent with this context: ${contextHint}`
+                );
+            }
+            return out.slice(0, 3);
+        },
+        ensureAntiAnchorWarningMessage(warningMessage, antiAnchorTerms, alternativeQueries) {
+            const terms = (Array.isArray(antiAnchorTerms) ? antiAnchorTerms : [])
+                .map((t) => String(t || "").trim())
+                .filter(Boolean);
+            const alts = (Array.isArray(alternativeQueries) ? alternativeQueries : [])
+                .map((q) => String(q || "").trim())
+                .filter(Boolean);
+            if (!terms.length) return String(warningMessage || "").trim();
+            const base = String(warningMessage || "").trim();
+            const hasProAnchorLanguage = /pro-anchor|positive anchor|translated.+anti-anchor/i.test(base);
+            const anchorExamples = alts
+                .slice(0, 2)
+                .map((q) => q.replace(/^Find\s+/i, "").trim())
+                .filter(Boolean)
+                .join(" | ");
+            const requiredSentence = anchorExamples
+                ? `We translated the anti-anchor constraint into pro-anchor alternatives: ${anchorExamples}.`
+                : "We translated the anti-anchor constraint into pro-anchor alternatives to keep retrieval focused.";
+            if (!base) {
+                return `You asked to exclude ${terms.join(", ")}. ${requiredSentence}`;
+            }
+            return hasProAnchorLanguage ? base : `${base} ${requiredSentence}`.trim();
         },
         onAlternativeQuerySelected(query) {
             const nextQuery = String(query || "").trim();
@@ -6123,13 +6392,67 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     title: `${this.userQuery.trim()}`
                 }
             }, true);
-            this.llmExtract.sendPrompt({
-                userPrompt: this.userQuery.trim(),
-                onResponse: this.onExtractResponse,
-                onError: this.onExtractError,
-                onEnd: this.onExtractEnd,
-                onState: this.onExtractState,
-            });
+            const query = this.userQuery.trim();
+            const maxAttempts = 3;
+            const timeoutMs = 120000;
+            (async () => {
+                let lastError = null;
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    const result = await new Promise((resolve) => {
+                        let done = false;
+                        const finish = (payload) => {
+                            if (done) return;
+                            done = true;
+                            clearTimeout(timerId);
+                            resolve(payload);
+                        };
+                        const timerId = setTimeout(() => {
+                            try {
+                                this.llmExtract.abort();
+                            } catch {
+                            }
+                            const timeoutErr = new Error(`Extraction timed out after ${Math.round(timeoutMs / 1000)}s.`);
+                            timeoutErr.status = 504;
+                            finish({
+                                ok: false,
+                                retry: attempt < maxAttempts,
+                                err: timeoutErr,
+                            });
+                        }, timeoutMs);
+                        this.llmExtract.sendPrompt({
+                            userPrompt: query,
+                            onResponse: (resp) => finish({ ok: true, response: resp }),
+                            onError: (err) => {
+                                const retry = this.isExtractionTimeoutError(err) && attempt < maxAttempts;
+                                finish({ ok: false, retry, err });
+                            },
+                            onEnd: () => {
+                                if (done) return;
+                                finish({
+                                    ok: false,
+                                    retry: false,
+                                    err: new Error("Incomplete extraction response."),
+                                });
+                            },
+                            onState: this.onExtractState,
+                        });
+                    });
+                    if (result.ok) {
+                        await this.onExtractResponse(result.response);
+                        return;
+                    }
+                    lastError = result.err || new Error("Extraction failed.");
+                    if (result.retry) {
+                        this.setStep({
+                            type: "info",
+                            title: `Extraction timed out. Retrying (${attempt + 1}/${maxAttempts})…`,
+                        });
+                        continue;
+                    }
+                    break;
+                }
+                this.onExtractError(lastError);
+            })();
         },
         parseLLMResponse(rawString) {
             const cleanString = (rawString || "")
@@ -6167,13 +6490,49 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const phenotypeTerms = this.normalizeLlmTermList(json.phenotype_terms);
             const mechanismTerms = this.normalizeLlmTermList(json.mechanism_terms);
             const genesOfInterest = this.normalizeLlmTermList(json.genes_of_interest);
-            const alternativeQueries = this.normalizeAlternativeQueries(
+            const antiAnchorTermsDetected = this.detectAntiAnchorTerms(this.userQuery);
+            let extractionAmbiguity = this.normalizeExtractionAmbiguity(json.ambiguity_check);
+            let alternativeQueries = this.mergeAlternativeQueries(
                 json.suggested_queries != null
                     ? json.suggested_queries
                     : (json.alternative_queries != null
                         ? json.alternative_queries
-                        : json.alternativeQueries)
+                        : json.alternativeQueries),
+                extractionAmbiguity && extractionAmbiguity.alternative_queries
             );
+            const antiAnchorTermsFromLlm =
+                extractionAmbiguity && Array.isArray(extractionAmbiguity.anti_anchor_terms)
+                    ? extractionAmbiguity.anti_anchor_terms
+                    : [];
+            const antiAnchorTerms = this.mergeAlternativeQueries(antiAnchorTermsDetected, antiAnchorTermsFromLlm);
+            if (antiAnchorTerms.length && (!extractionAmbiguity || !extractionAmbiguity.has_ambiguity)) {
+                extractionAmbiguity = {
+                    has_ambiguity: true,
+                    warning_message:
+                        "Your query includes an anti-anchor exclusion. Semantic retrieval works better with positive mechanism anchors.",
+                    alternative_queries: [],
+                    anti_anchor_terms: antiAnchorTerms,
+                };
+            }
+
+            if (antiAnchorTerms.length) {
+                const fallbackAntiAnchorAlts = this.buildAntiAnchorFallbackAlternatives({
+                    antiAnchorTerms,
+                    mechanismTerms,
+                    researchContext: typeof json.research_context === "string" ? json.research_context : "",
+                });
+                alternativeQueries = this.mergeAlternativeQueries(alternativeQueries, fallbackAntiAnchorAlts).slice(0, 3);
+                if (extractionAmbiguity) {
+                    extractionAmbiguity.anti_anchor_terms = antiAnchorTerms;
+                    extractionAmbiguity.warning_message = this.ensureAntiAnchorWarningMessage(
+                        extractionAmbiguity.warning_message,
+                        antiAnchorTerms,
+                        alternativeQueries
+                    );
+                }
+            } else {
+                alternativeQueries = alternativeQueries.slice(0, 3);
+            }
 
             const searchTerms = [...phenotypeTerms, ...mechanismTerms];
 
@@ -6202,6 +6561,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.lastMechanismTerms = mechanismTerms;
             this.lastGenesOfInterest = genesOfInterest;
             this.lastAlternativeQueries = alternativeQueries;
+            this.extractionAmbiguityCheck = extractionAmbiguity;
+            this.extractionAmbiguityDismissed = false;
 
             this.setStep({
                 id: "1",
@@ -6657,11 +7018,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.setLoadStatus("Building knowledge graph from hybrid results…");
             const kgTriples = this.transformMergedDataToKG(this.factorData, "factors");
             this.lastKgTriples = kgTriples;
-            await this.waitForStepApproval(
+            const approved = await this.waitForStepApproval(
                 "2",
                 "Knowledge graph is ready. Continue to generate mechanistic hypotheses?",
                 true
             );
+            if (!approved) return false;
             this.setLoadStatus("Generating hypotheses…");
             this.setStep({
                 id: "4",
@@ -6695,6 +7057,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 this.mechanismDiagnosticAssessment = null;
                 this.hypothesisLastRunMode = null;
                 this.phenotypeDescriptionById = {};
+                this.lastRunUsedHardConstraint = !!opts.helperConstraintSpec;
+                if (!this.lastRunUsedHardConstraint) {
+                    this.lastHardConstraintFactorLabelByPair = {};
+                }
                 const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
                     ? String(this.searchCriteria[1].values)
                     : "";
@@ -6839,6 +7205,16 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Treat as timeout/retriable: 504, Gateway Timeout, or network/CORS errors that often accompany backend timeout.
          */
         isMechanismTimeoutError(err) {
+            if (!err) return false;
+            const status = err.status;
+            if (status === 504) return true;
+            const msg = (err.message || "").toString();
+            return /504|Gateway Timeout|timeout|Timeout|Failed to fetch|Load failed|net::ERR_FAILED|CORS|Access-Control/i.test(msg);
+        },
+        /**
+         * Treat extraction timeout/network as retriable, mirroring hypothesis generation retry behavior.
+         */
+        isExtractionTimeoutError(err) {
             if (!err) return false;
             const status = err.status;
             if (status === 504) return true;
