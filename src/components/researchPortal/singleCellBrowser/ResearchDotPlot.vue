@@ -1,23 +1,24 @@
 <template>
-    <div ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
-        <div style="display:flex; gap:5px; justify-content: flex-end;" class="legends">
-            <div style="display:flex; flex-direction: column;" class="legend">
-                <div class="label">Mean Expression</div>
-                <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray()});`"></div>
-                <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
-            </div>
-            <div style="display:flex; flex-direction: column;" class="legend">
-                <div class="label">% Cells Expressing</div>
-                <div style="display:flex" class="circles">
-                    <div class="circleBorder"><div class="circle" style="height:20%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:40%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:60%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:80%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:100%"></div></div>
-                </div>
-                <div style="display:flex" class="marks"><div>0</div><div>100</div></div>
-            </div>
-        </div>
+    <div :id="wrapperId" ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
+        <svg class="legend-svg" width="230" height="54" viewBox="0 0 230 54">
+            <defs>
+                <linearGradient :id="legendGradientId" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop v-for="stop in legendGradientStops" :key="stop.offset" :offset="stop.offset" :stop-color="stop.color" />
+                </linearGradient>
+            </defs>
+            <text x="0" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">Mean Expression</text>
+            <rect x="0" y="18" width="100" height="10" rx="5" :fill="`url(#${legendGradientId})`"></rect>
+            <text x="0" y="44" font-family="Arial" font-size="11" fill="#333">0.0</text>
+            <text x="100" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">{{ markerGenesMaxMean }}</text>
+
+            <text x="122" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">% Cells Expressing</text>
+            <g v-for="circle in legendCircles" :key="circle.cx" :transform="`translate(${circle.cx}, 23)`">
+                <circle r="8" fill="white" stroke="#ccc"></circle>
+                <circle :r="circle.r" fill="#ccc"></circle>
+            </g>
+            <text x="122" y="44" font-family="Arial" font-size="11" fill="#333">0</text>
+            <text x="227" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">100</text>
+        </svg>
 
         <div ref="plot"></div>
     </div>
@@ -91,6 +92,11 @@
             type: String,
             required: false,
             default: "blue"
+        },
+        wrapperId: {
+            type: String,
+            required: false,
+            default: ""
         }
     },
     data() {
@@ -124,6 +130,21 @@
         },
         markerGenesMaxMean(){
             return d3.max(this.data.map(d => d[this.fillKey])).toFixed(1);
+        },
+        legendGradientId() {
+            return `${this.wrapperId || 'sc-dot-plot'}-legend-gradient`;
+        },
+        legendGradientStops() {
+            return d3.range(0, 1.01, 0.1).map(t => ({
+                offset: `${t * 100}%`,
+                color: this.currColorOption(t)
+            }));
+        },
+        legendCircles() {
+            return [0.2, 0.4, 0.6, 0.8, 1].map((value, index) => ({
+                cx: 130 + (index * 22),
+                r: value * 8
+            }));
         }
     },
     mounted() {
@@ -331,16 +352,19 @@
                     xAxis.select(".domain").remove()
                         
                     xAxis.selectAll("text")
+                        .attr("font-family", "Arial")
                         .style("text-anchor", "start")
                         .attr("transform", "rotate(-55) translate(5, 5)")
                 }
                 
                 //y axis
                 if(this.showYLabels){
-                    svg.append("g")
+                    const yAxis = svg.append("g")
                         .attr('transform', `translate(${margin.left},0)`)
                         .call(d3.axisLeft(yScale).tickSizeOuter(0))
-                        .select(".domain").remove()
+                    yAxis.select(".domain").remove()
+                    yAxis.selectAll("text")
+                        .attr("font-family", "Arial")
                 }   
             }
 
@@ -391,7 +415,8 @@
             }
     
             svg.selectAll('text')
-                .style('font-size', '12px');
+                .style('font-size', '12px')
+                .attr('font-family', 'Arial');
             },
         }
     });
@@ -405,50 +430,8 @@
         font-size: 12px;
         opacity: 0.5;
     }
-    .legends {
-        gap: 20px;
-    }
-    .legend {
-        margin: 0 10px 0 0;
-        gap:1px;
-    }
-    .legend .label {
-        font-size: 11px !important;
-        line-height: 11px;
-    }
-    .legend .gradient {
-        height: 10px;
-        width: 100px;
-        border-radius: 20px;
-    }
-    .legend .gradient-tall {
-        height: 100px;
-        width: 15px;
-        border-radius: 20px;
-    }
-    .legend .circles {
-        height: 10px;
-        width: -webkit-fill-available;
-        justify-content: space-between;
-        padding: 0 0;
-    }
-    .legend .circleBorder {
-        border: 1px solid #ccc;
-        border-radius: 50%;
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .legend .circle {
-        aspect-ratio: 1;
-        background: #ccc;
-        border-radius: 50%;
-        align-self: center;
-    }
-    .legend .marks {
-        justify-content: space-between;
-        font-size: 11px;
-        line-height: 11px;
+    .legend-svg {
+        align-self: flex-end;
+        overflow: visible;
     }
 </style>

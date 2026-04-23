@@ -273,9 +273,10 @@
 
                                     <download-chart 
                                         class="download"
-                                        chartId="sc_stacked_bar_plot"
+                                        :chartId="countDownloadChartId"
+                                        :titleText="countSectionTitle"
                                         style="width: 125px; align-self: flex-start;"
-                                        :style="`${contCountResults?'pointer-events:none; opacity:0.5':''}`"
+                                        :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                     />
                                 </div>
     
@@ -303,7 +304,7 @@
                                     />
                                 </div>
     
-                                <div v-if="contCountResults">
+                                <div v-if="contCountResults" id="sc_count_scatter_group">
                                     <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.displayByLabel) }}</div>
                                     <div style="display:flex; flex-wrap: wrap; gap: 10px;">
                                         <div v-for="item in contCountResults" style="min-width: 250px; flex:1;">
@@ -363,9 +364,10 @@
 
                                     <download-chart 
                                         class="download"
-                                        chartId="sc_violin_plot"
+                                        :chartId="expressionDownloadChartId"
+                                        :titleText="expressionSectionTitle"
                                         style="width: 125px; align-self: flex-start;"
-                                        :style="`${contExprResults || cellCompositionVars.segmentByLabel!==''?'pointer-events:none; opacity:0.5':''}`"
+                                        :style="`${expressionDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                     />
                                 </div>
                                 
@@ -412,26 +414,28 @@
                                             :colorScale="expressionColorScale"
                                         />
                                         <template v-else>
-                                            <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                            <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
-                                                <div style="display:flex; gap:3px; align-items: baseline;">
-                                                    <div style="font-weight: bold;">{{ value }}</div>
+                                            <div id="sc_violin_plot_group">
+                                                <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
+                                                <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
+                                                    <div style="display:flex; gap:3px; align-items: baseline;">
+                                                        <div style="font-weight: bold;">{{ value }}</div>
+                                                    </div>
+                                                    <research-violin-plot
+                                                        :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
+                                                        :primaryKey="geneExpressionVars.selectedLabel" 
+                                                        :highlightKey="cellCompositionVars.highlightLabel"
+                                                        :height="300"
+                                                        xAxisLabel="Log-Normalized Expression"
+                                                        :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
+                                                        :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
+                                                    />
                                                 </div>
-                                                <research-violin-plot
-                                                    :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
-                                                    :primaryKey="geneExpressionVars.selectedLabel" 
-                                                    :highlightKey="cellCompositionVars.highlightLabel"
-                                                    :height="300"
-                                                    xAxisLabel="Log-Normalized Expression"
-                                                    :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
-                                                    :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
-                                                />
                                             </div>
                                         </template>
                                     </template>
                                 </div>
     
-                                <div v-if="contExprResults">
+                                <div v-if="contExprResults" id="sc_expression_scatter_group">
                                     <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.displayByLabel) }}</div>
                                     <div style="display:flex; flex-wrap: wrap; gap: 10px">
                                         <div v-for="item in contExprResults" style="min-width: 250px; flex:1;">
@@ -481,7 +485,8 @@
                                     </div>
                                     <download-chart 
                                     class="download"
-                                    chartId="sc_dot_plot"
+                                    chartId="sc_marker_dot_plot"
+                                    :titleText="markerDotPlotTitle"
                                     style="width: 125px; align-self: flex-start;"
                                     />
                                 </div>
@@ -529,6 +534,7 @@
     
                                 <research-dot-plot
                                     style="display:flex; align-self: center"
+                                    wrapperId="sc_marker_dot_plot"
                                     :data="markerGenes || expressionStatsAll"
                                     data-blah="pct_cells_expression"
                                     :yKey="markerFile.markerKey"
@@ -727,9 +733,10 @@
 
                                 <download-chart 
                                     class="download"
-                                    chartId="sc_stacked_bar_plot"
+                                    :chartId="countDownloadChartId"
+                                    :titleText="countSectionTitle"
                                     style="width: 125px; align-self: flex-start;"
-                                    :style="`${contCountResults?'pointer-events:none; opacity:0.5':''}`"
+                                    :style="`${countDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
                                 />
                             </div>
 
@@ -757,7 +764,7 @@
                                 />
                             </div>
 
-                            <div v-if="contCountResults">
+                            <div v-if="contCountResults" id="sc_count_scatter_group">
                                     <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.displayByLabel) }}</div>
                                 <div style="display:flex; flex-wrap: wrap; gap: 10px;">
                                     <div v-for="item in contCountResults" style="min-width: 250px; flex:1;">
@@ -928,7 +935,7 @@
     import ResearchScatterPlot from "@/components/researchPortal/singleCellBrowser/ResearchScatterPlot.vue";
     import ResearchSingleCellSelector from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellSelector.vue";
     import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
-    import DownloadChart from "@/components/DownloadChart"
+    import DownloadChart from "@/components/researchPortal/singleCellBrowser/DownloadChart.vue"
 
     const colors = ["#007bff","#048845","#8490C8","#BF61A5","#EE3124","#FCD700","#5555FF","#7aaa1c","#F88084","#9F78AC","#F5A4C7","#CEE6C1","#cccc00","#6FC7B6","#D5A768","#d4d4d4"]
 
@@ -1263,6 +1270,50 @@
                 if(!this.markerGenes) return;
                 const scaleAdjust = Math.max(...this.markerGenes.map(d => d.pct_cells_expression)) <= 1 ? 100 : 1;
                 return scaleAdjust;
+            },
+            countDownloadChartId() {
+                if(this.contCountResults){
+                    return 'sc_count_scatter_group';
+                }
+                return 'sc_stacked_bar_plot';
+            },
+            countSectionTitle() {
+                const metric = `${this.isATACseq ? 'Nuclei' : 'Cell'} ${this.isNormalized ? 'Proportion' : 'Count'}`;
+                if(this.displayFields && this.cellCompositionVars.segmentByLabel && this.displayFields[this.cellCompositionVars.segmentByLabel].dataType === 'cat'){
+                    return `${metric} by ${this.displayLabel(this.cellCompositionVars.displayByLabel)} per ${this.displayLabel(this.cellCompositionVars.segmentByLabel)}`;
+                }
+                if(this.cellCompositionVars.segmentByLabel){
+                    return `${metric} by ${this.displayLabel(this.cellCompositionVars.segmentByLabel)} per ${this.displayLabel(this.cellCompositionVars.displayByLabel)}`;
+                }
+                return `${metric} by ${this.displayLabel(this.cellCompositionVars.displayByLabel)}`;
+            },
+            countDownloadDisabled() {
+                return false;
+            },
+            markerDotPlotTitle() {
+                return `Top Marker Genes for ${this.dotPlotCellType || 'All'} (${this.markerFile?.markerKeyLabel || 'Cell Types'})`;
+            },
+            expressionDownloadChartId() {
+                if(this.contExprResults){
+                    return 'sc_expression_scatter_group';
+                }
+                if(this.cellCompositionVars.segmentByLabel){
+                    return this.stratifyPlotType === 'dot' ? 'sc_dot_plot' : 'sc_violin_plot_group';
+                }
+                return 'sc_violin_plot';
+            },
+            expressionSectionTitle() {
+                const metric = `${this.geneExpressionVars.selectedGene || ''} ${this.isATACseq ? 'Chromatin Accessibility' : 'Expression'}`.trim();
+                if(this.displayFields && this.cellCompositionVars.segmentByLabel && this.displayFields[this.cellCompositionVars.segmentByLabel].dataType === 'cat'){
+                    return `${metric} by ${this.displayLabel(this.cellCompositionVars.displayByLabel)} per ${this.displayLabel(this.cellCompositionVars.segmentByLabel)}`;
+                }
+                if(this.cellCompositionVars.segmentByLabel){
+                    return `${metric} by ${this.displayLabel(this.cellCompositionVars.segmentByLabel)} per ${this.displayLabel(this.cellCompositionVars.displayByLabel)}`;
+                }
+                return `${metric} by ${this.displayLabel(this.cellCompositionVars.displayByLabel)}`;
+            },
+            expressionDownloadDisabled() {
+                return false;
             }
         },
         methods: {
