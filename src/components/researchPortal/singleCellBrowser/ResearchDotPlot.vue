@@ -6,10 +6,10 @@
                     <stop v-for="stop in legendGradientStops" :key="stop.offset" :offset="stop.offset" :stop-color="stop.color" />
                 </linearGradient>
             </defs>
-            <text x="0" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">Mean Expression</text>
+            <text x="0" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">{{ legendTitle }}</text>
             <rect x="0" y="18" width="100" height="10" rx="5" :fill="`url(#${legendGradientId})`"></rect>
-            <text x="0" y="44" font-family="Arial" font-size="11" fill="#333">0.0</text>
-            <text x="100" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">{{ markerGenesMaxMean }}</text>
+            <text x="0" y="44" font-family="Arial" font-size="11" fill="#333">{{ legendMinLabel }}</text>
+            <text x="100" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">{{ legendMaxLabel }}</text>
 
             <text x="122" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">% Cells Expressing</text>
             <g v-for="circle in legendCircles" :key="circle.cx" :transform="`translate(${circle.cx}, 23)`">
@@ -93,6 +93,14 @@
             required: false,
             default: "blue"
         },
+        colorScaleMode: {
+            type: String,
+            required: false,
+            default: "raw",
+            validator(value) {
+                return ["raw", "scaled-per-gene"].includes(value);
+            }
+        },
         wrapperId: {
             type: String,
             required: false,
@@ -122,6 +130,12 @@
         },
         highlightKey(newVal, oldVal) {
             this.renderPlot();
+        },
+        colorScale() {
+            this.renderPlot();
+        },
+        colorScaleMode() {
+            this.renderPlot();
         }
     },
     computed: {
@@ -129,7 +143,16 @@
             return this.colorOptions[this.colorScale];
         },
         markerGenesMaxMean(){
-            return d3.max(this.data.map(d => d[this.fillKey])).toFixed(1);
+            return (d3.max(this.data.map(d => d[this.fillKey])) || 0).toFixed(1);
+        },
+        legendTitle() {
+            return this.colorScaleMode === 'scaled-per-gene' ? 'Scaled Expression' : 'Mean Expression';
+        },
+        legendMinLabel() {
+            return '0.0';
+        },
+        legendMaxLabel() {
+            return this.colorScaleMode === 'scaled-per-gene' ? '1.0' : this.markerGenesMaxMean;
         },
         legendGradientId() {
             return `${this.wrapperId || 'sc-dot-plot'}-legend-gradient`;
@@ -166,6 +189,36 @@
                 this.renderPlot();
             }, 100);
         },
+        getColorPlotData() {
+            if (this.colorScaleMode !== 'scaled-per-gene') {
+                return this.data.map(d => ({
+                    ...d,
+                    __dotPlotColorValue: d[this.fillKey] ?? 0
+                }));
+            }
+
+            const groupedData = this.data.reduce((acc, row) => {
+                const key = row.gene ?? '__default__';
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(row);
+                return acc;
+            }, {});
+
+            return this.data.map(row => {
+                const groupKey = row.gene ?? '__default__';
+                const rows = groupedData[groupKey] || [];
+                const values = rows.map(item => item[this.fillKey] ?? 0);
+                const min = d3.min(values) ?? 0;
+                const max = d3.max(values) ?? 0;
+                const value = row[this.fillKey] ?? 0;
+                const scaledValue = max === min ? 0 : (value - min) / (max - min);
+
+                return {
+                    ...row,
+                    __dotPlotColorValue: scaledValue
+                };
+            });
+        },
         renderPlot() {
             d3.select(this.$refs.plot).style('position', 'relative');
             llog('---DotPlot')
@@ -199,7 +252,8 @@
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
             const fillKey = this.fillKey;
             const sizeKey = this.sizeKey;
-            const allMeans = this.data.map(d => d[fillKey]);
+            const plotData = this.getColorPlotData();
+            const colorValues = plotData.map(d => d.__dotPlotColorValue ?? 0);
 
             //llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
             //llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
@@ -304,7 +358,7 @@
             */
 
            const colorScale = d3.scaleSequential(this.currColorOption)
-                .domain([0, d3.max(allMeans)]);
+                .domain([0, d3.max(colorValues) || 0]);
     
             // Create the color scale
             //const color = d3.scaleSequential(d3.interpolatePlasma)
@@ -369,12 +423,12 @@
             }
 
             //detect if pct_cells_expression is used 0-1 or 0-100 scale
-            const scaleAdjust = Math.max(...this.data.map(d => d.pct_cells_expression)) <= 1 ? 100 : 1;
+            const scaleAdjust = Math.max(...plotData.map(d => d[sizeKey] ?? 0)) <= 1 ? 100 : 1;
     
             //render cells
             const cells = svg.append('g');
             {
-                this.data.forEach((d, i) => {
+                plotData.forEach((d, i) => {
                     //outer circles
                     const outerCircle = cells.append('circle')
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
@@ -392,21 +446,25 @@
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
                         .attr('cy', yScale(d[yKey]) + yScale.bandwidth() / 2 )
                         .attr('r', cellScale(d[sizeKey]*scaleAdjust))
-                        .style('fill', colorScale(d[fillKey]))
+                        .style('fill', colorScale(d.__dotPlotColorValue))
                         .style('pointer-events', 'none')
                         .attr('data-key', d[yKey])
                         .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d[yKey] ? '1' : '0.1')
 
                     // Tooltip mouseover
                     outerCircle.addEventListener('mouseover', function(e){
+                        const scaledRow = this.colorScaleMode === 'scaled-per-gene'
+                            ? `<div style="font-weight:bold">Scaled Expr.</div> <div>${d.__dotPlotColorValue.toFixed(4)}</div>`
+                            : '';
                         const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
                             <div style="font-weight:bold">${xKey}</div>     <div>${d[xKey]}</div>
                             <div style="font-weight:bold">${yKey}</div>     <div>${d[yKey]}</div>
                             <div style="font-weight:bold">Mean Expr.</div>  <div>${d[fillKey].toFixed(4)}</div>
+                            ${scaledRow}
                             <div style="font-weight:bold">% Expr.</div>     <div>${(d[sizeKey]*scaleAdjust).toFixed(4)}</div>
                         </div>`;
                         mouseTooltip.show(tooltipContent);
-                    })
+                    }.bind(this))
                     // Tooltip mouseout to hide it
                     outerCircle.addEventListener('mouseout', function(e){
                         mouseTooltip.hide();

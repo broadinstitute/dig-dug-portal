@@ -547,6 +547,7 @@
                                     :cellWidth="30"
                                     highlightKey=""
                                     :colorScale="expressionColorScale"
+                                    :colorScaleMode="dotPlotColorScaleMode"
                                 />
                             </div>
                             <b-table v-if="markerGenesTable"
@@ -817,6 +818,7 @@
                                         :cellWidth="30"
                                         highlightKey=""
                                         :colorScale="expressionColorScale"
+                                        :colorScaleMode="dotPlotColorScaleMode"
                                     />
                                 </div>
                                 <b-table v-if="markerGenesTable"
@@ -1029,6 +1031,8 @@
                 stratifyPlotTypeOptions: ["violin", "dot"],
                 expressionColorScale: "blue",
                 expressionColorScaleOptions: ["red", "blue"],
+
+                dotPlotColorScaleMode: null,
 
                 displayFields: null,
                 displayGroups: null,
@@ -1492,6 +1496,10 @@
                         this.expressionColorScale = format_dataset.expressionColorScale;
                     }
                 }
+                if(format_dataset?.dotPlotColorScaleMode){
+                    this.dotPlotColorScaleMode = format_dataset.dotPlotColorScaleMode;
+                }
+
                 //get format options
                 if(format_dataset){
                     //for this specific dataset if available
