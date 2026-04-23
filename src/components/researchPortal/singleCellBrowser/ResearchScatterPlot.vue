@@ -285,9 +285,14 @@ export default Vue.component('research-scatter-plot', {
 
       svg.append("g")
         .attr("transform", `translate(0,${this.chartH})`)
-        .call(d3.axisBottom(this.xScale).ticks(xTicks));
+        .call(d3.axisBottom(this.xScale).ticks(xTicks))
+        .selectAll("text")
+        .attr("font-family", "Arial");
 
-      svg.append("g").call(d3.axisLeft(this.yScale).ticks(yTicks));
+      svg.append("g")
+        .call(d3.axisLeft(this.yScale).ticks(yTicks))
+        .selectAll("text")
+        .attr("font-family", "Arial");
 
       if (this.xLabel) {
         svg.append("text")
@@ -295,6 +300,7 @@ export default Vue.component('research-scatter-plot', {
           .attr("y", this.chartH + 35)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
+          .attr("font-family", "Arial")
           .attr("fill", "rgba(0,0,0,0.5)")
           .text(this.xLabel);
       }
@@ -306,6 +312,7 @@ export default Vue.component('research-scatter-plot', {
           .attr("y", -40)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
+          .attr("font-family", "Arial")
           .attr("fill", "rgba(0,0,0,0.5)")
           .text(this.yLabel);
       }
@@ -379,6 +386,5 @@ export default Vue.component('research-scatter-plot', {
   }
 });
 </script>
-
 
 

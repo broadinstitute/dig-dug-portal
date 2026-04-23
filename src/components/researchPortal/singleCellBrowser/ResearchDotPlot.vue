@@ -1,23 +1,24 @@
 <template>
-    <div ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
-        <div style="display:flex; gap:5px; justify-content: flex-end;" class="legends">
-            <div style="display:flex; flex-direction: column;" class="legend">
-                <div class="label">Mean Expression</div>
-                <div class="gradient" :style="`background: linear-gradient(to right, ${colorScaleArray()});`"></div>
-                <div style="display:flex" class="marks"><div>0.0</div><div>{{markerGenesMaxMean}}</div></div>
-            </div>
-            <div style="display:flex; flex-direction: column;" class="legend">
-                <div class="label">% Cells Expressing</div>
-                <div style="display:flex" class="circles">
-                    <div class="circleBorder"><div class="circle" style="height:20%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:40%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:60%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:80%"></div></div>
-                    <div class="circleBorder"><div class="circle" style="height:100%"></div></div>
-                </div>
-                <div style="display:flex" class="marks"><div>0</div><div>100</div></div>
-            </div>
-        </div>
+    <div :id="wrapperId" ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
+        <svg class="legend-svg" width="230" height="54" viewBox="0 0 230 54">
+            <defs>
+                <linearGradient :id="legendGradientId" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop v-for="stop in legendGradientStops" :key="stop.offset" :offset="stop.offset" :stop-color="stop.color" />
+                </linearGradient>
+            </defs>
+            <text x="0" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">{{ legendTitle }}</text>
+            <rect x="0" y="18" width="100" height="10" rx="5" :fill="`url(#${legendGradientId})`"></rect>
+            <text x="0" y="44" font-family="Arial" font-size="11" fill="#333">{{ legendMinLabel }}</text>
+            <text x="100" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">{{ legendMaxLabel }}</text>
+
+            <text x="122" y="12" font-family="Arial" font-size="11" font-weight="600" fill="#333">% Cells Expressing</text>
+            <g v-for="circle in legendCircles" :key="circle.cx" :transform="`translate(${circle.cx}, 23)`">
+                <circle r="8" fill="white" stroke="#ccc"></circle>
+                <circle :r="circle.r" fill="#ccc"></circle>
+            </g>
+            <text x="122" y="44" font-family="Arial" font-size="11" fill="#333">0</text>
+            <text x="227" y="44" text-anchor="end" font-family="Arial" font-size="11" fill="#333">100</text>
+        </svg>
 
         <div ref="plot"></div>
     </div>
@@ -91,6 +92,19 @@
             type: String,
             required: false,
             default: "blue"
+        },
+        colorScaleMode: {
+            type: String,
+            required: false,
+            default: "raw",
+            validator(value) {
+                return ["raw", "scaled-per-gene"].includes(value);
+            }
+        },
+        wrapperId: {
+            type: String,
+            required: false,
+            default: ""
         }
     },
     data() {
@@ -116,6 +130,12 @@
         },
         highlightKey(newVal, oldVal) {
             this.renderPlot();
+        },
+        colorScale() {
+            this.renderPlot();
+        },
+        colorScaleMode() {
+            this.renderPlot();
         }
     },
     computed: {
@@ -123,7 +143,31 @@
             return this.colorOptions[this.colorScale];
         },
         markerGenesMaxMean(){
-            return d3.max(this.data.map(d => d[this.fillKey])).toFixed(1);
+            return (d3.max(this.data.map(d => d[this.fillKey])) || 0).toFixed(1);
+        },
+        legendTitle() {
+            return this.colorScaleMode === 'scaled-per-gene' ? 'Scaled Expression' : 'Mean Expression';
+        },
+        legendMinLabel() {
+            return '0.0';
+        },
+        legendMaxLabel() {
+            return this.colorScaleMode === 'scaled-per-gene' ? '1.0' : this.markerGenesMaxMean;
+        },
+        legendGradientId() {
+            return `${this.wrapperId || 'sc-dot-plot'}-legend-gradient`;
+        },
+        legendGradientStops() {
+            return d3.range(0, 1.01, 0.1).map(t => ({
+                offset: `${t * 100}%`,
+                color: this.currColorOption(t)
+            }));
+        },
+        legendCircles() {
+            return [0.2, 0.4, 0.6, 0.8, 1].map((value, index) => ({
+                cx: 130 + (index * 22),
+                r: value * 8
+            }));
         }
     },
     mounted() {
@@ -144,6 +188,36 @@
             this.resizeTimeout = setTimeout(() => {
                 this.renderPlot();
             }, 100);
+        },
+        getColorPlotData() {
+            if (this.colorScaleMode !== 'scaled-per-gene') {
+                return this.data.map(d => ({
+                    ...d,
+                    __dotPlotColorValue: d[this.fillKey] ?? 0
+                }));
+            }
+
+            const groupedData = this.data.reduce((acc, row) => {
+                const key = row.gene ?? '__default__';
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(row);
+                return acc;
+            }, {});
+
+            return this.data.map(row => {
+                const groupKey = row.gene ?? '__default__';
+                const rows = groupedData[groupKey] || [];
+                const values = rows.map(item => item[this.fillKey] ?? 0);
+                const min = d3.min(values) ?? 0;
+                const max = d3.max(values) ?? 0;
+                const value = row[this.fillKey] ?? 0;
+                const scaledValue = max === min ? 0 : (value - min) / (max - min);
+
+                return {
+                    ...row,
+                    __dotPlotColorValue: scaledValue
+                };
+            });
         },
         renderPlot() {
             d3.select(this.$refs.plot).style('position', 'relative');
@@ -178,7 +252,8 @@
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
             const fillKey = this.fillKey;
             const sizeKey = this.sizeKey;
-            const allMeans = this.data.map(d => d[fillKey]);
+            const plotData = this.getColorPlotData();
+            const colorValues = plotData.map(d => d.__dotPlotColorValue ?? 0);
 
             //llog('   xKeyLabels', xKey, this.xKey, xKeyLabels); 
             //llog('   yKeyLabels', yKey, this.yKey, yKeyLabels);
@@ -283,7 +358,7 @@
             */
 
            const colorScale = d3.scaleSequential(this.currColorOption)
-                .domain([0, d3.max(allMeans)]);
+                .domain([0, d3.max(colorValues) || 0]);
     
             // Create the color scale
             //const color = d3.scaleSequential(d3.interpolatePlasma)
@@ -331,26 +406,29 @@
                     xAxis.select(".domain").remove()
                         
                     xAxis.selectAll("text")
+                        .attr("font-family", "Arial")
                         .style("text-anchor", "start")
                         .attr("transform", "rotate(-55) translate(5, 5)")
                 }
                 
                 //y axis
                 if(this.showYLabels){
-                    svg.append("g")
+                    const yAxis = svg.append("g")
                         .attr('transform', `translate(${margin.left},0)`)
                         .call(d3.axisLeft(yScale).tickSizeOuter(0))
-                        .select(".domain").remove()
+                    yAxis.select(".domain").remove()
+                    yAxis.selectAll("text")
+                        .attr("font-family", "Arial")
                 }   
             }
 
             //detect if pct_cells_expression is used 0-1 or 0-100 scale
-            const scaleAdjust = Math.max(...this.data.map(d => d.pct_cells_expression)) <= 1 ? 100 : 1;
+            const scaleAdjust = Math.max(...plotData.map(d => d[sizeKey] ?? 0)) <= 1 ? 100 : 1;
     
             //render cells
             const cells = svg.append('g');
             {
-                this.data.forEach((d, i) => {
+                plotData.forEach((d, i) => {
                     //outer circles
                     const outerCircle = cells.append('circle')
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
@@ -368,21 +446,25 @@
                         .attr('cx', xScale(d[xKey]) + xScale.bandwidth() / 2 )
                         .attr('cy', yScale(d[yKey]) + yScale.bandwidth() / 2 )
                         .attr('r', cellScale(d[sizeKey]*scaleAdjust))
-                        .style('fill', colorScale(d[fillKey]))
+                        .style('fill', colorScale(d.__dotPlotColorValue))
                         .style('pointer-events', 'none')
                         .attr('data-key', d[yKey])
                         .attr('fill-opacity', this.highlightKey==='' ? '1' : this.highlightKey===d[yKey] ? '1' : '0.1')
 
                     // Tooltip mouseover
                     outerCircle.addEventListener('mouseover', function(e){
+                        const scaledRow = this.colorScaleMode === 'scaled-per-gene'
+                            ? `<div style="font-weight:bold">Scaled Expr.</div> <div>${d.__dotPlotColorValue.toFixed(4)}</div>`
+                            : '';
                         const tooltipContent = `<div style="display: grid; grid-template-columns: 1fr max-content; gap:5px; row-gap:2px; font-size:12px;">
                             <div style="font-weight:bold">${xKey}</div>     <div>${d[xKey]}</div>
                             <div style="font-weight:bold">${yKey}</div>     <div>${d[yKey]}</div>
                             <div style="font-weight:bold">Mean Expr.</div>  <div>${d[fillKey].toFixed(4)}</div>
+                            ${scaledRow}
                             <div style="font-weight:bold">% Expr.</div>     <div>${(d[sizeKey]*scaleAdjust).toFixed(4)}</div>
                         </div>`;
                         mouseTooltip.show(tooltipContent);
-                    })
+                    }.bind(this))
                     // Tooltip mouseout to hide it
                     outerCircle.addEventListener('mouseout', function(e){
                         mouseTooltip.hide();
@@ -391,7 +473,8 @@
             }
     
             svg.selectAll('text')
-                .style('font-size', '12px');
+                .style('font-size', '12px')
+                .attr('font-family', 'Arial');
             },
         }
     });
@@ -405,50 +488,8 @@
         font-size: 12px;
         opacity: 0.5;
     }
-    .legends {
-        gap: 20px;
-    }
-    .legend {
-        margin: 0 10px 0 0;
-        gap:1px;
-    }
-    .legend .label {
-        font-size: 11px !important;
-        line-height: 11px;
-    }
-    .legend .gradient {
-        height: 10px;
-        width: 100px;
-        border-radius: 20px;
-    }
-    .legend .gradient-tall {
-        height: 100px;
-        width: 15px;
-        border-radius: 20px;
-    }
-    .legend .circles {
-        height: 10px;
-        width: -webkit-fill-available;
-        justify-content: space-between;
-        padding: 0 0;
-    }
-    .legend .circleBorder {
-        border: 1px solid #ccc;
-        border-radius: 50%;
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .legend .circle {
-        aspect-ratio: 1;
-        background: #ccc;
-        border-radius: 50%;
-        align-self: center;
-    }
-    .legend .marks {
-        justify-content: space-between;
-        font-size: 11px;
-        line-height: 11px;
+    .legend-svg {
+        align-self: flex-end;
+        overflow: visible;
     }
 </style>
