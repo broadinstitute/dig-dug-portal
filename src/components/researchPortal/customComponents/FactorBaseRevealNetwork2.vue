@@ -12,6 +12,12 @@
         </div>
         <div class="network-wrapper">
             <div ref="container" class="network-container" :style="{ height: height + 'px' }"></div>
+            <div
+                v-if="hoverTooltip.visible"
+                class="network-hover-tooltip"
+                :style="{ left: hoverTooltip.x + 'px', top: hoverTooltip.y + 'px' }"
+                v-html="hoverTooltip.content"
+            ></div>
             <div v-if="visNetwork" class="zoom-slider-outer">
                 <div class="zoom-slider-block">
                     <label class="zoom-slider-label">Zoom</label>
@@ -131,6 +137,10 @@ export default {
         showHypothesisMapViewToggle: { type: Boolean, default: false },
         /** Checked ⇒ LLM/original spine; unchecked ⇒ Biolink map. */
         showOriginalHypothesisMap: { type: Boolean, default: false },
+        /** Optional: scale Gene node size by this numeric metadata key (e.g., "gwas_support"). */
+        geneNodeMetricKey: { type: String, default: "" },
+        /** Optional: map edge distance from this numeric metadata key (e.g., "functional_support"). */
+        edgeDistanceMetricKey: { type: String, default: "" },
     },
     data() {
         return {
@@ -142,6 +152,12 @@ export default {
             zoomMax: 2,
             zoomStep: 0.05,
             nodeMap: {},
+            hoverTooltip: {
+                visible: false,
+                x: 0,
+                y: 0,
+                content: "",
+            },
         };
     },
     computed: {
@@ -230,6 +246,19 @@ export default {
         this.cleanup();
     },
     methods: {
+        readNumericMetric(obj, key) {
+            if (!obj || !key) return null;
+            const raw = obj[key];
+            if (raw == null || raw === "" || Number.isNaN(Number(raw))) return null;
+            return Number(raw);
+        },
+        scaleLinear(value, minIn, maxIn, minOut, maxOut) {
+            if (value == null || minIn == null || maxIn == null || maxIn <= minIn) {
+                return (minOut + maxOut) / 2;
+            }
+            const t = Math.max(0, Math.min(1, (value - minIn) / (maxIn - minIn)));
+            return minOut + t * (maxOut - minOut);
+        },
         async exportSvg() {
             if (!this.visNetwork || !this.nodesDataSet || !this.edgesDataSet) return null;
             const nodeIds = this.nodesDataSet.getIds();
@@ -336,6 +365,51 @@ export default {
             }
             this.nodesDataSet = null;
             this.edgesDataSet = null;
+            this.hideHoverTooltip();
+        },
+        escapeHtml(raw) {
+            return String(raw == null ? "" : raw)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        },
+        formatTooltipHtml(title) {
+            const text = String(title == null ? "" : title);
+            if (!text.trim()) return "";
+            return text
+                .split("|")
+                .map((part) => this.escapeHtml(part.trim()))
+                .filter(Boolean)
+                .join("<br>");
+        },
+        showHoverTooltip(params) {
+            if (!params || params.node == null || !this.nodesDataSet) return;
+            const node = this.nodesDataSet.get(params.node);
+            if (!node) return;
+            const html = this.formatTooltipHtml(node.title || "");
+            if (!html) return;
+            const pointer = params.event && params.event.pointer && params.event.pointer.DOM
+                ? params.event.pointer.DOM
+                : null;
+            this.hoverTooltip.visible = true;
+            this.hoverTooltip.x = pointer ? Number(pointer.x) + 14 : 14;
+            this.hoverTooltip.y = pointer ? Number(pointer.y) + 14 : 14;
+            this.hoverTooltip.content = html;
+        },
+        moveHoverTooltip(params) {
+            if (!this.hoverTooltip.visible) return;
+            const pointer = params && params.pointer && params.pointer.DOM
+                ? params.pointer.DOM
+                : (params && params.event && params.event.pointer && params.event.pointer.DOM
+                    ? params.event.pointer.DOM
+                    : null);
+            if (!pointer) return;
+            this.hoverTooltip.x = Number(pointer.x) + 14;
+            this.hoverTooltip.y = Number(pointer.y) + 14;
+        },
+        hideHoverTooltip() {
+            this.hoverTooltip.visible = false;
+            this.hoverTooltip.content = "";
         },
         /** First GO:####### found in metadata or node fields (Biolink tooltips). */
         extractGoIdForBiolinkTooltip(meta, n) {
@@ -358,6 +432,17 @@ export default {
         },
         buildVisNodes(nodes) {
             const geneToGroup = this.geneNameToGroup;
+            const metricKey = String(this.geneNodeMetricKey || "").trim();
+            const geneMetricValues = [];
+            if (metricKey) {
+                (nodes || []).forEach((n) => {
+                    if (!n || n.type !== "Gene") return;
+                    const v = this.readNumericMetric(n.metadata || {}, metricKey);
+                    if (v != null) geneMetricValues.push(v);
+                });
+            }
+            const geneMetricMin = geneMetricValues.length ? Math.min(...geneMetricValues) : null;
+            const geneMetricMax = geneMetricValues.length ? Math.max(...geneMetricValues) : null;
             return (nodes || []).map((n) => {
                 const type = n.type || "Gene";
                 let color = NODE_COLORS[type] || DEFAULT_NODE_COLOR;
@@ -376,7 +461,7 @@ export default {
                     type === "Factor"
                         ? resolveCfdeFactorClusterDisplayLabel(rawDisplay)
                         : rawDisplay;
-                const parts = [headlineLabel, type];
+                const parts = [`Full label: ${headlineLabel}`, `Type: ${type}`];
                 if (type === "Gene") {
                     const geneName = (n.id || n.label || "").toString().trim();
                     const geneEntry = (this.genes || []).find(
@@ -437,7 +522,14 @@ export default {
                         color: "#333",
                     },
                     borderWidth: meta.biolink_unmapped ? 3 : 1.5,
-                    size: type === "Gene" ? 16 : 20,
+                    size:
+                        type === "Gene"
+                            ? (() => {
+                                if (!metricKey) return 16;
+                                const v = this.readNumericMetric(meta, metricKey);
+                                return this.scaleLinear(v, geneMetricMin, geneMetricMax, 12, 30);
+                            })()
+                            : 20,
                 };
             });
         },
@@ -448,7 +540,16 @@ export default {
                 Factor: 2,
                 Phenotype: 3,
             };
-
+            const distanceMetricKey = String(this.edgeDistanceMetricKey || "").trim();
+            const edgeMetricValues = [];
+            if (distanceMetricKey) {
+                (edges || []).forEach((e) => {
+                    const v = this.readNumericMetric(e.metadata || {}, distanceMetricKey);
+                    if (v != null) edgeMetricValues.push(v);
+                });
+            }
+            const edgeMetricMin = edgeMetricValues.length ? Math.min(...edgeMetricValues) : null;
+            const edgeMetricMax = edgeMetricValues.length ? Math.max(...edgeMetricValues) : null;
             return (edges || []).map((e, i) => {
                 const sourceNode = this.nodeMap[e.source];
                 const targetNode = this.nodeMap[e.target];
@@ -488,6 +589,13 @@ export default {
                 }
                 if (this.isMechanismFlowMap && (e.dashes || (e.metadata && e.metadata.inferred_edge))) {
                     edge.dashes = true;
+                }
+                if (distanceMetricKey) {
+                    const rawDistanceMetric = this.readNumericMetric(e.metadata || {}, distanceMetricKey);
+                    if (rawDistanceMetric != null) {
+                        // Higher functional support -> shorter spring length.
+                        edge.length = this.scaleLinear(rawDistanceMetric, edgeMetricMin, edgeMetricMax, 210, 80);
+                    }
                 }
                 return edge;
             });
@@ -568,6 +676,11 @@ export default {
             };
 
             this.visNetwork = new Network(container, data, options);
+            this.visNetwork.on("hoverNode", (params) => this.showHoverTooltip(params));
+            this.visNetwork.on("blurNode", () => this.hideHoverTooltip());
+            this.visNetwork.on("dragStart", () => this.hideHoverTooltip());
+            this.visNetwork.on("zoom", (params) => this.moveHoverTooltip(params));
+            this.visNetwork.on("dragging", (params) => this.moveHoverTooltip(params));
 
             this.visNetwork.on("stabilizationIterationsDone", () => {
                 this.visNetwork.setOptions({ physics: false });
@@ -615,6 +728,20 @@ export default {
 .network-wrapper {
     position: relative;
     width: 100%;
+}
+.network-hover-tooltip {
+    position: absolute;
+    z-index: 30;
+    max-width: 420px;
+    pointer-events: none;
+    background: rgba(33, 37, 41, 0.96);
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.35;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    white-space: normal;
 }
 .network-container {
     width: 100%;

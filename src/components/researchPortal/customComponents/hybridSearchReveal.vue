@@ -78,16 +78,19 @@
                     <b-modal
                         v-model="queryHelperOpen"
                         size="xl"
-                        title="Query helper"
+                        title="Guided Query Builder"
                         body-class="pb-4"
                         hide-footer
                         no-close-on-backdrop
                     >
                         <div class="small text-muted mb-3">
-                            Start by searching phenotypes. Pick phenotypes, select associated gene set clusters, and add mechanisms/genes of interest.
+                            Build a targeted search from CFDE evidence. The AI will draft both a scientifically grounded query and a research context you can review before search.
                         </div>
                         <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">Phenotypes</label>
+                            <label class="font-weight-bold mb-1">1. Select Target Phenotype or Disease</label>
+                            <div class="small text-muted mb-1">
+                                Start by anchoring your search to a specific physiological trait or disease state (e.g., Waist-to-hip ratio, Type 2 Diabetes).
+                            </div>
                             <input
                                 type="text"
                                 class="form-control"
@@ -138,7 +141,10 @@
                             </div>
                         </div>
 
-                        <div class="mb-2 font-weight-bold">Associated gene set clusters</div>
+                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Factors)</div>
+                        <div v-if="queryHelperFactorRows.length" class="small text-muted mb-2">
+                            Select 1-2 pathways to force the AI to investigate these specific mechanisms.
+                        </div>
                         <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
                             <b-spinner small class="mr-2"></b-spinner>
                             Loading factors for selected phenotypes...
@@ -203,16 +209,19 @@
                             </div>
                         </div>
                         <div v-else class="small text-muted mb-3">
-                            {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'Select at least one phenotype to load associated gene set clusters.' }}
+                            {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'First, select a phenotype above to view its associated biological mechanisms and pathways.' }}
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">Mechanisms</label>
+                            <label class="font-weight-bold mb-1">Additional mechanism terms (optional)</label>
+                            <div class="small text-muted mb-1">
+                                Add extra mechanism keywords not captured by selected pathways.
+                            </div>
                             <input
                                 type="text"
                                 class="form-control"
                                 v-model="queryHelperMechanismInput"
-                                placeholder="Add a mechanism term, then press Enter"
+                                placeholder="Add an extra mechanism term, then press Enter"
                                 @keydown.enter.prevent="addQueryHelperMechanismFromInput"
                             />
                             <div v-if="queryHelperMechanismTerms.length" class="d-flex flex-wrap mt-2">
@@ -235,7 +244,10 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">Genes</label>
+                            <label class="font-weight-bold mb-1">3. Pin Specific Genes (Optional)</label>
+                            <div class="small text-muted mb-1">
+                                Leave empty to let the AI discover contextually novel genes. Pin specific genes to force the network to build a pathway around them.
+                            </div>
                             <input
                                 type="text"
                                 class="form-control"
@@ -291,21 +303,34 @@
                             ></textarea>
                         </div>
                         <div v-if="queryHelperCanContinue" class="form-group mb-3">
-                            <label class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
-                                <input
-                                    type="checkbox"
-                                    :checked="queryHelperHardConstraintEnabled"
-                                    :disabled="!queryHelperHardConstraintEligible"
-                                    @change="queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
-                                />
-                                <span class="font-weight-bold">Use helper selections as hard retrieval constraints</span>
-                            </label>
-                            <div class="small text-muted">
-                                Next, the LLM will extract search terms and generate research context for retrieval.
-                                When this option is enabled, your selected phenotype and gene set cluster choices are still enforced during data retrieval.
-                            </div>
-                            <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
-                                This option becomes available after selecting at least one phenotype and one gene set cluster.
+                            <button
+                                type="button"
+                                class="btn btn-link p-0 d-flex align-items-center"
+                                style="gap: 0.35rem;"
+                                @click="queryHelperAdvancedOpen = !queryHelperAdvancedOpen"
+                                :aria-expanded="queryHelperAdvancedOpen ? 'true' : 'false'"
+                                aria-controls="query-helper-advanced-retrieval-options"
+                            >
+                                <span class="font-weight-bold">Advanced retrieval options</span>
+                                <b-icon :icon="queryHelperAdvancedOpen ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></b-icon>
+                            </button>
+                            <div v-if="queryHelperAdvancedOpen" id="query-helper-advanced-retrieval-options" class="mt-2 border rounded p-2">
+                                <label class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
+                                    <input
+                                        type="checkbox"
+                                        :checked="queryHelperHardConstraintEnabled"
+                                        :disabled="!queryHelperHardConstraintEligible"
+                                        @change="queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
+                                    />
+                                    <span class="font-weight-bold">Use helper selections as hard retrieval constraints</span>
+                                </label>
+                                <div class="small text-muted">
+                                    Next, the LLM will extract search terms and generate research context for retrieval.
+                                    When this option is enabled, your selected phenotype and gene set cluster choices are still enforced during data retrieval.
+                                </div>
+                                <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
+                                    This option becomes available after selecting at least one phenotype and one gene set cluster.
+                                </div>
                             </div>
                         </div>
 
@@ -331,9 +356,12 @@
                                         <b-spinner small class="mr-1"></b-spinner>
                                         Building...
                                     </span>
-                                    <span v-else>Continue</span>
+                                    <span v-else>Draft Query + Context</span>
                                 </button>
                             </div>
+                        </div>
+                        <div v-if="queryHelperCanContinue" class="small text-muted text-right mt-1">
+                            You can review and edit the drafted query and context before searching.
                         </div>
                     </b-modal>
                     <div class="query-guidelines-panel">
@@ -571,18 +599,17 @@
                                 >
                                     <div
                                         v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
-                                        class="border rounded px-3 py-2 mt-2 mb-2"
-                                        style="border-color: #f16822 !important; border-width: 2px !important; margin-bottom: 25px !important;"
+                                        class="reveal-gate-box mt-2 mb-2"
                                     >
                                         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
-                                            <div class="small text-muted" style="line-height: 1.35;">
+                                            <div class="small reveal-gate-text" style="line-height: 1.35;">
                                                 Search terms and research context are extracted from your query. Please review terms, edit them if necessary. When you are ready, hit the Continue button.
                                                 <br />
                                                 We will use these terms to retrieve phenotype-gene set cluster and gene-set evidence data from the
-                                                <a href="https://cfdeknowledge.org/r/kc_gsb?source=all&model=cfde" target="_blank" rel="noopener noreferrer">PIGEAN</a>
+                                                <a class="reveal-gate-link" href="https://cfdeknowledge.org/r/kc_gsb?source=all&model=cfde" target="_blank" rel="noopener noreferrer">PIGEAN</a>
                                                 knowledge graph.
                                             </div>
-                                            <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
+                                            <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
                                                 Continue
                                             </button>
                                         </div>
@@ -715,16 +742,15 @@
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
                             <div
                                 v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
-                                class="border rounded px-3 py-2 mb-3"
-                                style="border-color: #f16822 !important; border-width: 2px !important;"
+                                class="reveal-gate-box mb-3"
                             >
                                 <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
-                                    <div class="small text-muted" style="line-height: 1.35;">
+                                    <div class="small reveal-gate-text" style="line-height: 1.35;">
                                         Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
                                         Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
                                         REVEAL will generate mechanistic hypotheses using the data.
                                     </div>
-                                    <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
+                                    <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
                                         Continue
                                     </button>
                                 </div>
@@ -834,7 +860,18 @@
                                                 </tr>
                                                 <tr v-if="isFactorRowExpanded(row)">
                                                     <td colspan="4" class="p-0 border-0">
-                                                        <div class="bg-light" style="display:flex; gap: 20px;">
+                                                        <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
+                                                            <div class="px-3 pt-2 pb-0 w-100">
+                                                                <factor-base-reveal-network
+                                                                    v-if="getFactorConnectivityNetwork(row) && getFactorConnectivityNetwork(row).nodes.length"
+                                                                    :network="getFactorConnectivityNetwork(row)"
+                                                                    :height="220"
+                                                                    :show-popup-button="true"
+                                                                    gene-node-metric-key="gwas_support"
+                                                                    edge-distance-metric-key="functional_support"
+                                                                    @open-popup="openFactorConnectivityPopup(row)"
+                                                                />
+                                                            </div>
                                                             <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                 <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                                 <!--
@@ -909,7 +946,7 @@
                                                             </div>
                                                             <div class="subtable-container py-2 px-3" style="flex:1">
                                                                 <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                <div v-else class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                                <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                 <b-table
                                                                     v-if="!loadingGenesForFactor[getRowKey(row)]"
                                                                     striped
@@ -991,7 +1028,18 @@
                                                 </button>
                                             </template>
                                             <template #row-details="row">
-                                                <div class="bg-light" style="display:flex; gap: 20px;">
+                                                <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
+                                                    <div class="px-3 pt-2 pb-0 w-100">
+                                                        <factor-base-reveal-network
+                                                            v-if="getFactorConnectivityNetwork(row.item) && getFactorConnectivityNetwork(row.item).nodes.length"
+                                                            :network="getFactorConnectivityNetwork(row.item)"
+                                                            :height="220"
+                                                            :show-popup-button="true"
+                                                            gene-node-metric-key="gwas_support"
+                                                            edge-distance-metric-key="functional_support"
+                                                            @open-popup="openFactorConnectivityPopup(row.item)"
+                                                        />
+                                                    </div>
                                                     <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                         <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                         <!--
@@ -1552,7 +1600,18 @@
                                                                 </tr>
                                                                 <tr v-if="isFactorRowExpanded(row)">
                                                                     <td colspan="5" class="p-0 border-0">
-                                                                        <div class="bg-light" style="display:flex; gap: 20px;">
+                                                                        <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
+                                                                            <div class="px-3 pt-2 pb-0 w-100">
+                                                                                <factor-base-reveal-network
+                                                                                    v-if="getFactorConnectivityNetwork(row) && getFactorConnectivityNetwork(row).nodes.length"
+                                                                                    :network="getFactorConnectivityNetwork(row)"
+                                                                                    :height="220"
+                                                                                    :show-popup-button="true"
+                                                                                    gene-node-metric-key="gwas_support"
+                                                                                    edge-distance-metric-key="functional_support"
+                                                                                    @open-popup="openFactorConnectivityPopup(row)"
+                                                                                />
+                                                                            </div>
                                                                             <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                                 <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                                                 <b-table
@@ -1613,7 +1672,7 @@
                                                                             </div>
                                                                             <div class="subtable-container py-2 px-3" style="flex:1">
                                                                                 <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                                <div v-else class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                                                <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                                 <b-table
                                                                                     v-if="!loadingGenesForFactor[getRowKey(row)]"
                                                                                     striped
@@ -1697,7 +1756,18 @@
                                                                 </button>
                                                             </template>
                                                             <template #row-details="row">
-                                                                <div class="bg-light" style="display:flex; gap: 20px;">
+                                                                <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
+                                                                    <div class="px-3 pt-2 pb-0 w-100">
+                                                                        <factor-base-reveal-network
+                                                                            v-if="getFactorConnectivityNetwork(row.item) && getFactorConnectivityNetwork(row.item).nodes.length"
+                                                                            :network="getFactorConnectivityNetwork(row.item)"
+                                                                            :height="220"
+                                                                            :show-popup-button="true"
+                                                                            gene-node-metric-key="gwas_support"
+                                                                            edge-distance-metric-key="functional_support"
+                                                                            @open-popup="openFactorConnectivityPopup(row.item)"
+                                                                        />
+                                                                    </div>
                                                                     <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                         <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                                         <b-table
@@ -1886,6 +1956,28 @@
             </div>
         </div>
 
+        <b-modal
+            v-model="factorConnectivityPopupOpen"
+            size="xl"
+            title="Phenotype-gene set-gene connectivity"
+            hide-footer
+            body-class="pt-2 pb-2"
+        >
+            <div v-if="factorConnectivityPopupRow" class="small text-muted mb-2">
+                {{ getPhenotypeDisplay(factorConnectivityPopupRow.phenotype) }} - {{ getFactorClusterDisplay(factorConnectivityPopupRow) }}
+            </div>
+            <factor-base-reveal-network
+                v-if="factorConnectivityPopupNetwork && factorConnectivityPopupNetwork.nodes && factorConnectivityPopupNetwork.nodes.length"
+                :network="factorConnectivityPopupNetwork"
+                :width="popupNetworkWidth"
+                :height="popupNetworkHeight"
+                :show-popup-button="false"
+                gene-node-metric-key="gwas_support"
+                edge-distance-metric-key="functional_support"
+            />
+            <div v-else class="small text-muted">No connectivity graph data available for this row.</div>
+        </b-modal>
+
     </div>
 </template>
 
@@ -1944,7 +2036,7 @@ export default Vue.component("factor-base-reveal", {
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
             /** Toggle to show the Query helper link (temporarily off for release). */
-            queryHelperLinkVisible: false,
+            queryHelperLinkVisible: true,
             queryHelperOpen: false,
             queryHelperPhenotypeInput: "",
             queryHelperMechanismInput: "",
@@ -1966,6 +2058,7 @@ export default Vue.component("factor-base-reveal", {
             queryHelperGenesOfInterest: [],
             queryHelperDraftResearchContext: "",
             queryHelperHardConstraintEnabled: false,
+            queryHelperAdvancedOpen: false,
             queryHelperComposing: false,
             queryHelperError: "",
             lastHardConstraintFactorLabelByPair: {},
@@ -2055,11 +2148,15 @@ export default Vue.component("factor-base-reveal", {
             mainTableCurrentPage: 1,
             remainingTableCurrentPage: 1,
             expandedFactorRowKeys: {},
+            factorConnectivityNetworks: {},
             loadingGenesForFactor: {},
             /** When set, show network viz in a floating overlay at 90% window size. Value = mechanism index. */
             networkPopupMechanismIndex: null,
             /** When true, overlay shows core_spine_network (hypothesis map); when false, supporting network. */
             networkPopupIsHypothesisMap: false,
+            factorConnectivityPopupOpen: false,
+            factorConnectivityPopupRow: null,
+            factorConnectivityPopupNetwork: null,
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
 
@@ -2285,7 +2382,7 @@ queryHelperComposeSystemPrompt: `
 You are a biomedical query-construction assistant.
 
 Given selected phenotypes, factor clusters, and optional genes/research notes, return ONLY valid JSON with:
-- "generated_query" (string): one concise natural-language query that explicitly includes the selected concepts so they can be reconstructed later.
+- "generated_query" (string): one concise, scientifically grounded natural-language query that can drive targeted retrieval (NOT a raw list restatement).
 - "phenotype_terms" (array of strings): terms to use as phenotype filters.
 - "mechanism_terms" (array of strings): concise mechanism/factor terms (3-8 items preferred).
 - "genes_of_interest" (array of strings): explicit gene symbols only.
@@ -2300,13 +2397,19 @@ Rules:
   - If selected_factors is non-empty OR selected_mechanism_terms is non-empty, set phenotype_terms to [].
   - Only use phenotype_terms when the request is phenotype-only (no selected factors and no selected_mechanism_terms).
 - mechanism_terms must stay tightly grounded to selected_factors.factor_label and/or selected_mechanism_terms; do not add broad extra synonyms unless they are explicitly present in the selection payload.
-- Keep generated_query grounded and specific.
+- generated_query composition rule:
+  - Compose a biologically meaningful, testable question/hypothesis prompt, not a token list.
+  - Integrate selected phenotype context, selected mechanisms/factors, and selected genes (when present) into one coherent query.
+  - Keep specificity (cell/tissue/process) when evidence exists in selected terms; do not broaden into generic disease summaries.
+  - Do not merely concatenate selected values; synthesize them into scientific language suitable for retrieval.
+- Keep generated_query and research_context internally consistent.
 - Output JSON only (no markdown, no prose).
 
 Final self-check before returning JSON:
 1) If selected_genes_of_interest exists, genes_of_interest is not empty.
 2) generated_query explicitly contains at least one mechanism term and the selected genes (when provided).
 3) phenotype_terms follows the strictness rule above.
+4) generated_query reads like a scientific search prompt, not a copied list of selections.
 `,
 
 mechanismHypothesisSystemPrompt: `
@@ -2801,6 +2904,24 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         hybridSearchMetaSummaryLines() {
             const m = this.lastHybridSearchMeta || {};
             const lines = [];
+            const membershipExpansionStageMessages = {
+                no_warehouse_candidates:
+                    "We did not find enough baseline gene evidence for this factor, so we could not add extra gene links. We returned the standard ranked genes only.",
+                no_gene_sets:
+                    "We did not find usable pathway/gene-set records for this factor, so no pathway-based gene linking was possible. We returned the standard ranked genes only.",
+                no_membership_hits:
+                    "We checked pathway/gene-set membership, but none of the queried sets returned matching genes for this factor. We returned the standard ranked genes only.",
+                no_anchors:
+                    "We could not identify a starting gene to drive pathway-based linking for this factor. We returned the standard ranked genes only.",
+                no_anchor_sets:
+                    "A starting gene was identified, but it did not overlap with any returned pathway/gene-set memberships. We returned the standard ranked genes only.",
+                no_expansion_candidates:
+                    "Pathway memberships were found, but no additional genes met the overlap/scoring rules. We returned the standard ranked genes only.",
+                no_budget_take:
+                    "Additional linked genes were detected, but none were selected after final ranking/limit rules were applied. We returned the standard ranked genes only.",
+                expansion_applied:
+                    "We found additional pathway-linked genes and added them to this factor's gene list.",
+            };
             if (m.lexical_fusion_used === true) {
                 lines.push("Lexical fusion was used (dense retrieval + Postgres full-text search, merged with RRF).");
             }
@@ -2816,6 +2937,20 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 lines.push(
                     `Not present on any factor gene list after merge: ${m.genes_of_interest_missing_from_response.join(", ")} (e.g. factor budget or data gaps).`
                 );
+            }
+            if (
+                m.membership_expansion_stage_counts &&
+                typeof m.membership_expansion_stage_counts === "object" &&
+                !Array.isArray(m.membership_expansion_stage_counts)
+            ) {
+                Object.keys(m.membership_expansion_stage_counts).forEach((stage) => {
+                    const msg = membershipExpansionStageMessages[stage];
+                    if (!msg) return;
+                    const countRaw = m.membership_expansion_stage_counts[stage];
+                    const count = Number(countRaw);
+                    if (!Number.isFinite(count) || count <= 0) return;
+                    lines.push(`${count} factor${count === 1 ? "" : "s"}: ${msg}`);
+                });
             }
             return lines;
         },
@@ -2919,6 +3054,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.ensureQueryHelperPhenotypeCatalog();
             this.queryHelperError = "";
             this.queryHelperComposing = false;
+            this.queryHelperAdvancedOpen = false;
             this.queryHelperGeneSuggestions = [];
             this.queryHelperGeneLookupLoading = false;
             this.queryHelperOpen = true;
@@ -3456,6 +3592,13 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.searchCriteriaExtractionGateDone = false;
             this.pairSelectionOverrides = {};
             this.llmFilteredPairKeysBaseline = [];
+            this.expandedFactorRowKeys = {};
+            this.factorConnectivityNetworks = {};
+            this.loadingGenesForFactor = {};
+            this.subtableCurrentPages = {};
+            this.factorConnectivityPopupOpen = false;
+            this.factorConnectivityPopupRow = null;
+            this.factorConnectivityPopupNetwork = null;
             this.error_search_criteria = false;
             this.mainTableCurrentPage = 1;
             this.remainingTableCurrentPage = 1;
@@ -3464,7 +3607,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.stepsTimer = null;
             this.stepsPausedAt = null;
             this.now = Date.now();
-            this.showTab = "terms";
+            this.switchRevealTab("terms");
             this.revealResultsTabUnlocked = false;
             this.get_set_sources = [];
         },
@@ -4732,8 +4875,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         waitForStepApproval(stepId, message, expandToResult = false) {
             const sid = String(stepId);
-            if (sid === "1") this.showTab = "terms";
-            else if (sid === "2") this.showTab = "data";
+            if (sid === "1") this.switchRevealTab("terms");
+            else if (sid === "2") this.switchRevealTab("data");
             if (expandToResult) this.expandStepToResult(stepId);
             else this.expandStepById(stepId);
             this.pauseStepsElapsedForReview();
@@ -5088,10 +5231,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (this.stepApprovalGateStepId === "1") {
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
-                this.showTab = "data";
+                this.switchRevealTab("data");
             } else if (gateStepId === "2") {
                 this.revealResultsTabUnlocked = true;
-                this.showTab = "results";
+                this.switchRevealTab("results");
             }
             const stepIdx = this.steps.findIndex((s) => s && s.id === gateStepId);
             if (stepIdx !== -1) {
@@ -5103,6 +5246,18 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
             this.cancelStepGate(true);
             this.setLoadStatus("Continuing workflow…");
+        },
+        switchRevealTab(tabName) {
+            const nextTab = String(tabName || "").trim();
+            if (!nextTab || this.showTab === nextTab) return;
+            const x = typeof window !== "undefined" ? window.scrollX : 0;
+            const y = typeof window !== "undefined" ? window.scrollY : 0;
+            this.showTab = nextTab;
+            this.$nextTick(() => {
+                if (typeof window !== "undefined") {
+                    window.scrollTo(x, y);
+                }
+            });
         },
         toggleStep(i, ii=null){
             if(ii !== null){
@@ -6240,6 +6395,22 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.networkPopupMechanismIndex = null;
             this.networkPopupIsHypothesisMap = false;
         },
+        openFactorConnectivityPopup(item) {
+            if (!item) return;
+            const network = this.getFactorConnectivityNetwork(item);
+            if (!network || !Array.isArray(network.nodes) || !network.nodes.length) return;
+            this.factorConnectivityPopupRow = item;
+            this.factorConnectivityPopupNetwork = network;
+            this.popupNetworkWidth = Math.max(
+                400,
+                Math.round((typeof window !== "undefined" && window.innerWidth) ? window.innerWidth * 0.9 : 960)
+            );
+            this.popupNetworkHeight = Math.max(
+                300,
+                Math.round((typeof window !== "undefined" && window.innerHeight) ? window.innerHeight * 0.72 : 640)
+            );
+            this.factorConnectivityPopupOpen = true;
+        },
         getRowKey(item) {
             if (!item || item.phenotype == null || item.factor == null) return "";
             return `${item.phenotype}|${item.factor}`;
@@ -6259,9 +6430,169 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (row.item) {
                 this.$set(row.item, "_showDetails", willExpand);
             }
+            if (willExpand && row.item && !this.factorConnectivityNetworks[key]) {
+                this.$set(this.factorConnectivityNetworks, key, this.buildFactorConnectivityNetwork(row.item));
+            }
             if (willExpand && this.getGenesForFactor(row.item.phenotype, row.item.factor).length === 0) {
                 this.loadGenesForOneFactor(row.item.phenotype, row.item.factor, row.item);
             }
+        },
+        getFactorConnectivityNetwork(item) {
+            if (!item) return null;
+            const key = this.getRowKey(item);
+            return this.factorConnectivityNetworks && this.factorConnectivityNetworks[key]
+                ? this.factorConnectivityNetworks[key]
+                : null;
+        },
+        buildFactorConnectivityNetwork(item) {
+            if (!item || item.phenotype == null || item.factor == null) {
+                return { nodes: [], edges: [] };
+            }
+            const phenotype = String(item.phenotype).trim();
+            const factor = String(item.factor).trim();
+            if (!phenotype || !factor) return { nodes: [], edges: [] };
+            const pData = this.factorData && this.factorData[phenotype] ? this.factorData[phenotype] : null;
+            if (!pData) return { nodes: [], edges: [] };
+            const factors = pData.factors || [];
+            const allFactors = pData.allFactors || [];
+            const factorItem =
+                factors.find((x) => String(x.factor) === factor) ||
+                allFactors.find((x) => String(x.factor) === factor);
+            if (!factorItem) return { nodes: [], edges: [] };
+
+            const nodes = [];
+            const edges = [];
+            const nodeSeen = new Set();
+            const edgeSeen = new Set();
+            const addNode = (n) => {
+                if (!n || !n.id || nodeSeen.has(n.id)) return;
+                nodeSeen.add(n.id);
+                nodes.push(n);
+            };
+            const addEdge = (e) => {
+                if (!e || !e.source || !e.target) return;
+                const id = `${e.source}|${e.predicate || e.label || ""}|${e.target}`;
+                if (edgeSeen.has(id)) return;
+                edgeSeen.add(id);
+                edges.push(e);
+            };
+
+            const phenotypeNodeId = `pheno:${phenotype}`;
+            const factorNodeId = `factor:${phenotype}|${factor}`;
+            const factorLabel =
+                factorItem.label != null && String(factorItem.label).trim() !== ""
+                    ? String(factorItem.label).trim()
+                    : (item.factorLabel != null && String(item.factorLabel).trim() !== ""
+                        ? String(item.factorLabel).trim()
+                        : factor);
+
+            addNode({ id: phenotypeNodeId, label: this.getPhenotypeDisplay(phenotype), type: "Phenotype" });
+            addNode({
+                id: factorNodeId,
+                label: this.getFactorClusterDisplayString(factorLabel || factor),
+                type: "Factor",
+            });
+            addEdge({ source: phenotypeNodeId, target: factorNodeId, predicate: "associated_with" });
+
+            const topGeneSets = (typeof factorItem.top_gene_sets === "string" && factorItem.top_gene_sets)
+                ? factorItem.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
+                : [];
+            const topPrograms = (typeof factorItem.gene_set_program === "string" && factorItem.gene_set_program)
+                ? factorItem.gene_set_program.split("|").map((s) => s.trim()).filter(Boolean)
+                : [];
+            const geneSetNodeByName = {};
+            const allGeneSetNames = new Set(topGeneSets);
+            Object.keys(factorItem.genes || {}).forEach((geneName) => {
+                const rel = factorItem.genes[geneName] || {};
+                (rel.geneSetIds || []).forEach((gs) => {
+                    if (gs) allGeneSetNames.add(String(gs).trim());
+                });
+            });
+            Object.keys(factorItem.geneSets || {}).forEach((gs) => {
+                if (gs) allGeneSetNames.add(String(gs).trim());
+            });
+            [...allGeneSetNames].forEach((gs, idx) => {
+                const gsNodeId = `gs:${phenotype}|${factor}|${gs}`;
+                geneSetNodeByName[gs] = gsNodeId;
+                addNode({
+                    id: gsNodeId,
+                    label: gs,
+                    type: "Pathway",
+                    metadata: { program: topPrograms[idx] || "" },
+                });
+                addEdge({ source: factorNodeId, target: gsNodeId, predicate: "linked_to_pathway" });
+            });
+
+            const factorGenes = factorItem.genes || {};
+            const globalGenes = pData.genes || {};
+            const factorGeneSets = factorItem.geneSets || {};
+            const fallbackGs = topGeneSets.length ? topGeneSets[0] : "";
+            Object.keys(factorGenes).forEach((geneName) => {
+                const gene = String(geneName || "").trim();
+                if (!gene) return;
+                const geneNodeId = `gene:${gene}`;
+                const stats = globalGenes[gene] || {};
+                const gwas = stats.gwasSupport != null && !isNaN(Number(stats.gwasSupport)) ? Number(stats.gwasSupport) : null;
+                const functional =
+                    stats.geneSetSupport != null && !isNaN(Number(stats.geneSetSupport))
+                        ? Number(stats.geneSetSupport)
+                        : null;
+                const combined = stats.combined != null && !isNaN(Number(stats.combined)) ? Number(stats.combined) : null;
+                addNode({
+                    id: geneNodeId,
+                    label: gene,
+                    type: "Gene",
+                    metadata: {
+                        gwas_support: gwas,
+                        functional_support: functional,
+                        combined_score: combined,
+                    },
+                });
+
+                let linked = 0;
+                const explicitGeneSetIds = Array.isArray(factorGenes[gene] && factorGenes[gene].geneSetIds)
+                    ? factorGenes[gene].geneSetIds.map((x) => String(x || "").trim()).filter(Boolean)
+                    : [];
+                const connectedSets = explicitGeneSetIds.length
+                    ? explicitGeneSetIds
+                    : Object.keys(factorGeneSets).filter((gsName) => {
+                        const members = factorGeneSets[gsName] && Array.isArray(factorGeneSets[gsName].genes)
+                            ? factorGeneSets[gsName].genes
+                            : [];
+                        return members.includes(gene);
+                    });
+                connectedSets.forEach((gsName) => {
+                    const gsNodeId = geneSetNodeByName[gsName];
+                    if (!gsNodeId) return;
+                    linked += 1;
+                    addEdge({
+                        source: geneNodeId,
+                        target: gsNodeId,
+                        predicate: "contributes_to_pathway",
+                        metadata: { functional_support: functional },
+                    });
+                });
+                if (!linked) {
+                    if (fallbackGs && geneSetNodeByName[fallbackGs]) {
+                        addEdge({
+                            source: geneNodeId,
+                            target: geneSetNodeByName[fallbackGs],
+                            predicate: "contributes_to_pathway",
+                            metadata: { functional_support: functional, linkage_fallback: true },
+                            dashes: true,
+                        });
+                    } else {
+                        addEdge({
+                            source: geneNodeId,
+                            target: factorNodeId,
+                            predicate: "associated_with_cluster",
+                            metadata: { functional_support: functional, no_pathway_membership: true },
+                            dashes: true,
+                        });
+                    }
+                }
+            });
+            return { nodes, edges };
         },
         isFactorRowExpanded(item) {
             return !!this.expandedFactorRowKeys[this.getRowKey(item)];
@@ -6913,11 +7244,23 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     if (!gene) return;
                     const rel = g && g.relevance != null && !isNaN(Number(g.relevance)) ? Number(g.relevance) : null;
                     const includedFromRequest = g && g.included_from_request === true;
+                    const geneSetIds = Array.isArray(g && g.gene_set_ids)
+                        ? g.gene_set_ids.map((x) => String(x || "").trim()).filter(Boolean)
+                        : (g && g.gene_set_ids != null
+                            ? String(g.gene_set_ids).split(/[;,]/).map((x) => x.trim()).filter(Boolean)
+                            : []);
                     factorObj.genes[gene] = {
                         factorRelevance: rel != null ? rel : 1,
                         factor_value: rel,
                         includedFromRequest,
+                        geneSetIds,
                     };
+                    geneSetIds.forEach((gs) => {
+                        if (!factorObj.geneSets[gs]) factorObj.geneSets[gs] = { genes: [] };
+                        const members = Array.isArray(factorObj.geneSets[gs].genes) ? factorObj.geneSets[gs].genes : [];
+                        if (!members.includes(gene)) members.push(gene);
+                        factorObj.geneSets[gs].genes = members;
+                    });
                     if (out[phenotype].genes[gene] == null) {
                         out[phenotype].genes[gene] = {
                             combined: g && g.combined_score != null ? g.combined_score : null,
@@ -8548,6 +8891,40 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 .reveal-query-submit-btn {
     padding-top: 0.35rem;
     padding-bottom: 0.35rem;
+}
+.reveal-gate-box {
+    background: #f16822;
+    border: 1px solid #f16822;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 25px !important;
+}
+.reveal-gate-text {
+    color: #fff;
+}
+.reveal-gate-link {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: 600;
+}
+.reveal-gate-link:hover,
+.reveal-gate-link:focus {
+    color: #fff;
+    opacity: 0.92;
+}
+.reveal-gate-btn {
+    background: #e9ecef;
+    border: 1px solid #d1d5db;
+    color: #333;
+    padding: 0.35rem 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+.reveal-gate-btn:hover,
+.reveal-gate-btn:focus {
+    background: #dde2e6;
+    border-color: #c7ccd1;
+    color: #222;
 }
 .query-helper-pill {
     display: inline-flex;
