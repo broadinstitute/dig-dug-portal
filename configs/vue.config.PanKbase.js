@@ -247,6 +247,13 @@ let pages = {
         filename: "functional.html",
         title: "Functional Data",
         chunks: ["chunk-vendors", "chunk-common", "functional"]
+    },
+    donors: {
+        entry: "src/portals/PanKbase/views/Donors/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "donors.html",
+        title: "Donor Metadata",
+        chunks: ["chunk-vendors", "chunk-common", "donors"]
     }
 };
 
