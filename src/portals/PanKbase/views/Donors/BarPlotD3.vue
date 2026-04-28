@@ -369,7 +369,7 @@ export default Vue.component("BarPlotD3", {
         },
         getLayoutMetrics(svg, chartSize, categories, axisMax) {
             const baseMargin = this.getNormalizedMargin();
-            const axisLabelGap = 20;
+            const axisLabelGap = 10;
             const axisTickGap = 8;
             const barValueLabelGap = 6;
             const numericTickLabels = d3.scaleLinear().domain([0, axisMax]).nice().ticks(this.tickCount).map((tick) =>

@@ -6,9 +6,9 @@
 
         <div class="numeric-filter-chart">
             <svg
+                ref="chartSvg"
                 class="numeric-filter-chart-svg"
                 :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
-                preserveAspectRatio="none"
             >
                 <g :transform="`translate(${chartPadding.left}, ${chartPadding.top})`">
                     <rect
@@ -124,6 +124,7 @@ export default {
             localMax: 0,
             chartWidth: 252,
             chartHeight: 30,
+            resizeObserver: null,
             handleSize: 18,
             chartPadding: {
                 top: 2,
@@ -239,7 +240,36 @@ export default {
             this.syncFromValue();
         },
     },
+    mounted() {
+        this.updateChartWidth();
+
+        if (typeof ResizeObserver === "function" && this.$refs.chartSvg) {
+            this.resizeObserver = new ResizeObserver(() => {
+                this.updateChartWidth();
+            });
+            this.resizeObserver.observe(this.$refs.chartSvg);
+        }
+    },
+    beforeDestroy() {
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    },
     methods: {
+        updateChartWidth() {
+            this.$nextTick(() => {
+                const chartSvg = this.$refs.chartSvg;
+                if (!chartSvg || !chartSvg.parentElement) {
+                    return;
+                }
+
+                const nextWidth = Math.round(chartSvg.parentElement.getBoundingClientRect().width);
+                if (nextWidth > 0) {
+                    this.chartWidth = nextWidth;
+                }
+            });
+        },
         syncFromValue() {
             const nextMin = this.value && typeof this.value.min === "number" ? this.value.min : this.domainMin;
             const nextMax = this.value && typeof this.value.max === "number" ? this.value.max : this.domainMax;
@@ -311,7 +341,7 @@ export default {
     border-bottom: 1px solid #d8d1c4;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 2px;
 }
 
 .numeric-filter-head {
@@ -375,7 +405,7 @@ export default {
 
 .numeric-filter-axis-label {
     fill: #73848b;
-    font-size: 7px;
+    font-size: 9px;
 }
 
 .numeric-filter-slider {
@@ -405,8 +435,8 @@ export default {
 .numeric-range-input {
     position: absolute;
     top: 50%;
-    left: 9px;
-    width: calc(100% - 18px);
+    left: 4px;
+    width: calc(100% - 9px);
     height: 18px;
     margin: 0;
     background: transparent;
@@ -449,16 +479,15 @@ export default {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 10px;
-    padding: 0 7px;
+    padding: 0 2px;
 }
 
 .numeric-filter-input {
     width: 100%;
     min-width: 0;
-    padding: 4px 8px;
-    border: 1px solid #d7d0c5;
-    border-radius: 8px;
-    background: #fffdfa;
+    padding: 0 8px;
+    border: 0;
+    background: #ddd;
     color: #4f6571;
     font-size: 12px;
     font-weight: 600;

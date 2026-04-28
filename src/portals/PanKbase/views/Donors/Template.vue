@@ -144,7 +144,7 @@
                                     <div class="availability-plot-card">
                                         <div class="availability-plot-header">
                                             <div>
-                                                <div class="availability-plot-title">Donors By Data Type</div>
+                                                <div class="availability-plot-title">Donors by Data Type in PanKbase</div>
                                             </div>
                                             <div class="availability-plot-controls">
                                                 <label class="availability-plot-label" for="availability-plot-group">
@@ -191,11 +191,11 @@
                                             value-key="donorCount"
                                             :series-key="plotCategoryField ? 'groupValue' : ''"
                                             :stacked="!!plotCategoryField"
-                                            :height="320"
+                                            :height="200"
                                             :fit-width="true"
                                             :fit-height="false"
                                             :margin="{ top: 16, right: 24, bottom: 84, left: 56 }"
-                                            x-axis-label="Donors"
+                                            x-axis-label="Donor Count"
                                             y-axis-label="Data Type"
                                             :show-x-axis="true"
                                             :show-y-axis="true"
@@ -475,13 +475,16 @@ import NumericRangeFilter from "./NumericRangeFilter.vue";
 import { parseNumericValue } from "./datasetUtils";
 
 const AVAILABILITY_PLOT_COLORS = [
-    "#2f5d62",
-    "#5e8b7e",
-    "#a7c4bc",
-    "#dfd8ca",
-    "#d97d54",
-    "#b85c38",
-    "#6b4226",
+    "#1197b7",
+    "#28bee7",
+    "#1f7f8f",
+    "#2d8f57",
+    "#4fbe55",
+    "#9fd54f",
+    "#efe53a",
+    "#0f5c3b",
+    "#7ed6f0",
+    "#5cbe9a",
 ];
 
 const DATA_TYPE_DETAILS = {
@@ -529,7 +532,7 @@ export default {
             hoveredPlotLegendValue: "",
             numericFilterData: {},
             openTableTabs: [],
-            plotCategoryField: "",
+            plotCategoryField: "Collections",
             perPage: 15,
             scopedTablePages: {},
             numericFilters: {},
@@ -1402,7 +1405,7 @@ export default {
 
 .dataset-layout {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: 250px minmax(0, 1fr);
     gap: 18px;
     align-items: start;
     min-height: 0;
@@ -1472,7 +1475,7 @@ export default {
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 10px;
+    padding: 10px;
 }
 
 .dataset-toolbar {
@@ -1487,12 +1490,9 @@ export default {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 12px;
 }
 
 .active-filter-pills-sidebar {
-    max-height: 132px;
-    overflow-y: auto;
     padding-right: 10px;
 }
 
@@ -1500,11 +1500,10 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 10px;
     border: 1px solid #d7d0c5;
     border-radius: 999px;
-    background: #fffdfa;
-    color: #4f6571;
+    background: #638d9d;
+    color: #ffffff;
     font-size: 12px;
     font-weight: 600;
 }
@@ -1524,6 +1523,7 @@ export default {
     color: #445b66;
     font-size: 11px;
     line-height: 1;
+    padding: 0 0 3px 0;
 }
 
 .dataset-toolbar-actions {
@@ -1630,7 +1630,7 @@ export default {
 }
 
 .availability-data-type-section {
-    margin-top: 20px;
+    margin-top: 0;
 }
 
 .availability-data-type-grid {
@@ -1910,7 +1910,7 @@ export default {
     text-decoration: none;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 800px) {
     .dataset-layout {
         grid-template-columns: 1fr;
     }
