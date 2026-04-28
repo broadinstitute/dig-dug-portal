@@ -326,49 +326,69 @@
                             </div>
                             <!-- gene expression -->
                             <div v-if="geneExpressionVars.expressionStats.length>0" style="display: flex; flex-direction: column; flex:1; max-width:50%; gap:20px; padding: 20px; background: white;">
-                                <div style="display:flex; justify-content: space-between; gap:10px">
-                                    <span style="font-size: 16px;">
-                                        <span style="font-weight: bold;">{{ geneExpressionVars.selectedGene }} {{ isATACseq ? 'Chromatin Accessibility' : 'Expression' }}</span>
-                                        <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'">
-                                            by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
-                                            per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
-                                        </template>
-                                        <template v-else-if="cellCompositionVars.segmentByLabel">
-                                            by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
-                                            per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
-                                        </template>
-                                        <template v-else>
-                                            by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
-                                        </template>
-                                        <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
-                                            <div style="font-size: 12px;">
-                                                Each point represents the average {{ isATACseq ? 'chromatin accessibility' : 'gene expression' }} per {{ this.aggregateType }}
-                                            </div>
-                                        </template>
-                                        <div v-if="!coordinates" style="display:flex; flex-direction: column; gap:5px">
-                                            <div style="display:flex; gap:5px;">
-                                                <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
-                                                <button @click="searchGene(geneToSearch)">
-                                                    <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
-                                                    <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
-                                                </button>
-                                            </div>
-                                            <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
-                                                <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
-                                                    <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
-                                                    <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
+                                <div style="display:flex; flex-direction: column; gap: 3px;">
+                                    <div style="display:flex; justify-content: space-between; gap:10px">
+                                        <span style="font-size: 16px;">
+                                            <span style="font-weight: bold;">{{ geneExpressionVars.selectedGene }} {{ isATACseq ? 'Chromatin Accessibility' : 'Expression' }}</span>
+                                            <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cat'">
+                                                by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                                per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                            </template>
+                                            <template v-else-if="cellCompositionVars.segmentByLabel">
+                                                by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</span> 
+                                                per <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                            </template>
+                                            <template v-else>
+                                                by <span style="font-style: italic;">{{ displayLabel(cellCompositionVars.displayByLabel) }}</span>
+                                            </template>
+                                            <template v-if="displayFields && cellCompositionVars.segmentByLabel && displayFields[cellCompositionVars.segmentByLabel].dataType==='cont'">
+                                                <div style="font-size: 12px;">
+                                                    Each point represents the average {{ isATACseq ? 'chromatin accessibility' : 'gene expression' }} per {{ this.aggregateType }}
+                                                </div>
+                                            </template>
+                                            <div v-if="!coordinates" style="display:flex; flex-direction: column; gap:5px">
+                                                <div style="display:flex; gap:5px;">
+                                                    <input type="text" placeholder="Gene name" @keyup.enter="searchGene(geneToSearch)" v-model="geneToSearch" style="width:100%; position:relative;"/>
+                                                    <button @click="searchGene(geneToSearch)">
+                                                        <svg :style="`display:${!geneLoading?'block':'none'}`" style="width: 20px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 10.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l4.79 4.79-1.06 1.06-4.79-4.79Z" fill="#080341"/></svg>
+                                                        <div :style="`display:${geneLoading?'block':'none'}`" class="geneLoader"></div>
+                                                    </button>
+                                                </div>
+                                                <div v-if="genesNotFound.length>0" style="display:flex; flex-direction:column; gap:1px; flex: 0 0 auto; max-height:100%; overflow-y: auto;">
+                                                    <div v-for="gene in genesNotFound" style="display:flex; gap:5px; width:100%; background:#ff4500; color:white">
+                                                        <div style="display:flex; flex:1; align-items:center; padding:0 5px; font-size:12px;">{{gene}} not found.</div>
+                                                        <div @click="clearGeneNotFound(gene)" style="width:28px; height: 28px; display:flex; align-items:center; justify-content: center; font-size:18px; line-height:18px; cursor:pointer">×</div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </span>
+                                        </span>
 
-                                    <download-chart 
-                                        class="download"
-                                        :chartId="expressionDownloadChartId"
-                                        :titleText="expressionSectionTitle"
-                                        style="width: 125px; align-self: flex-start;"
-                                        :style="`${expressionDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
-                                    />
+                                        <download-chart 
+                                            class="download"
+                                            :chartId="expressionDownloadChartId"
+                                            :titleText="expressionSectionTitle"
+                                            style="width: 125px; align-self: flex-start;"
+                                            :style="`${expressionDownloadDisabled ? 'pointer-events:none; opacity:0.5' : ''}`"
+                                        />
+                                    </div>
+                                    <div
+                                        v-if="showStratifyPlotTypeSelect"
+                                        style="display:flex; gap:5px; align-items:center; align-self: flex-end;"
+                                    >
+                                        <div style="font-size:12px; white-space:nowrap; opacity:0.7;">Plot type</div>
+                                        <select
+                                            v-model="stratifyPlotType"
+                                            style="width: 125px;"
+                                        >
+                                            <option
+                                                v-for="option in stratifyPlotTypeOptions"
+                                                :key="option"
+                                                :value="option"
+                                            >
+                                                {{ stratifyPlotTypeLabel(option) }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
                                 
                                 
@@ -412,26 +432,40 @@
                                             :cellWidth="30"
                                             highlightKey=""
                                             :colorScale="expressionColorScale"
+                                            :colorScaleMode="dotPlotColorScaleMode"
                                         />
-                                        <template v-else>
-                                            <div id="sc_violin_plot_group">
-                                                <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                                <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
-                                                    <div style="display:flex; gap:3px; align-items: baseline;">
-                                                        <div style="font-weight: bold;">{{ value }}</div>
-                                                    </div>
-                                                    <research-violin-plot
-                                                        :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
-                                                        :primaryKey="geneExpressionVars.selectedLabel" 
-                                                        :highlightKey="cellCompositionVars.highlightLabel"
-                                                        :height="300"
-                                                        xAxisLabel="Log-Normalized Expression"
-                                                        :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
-                                                        :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
-                                                    />
+                                        <research-violin-plot
+                                            v-else-if="stratifyPlotType==='combined'"
+                                            :data="geneExpressionVars.expressionStats"
+                                            :primaryKey="cellCompositionVars.segmentByLabel"
+                                            :subsetKey="geneExpressionVars.selectedLabel"
+                                            :facetRows="true"
+                                            :facetRowHeight="55"
+                                            :facetAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
+                                            :highlightKey="cellCompositionVars.highlightLabel"
+                                            :height="320"
+                                            xAxisLabel="Log-Normalized Expression"
+                                            :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
+                                            :yAxisLabel="displayLabel(cellCompositionVars.segmentByLabel)"
+                                            :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
+                                        />
+                                        <div id="sc_violin_plot_group" v-else>
+                                            <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
+                                            <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
+                                                <div style="display:flex; gap:3px; align-items: baseline;">
+                                                    <div style="font-weight: bold;">{{ value }}</div>
                                                 </div>
+                                                <research-violin-plot
+                                                    :data="getStatsByPropValue(geneExpressionVars.expressionStats, cellCompositionVars.segmentByLabel, value)"
+                                                    :primaryKey="geneExpressionVars.selectedLabel" 
+                                                    :highlightKey="cellCompositionVars.highlightLabel"
+                                                    :height="300"
+                                                    xAxisLabel="Log-Normalized Expression"
+                                                    :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
+                                                    :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
+                                                />
                                             </div>
-                                        </template>
+                                        </div>
                                     </template>
                                 </div>
     
@@ -1028,7 +1062,7 @@
 
                 activeGroup: null,
                 stratifyPlotType: "violin",
-                stratifyPlotTypeOptions: ["violin", "dot"],
+                stratifyPlotTypeOptions: ["violin", "combined", "dot"],
                 expressionColorScale: "blue",
                 expressionColorScaleOptions: ["red", "blue"],
 
@@ -1302,7 +1336,13 @@
                     return 'sc_expression_scatter_group';
                 }
                 if(this.cellCompositionVars.segmentByLabel){
-                    return this.stratifyPlotType === 'dot' ? 'sc_dot_plot' : 'sc_violin_plot_group';
+                    if(this.stratifyPlotType === 'dot'){
+                        return 'sc_dot_plot';
+                    }
+                    if(this.stratifyPlotType === 'combined'){
+                        return 'sc_violin_plot';
+                    }
+                    return 'sc_violin_plot_group';
                 }
                 return 'sc_violin_plot';
             },
@@ -1318,6 +1358,14 @@
             },
             expressionDownloadDisabled() {
                 return false;
+            },
+            showStratifyPlotTypeSelect() {
+                return Boolean(
+                    this.cellCompositionVars.segmentByLabel &&
+                    this.displayFields &&
+                    this.displayFields[this.cellCompositionVars.segmentByLabel]?.dataType === 'cat' &&
+                    !this.contExprResults
+                );
             }
         },
         methods: {
@@ -1886,6 +1934,14 @@
                     data.push(...row);
                 }
                 return data;
+            },
+            stratifyPlotTypeLabel(type){
+                const labels = {
+                    violin: 'Violin list',
+                    combined: 'Combined violin',
+                    dot: 'Dot plot'
+                };
+                return labels[type] || type;
             },
             swapCountLabels(){
                 const currSelected = this.cellCompositionVars.displayByLabel;
