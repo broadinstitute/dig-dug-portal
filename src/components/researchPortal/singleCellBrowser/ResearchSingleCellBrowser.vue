@@ -247,9 +247,15 @@
                             </div>
 
                         </div>
-                        <div style="display: flex; gap:20px">
+                        <div
+                            ref="expressionPanels"
+                            style="display:flex; gap:0; align-items:stretch;"
+                        >
                             <!-- cell counts -->
-                            <div style="display: flex; flex-direction: column; flex:1; max-width:50%; gap:20px; padding: 20px; background: white;">
+                            <div
+                                :style="resizableColumnStyle(leftPanelWidth)"
+                                style="display:flex; flex-direction: column; gap:20px; padding:20px; background:white; min-width:0;"
+                            >
                                 <div style="display:flex; justify-content: space-between; gap:10px">
                                     <div style="font-size: 16px;">
                                         <span style="font-weight: bold">{{isATACseq ? 'Nuclei' : 'Cell'}} {{ isNormalized ? 'Proportion' : 'Count' }}</span> 
@@ -324,8 +330,18 @@
                                     </div>
                                 </div>
                             </div>
+                            <div
+                                v-if="geneExpressionVars.expressionStats.length>0"
+                                :style="resizeHandleStyle"
+                                @mousedown="startColumnResize"
+                                @touchstart.prevent="startColumnResize"
+                            ></div>
                             <!-- gene expression -->
-                            <div v-if="geneExpressionVars.expressionStats.length>0" style="display: flex; flex-direction: column; flex:1; max-width:50%; gap:20px; padding: 20px; background: white;">
+                            <div
+                                v-if="geneExpressionVars.expressionStats.length>0"
+                                :style="resizableColumnStyle(rightPanelWidth)"
+                                style="display:flex; flex-direction: column; gap:20px; padding:20px; background:white; min-width:0;"
+                            >
                                 <div style="display:flex; flex-direction: column; gap: 3px;">
                                     <div style="display:flex; justify-content: space-between; gap:10px">
                                         <span style="font-size: 16px;">
@@ -1105,6 +1121,9 @@
 
                 isStacked: false,
                 isNormalized: true,
+                leftPanelWidth: 50,
+                minPanelWidthPercent: 30,
+                isResizingPanels: false,
 
                 geneNames: [], //list of loaded gene names
                 sortedGeneNames: [],
@@ -1224,6 +1243,7 @@
         },
         beforeDestroy(){
             EventBus.$off('on-select',this.handleSelectEvent);
+            this.stopColumnResize();
         },
         computed: {
             isDev(){
@@ -1366,14 +1386,68 @@
                     this.displayFields[this.cellCompositionVars.segmentByLabel]?.dataType === 'cat' &&
                     !this.contExprResults
                 );
+            },
+            rightPanelWidth() {
+                return 100 - this.leftPanelWidth;
+            },
+            resizeHandleStyle() {
+                return {
+                    width: '20px',
+                    flex: '0 0 20px',
+                    cursor: 'col-resize',
+                    position: 'relative',
+                    background: 'linear-gradient(to right, transparent 0, transparent 8px, #e3e3e3 8px, #e3e3e3 12px, transparent 12px)',
+                    touchAction: 'none',
+                };
             }
         },
         methods: {
+            resizableColumnStyle(widthPercent) {
+                return {
+                    flex: `0 0 calc(${widthPercent}% - 10px)`,
+                    maxWidth: `calc(${widthPercent}% - 10px)`,
+                };
+            },
             showTooltip(text) {
                 mouseTooltip.show(text);
             },
             hideTooltip() {
                 mouseTooltip.hide();
+            },
+            startColumnResize(event) {
+                const panelContainer = this.$refs.expressionPanels;
+                if (!panelContainer) return;
+                this.isResizingPanels = true;
+                this.updateColumnWidthsFromEvent(event);
+                window.addEventListener('mousemove', this.handleColumnResize);
+                window.addEventListener('mouseup', this.stopColumnResize);
+                window.addEventListener('touchmove', this.handleColumnResize, { passive: false });
+                window.addEventListener('touchend', this.stopColumnResize);
+            },
+            handleColumnResize(event) {
+                if (!this.isResizingPanels) return;
+                if (event.cancelable) {
+                    event.preventDefault();
+                }
+                this.updateColumnWidthsFromEvent(event);
+            },
+            stopColumnResize() {
+                this.isResizingPanels = false;
+                window.removeEventListener('mousemove', this.handleColumnResize);
+                window.removeEventListener('mouseup', this.stopColumnResize);
+                window.removeEventListener('touchmove', this.handleColumnResize);
+                window.removeEventListener('touchend', this.stopColumnResize);
+            },
+            updateColumnWidthsFromEvent(event) {
+                const panelContainer = this.$refs.expressionPanels;
+                if (!panelContainer) return;
+                const bounds = panelContainer.getBoundingClientRect();
+                const clientX = event.touches?.[0]?.clientX ?? event.clientX;
+                if (typeof clientX !== 'number') return;
+                const rawPercent = ((clientX - bounds.left) / bounds.width) * 100;
+                const minWidth = this.minPanelWidthPercent;
+                const maxWidth = 100 - minWidth;
+                this.leftPanelWidth = Math.min(maxWidth, Math.max(minWidth, rawPercent));
             },
             datasetsRowClass(item){
                 if (!item) return ''; // For header/footer rows

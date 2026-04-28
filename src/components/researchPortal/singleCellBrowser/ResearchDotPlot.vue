@@ -1,5 +1,5 @@
 <template>
-    <div :id="wrapperId" ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; flex-direction: column; gap: 10px;">
+    <div :id="wrapperId" ref="plotWrapper" style="width:100%; position:relative; overflow-x:hidden; display:flex; flex-direction:column; gap:10px;">
         <svg class="legend-svg" width="230" height="54" viewBox="0 0 230 54">
             <defs>
                 <linearGradient :id="legendGradientId" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -114,6 +114,7 @@
             marginTop: 20,
             marginBottom: 20,
             resizeTimeout: null,
+            resizeObserver: null,
 
             colorOptions: {
                 red: d3.interpolateReds,
@@ -173,18 +174,33 @@
     mounted() {
         this.renderPlot();
         window.addEventListener('resize', this.handleResize);
+        this.initResizeObserver();
     },
     beforeDestroy(){
        window.removeEventListener('resize', this.handleResize);
+       this.teardownResizeObserver();
     },
     methods: {
+        initResizeObserver(){
+            if (typeof ResizeObserver === 'undefined') return;
+            const target = this.$refs.plotWrapper?.parentElement || this.$refs.plotWrapper;
+            if (!target) return;
+            this.resizeObserver = new ResizeObserver(() => {
+                this.handleResize();
+            });
+            this.resizeObserver.observe(target);
+        },
+        teardownResizeObserver(){
+            if(this.resizeObserver){
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+        },
         colorScaleArray() {
             return d3.range(0, 1.01, 0.1).map(t => this.currColorOption(t)).join(', ');
         },
         handleResize(){
             clearTimeout(this.resizeTimeout);
-            //d3.select(this.$refs.plot).html('');
-            d3.select(this.$refs.plot).style('position', 'absolute');
             this.resizeTimeout = setTimeout(() => {
                 this.renderPlot();
             }, 100);
@@ -285,7 +301,7 @@
 
 
             //calc dimentions
-            const parentWidth = this.$refs.plotWrapper.parentElement.offsetWidth;
+            const parentWidth = this.$refs.plotWrapper.offsetWidth;
             //llog("   parentWidth", parentWidth);
 
             const margin = {
@@ -331,7 +347,7 @@
 
             console.log("!!!!!!!!!!!!", cellWidth);
 
-            //this.$refs.plotWrapper.style.height = height+'px';
+            this.$refs.plotWrapper.style.height = `${height + 64}px`;
 
             //llog('   dimentions', {margin, width, height});
     

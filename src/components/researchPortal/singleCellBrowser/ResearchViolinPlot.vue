@@ -91,6 +91,7 @@
         return {
             eventElements: [],
             resizeTimeout: null,
+            resizeObserver: null,
         }
     },
     watch: {
@@ -117,18 +118,33 @@
             llog('no data');
         }
         window.addEventListener('resize', this.handleResize);
+        this.initResizeObserver();
     },
     beforeDestroy(){
         window.removeEventListener('resize', this.handleResize);
+        this.teardownResizeObserver();
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
     },
     methods: {
+        initResizeObserver(){
+            if (typeof ResizeObserver === 'undefined') return;
+            const target = this.$refs.chartWrapper?.parentElement || this.$refs.chartWrapper;
+            if (!target) return;
+            this.resizeObserver = new ResizeObserver(() => {
+                this.handleResize();
+            });
+            this.resizeObserver.observe(target);
+        },
+        teardownResizeObserver(){
+            if(this.resizeObserver){
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
+            }
+        },
         handleResize(){
             clearTimeout(this.resizeTimeout);
-            //d3.select(this.$refs.chart).html('');
-            d3.select(this.$refs.chart).style('position', 'absolute');
             this.resizeTimeout = setTimeout(() => {
                 this.drawChart();
             }, 100);
