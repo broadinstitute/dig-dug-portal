@@ -14,11 +14,23 @@
             <div class="search-wrapper f-col align-v-center">
                 <div style="color: #f26822; font-weight: bold; text-transform: uppercase; font-size: 16px;">Search Common Fund Knowledge</div>
                 <div class="f-col fill-width">
+
+                    <research-single-search-cfde
+                        :single-search-config="sectionConfigs['content']"
+                        :phenotypes="phenotypesInUse"
+                        :utils="utilsBox"
+                    />
+
+                    <!--
                     <research-single-search-cfde-llm
                         :single-search-config="sectionConfigs['content']"
                         :phenotypes="phenotypesInUse"
                         :utils="utilsBox"
                     />
+                    -->
+
+
+
                     <!--
                     <div v-if="sectionConfigs['content']['search examples']" class="search-extras f-row">
                         <div class="f-row" style="gap:5px">

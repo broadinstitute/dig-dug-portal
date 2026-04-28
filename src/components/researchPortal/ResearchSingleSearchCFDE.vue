@@ -7,7 +7,7 @@
 				@click="summaryPopup = !summaryPopup ? true : null;">Toggle quick view <b-icon
 					icon="arrow-up-right-square"></b-icon></span>
 
-			<span class="ss-search-methods" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled']">
+			<span style="display:none" class="ss-search-methods" v-if="!!singleSearchConfig && !!singleSearchConfig['search by meaning enabled']">
 				<span>Search by: </span>
 				<span class="search-method">
 					<input type="radio" id="ss_keyword" name="ssSearchMethods" value="ss_keyword" v-model="singleSearchMethod" checked />
@@ -999,7 +999,7 @@ export default Vue.component("research-single-search-cfde", {
 
 .reset-search {
 	position: absolute;
-	top: 65%;
+	top: 50%;
     transform: translateY(-50%);
 	right: 4px;
 	color: #999999;

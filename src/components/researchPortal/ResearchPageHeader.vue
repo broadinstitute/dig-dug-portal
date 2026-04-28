@@ -201,7 +201,8 @@ export default Vue.component("research-page-header", {
 			// dynamically create and mount the search component with its props
 			const SearchComponentClass = Vue.extend({
 				render(h) {
-				return h(ResearchSingleSearchCFDEllm, {
+				//return h(ResearchSingleSearchCFDEllm, {
+				return h(ResearchSingleSearchCFDE, {
 					props: {
 					singleSearchConfig: searchConfig,
 					phenotypes: phenotypes,
