@@ -11,6 +11,8 @@ export const DEFAULT_PORTAL = config.DEFAULT_PORTAL || "";
 export const GA4_ID = config.GA4_ID || "";
 export const SYSBIO_HOST =
     config.SYSBIO_HOST || "https://sysbio.hugeampkpnbi.org";
+export const ENRICHR_HOST =
+    config.ENRICHR_HOST || "https://matkp.hugeampkpnbi.org";
 export const MOTRPAC_AUTH = config.MOTRPAC_AUTH || "";
 
 export default config;

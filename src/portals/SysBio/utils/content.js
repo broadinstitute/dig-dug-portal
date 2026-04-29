@@ -1,5 +1,5 @@
 import dataConvert from "@/utils/dataConvert";
-import { MOTRPAC_AUTH, SYSBIO_HOST } from "@/utils/runtimeConfig";
+import { MOTRPAC_AUTH, SYSBIO_HOST, ENRICHR_HOST } from "@/utils/runtimeConfig";
 
 const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=";
 const NEWSFEED_URL = "https://hugeampkpncms.org/rest/news_list?project=";
@@ -13,140 +13,138 @@ export const ACCESSIBLE_DARK_GRAY = "rgb(170 170 170)";
 export const ACCESSIBLE_GREEN = "rgb(092 174 000)";
 
 export async function getMotrpac(gene) {
-	let config = {
-		"type": "openApi",
-		"url": "https://search.motrpac-data.org/api/beta/differential-abundance",
-		"index": "huge",
-		"parameters": [
-			"gene"
-		],
-		"header": {
-			"Content-Type": "application/json",
-			"Authorization": MOTRPAC_AUTH
-		},
-		"body": {
-			"ktype": "gene",
-			"keys": gene,
-			"omics": [
-				"transcriptomics",
-				"proteomics"
-			],
-			"filters": {
-				"assay": [],
-				"tissue": []
-			},
-			"fields": [
-				"gene_symbol",
-				"feature_ID",
-				"tissue",
-				"assay",
-				"sex",
-				"comparison_group",
-				"logFC",
-				"logFC_se",
-				"p_value",
-				"adj_p_value",
-				"p_value_male",
-				"p_value_female"
-			],
-			"unique_fields": [
-				"tissue",
-				"assay"
-			],
-			"size": 10000,
-			"start": 0,
-			"save": false
-		},
-	};
-	let currentRequest = new Request(config.url, {
-		method: "POST",
-		headers: new Headers(config.header),
-		body: JSON.stringify(config.body),
-	});
-	try {
-		const response = await fetch(currentRequest);
-		if (!response.ok) {
-			throw new Error(`Response status: ${response.status}`);
-		}
-		const json = await response.json();
-		return json;
-	} catch (error) {
-		console.error(error.message);
-	}
-	return {};
+    let config = {
+        type: "openApi",
+        url: "https://search.motrpac-data.org/api/beta/differential-abundance",
+        index: "huge",
+        parameters: ["gene"],
+        header: {
+            "Content-Type": "application/json",
+            Authorization: MOTRPAC_AUTH,
+        },
+        body: {
+            ktype: "gene",
+            keys: gene,
+            omics: ["transcriptomics", "proteomics"],
+            filters: {
+                assay: [],
+                tissue: [],
+            },
+            fields: [
+                "gene_symbol",
+                "feature_ID",
+                "tissue",
+                "assay",
+                "sex",
+                "comparison_group",
+                "logFC",
+                "logFC_se",
+                "p_value",
+                "adj_p_value",
+                "p_value_male",
+                "p_value_female",
+            ],
+            unique_fields: ["tissue", "assay"],
+            size: 10000,
+            start: 0,
+            save: false,
+        },
+    };
+    let currentRequest = new Request(config.url, {
+        method: "POST",
+        headers: new Headers(config.header),
+        body: JSON.stringify(config.body),
+    });
+    try {
+        const response = await fetch(currentRequest);
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+        const json = await response.json();
+        return json;
+    } catch (error) {
+        console.error(error.message);
+    }
+    return {};
 }
 
-export async function getTextContent(contentId, getBody = false, getAll = false) {
-	let resourceUrl = `${CONTENT_URL}${contentId}`;
-	let jsonContent = await fetch(resourceUrl).then(
-		resp => resp.json());
-	if (jsonContent.length === 0) {
-		return null;
-	}
-	if (getBody) {
-		return jsonContent[0].body;
-	}
-	if (getAll) {
-		return jsonContent[0];
-	}
-	let csvContent = jsonContent[0].field_data_points;
-	return dataConvert.csv2Json(csvContent);
+export async function getTextContent(
+    contentId,
+    getBody = false,
+    getAll = false
+) {
+    let resourceUrl = `${CONTENT_URL}${contentId}`;
+    let jsonContent = await fetch(resourceUrl).then((resp) => resp.json());
+    if (jsonContent.length === 0) {
+        return null;
+    }
+    if (getBody) {
+        return jsonContent[0].body;
+    }
+    if (getAll) {
+        return jsonContent[0];
+    }
+    let csvContent = jsonContent[0].field_data_points;
+    return dataConvert.csv2Json(csvContent);
 }
 
 export async function getNewsFeed(feedId) {
-	const newsFeedUrl = NEWSFEED_URL + feedId;
-	const newsFeed = await fetch(newsFeedUrl).then((resp) => { return resp.json(); });
-	//trim feed to 5 items
-	if (newsFeed.length > 5) newsFeed.length = 5;
-	newsFeed.forEach((item) => {
-		//extract only the img element frforom thumbnail, wysiwyg html can be polluted sometimes
-		item.field_thumbnail_image =
-			new DOMParser()
-				.parseFromString(
-					item.field_thumbnail_image,
-					"text/html"
-				)
-				.querySelector("img")?.outerHTML || "";
-	});
-	return newsFeed;
+    const newsFeedUrl = NEWSFEED_URL + feedId;
+    const newsFeed = await fetch(newsFeedUrl).then((resp) => {
+        return resp.json();
+    });
+    //trim feed to 5 items
+    if (newsFeed.length > 5) newsFeed.length = 5;
+    newsFeed.forEach((item) => {
+        //extract only the img element frforom thumbnail, wysiwyg html can be polluted sometimes
+        item.field_thumbnail_image =
+            new DOMParser()
+                .parseFromString(item.field_thumbnail_image, "text/html")
+                .querySelector("img")?.outerHTML || "";
+    });
+    return newsFeed;
 }
 
 export async function getNewsItem(itemId) {
-	const itemUrl = NEWSITEM_URL + itemId;
-	const newsItem = await fetch(itemUrl).then(resp => { return resp.json(); });
-	if (newsItem.length === 0) {
-		return null;
-	} else {
-		return newsItem;
-	}
-
+    const itemUrl = NEWSITEM_URL + itemId;
+    const newsItem = await fetch(itemUrl).then((resp) => {
+        return resp.json();
+    });
+    if (newsItem.length === 0) {
+        return null;
+    } else {
+        return newsItem;
+    }
 }
 
 export async function getEnrichr(genesList, library) {
-	let enrichrEndpoint = `${BIO_INDEX_HOST}/api/enrichr/enrichr`;
-	let enrichrRequest = {
-		"gene_set_library": library,
-		"gene_list": genesList,
-		"gene_list_desc": "my_list"
-	}
-	try {
-		const response = await fetch(enrichrEndpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'accept': 'application/json'
-
-			},
-			body: JSON.stringify(enrichrRequest),
-		});
-		let jsonData = await response.json();
-		jsonData.forEach(d => {
-			let rank = `${d["Rank"]}`.padStart(3, "0");
-			d.rankLabel = `${rank}_${d["Term name"]}`;
-		})
-		return jsonData;
-	} catch (error) {
-		console.error(error.message);
-		return [];
-	}
+    //only run if genesList is not empty
+    if (genesList.length === 0) {
+        return [];
+    }
+    let enrichrEndpoint = `${ENRICHR_HOST}/api/enrichr/enrichr`;
+    let enrichrRequest = {
+        gene_set_library: library,
+        gene_list: genesList,
+        gene_list_desc: "my_list",
+    };
+    try {
+        const response = await fetch(enrichrEndpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                accept: "application/json",
+            },
+            body: JSON.stringify(enrichrRequest),
+        });
+        let jsonData = await response.json();
+        jsonData.forEach((d) => {
+            let rank = `${d["Rank"]}`.padStart(3, "0");
+            d.rankLabel = `${rank}_${d["Term name"]}`;
+        });
+        return jsonData;
+    } catch (error) {
+        console.error(error.message);
+        return [];
+    }
 }

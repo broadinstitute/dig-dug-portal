@@ -21,6 +21,7 @@ window.__RUNTIME_CONFIG__ = {
   DEFAULT_PORTAL: "${DEFAULT_PORTAL:-}",
   GA4_ID: "${GA4_ID:-G-D3G6XZYGBR}",
   SYSBIO_HOST: "${SYSBIO_HOST:-https://sysbio.hugeampkpnbi.org}",
+  ENRICHR_HOST: "${ENRICHR_HOST:-https://matkp.hugeampkpnbi.org}",
   MOTRPAC_AUTH: "${MOTRPAC_AUTH:-}",
 };
 EOF
