@@ -37,16 +37,27 @@
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div class="insulin-plot">
-                                    <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                    <time-series-line-plot v-if="$parent.timepoints.length > 0"
-                                        :plotData="$parent.insData"
-                                        :donors="$parent.filteredDonors"
-                                        :config="$parent.linePlotConfig"
-                                        :plotId="`insulin_ieq`"
-                                        :timepoints="$parent.timepoints">
-                                    </time-series-line-plot>
+                                <div class="row">
+                                    <div class="insulin-plot col-md-6">
+                                        <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
+                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                            :plotData="$parent.insData"
+                                            :donors="$parent.filteredDonors"
+                                            :plotId="`insulin_ieq`"
+                                            :timepoints="$parent.timepoints">
+                                        </time-series-line-plot>
+                                    </div>
+                                    <div class="glucagon-plot col-md-6">
+                                        <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
+                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                            :plotData="$parent.gcgData"
+                                            :donors="$parent.filteredDonors"
+                                            :plotId="`glucagon_ieq`"
+                                            :timepoints="$parent.timepoints">
+                                        </time-series-line-plot>
+                                    </div>
                                 </div>
+                                
                                 <donor-metadata-table
                                     :metadata="$parent.allMetadata"
                                     :filter="filter"

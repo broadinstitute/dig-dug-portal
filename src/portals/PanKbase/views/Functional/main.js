@@ -61,31 +61,27 @@ new Vue({
             };
             return utils;
         },
-        linePlotConfig(){
-            let config = {
-                yField: "score",
-                xMax: this.maxTime,
-                xMin: 0,
-                yMax: this.maxScore,
-                yMin: 0,
-                xField: "time",
-                xAxisLabel: "time (min)",
-                yAxisLabel: null,
-                dotKey: "donor",
-            };
-            return config;
-        },
         insData(){
+            return this.collateData(this.$store.state.ins);
+        },
+        gcgData(){
+            return this.collateData(this.$store.state.gcg);
+        }
+    },
+    methods: {
+        getDonors(donors){
+            this.filteredDonors = donors;
+        },
+        collateData(data){
             let maxTime = null;
             let maxScore = null;
             let results = [];
             let donors = this.availableDonors.filter(d =>!d.startsWith("time"));
-            let ins = this.$store.state.ins;
             donors.forEach(donor => {
-                if (!ins[0][donor]){
+                if (!data[0][donor]){
                     return;
                 }
-                ins.forEach(timePoint => {
+                data.forEach(timePoint => {
                     let donorResults = {};
                     donorResults.donor = donor;
                     donorResults.time = timePoint.time;
@@ -102,11 +98,6 @@ new Vue({
             this.maxTime = maxTime;
             this.maxScore = maxScore;
             return results;
-        },
-    },
-    methods: {
-        getDonors(donors){
-            this.filteredDonors = donors;
         }
     },
     render(createElement, context) {

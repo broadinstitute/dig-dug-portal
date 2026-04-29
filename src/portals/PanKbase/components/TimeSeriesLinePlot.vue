@@ -25,7 +25,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "donors", "config", "plotId", "utils", "showLine", "timepoints"],
+  props: ["plotData", "filter", "tightenLeft", "donors", "plotId", "utils", "showLine", "timepoints"],
   data() {
       return {
         chart: null,
@@ -37,13 +37,14 @@ export default Vue.component("time-series-line-plot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
-        allHoverFields: this.getHoverFields(),
-        hoverBoxPosition: this.config.hoverBoxPosition || "left",
+        hoverBoxPosition: "left",
         dotOutlineColor: "#00000075",
+        config: null,
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    this.config = this.getConfig();
     this.drawChart();
   },
   computed: {
@@ -61,8 +62,38 @@ export default Vue.component("time-series-line-plot", {
       let donorsPresent = new Set(this.chartData.map(m => m.donor));
       return donorsPresent.size;
     },
+    allHoverFields(){
+      let fields = [];
+      fields.push(this.config.dotKey);
+      fields.push(this.config.xField);
+      fields.push(this.config.yField);
+      if (this.config.hoverFields){
+        this.config.hoverFields.forEach(field => {
+          if (!fields.includes(field)){
+            fields.push(field);
+          }
+        });
+      }
+      return fields;
+    },
   },
   methods: {
+    getConfig(){
+      let maxTime = this.plotData.map(d => d.time).sort().reverse()[0];
+      let maxScore = this.plotData.map(d => d.score).sort().reverse()[0];
+      let config = {
+        yField: "score",
+        xMax: maxTime,
+        xMin: 0,
+        yMax: maxScore,
+        yMin: 0,
+        xField: "time",
+        xAxisLabel: "time (min)",
+        yAxisLabel: null,
+        dotKey: "donor",
+      };
+      return config;
+    },
     extractTimepoints(data, xScale, yScale){
       // This assumes all timepoints have a condition listed i.e. none are skipped.
 
@@ -288,20 +319,6 @@ export default Vue.component("time-series-line-plot", {
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
       }
-    },
-    getHoverFields(){
-      let fields = [];
-      fields.push(this.config.dotKey);
-      fields.push(this.config.xField);
-      fields.push(this.config.yField);
-      if (this.config.hoverFields){
-        this.config.hoverFields.forEach(field => {
-          if (!fields.includes(field)){
-            fields.push(field);
-          }
-        });
-      }
-      return fields;
     },
     downloadImage(ID, NAME, TYPE) {
       if (TYPE == "svg") {
