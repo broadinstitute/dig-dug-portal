@@ -25,7 +25,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "donors", "plotId", "utils", "showLine", "timepoints"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "showLine", "timepoints"],
   data() {
       return {
         chart: null,
@@ -79,13 +79,11 @@ export default Vue.component("time-series-line-plot", {
   },
   methods: {
     getConfig(){
-      let maxTime = this.plotData.map(d => d.time).sort().reverse()[0];
-      let maxScore = this.plotData.map(d => d.score).sort().reverse()[0];
       let config = {
         yField: "score",
-        xMax: maxTime,
+        xMax: this.maxTime,
         xMin: 0,
-        yMax: maxScore,
+        yMax: this.maxScore,
         yMin: 0,
         xField: "time",
         xAxisLabel: "time (min)",
@@ -136,11 +134,13 @@ export default Vue.component("time-series-line-plot", {
       let xRange = this.config.xMax - this.config.xMin;
       let yRange = this.config.yMax - this.config.yMin;
       this.xMedian = (this.config.xMin + this.config.xMax) / 2;
+      let xPadding = 0.01 * xRange;
+      let yPadding = 0.2 * yRange;
       this.xScale = d3.scaleLinear()
-        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
+        .domain([0, this.config.xMax + xPadding])
         .range([0, width]);
       this.yScale = d3.scaleLinear()
-        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
+        .domain([0, this.config.yMax + yPadding]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
 
       this.chart.innerHTML = "";
@@ -152,14 +152,9 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
-        this.timepoints.forEach(t => console.log(JSON.stringify(t)));
-        let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
-/*       this.svg.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "blue"); */
+        //let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
+        let timepointBars = [];
+
       let even = true;
       timepointBars.forEach(t => {
         let darkgold = "#F5D627";

@@ -41,7 +41,9 @@
                                     <div class="insulin-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
                                         <time-series-line-plot v-if="$parent.timepoints.length > 0"
-                                            :plotData="$parent.insData"
+                                            :plotData="$parent.resultsIns"
+                                            :maxTime="$parent.maxTimeIns"
+                                            :maxScore="$parent.maxScoreIns"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`insulin_ieq`"
                                             :timepoints="$parent.timepoints">
@@ -50,7 +52,9 @@
                                     <div class="glucagon-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
                                         <time-series-line-plot v-if="$parent.timepoints.length > 0"
-                                            :plotData="$parent.gcgData"
+                                            :plotData="$parent.resultsGcg"
+                                            :maxTime="$parent.maxTimeGcg"
+                                            :maxScore="$parent.maxScoreGcg"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`glucagon_ieq`"
                                             :timepoints="$parent.timepoints">

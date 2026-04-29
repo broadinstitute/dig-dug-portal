@@ -40,8 +40,12 @@ new Vue({
             },
             availableDonors: [],
             filteredDonors: [],
-            maxTime: null,
-            maxScore: null,
+            maxTimeIns: null,
+            maxScoreIns: null,
+            resultsIns: null,
+            maxTimeGcg: null,
+            maxScoreGcg: null,
+            resultsGcg: null,
             timepoints: [],
         };
     },
@@ -97,7 +101,24 @@ new Vue({
             });
             this.maxTime = maxTime;
             this.maxScore = maxScore;
-            return results;
+            let output = {
+                results: results,
+                maxTime: maxTime,
+                maxScore: maxScore
+            }
+            return output;
+        }
+    },
+    watch: {
+        insData(newData){
+            this.resultsIns = newData.results;
+            this.maxScoreIns = newData.maxScore;
+            this.maxTimeIns = newData.maxTime;
+        },
+        gcgData(newData){
+            this.resultsGcg = newData.results;
+            this.maxScoreGcg = newData.maxScore;
+            this.maxTimeGcg = newData.maxTime;
         }
     },
     render(createElement, context) {
