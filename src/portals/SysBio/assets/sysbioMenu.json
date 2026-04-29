@@ -2,7 +2,7 @@
   "menuItems": [
     {
       "label": "Home",
-      "path": "./"
+      "path": "/"
     },
     {
       "label": "Visualizations and Tools",
@@ -76,11 +76,11 @@
         {
           "hide": true,
           "label": "Collaborate",
-          "path": "/about.html?page=collaborate"
+          "path": "about.html?page=collaborate"
         },
         {
           "label": "Share feedback",
-          "path": "/about.html?page=feedback"
+          "path": "about.html?page=feedback"
         }
       ]
     }
