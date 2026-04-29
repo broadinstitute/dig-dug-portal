@@ -88,9 +88,7 @@ export default Vue.component("sysbio-header", {
     },
     created() {
         this.injectFavicon("images/sysbio/logos/sb-color-icon.svg");
-        this.injectFont(
-            "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-        );
+        this.injectFont("fonts/roboto.css");
     },
     methods: {
         injectFavicon(faviconUrl) {
