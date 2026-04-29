@@ -69,7 +69,7 @@ new Vue({
                 yMax: this.maxScore,
                 yMin: 0,
                 xField: "time",
-                xAxisLabel: null,
+                xAxisLabel: "time (min)",
                 yAxisLabel: null,
                 dotKey: "donor",
             };
