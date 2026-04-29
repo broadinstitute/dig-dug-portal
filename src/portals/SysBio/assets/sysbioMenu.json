@@ -5,7 +5,7 @@
       "path": "./"
     },
     {
-      "label": "Resources",
+      "label": "Visualizations and Tools",
       "path": "",
       "subMenuItems": [
         {
@@ -60,7 +60,7 @@
           "path": "about.html?page=access"
         },
         {
-          "label": "Glossary of terms",
+          "label": "Glossary of Terms",
           "path": "about.html?page=glossary"
         }
       ]
@@ -76,11 +76,11 @@
         {
           "hide": true,
           "label": "Collaborate",
-          "path": "about.html?page=collaborate"
+          "path": "/about.html?page=collaborate"
         },
         {
           "label": "Share feedback",
-          "path": "about.html?page=feedback"
+          "path": "/about.html?page=feedback"
         }
       ]
     }

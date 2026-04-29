@@ -46,6 +46,23 @@ body.kp-default {
     a:visited {
         color: var(--sysbio-blue) !important;
     }
+    a[role="button"]{
+        box-shadow: 0 2px 2px 0px black;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: black !important;
+    }
+    a[role="button"]:hover {
+        background: #eee;
+        text-decoration: none;
+    }
+    a[role="button"].loud {
+        background: #02b9ff;
+        color: white !important;
+    }
+    a[role="button"].loud:hover {
+        background: #0000c6;
+    }
     
 
     label{
