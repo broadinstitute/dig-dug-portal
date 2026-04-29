@@ -66,27 +66,29 @@ export default Vue.component("time-series-line-plot", {
     extractTimepoints(data, xScale, yScale){
       // This assumes all timepoints have a condition listed i.e. none are skipped.
 
-      let points = data.sort((a,b) => a.time - b.time);
+      let points = data.sort((a,b) => a.time - b.time).filter(t => !!t.Condition);
       let output = [];
       let conditionStart = 0;
+      let textBuffer = 3;
       for (let i = 1; i < points.length; i++){
         let currentEntry = points[i];
         let conditionStartEntry = points[conditionStart];
-        if (currentEntry.Condition !== conditionStartEntry.Condition) {
+        if (currentEntry.Condition !== conditionStartEntry.Condition || i === points.length - 1) {
           let duration = currentEntry.time - conditionStartEntry.time;
+          let middleTime = conditionStartEntry.time + (0.5 * duration);
           let conditionInfo = {};
           conditionInfo.condition = conditionStartEntry.Condition;
           conditionInfo.x = xScale(conditionStartEntry.time);
           conditionInfo.y = yScale(this.config.yMax);
           conditionInfo.width = xScale(duration);
           conditionInfo.height = yScale(0);
+          conditionInfo.textPosition = xScale(middleTime);
           output.push(conditionInfo);
           conditionStart = i;
         } else {
           continue;
         }
       }
-      output.forEach(o => console.log(JSON.stringify(o)));
       return output;
     },
     drawChart(){
@@ -119,6 +121,7 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+        this.timepoints.forEach(t => console.log(JSON.stringify(t)));
         let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
 /*       this.svg.append("rect")
         .attr("x", 0)
@@ -128,13 +131,27 @@ export default Vue.component("time-series-line-plot", {
         .attr("fill", "blue"); */
       let even = true;
       timepointBars.forEach(t => {
-        let color = even ? "lightgray" : "gray";
+        let darkgold = "#F5D627";
+        let gold = "#F8E163";
+        let lightgold = "#FAEA8F"
+        let palegold = "#FCF2BB"
+        let color = even ? palegold : gold;
         this.svg.append("rect")
           .attr("x", t.x)
           .attr("y", t.y)
           .attr("width", t.width)
           .attr("height", t.height)
           .attr("fill", color);
+        even = !even;
+      });
+      // Separate loop to put text on top of bg
+      even = true;
+      timepointBars.forEach(t => {
+        this.svg.append("text")
+          .attr("text-anchor", "middle")
+          .attr("y", t.height * 0.1)
+          .attr("x", t.textPosition)
+          .text(t.condition);
         even = !even;
       });
       this.tooltip = d3
