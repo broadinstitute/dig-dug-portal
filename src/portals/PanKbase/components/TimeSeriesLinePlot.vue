@@ -77,9 +77,9 @@ export default Vue.component("time-series-line-plot", {
           let conditionInfo = {};
           conditionInfo.condition = conditionStartEntry.Condition;
           conditionInfo.x = xScale(conditionStartEntry.time);
-          conditionInfo.y = yScale(0);
+          conditionInfo.y = yScale(this.config.yMax);
           conditionInfo.width = xScale(duration);
-          conditionInfo.height = yScale(this.config.yMax);
+          conditionInfo.height = yScale(0);
           output.push(conditionInfo);
           conditionStart = i;
         } else {
@@ -119,14 +119,24 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
-        let timepointBars = !this.timepoints ? [] : 
-          this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
+        let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
 /*       this.svg.append("rect")
         .attr("x", 0)
         .attr("y", 0)
         .attr("width", width)
         .attr("height", height)
         .attr("fill", "blue"); */
+      let even = true;
+      timepointBars.forEach(t => {
+        let color = even ? "lightgray" : "gray";
+        this.svg.append("rect")
+          .attr("x", t.x)
+          .attr("y", t.y)
+          .attr("width", t.width)
+          .attr("height", t.height)
+          .attr("fill", color);
+        even = !even;
+      });
       this.tooltip = d3
         .select(`#${this.plotId}`)
         .append("div")
