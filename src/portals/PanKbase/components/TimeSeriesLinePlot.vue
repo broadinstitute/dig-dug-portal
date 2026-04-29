@@ -65,15 +65,19 @@ export default Vue.component("time-series-line-plot", {
   methods: {
     extractTimepoints(data){
       let points = data.sort((a,b) => a.time - b.time);
-      let output = points.slice(0,1);
+      let output = [];
+      let conditionStart = 0;
       for (let i = 1; i < points.length; i++){
-        let thisEntry = points[i];
-        let lastEntry = output[output.length - 1];
-        if (lastEntry.Condition === thisEntry.Condition){
+        let currentEntry = points[i];
+        let conditionStartEntry = points[conditionStart];
+        if (currentEntry.Condition !== conditionStartEntry.Condition) {
+          let conditionRange = points.slice(conditionStart, i);
+          output.push(conditionRange);
+        } else {
           continue;
         }
-        output.push(thisEntry);
       }
+      output.forEach(o => console.log(JSON.stringify(o)));
       return output;
     },
     drawChart(){
@@ -167,7 +171,7 @@ export default Vue.component("time-series-line-plot", {
       }
       if (!!this.timepoints){
         let timepointLines = this.extractTimepoints(this.timepoints);
-        const vertLine = d3.line()
+        /* const vertLine = d3.line()
           .x(d => this.xScale(d.x))
           .y(d => this.yScale(d.y));
         let even = true;
@@ -187,7 +191,7 @@ export default Vue.component("time-series-line-plot", {
             .attr("x", this.xScale(t.time))
             .text(labelText);
           even = !even;
-        });
+        }); */
       }
 
 
