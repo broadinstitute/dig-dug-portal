@@ -63,16 +63,31 @@ export default Vue.component("time-series-line-plot", {
     },
   },
   methods: {
-    extractTimepoints(data){
-      let points = data.sort((a,b) => a.time - b.time);
-      let output = points.slice(0,1);
+    extractTimepoints(data, xScale, yScale){
+      // This assumes all timepoints have a condition listed i.e. none are skipped.
+
+      let points = data.sort((a,b) => a.time - b.time).filter(t => !!t.Condition);
+      let output = [];
+      let conditionStart = 0;
+      let textBuffer = 3;
       for (let i = 1; i < points.length; i++){
-        let thisEntry = points[i];
-        let lastEntry = output[output.length - 1];
-        if (lastEntry.Condition === thisEntry.Condition){
+        let currentEntry = points[i];
+        let conditionStartEntry = points[conditionStart];
+        if (currentEntry.Condition !== conditionStartEntry.Condition || i === points.length - 1) {
+          let duration = currentEntry.time - conditionStartEntry.time;
+          let middleTime = conditionStartEntry.time + (0.5 * duration);
+          let conditionInfo = {};
+          conditionInfo.condition = conditionStartEntry.Condition;
+          conditionInfo.x = xScale(conditionStartEntry.time);
+          conditionInfo.y = yScale(this.config.yMax);
+          conditionInfo.width = xScale(duration);
+          conditionInfo.height = yScale(0);
+          conditionInfo.textPosition = xScale(middleTime);
+          output.push(conditionInfo);
+          conditionStart = i;
+        } else {
           continue;
         }
-        output.push(thisEntry);
       }
       return output;
     },
@@ -85,6 +100,18 @@ export default Vue.component("time-series-line-plot", {
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
+
+      // Create scales
+      let xRange = this.config.xMax - this.config.xMin;
+      let yRange = this.config.yMax - this.config.yMin;
+      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
+      this.xScale = d3.scaleLinear()
+        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
+        .range([0, width]);
+      this.yScale = d3.scaleLinear()
+        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
+        .range([height, 0]);
+
       this.chart.innerHTML = "";
       this.svg = d3.select(`#${this.plotId}`)
         .append("svg")
@@ -94,6 +121,39 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+        this.timepoints.forEach(t => console.log(JSON.stringify(t)));
+        let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
+/*       this.svg.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "blue"); */
+      let even = true;
+      timepointBars.forEach(t => {
+        let darkgold = "#F5D627";
+        let gold = "#F8E163";
+        let lightgold = "#FAEA8F"
+        let palegold = "#FCF2BB"
+        let color = even ? palegold : gold;
+        this.svg.append("rect")
+          .attr("x", t.x)
+          .attr("y", t.y)
+          .attr("width", t.width)
+          .attr("height", t.height)
+          .attr("fill", color);
+        even = !even;
+      });
+      // Separate loop to put text on top of bg
+      even = true;
+      timepointBars.forEach(t => {
+        this.svg.append("text")
+          .attr("text-anchor", "middle")
+          .attr("y", t.height * 0.1)
+          .attr("x", t.textPosition)
+          .text(t.condition);
+        even = !even;
+      });
       this.tooltip = d3
         .select(`#${this.plotId}`)
         .append("div")
@@ -108,16 +168,8 @@ export default Vue.component("time-series-line-plot", {
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
       let yFieldScaled = this.config.yField;
-
-      // Use chart data to adjust scale on the fly
-      let xRange = this.config.xMax - this.config.xMin;
-      let yRange = this.config.yMax - this.config.yMin;
-      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
       
       // add X-axis
-      this.xScale = d3.scaleLinear()
-        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
-        .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale))
@@ -130,9 +182,6 @@ export default Vue.component("time-series-line-plot", {
         .text(this.config.xAxisLabel || this.config.xField);
       
       // add Y-axis
-      this.yScale = d3.scaleLinear()
-        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
-        .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
           .selectAll("text")
@@ -165,31 +214,6 @@ export default Vue.component("time-series-line-plot", {
           .attr("class", "line-path")
           .attr("d", lineGenerator);
       }
-      if (!!this.timepoints){
-        let timepointLines = this.extractTimepoints(this.timepoints);
-        const vertLine = d3.line()
-          .x(d => this.xScale(d.x))
-          .y(d => this.yScale(d.y));
-        let even = true;
-        timepointLines.forEach(t => {
-          let top = { x: t.time, y: this.config.yMax};
-          let bottom = { x: t.time, y: 0}
-          this.svg.append("path")
-            .datum([top, bottom])
-            .attr("stroke", "gray")
-            .attr("stroke-width", 1)
-            .attr("d", vertLine);
-          let labelHeight = even ? 0.9 : 0.8;
-          let labelText = t.Condition === undefined ? "" : `←${t.Condition}`;
-          this.svg.append("text")
-            .attr("text-anchor", "left")
-            .attr("y", this.yScale(this.config.yMax * labelHeight))
-            .attr("x", this.xScale(t.time))
-            .text(labelText);
-          even = !even;
-        });
-      }
-
 
       // add dots
 /*       this.svg.append("g")
@@ -292,6 +316,7 @@ export default Vue.component("time-series-line-plot", {
 			if (TYPE == 'png') {
 				uiUtils.downloadImg(ID, NAME, TYPE)
 			}
+      this.drawChart();
 		},
   },
   watch: {
