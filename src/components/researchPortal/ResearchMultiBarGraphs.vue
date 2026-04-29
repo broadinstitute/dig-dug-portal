@@ -15,7 +15,7 @@
           <span class="legend-label">{{ src }}</span>
         </span>
       </div>
-      <a href="/datasetsSummary.html" class="multi-bar-summary-btn">Browse full data summary.</a>
+      <a role="button"  class="loud" href="/datasetsSummary.html">Browse data summary</a>
     </div>
     <div class="multi-bar-grid">
       <div
@@ -247,7 +247,6 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 1.5rem;
-  padding: 0.5rem 0;
 }
 
 .legend-item {
@@ -275,7 +274,7 @@ export default {
 
 .multi-bar-chart-wrapper {
   /* flex and minWidth set via chartWrapperStyle from config.cardsPerRow */
-  min-width: 200px;
+  min-width: 300px;
   padding: 1rem;
   background: #fbfbfb;
   border: 1px solid #eee;
@@ -302,7 +301,7 @@ export default {
 }
 
 .multi-bar-category-label {
-  flex: 0 0 140px;
+  flex: 0 0 130px;
   font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -334,7 +333,7 @@ export default {
 }
 
 .multi-bar-total {
-  flex: 0 0 42px;
+  flex: 0 0 40px;
   font-size: 0.8rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -345,7 +344,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 10px;
   margin-bottom: 1rem;
 }
 

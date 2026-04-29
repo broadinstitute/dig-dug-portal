@@ -41,19 +41,19 @@ new Vue({
                         type: "medium"
                     },
                     {
-                        title: "AMP® ALS Amyotrophic Lateral Sclerosis",
-                        body: "Identifying biomarkers, therapeutic targets, and clinical outcome assessments for ALS.",
-                        linkLabel: "Learn More",
-                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amyotrophic-lateral-sclerosis/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_ALS.png",
-                        type: "medium"
-                    },
-                    {
                         title: "AMP® AIM Autoimmune and Immune-Mediated Diseases",
                         body: "Understanding the cellular and molecular interactions that lead to AIM.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-autoimmune-immune-mediated-diseases/",
                         bgImage: "/images/sysbio/sysbio_amp_programs/AMP_AIM.jpg",
+                        type: "medium"
+                    },
+                    {
+                        title: "AMP® ALS Amyotrophic Lateral Sclerosis",
+                        body: "Identifying biomarkers, therapeutic targets, and clinical outcome assessments for ALS.",
+                        linkLabel: "Learn More",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amyotrophic-lateral-sclerosis/",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_ALS.png",
                         type: "medium"
                     },
                     {
@@ -64,7 +64,14 @@ new Vue({
                         bgImage: "/images/sysbio/sysbio_amp_programs/AMP_CMD.png",
                         type: "medium"
                     },
-
+                    {
+                        title: "AMP® HF Heart Failure",
+                        body: "Investigating heart failure with preserved ejection fraction (HFpEF) through deep phenotyping and data analysis.",
+                        linkLabel: "Learn More",
+                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-heart-failure/",
+                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_HF.png",
+                        type: "medium"
+                    },
                     {
                         title: "AMP® PD Parkinson’s Disease",
                         body: "Identifying biomarkers and therapies for Parkinson’s Disease.",
@@ -89,14 +96,7 @@ new Vue({
                         bgImage: "/images/sysbio/sysbio_amp_programs/AMP_SCZ.png",
                         type: "medium"
                     },
-                    {
-                        title: "AMP® HF Heart Failure",
-                        body: "Investigating heart failure with preserved ejection fraction (HFpEF) through deep phenotyping and data analysis.",
-                        linkLabel: "Learn More",
-                        linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-heart-failure/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_HF.png",
-                        type: "medium"
-                    },
+                    
                 ],
             },
             partners: {
@@ -172,10 +172,10 @@ new Vue({
         multiBarGraphs: {
             data: null,
             plotMargin: {
-                top: 20,
-                right: 40,
-                bottom: 20,
-                left: 20,
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
             },
             plotConfig: {
                 cardsPerRow: 3,
@@ -210,6 +210,7 @@ new Vue({
         const screenshotAltText = await fetch("/images/sysbio/images/amp_screenshot_alt_text.txt")
             .then(r => r.text());
         this.ampScreenshotAltText = screenshotAltText;
+        document.querySelector('#gene-search-wrapper input').setAttribute('placeholder', 'Search gene to see differential expression across cohorts');
     },
     methods: {
         ...dataConvert,

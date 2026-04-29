@@ -206,6 +206,7 @@ export default Vue.component("sysbio-header", {
         display: flex;
         align-items: center;
         gap: 3px;
+        font-size: 1.1em;
     }
     ::v-deep .menu-item svg,
     ::v-deep .menu-item img {
@@ -240,12 +241,13 @@ export default Vue.component("sysbio-header", {
         top: 100%;
         right: 0;
         padding: 10px 10px 15px 15px;
+        min-width: 100%;
         width: max-content;
         flex-direction: column;
         align-items: flex-end;
         gap: 5px;
         display: none;
-        border-radius: 5px 0 5px 5px;
+        border-radius: 0 0 5px 5px;
     }
     .submenu-item {
         color: black;

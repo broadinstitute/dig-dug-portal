@@ -3,7 +3,7 @@
         <!-- NAV -->
         <sysbio-header></sysbio-header>
         <!-- BODY -->
-        <div class="sysbio-body" style="gap:70px">
+        <div class="sysbio-body" style="gap:70px; padding-bottom: 0;">
             <div class="section hero f-row grow-children align-v-center" style="gap:50px;">
                 <div class="f-col" style="gap:20px;">
                     <div class="f-col" style="width:500px">
@@ -15,11 +15,11 @@
                     <div style="width:500px">
                         A unified research gateway for 
                         discovering and analyzing biomedical data across 
-                        Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem
+                        the Accelerating Medicines Partnership<sup>®</sup> (AMP<sup>®</sup>) ecosystem
                     </div>
                     <a href="/about.html?page=about" class="bold" style="color: #FFFFFF !important">Learn More ❯</a>
                 </div>
-                <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
+                <div id="gene-search-wrapper" class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <!-- <input class="hero-search" type="text" placeholder="Search gene"> -->
                     <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
                     </gene-selectpicker>
@@ -46,8 +46,8 @@
             </div>
 
             <div class="section">
-                <h2>Resources</h2>
-                <div>Explore information and summary-level harmonized analyses & visualizations from across the Accelerating Medicines Partnership (AMP)</div>
+                <h2>Visualizations and Tools</h2>
+                <div>Explore open-access summary visualizations from the Accelerating Medicines Partnership (AMP) projects here. Visualizations are derived from FAIRplex harmonization of just a subset of the data available from the AMPs. Additional harmonization efforts are underway; stay tuned for updates! Learn more about how to request access to each AMP's underlying data <a href="/about.html?page=access">here</a>.</div>
                 <div class="section-body">
                     <div class="f-row">
                         <div class="tabs f-col">
@@ -57,11 +57,11 @@
                             </div>
                             <div class="tab f-col" data-tab="expression" @click="$parent.showTab($event)">
                                 <div class="tab-title">Gene Expression</div>
-                                <div class="tab-body">Differential gene expression across AMP programs</div>
+                                <div class="tab-body">Differential gene expression from bulk RNA-seq and harmonized pseudobulked single-cell or single nucleus RNA-seq data from human tissues from AMP AD, AMP CMD, AMP PD, and AMP RA/SLE</div>
                             </div>
                             <div class="tab f-col" data-tab="clustering" @click="$parent.showTab($event)">
-                                <div class="tab-title">Learn More</div>
-                                <div class="tab-body">AMP information and data access guidelines</div>
+                                <div class="tab-title">Genetic Studies</div>
+                                <div class="tab-body">Visualizations of case versus case Genome-Wide Association Studies (GWAS) of individuals with Alzheimer's Disease (AMP AD) versus Parkinson's disease (AMP PD) </div>
                             </div>
                         </div>
                         <div class="tab-contents f-col">
@@ -82,7 +82,8 @@
                             </div>
                             <div class="tab-content f-col" data-tab="expression">
                                 <div class="multi-bar-top-row">
-                                    <a href="/diffexp.html" class="multi-bar-summary-btn">Browse full gene expression data.</a>
+                                    <div></div>
+                                    <a role="button" class="loud" href="/diffexp.html">Browse full gene expression data</a>
                                 </div>
                                 <div>Explore visualizations of differential gene expression within human tissues derived
                                     from the Accelerating Medicines Partnership (AMP) programs. Differential expression
@@ -98,13 +99,11 @@
                             </div>
                             <div class="tab-content f-col" data-tab="clustering">
                                 <div class="multi-bar-top-row">
-                                    <a href="/about.html?page=access" class="multi-bar-summary-btn">Learn how to access AMP data directly.</a>
+                                    <div></div>
+                                    <a role="button" class="loud" href="/gwas.html">Browse genetic studies</a>
                                 </div>
-                                <div>Learn about the Accelerating Medicines Partnership (AMP) programs and how to request access to their data.</div>
                                 <div class="tab-content-img-wrapper">
-                                    <img style="width: 850px;"
-                                        :alt="$parent.ampScreenshotAltText"
-                                        src="/images/sysbio/images/amp_screenshot.jpg" />
+                                    <img style="width: 90%" src="/images/sysbio/images/manhattan.png" />
                                 </div>
                             </div>
                         </div>
@@ -122,7 +121,7 @@
                             <div class="item-copy">
                                 <div class="item-title">{{ item.title }}</div>
                                 <div class="item-body" v-html="item.body"></div>
-                                <a class="item-btn" :href="item.linkUrl" style="margin-top: auto;">{{ item.linkLabel
+                                <a class="item-btn" role="button" :href="item.linkUrl" style="margin-top: auto;">{{ item.linkLabel
                                     }} ❯</a>
                             </div>
                             <div class="item-bg contain">
@@ -134,9 +133,10 @@
             </div>
 
             <div class="section">
-                <h2>SysBio FAIRplex Consortium</h2>
+                
                 <div class="section-body">
                     <div class="partners">
+                        <h2 style="width: 100%; text-align: center;">SysBio FAIRplex Consortium</h2>
                         <div class="partner-logo" v-for="item in $parent.content.partners.list">
                             <a :href="item.url || null" target="_blank">
                                 <img :src="item.logo" />
@@ -271,6 +271,10 @@ export default {
     mix-blend-mode: darken;
     overflow: hidden;
 }
+.item-btn {
+    width: fit-content;
+    align-self: flex-end;
+}
 ::v-deep .contain img {
     width: 100%;
     height: 100%;
@@ -316,7 +320,7 @@ export default {
     display: flex;
     gap: 20px;
     justify-content: center;
-    padding: 20px;
+    padding: 20px 20px 40px 20px;
     flex-wrap: wrap;
     background: #eee;
     margin: 0 -5vw;
@@ -339,14 +343,17 @@ export default {
 .tabs {
     width: 300px;
     min-width: 300px;
-    gap: 1px;
+    gap: 5px;
 }
 .tab {
     padding: 20px;
     background: #eee;
-    margin: 0 0 0 5px;
+    margin: 0 0 0 10px;
     border-radius: 5px 0 0 5px;
     cursor: pointer;
+}
+.tab:hover{
+    background: #ddd;
 }
 .tab.active {
     background: white;
@@ -404,13 +411,14 @@ export default {
 .news-thumbnail img {
     mix-blend-mode: darken;
 }
+
 .multi-bar-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  margin-top: 1rem;
-  display: flex;
-  align-items: right;
-  justify-content: right;
 }
 
 .multi-bar-summary-btn {
