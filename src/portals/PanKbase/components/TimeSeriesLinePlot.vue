@@ -5,13 +5,9 @@
             <p>Loading...</p>
         </div>
         <div class="download-images-setting">
-            <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
-            <ul class="options" >
-              <li>
-                    <a href="javascript:;"
-                    @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">Download SVG</a>
-                </li>
-            </ul>
+            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
+              Download SVG <b-icon icon="download"></b-icon>
+            </button>
         </div>
     </div>
 </template>
@@ -29,7 +25,7 @@ export default Vue.component("time-series-line-plot", {
   data() {
       return {
         chart: null,
-        chartWidth: 900,
+        chartWidth: 750,
         chartHeight: 300,
         svg: null,
         xScale: null,
@@ -198,11 +194,6 @@ export default Vue.component("time-series-line-plot", {
         .attr("x", - height / 2)
         .text(`${this.yAxisLabel || this.yField}`);
 
-        const sortedData = [...this.chartData].sort(
-          (a, b) => a[this.xField] - b[this.xField]
-        );
-
-        // TODO MAKE SURE ALL LINES SHOWING UP
         const lineGenerator = d3.line()
           .x(d => this.xScale(d[this.xField]))
           .y(d => this.yScale(d[this.yField]))
@@ -220,14 +211,6 @@ export default Vue.component("time-series-line-plot", {
             .attr("class", "line-path")
             .attr("d", lineGenerator)
         );
-
-/*         this.svg.append("path")
-          .datum(sortedData)
-          .attr("fill", "none")
-          .attr("stroke", this.lineColor)
-          .attr("stroke-width", 1)
-          .attr("class", "line-path")
-          .attr("d", lineGenerator);   */      
     },
     hoverDot(dotString) {
       this.unHoverDot();
@@ -316,5 +299,6 @@ export default Vue.component("time-series-line-plot", {
 
   .download-images-setting {
     margin-top: -25px;
+    float: right;
   }
 </style>

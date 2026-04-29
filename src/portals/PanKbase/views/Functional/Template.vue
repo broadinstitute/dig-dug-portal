@@ -47,7 +47,7 @@
                                             :donors="$parent.filteredDonors"
                                             :plotId="`insulin_ieq`"
                                             :timepoints="$parent.timepoints"
-                                            lineColor="red">
+                                            :lineColor="$parent.insColor">
                                         </time-series-line-plot>
                                     </div>
                                     <div class="glucagon-plot line-plot col-md-6">
@@ -59,7 +59,7 @@
                                             :donors="$parent.filteredDonors"
                                             :plotId="`glucagon_ieq`"
                                             :timepoints="$parent.timepoints"
-                                            lineColor="blue">
+                                            :lineColor="$parent.gcgColor">
                                         </time-series-line-plot>
                                     </div>
                                 </div>

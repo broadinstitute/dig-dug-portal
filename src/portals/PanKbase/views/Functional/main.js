@@ -47,6 +47,8 @@ new Vue({
             maxScoreGcg: null,
             resultsGcg: null,
             timepoints: [],
+            gcgColor: "#2F67B1", // colorblind safe blue from UCSB
+			insColor: "#BF2C23", // colorblind safe red from UCSB,
         };
     },
     async created() {
