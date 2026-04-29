@@ -7,6 +7,7 @@
             <div
                 class="section hero f-row grow-children align-v-center"
                 style="gap: 50px"
+                :style="heroBackgroundStyle"
             >
                 <div class="f-col" style="gap: 20px">
                     <div class="f-col" style="width: 500px">
@@ -306,12 +307,23 @@
 <script>
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
 import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
+import { BASE_URL } from "@/utils/runtimeConfig";
 
 export default {
     name: "SysBioIndexTemplate",
     components: {
         ResearchBarInCellPlot,
         ResearchMultiBarGraphs,
+    },
+    computed: {
+        heroBackgroundStyle() {
+            const normalizedBaseUrl = BASE_URL.endsWith("/")
+                ? BASE_URL
+                : `${BASE_URL}/`;
+            return {
+                backgroundImage: `url(${normalizedBaseUrl}images/sysbio/images/sysbio_hero.png)`,
+            };
+        },
     },
 };
 </script>
@@ -322,7 +334,6 @@ export default {
     height: 400px;
     margin: -50px -80px 0;
     padding: 100px;
-    background-image: url(images/sysbio/images/sysbio_hero.png);
     background-size: auto 100%;
     background-repeat: no-repeat;
     background-position: bottom right;
