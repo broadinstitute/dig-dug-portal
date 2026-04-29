@@ -39,12 +39,15 @@ export default Vue.component("time-series-line-plot", {
         tooltipElement: null,
         hoverBoxPosition: "left",
         dotOutlineColor: "#00000075",
-        config: null,
+        dotKey: "donor",
+        xField: "time",
+        yField: "score",
+        xAxisLabel: "time (min)",
+        yAxisLabel: null
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
-    this.config = this.getConfig();
     this.drawChart();
   },
   computed: {
@@ -63,35 +66,10 @@ export default Vue.component("time-series-line-plot", {
       return donorsPresent.size;
     },
     allHoverFields(){
-      let fields = [];
-      fields.push(this.config.dotKey);
-      fields.push(this.config.xField);
-      fields.push(this.config.yField);
-      if (this.config.hoverFields){
-        this.config.hoverFields.forEach(field => {
-          if (!fields.includes(field)){
-            fields.push(field);
-          }
-        });
-      }
-      return fields;
+      return [this.dotKey, this.xField, this.yField];
     },
   },
   methods: {
-    getConfig(){
-      let config = {
-        yField: "score",
-        xMax: this.maxTime,
-        xMin: 0,
-        yMax: this.maxScore,
-        yMin: 0,
-        xField: "time",
-        xAxisLabel: "time (min)",
-        yAxisLabel: null,
-        dotKey: "donor",
-      };
-      return config;
-    },
     extractTimepoints(data, xScale, yScale){
       // This assumes all timepoints have a condition listed i.e. none are skipped.
 
@@ -108,7 +86,7 @@ export default Vue.component("time-series-line-plot", {
           let conditionInfo = {};
           conditionInfo.condition = conditionStartEntry.Condition;
           conditionInfo.x = xScale(conditionStartEntry.time);
-          conditionInfo.y = yScale(this.config.yMax);
+          conditionInfo.y = yScale(this.maxScore);
           conditionInfo.width = xScale(duration);
           conditionInfo.height = yScale(0);
           conditionInfo.textPosition = xScale(middleTime);
@@ -131,16 +109,14 @@ export default Vue.component("time-series-line-plot", {
       let height = this.chartHeight - margin.top - margin.bottom;
 
       // Create scales
-      let xRange = this.config.xMax - this.config.xMin;
-      let yRange = this.config.yMax - this.config.yMin;
-      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
-      let xPadding = 0.01 * xRange;
-      let yPadding = 0.2 * yRange;
+      this.xMedian = this.maxTime / 2;
+      let xPadding = 1.01;
+      let yPadding = 1.2;
       this.xScale = d3.scaleLinear()
-        .domain([0, this.config.xMax + xPadding])
+        .domain([0, this.maxTime * xPadding])
         .range([0, width]);
       this.yScale = d3.scaleLinear()
-        .domain([0, this.config.yMax + yPadding]) // wider margin because y-axis is shorter visually
+        .domain([0, this.maxScore * yPadding]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
 
       this.chart.innerHTML = "";
@@ -193,7 +169,6 @@ export default Vue.component("time-series-line-plot", {
 
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
-      let yFieldScaled = this.config.yField;
       
       // add X-axis
       this.svg.append("g")
@@ -205,7 +180,7 @@ export default Vue.component("time-series-line-plot", {
         .attr("text-anchor", "middle")
         .attr("y", height + margin.top + 20)
         .attr("x", width/2)
-        .text(this.config.xAxisLabel || this.config.xField);
+        .text(this.xAxisLabel || this.xField);
       
       // add Y-axis
       this.svg.append("g")
@@ -217,20 +192,20 @@ export default Vue.component("time-series-line-plot", {
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
-        .text(`${this.config.yAxisLabel || this.config.yField}`);
+        .text(`${this.yAxisLabel || this.yField}`);
 
         const sortedData = [...this.chartData].sort(
-          (a, b) => a[this.config.xField] - b[this.config.xField]
+          (a, b) => a[this.xField] - b[this.xField]
         );
 
         // TODO MAKE SURE ALL LINES SHOWING UP
         console.log("Sorted data length", sortedData.length);
         const lineGenerator = d3.line()
-          .x(d => this.xScale(d[this.config.xField]))
-          .y(d => this.yScale(d[this.config.yField]))
+          .x(d => this.xScale(d[this.xField]))
+          .y(d => this.yScale(d[this.yField]))
           .defined(d =>
-            d[this.config.xField] !== undefined &&
-            d[this.config.yField] !== undefined
+            d[this.xField] !== undefined &&
+            d[this.yField] !== undefined
           );
 
         this.svg.append("path")
@@ -239,28 +214,7 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke", this.lineColor)
           .attr("stroke-width", 1)
           .attr("class", "line-path")
-          .attr("d", lineGenerator);  
-
-      // add dots
-/*       this.svg.append("g")
-        .selectAll("dot")
-        .data(this.chartData)
-        .enter()
-        .append("circle")
-          .attr("class", d => `${d[this.config.dotKey]}`)
-          .attr("cx", d => 
-            d[this.config.xField] === undefined
-              ? this.xScale(0) 
-              : this.xScale(d[this.config.xField]))
-          .attr("cy", d => 
-            d[yFieldScaled] === undefined 
-              ? this.yScale(0) // Is this an issue for log scale? 
-              : this.yScale(d[yFieldScaled]))
-          .attr("r", 3)
-          .attr("fill", "red")
-          .attr("stroke", this.dotOutlineColor)
-          .on("mouseover", (g) =>
-              this.hoverDot(JSON.stringify(g)));    */        
+          .attr("d", lineGenerator);        
     },
     hoverDot(dotString) {
       this.unHoverDot();
@@ -288,23 +242,21 @@ export default Vue.component("time-series-line-plot", {
     dotHoverLeft(dotString){
       let dot = JSON.parse(dotString);
       return this.hoverBoxPosition === "both"
-        ? dot[this.config.xField] > this.xMedian 
+        ? dot[this.xField] > this.xMedian 
         : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
       let tooltipText = "";
-      if (this.config.hoverFields){
-        this.config.hoverFields.forEach(field => {
-          tooltipText = tooltipText.concat(
-            `<div>${field.label}: ${
-              field.formatter === undefined
-                ? dot[field.key] 
-                : field.formatter(dot[field.key])
-            }</div>`
-          );
-        });
-      }
+      this.allHoverFields.forEach(field => {
+        tooltipText = tooltipText.concat(
+          `<div>${field.label}: ${
+            field.formatter === undefined
+              ? dot[field.key] 
+              : field.formatter(dot[field.key])
+          }</div>`
+        );
+      });
       return tooltipText;
     },
     unHoverDot() {
