@@ -38,7 +38,7 @@
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
-                                    <div class="insulin-plot col-md-6">
+                                    <div class="insulin-plot line-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
                                         <time-series-line-plot v-if="$parent.timepoints.length > 0"
                                             :plotData="$parent.resultsIns"
@@ -49,7 +49,7 @@
                                             :timepoints="$parent.timepoints">
                                         </time-series-line-plot>
                                     </div>
-                                    <div class="glucagon-plot col-md-6">
+                                    <div class="glucagon-plot line-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
                                         <time-series-line-plot v-if="$parent.timepoints.length > 0"
                                             :plotData="$parent.resultsGcg"
@@ -120,8 +120,8 @@
 .stats {
     margin-bottom: 10px;;
 }
-.insulin-plot{
+.line-plot{
     align-items: center;
-    margin: 20px;
+    padding: 25px;
 }
 </style>
