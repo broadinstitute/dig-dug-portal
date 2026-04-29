@@ -316,6 +316,7 @@ export default Vue.component("time-series-line-plot", {
 			if (TYPE == 'png') {
 				uiUtils.downloadImg(ID, NAME, TYPE)
 			}
+      this.drawChart();
 		},
   },
   watch: {
