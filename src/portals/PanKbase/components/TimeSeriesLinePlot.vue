@@ -56,13 +56,17 @@ export default Vue.component("time-series-line-plot", {
       if (this.filter){
         data = data.filter(this.filter);
       }
-      if (this.donors.length > 0){
-        data = data.filter(d => this.donors.includes(d.donor));
-      }
-      return data;
+      let output = [];
+      this.donors.forEach(d => {
+        let donorData = data.filter(e => e.donor === d);
+        if (donorData.length > 0){
+          output.push(donorData);
+        }
+      });
+      return output;
     },
     availableDonors(){
-      let donorsPresent = new Set(this.chartData.map(m => m.donor));
+      let donorsPresent = new Set(this.chartData.flatMap(m => m.map(n => n.donor)));
       return donorsPresent.size;
     },
     allHoverFields(){
@@ -199,7 +203,6 @@ export default Vue.component("time-series-line-plot", {
         );
 
         // TODO MAKE SURE ALL LINES SHOWING UP
-        console.log("Sorted data length", sortedData.length);
         const lineGenerator = d3.line()
           .x(d => this.xScale(d[this.xField]))
           .y(d => this.yScale(d[this.yField]))
@@ -208,13 +211,23 @@ export default Vue.component("time-series-line-plot", {
             d[this.yField] !== undefined
           );
 
-        this.svg.append("path")
+        this.chartData.forEach(c => 
+          this.svg.append("path")
+            .datum(c)
+            .attr("fill", "none")
+            .attr("stroke", this.lineColor)
+            .attr("stroke-width", 1)
+            .attr("class", "line-path")
+            .attr("d", lineGenerator)
+        );
+
+/*         this.svg.append("path")
           .datum(sortedData)
           .attr("fill", "none")
           .attr("stroke", this.lineColor)
           .attr("stroke-width", 1)
           .attr("class", "line-path")
-          .attr("d", lineGenerator);        
+          .attr("d", lineGenerator);   */      
     },
     hoverDot(dotString) {
       this.unHoverDot();
