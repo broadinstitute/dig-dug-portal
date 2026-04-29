@@ -63,8 +63,9 @@ export default Vue.component("time-series-line-plot", {
     },
   },
   methods: {
-    extractTimepoints(data){
+    extractTimepoints(data, xScale, yScale){
       // This assumes all timepoints have a condition listed i.e. none are skipped.
+
       let points = data.sort((a,b) => a.time - b.time);
       let output = [];
       let conditionStart = 0;
@@ -72,11 +73,13 @@ export default Vue.component("time-series-line-plot", {
         let currentEntry = points[i];
         let conditionStartEntry = points[conditionStart];
         if (currentEntry.Condition !== conditionStartEntry.Condition) {
+          let duration = currentEntry.time - conditionStartEntry.time;
           let conditionInfo = {};
           conditionInfo.condition = conditionStartEntry.Condition;
-          conditionInfo.startTime = conditionStartEntry.time;
-          conditionInfo.endTime = currentEntry.time;
-          let conditionRange = points.slice(conditionStart, i);
+          conditionInfo.x = xScale(conditionStartEntry.time);
+          conditionInfo.y = yScale(0);
+          conditionInfo.width = xScale(duration);
+          conditionInfo.height = yScale(this.config.yMax);
           output.push(conditionInfo);
           conditionStart = i;
         } else {
@@ -95,6 +98,18 @@ export default Vue.component("time-series-line-plot", {
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
+
+      // Create scales
+      let xRange = this.config.xMax - this.config.xMin;
+      let yRange = this.config.yMax - this.config.yMin;
+      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
+      this.xScale = d3.scaleLinear()
+        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
+        .range([0, width]);
+      this.yScale = d3.scaleLinear()
+        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
+        .range([height, 0]);
+
       this.chart.innerHTML = "";
       this.svg = d3.select(`#${this.plotId}`)
         .append("svg")
@@ -104,6 +119,8 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+        let timepointBars = !this.timepoints ? [] : 
+          this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
 /*       this.svg.append("rect")
         .attr("x", 0)
         .attr("y", 0)
@@ -124,16 +141,8 @@ export default Vue.component("time-series-line-plot", {
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
       let yFieldScaled = this.config.yField;
-
-      // Use chart data to adjust scale on the fly
-      let xRange = this.config.xMax - this.config.xMin;
-      let yRange = this.config.yMax - this.config.yMin;
-      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
       
       // add X-axis
-      this.xScale = d3.scaleLinear()
-        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
-        .range([0, width]);
       this.svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(this.xScale))
@@ -146,9 +155,6 @@ export default Vue.component("time-series-line-plot", {
         .text(this.config.xAxisLabel || this.config.xField);
       
       // add Y-axis
-      this.yScale = d3.scaleLinear()
-        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
-        .range([height, 0]);
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
           .selectAll("text")
@@ -181,23 +187,6 @@ export default Vue.component("time-series-line-plot", {
           .attr("class", "line-path")
           .attr("d", lineGenerator);
       }
-      if (!!this.timepoints){
-        let timepointBars = this.extractTimepoints(this.timepoints);
-        let even = true;
-        for (let i = 0; i < timepointBars.length; i++){
-          let t = timepointBars[i];
-          let color = even ? "lightgray" : "gray";
-          console.log(color);
-          this.svg.append('rect')
-            .attr('x', this.xScale(t.startTime))
-            .attr('y', this.yScale(0))
-            .attr("height", this.yScale(this.config.yMax))
-            .attr("width", this.xScale(t.endTime - t.startTime))
-            .attr("fill", color);
-          even = !even;
-        }
-      }
-
 
       // add dots
 /*       this.svg.append("g")
