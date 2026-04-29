@@ -5,6 +5,7 @@ import "../../css/f-layout.css";
 import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
+import { DATASET_ASSOC_URL, SYSBIO_HOST } from "@/utils/runtimeConfig";
 
 import * as d3 from "d3";
 import DownloadChart from "@/components/DownloadChart";
@@ -132,9 +133,9 @@ new Vue({
     },
     methods: {
         async fetchData() {
-            const bi = 
-                process.env.VUE_APP_DATASET_ASSOC ||
-                "https://sysbio.hugeampkpnbi.org/api/bio/query/dataset-associations" //TODO make this an env var
+            const bi =
+                DATASET_ASSOC_URL ||
+                `${SYSBIO_HOST}/api/bio/query/dataset-associations`;
             const limit = 500;
             const dataset = "SysBio_Nalls2025_ADvPD_EU";
             const phenotype = "SysBio_ADvPD";

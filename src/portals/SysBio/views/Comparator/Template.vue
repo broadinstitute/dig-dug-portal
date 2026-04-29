@@ -250,7 +250,7 @@
                                             <div class="row">
                                                 <p id="enrichr-explain">The top 10 pathways from the selected gene set library are provided
                                                 for all differentially expressed genes from the table above.
-                                                If you use data from this tool, please review our <a href="/about.html?page=policies">Citation
+                                                If you use data from this tool, please review our <a href="about.html?page=policies">Citation
                                                 Policies</a> to ensure proper citation of the underlying resource(s)
                                                 used to generate these analyses.</p>
                                             </div>

@@ -2,7 +2,7 @@
   "menuItems": [
     {
       "label": "Home",
-      "path": "/"
+      "path": "./"
     },
     {
       "label": "Visualizations and Tools",
@@ -22,20 +22,20 @@
         },
         {
           "label": "Data Summary Browser",
-          "path": "/datasetsSummary.html"
+          "path": "datasetsSummary.html"
         },
         {
           "label": "Gene Expression Browser",
-          "path": "/diffexp.html"
+          "path": "diffexp.html"
         },
         {
           "hide": true,
           "label": "Single Cell Browser",
-          "path": "/singlecell.html"
+          "path": "singlecell.html"
         },
         {
           "label": "Genetic Studies",
-          "path": "/gwas.html"
+          "path": "gwas.html"
         }
       ]
     },
@@ -45,24 +45,24 @@
       "subMenuItems": [
         {
           "label": "About Us",
-          "path": "/about.html?page=about"
+          "path": "about.html?page=about"
         },
         {
           "label": "Meet the Team",
-          "path": "/about.html?page=team"
+          "path": "about.html?page=team"
         },
         {
           "label": "Policies",
-          "path": "/about.html?page=policies"
+          "path": "about.html?page=policies"
         },
         {
           "label": "How To Access AMP Data Directly",
-          "path": "/about.html?page=access"
+          "path": "about.html?page=access"
         },
         {
           "label": "Glossary of Terms",
-          "path": "/about.html?page=glossary"
-        }        
+          "path": "about.html?page=glossary"
+        }
       ]
     },
     {
@@ -71,12 +71,16 @@
       "subMenuItems": [
         {
           "label": "Contact",
-          "path": "/about.html?page=contact"
+          "path": "about.html?page=contact"
         },
         {
           "hide": true,
           "label": "Collaborate",
           "path": "/about.html?page=collaborate"
+        },
+        {
+          "label": "Share feedback",
+          "path": "/about.html?page=feedback"
         }
       ]
     }

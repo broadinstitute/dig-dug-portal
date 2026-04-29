@@ -10,10 +10,10 @@
             </div>
             <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
                 <div style="flex:1">
-                    <img src="/images/sysbio/images/manhattan.png" />
+                    <img :src="'images/sysbio/images/manhattan.png'" />
                 </div>
                 <div style="flex:1">
-                    <img src="/images/sysbio/images/qq.png" />
+                    <img :src="'images/sysbio/images/qq.png'" />
                 </div>
             </div>
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">

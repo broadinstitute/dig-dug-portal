@@ -25,8 +25,8 @@ new Vue({
         content: {
             news: {
                 feedUrl: "https://hugeampkpncms.org/rest/news_list?project=sysbio",
-                newsUrl: "/about.html?page=news",
-                newsItemUrl: "/about.html?page=news&id=",
+                newsUrl: "about.html?page=news",
+                newsItemUrl: "about.html?page=news&id=",
             },
             amps: {
                 title: "Tools and Workflows",
@@ -37,7 +37,7 @@ new Vue({
                         body: "Leveraging precision medicine to validate existing targets and discover novel targets and biomarkers.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-alzheimers-disease-2-0/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_AD.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_AD.png",
                         type: "medium"
                     },
                     {
@@ -53,7 +53,7 @@ new Vue({
                         body: "Identifying biomarkers, therapeutic targets, and clinical outcome assessments for ALS.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amyotrophic-lateral-sclerosis/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_ALS.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_ALS.png",
                         type: "medium"
                     },
                     {
@@ -61,7 +61,7 @@ new Vue({
                         body: "Identifying targets for six common metabolic diseases: liver diseases, kidney diseases, obesity, cardiovascular diseases, type 2 diabetes/prediabetes, and type 1 diabetes.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-common-metabolic-disorders/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_CMD.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_CMD.png",
                         type: "medium"
                     },
                     {
@@ -77,7 +77,7 @@ new Vue({
                         body: "Identifying biomarkers and therapies for Parkinson’s Disease.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-parkinsons-disease/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_PD.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_PD.png",
                         type: "medium"
                     },
                     {
@@ -85,7 +85,7 @@ new Vue({
                         body: "Performing single cell-level analyses of tissue and blood samples from people with rheumatoid arthritis and systemic lupus erythematosus to pinpoint genes, proteins, pathways, and signaling networks. ",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-rheumatoid-arthritis-and-lupus/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_RA_SLE.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_RA_SLE.png",
                         type: "medium"
                     },
                     {
@@ -93,7 +93,7 @@ new Vue({
                         body: "Developing effective early-stage treatments for individuals at risk for schizophrenia, understanding disease pathways, and identifying targets for treatment.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-schizophrenia/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_SCZ.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_SCZ.png",
                         type: "medium"
                     },
                     
@@ -104,25 +104,25 @@ new Vue({
                 list: [
                     {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/verily.png"
+                        logo: "images/sysbio/sysbio_consortium/verily.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/technome.png"
+                        logo: "images/sysbio/sysbio_consortium/technome.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/datatecnica.png"
+                        logo: "images/sysbio/sysbio_consortium/datatecnica.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/sage.png"
+                        logo: "images/sysbio/sysbio_consortium/sage.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/Broad.png"
+                        logo: "images/sysbio/sysbio_consortium/Broad.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/northwestern.png"
+                        logo: "images/sysbio/sysbio_consortium/northwestern.png"
                     }, {
                         url: "",
-                        logo: "/images/sysbio/sysbio_consortium/victr.png"
+                        logo: "images/sysbio/sysbio_consortium/victr.png"
                     },
                 ],
             },
@@ -207,7 +207,7 @@ new Vue({
     async created() {
         this.getNews();
         this.getDataComposition();
-        const screenshotAltText = await fetch("/images/sysbio/images/amp_screenshot_alt_text.txt")
+        const screenshotAltText = await fetch("images/sysbio/images/amp_screenshot_alt_text.txt")
             .then(r => r.text());
         this.ampScreenshotAltText = screenshotAltText;
         document.querySelector('#gene-search-wrapper input').setAttribute('placeholder', 'Search gene to see differential expression across cohorts');
@@ -275,7 +275,7 @@ new Vue({
             tabContent.classList.add('active');
         },
         highlight(gene){
-            window.location = `/diffexp.html?gene=${gene}`;
+            window.location = `diffexp.html?gene=${gene}`;
         }
     },
     render: (h) => h(Template),

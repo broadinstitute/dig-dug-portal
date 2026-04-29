@@ -7,8 +7,9 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import dataConvert from "@/utils/dataConvert";
+import { SYSBIO_HOST } from "@/utils/runtimeConfig";
 
-const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
+const BIO_INDEX_HOST = SYSBIO_HOST;
 
 Vue.use(Vuex);
 

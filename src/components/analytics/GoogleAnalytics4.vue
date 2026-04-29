@@ -4,10 +4,11 @@
 <script>
 import Vue from "vue";
 import VueGtag from "vue-gtag";
+import { GA4_ID } from "@/utils/runtimeConfig";
 
 Vue.use(VueGtag, {
     config: {
-        id: process.env.VUE_APP_GA4_ID || "G-D3G6XZYGBR",
+        id: GA4_ID || "G-D3G6XZYGBR",
         params: { send_page_view: true },
     },
     appName: "HuGeAMP",

@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- uncomment in the final version-->
-        <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
+        <img v-if="bioindex_dev" :src="'images/dev_flag.svg'" class="dev-flag" />
         <!-- <img src="/images/dev_flag.svg" class="dev-flag" /> -->
         <google-analytics></google-analytics>
         <alert></alert>

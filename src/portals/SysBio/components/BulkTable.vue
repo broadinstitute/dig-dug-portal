@@ -65,7 +65,10 @@
 <script>
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
+import { SYSBIO_HOST } from "@/utils/runtimeConfig";
 import Formatters from "@/utils/formatters";
+
+const BIO_INDEX_HOST = SYSBIO_HOST;
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import BulkTable from "./BulkTable.vue";
@@ -108,6 +111,12 @@ export default Vue.component("bulk-table", {
             up: "upregulated",
             down: "downregulated"
         };
+    },
+    created() {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "css/effectorGenes.css";
+        document.head.appendChild(link);
     },
     async mounted(){
         if (this.highlightedGene !== ""){
@@ -341,8 +350,6 @@ export default Vue.component("bulk-table", {
 });
 </script>
 <style scoped>
-@import url("/css/effectorGenes.css");
-
 label {
     margin: 10px;
 }

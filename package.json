@@ -3,6 +3,7 @@
   "version": "4.0.1",
   "private": true,
   "scripts": {
+    "start": "vue-cli-service serve",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"

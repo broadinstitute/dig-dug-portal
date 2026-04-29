@@ -5,6 +5,7 @@ import "../../css/f-layout.css";
 import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
+import { VOLCANO_DATASET_URL } from "@/utils/runtimeConfig";
 
 import * as d3 from "d3";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
@@ -141,7 +142,7 @@ new Vue({
     methods: {
         async fetchData() {
             const datasetFile =
-                process.env.VUE_APP_VOLCANO_DATASET_URL ||
+                VOLCANO_DATASET_URL ||
                 "https://bioindex-dev.hugeamp.org/api/raw/file/sysbio/volcano.csv.gz";
             const response = await fetch(datasetFile);
             const text = await response.text();

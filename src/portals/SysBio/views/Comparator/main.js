@@ -24,8 +24,9 @@ import plotUtils from "@/utils/plotUtils";
 import * as scUtils from "@/components/researchPortal/singleCellBrowser/singleCellUtils.js"
 import * as d3 from 'd3';
 import keyParams from "@/utils/keyParams";
+import { SYSBIO_HOST } from "@/utils/runtimeConfig";
 
-const BIO_INDEX_HOST = "https://sysbio.hugeampkpnbi.org";
+const BIO_INDEX_HOST = SYSBIO_HOST;
 
 
 new Vue({
