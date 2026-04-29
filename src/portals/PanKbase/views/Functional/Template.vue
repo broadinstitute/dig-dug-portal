@@ -37,16 +37,33 @@
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <div class="insulin-plot">
-                                    <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                    <time-series-line-plot v-if="$parent.timepoints.length > 0"
-                                        :plotData="$parent.insData"
-                                        :donors="$parent.filteredDonors"
-                                        :config="$parent.linePlotConfig"
-                                        :plotId="`insulin_ieq`"
-                                        :timepoints="$parent.timepoints">
-                                    </time-series-line-plot>
+                                <div class="row">
+                                    <div class="insulin-plot line-plot col-md-6">
+                                        <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
+                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                            :plotData="$parent.resultsIns"
+                                            :maxTime="$parent.maxTimeIns"
+                                            :maxScore="$parent.maxScoreIns"
+                                            :donors="$parent.filteredDonors"
+                                            :plotId="`insulin_ieq`"
+                                            :timepoints="$parent.timepoints"
+                                            :lineColor="$parent.insColor">
+                                        </time-series-line-plot>
+                                    </div>
+                                    <div class="glucagon-plot line-plot col-md-6">
+                                        <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
+                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                            :plotData="$parent.resultsGcg"
+                                            :maxTime="$parent.maxTimeGcg"
+                                            :maxScore="$parent.maxScoreGcg"
+                                            :donors="$parent.filteredDonors"
+                                            :plotId="`glucagon_ieq`"
+                                            :timepoints="$parent.timepoints"
+                                            :lineColor="$parent.gcgColor">
+                                        </time-series-line-plot>
+                                    </div>
                                 </div>
+                                
                                 <donor-metadata-table
                                     :metadata="$parent.allMetadata"
                                     :filter="filter"
@@ -105,8 +122,8 @@
 .stats {
     margin-bottom: 10px;;
 }
-.insulin-plot{
+.line-plot{
     align-items: center;
-    margin: 20px;
+    padding: 25px;
 }
 </style>

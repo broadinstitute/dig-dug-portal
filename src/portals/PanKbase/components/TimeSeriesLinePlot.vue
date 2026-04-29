@@ -5,13 +5,9 @@
             <p>Loading...</p>
         </div>
         <div class="download-images-setting">
-            <span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
-            <ul class="options" >
-              <li>
-                    <a href="javascript:;"
-                    @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">Download SVG</a>
-                </li>
-            </ul>
+            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
+              Download SVG <b-icon icon="download"></b-icon>
+            </button>
         </div>
     </div>
 </template>
@@ -25,11 +21,11 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "tightenLeft", "donors", "config", "plotId", "utils", "showLine", "timepoints"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor"],
   data() {
       return {
         chart: null,
-        chartWidth: 900,
+        chartWidth: 750,
         chartHeight: 300,
         svg: null,
         xScale: null,
@@ -37,9 +33,13 @@ export default Vue.component("time-series-line-plot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
-        allHoverFields: this.getHoverFields(),
-        hoverBoxPosition: this.config.hoverBoxPosition || "left",
+        hoverBoxPosition: "left",
         dotOutlineColor: "#00000075",
+        dotKey: "donor",
+        xField: "time",
+        yField: "score",
+        xAxisLabel: "time (min)",
+        yAxisLabel: null
       };
   },
   mounted(){
@@ -52,14 +52,21 @@ export default Vue.component("time-series-line-plot", {
       if (this.filter){
         data = data.filter(this.filter);
       }
-      if (this.donors.length > 0){
-        data = data.filter(d => this.donors.includes(d.donor));
-      }
-      return data;
+      let output = [];
+      this.donors.forEach(d => {
+        let donorData = data.filter(e => e.donor === d);
+        if (donorData.length > 0){
+          output.push(donorData);
+        }
+      });
+      return output;
     },
     availableDonors(){
-      let donorsPresent = new Set(this.chartData.map(m => m.donor));
+      let donorsPresent = new Set(this.chartData.flatMap(m => m.map(n => n.donor)));
       return donorsPresent.size;
+    },
+    allHoverFields(){
+      return [this.dotKey, this.xField, this.yField];
     },
   },
   methods: {
@@ -79,7 +86,7 @@ export default Vue.component("time-series-line-plot", {
           let conditionInfo = {};
           conditionInfo.condition = conditionStartEntry.Condition;
           conditionInfo.x = xScale(conditionStartEntry.time);
-          conditionInfo.y = yScale(this.config.yMax);
+          conditionInfo.y = yScale(this.maxScore);
           conditionInfo.width = xScale(duration);
           conditionInfo.height = yScale(0);
           conditionInfo.textPosition = xScale(middleTime);
@@ -102,14 +109,14 @@ export default Vue.component("time-series-line-plot", {
       let height = this.chartHeight - margin.top - margin.bottom;
 
       // Create scales
-      let xRange = this.config.xMax - this.config.xMin;
-      let yRange = this.config.yMax - this.config.yMin;
-      this.xMedian = (this.config.xMin + this.config.xMax) / 2;
+      this.xMedian = this.maxTime / 2;
+      let xPadding = 1.01;
+      let yPadding = 1.2;
       this.xScale = d3.scaleLinear()
-        .domain([this.config.xMin - (0.01 * xRange), this.config.xMax])
+        .domain([0, this.maxTime * xPadding])
         .range([0, width]);
       this.yScale = d3.scaleLinear()
-        .domain([this.config.yMin - (0.035 * yRange), this.config.yMax]) // wider margin because y-axis is shorter visually
+        .domain([0, this.maxScore * yPadding]) // wider margin because y-axis is shorter visually
         .range([height, 0]);
 
       this.chart.innerHTML = "";
@@ -121,14 +128,9 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
-        this.timepoints.forEach(t => console.log(JSON.stringify(t)));
-        let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
-/*       this.svg.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "blue"); */
+        //let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
+        let timepointBars = [];
+
       let even = true;
       timepointBars.forEach(t => {
         let darkgold = "#F5D627";
@@ -167,7 +169,6 @@ export default Vue.component("time-series-line-plot", {
 
       // Access the tooltip as an HTML element
       this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
-      let yFieldScaled = this.config.yField;
       
       // add X-axis
       this.svg.append("g")
@@ -179,7 +180,7 @@ export default Vue.component("time-series-line-plot", {
         .attr("text-anchor", "middle")
         .attr("y", height + margin.top + 20)
         .attr("x", width/2)
-        .text(this.config.xAxisLabel || this.config.xField);
+        .text(this.xAxisLabel || this.xField);
       
       // add Y-axis
       this.svg.append("g")
@@ -191,50 +192,25 @@ export default Vue.component("time-series-line-plot", {
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
-        .text(`${this.config.yAxisLabel || this.config.yField}`);
+        .text(`${this.yAxisLabel || this.yField}`);
 
-        const sortedData = [...this.chartData].sort(
-          (a, b) => a[this.config.xField] - b[this.config.xField]
-        );
-
-      if (this.showLine != false) {
         const lineGenerator = d3.line()
-          .x(d => this.xScale(d[this.config.xField]))
-          .y(d => this.yScale(d[this.config.yField]))
+          .x(d => this.xScale(d[this.xField]))
+          .y(d => this.yScale(d[this.yField]))
           .defined(d =>
-            d[this.config.xField] !== undefined &&
-            d[this.config.yField] !== undefined
+            d[this.xField] !== undefined &&
+            d[this.yField] !== undefined
           );
 
-        this.svg.append("path")
-          .datum(sortedData)
-          .attr("fill", "none")
-          .attr("stroke", "red")
-          .attr("stroke-width", 1)
-          .attr("class", "line-path")
-          .attr("d", lineGenerator);
-      }
-
-      // add dots
-/*       this.svg.append("g")
-        .selectAll("dot")
-        .data(this.chartData)
-        .enter()
-        .append("circle")
-          .attr("class", d => `${d[this.config.dotKey]}`)
-          .attr("cx", d => 
-            d[this.config.xField] === undefined
-              ? this.xScale(0) 
-              : this.xScale(d[this.config.xField]))
-          .attr("cy", d => 
-            d[yFieldScaled] === undefined 
-              ? this.yScale(0) // Is this an issue for log scale? 
-              : this.yScale(d[yFieldScaled]))
-          .attr("r", 3)
-          .attr("fill", "red")
-          .attr("stroke", this.dotOutlineColor)
-          .on("mouseover", (g) =>
-              this.hoverDot(JSON.stringify(g)));    */        
+        this.chartData.forEach(c => 
+          this.svg.append("path")
+            .datum(c)
+            .attr("fill", "none")
+            .attr("stroke", this.lineColor)
+            .attr("stroke-width", 1)
+            .attr("class", "line-path")
+            .attr("d", lineGenerator)
+        );
     },
     hoverDot(dotString) {
       this.unHoverDot();
@@ -262,23 +238,21 @@ export default Vue.component("time-series-line-plot", {
     dotHoverLeft(dotString){
       let dot = JSON.parse(dotString);
       return this.hoverBoxPosition === "both"
-        ? dot[this.config.xField] > this.xMedian 
+        ? dot[this.xField] > this.xMedian 
         : this.hoverBoxPosition === "left";
     },
     getTooltipContent(dotString){
       let dot = JSON.parse(dotString);
       let tooltipText = "";
-      if (this.config.hoverFields){
-        this.config.hoverFields.forEach(field => {
-          tooltipText = tooltipText.concat(
-            `<div>${field.label}: ${
-              field.formatter === undefined
-                ? dot[field.key] 
-                : field.formatter(dot[field.key])
-            }</div>`
-          );
-        });
-      }
+      this.allHoverFields.forEach(field => {
+        tooltipText = tooltipText.concat(
+          `<div>${field.label}: ${
+            field.formatter === undefined
+              ? dot[field.key] 
+              : field.formatter(dot[field.key])
+          }</div>`
+        );
+      });
       return tooltipText;
     },
     unHoverDot() {
@@ -288,20 +262,6 @@ export default Vue.component("time-series-line-plot", {
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
       }
-    },
-    getHoverFields(){
-      let fields = [];
-      fields.push(this.config.dotKey);
-      fields.push(this.config.xField);
-      fields.push(this.config.yField);
-      if (this.config.hoverFields){
-        this.config.hoverFields.forEach(field => {
-          if (!fields.includes(field)){
-            fields.push(field);
-          }
-        });
-      }
-      return fields;
     },
     downloadImage(ID, NAME, TYPE) {
       if (TYPE == "svg") {
@@ -339,5 +299,6 @@ export default Vue.component("time-series-line-plot", {
 
   .download-images-setting {
     margin-top: -25px;
+    float: right;
   }
 </style>

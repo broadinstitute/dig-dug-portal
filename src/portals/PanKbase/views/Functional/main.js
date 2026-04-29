@@ -40,9 +40,15 @@ new Vue({
             },
             availableDonors: [],
             filteredDonors: [],
-            maxTime: null,
-            maxScore: null,
+            maxTimeIns: null,
+            maxScoreIns: null,
+            resultsIns: null,
+            maxTimeGcg: null,
+            maxScoreGcg: null,
+            resultsGcg: null,
             timepoints: [],
+            gcgColor: "#2F67B1", // colorblind safe blue from UCSB
+			insColor: "#BF2C23", // colorblind safe red from UCSB,
         };
     },
     async created() {
@@ -61,31 +67,27 @@ new Vue({
             };
             return utils;
         },
-        linePlotConfig(){
-            let config = {
-                yField: "score",
-                xMax: this.maxTime,
-                xMin: 0,
-                yMax: this.maxScore,
-                yMin: 0,
-                xField: "time",
-                xAxisLabel: "time (min)",
-                yAxisLabel: null,
-                dotKey: "donor",
-            };
-            return config;
-        },
         insData(){
+            return this.collateData(this.$store.state.ins);
+        },
+        gcgData(){
+            return this.collateData(this.$store.state.gcg);
+        }
+    },
+    methods: {
+        getDonors(donors){
+            this.filteredDonors = donors;
+        },
+        collateData(data){
             let maxTime = null;
             let maxScore = null;
             let results = [];
             let donors = this.availableDonors.filter(d =>!d.startsWith("time"));
-            let ins = this.$store.state.ins;
             donors.forEach(donor => {
-                if (!ins[0][donor]){
+                if (!data[0][donor]){
                     return;
                 }
-                ins.forEach(timePoint => {
+                data.forEach(timePoint => {
                     let donorResults = {};
                     donorResults.donor = donor;
                     donorResults.time = timePoint.time;
@@ -101,12 +103,24 @@ new Vue({
             });
             this.maxTime = maxTime;
             this.maxScore = maxScore;
-            return results;
-        },
+            let output = {
+                results: results,
+                maxTime: maxTime,
+                maxScore: maxScore
+            }
+            return output;
+        }
     },
-    methods: {
-        getDonors(donors){
-            this.filteredDonors = donors;
+    watch: {
+        insData(newData){
+            this.resultsIns = newData.results;
+            this.maxScoreIns = newData.maxScore;
+            this.maxTimeIns = newData.maxTime;
+        },
+        gcgData(newData){
+            this.resultsGcg = newData.results;
+            this.maxScoreGcg = newData.maxScore;
+            this.maxTimeGcg = newData.maxTime;
         }
     },
     render(createElement, context) {
