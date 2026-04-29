@@ -5,7 +5,7 @@
         <!-- BODY -->
         <div class="sysbio-body" style="gap:70px">
             <div class="section hero f-row grow-children align-v-center" style="gap:50px;">
-                <div class="f-col" style="gap:20px; margin-top: -100px;">
+                <div class="f-col" style="gap:20px;">
                     <div class="f-col" style="width:500px">
                         <div class="hero-title">SysBio FAIRplex</div>
                         <h4 style="line-height: 1em;">
@@ -22,9 +22,9 @@
                 <div class="f-col" style="gap:20px; align-self:flex-end; padding-bottom: 10px;">
                     <!-- <input class="hero-search" type="text" placeholder="Search gene"> -->
                     <gene-selectpicker @onGeneChange="gene => $parent.highlight(gene)">
-
                     </gene-selectpicker>
-                    <div class="f-row spread-out" style="gap:15px">
+
+                    <div class="f-row spread-out" style="display: none; gap:15px">
                         <div class="stat f-row">
                             <div class="stat-num">08</div>
                             <div class="stat-txt">AMP® Programs</div>
@@ -194,13 +194,14 @@ export default {
 
 <style scoped>
 .hero{
-    background: #eee;
-    height: 500px;
-    margin: -40px -5vw 0;
+    background: #b771c4;
+    height: 400px;
+    margin: -50px -80px 0;
     padding: 100px;
-    background-image: url('/images/sysbio/images/sysbio_hero.png');
-    background-size: cover;
-    background-position: bottom center;
+    background-image: url(/images/sysbio/images/sysbio_hero.png);
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+    background-position: bottom right;
     color: white;
 }
 .hero a{
