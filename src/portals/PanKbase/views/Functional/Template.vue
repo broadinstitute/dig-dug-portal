@@ -46,7 +46,8 @@
                                             :maxScore="$parent.maxScoreIns"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`insulin_ieq`"
-                                            :timepoints="$parent.timepoints">
+                                            :timepoints="$parent.timepoints"
+                                            lineColor="red">
                                         </time-series-line-plot>
                                     </div>
                                     <div class="glucagon-plot line-plot col-md-6">
@@ -57,7 +58,8 @@
                                             :maxScore="$parent.maxScoreGcg"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`glucagon_ieq`"
-                                            :timepoints="$parent.timepoints">
+                                            :timepoints="$parent.timepoints"
+                                            lineColor="blue">
                                         </time-series-line-plot>
                                     </div>
                                 </div>

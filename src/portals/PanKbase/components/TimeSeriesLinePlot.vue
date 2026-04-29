@@ -25,7 +25,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "showLine", "timepoints"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor"],
   data() {
       return {
         chart: null,
@@ -223,7 +223,8 @@ export default Vue.component("time-series-line-plot", {
           (a, b) => a[this.config.xField] - b[this.config.xField]
         );
 
-      if (this.showLine != false) {
+        // TODO MAKE SURE ALL LINES SHOWING UP
+        console.log("Sorted data length", sortedData.length);
         const lineGenerator = d3.line()
           .x(d => this.xScale(d[this.config.xField]))
           .y(d => this.yScale(d[this.config.yField]))
@@ -235,11 +236,10 @@ export default Vue.component("time-series-line-plot", {
         this.svg.append("path")
           .datum(sortedData)
           .attr("fill", "none")
-          .attr("stroke", "red")
+          .attr("stroke", this.lineColor)
           .attr("stroke-width", 1)
           .attr("class", "line-path")
-          .attr("d", lineGenerator);
-      }
+          .attr("d", lineGenerator);  
 
       // add dots
 /*       this.svg.append("g")
