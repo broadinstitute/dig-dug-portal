@@ -64,6 +64,7 @@ export default Vue.component("time-series-line-plot", {
   },
   methods: {
     extractTimepoints(data){
+      // This assumes all timepoints have a condition listed i.e. none are skipped.
       let points = data.sort((a,b) => a.time - b.time);
       let output = [];
       let conditionStart = 0;
@@ -71,8 +72,13 @@ export default Vue.component("time-series-line-plot", {
         let currentEntry = points[i];
         let conditionStartEntry = points[conditionStart];
         if (currentEntry.Condition !== conditionStartEntry.Condition) {
+          let conditionInfo = {};
+          conditionInfo.condition = conditionStartEntry.Condition;
+          conditionInfo.startTime = conditionStartEntry.time;
+          conditionInfo.endTime = currentEntry.time;
           let conditionRange = points.slice(conditionStart, i);
-          output.push(conditionRange);
+          output.push(conditionInfo);
+          conditionStart = i;
         } else {
           continue;
         }
@@ -98,6 +104,12 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.hideTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
+/*       this.svg.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "blue"); */
       this.tooltip = d3
         .select(`#${this.plotId}`)
         .append("div")
@@ -170,28 +182,20 @@ export default Vue.component("time-series-line-plot", {
           .attr("d", lineGenerator);
       }
       if (!!this.timepoints){
-        let timepointLines = this.extractTimepoints(this.timepoints);
-        /* const vertLine = d3.line()
-          .x(d => this.xScale(d.x))
-          .y(d => this.yScale(d.y));
+        let timepointBars = this.extractTimepoints(this.timepoints);
         let even = true;
-        timepointLines.forEach(t => {
-          let top = { x: t.time, y: this.config.yMax};
-          let bottom = { x: t.time, y: 0}
-          this.svg.append("path")
-            .datum([top, bottom])
-            .attr("stroke", "gray")
-            .attr("stroke-width", 1)
-            .attr("d", vertLine);
-          let labelHeight = even ? 0.9 : 0.8;
-          let labelText = t.Condition === undefined ? "" : `←${t.Condition}`;
-          this.svg.append("text")
-            .attr("text-anchor", "left")
-            .attr("y", this.yScale(this.config.yMax * labelHeight))
-            .attr("x", this.xScale(t.time))
-            .text(labelText);
+        for (let i = 0; i < timepointBars.length; i++){
+          let t = timepointBars[i];
+          let color = even ? "lightgray" : "gray";
+          console.log(color);
+          this.svg.append('rect')
+            .attr('x', this.xScale(t.startTime))
+            .attr('y', this.yScale(0))
+            .attr("height", this.yScale(this.config.yMax))
+            .attr("width", this.xScale(t.endTime - t.startTime))
+            .attr("fill", color);
           even = !even;
-        }); */
+        }
       }
 
 
