@@ -17,6 +17,9 @@
               </table>
             </div>
           </div>
+          <div v-else>
+            Mouse over the plot to highlight an individual donor.
+          </div>
         </div>
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
@@ -295,7 +298,7 @@ export default Vue.component("time-series-line-plot", {
 		},
     showTooltip(c){
       let donor = c[0].donor;
-      this.hoverLine(donor);
+      //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
         this.highlightedDonor = donor;
         this.drawLines();
@@ -332,7 +335,7 @@ export default Vue.component("time-series-line-plot", {
     width: 100px;
   }
   .donorLabel {
-    margin-top: 2px;
-    margin-bottom: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
 </style>
