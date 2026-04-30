@@ -1,6 +1,23 @@
 <template>
     <div>
         {{ availableDonors }} donors available
+        <div class="donorData">
+          <div v-if="donorMetadata !== null">
+            <div class="donorLabel"><strong>Highlighted donor:</strong> {{ donorMetadata.Accession }}</div>
+            <div>
+              <table>
+                <tr>
+                  <td class="leftTable"><strong>Age:</strong> {{ donorMetadata["Age (years)"] }}</td>
+                  <td><strong>Gender:</strong> {{ donorMetadata.Gender }}</td>
+                </tr>
+                <tr>
+                  <td class="leftTable"><strong>BMI:</strong> {{ donorMetadata.BMI }}</td>
+                  <td><strong>Derived diabetes status:</strong> {{ donorMetadata["Derived diabetes status"] }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
@@ -69,6 +86,12 @@ export default Vue.component("time-series-line-plot", {
     allHoverFields(){
       return [this.dotKey, this.xField, this.yField];
     },
+    donorMetadata(){
+      if (this.highlightedDonor === null){
+        return null;
+      }
+      return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
+    }
   },
   methods: {
     extractTimepoints(data, xScale, yScale){
@@ -194,8 +217,11 @@ export default Vue.component("time-series-line-plot", {
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
         .text(`${this.yAxisLabel || this.yField}`);
-
-        const lineGenerator = d3.line()
+      this.drawLines();
+    },
+    drawLines(){
+      this.svg.selectAll("path").remove();
+      const lineGenerator = d3.line()
           .x(d => this.xScale(d[this.xField]))
           .y(d => this.yScale(d[this.yField]))
           .defined(d =>
@@ -250,7 +276,7 @@ export default Vue.component("time-series-line-plot", {
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
       }
-      this.drawChart();
+      this.drawLines();
     },
     downloadImage(ID, NAME, TYPE) {
       if (TYPE == "svg") {
@@ -272,7 +298,7 @@ export default Vue.component("time-series-line-plot", {
       this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
         this.highlightedDonor = donor;
-        this.drawChart();
+        this.drawLines();
       }
     }
   },
@@ -297,5 +323,16 @@ export default Vue.component("time-series-line-plot", {
   .download-images-setting {
     margin-top: -25px;
     float: right;
+  }
+  .donorData{
+    height: 100px;
+    display: block;
+  }
+  .leftTable {
+    width: 100px;
+  }
+  .donorLabel {
+    margin-top: 2px;
+    margin-bottom: 2px;
   }
 </style>
