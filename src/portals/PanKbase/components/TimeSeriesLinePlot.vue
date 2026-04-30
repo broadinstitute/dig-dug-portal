@@ -247,12 +247,12 @@ export default Vue.component("time-series-line-plot", {
         .style("opacity", 1)
         .html(donor);
 
-      let leftOffset = this.tooltipElement.clientWidth;
-      xcoord = xcoord - leftOffset - 20;
+      //let leftOffset = this.tooltipElement.clientWidth;
+      //xcoord = xcoord - leftOffset - 20;
       
       this.tooltip
         .style("left", `${xcoord}px`)
-        .style("top", `${ycoord}px`);
+        .style("top", `${ycoord + 30}px`);
     },
     dotHoverLeft(dotString){
       let dot = JSON.parse(dotString);
