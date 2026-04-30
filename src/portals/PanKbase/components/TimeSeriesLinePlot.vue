@@ -126,7 +126,7 @@ export default Vue.component("time-series-line-plot", {
           .attr("width", width + margin.left + margin.right)
           .attr("height", height + margin.top + margin.bottom)
           .attr("id", `chart_${this.plotId}`)
-          .on("mouseleave", () => this.hideTooltip())
+          .on("mouseleave", () => this.resetTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
         //let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
@@ -244,7 +244,7 @@ export default Vue.component("time-series-line-plot", {
         .style("left", `${xcoord}px`)
         .style("top", `${ycoord + 30}px`);
     },
-    hideTooltip(){
+    resetTooltip(){
       this.highlightedDonor === null;
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
@@ -268,10 +268,9 @@ export default Vue.component("time-series-line-plot", {
     showTooltip(c){
       let donor = c[0].donor;
       this.hoverLine(donor);
-      console.log(donor);
       if (this.highlightedDonor !== donor){
-        this.drawChart();
         this.highlightedDonor = donor;
+        this.drawChart();
       }
     }
   },
