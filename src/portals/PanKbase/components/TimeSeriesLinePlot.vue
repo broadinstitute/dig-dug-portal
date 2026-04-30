@@ -210,6 +210,7 @@ export default Vue.component("time-series-line-plot", {
             .attr("stroke-width", 1)
             .attr("class", "line-path")
             .attr("d", lineGenerator)
+            .on("mouseover", c => this.showTooltip(c))
         );
     },
     hoverDot(dotString) {
@@ -231,6 +232,24 @@ export default Vue.component("time-series-line-plot", {
       } else {
         xcoord = xcoord + 20;
       }
+      this.tooltip
+        .style("left", `${xcoord}px`)
+        .style("top", `${ycoord}px`);
+    },
+    hoverLine(donor) {
+      this.unHoverDot();
+
+      let xcoord = d3.event.layerX;
+      let ycoord = d3.event.layerY;
+
+      // Tooltip content
+      this.tooltip
+        .style("opacity", 1)
+        .html(donor);
+
+      let leftOffset = this.tooltipElement.clientWidth;
+      xcoord = xcoord - leftOffset - 20;
+      
       this.tooltip
         .style("left", `${xcoord}px`)
         .style("top", `${ycoord}px`);
@@ -278,6 +297,11 @@ export default Vue.component("time-series-line-plot", {
 			}
       this.drawChart();
 		},
+    showTooltip(c){
+      let donor = c[0].donor;
+      this.hoverLine(donor);
+      console.log(donor);
+    }
   },
   watch: {
     chartData(){
