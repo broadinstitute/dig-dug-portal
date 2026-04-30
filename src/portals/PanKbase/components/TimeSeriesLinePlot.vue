@@ -213,31 +213,8 @@ export default Vue.component("time-series-line-plot", {
             .on("mouseover", c => this.showTooltip(c))
         );
     },
-    hoverDot(dotString) {
-      this.unHoverDot();
-
-      let xcoord = d3.event.layerX;
-      let ycoord = d3.event.layerY;
-
-      // Tooltip content
-      this.tooltip
-        .style("opacity", 1)
-        .html(this.getTooltipContent(dotString));
-
-      let leftOffset = this.tooltipElement.clientWidth;
-      let hoverLeft = this.dotHoverLeft(dotString);
-
-      if (hoverLeft){
-        xcoord = xcoord - leftOffset - 20;
-      } else {
-        xcoord = xcoord + 20;
-      }
-      this.tooltip
-        .style("left", `${xcoord}px`)
-        .style("top", `${ycoord}px`);
-    },
     hoverLine(donor) {
-      this.unHoverDot();
+      this.hideTooltip();
 
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
@@ -259,23 +236,6 @@ export default Vue.component("time-series-line-plot", {
       return this.hoverBoxPosition === "both"
         ? dot[this.xField] > this.xMedian 
         : this.hoverBoxPosition === "left";
-    },
-    getTooltipContent(dotString){
-      let dot = JSON.parse(dotString);
-      let tooltipText = "";
-      this.allHoverFields.forEach(field => {
-        tooltipText = tooltipText.concat(
-          `<div>${field.label}: ${
-            field.formatter === undefined
-              ? dot[field.key] 
-              : field.formatter(dot[field.key])
-          }</div>`
-        );
-      });
-      return tooltipText;
-    },
-    unHoverDot() {
-      this.hideTooltip();
     },
     hideTooltip(){
       if (!!this.tooltip){
