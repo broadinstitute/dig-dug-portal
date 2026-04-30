@@ -1,6 +1,6 @@
 <template>
     <div>
-        {{ availableDonors }} donors available
+        {{ availableDonors }} donors available meeting criteria
         <div class="donorData">
           <div v-if="donorMetadata !== null">
             <div class="donorLabel"><strong>Highlighted donor:</strong> {{ donorMetadata.Accession }}</div>
@@ -47,6 +47,7 @@ export default Vue.component("time-series-line-plot", {
         chart: null,
         chartWidth: 750,
         chartHeight: 300,
+        innerHeight: null,
         svg: null,
         xScale: null,
         yScale: null,
@@ -60,6 +61,7 @@ export default Vue.component("time-series-line-plot", {
         yField: "score",
         xAxisLabel: "time (min)",
         yAxisLabel: null,
+        axesDrawn: false,
         highlightedDonor: null,
       };
   },
@@ -134,6 +136,7 @@ export default Vue.component("time-series-line-plot", {
       };
       let width = this.chartWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
+      this.innerHeight = height;
 
       // Create scales
       this.xMedian = this.maxTime / 2;
@@ -194,36 +197,43 @@ export default Vue.component("time-series-line-plot", {
         .style("border-radius", "5px")
         .style("font-size", "smaller");
 
-      // Access the tooltip as an HTML element
-      this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
-      
-      // add X-axis
-      this.svg.append("g")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(this.xScale))
-          .selectAll("text")
-            .style("font-size", "13px");
+      //Labels
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("y", height + margin.top + 20)
         .attr("x", width/2)
         .text(this.xAxisLabel || this.xField);
-      
-      // add Y-axis
-      this.svg.append("g")
-        .call(d3.axisLeft(this.yScale))
-          .selectAll("text")
-            .style("font-size", "13px");
       this.svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
         .attr("y", -margin.left + 15)
         .attr("x", - height / 2)
         .text(`${this.yAxisLabel || this.yField}`);
+      
+
+      // Access the tooltip as an HTML element
+      this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
       this.drawLines();
+      this.drawAxes();
+    },
+    drawAxes(){
+      // add X-axis
+      let xAxis = this.svg.append("g")
+        .attr("transform", `translate(0,${this.innerHeight})`)
+        .attr("stroke-width", 1)
+        .call(d3.axisBottom(this.xScale))
+          .selectAll("text")
+          .style("font-size", "13px");
+      
+      this.axesDrawn = true;
+      // add Y-axis
+      this.svg.append("g")
+        .call(d3.axisLeft(this.yScale))
+          .selectAll("text")
+            .style("font-size", "13px");
     },
     drawLines(){
-      this.svg.selectAll("path").remove();
+      this.svg.selectAll("path.line-path").remove();
       const lineGenerator = d3.line()
           .x(d => this.xScale(d[this.xField]))
           .y(d => this.yScale(d[this.yField]))
@@ -239,6 +249,7 @@ export default Vue.component("time-series-line-plot", {
           } else {
             this.svg.append("path")
             .datum(c)
+            .attr("class", "linegraph")
             .attr("fill", "none")
             .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
             .attr("stroke-width", 1)
@@ -251,6 +262,7 @@ export default Vue.component("time-series-line-plot", {
         if (highlightedDonorData !== null){
           this.svg.append("path")
             .datum(highlightedDonorData)
+            .attr("class", "linegraph")
             .attr("fill", "none")
             .attr("stroke", this.lineColor)
             .attr("stroke-width", 2)
@@ -274,7 +286,6 @@ export default Vue.component("time-series-line-plot", {
         .style("top", `${ycoord + 30}px`);
     },
     resetTooltip(){
-      console.log("Resetting!");
       this.highlightedDonor = null;
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
