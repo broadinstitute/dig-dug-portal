@@ -39,7 +39,8 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        yAxisLabel: null
+        yAxisLabel: null,
+        highlightedDonor: null,
       };
   },
   mounted(){
@@ -202,19 +203,34 @@ export default Vue.component("time-series-line-plot", {
             d[this.yField] !== undefined
           );
 
-        this.chartData.forEach(c => 
-          this.svg.append("path")
+        let highlightedDonorData = null;
+        this.chartData.forEach(c => {
+          if (c[0].donor === this.highlightedDonor){
+            highlightedDonorData = c;
+          } else {
+            this.svg.append("path")
             .datum(c)
             .attr("fill", "none")
-            .attr("stroke", this.lineColor)
+            .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
             .attr("stroke-width", 1)
             .attr("class", "line-path")
             .attr("d", lineGenerator)
+            .on("mouseover", c => this.showTooltip(c));
+          }
+        });
+        // Put highlighted line on top
+        if (highlightedDonorData !== null){
+          this.svg.append("path")
+            .datum(highlightedDonorData)
+            .attr("fill", "none")
+            .attr("stroke", this.lineColor)
+            .attr("stroke-width", 2)
+            .attr("class", "line-path")
+            .attr("d", lineGenerator)
             .on("mouseover", c => this.showTooltip(c))
-        );
+        }
     },
     hoverLine(donor) {
-      this.hideTooltip();
 
       let xcoord = d3.event.layerX;
       let ycoord = d3.event.layerY;
@@ -223,21 +239,13 @@ export default Vue.component("time-series-line-plot", {
       this.tooltip
         .style("opacity", 1)
         .html(donor);
-
-      //let leftOffset = this.tooltipElement.clientWidth;
-      //xcoord = xcoord - leftOffset - 20;
       
       this.tooltip
         .style("left", `${xcoord}px`)
         .style("top", `${ycoord + 30}px`);
     },
-    dotHoverLeft(dotString){
-      let dot = JSON.parse(dotString);
-      return this.hoverBoxPosition === "both"
-        ? dot[this.xField] > this.xMedian 
-        : this.hoverBoxPosition === "left";
-    },
     hideTooltip(){
+      this.highlightedDonor === null;
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
       }
@@ -261,6 +269,10 @@ export default Vue.component("time-series-line-plot", {
       let donor = c[0].donor;
       this.hoverLine(donor);
       console.log(donor);
+      if (this.highlightedDonor !== donor){
+        this.drawChart();
+        this.highlightedDonor = donor;
+      }
     }
   },
   watch: {
