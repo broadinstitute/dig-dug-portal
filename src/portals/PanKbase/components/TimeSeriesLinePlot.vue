@@ -245,10 +245,12 @@ export default Vue.component("time-series-line-plot", {
         .style("top", `${ycoord + 30}px`);
     },
     resetTooltip(){
-      this.highlightedDonor === null;
+      console.log("Resetting!");
+      this.highlightedDonor = null;
       if (!!this.tooltip){
         this.tooltip.style("opacity", 0);
       }
+      this.drawChart();
     },
     downloadImage(ID, NAME, TYPE) {
       if (TYPE == "svg") {
