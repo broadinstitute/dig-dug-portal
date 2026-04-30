@@ -28,6 +28,11 @@
                             >
                                 <div class="label">Gender</div>
                             </filter-enumeration-control>
+                            <filter-greater-less
+                                :field="'Age (years)'"
+                                :label="'Age'">
+                                <div class="label">Age</div>
+                            </filter-greater-less>
                             <filter-enumeration-control
                                 :field="'Derived diabetes status'"
                                 :options="
@@ -36,6 +41,11 @@
                             >
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
+                            <filter-greater-less
+                                :field="'BMI'"
+                                :label="'BMI'">
+                                <div class="label">BMI</div>
+                            </filter-greater-less>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
                                     <div class="insulin-plot line-plot col-md-6">

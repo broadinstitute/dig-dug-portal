@@ -11,6 +11,9 @@ import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import keyParams from "@/utils/keyParams";
@@ -26,6 +29,9 @@ new Vue({
         ResearchSingleSearch,
         CriterionFunctionGroup,
         FilterEnumeration,
+        FilterGreaterThan,
+        FilterLessThan,
+        FilterGreaterLess,
         DonorMetadataTable,
         TimeSeriesLinePlot
     },
