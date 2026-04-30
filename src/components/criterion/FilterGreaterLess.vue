@@ -62,5 +62,7 @@ export default Vue.component("filter-greater-less", {
 select.form-control {
     display: inline-block;
     width: auto;
+    vertical-align: bottom;
+    margin-bottom: 5px;
 }
 </style>
