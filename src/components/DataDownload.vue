@@ -1,5 +1,5 @@
 <template>
-    <b-dropdown variant="secondary" right size="sm" text="Download data">
+    <b-dropdown variant="secondary" right size="sm" :text="`${label || 'Download data'}`">
         <b-dropdown-text>Save file as</b-dropdown-text>
         <b-dropdown-divider></b-dropdown-divider>
         <b-dropdown-item @click="downloadCsv()">CSV</b-dropdown-item>
@@ -23,6 +23,10 @@ export default Vue.component("DataDownload", {
             type: String,
             required: false,
             default: "data",
+        },
+        label: {
+            type: String,
+            required: false
         },
         flatten: {
             type: Boolean,
