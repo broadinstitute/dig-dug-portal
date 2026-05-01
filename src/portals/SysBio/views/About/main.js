@@ -36,7 +36,11 @@ new Vue({
                 glossary: true,
                 ampdata: true,
                 team: true
-            }
+            },
+            membershipLeadingSpace: " Membership",
+            dataPoints: [],
+            teamSections: [],
+            fallbackMembership: "FAIRplex Team"
         };
     },
 
@@ -54,7 +58,7 @@ new Vue({
         },
         showData(){
             return this.showDataPoints[this.keyParamsPage] || false;
-        }
+        },
     },
 
     mounted() {
@@ -68,14 +72,29 @@ new Vue({
 
     methods: {
         ...dataConvert,
-        csv2Json(DATA) {
-            return dataConvert.csv2Json(DATA);
-        },
         async getContent(page){
             let byorPage = this.pages[page];
             let pageContent = await getTextContent(byorPage, false, true);
             this.pageContent = pageContent;
-        }
+            if (!!pageContent.field_data_points){
+                let dataPoints = dataConvert.csv2Json(pageContent.field_data_points);
+                let sections = Array.from(new Set (dataPoints.map(
+                    d => !!d[this.membershipLeadingSpace] ? d[this.membershipLeadingSpace] : d.Membership)));
+                sections = sections.filter(d => d !== undefined);
+                if (sections.length > 0){
+                    dataPoints.forEach(d => {
+                        let membership = !!d[this.membershipLeadingSpace] ? d[this.membershipLeadingSpace] : d.Membership;
+                        if (membership === undefined){
+                            membership = this.fallbackMembership;
+                        }
+                        d.Membership = membership.trim();
+                        delete d[this.membershipLeadingSpace];
+                    });
+                    this.teamSections = sections.map(s => s.trim());
+                }
+                this.dataPoints = dataPoints;
+            }
+        },
     },
 
     render(createElement, context) {
