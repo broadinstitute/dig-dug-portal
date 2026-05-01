@@ -7,6 +7,7 @@
               <data-download
                   :data="bulkData"
                   filename="bulk_gene"
+                  label="Download summary statistics"
               ></data-download>
           </div>
           <div class="show-inline">

@@ -6,21 +6,34 @@
         <div class="sysbio-body" v-if="!!$parent.pageContent">
             <h2 class="static-header">{{ $parent.pageContent.title }}</h2>
             <div v-if="!$parent.showData" v-html="$parent.pageContent.body"  class="static-content"></div>
-            <div v-else-if="$parent.keyParamsPage == 'team'" class="static-content">
-                
-                <template v-for="(member,mIndex) in $parent.csv2Json($parent.pageContent.field_data_points)">
-                    <div class="sysbio-team-member">
-                        <div class="member-photo"><img :src="member.Photo" /></div>
-                        <div class="member-name">{{ member.Name }}</div>
-                        <div class="member-affiliation">{{ member.Affiliation }}</div>
+            <div v-else-if="$parent.keyParamsPage === 'team'" class="static-content">
+                <div v-if="$parent.teamSections.length > 0">
+                    <div v-for="section in $parent.teamSections" class="team-section">
+                        <h3>{{ section }}</h3>
+                        <template v-for="member in $parent.dataPoints.filter(d => d.Membership === section)">
+                            <div class="sysbio-team-member">
+                                <div class="member-photo"><img :src="member.Photo" /></div>
+                                <div class="member-name">{{ member.Name }}</div>
+                                <div class="member-affiliation">{{ member.Affiliation }}</div>
+                            </div>
+                        </template>
                     </div>
-                </template>
+                </div>
+                <div v-else>
+                    <template v-for="(member,mIndex) in $parent.dataPoints">
+                        <div class="sysbio-team-member">
+                            <div class="member-photo"><img :src="member.Photo" /></div>
+                            <div class="member-name">{{ member.Name }}</div>
+                            <div class="member-affiliation">{{ member.Affiliation }}</div>
+                        </div>
+                    </template>
+                </div>
             </div>
             <div v-else>
                 <div v-html="$parent.pageContent.body" class="static-content"></div>
                 <b-table
                     small
-                    :items="$parent.csv2Json($parent.pageContent.field_data_points)">
+                    :items="$parent.dataPoints">
                 </b-table>
             </div>
         </div>
@@ -72,7 +85,8 @@ export default {
     font-weight: bold;
     margin-top: 15px;
 }
-
-
+.team-section {
+    margin-bottom: 50px;
+}
 
 </style>

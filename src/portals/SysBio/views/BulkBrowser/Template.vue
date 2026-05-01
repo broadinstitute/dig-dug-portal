@@ -26,7 +26,7 @@
                                             <option value="">Select a comparison</option>
                                             <option v-for="amp in $parent.amps"
                                                 :value="amp">
-                                                {{ amp }}
+                                                {{ amp.replaceAll("ROSMAP", "AD") }}
                                             </option>
                                         </select>
                                     </div>
