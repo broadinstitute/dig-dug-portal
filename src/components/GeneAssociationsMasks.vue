@@ -12,8 +12,8 @@
                 <b-col class="top-level-header-item" cols="2">pValue</b-col>
                 <b-col class="top-level-header-item" cols="2">Beta</b-col>
                 <b-col class="top-level-header-item" :cols="`${showPmid ? '1' : '2'}`">Odds Ratio</b-col>
-                <b-col v-if="showStudy">Study</b-col>
-                <b-col v-if="showPmid">PMID</b-col>
+                <b-col class="top-level-header-item" cols="1" v-if="showStudy">Study</b-col>
+                <b-col class="top-level-header-item" cols="1" v-if="showPmid">PMID</b-col>
                 <b-col class="top-level-header-item" :cols="`${showStudy ? '1' : '2'}`">View</b-col>
                 <b-col class="top-level-header-item" cols="1"
                     >CFDE Gene Sets</b-col
@@ -72,8 +72,8 @@
                             }}</span>
                         </template>
                     </b-col>
-                    <b-col v-if="showStudy">{{row.study}}</b-col>
-                    <b-col v-if="showPmid">{{ row.pmid }}</b-col>
+                    <b-col class="top-level-value-item" cols="1" v-if="showStudy">{{row.study}}</b-col>
+                    <b-col class="top-level-value-item" cols="1" v-if="showPmid">{{ row.pmid }}</b-col>
                     <b-col class="top-level-value-item" :cols="`${showStudy ? '1' : '2'}`">
                         <b-button
                             :disabled="!row.masks.length"
