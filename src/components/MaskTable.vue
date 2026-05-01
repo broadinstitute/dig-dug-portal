@@ -72,7 +72,7 @@
                         {{ mask.study }}
                     </b-col>
                     <b-col v-if="showPmid">
-                        <a href="http://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}" target="_blank">${{mask.pmid}}</a>
+                         {{ mask.pmid }}
                     </b-col>
                 </b-row>
             </template>

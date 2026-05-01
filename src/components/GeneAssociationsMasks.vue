@@ -11,8 +11,10 @@
                 <b-col class="top-level-header-item" cols="3">Phenotype</b-col>
                 <b-col class="top-level-header-item" cols="2">pValue</b-col>
                 <b-col class="top-level-header-item" cols="2">Beta</b-col>
-                <b-col class="top-level-header-item" cols="2">Odds Ratio</b-col>
-                <b-col class="top-level-header-item" cols="2">View</b-col>
+                <b-col class="top-level-header-item" :cols="`${showPmid ? '1' : '2'}`">Odds Ratio</b-col>
+                <b-col v-if="showStudy">Study</b-col>
+                <b-col v-if="showPmid">PMID</b-col>
+                <b-col class="top-level-header-item" :cols="`${showStudy ? '1' : '2'}`">View</b-col>
                 <b-col class="top-level-header-item" cols="1"
                     >CFDE Gene Sets</b-col
                 >
@@ -49,7 +51,7 @@
                             <span>{{ effectFormatter(row.beta) }}</span>
                         </template>
                     </b-col>
-                    <b-col class="top-level-value-item beta" cols="2">
+                    <b-col class="top-level-value-item beta" :cols="`${showPmid ? '1' : '2'}`">
                         <template
                             v-if="!!phenotypeMap[row.phenotype].dichotomous"
                         >
@@ -70,7 +72,9 @@
                             }}</span>
                         </template>
                     </b-col>
-                    <b-col class="top-level-value-item" cols="2">
+                    <b-col v-if="showStudy">{{row.study}}</b-col>
+                    <b-col v-if="showPmid">{{ row.pmid }}</b-col>
+                    <b-col class="top-level-value-item" :cols="`${showStudy ? '1' : '2'}`">
                         <b-button
                             :disabled="!row.masks.length"
                             class="view-features-btn"
@@ -357,6 +361,8 @@ export default Vue.component("GeneAssociationsMasks", {
             geneSetDataByRow: {},
             geneSetSubtablePerPage: 10,
             geneSetSubtablePageByRow: {},
+            showStudy: false,
+            showPmid: false
         };
     },
     computed: {
@@ -386,6 +392,25 @@ export default Vue.component("GeneAssociationsMasks", {
             const topRows = GENE_SET_TABLE_FORMAT["top rows"] || [];
             return topRows.map((key) => ({ key, label: key }));
         },
+    },
+    watch: {
+        paginatedAssociations(newData){
+            let showStudy = false;
+            let showPmid = false;
+            for (let i = 0; i < newData.length; i++){
+                if (!!newData[i].study){
+                    showStudy = true;
+                }
+                if (!!newData[i].pmid){
+                    showPmid = true;
+                }
+                if (showStudy && showPmid){
+                    break;
+                }
+            }
+            this.showStudy = showStudy;
+            this.showPmid = showPmid;
+        }
     },
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
