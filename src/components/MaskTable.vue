@@ -16,8 +16,8 @@
                     >Beta</b-col
                 >
                 <b-col v-else class="feature-header-item">Odds Ratio</b-col>
-                <b-col v-if="showStudy">Study</b-col>
-                <b-col v-if="showPmid">PMID</b-col>
+                <b-col v-if="showStudy" class="feature-header-item">Study</b-col>
+                <b-col v-if="showPmid" class="feature-header-item">PMID</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
                 <b-row
@@ -68,10 +68,10 @@
                         >
                         {{ effectFormatter(Math.exp(mask.beta)) }}
                     </b-col>
-                    <b-col v-if="showStudy">
+                    <b-col v-if="showStudy" class="feature-content-item">
                         {{ mask.study }}
                     </b-col>
-                    <b-col v-if="showPmid">
+                    <b-col v-if="showPmid" class="feature-content-item">
                          {{ mask.pmid }}
                     </b-col>
                 </b-row>
