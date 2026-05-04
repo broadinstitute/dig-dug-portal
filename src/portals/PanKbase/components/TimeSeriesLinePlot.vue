@@ -141,7 +141,7 @@ export default Vue.component("time-series-line-plot", {
       // Create scales
       this.xMedian = this.maxTime / 2;
       let xPadding = 1.01;
-      let yPadding = 1.2;
+      let yPadding = 1.05;
       this.xScale = d3.scaleLinear()
         .domain([0, this.maxTime * xPadding])
         .range([0, width]);
@@ -163,26 +163,29 @@ export default Vue.component("time-series-line-plot", {
         //timepointBars = [];
 
       let even = true;
+      let colors = ["lightblue", "lightcoral", "lightgreen", "lightpink", "lemonchiffon", "lightcyan"]
+      let colorIndex = 0;
       timepointBars.forEach(t => {
-        let darkgold = "#F5D627";
-        let gold = "#F8E163";
-        let lightgold = "#FAEA8F"
-        let palegold = "#FCF2BB"
+        let basal = this.isBasal(t.condition);
         this.svg.append("rect")
           .attr("x", t.x)
           .attr("y", t.y)
           .attr("width", t.width)
-          .attr("height", t.height - t.y)
-          .attr("fill", this.isBasal(t.condition) ? "none" : palegold);
-        even = !even;
+          .attr("height", !basal ? t.height : 0.05 * t.height)
+          .attr("fill", basal ? "lightgray" : colors[colorIndex]);
+        if (!basal){
+          colorIndex = colorIndex + 1;
+        }
       });
       // Separate loop to put text on top of bg
       timepointBars.forEach(t => {
         this.svg.append("text")
-          .attr("text-anchor", "middle")
-          .attr("y", t.height * (this.isBasal(t.condition) ? 0.3 : 0.2))
-          .attr("x", t.textPosition)
-          .text(this.isBasal(t.condition) ? "Basal" : t.condition);
+          .attr("text-anchor", "start")
+          .attr("y", t.height * (!this.isBasal(t.condition) ? 0.15 : 0.05))
+          .attr("x", t.x)
+          .attr("font-size", "smaller")
+          .text(this.isBasal(t.condition) ? t.condition.replaceAll("Secretion", "Secr.") 
+            : t.condition.replaceAll("phase", "ph."));
       });
       this.tooltip = d3
         .select(`#${this.plotId}`)
