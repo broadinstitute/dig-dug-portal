@@ -213,7 +213,7 @@
                     Accelerating Medicines Partnership<sup>®</sup>
                     (AMP<sup>®</sup>) Programs
                 </h2>
-                <div>Learn more about the AMP<sup>®</sup> Programs</div>
+                <div>FAIRplex provides cross-program summary-level analyses and visualizations from harmonized data from the AMP<sup>®</sup> programs, which are managed through the Foundation for the National Institutes of Health (FNIH). See the AMP<sup>®</sup> programs below.</div>
                 <div class="section-body">
                     <div class="section-items f-row">
                         <div
@@ -224,6 +224,7 @@
                             <div class="item-copy">
                                 <div class="item-title">{{ item.title }}</div>
                                 <div class="item-body" v-html="item.body"></div>
+                                <!--
                                 <a
                                     class="item-btn"
                                     role="button"
@@ -231,6 +232,7 @@
                                     style="margin-top: auto"
                                     >{{ item.linkLabel }} ❯</a
                                 >
+                                -->
                             </div>
                             <div class="item-bg contain">
                                 <img :src="item.bgImage" />
