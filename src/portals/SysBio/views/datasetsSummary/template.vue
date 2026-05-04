@@ -92,12 +92,15 @@ import * as d3 from "d3";
 
 const PIE_FIELDS = ["case_control", "ethnicity", "sex"];
 const BAR_FIELDS = ["disease", "race"];
+const MIN_RENDER_COUNT = 20;
 const CHART_WIDTH = 330;
-const THEME_COLORS = ["#EE4097", "#0000C6", "#00BFFF"];
+/** Dedicated palette for pie-category colors (kept distinct from program colors). */
+const PIE_CATEGORY_COLORS = ["#F57C00", "#7CB342", "#8E24AA", "#FB8C00", "#26A69A", "#5C6BC0", "#6D4C41", "#FF7043"];
 /** Distinct colors for programs in bar charts (no blue shades). */
-const PROGRAM_COLORS = ["#EE4097", "#0000C6", "#00BFFF", "#2E7D32", "#F9A825", "#6A1B9A", "#C62828", "#00838F"];
+const PROGRAM_COLORS = ["#EE4097", "#0000C6", "#00BFFF", "#795548", "#F9A825", "#6A1B9A", "#C62828", "#00838F"];
 const ANIMATION_DURATION = 500;
 const ANIMATION_DELAY_STAGGER = 40;
+const UNKNOWN_LABEL = "unknown";
 
 export default {
     name: "DatasetsSummary",
@@ -169,6 +172,32 @@ export default {
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase());
         },
+        /** Match category labels meaning "unknown" (case/spacing/typos; strip non-letters for robustness). */
+        isUnknownCategory(name) {
+            const lettersOnly = String(name || "")
+                .normalize("NFKC")
+                .replace(/[\uFEFF\u200B-\u200D\u2060]/g, "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z]/g, "");
+            return lettersOnly === UNKNOWN_LABEL || lettersOnly === "unknow";
+        },
+        sortCategoryNames(a, b) {
+            const aUnknown = this.isUnknownCategory(a);
+            const bUnknown = this.isUnknownCategory(b);
+            if (aUnknown && !bUnknown) return 1;
+            if (!aUnknown && bUnknown) return -1;
+            return String(a).localeCompare(String(b));
+        },
+        filterUnknownCategories(counts) {
+            if (!counts || typeof counts !== "object") return {};
+            const out = {};
+            Object.entries(counts).forEach(([category, value]) => {
+                if (this.isUnknownCategory(category)) return;
+                out[category] = value;
+            });
+            return out;
+        },
         aggregateProgramData(convertedData, programKeys) {
             if (!convertedData || !programKeys.length) return null;
             const out = {};
@@ -183,6 +212,23 @@ export default {
                     }
                 }
             }
+            Object.keys(out).forEach((field) => {
+                Object.keys(out[field]).forEach((category) => {
+                    if ((Number(out[field][category]) || 0) < MIN_RENDER_COUNT) {
+                        delete out[field][category];
+                    }
+                });
+                if (!Object.keys(out[field]).length) delete out[field];
+                else {
+                    const ordered = {};
+                    Object.keys(out[field])
+                        .sort((a, b) => this.sortCategoryNames(a, b))
+                        .forEach((category) => {
+                            ordered[category] = out[field][category];
+                        });
+                    out[field] = ordered;
+                }
+            });
             return Object.keys(out).length ? out : null;
         },
         getSmallChartsConfig(fieldName) {
@@ -192,14 +238,14 @@ export default {
                 const programCounts = this.convertedData[program] && this.convertedData[program][fieldName]
                     ? this.convertedData[program][fieldName]
                     : {};
-                items.push({ key: program, label: program, data: programCounts });
+                items.push({ key: program, label: program, data: this.filterUnknownCategories(programCounts) });
             }
             return items;
         },
         /** True if the small-chart item has at least one positive count to render. */
         hasDataForSmallChart(item) {
             if (!item || typeof item.data !== "object") return false;
-            return Object.values(item.data).some((v) => Number(v) > 0);
+            return Object.values(item.data).some((v) => Number(v) >= MIN_RENDER_COUNT);
         },
         /** Categories in a bar field that have contributions from 2+ programs. Used for vertical breakdown charts. */
         getBarCategoriesWithMultiplePrograms(fieldName) {
@@ -207,12 +253,17 @@ export default {
             if (!breakdown || !breakdown[fieldName] || !this.selectedProgramKeys.length) return [];
             const items = [];
             Object.entries(breakdown[fieldName]).forEach(([category, byProgram]) => {
+                if (this.isUnknownCategory(category)) return;
                 const contributing = this.selectedProgramKeys.filter((p) => (Number(byProgram[p]) || 0) > 0);
-                if (contributing.length >= 2) {
+                const categoryTotal = this.selectedProgramKeys.reduce(
+                    (sum, p) => sum + (Number(byProgram[p]) || 0),
+                    0
+                );
+                if (contributing.length >= 2 && categoryTotal >= MIN_RENDER_COUNT) {
                     items.push({ category, byProgram });
                 }
             });
-            return items.sort((a, b) => a.category.localeCompare(b.category));
+            return items.sort((a, b) => this.sortCategoryNames(a.category, b.category));
         },
         /** Sorted list of all category names for a field (combined + every program). Used so pie colors are consistent across charts. */
         getPieCategoryDomain(fieldName) {
@@ -227,9 +278,9 @@ export default {
                     if (fieldData) Object.keys(fieldData).forEach((k) => set.add(k));
                 });
             }
-            return [...set].sort();
+            return [...set].sort((a, b) => this.sortCategoryNames(a, b));
         },
-        getProgramShades(numPrograms, baseColor = THEME_COLORS[0]) {
+        getProgramShades(numPrograms, baseColor = PROGRAM_COLORS[0]) {
             if (numPrograms <= 0) return [];
             return d3.range(numPrograms).map((i) =>
                 d3.interpolateRgb("#f0f0f0", baseColor)((i + 1) / (numPrograms + 1))
@@ -278,13 +329,14 @@ export default {
             d3.select(el).selectAll("*").remove();
             const entries = Object.entries(counts || {})
                 .map(([name, value]) => ({ name, value: Number(value) }))
-                .filter((d) => d.value > 0);
+                .filter((d) => d.value >= MIN_RENDER_COUNT)
+                .sort((a, b) => this.sortCategoryNames(a.name, b.name));
             if (entries.length === 0) return;
 
             const domain = categoryDomain && categoryDomain.length
                 ? categoryDomain
                 : [...new Set(entries.map((d) => d.name))].sort();
-            const colorScale = d3.scaleOrdinal().domain(domain).range(THEME_COLORS);
+            const colorScale = d3.scaleOrdinal().domain(domain).range(PIE_CATEGORY_COLORS);
             const pie = d3.pie().value((d) => d.value).sort(null);
             const slices = pie(entries);
 
@@ -363,13 +415,20 @@ export default {
                         total += n;
                     });
                     row.total = total;
-                    if (total > 0) byCategory[category] = row;
+                    if (total >= MIN_RENDER_COUNT) byCategory[category] = row;
                 });
-                entries = Object.values(byCategory).sort((a, b) => b.total - a.total);
+                entries = Object.values(byCategory).sort((a, b) => {
+                    const aUnknown = this.isUnknownCategory(a.name);
+                    const bUnknown = this.isUnknownCategory(b.name);
+                    if (aUnknown && !bUnknown) return 1;
+                    if (!aUnknown && bUnknown) return -1;
+                    return b.total - a.total;
+                });
             } else {
                 entries = Object.entries(counts || {})
                     .map(([name, value]) => ({ name, value: Number(value), total: Number(value) }))
-                    .filter((d) => d.value > 0);
+                    .filter((d) => d.value >= MIN_RENDER_COUNT)
+                    .sort((a, b) => this.sortCategoryNames(a.name, b.name));
             }
             if (entries.length === 0) return;
 
@@ -506,7 +565,7 @@ export default {
         renderVerticalBarBreakdown(el, categoryName, byProgram, programs) {
             d3.select(el).selectAll("*").remove();
             const entries = programs
-                .filter((p) => (Number(byProgram[p]) || 0) > 0)
+                .filter((p) => (Number(byProgram[p]) || 0) >= MIN_RENDER_COUNT)
                 .map((p) => ({ program: p, value: Number(byProgram[p]) || 0 }));
             if (entries.length === 0) return;
 

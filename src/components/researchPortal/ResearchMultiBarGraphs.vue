@@ -58,16 +58,25 @@
 </template>
 
 <script>
+/** Same program palette as `datasetsSummary/template.vue` (PROGRAM_COLORS). */
+const PROGRAM_COLOR_MAP = {
+  "amp-ad": "#EE4097",
+  "amp-cmd": "#0000C6",
+  "amp-pd": "#00BFFF",
+  "amp-ra/sle": "#795548",
+};
 const DEFAULT_COLORS = [
   "#EE4097",
   "#0000C6",
   "#00BFFF",
-  "#2E7D32",
+  "#795548",
   "#F9A825",
   "#6A1B9A",
   "#C62828",
   "#00838F",
 ];
+const MIN_CATEGORY_TOTAL_DISEASE_RACE = 20;
+const FIELDS_MIN_TOTAL = ["disease", "race"];
 
 export default {
   name: "ResearchMultiBarGraphs",
@@ -183,9 +192,15 @@ export default {
     },
   },
   methods: {
+    normalizeSourceKey(sourceShort) {
+      return String(sourceShort || "").trim().toLowerCase();
+    },
     colorBySource(sourceShort) {
+      const key = this.normalizeSourceKey(sourceShort);
+      if (PROGRAM_COLOR_MAP[key]) return PROGRAM_COLOR_MAP[key];
       const colors = this.config.colors;
-      const i = this.colorIndexBySource[sourceShort];
+      const raw = String(sourceShort || "").trim();
+      const i = this.colorIndexBySource[raw] ?? this.colorIndexBySource[sourceShort];
       return i != null ? colors[i] : "#999";
     },
     formatFieldLabel(fieldName) {
@@ -195,13 +210,23 @@ export default {
       const s = String(fieldName);
       return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     },
+    fieldAppliesMinCategoryTotal(fieldName) {
+      const f = String(fieldName || "").trim().toLowerCase();
+      return FIELDS_MIN_TOTAL.includes(f);
+    },
     getCategoriesForField(fieldName) {
       const rows = this.dataByField[fieldName] || [];
       const set = new Set();
       rows.forEach((r) => {
         if (r.category) set.add(r.category);
       });
-      return [...set].sort();
+      let cats = [...set].sort();
+      if (this.fieldAppliesMinCategoryTotal(fieldName)) {
+        cats = cats.filter(
+          (cat) => this.getTotalForFieldCategory(fieldName, cat) >= MIN_CATEGORY_TOTAL_DISEASE_RACE
+        );
+      }
+      return cats;
     },
     getSegmentsForFieldCategory(fieldName, category) {
       const rows = this.dataByField[fieldName] || [];
