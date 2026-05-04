@@ -67,7 +67,6 @@ new Vue({
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
         this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
-        console.log(JSON.stringify(this.insTimepoints));
     },
     computed: {
         allMetadata(){

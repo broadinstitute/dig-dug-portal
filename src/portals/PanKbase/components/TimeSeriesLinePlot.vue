@@ -159,7 +159,8 @@ export default Vue.component("time-series-line-plot", {
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
         let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
-        //let timepointBars = [];
+        console.log(JSON.stringify(timepointBars));
+        //timepointBars = [];
 
       let even = true;
       timepointBars.forEach(t => {
@@ -167,24 +168,21 @@ export default Vue.component("time-series-line-plot", {
         let gold = "#F8E163";
         let lightgold = "#FAEA8F"
         let palegold = "#FCF2BB"
-        let color = even ? palegold : gold;
         this.svg.append("rect")
           .attr("x", t.x)
           .attr("y", t.y)
           .attr("width", t.width)
           .attr("height", t.height - t.y)
-          .attr("fill", color);
+          .attr("fill", this.isBasal(t.condition) ? "none" : palegold);
         even = !even;
       });
       // Separate loop to put text on top of bg
-      even = true;
       timepointBars.forEach(t => {
         this.svg.append("text")
           .attr("text-anchor", "middle")
-          .attr("y", t.height * 0.1)
+          .attr("y", t.height * (this.isBasal(t.condition) ? 0.3 : 0.2))
           .attr("x", t.textPosition)
-          .text(t.condition);
-        even = !even;
+          .text(this.isBasal(t.condition) ? "Basal" : t.condition);
       });
       this.tooltip = d3
         .select(`#${this.plotId}`)
@@ -231,6 +229,12 @@ export default Vue.component("time-series-line-plot", {
         .call(d3.axisLeft(this.yScale))
           .selectAll("text")
             .style("font-size", "13px");
+    },
+    isBasal(condition){
+      if (condition === undefined){
+        return false;
+      }
+      return condition.startsWith("basal") || condition.startsWith("Basal");
     },
     drawLines(){
       this.svg.selectAll("path.line-path").remove();
