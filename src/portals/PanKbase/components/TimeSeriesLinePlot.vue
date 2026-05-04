@@ -172,7 +172,7 @@ export default Vue.component("time-series-line-plot", {
           .attr("x", t.x)
           .attr("y", t.y)
           .attr("width", t.width)
-          .attr("height", t.height)
+          .attr("height", t.height - t.y)
           .attr("fill", color);
         even = !even;
       });
