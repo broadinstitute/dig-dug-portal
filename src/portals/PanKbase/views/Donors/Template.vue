@@ -429,6 +429,7 @@
                         No dataset rows were returned.
                     </div>
                 </div>
+                <donor-snapshot :prepared-dataset="preparedDataset"></donor-snapshot>
             </div>
         </div>
         <pkb-footer></pkb-footer>
@@ -470,6 +471,7 @@
 <script>
 import BarPlotD3 from "./BarPlotD3.vue";
 import CategoricalFilter from "./CategoricalFilter.vue";
+import DonorSnapshot from "./DonorSnapshot.vue";
 import TableConfigButton from "./TableConfigButton.vue";
 import NumericRangeFilter from "./NumericRangeFilter.vue";
 import { parseNumericValue } from "./datasetUtils";
@@ -514,6 +516,7 @@ export default {
     components: {
         BarPlotD3,
         CategoricalFilter,
+        DonorSnapshot,
         NumericRangeFilter,
         TableConfigButton,
     },
