@@ -158,8 +158,8 @@ export default Vue.component("time-series-line-plot", {
           .on("mouseleave", () => this.resetTooltip())
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
-        //let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
-        let timepointBars = [];
+        let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
+        //let timepointBars = [];
 
       let even = true;
       timepointBars.forEach(t => {
