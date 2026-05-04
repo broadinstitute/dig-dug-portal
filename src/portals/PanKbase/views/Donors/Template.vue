@@ -143,28 +143,47 @@
                                 <div v-if="donorAvailabilityPlotData.length && activeContentTab === 'plot'" class="dataset-content-panel" role="tabpanel">
                                     <div class="availability-plot-card">
                                         <div class="availability-plot-header">
-                                            <div>
+                                            <div class="availability-plot-heading">
                                                 <div class="availability-plot-title">Donors by Data Type in PanKbase</div>
                                             </div>
-                                            <div class="availability-plot-controls">
-                                                <label class="availability-plot-label" for="availability-plot-group">
-                                                    Segment by
-                                                </label>
-                                                <select
-                                                    id="availability-plot-group"
-                                                    v-model="plotCategoryField"
-                                                    class="availability-plot-select"
+                                            <div class="availability-plot-header-actions">
+                                                <b-dropdown
+                                                    class="availability-plot-download"
+                                                    variant="secondary"
+                                                    right
+                                                    size="sm"
+                                                    text="Download chart"
                                                 >
-                                                    <option value="">None</option>
-                                                    <option
-                                                        v-for="option in plotGroupingOptions"
-                                                        :key="option.value"
-                                                        :value="option.value"
-                                                    >
-                                                        {{ option.text }}
-                                                    </option>
-                                                </select>
+                                                    <b-dropdown-text>Save chart as</b-dropdown-text>
+                                                    <b-dropdown-divider></b-dropdown-divider>
+                                                    <b-dropdown-item @click="downloadAvailabilityPlotSvg">
+                                                        SVG
+                                                    </b-dropdown-item>
+                                                    <b-dropdown-item @click="downloadAvailabilityPlotPng">
+                                                        PNG
+                                                    </b-dropdown-item>
+                                                </b-dropdown>
                                             </div>
+                                        </div>
+
+                                        <div class="availability-plot-controls">
+                                            <label class="availability-plot-label" for="availability-plot-group">
+                                                Segment by
+                                            </label>
+                                            <select
+                                                id="availability-plot-group"
+                                                v-model="plotCategoryField"
+                                                class="availability-plot-select"
+                                            >
+                                                <option value="">None</option>
+                                                <option
+                                                    v-for="option in plotGroupingOptions"
+                                                    :key="option.value"
+                                                    :value="option.value"
+                                                >
+                                                    {{ option.text }}
+                                                </option>
+                                            </select>
                                         </div>
 
                                         <div v-if="donorAvailabilityLegend.length" class="availability-plot-legend">
@@ -187,6 +206,7 @@
 
                                         <bar-plot-d3
                                             :data="donorAvailabilityPlotData"
+                                            :chart-id="availabilityPlotChartId"
                                             category-key="dataType"
                                             value-key="donorCount"
                                             :series-key="plotCategoryField ? 'groupValue' : ''"
@@ -290,6 +310,10 @@
                                             <b-button size="sm" variant="outline-secondary" @click="showColumnsModal">
                                                 Columns
                                             </b-button>
+                                            <data-download
+                                                :data="mainTableDownloadRows"
+                                                :filename="mainTableDownloadFilename"
+                                            ></data-download>
                                             <table-config-button
                                                 v-if="showConfigureControls"
                                                 :columns="availableColumns"
@@ -368,6 +392,10 @@
                                             <b-button size="sm" variant="outline-secondary" @click="showColumnsModal">
                                                 Columns
                                             </b-button>
+                                            <data-download
+                                                :data="getScopedTableDownloadRows(tab)"
+                                                :filename="getScopedTableDownloadFilename(tab)"
+                                            ></data-download>
                                             <table-config-button
                                                 v-if="showConfigureControls"
                                                 :columns="availableColumns"
@@ -474,6 +502,8 @@ import CategoricalFilter from "./CategoricalFilter.vue";
 import DonorSnapshot from "./DonorSnapshot.vue";
 import TableConfigButton from "./TableConfigButton.vue";
 import NumericRangeFilter from "./NumericRangeFilter.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import uiUtils from "@/utils/uiUtils";
 import { parseNumericValue } from "./datasetUtils";
 
 const AVAILABILITY_PLOT_COLORS = [
@@ -516,6 +546,7 @@ export default {
     components: {
         BarPlotD3,
         CategoricalFilter,
+        DataDownload,
         DonorSnapshot,
         NumericRangeFilter,
         TableConfigButton,
@@ -541,6 +572,7 @@ export default {
             numericFilters: {},
             selectedColumns: [],
             activeContentTab: "plot",
+            availabilityPlotChartId: "pankbase-donors-availability-plot",
         };
     },
     computed: {
@@ -915,6 +947,17 @@ export default {
                 sortable: true,
             }));
         },
+        mainTableDownloadRows() {
+            return this.buildTableRows(this.filteredRows);
+        },
+        mainTableDownloadFilename() {
+            return "pankbase_donors_filtered";
+        },
+        availabilityPlotDownloadFilename() {
+            return this.plotCategoryField
+                ? `pankbase-donors-by-data-type-${this.slugifyValue(this.plotCategoryField)}`
+                : "pankbase-donors-by-data-type";
+        },
     },
     watch: {
         availableColumns: {
@@ -1277,6 +1320,21 @@ export default {
                 return filteredRow;
             }, {}));
         },
+        getScopedTableDownloadRows(tab) {
+            return this.buildTableRows(this.getRowsForTableScope(tab));
+        },
+        getScopedTableDownloadFilename(tab) {
+            const scopeParts = [
+                "pankbase_donors",
+                this.slugifyValue(this.getDataTypeLabel(tab.dataType)),
+            ];
+
+            if (tab.groupValue) {
+                scopeParts.push(this.slugifyValue(tab.groupValue));
+            }
+
+            return scopeParts.filter(Boolean).join("_");
+        },
         getDataTypeTablePage(tabKey) {
             return this.scopedTablePages[tabKey] || 1;
         },
@@ -1391,6 +1449,163 @@ export default {
         },
         formatCellTitle(value) {
             return this.formatCellValue(value);
+        },
+        escapeSvgText(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        },
+        getAvailabilityPlotSvgElement() {
+            return document.getElementById(this.availabilityPlotChartId);
+        },
+        getAvailabilityPlotLegendLayout(width) {
+            const items = this.donorAvailabilityLegend.map((item) => ({
+                label: item.label,
+                count: item.count.toLocaleString(),
+                color: item.color,
+            }));
+
+            if (!items.length) {
+                return {
+                    items: [],
+                    height: 0,
+                };
+            }
+
+            const maxWidth = Math.max(width - 32, 200);
+            const rows = [];
+            let currentRow = [];
+            let currentWidth = 0;
+
+            items.forEach((item) => {
+                const estimatedWidth = 22 + (item.label.length * 7) + (item.count.length * 7) + 26;
+                if (currentRow.length && currentWidth + estimatedWidth > maxWidth) {
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentWidth = 0;
+                }
+
+                currentRow.push({
+                    ...item,
+                    width: estimatedWidth,
+                });
+                currentWidth += estimatedWidth;
+            });
+
+            if (currentRow.length) {
+                rows.push(currentRow);
+            }
+
+            return {
+                items: rows.reduce((layoutItems, row, rowIndex) => {
+                    let x = 16;
+                    row.forEach((item) => {
+                        layoutItems.push({
+                            ...item,
+                            x,
+                            y: rowIndex * 20,
+                        });
+                        x += item.width;
+                    });
+                    return layoutItems;
+                }, []),
+                height: rows.length * 20,
+            };
+        },
+        buildAvailabilityPlotExportSvgMarkup() {
+            const sourceSvg = this.getAvailabilityPlotSvgElement();
+            if (!sourceSvg) {
+                return "";
+            }
+
+            const serializer = new XMLSerializer();
+            const sourceClone = sourceSvg.cloneNode(true);
+            sourceClone.removeAttribute("id");
+
+            const width = Number(sourceSvg.getAttribute("width")) || 960;
+            const height = Number(sourceSvg.getAttribute("height")) || 400;
+            const title = "Donors by Data Type in PanKbase";
+            const subtitle = this.plotCategoryField
+                ? `Segment by: ${this.getColumnLabel(this.plotCategoryField)}`
+                : "";
+            const legendLayout = this.getAvailabilityPlotLegendLayout(width);
+            const titleBlockHeight = subtitle ? 48 : 30;
+            const legendGap = legendLayout.height ? 12 : 0;
+            const chartOffsetY = 16 + titleBlockHeight + legendGap + legendLayout.height;
+            const totalHeight = chartOffsetY + height;
+            const legendMarkup = legendLayout.items.map((item) => {
+                const labelX = item.x + 16;
+                const countX = item.x + item.width - 10;
+                return `
+                    <rect x="${item.x}" y="${56 + item.y}" width="10" height="10" rx="2" fill="${item.color}"></rect>
+                    <text x="${labelX}" y="${65 + item.y}" fill="#4f6571" font-size="12" font-family="'Open Sans', sans-serif">${this.escapeSvgText(item.label)}</text>
+                    <text x="${countX}" y="${65 + item.y}" fill="#7d7469" font-size="12" font-weight="600" text-anchor="end" font-family="'Open Sans', sans-serif">${this.escapeSvgText(item.count)}</text>
+                `;
+            }).join("");
+
+            sourceClone.setAttribute("x", "0");
+            sourceClone.setAttribute("y", String(chartOffsetY));
+            sourceClone.setAttribute("width", String(width));
+            sourceClone.setAttribute("height", String(height));
+
+            return `
+                <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" font-family="'Open Sans', sans-serif">
+                    <rect width="${width}" height="${totalHeight}" fill="#ffffff"></rect>
+                    <text x="16" y="24" fill="#22343f" font-size="16" font-weight="700" font-family="'Open Sans', sans-serif">${this.escapeSvgText(title)}</text>
+                    ${subtitle ? `<text x="16" y="44" fill="#4f6571" font-size="12" font-weight="600" font-family="'Open Sans', sans-serif">${this.escapeSvgText(subtitle)}</text>` : ""}
+                    ${legendMarkup}
+                    ${serializer.serializeToString(sourceClone)}
+                </svg>
+            `;
+        },
+        downloadAvailabilityPlotSvg() {
+            const svgMarkup = this.buildAvailabilityPlotExportSvgMarkup();
+            if (!svgMarkup) {
+                return;
+            }
+
+            const blob = new Blob([svgMarkup], {
+                type: "image/svg+xml;charset=utf-8",
+            });
+            const url = URL.createObjectURL(blob);
+            uiUtils.downloadChart(url, `${this.availabilityPlotDownloadFilename}.svg`);
+            window.setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 0);
+        },
+        downloadAvailabilityPlotPng() {
+            const svgMarkup = this.buildAvailabilityPlotExportSvgMarkup();
+            if (!svgMarkup) {
+                return;
+            }
+
+            const blob = new Blob([svgMarkup], {
+                type: "image/svg+xml;charset=utf-8",
+            });
+            const url = URL.createObjectURL(blob);
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const context = canvas.getContext("2d");
+                context.fillStyle = "#ffffff";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0);
+                uiUtils.downloadChart(canvas.toDataURL("image/png"), `${this.availabilityPlotDownloadFilename}.png`);
+                URL.revokeObjectURL(url);
+            };
+            image.src = url;
+        },
+        slugifyValue(value) {
+            return String(value || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
         },
     },
 };
@@ -1819,10 +2034,21 @@ export default {
 
 .availability-plot-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+}
+
+.availability-plot-heading {
+    min-width: 0;
+}
+
+.availability-plot-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
 }
 
 .availability-plot-title {
@@ -1841,6 +2067,12 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-bottom: 10px;
+}
+
+.availability-plot-header-actions ::v-deep .availability-plot-download.download-chart {
+    float: none;
+    margin-bottom: 0 !important;
 }
 
 .availability-plot-legend {
@@ -1933,6 +2165,19 @@ export default {
     .filters-panel-controls,
     .active-filter-pills-sidebar {
         padding-right: 0;
+    }
+
+    .availability-plot-header {
+        flex-direction: column;
+    }
+
+    .availability-plot-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .availability-plot-controls {
+        flex-wrap: wrap;
     }
 }
 

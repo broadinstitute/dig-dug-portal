@@ -67,6 +67,10 @@ export default Vue.component("BarPlotD3", {
             type: Number,
             default: 640,
         },
+        chartId: {
+            type: String,
+            default: "",
+        },
         height: {
             type: Number,
             default: 360,
@@ -575,6 +579,12 @@ export default Vue.component("BarPlotD3", {
         },
         renderChart() {
             const svg = d3.select(this.$refs.svg);
+            if (this.chartId) {
+                svg.attr("id", this.chartId);
+            } else {
+                svg.attr("id", null);
+            }
+            svg.style("font-family", "\"Open Sans\", sans-serif");
             svg.selectAll("*").remove();
 
             if (!this.data.length) {
@@ -607,7 +617,8 @@ export default Vue.component("BarPlotD3", {
             svg
                 .attr("width", chartSize.width)
                 .attr("height", chartSize.height)
-                .attr("viewBox", `0 0 ${chartSize.width} ${chartSize.height}`);
+                .attr("viewBox", `0 0 ${chartSize.width} ${chartSize.height}`)
+                .attr("font-family", "\"Open Sans\", sans-serif");
 
             const root = svg
                 .append("g")
