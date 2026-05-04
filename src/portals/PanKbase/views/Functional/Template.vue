@@ -50,25 +50,25 @@
                                 <div class="row">
                                     <div class="insulin-plot line-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                        <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                             :plotData="$parent.resultsIns"
                                             :maxTime="$parent.maxTimeIns"
                                             :maxScore="$parent.maxScoreIns"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`insulin_ieq`"
-                                            :timepoints="$parent.timepoints"
+                                            :timepoints="$parent.insTimepoints"
                                             :lineColor="$parent.insColor">
                                         </time-series-line-plot>
                                     </div>
                                     <div class="glucagon-plot line-plot col-md-6">
                                         <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.timepoints.length > 0"
+                                        <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
                                             :plotData="$parent.resultsGcg"
                                             :maxTime="$parent.maxTimeGcg"
                                             :maxScore="$parent.maxScoreGcg"
                                             :donors="$parent.filteredDonors"
                                             :plotId="`glucagon_ieq`"
-                                            :timepoints="$parent.timepoints"
+                                            :timepoints="$parent.gcgTimepoints"
                                             :lineColor="$parent.gcgColor">
                                         </time-series-line-plot>
                                     </div>

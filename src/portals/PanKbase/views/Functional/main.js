@@ -22,6 +22,8 @@ import dataConvert from "@/utils/dataConvert";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
 const timepointsFile = "/data/pankbase/HIPP_gcg_ieq.timepoints.txt";
+const gcgTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_gcg_ieq.timepoints.txt`;
+const insTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_ins_ieq.timepoints.txt`;
 
 new Vue({
     store,
@@ -52,7 +54,8 @@ new Vue({
             maxTimeGcg: null,
             maxScoreGcg: null,
             resultsGcg: null,
-            timepoints: [],
+            gcgTimepoints: [],
+            insTimepoints: [],
             gcgColor: "#2F67B1", // colorblind safe blue from UCSB
 			insColor: "#BF2C23", // colorblind safe red from UCSB,
         };
@@ -60,8 +63,10 @@ new Vue({
     async created() {
         await this.$store.dispatch("populateData", this.files);
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
-        const timepointsData = await fetch(timepointsFile).then(r => r.text());
-        this.timepoints = dataConvert.tsv2Json(timepointsData);
+        const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
+        this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
+        const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
+        this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
     },
     computed: {
         allMetadata(){
