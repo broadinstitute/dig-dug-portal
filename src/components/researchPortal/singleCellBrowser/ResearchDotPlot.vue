@@ -88,6 +88,10 @@
             type: Boolean,
             default: true,
         },
+        showYTicks: {
+            type: Boolean,
+            default: true,
+        },
         colorScale: {
             type: String,
             required: false,
@@ -308,7 +312,7 @@
                 top: this.showXLabels ? labelsHeight + this.marginTop : 0, 
                 bottom: this.marginBottom, 
                 right: this.marginRight, 
-                left: this.showYLabels ? labelsWidth + this.marginLeft : 0
+                left: (this.showYLabels ? labelsWidth : 0) + ((this.yLabel || this.yKey) ? this.marginLeft : 0)
             };
             
             let width = 0;
@@ -389,7 +393,7 @@
 
 
             //rednder axis labels
-            {
+            if(this.showXLabels){
                 const label = svg.append('g')
                     .append('text')
                     .attr('style', 'font-size:12px; opacity:0.5; font-family: Arial;')
@@ -428,11 +432,14 @@
                 }
                 
                 //y axis
-                if(this.showYLabels){
+                if(this.showYLabels || this.showYTicks){
                     const yAxis = svg.append("g")
                         .attr('transform', `translate(${margin.left},0)`)
                         .call(d3.axisLeft(yScale).tickSizeOuter(0))
                     yAxis.select(".domain").remove()
+                    if(!this.showYLabels){
+                        yAxis.selectAll("text").remove()
+                    }
                     yAxis.selectAll("text")
                         .attr("font-family", "Arial")
                 }   

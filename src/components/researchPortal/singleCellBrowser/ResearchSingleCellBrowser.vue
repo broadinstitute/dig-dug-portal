@@ -388,7 +388,7 @@
                                         />
                                     </div>
                                     <div
-                                        v-if="showStratifyPlotTypeSelect"
+                                        v-if="showExpressionPlotTypeSelect"
                                         style="display:flex; gap:5px; align-items:center; align-self: flex-end;"
                                     >
                                         <div style="font-size:12px; white-space:nowrap; opacity:0.7;">Plot type</div>
@@ -397,7 +397,7 @@
                                             style="width: 125px;"
                                         >
                                             <option
-                                                v-for="option in stratifyPlotTypeOptions"
+                                                v-for="option in availableExpressionPlotTypes"
                                                 :key="option"
                                                 :value="option"
                                             >
@@ -412,7 +412,26 @@
     
                                 <div v-if="!contExprResults" style="display:flex; flex-direction: column; gap:5px">
                                     <template v-if="cellCompositionVars.segmentByLabel===''">
+                                        <research-dot-plot
+                                            v-if="stratifyPlotType==='dot'"
+                                            style="display:flex; align-self: center"
+                                            :data="geneExpressionVars.expressionStats"
+                                            :xKey="geneExpressionVars.selectedLabel"
+                                            yKey="gene"
+                                            :xLabel="displayLabel(geneExpressionVars.selectedLabel)"
+                                            :yLabel="geneExpressionVars.selectedGene"
+                                            fillKey="mean"
+                                            sizeKey="pctExpr"
+                                            :fitToSize="true"
+                                            :cellWidth="30"
+                                            highlightKey=""
+                                            :showYLabels="false"
+                                            :showYTicks="true"
+                                            :colorScale="expressionColorScale"
+                                            :colorScaleMode="dotPlotColorScaleMode"
+                                        />
                                         <research-violin-plot
+                                            v-else
                                             :data="geneExpressionVars.expressionStats"
                                             :primaryKey="geneExpressionVars.selectedLabel"
                                             :subsetKey="cellCompositionVars.segmentByLabel"
@@ -1387,6 +1406,18 @@
                     !this.contExprResults
                 );
             },
+            showExpressionPlotTypeSelect() {
+                if (this.contExprResults) return false;
+                if (!this.geneExpressionVars.expressionStats.length) return false;
+                if (this.cellCompositionVars.segmentByLabel === '') return true;
+                return this.showStratifyPlotTypeSelect;
+            },
+            availableExpressionPlotTypes() {
+                if (this.cellCompositionVars.segmentByLabel === '') {
+                    return ["violin", "dot"];
+                }
+                return this.showStratifyPlotTypeSelect ? this.stratifyPlotTypeOptions : ["violin"];
+            },
             rightPanelWidth() {
                 return 100 - this.leftPanelWidth;
             },
@@ -2294,6 +2325,9 @@
                 llog('segment by:', {display, segment, gene: this.geneExpressionVars.selectedGene});
                 g.displayByLabel = display
                 g.segmentByLabel = segment;
+                if(segment === "" && !["violin", "dot"].includes(this.stratifyPlotType)){
+                    this.stratifyPlotType = "violin";
+                }
                 if(segment===""){
                     g.segmentByCounts2 = scUtils.calcCellCounts(this.fields, this.labelColors, g.displayByLabel, g.segmentByLabel);
                 }else{
