@@ -787,59 +787,79 @@ export function groupByKey(arr, key){
   
   
 
-  export function inferDataType(values) {
-    const cleaned = values.filter(v => v !== null && v !== undefined);
+export function inferDataType(values) {
+    const maxSampleSize = 5000;
+    const ignore = new Set(["NA", "na", "N/A", "n/a", "", null, undefined]);
+    const sampleValues = sampleArray(values, maxSampleSize);
+    const cleaned = sampleValues.filter(v => !ignore.has(v));
+
+    if (cleaned.length === 0) return 'cat';
+
     const unique = [...new Set(cleaned)];
-    const totalCount = cleaned.length;
     const uniqueCount = unique.length;
-    const uniqueRatio = uniqueCount / totalCount;
 
-    let inference = "";
-
-    const isLikelyContinuous = (values) => {
-        const ignore = ["NA", "na", "", null, undefined];
-        const minUniqueNumeric = 5;
-
-        const numericValues = [...new Set(
-            values.filter(v => !ignore.includes(v)).filter(v => !isNaN(v) && isFinite(v))
-        )];
-
-        return numericValues.length >= minUniqueNumeric;
-    }
-
-    inference = isLikelyContinuous(values) ? 'cont' : 'cat';
-
-    return inference;
-  
-    //const isNumeric = v => !isNaN(parseFloat(v)) && isFinite(v);
-  
-    // Pattern checkers
-    const isBinnedCategory = v => {
-      if (typeof v !== 'string') return false;
-      return /^(\d+)\s*[-–]\s*(\d+)$/.test(v) || /^\d+\s*\+$/.test(v) || /under|over|less|more|to/i.test(v);
+    const isNumeric = v => {
+        const n = Number(v);
+        return Number.isFinite(n);
     };
-  
+
+    const isBinnedCategory = v => {
+        if (typeof v !== 'string') return false;
+        return /^(\d+)\s*[-–]\s*(\d+)$/.test(v) || /^\d+\s*\+$/.test(v) || /under|over|less|more|to/i.test(v);
+    };
+
     const isMixedAlphaNumeric = v => typeof v === 'string' && /[a-zA-Z]/.test(v) && /\d/.test(v);
-  
-    // Force categorical if any values look like binned ranges or mixed alphanum
-    if (cleaned.some(isBinnedCategory) || cleaned.some(isMixedAlphaNumeric)) {
-      return "cat";
+    const hasLeadingZeroCode = v => typeof v === 'string' && /^0\d+$/.test(v.trim());
+
+    // These patterns are much more likely to be labels/codes than true continuous values.
+    if (cleaned.some(isBinnedCategory) || cleaned.some(isMixedAlphaNumeric) || cleaned.some(hasLeadingZeroCode)) {
+        return 'cat';
     }
-  
+
     const allNumbers = cleaned.every(isNumeric);
-    if (allNumbers) {
-      const allIntegers = cleaned.every(v => Number.isInteger(Number(v)));
-      if (uniqueCount <= 10 && allIntegers) return "cat";
-      return "cont";
+    if (!allNumbers) {
+        return 'cat';
     }
-  
-    // Default heuristics
-    if (uniqueCount <= 20 || uniqueRatio < 0.2) {
-      return "cat";
+
+    const numericValues = unique.map(v => Number(v)).sort((a, b) => a - b);
+    const allIntegers = numericValues.every(Number.isInteger);
+    const min = numericValues[0];
+    const max = numericValues[numericValues.length - 1];
+    const span = max - min;
+
+    // Integer-coded labels are a common source of false positives.
+    if (allIntegers) {
+        if (uniqueCount <= 12) return 'cat';
+        if (span <= 12) return 'cat';
+
+        const isDenseIntegerSequence = span > 0 && (uniqueCount / (span + 1)) >= 0.8;
+        if (uniqueCount <= 24 && isDenseIntegerSequence) return 'cat';
     }
-  
-    return "cont";
-  }
+
+    const hasDecimalValues = numericValues.some(v => !Number.isInteger(v));
+    if (hasDecimalValues) {
+        return uniqueCount >= 5 ? 'cont' : 'cat';
+    }
+
+    // Larger numeric label sets are more likely to be true continuous metadata.
+    return uniqueCount >= 15 ? 'cont' : 'cat';
+}
+
+function sampleArray(values, maxSampleSize = 5000) {
+    if (!Array.isArray(values) || values.length <= maxSampleSize) {
+        return Array.isArray(values) ? values : [];
+    }
+
+    const sampled = [];
+    const step = values.length / maxSampleSize;
+
+    for (let i = 0; i < maxSampleSize; i++) {
+        const index = Math.min(values.length - 1, Math.floor(i * step));
+        sampled.push(values[index]);
+    }
+
+    return sampled;
+}
   
   
   

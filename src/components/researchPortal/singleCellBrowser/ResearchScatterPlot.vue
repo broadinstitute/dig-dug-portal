@@ -35,7 +35,8 @@ export default Vue.component('research-scatter-plot', {
       chartW: 0,
       chartH: 0,
       resizeTimeout: null,
-      computedWidth: 0
+      computedWidth: 0,
+      resizeObserver: null
     };
   },
   watch: {
@@ -46,11 +47,28 @@ export default Vue.component('research-scatter-plot', {
   mounted() {
     this.initPlot();
     window.addEventListener('resize', this.handleResize);
+    this.initResizeObserver();
   },
   beforeDestroy(){
     window.removeEventListener('resize', this.handleResize);
+    this.teardownResizeObserver();
   },
   methods: {
+    initResizeObserver(){
+      if (typeof ResizeObserver === 'undefined') return;
+      const target = this.$refs.chartWrapper?.parentElement || this.$refs.chartWrapper;
+      if (!target) return;
+      this.resizeObserver = new ResizeObserver(() => {
+        this.handleResize();
+      });
+      this.resizeObserver.observe(target);
+    },
+    teardownResizeObserver(){
+      if(this.resizeObserver){
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+    },
     handleResize(){
         clearTimeout(this.resizeTimeout);
         this.resizeTimeout = setTimeout(() => {
@@ -386,5 +404,3 @@ export default Vue.component('research-scatter-plot', {
   }
 });
 </script>
-
-
