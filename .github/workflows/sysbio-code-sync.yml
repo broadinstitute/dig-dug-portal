@@ -54,7 +54,24 @@ jobs:
               run: |
                   cp .github/templates/README-sysbio-portal.md repo-b/README.md
 
-            # Step 4.6: Replace vue.config.js with configs/vue.config.SysBio.js in the target directory
+            # Step 4.6: Remove unused pages from src/views/ that are not referenced in vue.config.SysBio.js
+            - name: Remove unused pages from src/views
+              run: |
+                  # Extract directory names from src/views/ entries in the SysBio vue config
+                  USED_VIEWS=$(grep -oP 'entry:\s*"src/views/\K[^/]+' repo-b/configs/vue.config.SysBio.js || true)
+
+                  if [ -d "repo-b/src/views" ]; then
+                      cd repo-b/src/views
+                      for dir in */; do
+                          dir_name="${dir%/}"
+                          if ! echo "$USED_VIEWS" | grep -qx "$dir_name"; then
+                              rm -rf "$dir_name"
+                              echo "Removed unused page: src/views/$dir_name"
+                          fi
+                      done
+                  fi
+
+            # Step 4.7: Replace vue.config.js with configs/vue.config.SysBio.js in the target directory
             - name: Update Vue config in target
               run: |
                   if [ -f repo-b/vue.config.js ]; then
