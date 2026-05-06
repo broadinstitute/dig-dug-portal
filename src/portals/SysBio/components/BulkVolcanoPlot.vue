@@ -50,8 +50,6 @@ export default Vue.component("bulk-volcano-plot", {
             geneMap: null
 		};
 	},
-	modules: {
-	},
 	components: {},
 	created: function () {
 		

@@ -98,8 +98,6 @@ export default Vue.component("bulk-table", {
             perPage: 10,
             showGenes: "",
             currentPage: 1,
-            subtableData: {},
-            subtableFields: {},
             contField: null,
             catField: null,
             contFields: [],
@@ -194,28 +192,11 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(item) {
-            let queryKey = this.subtableKey(item);
-            if (!this.subtableData[queryKey]) {
-                let data = await this.query(this.config.subtableEndpoint, queryKey);
-                let fields = this.getFields(data[0]);
-                Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
-                Vue.set(this.subtableFields, queryKey, fields);
-            }
-        },
-        async showDetails(row) {
-            row.toggleDetails();
-            await this.getSubtable(row.item);
-        },
         async query(endPoint, key){
             const query = `${BIO_INDEX_HOST}/api/bio/query/${endPoint}?q=${key}`
             const response = await fetch(query);
             const json = await response.json();
             return json.data;
-        },
-        subtableKey(item) {
-            let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
-            return mySubtableKey;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
@@ -354,27 +335,12 @@ export default Vue.component("bulk-table", {
 label {
     margin: 10px;
 }
-.bulk-subtable {
-    margin-left: 15px;
-    padding-left: 30px;
-    background-color: #efefef;
-}
-.bulk-subtable .row .col-12 {
-    padding: 0 0 0 5px !important;
-}
 ul.top-list {
     font-size: 0.8rem;
 }
 button {
     padding-bottom: 0px !important;
     padding-top: 0px !important;
-}
-.subtable-selectors{
-    margin-bottom: 20px;
-    padding-top: 20px;
-}
-.subtable-all {
-    background-color: #efefef;
 }
 .table-total-rows {
     display: inline;
