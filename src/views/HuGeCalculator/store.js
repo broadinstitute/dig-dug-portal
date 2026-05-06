@@ -21,7 +21,7 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         regions: bioIndex("regions"),
         associations: bioIndex("associations"),
-        geneAssociations52k: bioIndex("gene-associations-52k"),
+        geneAssociations52k: bioIndex("gene-associations-rare"),
     },
     state: {
         associationsData: {},
