@@ -99,9 +99,6 @@ export default Vue.component("bulk-table", {
             showGenes: "",
             currentPage: 1,
             contField: null,
-            catField: null,
-            contFields: [],
-            catFields: [],
             currentData: [],
             tableYField: "-log10P",
             tableXField: "logFoldChange",
@@ -136,26 +133,6 @@ export default Vue.component("bulk-table", {
                 plotUtils: plotUtils,
             };
             return utils;
-        },
-        scatterConfig(){
-            if (this.contField === null){
-                this.contField = this.contFields[0];
-            }
-            let config = {
-                xField: this.contField.key,
-                xAxisLabel: this.contField.label,
-                yField: "norm_counts",
-                yAxisLabel: "Norm counts",
-                dotKey: "sample_id",
-                hoverBoxPosition: "both",
-                plotHeight: 350,
-                hoverFields: [
-                    {key: "sample_id", label: "Sample"},
-                    {key: this.contField.key, label: this.contField.label},
-                    {key: "norm_counts", label: "Norm"}
-                ],
-            };
-            return config;
         },
         rows() {
             return this.tableData.length || 0;
@@ -200,46 +177,6 @@ export default Vue.component("bulk-table", {
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
-        },
-        getFields(data){
-            let fields = [
-                {
-                    key: "sample_id",
-                    label: "Sample",
-                    sortable: true,
-                },
-                {
-                    key: "norm_counts",
-                    label: "Norm counts",
-                    sortable: true,
-                },
-            ];
-            let dataKeys = Object.keys(data);
-            let catFields = dataKeys.filter(field => field.startsWith("cat__"))
-                .map(field => { return {
-                    key: field,
-                    label: Formatters.tissueFormatter(field.replace("cat__", "").replace("custom__", "")),
-                    sortable: true,
-                    isCat: true,
-                }});
-            let contFields = dataKeys.filter(field => field.startsWith("cont__"))
-                .map(field => { return {
-                    key: field,
-                    label: Formatters.tissueFormatter(field.replace("cont__", "").replace("custom__", "")),
-                    sortable: true,
-                    isNumerical: true
-                }});
-            if (!this.contField || !contFields.includes(this.contField)){
-                this.contField = contFields[0];
-            }
-            if (!this.catField || !catFields.includes(this.catField)){
-                this.catField = catFields[0];
-            }
-            this.catFields = catFields;
-            this.contFields = contFields;
-            fields = fields.concat(catFields);
-            fields = fields.concat(contFields);
-            return fields;
         },
         toNumeric(geneData, fields){
           let fieldsToConvert = fields.filter(field => field.isNumerical)
