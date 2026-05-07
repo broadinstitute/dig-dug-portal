@@ -6,7 +6,6 @@ import "../../css/f-layout.css";
 import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
-import { sysbioStore } from "../../mixins/sysbioStore.js";
 import { ACCESSIBLE_PURPLE, ACCESSIBLE_DARK_GRAY, getEnrichr, getTextContent } from "../../utils/content.js";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
@@ -144,7 +143,6 @@ new Vue({
                     },
                 ],
                 queryParam: "gene",
-                subtableEndpoint: "single-cell-bulk-melted",
                 subtableFields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },

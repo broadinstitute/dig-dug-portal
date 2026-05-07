@@ -176,8 +176,6 @@ export default Vue.component("enrichr-plot", {
             },
 		};
 	},
-	modules: {
-	},
 	components: {
 		barPlotVector,
 	},

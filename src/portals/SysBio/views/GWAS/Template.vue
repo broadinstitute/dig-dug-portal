@@ -17,7 +17,7 @@
                 </div>
             </div>
             <div v-if="$parent.tableData" class="f-col" style="gap:10px">
-                <h4>Top single-variant association signals for AD versus PD: European Ancestry</h4>
+                <h4>Top single-variant association signals for AD versus PDRD: European Ancestry</h4>
                 <!-- FILTERS GO HERE -->
                 <criterion-function-group
                     @update:filter-list="$event = $parent.filtersUpdated($event)">
@@ -83,7 +83,7 @@
                             <template #thead-top>
                                 <tr>
                                 <th colspan="5" style="background: none; border: 0; font-weight: normal;">Total Rows: {{ $parent.totalRows }}</th>
-                                <th colspan="2" style="border:0; text-align: center;">{{ $parent.tablePhenotype }}</th>
+                                <th colspan="2" style="border:0; text-align: center;">{{ $parent.tablePhenotype.replaceAll("ADvPD", "ADvPDRD") }}</th>
                                 </tr>
                             </template>
                             <template #cell(allele)="data">

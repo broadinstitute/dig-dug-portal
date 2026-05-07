@@ -98,12 +98,7 @@ export default Vue.component("bulk-table", {
             perPage: 10,
             showGenes: "",
             currentPage: 1,
-            subtableData: {},
-            subtableFields: {},
             contField: null,
-            catField: null,
-            contFields: [],
-            catFields: [],
             currentData: [],
             tableYField: "-log10P",
             tableXField: "logFoldChange",
@@ -138,26 +133,6 @@ export default Vue.component("bulk-table", {
                 plotUtils: plotUtils,
             };
             return utils;
-        },
-        scatterConfig(){
-            if (this.contField === null){
-                this.contField = this.contFields[0];
-            }
-            let config = {
-                xField: this.contField.key,
-                xAxisLabel: this.contField.label,
-                yField: "norm_counts",
-                yAxisLabel: "Norm counts",
-                dotKey: "sample_id",
-                hoverBoxPosition: "both",
-                plotHeight: 350,
-                hoverFields: [
-                    {key: "sample_id", label: "Sample"},
-                    {key: this.contField.key, label: this.contField.label},
-                    {key: "norm_counts", label: "Norm"}
-                ],
-            };
-            return config;
         },
         rows() {
             return this.tableData.length || 0;
@@ -194,71 +169,14 @@ export default Vue.component("bulk-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        async getSubtable(item) {
-            let queryKey = this.subtableKey(item);
-            if (!this.subtableData[queryKey]) {
-                let data = await this.query(this.config.subtableEndpoint, queryKey);
-                let fields = this.getFields(data[0]);
-                Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
-                Vue.set(this.subtableFields, queryKey, fields);
-            }
-        },
-        async showDetails(row) {
-            row.toggleDetails();
-            await this.getSubtable(row.item);
-        },
         async query(endPoint, key){
             const query = `${BIO_INDEX_HOST}/api/bio/query/${endPoint}?q=${key}`
             const response = await fetch(query);
             const json = await response.json();
             return json.data;
         },
-        subtableKey(item) {
-            let mySubtableKey = `${this.dataset},${item[this.config.queryParam]}`;
-            return mySubtableKey;
-        },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
-        },
-        getFields(data){
-            let fields = [
-                {
-                    key: "sample_id",
-                    label: "Sample",
-                    sortable: true,
-                },
-                {
-                    key: "norm_counts",
-                    label: "Norm counts",
-                    sortable: true,
-                },
-            ];
-            let dataKeys = Object.keys(data);
-            let catFields = dataKeys.filter(field => field.startsWith("cat__"))
-                .map(field => { return {
-                    key: field,
-                    label: Formatters.tissueFormatter(field.replace("cat__", "").replace("custom__", "")),
-                    sortable: true,
-                    isCat: true,
-                }});
-            let contFields = dataKeys.filter(field => field.startsWith("cont__"))
-                .map(field => { return {
-                    key: field,
-                    label: Formatters.tissueFormatter(field.replace("cont__", "").replace("custom__", "")),
-                    sortable: true,
-                    isNumerical: true
-                }});
-            if (!this.contField || !contFields.includes(this.contField)){
-                this.contField = contFields[0];
-            }
-            if (!this.catField || !catFields.includes(this.catField)){
-                this.catField = catFields[0];
-            }
-            this.catFields = catFields;
-            this.contFields = contFields;
-            fields = fields.concat(catFields);
-            fields = fields.concat(contFields);
-            return fields;
         },
         toNumeric(geneData, fields){
           let fieldsToConvert = fields.filter(field => field.isNumerical)
@@ -354,27 +272,12 @@ export default Vue.component("bulk-table", {
 label {
     margin: 10px;
 }
-.bulk-subtable {
-    margin-left: 15px;
-    padding-left: 30px;
-    background-color: #efefef;
-}
-.bulk-subtable .row .col-12 {
-    padding: 0 0 0 5px !important;
-}
 ul.top-list {
     font-size: 0.8rem;
 }
 button {
     padding-bottom: 0px !important;
     padding-top: 0px !important;
-}
-.subtable-selectors{
-    margin-bottom: 20px;
-    padding-top: 20px;
-}
-.subtable-all {
-    background-color: #efefef;
 }
 .table-total-rows {
     display: inline;
