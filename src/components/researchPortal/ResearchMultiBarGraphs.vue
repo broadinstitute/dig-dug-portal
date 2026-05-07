@@ -75,8 +75,6 @@ const DEFAULT_COLORS = [
   "#C62828",
   "#00838F",
 ];
-const MIN_CATEGORY_TOTAL_DISEASE_RACE = 20;
-const FIELDS_MIN_TOTAL = ["disease", "race"];
 
 export default {
   name: "ResearchMultiBarGraphs",
@@ -210,23 +208,13 @@ export default {
       const s = String(fieldName);
       return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     },
-    fieldAppliesMinCategoryTotal(fieldName) {
-      const f = String(fieldName || "").trim().toLowerCase();
-      return FIELDS_MIN_TOTAL.includes(f);
-    },
     getCategoriesForField(fieldName) {
       const rows = this.dataByField[fieldName] || [];
       const set = new Set();
       rows.forEach((r) => {
         if (r.category) set.add(r.category);
       });
-      let cats = [...set].sort();
-      if (this.fieldAppliesMinCategoryTotal(fieldName)) {
-        cats = cats.filter(
-          (cat) => this.getTotalForFieldCategory(fieldName, cat) >= MIN_CATEGORY_TOTAL_DISEASE_RACE
-        );
-      }
-      return cats;
+      return [...set].sort();
     },
     getSegmentsForFieldCategory(fieldName, category) {
       const rows = this.dataByField[fieldName] || [];

@@ -92,7 +92,6 @@ import * as d3 from "d3";
 
 const PIE_FIELDS = ["case_control", "ethnicity", "sex"];
 const BAR_FIELDS = ["disease", "race"];
-const MIN_RENDER_COUNT = 20;
 const CHART_WIDTH = 330;
 /** Dedicated palette for pie-category colors (kept distinct from program colors). */
 const PIE_CATEGORY_COLORS = ["#F57C00", "#7CB342", "#8E24AA", "#FB8C00", "#26A69A", "#5C6BC0", "#6D4C41", "#FF7043"];
@@ -213,11 +212,6 @@ export default {
                 }
             }
             Object.keys(out).forEach((field) => {
-                Object.keys(out[field]).forEach((category) => {
-                    if ((Number(out[field][category]) || 0) < MIN_RENDER_COUNT) {
-                        delete out[field][category];
-                    }
-                });
                 if (!Object.keys(out[field]).length) delete out[field];
                 else {
                     const ordered = {};
@@ -245,7 +239,7 @@ export default {
         /** True if the small-chart item has at least one positive count to render. */
         hasDataForSmallChart(item) {
             if (!item || typeof item.data !== "object") return false;
-            return Object.values(item.data).some((v) => Number(v) >= MIN_RENDER_COUNT);
+            return Object.values(item.data).some((v) => Number(v) > 0);
         },
         /** Categories in a bar field that have contributions from 2+ programs. Used for vertical breakdown charts. */
         getBarCategoriesWithMultiplePrograms(fieldName) {
@@ -259,7 +253,7 @@ export default {
                     (sum, p) => sum + (Number(byProgram[p]) || 0),
                     0
                 );
-                if (contributing.length >= 2 && categoryTotal >= MIN_RENDER_COUNT) {
+                if (contributing.length >= 2 && categoryTotal > 0) {
                     items.push({ category, byProgram });
                 }
             });
@@ -329,7 +323,7 @@ export default {
             d3.select(el).selectAll("*").remove();
             const entries = Object.entries(counts || {})
                 .map(([name, value]) => ({ name, value: Number(value) }))
-                .filter((d) => d.value >= MIN_RENDER_COUNT)
+                .filter((d) => d.value > 0)
                 .sort((a, b) => this.sortCategoryNames(a.name, b.name));
             if (entries.length === 0) return;
 
@@ -415,7 +409,7 @@ export default {
                         total += n;
                     });
                     row.total = total;
-                    if (total >= MIN_RENDER_COUNT) byCategory[category] = row;
+                    if (total > 0) byCategory[category] = row;
                 });
                 entries = Object.values(byCategory).sort((a, b) => {
                     const aUnknown = this.isUnknownCategory(a.name);
@@ -427,7 +421,7 @@ export default {
             } else {
                 entries = Object.entries(counts || {})
                     .map(([name, value]) => ({ name, value: Number(value), total: Number(value) }))
-                    .filter((d) => d.value >= MIN_RENDER_COUNT)
+                    .filter((d) => d.value > 0)
                     .sort((a, b) => this.sortCategoryNames(a.name, b.name));
             }
             if (entries.length === 0) return;
@@ -565,7 +559,7 @@ export default {
         renderVerticalBarBreakdown(el, categoryName, byProgram, programs) {
             d3.select(el).selectAll("*").remove();
             const entries = programs
-                .filter((p) => (Number(byProgram[p]) || 0) >= MIN_RENDER_COUNT)
+                .filter((p) => (Number(byProgram[p]) || 0) > 0)
                 .map((p) => ({ program: p, value: Number(byProgram[p]) || 0 }));
             if (entries.length === 0) return;
 
