@@ -20,17 +20,19 @@ new Vue({
         return {
             pageContent: {},
             fallbackId: "sysBio_help",
+            prefix: "sysbiofairplex_",
             pages: {
-                contact: "sysbiofairplex_contact",
-                collaborate: "sysbiofairplex_collaborate",
-                team: "sysbiofairplex_people",
-                policies: "sysbiofairplex_policies",
-                about: "sysbiofairplex_aboutus",
-                access: "sysbiofairplex_howtoaccessampdatadirectly",
-                glossary: "sysbiofairplex_glossary",
-                ampdata: "sysbiofairplex_ampdata",
-                harmonization: "sysbiofairplex_dataharmonization",
-                feedback: "sysbiofairplex_sharefeedback"
+                contact: "contact",
+                collaborate: "collaborate",
+                team: "people",
+                policies: "policies",
+                about: "aboutus",
+                access: "howtoaccessampdatadirectly",
+                glossary: "glossary",
+                ampdata: "ampdata",
+                harmonization: "harmonization",
+                feedback: "sharefeedback",
+                datasets: "datasets"
             },
             showDataPoints: {
                 glossary: true,
@@ -73,7 +75,7 @@ new Vue({
     methods: {
         ...dataConvert,
         async getContent(page){
-            let byorPage = this.pages[page];
+            let byorPage = `${this.prefix}${this.pages[page]}`;
             let pageContent = await getTextContent(byorPage, false, true);
             this.pageContent = pageContent;
             if (!!pageContent.field_data_points){
