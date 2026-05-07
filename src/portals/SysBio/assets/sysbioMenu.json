@@ -62,6 +62,14 @@
         {
           "label": "Glossary of Terms",
           "path": "about.html?page=glossary"
+        },
+        {
+          "label": "Harmonization Procedures",
+          "path": "about.html?page=harmonization"
+        },
+        {
+          "label": "Datasets",
+          "path": "about.html?page=datasets"
         }
       ]
     },
@@ -77,10 +85,6 @@
           "hide": true,
           "label": "Collaborate",
           "path": "about.html?page=collaborate"
-        },
-        {
-          "label": "Share feedback",
-          "path": "about.html?page=feedback"
         }
       ]
     }
