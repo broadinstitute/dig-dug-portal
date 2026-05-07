@@ -24,13 +24,6 @@ let pages = {
         title: "About",
         chunks: ["chunk-vendors", "chunk-common", "about"],
     },
-    expression: {
-        entry: "src/portals/SysBio/views/Expression/main.js",
-        template: "src/portals/SysBio/views/index.html",
-        filename: "expression.html",
-        title: "Gene Expression Browser",
-        chunks: ["chunk-vendors", "chunk-common", "expression"],
-    },
     gwas: {
         entry: "src/portals/SysBio/views/GWAS/main.js",
         template: "src/portals/SysBio/views/index.html",
