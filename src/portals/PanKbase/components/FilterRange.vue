@@ -1,29 +1,29 @@
 <template>
-    <div>
-    <filter-control-template
-        class="filter-col-sm"
-        :field="fieldMin"
-        :type="'number'"
-        :predicate="predicateLower"
-        :pillFormatter="pillFormatterLower"
-        :placeholder="placeholder"
-        :color="color"
-        :computedField="computedField"
-    >
-        <slot>{{ fieldMin }}</slot>
-    </filter-control-template>
-    <filter-control-template
-        class="filter-col-sm"
-        :field="field"
-        :type="'number'"
-        :predicate="predicateUpper"
-        :pillFormatter="pillFormatterUpper"
-        :placeholder="placeholder"
-        :color="color"
-        :computedField="computedField"
-    >
-        <slot>{{ field }}</slot>
-    </filter-control-template>
+    <div class="range">
+        <filter-control-template
+            class="filter-col-sm"
+            :field="fieldMin"
+            :type="'number'"
+            :predicate="predicateLower"
+            :pillFormatter="pillFormatterLower"
+            :placeholder="placeholder"
+            :color="color"
+            :computedField="computedField"
+        >
+            <slot>{{ fieldMin }}</slot>
+        </filter-control-template>
+        <filter-control-template
+            class="filter-col-sm"
+            :field="field"
+            :type="'number'"
+            :predicate="predicateUpper"
+            :pillFormatter="pillFormatterUpper"
+            :placeholder="placeholder"
+            :color="color"
+            :computedField="computedField"
+        >
+            <slot>{{ field }}</slot>
+        </filter-control-template>
     </div>
 </template>
 <script>
@@ -55,7 +55,6 @@ export default Vue.component("filter-range", {
             type: String
         },
         placeholder: String,
-        minSuffix: String
     },
     components: {
         FilterControlTemplate
@@ -64,6 +63,16 @@ export default Vue.component("filter-range", {
         fieldMin() {
             return `${this.field}${this.minSuffix}`;
         }
+    },
+    data(){
+        return {
+            minSuffix: "_DUPL"
+        }
     }
 });
 </script>
+<style scoped>
+    .range {
+        display: inline !important;
+    }
+</style>

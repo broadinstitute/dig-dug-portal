@@ -42,9 +42,7 @@
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <filter-range
-                                :field="'BMI'"
-                                :label="'BMI'"
-                                :minSuffix="$parent.minSuffix">
+                                :field="'BMI'">
                                 <div class="label">BMI</div>
                             </filter-range>
                             <template slot="filtered" slot-scope="{ filter }">
