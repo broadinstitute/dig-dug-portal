@@ -42,6 +42,7 @@ export default Vue.component("filter-control-template", {
     props: {
         value: Object,
         field: String,
+        label: String,
         placeholder: String,
         predicate: Function,
         options: Array,
@@ -83,7 +84,7 @@ export default Vue.component("filter-control-template", {
             filterDefinition: {
                 field: this.field,
                 placeholder: this.placeholder,
-                label: this.pillFormatter,
+                label: this.label,
                 pillFormatter: this.pillFormatter,
                 labelFormatter: this.labelFormatter,
                 color: this.color,

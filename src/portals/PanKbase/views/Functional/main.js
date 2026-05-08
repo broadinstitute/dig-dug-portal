@@ -140,7 +140,6 @@ new Vue({
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
         this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
-        // TODO cheat by adding secret dupe fields for maximum. That is literally easier than doing it another way.
     },
     computed: {
         allMetadata(){

@@ -2,6 +2,7 @@
     <filter-control-template
         class="filter-col-sm"
         :field="field"
+        :label="label"
         :type="'number'"
         :predicate="predicate"
         :pillFormatter="pillFormatter"
@@ -19,6 +20,7 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 export default Vue.component("filter-greater-control", {
     props: {
         field: String,
+        label: String,
         computedField: Function,
         predicate: {
             type: Function,

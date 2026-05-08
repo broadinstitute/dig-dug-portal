@@ -42,11 +42,14 @@
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
                             <filter-greater-control
-                                :field="$parent.fieldKey($parent.fieldsObject.bmiMin)">
+                                :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
+                                label="BMI"
+                                :pillFormatter="(filter) => `${filter.label} >= ${filter.threshold}`">
                                 <div class="label">BMI (min)</div>
                             </filter-greater-control>
                             <filter-less-control
-                                :field="$parent.fieldKey($parent.fieldsObject.bmiMax)">
+                                :field="$parent.fieldKey($parent.fieldsObject.bmiMax)"
+                                >
                                 <div class="label">BMI (max)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
