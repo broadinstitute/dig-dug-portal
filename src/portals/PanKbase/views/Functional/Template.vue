@@ -41,10 +41,14 @@
                             >
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
-                            <filter-range
-                                :field="'BMI'">
-                                <div class="label">BMI</div>
-                            </filter-range>
+                            <filter-greater-control
+                                :field="$parent.fieldKey($parent.fieldsObject.bmiMin)">
+                                <div class="label">BMI (min)</div>
+                            </filter-greater-control>
+                            <filter-less-control
+                                :field="$parent.fieldKey($parent.fieldsObject.bmiMax)">
+                                <div class="label">BMI (max)</div>
+                            </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
                                     <div class="insulin-plot line-plot col-md-6">

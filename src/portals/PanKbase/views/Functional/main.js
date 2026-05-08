@@ -157,7 +157,7 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        }
+        },
     },
     methods: {
         getDonors(donors){
@@ -193,6 +193,11 @@ new Vue({
                 maxTime: maxTime,
                 maxScore: maxScore
             }
+            return output;
+        },
+        fieldKey(fieldData){
+            let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
+            console.log(output);
             return output;
         }
     },
