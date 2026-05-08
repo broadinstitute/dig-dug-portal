@@ -13,7 +13,6 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
-import FilterRange from "../../components/FilterRange.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
@@ -34,7 +33,6 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterLessThan,
-        FilterRange,
         FilterGreaterLess,
         DonorMetadataTable,
         TimeSeriesLinePlot
