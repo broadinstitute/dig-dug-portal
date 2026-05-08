@@ -159,12 +159,8 @@ export default Vue.component("time-series-line-plot", {
         .append("g")
           .attr("transform", `translate(${margin.left},${margin.top})`);
         let timepointBars = this.extractTimepoints(this.timepoints, this.xScale, this.yScale);
-        console.log(JSON.stringify(timepointBars));
-        //timepointBars = [];
-
-      let even = true;
-      let colors = ["lightblue", "lightcoral", "lightgreen", "lightpink", "lemonchiffon", "lightcyan"]
-      let colorIndex = 0;
+        
+      let palegold = "#FEFFE1";
       timepointBars.forEach(t => {
         let basal = this.isBasal(t.condition);
         this.svg.append("rect")
@@ -172,10 +168,9 @@ export default Vue.component("time-series-line-plot", {
           .attr("y", t.y)
           .attr("width", t.width)
           .attr("height", !basal ? t.height : 0.05 * t.height)
-          .attr("fill", basal ? "lightgray" : colors[colorIndex]);
-        if (!basal){
-          colorIndex = colorIndex + 1;
-        }
+          .attr("fill", basal ? "lightgray" : palegold)
+          .attr("stroke", "lightgray")
+          .attr("stroke-width", 1);
       });
       // Separate loop to put text on top of bg
       timepointBars.forEach(t => {

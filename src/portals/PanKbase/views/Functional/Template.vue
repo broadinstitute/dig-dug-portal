@@ -41,11 +41,11 @@
                             >
                                 <div class="label">Derived Diabetes Status</div>
                             </filter-enumeration-control>
-                            <filter-greater-less
+                            <filter-range
                                 :field="'BMI'"
                                 :label="'BMI'">
                                 <div class="label">BMI</div>
-                            </filter-greater-less>
+                            </filter-range>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
                                     <div class="insulin-plot line-plot col-md-6">
@@ -77,6 +77,7 @@
                                 <donor-metadata-table
                                     :metadata="$parent.allMetadata"
                                     :filter="filter"
+                                    :fields="$parent.fieldsObject"
                                     @filteredDonors="data => $parent.getDonors(data)">
 
                                 </donor-metadata-table>

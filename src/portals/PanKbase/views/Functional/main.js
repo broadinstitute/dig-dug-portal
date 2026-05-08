@@ -13,6 +13,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
+import FilterRange from "../../components/FilterRange.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
@@ -33,6 +34,7 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterLessThan,
+        FilterRange,
         FilterGreaterLess,
         DonorMetadataTable,
         TimeSeriesLinePlot
@@ -67,6 +69,7 @@ new Vue({
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
         this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
+        // TODO cheat by adding secret dupe fields for maximum. That is literally easier than doing it another way.
     },
     computed: {
         allMetadata(){
