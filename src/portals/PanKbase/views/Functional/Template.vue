@@ -44,7 +44,8 @@
                             <filter-greater-control
                                 :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
                                 label="BMI"
-                                :pillFormatter="(filter) => `${filter.label} >= ${filter.threshold}`">
+                                :labelFormatter="fieldName => 'BMI'"
+                                :pillFormatter="(filter) => `${filter.labelFormatter(filter.field)} >= ${filter.threshold}`">
                                 <div class="label">BMI (min)</div>
                             </filter-greater-control>
                             <filter-less-control

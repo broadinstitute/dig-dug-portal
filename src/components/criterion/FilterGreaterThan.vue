@@ -3,6 +3,7 @@
         class="filter-col-sm"
         :field="field"
         :label="label"
+        :labelFormatter="labelFormatter"
         :type="'number'"
         :predicate="predicate"
         :pillFormatter="pillFormatter"
@@ -25,6 +26,10 @@ export default Vue.component("filter-greater-control", {
         predicate: {
             type: Function,
             default: (number, lowerBound) => number >= lowerBound
+        },
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
         },
         pillFormatter: {
             type: Function,

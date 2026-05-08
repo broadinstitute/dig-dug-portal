@@ -84,7 +84,7 @@ export default Vue.component("filter-control-template", {
             filterDefinition: {
                 field: this.field,
                 placeholder: this.placeholder,
-                label: this.label,
+                label: this.pillFormatter,
                 pillFormatter: this.pillFormatter,
                 labelFormatter: this.labelFormatter,
                 color: this.color,
