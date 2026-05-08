@@ -105,7 +105,7 @@
                                     RNA-seq and harmonized pseudobulked
                                     single-cell or single nucleus RNA-seq data
                                     from human tissues from AMP AD, AMP CMD, AMP
-                                    PD, and AMP RA/SLE
+                                    PDRD, and AMP RA/SLE
                                 </div>
                             </div>
                             <div
@@ -118,7 +118,7 @@
                                     Visualizations of case versus case
                                     Genome-Wide Association Studies (GWAS) of
                                     individuals with Alzheimer's Disease (AMP
-                                    AD) versus Parkinson's disease (AMP PD)
+                                    AD) versus Parkinson's Disease and Related Disorders (AMP PDRD)
                                 </div>
                             </div>
                         </div>

@@ -73,8 +73,8 @@ new Vue({
                         type: "medium"
                     },
                     {
-                        title: "AMP® PD Parkinson’s Disease",
-                        body: "Identifying biomarkers and therapies for Parkinson’s Disease.",
+                        title: "AMP® PDRD Parkinson's Disease and Related Disorders",
+                        body: "Identifying biomarkers and therapies for Parkinson's Disease and Related Disorders.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-parkinsons-disease/",
                         bgImage: "images/sysbio/sysbio_amp_programs/AMP_PD.png",
