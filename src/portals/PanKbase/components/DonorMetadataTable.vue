@@ -41,44 +41,45 @@ export default Vue.component("donor-metadata-table", {
         DataDownload,
     },
     props: [
-        "metadata", "filter"
+        "metadata", "filter", "fieldsObject", "minSuffix"
     ],
     data() {
         return {
             perPage: 10,
-            currentPage: 1
+            currentPage: 1,
+            processedMetadata: [],
         };
     },
     mounted(){
+        this.processedMetadata = this.preprocessData(this.metadata);
     },
     computed: {
         tableData() {
-            let data = structuredClone(this.metadata);
+            let data = structuredClone(this.processedMetadata);
             if (this.filter) {
                 data = data.filter(this.filter);
             }
             return data;
         },
         fields(){
-            let rawFields = 
-                [
-                    "Accession",
-                    "Center Donor ID",
-                    "Age (years)",
-                    "Gender",
-                    "BMI",
-                    "Description of diabetes status",
-                    "HbA1C (percentage)",
-                    "Derived diabetes status",
-                    "T1D stage",
-                    "Isolation_center",
-                    "Cold Ischaemia Time (hours)",
-                    "Pre-Shipment Culture Time (hours)",
-                ]
-            return rawFields;
+            return Object.values(this.fieldsObject).filter(f => !f.isMinimum);
         }
     },
-    methods: {},
+    methods: {
+        preprocessData(inputData){
+            // duplicate fields to allow filtering on two thresholds (min and max)
+            let rangeFields = Object.values(this.fieldsObject).filter(f => !!f.isMinimum);
+            for (let i = 0; i < inputData.length; i++){
+                let entry = inputData[i];
+                for(let j = 0; j < rangeFields.length; j++){
+                    let field = rangeFields[j];
+                    let newFieldName = `${field.key}${this.minSuffix}`;
+                    entry[newFieldName] = entry[field.key];
+                }
+            }
+            return inputData;
+        }
+    },
     watch: {
         tableData(newData){
             let filteredDonors = newData.map(m => m.Accession);

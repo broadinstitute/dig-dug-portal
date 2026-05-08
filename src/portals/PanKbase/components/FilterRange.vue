@@ -1,4 +1,5 @@
 <template>
+    <div>
     <filter-control-template
         class="filter-col-sm"
         :field="fieldMin"
@@ -8,24 +9,22 @@
         :placeholder="placeholder"
         :color="color"
         :computedField="computedField"
-        :inclusive="true"
     >
         <slot>{{ fieldMin }}</slot>
     </filter-control-template>
     <filter-control-template
         class="filter-col-sm"
-        :field="fieldMax"
+        :field="field"
         :type="'number'"
         :predicate="predicateUpper"
         :pillFormatter="pillFormatterUpper"
         :placeholder="placeholder"
         :color="color"
         :computedField="computedField"
-        :inclusive="true"
     >
-        <slot>{{ fieldMax }}</slot>
+        <slot>{{ field }}</slot>
     </filter-control-template>
-    
+    </div>
 </template>
 <script>
 import Vue from "vue";
@@ -55,10 +54,16 @@ export default Vue.component("filter-range", {
         color: {
             type: String
         },
-        placeholder: String
+        placeholder: String,
+        minSuffix: String
     },
     components: {
         FilterControlTemplate
+    },
+    computed:{
+        fieldMin() {
+            return `${this.field}${this.minSuffix}`;
+        }
     }
 });
 </script>

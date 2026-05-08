@@ -60,6 +60,77 @@ new Vue({
             insTimepoints: [],
             gcgColor: "#2F67B1", // colorblind safe blue from UCSB
 			insColor: "#BF2C23", // colorblind safe red from UCSB,
+            fieldsObject: {
+                ageMin: {
+                    key: "Age (years)",
+                    isNumeric: true,
+                    isMinimum: true,
+                    sortable: true,
+                },
+                ageMax: {
+                    key: "Age (years)",
+                    isNumeric: true,
+                    isMinimum: false,
+                    sortable: true,
+                },
+                sex: {
+                    key: "Gender",
+                    isNumeric: false,
+                    sortable: true
+                },
+                bmiMin: {
+                    key: "BMI",
+                    isNumeric: true,
+                    isMinimum: true,
+                    sortable: true
+                },
+                bmiMax: {
+                    key: "BMI",
+                    isNumeric: true,
+                    isMinimum: false,
+                    sortable: true
+                },
+                diabetes: {
+                    key: "Derived diabetes status",
+                    isNumeric: false,
+                    sortable: true
+                },
+                hba1cMin: {
+                    key: "HbA1C (percentage)",
+                    isNumeric: true,
+                    isMinimum: true,
+                    sortable: true
+                },
+                hba1cMax: {
+                    key: "HbA1C (percentage)",
+                    isNumeric: true,
+                    isMinimum: false,
+                    sortable: true
+                },
+                ethnicity: {
+                    key: "Ethnicities",
+                    isNumeric: false,
+                    sortable: true
+                },
+                isolation: {
+                    key: "Isolation_center",
+                    isNumeric: false,
+                    sortable: true
+                },
+                cultureTimeMin: {
+                    key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
+                    isNumeric: true,
+                    isMinimum: true,
+                    sortable: true
+                },
+                cultureTimeMax: {
+                    key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
+                    isNumeric: true,
+                    isMinimum: false,
+                    sortable: true
+                }
+            },
+            minSuffix: "_DUPL"
         };
     },
     async created() {

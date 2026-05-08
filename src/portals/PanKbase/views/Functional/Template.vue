@@ -43,7 +43,8 @@
                             </filter-enumeration-control>
                             <filter-range
                                 :field="'BMI'"
-                                :label="'BMI'">
+                                :label="'BMI'"
+                                :minSuffix="$parent.minSuffix">
                                 <div class="label">BMI</div>
                             </filter-range>
                             <template slot="filtered" slot-scope="{ filter }">
@@ -77,7 +78,8 @@
                                 <donor-metadata-table
                                     :metadata="$parent.allMetadata"
                                     :filter="filter"
-                                    :fields="$parent.fieldsObject"
+                                    :fieldsObject="$parent.fieldsObject"
+                                    :minSuffix="$parent.minSuffix"
                                     @filteredDonors="data => $parent.getDonors(data)">
 
                                 </donor-metadata-table>
