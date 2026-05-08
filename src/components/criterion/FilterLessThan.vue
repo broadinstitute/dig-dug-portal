@@ -23,10 +23,14 @@ export default Vue.component("filter-less-control", {
             type: Function,
             default: (number, upperBound) => number <= upperBound,
         },
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
+        },
         pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
-                `${filterDefinition.field} <= ${filterDefinition.threshold}`,
+                `${filterDefinition.labelFormatter(filterDefinition.field)} ≤ ${filterDefinition.threshold}`,
         },
         color: {
             type: String,

@@ -20,38 +20,52 @@
                     <div v-if="$store.state.metadata.length > 0">
                         Filter and explore donor data
                         <criterion-function-group>
+                            <filter-greater-control
+                                :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
+                                :labelFormatter="fieldName => 'Age (years)'">
+                                <div class="label">Age (min)</div>
+                            </filter-greater-control>
+                            <filter-less-control
+                                :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
+                                >
+                                <div class="label">Age (max)</div>
+                            </filter-less-control>
                             <filter-enumeration-control
-                                :field="'Gender'"
+                                :field="$parent.fieldKey($parent.fieldsObject.sex)"
                                 :options="
                                     $store.state.metadata.map(m => m.Gender)
                                 "
                             >
                                 <div class="label">Gender</div>
                             </filter-enumeration-control>
-                            <filter-greater-less
-                                :field="'Age (years)'"
-                                :label="'Age'">
-                                <div class="label">Age</div>
-                            </filter-greater-less>
-                            <filter-enumeration-control
-                                :field="'Derived diabetes status'"
-                                :options="
-                                    $store.state.metadata.map(m => m['Derived diabetes status'])
-                                "
-                            >
-                                <div class="label">Derived Diabetes Status</div>
-                            </filter-enumeration-control>
                             <filter-greater-control
                                 :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
-                                label="BMI"
-                                :labelFormatter="fieldName => 'BMI'"
-                                :pillFormatter="(filter) => `${filter.labelFormatter(filter.field)} >= ${filter.threshold}`">
+                                :labelFormatter="fieldName => 'BMI'">
                                 <div class="label">BMI (min)</div>
                             </filter-greater-control>
                             <filter-less-control
                                 :field="$parent.fieldKey($parent.fieldsObject.bmiMax)"
                                 >
                                 <div class="label">BMI (max)</div>
+                            </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.fieldKey($parent.fieldsObject.diabetes)"
+                                :options="
+                                    $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])
+                                "
+                            >
+                                <div class="label">Derived Diabetes Status</div>
+                            </filter-enumeration-control>
+                            <filter-greater-control
+                                :field="$parent.fieldKey($parent.fieldsObject.hba1cMin)"
+                                :labelFormatter="fieldName => 'HBA1C %'">
+                                <div class="label">HBA1C (min)</div>
+                            </filter-greater-control>
+                            <filter-less-control
+                                :field="$parent.fieldKey($parent.fieldsObject.hba1cMax)"
+                                :labelFormatter="fieldName => 'HBA1C %'"
+                                >
+                                <div class="label">HBA1C (max)</div>
                             </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
