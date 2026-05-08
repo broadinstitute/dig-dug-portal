@@ -67,6 +67,33 @@
                                 >
                                 <div class="label">HBA1C (max)</div>
                             </filter-less-control>
+                            <filter-enumeration-control
+                                :field="$parent.fieldKey($parent.fieldsObject.ethnicity)"
+                                :options="
+                                    $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.ethnicity)])
+                                "
+                            >
+                                <div class="label">Ethnicity</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="$parent.fieldKey($parent.fieldsObject.isolation)"
+                                :options="
+                                    $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.isolation)])
+                                "
+                            >
+                                <div class="label">Isolation Center</div>
+                            </filter-enumeration-control>
+                            <filter-greater-control
+                                :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMin)"
+                                :labelFormatter="fieldName => 'Culture time (hrs)'">
+                                <div class="label">Culture time (min hrs)</div>
+                            </filter-greater-control>
+                            <filter-less-control
+                                :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMax)"
+                                :labelFormatter="fieldName => 'Culture time (hrs)'"
+                                >
+                                <div class="label">Culture time (max hrs)</div>
+                            </filter-less-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <div class="row">
                                     <div class="insulin-plot line-plot col-md-6">
