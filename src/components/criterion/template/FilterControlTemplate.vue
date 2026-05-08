@@ -42,6 +42,7 @@ export default Vue.component("filter-control-template", {
     props: {
         value: Object,
         field: String,
+        label: String,
         placeholder: String,
         predicate: Function,
         options: Array,

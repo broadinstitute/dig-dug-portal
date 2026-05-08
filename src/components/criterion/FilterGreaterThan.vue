@@ -2,6 +2,8 @@
     <filter-control-template
         class="filter-col-sm"
         :field="field"
+        :label="label"
+        :labelFormatter="labelFormatter"
         :type="'number'"
         :predicate="predicate"
         :pillFormatter="pillFormatter"
@@ -19,15 +21,20 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 export default Vue.component("filter-greater-control", {
     props: {
         field: String,
+        label: String,
         computedField: Function,
         predicate: {
             type: Function,
             default: (number, lowerBound) => number >= lowerBound
         },
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
+        },
         pillFormatter: {
             type: Function,
             default: filterDefinition =>
-                `${filterDefinition.field} ≥ ${filterDefinition.threshold}`
+                `${filterDefinition.labelFormatter(filterDefinition.field)} ≥ ${filterDefinition.threshold}`
         },
         color: {
             type: String
