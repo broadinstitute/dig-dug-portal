@@ -78,6 +78,11 @@ jobs:
                       mv repo-b/configs/vue.config.SysBio.js repo-b/vue.config.js
                   fi
 
+            # Step 4.8: Write .gitignore to target (dotfiles are excluded from rsync)
+            - name: Create .gitignore in target
+              run: |
+                  echo 'node_modules/' > repo-b/.gitignore
+
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
             - name: Commit and Push Changes to Target Repo (sysbio-portal @ main)
