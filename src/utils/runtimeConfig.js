@@ -12,5 +12,6 @@ export const SYSBIO_HOST =
     config.SYSBIO_HOST || "https://sysbio.hugeampkpnbi.org";
 export const ENRICHR_HOST =
     config.ENRICHR_HOST || "https://matkp.hugeampkpnbi.org";
+export const SHOW_LOGIN = config.SHOW_LOGIN === true;
 
 export default config;

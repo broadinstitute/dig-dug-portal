@@ -20,7 +20,9 @@
                 <div v-if="item.subMenuItems" class="submenu">
                     <a
                         v-for="subItem in item.subMenuItems.filter(
-                            (i) => !i.hide
+                            (i) =>
+                                !i.hide &&
+                                !(i.requiresLogin && !showLogin)
                         )"
                         class="submenu-item"
                         :class="{ active: isActive(subItem.path) }"
@@ -32,7 +34,7 @@
                 </div>
             </div>
             <div
-                v-if="false"
+                v-if="showLogin"
                 style="
                     height: 2em;
                     width: 0;
@@ -41,7 +43,7 @@
                     align-self: center;
                 "
             ></div>
-            <div class="menu-item-wrapper" v-if="false">
+            <div class="menu-item-wrapper" v-if="showLogin">
                 <a class="menu-item" :href="'/account'">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -70,6 +72,7 @@
 import Vue from "vue";
 
 import sysbioMenu from "@/portals/SysBio/assets/sysbioMenu.json";
+import { SHOW_LOGIN } from "@/utils/runtimeConfig";
 let menuItemActive = false;
 
 export default Vue.component("sysbio-header", {
@@ -79,10 +82,12 @@ export default Vue.component("sysbio-header", {
         return {
             nav: sysbioMenu,
             userInfo: null,
+            showLogin: SHOW_LOGIN,
         };
     },
     computed: {},
     mounted() {
+        if (!this.showLogin) return;
         fetch("runtime-config.js", { method: "HEAD" })
             .then((res) => {
                 this.userInfo = res.headers.get("X-Fairplex-User");

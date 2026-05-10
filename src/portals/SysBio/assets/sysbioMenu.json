@@ -15,7 +15,7 @@
           "external": true
         },
         {
-          "hide": true,
+          "requiresLogin": true,
           "label": "FAIRkit",
           "path": "https://staging.sysbio-fairplex.org/fairkit",
           "external": true
