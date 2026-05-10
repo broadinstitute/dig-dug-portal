@@ -45,7 +45,6 @@ This document explains how to build and run the Portal using Docker.
 - `PORT`: Port on which the Nginx server will listen (default: 8080)
 - `BIOINDEX_DEV`: Set to `1` to use the development BioIndex server instead of production, or
 - `BIOINDEX_HOST`: URL of the BioIndex server (if not using default)
-- `VUE_APP_VOLCANO_DATASET_URL`: URL to the volcano plot dataset (for the gene expression viewer)
 - `VUE_APP_DATASET_ASSOC`: Dataset associations endpoint (for the genetic studies browser)
 
 ### Setting Build-Time Environment Variables
@@ -54,13 +53,13 @@ Vue.js environment variables (those prefixed with `VUE_APP_`) must be set at bui
 
 ```bash
 # Using Docker directly
-docker build --build-arg VUE_APP_VOLCANO_DATASET_URL=https://example.com/data.csv.gz -t sysbio-portal .
+docker build --build-arg VUE_APP_DATASET_ASSOC=https://example.com/dataset-associations -t sysbio-portal .
 
 # Using Docker Compose
 # Edit the docker-compose.yml file to include:
 # build:
 #   args:
-#     VUE_APP_VOLCANO_DATASET_URL: https://example.com/data.csv.gz
+#     VUE_APP_DATASET_ASSOC: https://example.com/dataset-associations
 ```
 
 ## Customizing the Build
