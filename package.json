@@ -6,7 +6,9 @@
     "start": "vue-cli-service serve",
     "watch": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
-    "deploy": "vue-cli-service build --mode production"
+    "predeploy": "node scripts/check-cmsdata.js",
+    "deploy": "vue-cli-service build --mode production",
+    "fetch:cmsdata": "node scripts/fetch-cmsdata.js"
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.39",

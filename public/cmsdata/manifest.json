@@ -1,0 +1,154 @@
+{
+  "generatedAt": "2026-05-10T20:06:01.763Z",
+  "gitSha": null,
+  "counts": {
+    "json": 19,
+    "assets": 27,
+    "leftoverRemoteRefs": 0
+  },
+  "urls": [
+    {
+      "kind": "byor_content",
+      "id": "sysbio_GWAS",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_GWAS",
+      "local": "/cmsdata/rest/byor_content/sysbio_GWAS.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_geneexpressionbrowser",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_geneexpressionbrowser",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_geneexpressionbrowser.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbio_data_summary",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_data_summary",
+      "local": "/cmsdata/rest/byor_content/sysbio_data_summary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbio_singlecell",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbio_singlecell",
+      "local": "/cmsdata/rest/byor_content/sysbio_singlecell.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "matkp_enrichrlibraries",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=matkp_enrichrlibraries",
+      "local": "/cmsdata/rest/byor_content/matkp_enrichrlibraries.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_contact",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_contact",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_contact.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_collaborate",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_collaborate",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_collaborate.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_people",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_people",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_people.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_policies",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_policies",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_policies.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_aboutus",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_aboutus",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_aboutus.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_glossary",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_glossary",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_glossary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_ampdata",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_ampdata",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_ampdata.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_howtoaccessampdatadirectly",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_howtoaccessampdatadirectly",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_howtoaccessampdatadirectly.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_harmonization",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_harmonization",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_harmonization.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_sharefeedback",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_sharefeedback",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_sharefeedback.json"
+    },
+    {
+      "kind": "news_list",
+      "id": "sysbio",
+      "remote": "https://hugeampkpncms.org/rest/news_list?project=sysbio",
+      "local": "/cmsdata/rest/news_list/sysbio.json"
+    },
+    {
+      "kind": "directcsv",
+      "id": "sysbio_data_summary",
+      "remote": "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
+      "local": "/cmsdata/rest/directcsv/sysbio_data_summary.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysBio_help",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysBio_help",
+      "local": "/cmsdata/rest/byor_content/sysBio_help.json"
+    },
+    {
+      "kind": "byor_content",
+      "id": "sysbiofairplex_datasets",
+      "remote": "https://hugeampkpncms.org/rest/byor_content?id=sysbiofairplex_datasets",
+      "local": "/cmsdata/rest/byor_content/sysbiofairplex_datasets.json"
+    }
+  ],
+  "assets": [
+    "/sites/default/files/images/sysbio/Lehmann_lisa2.png",
+    "/sites/default/files/images/sysbio/LandinBarry.png",
+    "/sites/default/files/images/sysbio/glazer_david.png",
+    "/sites/default/files/images/sysbio/Skinner_Hal3.png",
+    "/sites/default/files/images/sysbio/DardovVictoria.png",
+    "/sites/default/files/images/sysbio/nalls_mike.png",
+    "/sites/default/files/images/sysbio/basford_melissa.png",
+    "/sites/default/files/images/sysbio/leonard_hampton.png",
+    "/sites/default/files/images/sysbio/varma_susheel.png",
+    "/sites/default/files/images/sysbio/burtt_noel.png",
+    "/sites/default/files/images/sysbio/flannick_jason.png",
+    "/sites/default/files/images/sysbio/shah_sanjiv.png",
+    "/sites/default/files/images/sysbio/Zhang_Bing.png",
+    "/sites/default/files/images/sysbio/Kleinstein_Steven.png",
+    "/sites/default/files/images/sysbio/Gudjonsson_Johann.png",
+    "/sites/default/files/images/sysbio/Sardi_Pablo.png",
+    "/sites/default/files/images/sysbio/Nagle_Michael.png",
+    "/sites/default/files/images/sysbio/Blauwendraat_Cornelius.png",
+    "/sites/default/files/images/sysbio/Biber_Sarah.png",
+    "/sites/default/files/images/sysbio/images/sysbio_mission.svg",
+    "/sites/default/files/images/sysbio/images/sysbio_resources.svg",
+    "/sites/default/files/images/sysbio/images/sysbio_story.svg",
+    "/sites/default/files/images/sysbio/images/sysbio_vision.svg",
+    "/sites/default/files/Documents/AMPdata.pdf",
+    "/sites/default/files/images/sysbio/logos/sb-color-icon.svg",
+    "/sites/default/files/images/sysbio/logos/sb-color-h.svg",
+    "/sites/default/files/images/sysbio/logos/sb-white-v.svg"
+  ]
+}

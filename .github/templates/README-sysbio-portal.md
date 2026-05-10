@@ -6,6 +6,8 @@ This repository contains the code for the SysBio Portal, automatically synced fr
 
 To change the default data sources, you can change its environment variables. For example, if you want to change the dataset associations endpoint (in the genetic studies browser), you can set the environment variable `VUE_APP_DATASET_ASSOC` to desired path at runtime.
 
+The portal serves a committed snapshot of CMS content from `/cmsdata/` by default, so no live requests go to `hugeampkpncms.org`. The snapshot is refreshed in the upstream repo by running `npm run fetch:cmsdata` and committing the resulting `public/cmsdata/` tree. Set `USE_REMOTE_CMS=true` at runtime to bypass the snapshot and fetch live from the CMS — useful for previewing unpublished edits without a redeploy.
+
 For a list of all available environment variables, see [Environment Variables](DOCKER_README.md#environment-variables).
 
 To run: `npm install`, then `npm run deploy`

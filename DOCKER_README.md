@@ -46,6 +46,23 @@ This document explains how to build and run the Portal using Docker.
 - `BIOINDEX_DEV`: Set to `1` to use the development BioIndex server instead of production, or
 - `BIOINDEX_HOST`: URL of the BioIndex server (if not using default)
 - `VUE_APP_DATASET_ASSOC`: Dataset associations endpoint (for the genetic studies browser)
+- `USE_REMOTE_CMS`: When `true`, the SysBio portal fetches CMS content live from `hugeampkpncms.org` at runtime. When unset or `false` (default), it serves the committed snapshot from `/cmsdata/` instead, eliminating outside requests. Flip to `true` to preview unpublished CMS edits without redeploying.
+
+### Refreshing the SysBio CMS snapshot
+
+The SysBio portal ships a committed snapshot of CMS content under `public/cmsdata/`. The build does not hit `hugeampkpncms.org` — staging and production deploy directly from this snapshot.
+
+To refresh the snapshot when CMS content changes:
+
+```bash
+npm run fetch:cmsdata
+git add public/cmsdata
+git commit -m "refresh cms snapshot"
+```
+
+The fetch script reads its allowlist from `scripts/cmsdata.manifest.js`, downloads every JSON resource, recursively crawls embedded `/sites/default/files/` asset URLs, and rewrites all `hugeampkpncms.org` references in the cached JSON to `/cmsdata/...` paths. Any fetch error fails the script non-zero and leaves the existing snapshot untouched.
+
+When adding a new `getTextContent("...")` slug, news project, or directcsv id to the codebase, also add it to `scripts/cmsdata.manifest.js` — the fetch script verifies that hardcoded slugs in source are declared and will fail the build otherwise.
 
 ### Setting Build-Time Environment Variables
 

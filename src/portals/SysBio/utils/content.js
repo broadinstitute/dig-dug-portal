@@ -1,9 +1,7 @@
 import dataConvert from "@/utils/dataConvert";
 import { SYSBIO_HOST, ENRICHR_HOST } from "@/utils/runtimeConfig";
+import { cmsUrl } from "./cmsUrl";
 
-const CONTENT_URL = "https://hugeampkpncms.org/rest/byor_content?id=";
-const NEWSFEED_URL = "https://hugeampkpncms.org/rest/news_list?project=";
-const NEWSITEM_URL = "https://hugeampkpncms.org/rest/news?id=";
 const BIO_INDEX_HOST = SYSBIO_HOST;
 export const ACCESSIBLE_RED = "rgb(191 044 035)"; // colorblind safe red
 export const ACCESSIBLE_BLUE = "rgb(047 103 177)"; // colorblind safe blue,
@@ -17,7 +15,7 @@ export async function getTextContent(
     getBody = false,
     getAll = false
 ) {
-    let resourceUrl = `${CONTENT_URL}${contentId}`;
+    let resourceUrl = cmsUrl("byor_content", contentId);
     let jsonContent = await fetch(resourceUrl).then((resp) => resp.json());
     if (jsonContent.length === 0) {
         return null;
@@ -33,7 +31,7 @@ export async function getTextContent(
 }
 
 export async function getNewsFeed(feedId) {
-    const newsFeedUrl = NEWSFEED_URL + feedId;
+    const newsFeedUrl = cmsUrl("news_list", feedId);
     const newsFeed = await fetch(newsFeedUrl).then((resp) => {
         return resp.json();
     });
@@ -50,7 +48,7 @@ export async function getNewsFeed(feedId) {
 }
 
 export async function getNewsItem(itemId) {
-    const itemUrl = NEWSITEM_URL + itemId;
+    const itemUrl = cmsUrl("news", itemId);
     const newsItem = await fetch(itemUrl).then((resp) => {
         return resp.json();
     });

@@ -6,13 +6,13 @@ import "../../css/sysbio.css";
 
 import { sysbioMixin } from "../../mixins/sysbioMixin.js";
 import { getTextContent } from "../../utils/content.js";
+import { cmsUrl } from "../../utils/cmsUrl.js";
 
 new Vue({
     mixins: [sysbioMixin],
     data() {
         return {
             convertedData: null,
-            rawDataApi: "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary",
             byor_docs: "sysbio_data_summary",
             pageDesc: ""
         };
@@ -26,7 +26,7 @@ new Vue({
     methods: {
         async loadSummaryData() {
             try {
-                const response = await fetch(this.rawDataApi);
+                const response = await fetch(cmsUrl("directcsv", "sysbio_data_summary"));
                 if (!response.ok) throw new Error("Failed to fetch summary data");
                 const data = await response.json();
                 const firstItem = Array.isArray(data) && data.length > 0 ? data[0] : null;

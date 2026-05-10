@@ -31,4 +31,5 @@ package-lock.json
 pnpm-lock.yaml
 
 public/data/
+public/cmsdata.tmp/
 .vs/

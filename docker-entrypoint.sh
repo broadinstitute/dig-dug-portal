@@ -16,6 +16,12 @@ case "${SHOW_LOGIN:-false}" in
     *) SHOW_LOGIN_VAL=false ;;
 esac
 
+# Coerce USE_REMOTE_CMS to a JS boolean literal
+case "${USE_REMOTE_CMS:-false}" in
+    true|TRUE|True|1|yes) USE_REMOTE_CMS_VAL=true ;;
+    *) USE_REMOTE_CMS_VAL=false ;;
+esac
+
 # Generate runtime-config.js from environment variables
 cat <<EOF > /usr/share/nginx/html/runtime-config.js
 window.__RUNTIME_CONFIG__ = {
@@ -28,6 +34,7 @@ window.__RUNTIME_CONFIG__ = {
   SYSBIO_HOST: "${SYSBIO_HOST:-https://sysbio.hugeampkpnbi.org}",
   ENRICHR_HOST: "${ENRICHR_HOST:-https://matkp.hugeampkpnbi.org}",
   SHOW_LOGIN: ${SHOW_LOGIN_VAL},
+  USE_REMOTE_CMS: ${USE_REMOTE_CMS_VAL},
 };
 EOF
 

@@ -10,6 +10,7 @@ import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCell
 import ResearchMultiBarGraphs from "@/components/researchPortal/ResearchMultiBarGraphs.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import dataConvert from "@/utils/dataConvert";
+import { cmsUrl } from "@/portals/SysBio/utils/cmsUrl";
 
 new Vue({
     components: {
@@ -24,7 +25,6 @@ new Vue({
         ampScreenshotAltText: "",
         content: {
             news: {
-                feedUrl: "https://hugeampkpncms.org/rest/news_list?project=sysbio",
                 newsUrl: "about.html?page=news",
                 newsItemUrl: "about.html?page=news&id=",
             },
@@ -215,7 +215,7 @@ new Vue({
     methods: {
         ...dataConvert,
         async getNews() {
-            const newsFeedUrl = this.content.news.feedUrl;
+            const newsFeedUrl = cmsUrl("news_list", "sysbio");
             const newsFeed = await fetch(newsFeedUrl).then((resp) => {
                 return resp.json();
             });
@@ -246,8 +246,7 @@ new Vue({
             ).join("\n");
         },
         async getDataComposition() {
-            //const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_program_x_tissue";
-            const dataUrl = "https://hugeampkpncms.org/rest/directcsv?id=sysbio_data_summary";
+            const dataUrl = cmsUrl("directcsv", "sysbio_data_summary");
             let contentJson = await fetch(dataUrl).then((resp) => resp.json());
 
             if (contentJson.error == null) {

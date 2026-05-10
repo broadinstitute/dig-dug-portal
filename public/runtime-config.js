@@ -9,4 +9,5 @@ window.__RUNTIME_CONFIG__ = {
     SYSBIO_HOST: "https://sysbio.hugeampkpnbi.org",
     ENRICHR_HOST: "https://matkp.hugeampkpnbi.org",
     SHOW_LOGIN: false,
+    USE_REMOTE_CMS: false,
 };
