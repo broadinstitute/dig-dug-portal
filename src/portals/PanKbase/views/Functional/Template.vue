@@ -19,7 +19,7 @@
                     </div>
                     <b-tabs>
                         <b-tab title="Filter and explore donor data">
-                            <div v-if="$store.state.metadata.length > 0">
+                            <div v-if="$parent.filteredMetadata.length > 0">
                                 <criterion-function-group>
                                     <filter-greater-control
                                         :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
@@ -124,7 +124,7 @@
                                         </div>
                                         
                                         <donor-metadata-table
-                                            :metadata="$parent.allMetadata"
+                                            :metadata="$parent.filteredMetadata"
                                             :filter="filter"
                                             :fieldsObject="$parent.fieldsObject"
                                             :minSuffix="$parent.minSuffix"
@@ -136,13 +136,14 @@
                             </div>
                         </b-tab>
                         <b-tab title="Search by individual donor" active>
-                            <div v-if="$store.state.metadata.length > 0">
+                            <div v-if="$parent.filteredMetadata.length > 0">
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'Accession'"
                                 :options="
-                                    $store.state.metadata.filter(m => !!m.Accession).map(m => m.Accession)
+                                    $parent.filteredMetadata.map(m => m.Accession)
                                 "
+                                :multiple="true"
                             >
                                 <div class="label">Donor (Accession #)</div>
                             </filter-enumeration-control>
@@ -175,7 +176,7 @@
                                 </div>
                                 
                                 <donor-metadata-table
-                                    :metadata="$parent.allMetadata"
+                                    :metadata="$parent.filteredMetadata"
                                     :filter="filter"
                                     :fieldsObject="$parent.fieldsObject"
                                     :minSuffix="$parent.minSuffix"

@@ -67,6 +67,7 @@ export default Vue.component("donor-metadata-table", {
     },
     methods: {
         preprocessData(inputData){
+            console.log(JSON.stringify(inputData));
             // duplicate fields to allow filtering on two thresholds (min and max)
             let rangeFields = Object.values(this.fieldsObject).filter(f => !!f.isMinimum);
             for (let i = 0; i < inputData.length; i++){

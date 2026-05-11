@@ -49,6 +49,7 @@ new Vue({
             availableDonors: [],
             donorsWithData: [],
             filteredDonors: [],
+            filteredMetadata: [],
             maxTimeIns: null,
             maxScoreIns: null,
             resultsIns: null,
@@ -140,7 +141,8 @@ new Vue({
     async created() {
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
-        console.log(JSON.stringify(this.$store.state.ins[0]));
+        this.filteredMetadata = this.$store.state.metadata.filter(m => 
+                this.donorsWithData.includes(m.Accession));
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
@@ -148,10 +150,6 @@ new Vue({
         this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
     },
     computed: {
-        allMetadata(){
-            return this.$store.state.metadata.filter(m => 
-                this.donorsWithData.includes(m.Accession));
-        },
         utilsBox() {
             let utils = {
                 regionUtils: regionUtils,
