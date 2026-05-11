@@ -139,7 +139,8 @@ new Vue({
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
-        this.donorsWithData = this.$store.state.ins.filter(i => !!i.Accession).map(i => i.Accession);
+        this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
+        console.log(JSON.stringify(this.$store.state.ins[0]));
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
@@ -169,8 +170,8 @@ new Vue({
             let maxTime = null;
             let maxScore = null;
             let results = [];
-            let donors = this.donorsWithData.filter(d =>!d.startsWith("time"));
-            donors.forEach(donor => {
+            
+            this.donorsWithData.forEach(donor => {
                 if (!data[0][donor]){
                     return;
                 }
@@ -199,8 +200,15 @@ new Vue({
         },
         fieldKey(fieldData){
             let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
-            console.log(output);
             return output;
+        },
+        getDonors(donors){
+            this.filteredDonors = donors;
+        },
+        getDonorsWithData(insData){
+            let dataPoint = insData[0];
+            let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
+            return donors;
         }
     },
     watch: {
