@@ -47,6 +47,7 @@ new Vue({
                 metadata: "meta-data.merged.pankbase.txt"
             },
             availableDonors: [],
+            donorsWithData: [],
             filteredDonors: [],
             maxTimeIns: null,
             maxScoreIns: null,
@@ -138,6 +139,7 @@ new Vue({
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
+        this.donorsWithData = this.$store.state.ins.filter(i => !!i.Accession).map(i => i.Accession);
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
@@ -146,7 +148,8 @@ new Vue({
     },
     computed: {
         allMetadata(){
-            return this.$store.state.metadata;
+            return this.$store.state.metadata.filter(m => 
+                this.donorsWithData.includes(m.Accession));
         },
         utilsBox() {
             let utils = {
@@ -159,17 +162,14 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        },
+        },        
     },
     methods: {
-        getDonors(donors){
-            this.filteredDonors = donors;
-        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;
             let results = [];
-            let donors = this.availableDonors.filter(d =>!d.startsWith("time"));
+            let donors = this.donorsWithData.filter(d =>!d.startsWith("time"));
             donors.forEach(donor => {
                 if (!data[0][donor]){
                     return;
