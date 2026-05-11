@@ -41,7 +41,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "startEmpty"],
   data() {
       return {
         chart: null,
@@ -74,6 +74,7 @@ export default Vue.component("time-series-line-plot", {
       let data = structuredClone(this.plotData);
       if (this.filter){
         data = data.filter(this.filter);
+        this.startEmpty = false;
       }
       let output = [];
       this.donors.forEach(d => {
@@ -96,6 +97,9 @@ export default Vue.component("time-series-line-plot", {
         return null;
       }
       return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
+    },
+    emptyChart(){
+      return this.startEmpty && this.donors.length === this.availableDonors;
     }
   },
   methods: {
@@ -325,6 +329,9 @@ export default Vue.component("time-series-line-plot", {
     donors(){
         this.drawChart();
     },
+    emptyChart(){
+      this.drawChart();
+    }
   }
 });
 </script>

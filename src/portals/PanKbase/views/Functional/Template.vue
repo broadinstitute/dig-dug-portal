@@ -170,7 +170,8 @@
                                             :donors="$parent.filteredDonors"
                                             :plotId="`glucagon_ieq_donortab`"
                                             :timepoints="$parent.gcgTimepoints"
-                                            :lineColor="$parent.gcgColor">
+                                            :lineColor="$parent.gcgColor"
+                                            :startEmpty="true">
                                         </time-series-line-plot>
                                     </div>
                                 </div>
