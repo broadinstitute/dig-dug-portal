@@ -47,7 +47,9 @@ new Vue({
                 metadata: "meta-data.merged.pankbase.txt"
             },
             availableDonors: [],
+            donorsWithData: [],
             filteredDonors: [],
+            filteredMetadata: [],
             maxTimeIns: null,
             maxScoreIns: null,
             resultsIns: null,
@@ -59,6 +61,11 @@ new Vue({
             gcgColor: "#2F67B1", // colorblind safe blue from UCSB
 			insColor: "#BF2C23", // colorblind safe red from UCSB,
             fieldsObject: {
+                accession: {
+                    key: "Accession",
+                    isNumeric: false,
+                    sortable: true
+                },
                 ageMin: {
                     key: "Age (years)",
                     isNumeric: true,
@@ -133,6 +140,9 @@ new Vue({
     },
     async created() {
         await this.$store.dispatch("populateData", this.files);
+        this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
+        this.filteredMetadata = this.$store.state.metadata.filter(m => 
+                this.donorsWithData.includes(m.Accession));
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
@@ -140,9 +150,6 @@ new Vue({
         this.gcgTimepoints = dataConvert.tsv2Json(gcgTimepointsData);
     },
     computed: {
-        allMetadata(){
-            return this.$store.state.metadata;
-        },
         utilsBox() {
             let utils = {
                 regionUtils: regionUtils,
@@ -154,18 +161,15 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        },
+        },        
     },
     methods: {
-        getDonors(donors){
-            this.filteredDonors = donors;
-        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;
             let results = [];
-            let donors = this.availableDonors.filter(d =>!d.startsWith("time"));
-            donors.forEach(donor => {
+            
+            this.donorsWithData.forEach(donor => {
                 if (!data[0][donor]){
                     return;
                 }
@@ -194,8 +198,15 @@ new Vue({
         },
         fieldKey(fieldData){
             let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
-            console.log(output);
             return output;
+        },
+        getDonors(donors){
+            this.filteredDonors = donors;
+        },
+        getDonorsWithData(insData){
+            let dataPoint = insData[0];
+            let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
+            return donors;
         }
     },
     watch: {
