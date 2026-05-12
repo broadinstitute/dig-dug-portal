@@ -1,6 +1,7 @@
 name: Create PR from SysBio-FAIRPlex contributions
 
-# Triggered by webhook from SysBio-FAIRPlex/sysbio-portal when PRs are merged
+# Imports the file diff from a specific SysBio-FAIRPlex/sysbio-portal PR
+# into broadinstitute/dig-dug-portal for review on sysbio-main.
 on:
     repository_dispatch:
         types: [sysbio-contribution]
@@ -10,14 +11,16 @@ on:
                 description: "PR number from SysBio-FAIRPlex/sysbio-portal"
                 required: true
                 type: string
-            contributor_branch:
-                description: "Branch name from the contribution"
-                required: false
-                type: string
+
+permissions:
+    contents: write
+    pull-requests: write
 
 jobs:
     create-contribution-pr:
         runs-on: ubuntu-latest
+        env:
+            CONTRIBUTOR_PR_NUMBER: ${{ github.event.inputs.contributor_pr_number || github.event.client_payload.pr_number }}
         steps:
             - name: Checkout Source (dig-dug-portal @ sysbio-main)
               uses: actions/checkout@v4
@@ -26,51 +29,131 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   fetch-depth: 0
 
-            - name: Checkout Contributor Changes (sysbio-portal @ main)
+            - name: Get Contributor PR Info
+              id: pr_info
+              env:
+                  GH_TOKEN: ${{ secrets.SYSBIO_CODE_SYNC_PAT }}
+              run: |
+                  set -euo pipefail
+
+                  PR_NUM="$CONTRIBUTOR_PR_NUMBER"
+                  if ! [[ "$PR_NUM" =~ ^[0-9]+$ ]]; then
+                    echo "A numeric contributor PR number is required." >&2
+                    exit 1
+                  fi
+
+                  gh api "repos/SysBio-FAIRPlex/sysbio-portal/pulls/$PR_NUM" > contributor-pr.json
+
+                  BASE_REPO="$(jq -r '.base.repo.full_name' contributor-pr.json)"
+                  BASE_SHA="$(jq -r '.base.sha' contributor-pr.json)"
+                  HEAD_REPO="$(jq -r '.head.repo.full_name' contributor-pr.json)"
+                  HEAD_SHA="$(jq -r '.head.sha' contributor-pr.json)"
+                  SOURCE_BRANCH="$(jq -r '.head.ref' contributor-pr.json)"
+                  PR_TITLE="$(jq -r '.title' contributor-pr.json)"
+                  PR_URL="$(jq -r '.html_url' contributor-pr.json)"
+
+                  echo "number=$PR_NUM" >> "$GITHUB_OUTPUT"
+                  echo "base_repo=$BASE_REPO" >> "$GITHUB_OUTPUT"
+                  echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+                  echo "head_repo=$HEAD_REPO" >> "$GITHUB_OUTPUT"
+                  echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+                  echo "source_branch=$SOURCE_BRANCH" >> "$GITHUB_OUTPUT"
+                  echo "source_url=$PR_URL" >> "$GITHUB_OUTPUT"
+                  echo "pr_title=Import SysBio-FAIRPlex PR #$PR_NUM: $PR_TITLE" >> "$GITHUB_OUTPUT"
+                  {
+                    echo "source_body<<EOF"
+                    jq -r '.body // ""' contributor-pr.json
+                    echo "EOF"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Checkout Contributor PR Base
               uses: actions/checkout@v4
               with:
-                  repository: SysBio-FAIRPlex/sysbio-portal
-                  ref: main
-                  path: contributor-repo
+                  repository: ${{ steps.pr_info.outputs.base_repo }}
+                  ref: ${{ steps.pr_info.outputs.base_sha }}
+                  path: contributor-base
                   token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }}
+                  fetch-depth: 1
+
+            - name: Checkout Contributor PR Head
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ steps.pr_info.outputs.head_repo }}
+                  ref: ${{ steps.pr_info.outputs.head_sha }}
+                  path: contributor-head
+                  token: ${{ secrets.SYSBIO_CODE_SYNC_PAT }}
+                  fetch-depth: 1
 
             - name: Set up Git
               run: |
+                  set -euo pipefail
                   git config --global user.name "SysBio Contribution Bot"
                   git config --global user.email "sysbio-contributions@users.noreply.github.com"
 
-            - name: Create Contribution Branch
+            - name: Set Contribution Branch
               run: |
-                  BRANCH_NAME="contrib-sysbio-pr-${{ github.event.inputs.contributor_pr_number || github.event.client_payload.pr_number }}"
-                  echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-                  git checkout -b $BRANCH_NAME
+                  set -euo pipefail
+                  BRANCH_NAME="contrib-sysbio-pr-${{ steps.pr_info.outputs.number }}"
+                  echo "BRANCH_NAME=$BRANCH_NAME" >> "$GITHUB_ENV"
 
-            - name: Sync Contributor Changes
+            - name: Apply Contributor PR Diff
               run: |
-                  # Backup current vue.config.js
-                  cp vue.config.js vue.config.js.backup
+                  set -euo pipefail
 
-                  # Sync files from contributor repo
-                  rsync -av --delete \
+                  cleanup() {
+                    rm -rf contributor-base contributor-head import-base import-head contribution.patch contributor-pr.json
+                  }
+                  trap cleanup EXIT
+
+                  mkdir import-base import-head
+
+                  # Keep the same repository-specific files protected as the outbound sync.
+                  rsync -a --delete \
                     --exclude='.git/' \
                     --exclude='.github/' \
                     --exclude='README.md' \
-                    contributor-repo/ ./
+                    --exclude='vue.config.js' \
+                    contributor-base/ import-base/
 
-                  # Restore original vue.config.js (keep source repo's version)
-                  mv vue.config.js.backup vue.config.js
+                  rsync -a --delete \
+                    --exclude='.git/' \
+                    --exclude='.github/' \
+                    --exclude='README.md' \
+                    --exclude='vue.config.js' \
+                    contributor-head/ import-head/
 
-            - name: Get Contributor PR Info
-              id: pr_info
+                  cd import-base
+                  git init
+                  git config user.name "SysBio Contribution Bot"
+                  git config user.email "sysbio-contributions@users.noreply.github.com"
+                  git add -A
+                  git commit --allow-empty -m "Contributor PR base"
+
+                  rsync -a --delete --exclude='.git/' ../import-head/ ./
+                  git diff --binary --find-renames HEAD -- . > ../contribution.patch
+                  cd ..
+
+                  if [ ! -s contribution.patch ]; then
+                    echo "No importable changes were found in SysBio-FAIRPlex PR #${{ steps.pr_info.outputs.number }}."
+                    exit 0
+                  fi
+
+                  GIT_ALTERNATE_OBJECT_DIRECTORIES="$PWD/import-base/.git/objects" \
+                    git apply --3way --binary contribution.patch
+
+                  if git diff --name-only --diff-filter=U | grep -q .; then
+                    echo "The SysBio-FAIRPlex PR diff produced merge conflicts against sysbio-main." >&2
+                    git status --short
+                    exit 1
+                  fi
+
+            - name: Verify Imported Changes
               run: |
-                  PR_NUM="${{ github.event.inputs.contributor_pr_number || github.event.client_payload.pr_number }}"
-                  if [ -n "$PR_NUM" ]; then
-                    # You could fetch PR details via GitHub API here if needed
-                    echo "pr_title=Contribution from SysBio-FAIRPlex PR #$PR_NUM" >> $GITHUB_OUTPUT
-                    echo "pr_body=This PR contains contributions from SysBio-FAIRPlex/sysbio-portal PR #$PR_NUM requiring review before integration." >> $GITHUB_OUTPUT
+                  set -euo pipefail
+                  if [ -z "$(git status --porcelain)" ]; then
+                    echo "The selected SysBio-FAIRPlex PR did not produce changes against sysbio-main after protected files were excluded."
                   else
-                    echo "pr_title=External contribution from SysBio-FAIRPlex" >> $GITHUB_OUTPUT
-                    echo "pr_body=Manual sync of changes from SysBio-FAIRPlex/sysbio-portal repository." >> $GITHUB_OUTPUT
+                    git status --short
                   fi
 
             - name: Create Pull Request
@@ -81,17 +164,25 @@ jobs:
                   base: sysbio-main
                   title: ${{ steps.pr_info.outputs.pr_title }}
                   body: |
-                      🔄 **External Contribution from SysBio-FAIRPlex/sysbio-portal**
+                      **External Contribution from SysBio-FAIRPlex/sysbio-portal**
 
-                      ${{ steps.pr_info.outputs.pr_body }}
+                      This PR imports the normal file diff from SysBio-FAIRPlex/sysbio-portal PR #${{ steps.pr_info.outputs.number }}:
+                      ${{ steps.pr_info.outputs.source_url }}
 
-                      **⚠️ Manual Review Required**
+                      Source branch: `${{ steps.pr_info.outputs.head_repo }}:${{ steps.pr_info.outputs.source_branch }}`
+                      Source head: `${{ steps.pr_info.outputs.head_sha }}`
+
+                      **Manual Review Required**
                       - Verify all changes are appropriate
                       - Check for any security implications
                       - Ensure changes align with project standards
 
-                      **Source Repository:** SysBio-FAIRPlex/sysbio-portal
-                      **Contributor Access:** External (no direct access to this repo)
+                      The import excludes repository-management files that differ between the repos:
+                      `.github/`, `README.md`, and `vue.config.js`.
+
+                      **Original PR body**
+
+                      ${{ steps.pr_info.outputs.source_body }}
 
                       After merging, changes will sync back to SysBio-FAIRPlex/sysbio-portal automatically.
                   labels: |
