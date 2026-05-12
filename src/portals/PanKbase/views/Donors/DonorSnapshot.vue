@@ -746,18 +746,14 @@ export default Vue.component("DonorSnapshot", {
     min-width: 0;
     padding: 12px;
     border: 1px solid #d9e5df;
-    border-radius: 16px;
-    background:
-        linear-gradient(180deg, rgba(249, 252, 250, 0.96) 0%, rgba(241, 247, 244, 0.96) 100%);
+    background: #fbfbfb;
     box-shadow: 0 8px 20px rgba(21, 53, 47, 0.04);
 }
 
 .snapshot-card-overview {
     display: flex;
     flex-direction: column;
-    background:
-        radial-gradient(circle at top right, rgba(41, 170, 136, 0.12), transparent 42%),
-        linear-gradient(180deg, rgba(249, 252, 250, 0.98) 0%, rgba(236, 245, 241, 0.98) 100%);
+    background: #ecf5f1;
 }
 
 .snapshot-card-skeleton {
