@@ -2,7 +2,7 @@
     <div class="outer-wrapper">
         <div class="slider-label">{{ label }}</div>
         <div class="slide-container">
-            <div class="sliders-control" :id="`filter_${sliderId}`">
+            <div class="sliders-control" :id="`filter_${sliderId}`" v-if="ready">
                 <input style="padding:0;" class="slider from-slider" type="range" 
                     :id="`filter_${sliderId}_from_slider`"
                     :value="sliderRange.from" 
@@ -38,9 +38,16 @@ export default Vue.component("dual-slider", {
     ],
     data() {
         return {
-            sliderRange : {},
+            sliderRange : {
+                min: this.rangeMin,
+                max: this.rangeMax,
+                from: Math.round(this.rangeMin * 10000) / 10000,
+                to: Math.round(this.rangeMax * 10000) / 10000,
+                step: (this.rangeMax - this.rangeMin) / 10000
+            },
             lastFilter: {},
             filtersIndex: {},
+            ready: false
         };
     },
     mounted(){
@@ -50,18 +57,13 @@ export default Vue.component("dual-slider", {
     },
     methods: {
         getRange() {
-			let range = { min: this.rangeMin, max: this.rangeMax, step:0, from: null, to: null };
-			range.from = Math.round(this.rangeMin * 10000) / 10000;
-			range.to = Math.round(this.rangeMax * 10000) / 10000;
-			range.step = (this.rangeMax - this.rangeMin) / 10000;
-
 			if(!!document.getElementById(`filter_${this.sliderId}_from`)) {
 				document.getElementById(`filter_${this.sliderId}_from`).value = range.from;
 			}
 			if (!!document.getElementById(`filter_${this.sliderId}_to`)) {
 				document.getElementById(`filter_${this.sliderId}_to`).value = range.to;
 			}
-			this.sliderRange = range;
+            this.ready = true;
 		},
         setSliderTip(EVENT,ID) {
 			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
