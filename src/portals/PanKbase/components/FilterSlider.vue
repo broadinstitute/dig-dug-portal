@@ -2,8 +2,8 @@
   <filter-slider-template
     class="filter-col-md"
     :field="field"
-    :rangeMin="rangeMin"
-    :rangeMax="rangeMax"
+    :rangeMin="range[0]"
+    :rangeMax="range[1]"
     :placeholder="placeholder"
     :predicate="predicate"
     :pillFormatter="pillFormatter"
@@ -25,8 +25,7 @@ export default Vue.component("filter-slider", {
     field: String,
     placeholder: String,
     color: String,
-    rangeMin: Number,
-    rangeMax: Number,
+    range: Array,
     splitBy: String,
     inclusive: {
       type: Boolean,

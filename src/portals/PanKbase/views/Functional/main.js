@@ -65,79 +65,45 @@ new Vue({
             fieldsObject: {
                 accession: {
                     key: "Accession",
-                    isNumeric: false,
                     sortable: true
                 },
-                ageMin: {
+                age: {
                     key: "Age (years)",
                     isNumeric: true,
-                    isMinimum: true,
-                    sortable: true,
-                },
-                ageMax: {
-                    key: "Age (years)",
-                    isNumeric: true,
-                    isMinimum: false,
                     sortable: true,
                 },
                 sex: {
                     key: "Gender",
-                    isNumeric: false,
                     sortable: true
                 },
-                bmiMin: {
+                bmi: {
                     key: "BMI",
                     isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
-                },
-                bmiMax: {
-                    key: "BMI",
-                    isNumeric: true,
-                    isMinimum: false,
                     sortable: true
                 },
                 diabetes: {
                     key: "Derived diabetes status",
-                    isNumeric: false,
                     sortable: true
                 },
-                hba1cMin: {
+                hba1c: {
                     key: "HbA1C (percentage)",
                     isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
-                },
-                hba1cMax: {
-                    key: "HbA1C (percentage)",
-                    isNumeric: true,
-                    isMinimum: false,
                     sortable: true
                 },
                 ethnicity: {
                     key: "Ethnicities",
-                    isNumeric: false,
                     sortable: true
                 },
                 isolation: {
                     key: "Isolation_center",
-                    isNumeric: false,
                     sortable: true
                 },
-                cultureTimeMin: {
+                cultureTime: {
                     key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
                     isNumeric: true,
-                    isMinimum: true,
                     sortable: true
                 },
-                cultureTimeMax: {
-                    key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
-                    isNumeric: true,
-                    isMinimum: false,
-                    sortable: true
-                }
             },
-            minSuffix: "_DUPL"
         };
     },
     async created() {
@@ -199,10 +165,6 @@ new Vue({
             }
             return output;
         },
-        fieldKey(fieldData){
-            let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
-            return output;
-        },
         getDonors(donors){
             this.filteredDonors = donors;
         },
@@ -210,6 +172,17 @@ new Vue({
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
             return donors;
+        },
+        getRange(field){
+            let fieldKey = field.key;
+            let min = this.filteredMetadata[0][fieldKey];
+            let max = this.filteredMetadata[0][fieldKey];
+            this.filteredMetadata.filter(d => !Number.isNaN(d[fieldKey]))
+                .forEach(d => {
+                    min = d[fieldKey] < min ? d[fieldKey] : min;
+                    max = d[fieldKey] > max ? d[fieldKey] : max;
+                });
+            return [min, max];
         }
     },
     watch: {

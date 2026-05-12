@@ -16,77 +16,57 @@
                     <div v-if="$parent.filteredMetadata.length > 0">
                         Filter and explore donor data
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-3 side-panel">
                                 <criterion-function-group>
-                                    <filter-slider :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
-                                        :rangeMin="0"
-                                        :rangeMax="100">
+                                    <filter-slider :field="$parent.fieldsObject.age.key"
+                                        :range="$parent.getRange($parent.fieldsObject.age)">
                                         <div class="label">Age</div>
                                     </filter-slider>
+                                    <filter-slider :field="$parent.fieldsObject.bmi.key"
+                                        :range="$parent.getRange($parent.fieldsObject.age)">
+                                        <div class="label">BMI</div>
+                                    </filter-slider>
+                                    <filter-slider :field="$parent.fieldsObject.hba1c.key"
+                                        :range="$parent.getRange($parent.fieldsObject.hba1c)">
+                                        <div class="label">HBA1C (%)</div>
+                                    </filter-slider>
+                                    <filter-slider :field="$parent.fieldsObject.cultureTime.key"
+                                        :range="$parent.getRange($parent.fieldsObject.cultureTime)">
+                                        <div class="label">Culture time (hrs)</div>
+                                    </filter-slider>
                                     <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.sex)"
-                                        :options="
-                                            $store.state.metadata.map(m => m.Gender)
-                                        "
+                                        :field="$parent.fieldsObject.sex.key"
+                                        :options="$parent.filteredMetadata.map(m => m.Gender)"
                                     >
                                         <div class="label">Gender</div>
-                                    </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
-                                        :labelFormatter="fieldName => 'BMI'">
-                                        <div class="label">BMI (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.bmiMax)"
-                                        >
-                                        <div class="label">BMI (max)</div>
-                                    </filter-less-control>
+                                    </filter-enumeration-control>                                    
                                     <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.diabetes)"
+                                        :field="$parent.fieldsObject.diabetes.key"
                                         :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])
+                                            $parent.filteredMetadata.map(m => 
+                                            m[$parent.fieldsObject.diabetes.key])
                                         "
                                     >
                                         <div class="label">Derived Diabetes Status</div>
                                     </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.hba1cMin)"
-                                        :labelFormatter="fieldName => 'HBA1C %'">
-                                        <div class="label">HBA1C (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.hba1cMax)"
-                                        :labelFormatter="fieldName => 'HBA1C %'"
-                                        >
-                                        <div class="label">HBA1C (max)</div>
-                                    </filter-less-control>
                                     <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ethnicity)"
+                                        :field="$parent.fieldsObject.ethnicity.key"
                                         :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.ethnicity)])
+                                            $parent.filteredMetadata.map(m => 
+                                                m[$parent.fieldsObject.ethnicity.key])
                                         "
                                     >
                                         <div class="label">Ethnicity</div>
                                     </filter-enumeration-control>
                                     <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.isolation)"
+                                        :field="$parent.fieldsObject.isolation"
                                         :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.isolation)])
+                                            $parent.filteredMetadata.map(m => 
+                                            m[$parent.fieldsObject.isolation.key])
                                         "
                                     >
                                         <div class="label">Isolation Center</div>
                                     </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMin)"
-                                        :labelFormatter="fieldName => 'Culture time (hrs)'">
-                                        <div class="label">Culture time (min hrs)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMax)"
-                                        :labelFormatter="fieldName => 'Culture time (hrs)'"
-                                        >
-                                        <div class="label">Culture time (max hrs)</div>
-                                    </filter-less-control>
                                     <template slot="filtered" slot-scope="{ filter }">
                                         B-Table goes here
                                     </template>
@@ -181,5 +161,8 @@
 .line-plot{
     align-items: center;
     padding: 25px;
+}
+.side-panel {
+    display: block !important;
 }
 </style>
