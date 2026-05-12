@@ -15,15 +15,16 @@
         </div>
 
         <div class="pkb-search">
-                <div style="font-weight: bold;">Search Gene</div>
-                <research-single-search
-                    :single-search-config="null"
-                    :phenotypes="[]"
-                    :utils="$parent.utilsBox"
-                ></research-single-search>
-            </div>
+            <div style="font-weight: bold;">Search Gene</div>
+            <research-single-search
+                :single-search-config="null"
+                :phenotypes="[]"
+                :utils="$parent.utilsBox"
+            ></research-single-search>
+        </div>
 
         <div class="pkb-body">
+            <donor-snapshot :prepared-dataset="$parent.preparedDataset" />
             <div class="section">
                 <div>
                     <div class="section-title">

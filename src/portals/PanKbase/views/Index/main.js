@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import DonorSnapshot from "@/portals/PanKbase/views/Donors/DonorSnapshot.vue";
+import { loadDonorDataset } from "@/portals/PanKbase/views/Donors/donorDataset";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -20,7 +22,8 @@ import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
 new Vue({
     components: {
-        ResearchSingleSearch
+        ResearchSingleSearch,
+        DonorSnapshot
     },
 
     mixins: [pankbaseMixin],
@@ -54,7 +57,6 @@ new Vue({
                             type: "large",
                             comingSoon: false,
                         },
-                    ],[
                         {
                             title: "Data Library",
                             body: "Harmonized meta-data and data of human donors, biosamples, assays, and more all standardized using Common Data Elements.",
@@ -63,7 +65,9 @@ new Vue({
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-datalibrary.png",
                             type: "large",
                             comingSoon: false,
-                        },
+                        }
+                    ],[
+                        /*
                         {
                             title: "Donor Summary",
                             body: "Summarized metadata of ~3500 donors from <a href='/hpap-program.html'>HPAP</a>, <a href='/iidp-program.html'>IIDP</a>, <a target='_blank' href='https://prodolabs.com/'>Prodo</a>, <a href='/adi-program.html'>ADI IsletCore</a>, <a href='/npod-program.html'>nPOD</a>, and <a href='/pancreatlas-program.html'>Pancreatlas</a>",
@@ -73,8 +77,6 @@ new Vue({
                             type: "large",
                             comingSoon: false,
                         },
-                        
-                        /*
                         {
                             title: "Genetic Associations",
                             body: "",
@@ -246,6 +248,8 @@ new Vue({
                 newsItemUrl: "/news.html?id=",
             },
         },
+
+        preparedDataset: null
     },
 
     computed: {
@@ -277,6 +281,8 @@ new Vue({
             (item) => (item.comingSoon = item.comingSoon === "TRUE")
         );
         this.content.external.rows = extResources;
+
+        this.preparedDataset = await loadDonorDataset();
     },
 
     methods: {

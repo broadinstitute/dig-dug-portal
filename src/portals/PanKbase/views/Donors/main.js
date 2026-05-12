@@ -4,7 +4,7 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
-import { prepareDataset } from "./datasetUtils";
+import { DEFAULT_DONOR_METADATA_SOURCE, loadDonorDataset } from "./donorDataset";
 import keyParams from "@/utils/keyParams";
 
 const donorTableConfig = {
@@ -46,7 +46,7 @@ new Vue({
             info: "",
             // Temporary local test file:
             // "/data/meta-data.merged.pankbase.forAlex.txt"
-            donorMetadata: "https://bioindex-dev.pankbase.org/api/raw/file/functional_data/functional_dataset_v1/meta-data.merged.pankbase.txt",
+            donorMetadata: DEFAULT_DONOR_METADATA_SOURCE,
             preparedDataset: null,
             donorTableConfig,
             showConfigureControls: !!keyParams.configure,
@@ -73,7 +73,7 @@ new Vue({
         console.log("[Donors] dataset:loading", this.donorMetadata);
 
         try {
-            const preparedDataset = await prepareDataset(this.donorMetadata);
+            const preparedDataset = await loadDonorDataset(this.donorMetadata);
             this.preparedDataset = preparedDataset;
             console.log("[Donors] dataset:loaded", {
                 rowCount: preparedDataset.rowCount,
