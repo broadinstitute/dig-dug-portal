@@ -82,7 +82,8 @@ export default Vue.component("dual-slider", {
 <style scoped>
 /* slider UI from DK's BYOR slider*/
 .slide-container {
-  width: 175px;
+    width: 100%;
+    min-width: 175px;
     position: relative;
     margin: 10px;
 }
