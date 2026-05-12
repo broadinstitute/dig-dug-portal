@@ -41,7 +41,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "startEmpty"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "yAxisLabel"],
   data() {
       return {
         chart: null,
@@ -60,7 +60,6 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        yAxisLabel: null,
         axesDrawn: false,
         highlightedDonor: null,
       };
