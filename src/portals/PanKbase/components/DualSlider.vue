@@ -10,7 +10,7 @@
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
                     @input="setSliderTip($event, `filter_${sliderId}_from`)" 
-                    @change="filterDataSlider($event, field)"/>
+                    @change="filterDataSlider($event)"/>
                 <input style="padding:0;" class="slider to-slider" type="range" 
                     :id="`filter_${sliderId}_to_slider`"
                     :value="sliderRange.to" 
@@ -18,7 +18,7 @@
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
                     @input="setSliderTip($event, `filter_${sliderId}_to`)" 
-                    @change="filterDataSlider($event, field)"/>
+                    @change="filterDataSlider($event)"/>
 
                     <output class="range-slider-tip range-from-value" 
                     :id="`filter_${sliderId}_from`" name="rangeFromValue"
@@ -34,7 +34,7 @@
 import Vue from "vue";
 export default Vue.component("dual-slider", {
     props: [
-        "field", "sliderId", "unfilteredDataset", "label", "rangeMin", "rangeMax"
+        "sliderId", "label", "rangeMin", "rangeMax"
     ],
     data() {
         return {
@@ -44,27 +44,16 @@ export default Vue.component("dual-slider", {
         };
     },
     mounted(){
-        this.getRange(this.field);
+        this.getRange();
     },
     computed: {
     },
     methods: {
-        getRange(FIELD) {
-			let data = this.unfilteredDataset;
-				
-			if(!this.sliderRange) { this.sliderRange = {} };
-			let range = { min: null, max: null, step:0, from: null, to: null };
-
-			data.map(d=>{
-				
-				if(!!d[FIELD] && typeof d[FIELD] === 'number') {
-					range.min = (!range.min)? d[FIELD] : (d[FIELD] < range.min)? d[FIELD] : range.min;
-					range.max = (!range.max) ? d[FIELD] : (d[FIELD] > range.max) ? d[FIELD] : range.max;
-				}
-			})
-			range.from = Math.round(range.min * 10000) / 10000;
-			range.to = Math.round(range.max * 10000) / 10000;
-			range.step = (range.max - range.min) / 10000;
+        getRange() {
+			let range = { min: this.rangeMin, max: this.rangeMax, step:0, from: null, to: null };
+			range.from = Math.round(this.rangeMin * 10000) / 10000;
+			range.to = Math.round(this.rangeMax * 10000) / 10000;
+			range.step = (this.rangeMin - this.rangeMax) / 10000;
 
 			if(!!document.getElementById(`filter_${this.sliderId}_from`)) {
 				document.getElementById(`filter_${this.sliderId}_from`).value = range.from;
@@ -72,13 +61,12 @@ export default Vue.component("dual-slider", {
 			if (!!document.getElementById(`filter_${this.sliderId}_to`)) {
 				document.getElementById(`filter_${this.sliderId}_to`).value = range.to;
 			}
-
 			this.sliderRange = range;
 		},
         setSliderTip(EVENT,ID) {
 			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
 		},
-		filterDataSlider(EVENT, FIELD) {
+		filterDataSlider(EVENT) {
 			let searchValueFrom = document.getElementById(`filter_${this.sliderId}_from`).value
             let searchValueTo = document.getElementById(`filter_${this.sliderId}_to`).value
             this.sliderRange.from = Number(searchValueFrom);
