@@ -193,7 +193,7 @@ new Vue({
                     {
                         title: "Interactive maps of harmonized multi-program metadata",
                         linkLabel: "Explore",
-                        linkUrl: "https://pankbase.org/donor-metadata.html",
+                        linkUrl: "https://pankbase.org/donors.html",
                     },
                     {
                         title: "Differential expression analyses from human pancreatic islets",
