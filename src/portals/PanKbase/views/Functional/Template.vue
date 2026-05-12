@@ -23,42 +23,29 @@
                                     <input type="range" class="form-range"/>
                                 </label>
                                 <div class="label">Gender
-                                    
-                                        <div v-for="item in Array.from(
-                                            new Set($store.state.metadata.filter(m => !!m.Gender)
-                                                .map(m => m.Gender)))">
-                                            <input type="radio" :id="item" name="sex"/>
-                                            <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
-                                        </div>
-                                    
-                                    
+                                    <div class="inline-radio" v-for="item in Array.from(
+                                        new Set($store.state.metadata
+                                            .filter(m => !!m.Gender)
+                                            .map(m => m.Gender)))">
+                                        <input type="radio" :id="item" name="sex"/>
+                                        <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
+                                    </div>
                                 </div>
-                                <filter-enumeration-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.sex)"
-                                    :options="
-                                        $store.state.metadata.map(m => m.Gender)
-                                    "
-                                >
-                                    <div class="label">Gender</div>
-                                </filter-enumeration-control>
-                                <filter-greater-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
-                                    :labelFormatter="fieldName => 'BMI'">
-                                    <div class="label">BMI (min)</div>
-                                </filter-greater-control>
-                                <filter-less-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.bmiMax)"
-                                    >
-                                    <div class="label">BMI (max)</div>
-                                </filter-less-control>
-                                <filter-enumeration-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.diabetes)"
-                                    :options="
-                                        $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])
-                                    "
-                                >
-                                    <div class="label">Derived Diabetes Status</div>
-                                </filter-enumeration-control>
+                                <label>BMI
+                                    <input type="range" class="form-range"/>
+                                </label>
+                                <label>HBA1C (%)
+                                    <input type="range" class="form-range"/>
+                                </label>
+                                <div class="label inline-radio">Derived Diabetes Status
+                                    <div class="inline-radio" v-for="item in Array.from(
+                                        new Set($store.state.metadata
+                                            .filter(m => !!m[$parent.fieldKey($parent.fieldsObject.diabetes)])
+                                            .map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])))">
+                                        <input type="radio" :id="item" name="diabetes"/>
+                                        <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
+                                    </div>
+                                </div>
                                 <filter-greater-control
                                     :field="$parent.fieldKey($parent.fieldsObject.hba1cMin)"
                                     :labelFormatter="fieldName => 'HBA1C %'">
@@ -190,5 +177,8 @@
 .line-plot{
     align-items: center;
     padding: 25px;
+}
+.inline-radio {
+    display: inline;
 }
 </style>
