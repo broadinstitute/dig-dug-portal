@@ -50,7 +50,6 @@ new Vue({
             },
             availableDonors: [],
             donorsWithData: [],
-            filteredDonors: [],
             filteredMetadata: [],
             maxTimeIns: null,
             maxScoreIns: null,
@@ -66,76 +65,53 @@ new Vue({
                 accession: {
                     key: "Accession",
                     isNumeric: false,
-                    sortable: true
-                },
-                ageMin: {
-                    key: "Age (years)",
-                    isNumeric: true,
-                    isMinimum: true,
                     sortable: true,
+                    filterValues: null,
                 },
-                ageMax: {
+                age: {
                     key: "Age (years)",
-                    isNumeric: true,
-                    isMinimum: false,
                     sortable: true,
+                    filterMin: null,
+                    filterMax: null,
                 },
                 sex: {
                     key: "Gender",
-                    isNumeric: false,
-                    sortable: true
+                    sortable: true,
+                    filterValues: null,
                 },
-                bmiMin: {
+                bmi: {
                     key: "BMI",
-                    isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
-                },
-                bmiMax: {
-                    key: "BMI",
-                    isNumeric: true,
-                    isMinimum: false,
-                    sortable: true
+                    sortable: true,
+                    filterMin: null,
+                    filterMax: null
                 },
                 diabetes: {
                     key: "Derived diabetes status",
-                    isNumeric: false,
-                    sortable: true
+                    sortable: true,
+                    filterValues: null,
                 },
-                hba1cMin: {
+                hba1c: {
                     key: "HbA1C (percentage)",
-                    isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
-                },
-                hba1cMax: {
-                    key: "HbA1C (percentage)",
-                    isNumeric: true,
-                    isMinimum: false,
-                    sortable: true
+                    sortable: true,
+                    filterMin: null,
+                    filterMax: null,
                 },
                 ethnicity: {
                     key: "Ethnicities",
-                    isNumeric: false,
-                    sortable: true
+                    sortable: true,
+                    filterValues: null,
                 },
                 isolation: {
                     key: "Isolation_center",
-                    isNumeric: false,
-                    sortable: true
+                    sortable: true,
+                    filterValues: null,
                 },
-                cultureTimeMin: {
+                cultureTime: {
                     key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
-                    isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
+                    sortable: true,
+                    filterMin: null,
+                    filterMax: null,
                 },
-                cultureTimeMax: {
-                    key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
-                    isNumeric: true,
-                    isMinimum: false,
-                    sortable: true
-                }
             },
             minSuffix: "_DUPL"
         };
@@ -163,7 +139,23 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        },        
+        },
+        filteredDonors(){
+            let allDonors = structuredClone(this.filteredMetadata);
+            return allDonors.map(m => m.Accession);/* 
+            let fields = Object.values(this.fieldsObject);
+            fields.forEach(field => {
+                if (!Number.isNaN(field.filterMin)){
+                    allDonors = allDonors.filter(d => d[field.key] >= field.filterMin);
+                }
+                if (!Number.isNaN(field.filterMax)){
+                    allDonors = allDonors.filter(d => d[field.key] <= field.filterMax);
+                }
+                console.log(field.key, allDonors.length);
+            });
+            console.log(JSON.stringify(allDonors));
+            return allDonors.map(m => m.Accession); */
+        }
     },
     methods: {
         collateData(data){
@@ -202,16 +194,22 @@ new Vue({
             let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
             return output;
         },
-        getDonors(donors){
-            this.filteredDonors = donors;
-        },
         getDonorsWithData(insData){
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
             return donors;
         },
         updateFilters(field, isRange, value){
-            console.log(field, isRange, value);
+            let fieldKey = field.key;
+            let fieldEntry = Object.values(this.fieldsObject).find(f => f.key === fieldKey);
+            if (isRange){
+                fieldEntry.filterMin = value[0];
+                fieldEntry.filterMax = value[1];
+            } else if (typeof value !== "object") {
+                fieldEntry.filterValues = [value];
+            } else {
+                fieldEntry.filterValues = value;
+            }
         }
     },
     watch: {

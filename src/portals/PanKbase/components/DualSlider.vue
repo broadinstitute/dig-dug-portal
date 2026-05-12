@@ -1,5 +1,6 @@
 <template>
-    <div>
+    <div class="outer-wrapper">
+        <div class="slider-label">{{ label }}</div>
         <div class="slide-container">
             <div class="sliders-control" :id="`filter_${sliderId}`">
                 <input style="padding:0;" class="slider from-slider" type="range" 
@@ -33,7 +34,7 @@
 import Vue from "vue";
 export default Vue.component("dual-slider", {
     props: [
-        "field", "sliderId", "unfilteredDataset"
+        "field", "sliderId", "unfilteredDataset", "label"
     ],
     data() {
         return {
@@ -94,6 +95,7 @@ export default Vue.component("dual-slider", {
 .slide-container {
   width: 175px;
     position: relative;
+    margin: 10px;
 }
 
 .sliders-control {
@@ -107,7 +109,7 @@ export default Vue.component("dual-slider", {
 .slider {
 	position: absolute;
 	left: 0;
-	top: 5px;
+	top: 0px;
   -webkit-appearance: none;
   width: 100%;
   height: 2px !important;
@@ -127,18 +129,18 @@ export default Vue.component("dual-slider", {
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 15px;
-  height: 15px;
-  margin-top: -15px;
+  width: 10px;
+  height: 10px;
+  margin-top: -10px;
   background: #666666;
   border-radius: 15px;
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-  margin-top: -15px;
+  width: 10px;
+  height: 10px;
+  margin-top: -10px;
   background: #666666;
   border-radius: 15px;
   cursor: pointer;
@@ -156,5 +158,16 @@ export default Vue.component("dual-slider", {
 
 .range-to-value {
 	right: 0;
+}
+.outer-wrapper {
+    display: flex;
+    padding: 5px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    border: 1px solid lightgray;
+}
+.slider-label {
+    font-weight: bold;
+    margin: 5px;
 }
 </style>

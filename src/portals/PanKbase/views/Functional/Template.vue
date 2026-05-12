@@ -18,21 +18,19 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4 filtering-ui-wrapper">
-                            <div class="label">
-                                Age
-                                <dual-slider
-                                    :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                    :sliderId="'age'"
-                                    :unfilteredDataset="$parent.filteredMetadata"
-                                    @filterChanged="range => $parent.updateFilters(
-                                        $parent.fieldKey($parent.fieldsObject.ageMin),
-                                        true,
-                                        range)">
-                                </dual-slider>
-                            </div>
+                        <div class="col-md-3 filtering-ui-wrapper">
+                            <dual-slider v-if="false"
+                                label="Age"
+                                :field="$parent.fieldsObject.age.key"
+                                :sliderId="'age'"
+                                :unfilteredDataset="$parent.filteredMetadata"
+                                @filterChanged="range => $parent.updateFilters(
+                                    $parent.fieldsObject.age,
+                                    true,
+                                    range)">
+                            </dual-slider>
                         </div>
-                        <div class="col-md-8" v-if="$parent.filteredMetadata.length > 0">
+                        <div class="col-md-9" v-if="$parent.filteredMetadata.length > 0">
                             <div>
                                 <div class="insulin-plot line-plot">
                                     <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
@@ -65,9 +63,9 @@
                     </div> 
                     <donor-metadata-table v-if="$parent.filteredMetadata.length > 0"
                         :metadata="$parent.filteredMetadata"
+                        :donors="$parent.filteredDonors"
                         :fieldsObject="$parent.fieldsObject"
-                        :minSuffix="$parent.minSuffix"
-                        @filteredDonors="data => $parent.getDonors(data)">
+                        :minSuffix="$parent.minSuffix">
                     </donor-metadata-table>
                 </div>
             </div>
