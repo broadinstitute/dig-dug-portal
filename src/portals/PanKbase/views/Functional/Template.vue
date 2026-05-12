@@ -19,16 +19,20 @@
                     </div>
                         <div class="row">
                             <div class="col-md-4 filtering-ui-wrapper">
-                                <filter-greater-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                    :labelFormatter="fieldName => 'Age (years)'">
-                                    <div class="label">Age (min)</div>
-                                </filter-greater-control>
-                                <filter-less-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
-                                    >
-                                    <div class="label">Age (max)</div>
-                                </filter-less-control>
+                                <label>Age
+                                    <input type="range" class="form-range"/>
+                                </label>
+                                <div class="label">Gender
+                                    
+                                        <div v-for="item in Array.from(
+                                            new Set($store.state.metadata.filter(m => !!m.Gender)
+                                                .map(m => m.Gender)))">
+                                            <input type="radio" :id="item" name="sex"/>
+                                            <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
+                                        </div>
+                                    
+                                    
+                                </div>
                                 <filter-enumeration-control
                                     :field="$parent.fieldKey($parent.fieldsObject.sex)"
                                     :options="
