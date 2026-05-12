@@ -17,60 +17,58 @@
                             <h3>{{ Object.keys(this.$store.state.ins[0]).length - 2 }}</h3>
                         </div>
                     </div>
-                        <div class="row">
-                            <div class="col-md-4 filtering-ui-wrapper">
-                                <div class="label">
-                                    Age
-                                    <dual-slider
-                                        :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                        :sliderId="'age'"
-                                        :unfilteredDataset="$parent.filteredMetadata"
-                                        @filterChanged="range => $parent.updateFilters(
-                                            $parent.fieldKey($parent.fieldsObject.ageMin),
-                                            true,
-                                            range)">
-                                    </dual-slider>
+                    <div class="row">
+                        <div class="col-md-4 filtering-ui-wrapper">
+                            <div class="label">
+                                Age
+                                <dual-slider
+                                    :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
+                                    :sliderId="'age'"
+                                    :unfilteredDataset="$parent.filteredMetadata"
+                                    @filterChanged="range => $parent.updateFilters(
+                                        $parent.fieldKey($parent.fieldsObject.ageMin),
+                                        true,
+                                        range)">
+                                </dual-slider>
+                            </div>
+                        </div>
+                        <div class="col-md-8" v-if="$parent.filteredMetadata.length > 0">
+                            <div>
+                                <div class="insulin-plot line-plot">
+                                    <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
+                                    <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
+                                        :plotData="$parent.resultsIns"
+                                        :maxTime="$parent.maxTimeIns"
+                                        :maxScore="$parent.maxScoreIns"
+                                        :donors="$parent.filteredDonors"
+                                        :plotId="`insulin_ieq`"
+                                        :timepoints="$parent.insTimepoints"
+                                        :lineColor="$parent.insColor"
+                                        yAxisLabel="ng/100 IEQ/min">
+                                    </time-series-line-plot>
+                                </div>
+                                <div class="glucagon-plot line-plot">
+                                    <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
+                                    <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
+                                        :plotData="$parent.resultsGcg"
+                                        :maxTime="$parent.maxTimeGcg"
+                                        :maxScore="$parent.maxScoreGcg"
+                                        :donors="$parent.filteredDonors"
+                                        :plotId="`glucagon_ieq`"
+                                        :timepoints="$parent.gcgTimepoints"
+                                        :lineColor="$parent.gcgColor"
+                                        yAxisLabel="pg/100 IEQ/min">
+                                    </time-series-line-plot>
                                 </div>
                             </div>
-                            <div class="col-md-8" v-if="$parent.filteredMetadata.length > 0">
-                                    <div>
-                                        <div class="insulin-plot line-plot">
-                                            <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                            <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
-                                                :plotData="$parent.resultsIns"
-                                                :maxTime="$parent.maxTimeIns"
-                                                :maxScore="$parent.maxScoreIns"
-                                                :donors="$parent.filteredDonors"
-                                                :plotId="`insulin_ieq`"
-                                                :timepoints="$parent.insTimepoints"
-                                                :lineColor="$parent.insColor"
-                                                yAxisLabel="ng/100 IEQ/min">
-                                            </time-series-line-plot>
-                                        </div>
-                                        <div class="glucagon-plot line-plot">
-                                            <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
-                                            <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
-                                                :plotData="$parent.resultsGcg"
-                                                :maxTime="$parent.maxTimeGcg"
-                                                :maxScore="$parent.maxScoreGcg"
-                                                :donors="$parent.filteredDonors"
-                                                :plotId="`glucagon_ieq`"
-                                                :timepoints="$parent.gcgTimepoints"
-                                                :lineColor="$parent.gcgColor"
-                                                yAxisLabel="pg/100 IEQ/min">
-                                            </time-series-line-plot>
-                                        </div>
-                                    </div>
-                                    
-                                    <donor-metadata-table
-                                        :metadata="$parent.filteredMetadata"
-                                        :fieldsObject="$parent.fieldsObject"
-                                        :minSuffix="$parent.minSuffix"
-                                        @filteredDonors="data => $parent.getDonors(data)">
-
-                                    </donor-metadata-table>
-                            </div>
+                        </div>
                     </div> 
+                    <donor-metadata-table v-if="$parent.filteredMetadata.length > 0"
+                        :metadata="$parent.filteredMetadata"
+                        :fieldsObject="$parent.fieldsObject"
+                        :minSuffix="$parent.minSuffix"
+                        @filteredDonors="data => $parent.getDonors(data)">
+                    </donor-metadata-table>
                 </div>
             </div>
         </div>
