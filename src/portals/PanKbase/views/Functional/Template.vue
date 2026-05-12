@@ -21,16 +21,11 @@
                         <b-tab title="Filter and explore donor data">
                             <div v-if="$parent.filteredMetadata.length > 0">
                                 <criterion-function-group>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                        :labelFormatter="fieldName => 'Age (years)'">
-                                        <div class="label">Age (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
-                                        >
-                                        <div class="label">Age (max)</div>
-                                    </filter-less-control>
+                                    <filter-slider :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
+                                        :rangeMin="0"
+                                        :rangeMax="100">
+                                        <div class="label">Age</div>
+                                    </filter-slider>
                                     <filter-enumeration-control
                                         :field="$parent.fieldKey($parent.fieldsObject.sex)"
                                         :options="

@@ -16,6 +16,7 @@ import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import FilterSlider from "../../components/FilterSlider.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -35,7 +36,8 @@ new Vue({
         FilterLessThan,
         FilterGreaterLess,
         DonorMetadataTable,
-        TimeSeriesLinePlot
+        TimeSeriesLinePlot,
+        FilterSlider
     },
     mixins: [pankbaseMixin],
     data() {
@@ -139,6 +141,7 @@ new Vue({
         };
     },
     async created() {
+        // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
