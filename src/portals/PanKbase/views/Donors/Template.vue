@@ -253,23 +253,25 @@
                                                         <span class="availability-data-type-metric-value">{{ item.donorCount.toLocaleString() }}</span>
                                                     </div>
                                                     <div class="availability-data-type-links">
-                                                        <a class="availability-data-type-link" :href="item.href" target="_blank">
-                                                            View data
+                                                        <a class="availability-data-type-button availability-data-type-explorer-button" :href="item.href" target="_blank">
+                                                            {{ getDataTypeExplorerLabel(item.dataType) }}
                                                         </a>
-                                                        <button
-                                                            class="availability-data-type-button"
-                                                            type="button"
-                                                            @click="showDataTypeInTable(item.dataType, '', $event)"
-                                                        >
-                                                            View donors
-                                                        </button>
                                                     </div>
                                                     <div
                                                         v-if="item.segments && item.segments.length"
                                                         class="availability-data-type-segments"
                                                     >
-                                                        <div class="availability-data-type-segments-title">
-                                                            {{ getColumnLabel(plotCategoryField) }}
+                                                        <div class="availability-data-type-segments-header">
+                                                            <div class="availability-data-type-segments-title">
+                                                                {{ getColumnLabel(plotCategoryField) }}
+                                                            </div>
+                                                            <button
+                                                                class="availability-data-type-link availability-data-type-table-link"
+                                                                type="button"
+                                                                @click="showDataTypeInTable(item.dataType, '', $event)"
+                                                            >
+                                                                See table
+                                                            </button>
                                                         </div>
                                                         <div
                                                             v-for="segment in item.segments"
@@ -285,11 +287,11 @@
                                                                 <span class="availability-data-type-segment-count">{{ segment.donorCount.toLocaleString() }}</span>
                                                             </div>
                                                             <button
-                                                                class="availability-data-type-segment-button"
+                                                                class="availability-data-type-link availability-data-type-segment-link"
                                                                 type="button"
                                                                 @click="showDataTypeInTable(item.dataType, segment.groupValue, $event)"
                                                             >
-                                                                Donors
+                                                                See table
                                                             </button>
                                                         </div>
                                                     </div>
@@ -457,7 +459,9 @@
                         No dataset rows were returned.
                     </div>
                 </div>
+                <!--
                 <donor-snapshot :prepared-dataset="preparedDataset"></donor-snapshot>
+                -->
             </div>
         </div>
         <pkb-footer></pkb-footer>
@@ -522,22 +526,23 @@ const AVAILABILITY_PLOT_COLORS = [
 const DATA_TYPE_DETAILS = {
     dynamic_perifusion: {
         description: "measurement of pancreatic islet function",
+        explorer: "functional browser",
         href: "/functional.html",
-    },
-    bulk_RNA_seq: {
-        description: "bulk measurement of gene transcript abundance, either from tissue or sorted cells",
-        href: "/diff-exp.html",
+        includeFiltersInUrl: true,
     },
     "bulk_RNA-seq": {
         description: "bulk measurement of gene transcript abundance, either from tissue or sorted cells",
+        explorer: "DE browser",
         href: "/diff-exp.html",
     },
     "single_cell_RNA-seq": {
         description: "single cell measurement of gene transcript abundance",
+        explorer: "single cell browser",
         href: "/single-cell.html",
     },
     "single_nuclear_ATAC-seq": {
         description: "single cell measurement of accessible/open chromatin",
+        explorer: "genome browser",
         href: "/atacseq.html",
     },
 };
@@ -722,6 +727,19 @@ export default {
                 })
                 .filter(Boolean);
         },
+        activeOutboundFilters() {
+            const numericFilters = this.activeNumericFilters.map((filter) => ({
+                name: filter.name,
+                min: filter.min,
+                max: filter.max,
+            }));
+            const categoricalFilters = this.activeCategoricalFilters.map((filter) => ({
+                name: filter.name,
+                values: Array.from(filter.values),
+            }));
+
+            return numericFilters.concat(categoricalFilters);
+        },
         activeFilterPills() {
             const numericPills = this.activeNumericFilters.map((filter) => ({
                 key: `numeric-${filter.name}`,
@@ -897,7 +915,7 @@ export default {
                         dataType,
                         label: this.getDataTypeLabel(dataType),
                         description: details.description,
-                        href: details.href,
+                        href: this.getDataTypeHref(dataType),
                         donorCount: donorCounts[dataType],
                         segments: (segmentCountsByDataType[dataType] || [])
                             .slice()
@@ -1278,9 +1296,47 @@ export default {
                 href: "#",
             };
         },
+        getDataTypeHref(dataType) {
+            const details = this.getDataTypeDetails(dataType);
+            const baseHref = details.href || "#";
+
+            if (!details.includeFiltersInUrl || !this.activeOutboundFilters.length || baseHref === "#") {
+                return baseHref;
+            }
+
+            return this.appendQueryParams(baseHref, {
+                donorFilters: JSON.stringify(this.activeOutboundFilters),
+            });
+        },
         getDataTypeLabel(dataType) {
             const details = this.getDataTypeDetails(dataType);
             return details.label || dataType;
+        },
+        getDataTypeExplorerLabel(dataType) {
+            const details = this.getDataTypeDetails(dataType);
+            return details.explorer
+                ? `Open in ${details.explorer}`
+                : "Open explorer";
+        },
+        appendQueryParams(href, params) {
+            const [pathWithQuery, hash = ""] = String(href).split("#");
+            const [basePath, existingQuery = ""] = pathWithQuery.split("?");
+            const searchParams = new URLSearchParams(existingQuery);
+
+            Object.keys(params).forEach((key) => {
+                const value = params[key];
+                if (value === null || value === undefined || value === "") {
+                    return;
+                }
+
+                searchParams.set(key, value);
+            });
+
+            const queryString = searchParams.toString();
+            const hashSuffix = hash ? `#${hash}` : "";
+            return queryString
+                ? `${basePath}?${queryString}${hashSuffix}`
+                : `${basePath}${hashSuffix}`;
         },
         getRowsForDataType(dataType) {
             return this.filteredRows.filter((row) => {
@@ -1707,11 +1763,11 @@ export default {
 .active-filter-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 2px;
 }
 
 .active-filter-pills-sidebar {
-    padding-right: 10px;
+    padding-right: 0 0 10px 0;
 }
 
 .active-filter-pill {
@@ -1950,8 +2006,7 @@ export default {
 }
 
 .availability-data-type-links{
-    display:flex;
-    justify-content: space-between;
+    display: flex;
     align-items: center;
 }
 
@@ -1960,6 +2015,9 @@ export default {
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
 }
 
 .availability-data-type-button {
@@ -1971,6 +2029,20 @@ export default {
     font-size: 12px;
     font-weight: 700;
     text-align: left;
+    text-decoration: none;
+}
+
+.availability-data-type-explorer-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.availability-data-type-link:hover,
+.availability-data-type-link:focus,
+.availability-data-type-explorer-button:hover,
+.availability-data-type-explorer-button:focus {
+    text-decoration: none;
 }
 
 .availability-data-type-segments {
@@ -1979,6 +2051,13 @@ export default {
     gap: 8px;
     padding-top: 4px;
     border-top: 1px solid #ece7de;
+}
+
+.availability-data-type-segments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .availability-data-type-segments-title {
@@ -2021,15 +2100,12 @@ export default {
     font-weight: 700;
 }
 
-.availability-data-type-segment-button {
+.availability-data-type-table-link,
+.availability-data-type-segment-link {
     flex: 0 0 auto;
-    padding: 6px 8px;
-    border: 1px solid #d7d0c5;
-    border-radius: 8px;
-    background: #fffdfa;
-    color: #4f6571;
-    font-size: 11px;
-    font-weight: 700;
+    color: #229098;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .availability-plot-header {
