@@ -48,7 +48,6 @@ new Vue({
                 ins: "HIPP_ins_ieq.pankbase.txt",
                 metadata: "meta-data.merged.pankbase.txt"
             },
-            availableDonors: [],
             donorsWithData: [],
             filteredDonors: [],
             filteredMetadata: [],
@@ -110,9 +109,9 @@ new Vue({
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
+        this.filteredDonors = this.donorsWithData;
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
-        this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -166,7 +165,7 @@ new Vue({
             return output;
         },
         getDonors(donors){
-            this.filteredDonors = donors;
+            this.filteredDonors = donors.map(d => d.Accession);
         },
         getDonorsWithData(insData){
             let dataPoint = insData[0];

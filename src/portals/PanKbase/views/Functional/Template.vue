@@ -16,7 +16,7 @@
                     <div v-if="$parent.filteredMetadata.length > 0">
                         Filter and explore donor data
                         <div class="row">
-                            <div class="col-md-3 side-panel">
+                            <div class="col-md-3 side-panel-filters">
                                 <criterion-function-group>
                                     <filter-slider :field="$parent.fieldsObject.age.key"
                                         :range="$parent.getRange($parent.fieldsObject.age)">
@@ -68,7 +68,12 @@
                                         <div class="label">Isolation Center</div>
                                     </filter-enumeration-control>
                                     <template slot="filtered" slot-scope="{ filter }">
-                                        B-Table goes here
+                                        <div class="invisible-table">
+                                            <b-table
+                                                :items="$parent.filteredMetadata"
+                                                @filtered="data => $parent.getDonors(data)">
+                                            </b-table>
+                                        </div>
                                     </template>
                                 </criterion-function-group>
                             </div>
@@ -164,5 +169,8 @@
 }
 .side-panel {
     display: block !important;
+}
+.invisible-table {
+    display: none;
 }
 </style>
