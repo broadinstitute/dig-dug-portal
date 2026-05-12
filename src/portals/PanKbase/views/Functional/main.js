@@ -73,6 +73,8 @@ new Vue({
                     sortable: true,
                     filterMin: null,
                     filterMax: null,
+                    rangeMin: null,
+                    rangeMax: null
                 },
                 sex: {
                     key: "Gender",
@@ -122,6 +124,9 @@ new Vue({
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
+        this.getRanges(this.filteredMetadata);
+
+        // Get data
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -158,6 +163,23 @@ new Vue({
         }
     },
     methods: {
+        getRanges(data){
+            Object.values(this.fieldsObject).forEach(valEntry => {
+                let fieldKey = valEntry.key;
+                if (valEntry.rangeMin === null){
+                    let useableData = data.filter(d=> !Number.isNaN(d[fieldKey]));
+                    let min = useableData[0][fieldKey];
+                    let max = useableData[0][fieldKey];
+                    useableData.forEach(d => {
+                        min = d[fieldKey] < min ? d[fieldKey] : min;
+                        max = d[fieldKey] > max ? d[fieldKey] : max;
+                    });
+                    valEntry.rangeMin = min;
+                    valEntry.rangeMax = max;
+                }
+            });
+            console.log(JSON.stringify(this.fieldsObject));
+        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;

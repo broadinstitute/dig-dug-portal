@@ -34,13 +34,13 @@
 import Vue from "vue";
 export default Vue.component("dual-slider", {
     props: [
-        "field", "sliderId", "unfilteredDataset", "label"
+        "field", "sliderId", "unfilteredDataset", "label", "rangeMin", "rangeMax"
     ],
     data() {
         return {
             sliderRange : {},
             lastFilter: {},
-            filtersIndex: {}
+            filtersIndex: {},
         };
     },
     mounted(){
