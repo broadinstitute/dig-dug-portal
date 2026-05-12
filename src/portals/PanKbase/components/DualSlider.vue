@@ -9,15 +9,16 @@
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
                     @input="setSliderTip($event, `filter_${sliderId}_from`)" 
-                    @change="filterDataSlider($event, field, 'dual')"/>
+                    @change="filterDataSlider($event, field)"/>
                 <input style="padding:0;" class="slider to-slider" type="range" 
                     :id="`filter_${sliderId}_to_slider`"
                     :value="sliderRange.to" 
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${sliderId}_from`)" 
-                    @change="filterDataSlider($event, field, 'dual')"/>
+                    @input="setSliderTip($event, `filter_${sliderId}_to`)" 
+                    @change="filterDataSlider($event, field)"/>
+                    
                     <output class="range-slider-tip range-from-value" 
                     :id="`filter_${sliderId}_from`" name="rangeFromValue"
                     >{{ Math.round(sliderRange.from * 10000) / 10000 }}</output>
@@ -36,7 +37,9 @@ export default Vue.component("dual-slider", {
     ],
     data() {
         return {
-            sliderRange : {}
+            sliderRange : {},
+            lastFilter: {},
+            filtersIndex: {}
         };
     },
     mounted(){
@@ -62,11 +65,11 @@ export default Vue.component("dual-slider", {
 			range.to = Math.round(range.max * 10000) / 10000;
 			range.step = (range.max - range.min) / 10000;
 
-			if(!!document.getElementById(`filter_${sliderId}_from`)) {
-				document.getElementById(`filter_${sliderId}_from`).value = range.from;
+			if(!!document.getElementById(`filter_${this.sliderId}_from`)) {
+				document.getElementById(`filter_${this.sliderId}_from`).value = range.from;
 			}
-			if (!!document.getElementById(`filter_${sliderId}_to`)) {
-				document.getElementById(`filter_${sliderId}_to`).value = range.to;
+			if (!!document.getElementById(`filter_${this.sliderId}_to`)) {
+				document.getElementById(`filter_${this.sliderId}_to`).value = range.to;
 			}
 
 			this.sliderRange = range;
@@ -74,11 +77,8 @@ export default Vue.component("dual-slider", {
         setSliderTip(EVENT,ID) {
 			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
 		},
-		filterDataSlider(EVENT, FIELD, TYPE,) {
-			if(TYPE == "single") {
-
-			} else if (TYPE == "dual") {
-				let searchValueFrom = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD)+"_from").value
+		filterDataSlider(EVENT, FIELD) {
+			let searchValueFrom = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD)+"_from").value
 				let searchValueTo = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value
 				let searchValue = searchValueFrom+","+ searchValueTo;
 
@@ -88,7 +88,6 @@ export default Vue.component("dual-slider", {
 				this.lastFilter = { field: FIELD, value: searchValue };
 
 				this.filtersIndex[FIELD]["search"] = [searchValue];
-			}
 
 			this.applyFilters();
 		},

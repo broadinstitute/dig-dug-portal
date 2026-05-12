@@ -22,73 +22,8 @@
                                 <dual-slider
                                     :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
                                     :sliderId="'age'"
-                                    :unfilteredDataset="$store.state.metadata">
+                                    :unfilteredDataset="$parent.filteredMetadata">
                                 </dual-slider>
-                                <label>Age
-                                    <input type="range" class="form-range"/>
-                                </label>
-                                <div class="label">Gender
-                                    <div class="inline-radio" v-for="item in Array.from(
-                                        new Set($store.state.metadata
-                                            .filter(m => !!m.Gender)
-                                            .map(m => m.Gender)))">
-                                        <input type="radio" :id="item" name="sex"/>
-                                        <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
-                                    </div>
-                                </div>
-                                <label>BMI
-                                    <input type="range" class="form-range"/>
-                                </label>
-                                <label>HBA1C (%)
-                                    <input type="range" class="form-range"/>
-                                </label>
-                                <div class="label inline-radio">Derived Diabetes Status
-                                    <div class="inline-radio" v-for="item in Array.from(
-                                        new Set($store.state.metadata
-                                            .filter(m => !!m[$parent.fieldKey($parent.fieldsObject.diabetes)])
-                                            .map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])))">
-                                        <input type="radio" :id="item" name="diabetes"/>
-                                        <label :for="item">{{ item === "-" ? "N/A" : item }}</label>
-                                    </div>
-                                </div>
-                                <filter-greater-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.hba1cMin)"
-                                    :labelFormatter="fieldName => 'HBA1C %'">
-                                    <div class="label">HBA1C (min)</div>
-                                </filter-greater-control>
-                                <filter-less-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.hba1cMax)"
-                                    :labelFormatter="fieldName => 'HBA1C %'"
-                                    >
-                                    <div class="label">HBA1C (max)</div>
-                                </filter-less-control>
-                                <filter-enumeration-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.ethnicity)"
-                                    :options="
-                                        $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.ethnicity)])
-                                    "
-                                >
-                                    <div class="label">Ethnicity</div>
-                                </filter-enumeration-control>
-                                <filter-enumeration-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.isolation)"
-                                    :options="
-                                        $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.isolation)])
-                                    "
-                                >
-                                    <div class="label">Isolation Center</div>
-                                </filter-enumeration-control>
-                                <filter-greater-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMin)"
-                                    :labelFormatter="fieldName => 'Culture time (hrs)'">
-                                    <div class="label">Culture time (min hrs)</div>
-                                </filter-greater-control>
-                                <filter-less-control
-                                    :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMax)"
-                                    :labelFormatter="fieldName => 'Culture time (hrs)'"
-                                    >
-                                    <div class="label">Culture time (max hrs)</div>
-                            </filter-less-control>
                             </div>
                             <div class="col-md-8" v-if="$parent.filteredMetadata.length > 0">
                                     <div>
@@ -122,7 +57,6 @@
                                     
                                     <donor-metadata-table
                                         :metadata="$parent.filteredMetadata"
-                                        :filter="filter"
                                         :fieldsObject="$parent.fieldsObject"
                                         :minSuffix="$parent.minSuffix"
                                         @filteredDonors="data => $parent.getDonors(data)">
