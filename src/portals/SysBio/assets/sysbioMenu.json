@@ -2,7 +2,7 @@
   "menuItems": [
     {
       "label": "Home",
-      "path": "/"
+      "path": "./"
     },
     {
       "label": "Visualizations and Tools",

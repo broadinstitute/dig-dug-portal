@@ -139,17 +139,20 @@ function localAssetPath(remotePath) {
 }
 
 function localAssetUrl(remotePath) {
-    return `/cmsdata${remotePath}`;
+    // Emit paths relative to the document root (no leading slash) so the
+    // runtime <base href> set by docker-entrypoint.sh resolves them under
+    // whatever BASE_URL the deployment is using.
+    return `cmsdata${remotePath}`;
 }
 
 function localJsonUrlForRemoteRest(remoteRestUrl) {
-    // Map https://hugeampkpncms.org/rest/<endpoint>?<param>=<id> -> /cmsdata/rest/<endpoint>/<id>.json
+    // Map https://hugeampkpncms.org/rest/<endpoint>?<param>=<id> -> cmsdata/rest/<endpoint>/<id>.json
     // Falls back to original URL if it doesn't match a known shape.
     const m = remoteRestUrl.match(
         /^https?:\/\/[^\/]+\/rest\/([a-zA-Z_]+)\?(?:id|project)=([^&\s"']+)/
     );
     if (!m) return null;
-    return `/cmsdata/rest/${m[1]}/${m[2]}.json`;
+    return `cmsdata/rest/${m[1]}/${m[2]}.json`;
 }
 
 function writeFileAtomic(filePath, content) {
@@ -175,6 +178,13 @@ function extractRemotePath(remoteAssetUrl) {
     return split ? split.path : null;
 }
 
+// Pages emitted by vue.config.js — intra-site links to these in CMS bodies
+// are sometimes authored with a leading slash (e.g. `<a href="/gwas.html">`),
+// which bypasses the runtime <base href> and breaks sub-path deployments.
+// Drop the leading slash so they resolve relative to BASE_URL.
+const SITE_PAGE_RE =
+    /(["'(,\s])\/(index|404|about|gwas|singlecell|diffexp|comp|datasetsSummary)\.html/g;
+
 function rewriteString(s) {
     // CMS responses embed URLs inside string fields (HTML bodies, CSV values).
     // After JSON.parse the slashes are decoded, so plain URL regex applies.
@@ -187,6 +197,7 @@ function rewriteString(s) {
         const local = localJsonUrlForRemoteRest(m);
         return local || m;
     });
+    out = out.replace(SITE_PAGE_RE, (_m, pre, name) => `${pre}${name}.html`);
     return out;
 }
 
@@ -418,7 +429,7 @@ async function main() {
             id: f.id,
             remote: f.remoteUrl,
             local: f.filePath
-                .replace(STAGE_DIR, "/cmsdata")
+                .replace(STAGE_DIR, "cmsdata")
                 .replace(/\\/g, "/"),
         })),
         assets: assetList.map((u) => extractRemotePath(u)),

@@ -45,7 +45,7 @@ new Vue({
                         body: "Understanding the cellular and molecular interactions that lead to AIM.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-autoimmune-immune-mediated-diseases/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_AIM.jpg",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_AIM.jpg",
                         type: "medium"
                     },
                     {
@@ -69,7 +69,7 @@ new Vue({
                         body: "Investigating heart failure with preserved ejection fraction (HFpEF) through deep phenotyping and data analysis.",
                         linkLabel: "Learn More",
                         linkUrl: "https://fnih.org/our-programs/accelerating-medicines-partnership-amp/amp-heart-failure/",
-                        bgImage: "/images/sysbio/sysbio_amp_programs/AMP_HF.png",
+                        bgImage: "images/sysbio/sysbio_amp_programs/AMP_HF.png",
                         type: "medium"
                     },
                     {
