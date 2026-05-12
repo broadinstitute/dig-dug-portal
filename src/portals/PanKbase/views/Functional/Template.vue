@@ -19,6 +19,11 @@
                     </div>
                         <div class="row">
                             <div class="col-md-4 filtering-ui-wrapper">
+                                <dual-slider
+                                    :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
+                                    :sliderId="'age'"
+                                    :unfilteredDataset="$store.state.metadata">
+                                </dual-slider>
                                 <label>Age
                                     <input type="range" class="form-range"/>
                                 </label>

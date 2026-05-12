@@ -16,6 +16,7 @@ import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import DualSlider from "../../components/DualSlider.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -35,7 +36,8 @@ new Vue({
         FilterLessThan,
         FilterGreaterLess,
         DonorMetadataTable,
-        TimeSeriesLinePlot
+        TimeSeriesLinePlot,
+        DualSlider
     },
     mixins: [pankbaseMixin],
     data() {
