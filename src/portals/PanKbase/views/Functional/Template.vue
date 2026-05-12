@@ -19,11 +19,18 @@
                     </div>
                         <div class="row">
                             <div class="col-md-4 filtering-ui-wrapper">
-                                <dual-slider
-                                    :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                    :sliderId="'age'"
-                                    :unfilteredDataset="$parent.filteredMetadata">
-                                </dual-slider>
+                                <div class="label">
+                                    Age
+                                    <dual-slider
+                                        :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
+                                        :sliderId="'age'"
+                                        :unfilteredDataset="$parent.filteredMetadata"
+                                        @filterChanged="range => $parent.updateFilters(
+                                            $parent.fieldKey($parent.fieldsObject.ageMin),
+                                            true,
+                                            range)">
+                                    </dual-slider>
+                                </div>
                             </div>
                             <div class="col-md-8" v-if="$parent.filteredMetadata.length > 0">
                                     <div>

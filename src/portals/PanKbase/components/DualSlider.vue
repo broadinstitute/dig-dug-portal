@@ -18,7 +18,7 @@
                     :step="sliderRange.step"
                     @input="setSliderTip($event, `filter_${sliderId}_to`)" 
                     @change="filterDataSlider($event, field)"/>
-                    
+
                     <output class="range-slider-tip range-from-value" 
                     :id="`filter_${sliderId}_from`" name="rangeFromValue"
                     >{{ Math.round(sliderRange.from * 10000) / 10000 }}</output>
@@ -78,18 +78,13 @@ export default Vue.component("dual-slider", {
 			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
 		},
 		filterDataSlider(EVENT, FIELD) {
-			let searchValueFrom = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD)+"_from").value
-				let searchValueTo = document.getElementById("filter_" + this.sectionId + this.getColumnId(FIELD) + "_to").value
-				let searchValue = searchValueFrom+","+ searchValueTo;
-
-				this.sliderRange.from = Number(searchValueFrom);
-				this.sliderRange.to = Number(searchValueTo);
-
-				this.lastFilter = { field: FIELD, value: searchValue };
-
-				this.filtersIndex[FIELD]["search"] = [searchValue];
-
-			this.applyFilters();
+			let searchValueFrom = document.getElementById(`filter_${this.sliderId}_from`).value
+            let searchValueTo = document.getElementById(`filter_${this.sliderId}_to`).value
+            this.sliderRange.from = Number(searchValueFrom);
+            this.sliderRange.to = Number(searchValueTo);
+            
+            let searchRange = [searchValueFrom, searchValueTo];
+            this.$emit("filterChanged", searchRange);
 		},
     },
 });

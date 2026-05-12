@@ -209,6 +209,9 @@ new Vue({
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
             return donors;
+        },
+        updateFilters(field, isRange, value){
+            console.log(field, isRange, value);
         }
     },
     watch: {
