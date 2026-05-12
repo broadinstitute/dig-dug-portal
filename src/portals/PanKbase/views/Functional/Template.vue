@@ -26,7 +26,7 @@
                                 :rangeMax="$parent.fieldsObject.age.rangeMax"
                                 :sliderId="'age'"
                                 @filterChanged="range => $parent.updateFilters(
-                                    $parent.fieldsObject.age,
+                                    $parent.fieldsObject.age.key,
                                     true,
                                     range)">
                             </dual-slider>

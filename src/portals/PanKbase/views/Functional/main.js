@@ -51,6 +51,7 @@ new Vue({
             availableDonors: [],
             donorsWithData: [],
             filteredMetadata: [],
+            filteredDonors: [],
             maxTimeIns: null,
             maxScoreIns: null,
             resultsIns: null,
@@ -71,8 +72,6 @@ new Vue({
                 age: {
                     key: "Age (years)",
                     sortable: true,
-                    filterMin: null,
-                    filterMax: null,
                     rangeMin: null,
                     rangeMax: null
                 },
@@ -84,8 +83,8 @@ new Vue({
                 bmi: {
                     key: "BMI",
                     sortable: true,
-                    filterMin: null,
-                    filterMax: null
+                    rangeMin: null,
+                    rangeMax: null,
                 },
                 diabetes: {
                     key: "Derived diabetes status",
@@ -95,8 +94,6 @@ new Vue({
                 hba1c: {
                     key: "HbA1C (percentage)",
                     sortable: true,
-                    filterMin: null,
-                    filterMax: null,
                 },
                 ethnicity: {
                     key: "Ethnicities",
@@ -111,8 +108,8 @@ new Vue({
                 cultureTime: {
                     key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
                     sortable: true,
-                    filterMin: null,
-                    filterMax: null,
+                    rangeMin: null,
+                    rangeMax: null
                 },
             },
             minSuffix: "_DUPL"
@@ -121,6 +118,7 @@ new Vue({
     async created() {
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
+        this.filteredDonors = this.donorsWithData;
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
         this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
@@ -145,22 +143,6 @@ new Vue({
         gcgData(){
             return this.collateData(this.$store.state.gcg);
         },
-        filteredDonors(){
-            let allDonors = structuredClone(this.filteredMetadata);
-            return allDonors.map(m => m.Accession);/* 
-            let fields = Object.values(this.fieldsObject);
-            fields.forEach(field => {
-                if (!Number.isNaN(field.filterMin)){
-                    allDonors = allDonors.filter(d => d[field.key] >= field.filterMin);
-                }
-                if (!Number.isNaN(field.filterMax)){
-                    allDonors = allDonors.filter(d => d[field.key] <= field.filterMax);
-                }
-                console.log(field.key, allDonors.length);
-            });
-            console.log(JSON.stringify(allDonors));
-            return allDonors.map(m => m.Accession); */
-        }
     },
     methods: {
         getRanges(data){
@@ -222,8 +204,8 @@ new Vue({
             return donors;
         },
         updateFilters(field, isRange, value){
-            let fieldKey = field.key;
-            let fieldEntry = Object.values(this.fieldsObject).find(f => f.key === fieldKey);
+            console.log(field, isRange, value);
+            let fieldEntry = Object.values(this.fieldsObject).find(f => f.key === field);
             if (isRange){
                 fieldEntry.filterMin = value[0];
                 fieldEntry.filterMax = value[1];
@@ -232,6 +214,17 @@ new Vue({
             } else {
                 fieldEntry.filterValues = value;
             }
+            console.log(JSON.stringify(this.fieldsObject));
+        },
+        filterDonors(field, isRange, value){
+            let donors = structuredClone(this.donorsWithData);
+            donors = donors.filter(d => {
+                if (isRange){
+                    return d[field] >= value[0] && d[field] <= value[1];
+                }
+                return true;
+            });
+            this.filteredDonors = donors;
         }
     },
     watch: {

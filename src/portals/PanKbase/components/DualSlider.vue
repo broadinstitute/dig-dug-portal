@@ -53,7 +53,7 @@ export default Vue.component("dual-slider", {
 			let range = { min: this.rangeMin, max: this.rangeMax, step:0, from: null, to: null };
 			range.from = Math.round(this.rangeMin * 10000) / 10000;
 			range.to = Math.round(this.rangeMax * 10000) / 10000;
-			range.step = (this.rangeMin - this.rangeMax) / 10000;
+			range.step = (this.rangeMax - this.rangeMin) / 10000;
 
 			if(!!document.getElementById(`filter_${this.sliderId}_from`)) {
 				document.getElementById(`filter_${this.sliderId}_from`).value = range.from;
