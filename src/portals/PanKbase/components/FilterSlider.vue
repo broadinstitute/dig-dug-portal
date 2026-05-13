@@ -38,7 +38,7 @@ export default Vue.component("filter-slider", {
     pillFormatter: {
       type: Function,
       default: (filterDefinition) =>
-        `${filterDefinition.field} = ${filterDefinition.threshold}`,
+        `${filterDefinition.threshold[0]} ≤ ${filterDefinition.field} ≤ ${filterDefinition.threshold[1]}`,
     },
     computedField: Function,
   },

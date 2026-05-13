@@ -183,7 +183,7 @@
     border-radius: 5px;
 }
 .stats {
-    margin-bottom: 10px;;
+    margin-bottom: 20px;
 }
 .line-plot{
     align-items: center;
