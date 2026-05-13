@@ -14,7 +14,6 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
-import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
 import keyParams from "@/utils/keyParams";
@@ -35,7 +34,6 @@ new Vue({
         FilterGreaterThan,
         FilterLessThan,
         FilterGreaterLess,
-        DonorMetadataTable,
         TimeSeriesLinePlot,
         FilterSlider
     },
