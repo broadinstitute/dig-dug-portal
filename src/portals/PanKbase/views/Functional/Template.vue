@@ -34,12 +34,10 @@
                                         :range="$parent.getRange($parent.fieldsObject.cultureTime)">
                                         <div class="label">Culture time (hrs)</div>
                                     </filter-slider>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldsObject.sex.key"
-                                        :options="$parent.filteredMetadata.map(m => m.Gender)"
-                                    >
+                                    <filter-radio :field="$parent.fieldsObject.sex.key"
+                                        :options="$parent.filteredMetadata.map(m => m.Gender)">
                                         <div class="label">Gender</div>
-                                    </filter-enumeration-control>                                    
+                                    </filter-radio>                                  
                                     <filter-enumeration-control
                                         :field="$parent.fieldsObject.diabetes.key"
                                         :options="

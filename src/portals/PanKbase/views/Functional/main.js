@@ -15,7 +15,9 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import DataDownload from "@/components/DataDownload.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
+import FilterRadio from "../../components/FilterRadio.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -33,9 +35,11 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterLessThan,
+        DataDownload,
         FilterGreaterLess,
         TimeSeriesLinePlot,
-        FilterSlider
+        FilterSlider,
+        FilterRadio
     },
     mixins: [pankbaseMixin],
     data() {
@@ -131,8 +135,6 @@ new Vue({
         },
         filteredAccession(){
             let results = this.filteredDonors.map(d => d.Accession);
-            console.log("Filtering donors", results.length);
-            console.log(JSON.stringify(results));
             return results;
         }
     },
@@ -183,6 +185,8 @@ new Vue({
                     min = d[fieldKey] < min ? d[fieldKey] : min;
                     max = d[fieldKey] > max ? d[fieldKey] : max;
                 });
+            // TODO figure out why this is happening
+            min = min === "" ? 0 : min;
             return [min, max];
         }
     },
