@@ -126,4 +126,9 @@ export default Vue.component("filter-radio-template", {
     .radio-button-wrapper {
         display: inline;
     }
+    input {
+        height: inherit !important;
+        width: inherit !important;
+        margin-right: 10px !important;
+    }
 </style>
