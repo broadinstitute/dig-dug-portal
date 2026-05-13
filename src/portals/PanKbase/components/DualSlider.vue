@@ -1,29 +1,29 @@
 <template>
     <div class="outer-wrapper">
         <div class="slide-container">
-            <div class="sliders-control" :id="`filter_${sliderId}`" v-if="ready">
+            <div class="sliders-control" :id="`filter_${safeSliderId}`" v-if="ready">
                 <input style="padding:0;" class="slider from-slider" type="range" 
-                    :id="`filter_${sliderId}_from_slider`"
+                    :id="`filter_${safeSliderId}_from_slider`"
                     :value="sliderRange.from" 
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${sliderId}_from`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_from`)" 
                     @change="filterDataSlider($event)"/>
                 <input style="padding:0;" class="slider to-slider" type="range" 
-                    :id="`filter_${sliderId}_to_slider`"
+                    :id="`filter_${safeSliderId}_to_slider`"
                     :value="sliderRange.to" 
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${sliderId}_to`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_to`)" 
                     @change="filterDataSlider($event)"/>
 
                     <output class="range-slider-tip range-from-value" 
-                    :id="`filter_${sliderId}_from`" name="rangeFromValue"
+                    :id="`filter_${safeSliderId}_from`" name="rangeFromValue"
                     >{{ Math.round(sliderRange.from * 10000) / 10000 }}</output>
                     <output class="range-slider-tip range-to-value" 
-                    :id="`filter_${sliderId}_to`" name="rangeToValue"
+                    :id="`filter_${safeSliderId}_to`" name="rangeToValue"
                     >{{ Math.round(sliderRange.to * 10000) / 10000 }}</output>
             </div>
         </div>
@@ -37,6 +37,7 @@ export default Vue.component("dual-slider", {
     ],
     data() {
         return {
+            safeSliderId: this.sliderId.replaceAll(" ", "_"),
             sliderRange : {
                 min: this.rangeMin,
                 max: this.rangeMax,
@@ -56,11 +57,11 @@ export default Vue.component("dual-slider", {
     },
     methods: {
         getRange() {
-			if(!!document.getElementById(`filter_${this.sliderId}_from`)) {
-				document.getElementById(`filter_${this.sliderId}_from`).value = range.from;
+			if(!!document.getElementById(`filter_${this.safeSliderId}_from`)) {
+				document.getElementById(`filter_${this.safeSliderId}_from`).value = range.from;
 			}
-			if (!!document.getElementById(`filter_${this.sliderId}_to`)) {
-				document.getElementById(`filter_${this.sliderId}_to`).value = range.to;
+			if (!!document.getElementById(`filter_${this.safeSliderId}_to`)) {
+				document.getElementById(`filter_${this.safeSliderId}_to`).value = range.to;
 			}
             this.ready = true;
 		},
@@ -68,8 +69,8 @@ export default Vue.component("dual-slider", {
 			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
 		},
 		filterDataSlider(EVENT) {
-			let searchValueFrom = document.getElementById(`filter_${this.sliderId}_from`).value
-            let searchValueTo = document.getElementById(`filter_${this.sliderId}_to`).value
+			let searchValueFrom = document.getElementById(`filter_${this.safeSliderId}_from`).value
+            let searchValueTo = document.getElementById(`filter_${this.safeSliderId}_to`).value
             this.sliderRange.from = Number(searchValueFrom);
             this.sliderRange.to = Number(searchValueTo);
             
@@ -82,10 +83,9 @@ export default Vue.component("dual-slider", {
 <style scoped>
 /* slider UI from DK's BYOR slider*/
 .slide-container {
-    width: 100%;
+    /*width: 100%;*/
     min-width: 175px;
     position: relative;
-    margin: 10px;
 }
 
 .sliders-control {
@@ -101,7 +101,7 @@ export default Vue.component("dual-slider", {
 	left: 0;
 	top: 0px;
   -webkit-appearance: none;
-  width: 100%;
+  width: 175px !important;
   height: 2px !important;
   background: #d3d3d300;
   outline: none;
