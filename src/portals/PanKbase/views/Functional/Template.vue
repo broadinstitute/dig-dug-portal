@@ -59,7 +59,7 @@
                                         <div class="label">Ethnicity</div>
                                     </filter-enumeration-control>
                                     <filter-enumeration-control
-                                        :field="$parent.fieldsObject.isolation"
+                                        :field="$parent.fieldsObject.isolation.key"
                                         :options="
                                             $parent.filteredMetadata.map(m => 
                                             m[$parent.fieldsObject.isolation.key])
@@ -69,9 +69,9 @@
                                     </filter-enumeration-control>
                                     <template slot="filtered" slot-scope="{ filter }">
                                         <div class="invisible-table">
-                                            <b-table
-                                                :items="$parent.filteredMetadata"
-                                                @filtered="data => $parent.getDonors(data)">
+                                            <b-table v-model="$parent.filteredDonors"
+                                                
+                                                :items="$parent.filteredMetadata.filter(filter)">
                                             </b-table>
                                         </div>
                                     </template>
@@ -85,7 +85,7 @@
                                             :plotData="$parent.resultsIns"
                                             :maxTime="$parent.maxTimeIns"
                                             :maxScore="$parent.maxScoreIns"
-                                            :donors="$parent.filteredDonors"
+                                            :donors="$parent.filteredAccession"
                                             :plotId="`insulin_ieq`"
                                             :timepoints="$parent.insTimepoints"
                                             :lineColor="$parent.insColor">
@@ -97,7 +97,7 @@
                                             :plotData="$parent.resultsGcg"
                                             :maxTime="$parent.maxTimeGcg"
                                             :maxScore="$parent.maxScoreGcg"
-                                            :donors="$parent.filteredDonors"
+                                            :donors="$parent.filteredAccession"
                                             :plotId="`glucagon_ieq`"
                                             :timepoints="$parent.gcgTimepoints"
                                             :lineColor="$parent.gcgColor">
@@ -110,8 +110,7 @@
                     <donor-metadata-table
                         :metadata="$parent.filteredMetadata"
                         :fieldsObject="$parent.fieldsObject"
-                        :minSuffix="$parent.minSuffix"
-                        @filteredDonors="data => $parent.getDonors(data)">
+                        :minSuffix="$parent.minSuffix">
 
                     </donor-metadata-table>
                 </div>
@@ -172,5 +171,6 @@
 }
 .invisible-table {
     display: none;
+    overflow-x: scroll;
 }
 </style>

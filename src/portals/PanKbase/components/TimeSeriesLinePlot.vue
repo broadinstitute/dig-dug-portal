@@ -327,6 +327,7 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
     },
     donors(){
+      console.log("New donor list received");
         this.drawChart();
     },
     emptyChart(){

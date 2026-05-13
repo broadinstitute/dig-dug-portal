@@ -109,7 +109,6 @@ new Vue({
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
-        this.filteredDonors = this.donorsWithData;
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
@@ -129,7 +128,13 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        },        
+        },
+        filteredAccession(){
+            let results = this.filteredDonors.map(d => d.Accession);
+            console.log("Filtering donors", results.length);
+            console.log(JSON.stringify(results));
+            return results;
+        }
     },
     methods: {
         collateData(data){
@@ -164,9 +169,6 @@ new Vue({
             }
             return output;
         },
-        getDonors(donors){
-            this.filteredDonors = donors.map(d => d.Accession);
-        },
         getDonorsWithData(insData){
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
@@ -194,6 +196,9 @@ new Vue({
             this.resultsGcg = newData.results;
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
+        },
+        filteredDonors(newList){
+            console.log("Is this thing on?");
         }
     },
     render(createElement, context) {
