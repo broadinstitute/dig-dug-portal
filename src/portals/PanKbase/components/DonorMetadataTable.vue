@@ -31,9 +31,7 @@
 </template>
 <script>
 import Vue from "vue";
-import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-import keyParams from "@/utils/keyParams";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 export default Vue.component("donor-metadata-table", {
@@ -51,7 +49,6 @@ export default Vue.component("donor-metadata-table", {
         };
     },
     mounted(){
-        this.processedMetadata = this.preprocessData(this.metadata);
     },
     computed: {
         tableData() {
@@ -66,19 +63,6 @@ export default Vue.component("donor-metadata-table", {
         }
     },
     methods: {
-        preprocessData(inputData){
-            // duplicate fields to allow filtering on two thresholds (min and max)
-            let rangeFields = Object.values(this.fieldsObject).filter(f => !!f.isMinimum);
-            for (let i = 0; i < inputData.length; i++){
-                let entry = inputData[i];
-                for(let j = 0; j < rangeFields.length; j++){
-                    let field = rangeFields[j];
-                    let newFieldName = `${field.key}${this.minSuffix}`;
-                    entry[newFieldName] = entry[field.key];
-                }
-            }
-            return inputData;
-        }
     },
     watch: {
         tableData(newData){

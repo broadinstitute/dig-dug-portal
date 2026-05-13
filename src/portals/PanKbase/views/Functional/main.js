@@ -103,6 +103,8 @@ new Vue({
                     sortable: true
                 },
             },
+            perPage: 10,
+            currentPage: 1,
         };
     },
     async created() {

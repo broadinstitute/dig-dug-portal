@@ -107,12 +107,35 @@
                             </div>
                         </div>            
                     </div>
-                    <donor-metadata-table
-                        :metadata="$parent.filteredMetadata"
-                        :fieldsObject="$parent.fieldsObject"
-                        :minSuffix="$parent.minSuffix">
-
-                    </donor-metadata-table>
+                    <div>
+                        <div class="download-button">
+                            <data-download
+                                :data="$parent.filteredDonors"
+                                filename="pankbase_functional_donor_metadata_filtered">
+                            </data-download>
+                        </div>
+                        {{ $parent.filteredDonors.length }} results
+                        <b-table
+                            small
+                            :items="$parent.filteredDonors"
+                            :fields="Object.values($parent.fieldsObject)"
+                            :sortable="true"
+                            :per-page="$parent.perPage"
+                            :current-page="$parent.currentPage"
+                        >
+                            <template #cell(Accession)="r">
+                                <a :href="`https://data.pankbase.org/human-donors/${r.item.Accession}/`">
+                                    {{ r.item.Accession }}
+                                </a>
+                            </template>
+                        </b-table>
+                    <b-pagination
+                        class="pagination-md justify-content-center"
+                        v-model="$parent.currentPage"
+                        :per-page="$parent.perPage"
+                        :total-rows="$parent.filteredDonors.length">
+                    </b-pagination>    
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,5 +195,9 @@
 .invisible-table {
     display: none;
     overflow-x: scroll;
+}
+.download-button {
+    display: flex;
+    justify-content: right;
 }
 </style>
