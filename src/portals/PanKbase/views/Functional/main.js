@@ -117,6 +117,8 @@ new Vue({
             currentPage: 1,
             filtersActive: [],
             selectedDonors: "",
+            selectedDonorList: [],
+            useSelectedDonors: true
         };
     },
     async created() {
@@ -145,6 +147,9 @@ new Vue({
             return this.collateData(this.$store.state.gcg);
         },
         filteredAccession(){
+            if (this.selectedDonorList.length > 0 && this.useSelectedDonors){
+                return this.selectedDonorList;
+            }
             let results = this.filteredDonors.map(d => d.Accession);
             return results;
         },
@@ -160,6 +165,7 @@ new Vue({
             let donorIdFinder = /[\w]+/
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             entries.forEach(e => console.log(e));
+            this.selectedDonorList = entries;
         },
         collateData(data){
             let maxTime = null;
@@ -225,6 +231,9 @@ new Vue({
         },
         filteredDonors(newList){
             console.log("Is this thing on?");
+        },
+        selectedDonorList(newList){
+
         }
     },
     render(createElement, context) {
