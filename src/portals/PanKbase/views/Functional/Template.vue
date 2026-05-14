@@ -107,34 +107,42 @@
                                 </b-tabs>
                             </div>
                             <div class="col-md-9">
-                                <div class="line-plots">
-                                    <div class="insulin-plot line-plot">
-                                        <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
-                                            :plotData="$parent.resultsIns"
-                                            :maxTime="$parent.maxTimeIns"
-                                            :maxScore="$parent.maxScoreIns"
-                                            :donors="$parent.filteredAccession"
-                                            :plotId="`insulin_ieq`"
-                                            :timepoints="$parent.insTimepoints"
-                                            :lineColor="$parent.insColor"
-                                            yAxisLabel="ng/100IEQ/min">
-                                        </time-series-line-plot>
-                                    </div>
-                                    <div class="glucagon-plot line-plot">
-                                        <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
-                                            :plotData="$parent.resultsGcg"
-                                            :maxTime="$parent.maxTimeGcg"
-                                            :maxScore="$parent.maxScoreGcg"
-                                            :donors="$parent.filteredAccession"
-                                            :plotId="`glucagon_ieq`"
-                                            :timepoints="$parent.gcgTimepoints"
-                                            :lineColor="$parent.gcgColor"
-                                            yAxisLabel="pg/100IEQ/min">
-                                        </time-series-line-plot>
-                                    </div>
-                                </div>
+                                <b-tabs>
+                                    <b-tab title="Perifusion traces">
+                                        <div class="line-plots">
+                                            <div class="insulin-plot line-plot">
+                                                <h5>Insulin IEQ</h5>
+                                                <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
+                                                    :plotData="$parent.resultsIns"
+                                                    :maxTime="$parent.maxTimeIns"
+                                                    :maxScore="$parent.maxScoreIns"
+                                                    :donors="$parent.filteredAccession"
+                                                    :plotId="`insulin_ieq`"
+                                                    :timepoints="$parent.insTimepoints"
+                                                    :lineColor="$parent.insColor"
+                                                    yAxisLabel="ng/100IEQ/min">
+                                                </time-series-line-plot>
+                                            </div>
+                                            <div class="glucagon-plot line-plot">
+                                                <h5>Glucagon IEQ</h5>
+                                                <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
+                                                    :plotData="$parent.resultsGcg"
+                                                    :maxTime="$parent.maxTimeGcg"
+                                                    :maxScore="$parent.maxScoreGcg"
+                                                    :donors="$parent.filteredAccession"
+                                                    :plotId="`glucagon_ieq`"
+                                                    :timepoints="$parent.gcgTimepoints"
+                                                    :lineColor="$parent.gcgColor"
+                                                    yAxisLabel="pg/100IEQ/min">
+                                                </time-series-line-plot>
+                                            </div>
+                                        </div>
+                                    </b-tab>
+                                    <b-tab title="Functional data by trait">
+                                        Coming soon
+                                    </b-tab>
+                                </b-tabs>
+                                
                             </div>
                         </div>            
                     </div>
