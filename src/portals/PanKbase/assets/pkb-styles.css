@@ -244,3 +244,24 @@ tr.upregulated {
 tr.downregulated {
     border-left: 5px solid blue !important;
 }
+/* Filters down the side of the page are formatted differently*/
+.side-panel-filters div.filtering-ui-wrapper {
+    border: none !important;
+    background-color: white !important;
+}
+.side-panel-filters .filter-pill-collection {
+    display: none !important;
+}
+.side-panel-filters .row.filtering-ui-content {
+    display: block !important;
+    text-align: left;
+    padding-left: 50px !important;
+}
+.side-panel-filters .row.filtering-ui-content div.col {
+    display: block  !important;
+    max-width: 80% !important;
+}
+.functional-page .btn-secondary {
+    color: inherit !important;
+    background-color: white !important
+}

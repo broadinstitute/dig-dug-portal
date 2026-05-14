@@ -14,8 +14,11 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterLessThan from "@/components/criterion/FilterLessThan.vue";
 import FilterGreaterLess from "../../../../components/criterion/FilterGreaterLess.vue";
-import DonorMetadataTable from "../../components/DonorMetadataTable.vue";
 import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import FilterSlider from "../../components/FilterSlider.vue";
+import FilterRadio from "../../components/FilterRadio.vue";
+import FilterEnumWithAny from "../../components/FilterEnumWithAny.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -33,9 +36,12 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterLessThan,
+        DataDownload,
         FilterGreaterLess,
-        DonorMetadataTable,
-        TimeSeriesLinePlot
+        TimeSeriesLinePlot,
+        FilterSlider,
+        FilterRadio,
+        FilterEnumWithAny
     },
     mixins: [pankbaseMixin],
     data() {
@@ -46,7 +52,6 @@ new Vue({
                 ins: "HIPP_ins_ieq.pankbase.txt",
                 metadata: "meta-data.merged.pankbase.txt"
             },
-            availableDonors: [],
             donorsWithData: [],
             filteredDonors: [],
             filteredMetadata: [],
@@ -63,87 +68,68 @@ new Vue({
             fieldsObject: {
                 accession: {
                     key: "Accession",
-                    isNumeric: false,
                     sortable: true
                 },
-                ageMin: {
-                    key: "Age (years)",
-                    isNumeric: true,
-                    isMinimum: true,
-                    sortable: true,
+                donorId: {
+                    key: "Center Donor ID",
+                    sortable: true
                 },
-                ageMax: {
+                age: {
                     key: "Age (years)",
                     isNumeric: true,
-                    isMinimum: false,
                     sortable: true,
                 },
                 sex: {
                     key: "Gender",
-                    isNumeric: false,
                     sortable: true
                 },
-                bmiMin: {
+                bmi: {
                     key: "BMI",
                     isNumeric: true,
-                    isMinimum: true,
                     sortable: true
                 },
-                bmiMax: {
-                    key: "BMI",
-                    isNumeric: true,
-                    isMinimum: false,
+                diabetesDesc: {
+                    key: "Description of diabetes status",
                     sortable: true
                 },
                 diabetes: {
                     key: "Derived diabetes status",
-                    isNumeric: false,
                     sortable: true
                 },
-                hba1cMin: {
+                hba1c: {
                     key: "HbA1C (percentage)",
                     isNumeric: true,
-                    isMinimum: true,
-                    sortable: true
-                },
-                hba1cMax: {
-                    key: "HbA1C (percentage)",
-                    isNumeric: true,
-                    isMinimum: false,
                     sortable: true
                 },
                 ethnicity: {
                     key: "Ethnicities",
-                    isNumeric: false,
                     sortable: true
                 },
                 isolation: {
                     key: "Isolation_center",
-                    isNumeric: false,
                     sortable: true
                 },
-                cultureTimeMin: {
+                cultureTime: {
                     key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
                     isNumeric: true,
-                    isMinimum: true,
                     sortable: true
                 },
-                cultureTimeMax: {
-                    key: "Pre-Shipment Culture Time (hours)", // TODO ADD TRANSIT TIME
-                    isNumeric: true,
-                    isMinimum: false,
-                    sortable: true
-                }
             },
-            minSuffix: "_DUPL"
+            perPage: 10,
+            currentPage: 1,
+            filtersActive: [],
+            selectedDonors: "",
+            selectedDonorList: [],
+            useSelected: false
         };
     },
     async created() {
+        // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
-        this.availableDonors = this.$store.state.metadata.map(m => m.Accession);
+        console.log(JSON.stringify(this.filteredMetadata.slice(0,10).map(e => e[this.fieldsObject.donorId.key])));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -161,9 +147,39 @@ new Vue({
         },
         gcgData(){
             return this.collateData(this.$store.state.gcg);
-        },        
+        },
+        filteredAccession(){
+            let results = this.tableItems.map(d => d.Accession);
+            return results;
+        },
+        tableItems(){
+            if (!this.useSelected){
+                return this.filteredDonors;
+            }
+            console.log("OK let's filter them");
+            console.log(JSON.stringify(this.selectedDonorList));
+            return this.filteredMetadata.filter(d => 
+                this.selectedDonorList.includes(d.Accession) ||
+                this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
+            );
+        }
     },
     methods: {
+        getFilters(filters){
+            this.filtersActive = filters.map(filter => filter.field);
+        },
+        useSelectedDonors(useSelected){
+            this.useSelected = useSelected;
+        },
+        selectDonors(){
+            let delimiters = /[,\s]/;
+            let entries = this.selectedDonors.split(delimiters)
+                .filter(e => e.length > 0);
+            console.log("Entries:", JSON.stringify(entries));
+            let donorIdFinder = /[\w]+/
+            entries = entries.map(e => e.match(donorIdFinder)[0]);
+            this.selectedDonorList = entries;
+        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;
@@ -196,17 +212,23 @@ new Vue({
             }
             return output;
         },
-        fieldKey(fieldData){
-            let output = !fieldData.isMinimum ? fieldData.key : `${fieldData.key}${this.minSuffix}`;
-            return output;
-        },
-        getDonors(donors){
-            this.filteredDonors = donors;
-        },
         getDonorsWithData(insData){
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
             return donors;
+        },
+        getRange(field){
+            let fieldKey = field.key;
+            let min = this.filteredMetadata[0][fieldKey];
+            let max = this.filteredMetadata[0][fieldKey];
+            this.filteredMetadata.filter(d => !Number.isNaN(d[fieldKey]))
+                .forEach(d => {
+                    min = d[fieldKey] < min ? d[fieldKey] : min;
+                    max = d[fieldKey] > max ? d[fieldKey] : max;
+                });
+            // TODO figure out why this is happening
+            min = min === "" ? 0 : min;
+            return [min, max];
         }
     },
     watch: {
@@ -219,7 +241,10 @@ new Vue({
             this.resultsGcg = newData.results;
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
-        }
+        },
+        filteredDonors(newList){
+            console.log("Is this thing on?");
+        },
     },
     render(createElement, context) {
         return createElement(Template);

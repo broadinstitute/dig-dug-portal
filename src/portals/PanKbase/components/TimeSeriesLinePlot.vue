@@ -1,6 +1,15 @@
 <template>
     <div>
-        {{ availableDonors }} donors available meeting criteria
+      <h5>{{ plotTitle }}</h5>
+        <div class="download-images-setting">
+          Mouse over the plot to highlight an individual donor.
+            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
+              Download SVG <b-icon icon="download"></b-icon>
+            </button>
+        </div>
+        <div :id=plotId class="plot" ref="time-series-line">
+            <p>Loading...</p>
+        </div>
         <div class="donorData">
           <div v-if="donorMetadata !== null">
             <div class="donorLabel"><strong>Highlighted donor:</strong> {{ donorMetadata.Accession }}</div>
@@ -17,18 +26,8 @@
               </table>
             </div>
           </div>
-          <div v-else>
-            Mouse over the plot to highlight an individual donor.
-          </div>
         </div>
-        <div :id=plotId class="plot" ref="time-series-line">
-            <p>Loading...</p>
-        </div>
-        <div class="download-images-setting">
-            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
-              Download SVG <b-icon icon="download"></b-icon>
-            </button>
-        </div>
+        
     </div>
 </template>
 <script>
@@ -41,11 +40,11 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "startEmpty"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
+    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
-        chartWidth: 750,
         chartHeight: 300,
         innerHeight: null,
         svg: null,
@@ -60,13 +59,13 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        yAxisLabel: null,
         axesDrawn: false,
         highlightedDonor: null,
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
   computed: {
@@ -74,7 +73,6 @@ export default Vue.component("time-series-line-plot", {
       let data = structuredClone(this.plotData);
       if (this.filter){
         data = data.filter(this.filter);
-        this.startEmpty = false;
       }
       let output = [];
       this.donors.forEach(d => {
@@ -85,10 +83,6 @@ export default Vue.component("time-series-line-plot", {
       });
       return output;
     },
-    availableDonors(){
-      let donorsPresent = new Set(this.chartData.flatMap(m => m.map(n => n.donor)));
-      return donorsPresent.size;
-    },
     allHoverFields(){
       return [this.dotKey, this.xField, this.yField];
     },
@@ -98,9 +92,6 @@ export default Vue.component("time-series-line-plot", {
       }
       return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
     },
-    emptyChart(){
-      return this.startEmpty && this.donors.length === this.availableDonors;
-    }
   },
   methods: {
     extractTimepoints(data, xScale, yScale){
@@ -133,12 +124,13 @@ export default Vue.component("time-series-line-plot", {
     },
     drawChart(){
       let margin = {
-        top: 10,
+        top: 80,
         right: 10,
         bottom: 40,
-        left: 40
+        left: 55
       };
-      let width = this.chartWidth - margin.left - margin.right;
+      let elementWidth = this.chart.clientWidth;
+      let width = elementWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
       this.innerHeight = height;
 
@@ -177,14 +169,15 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke-width", 1);
       });
       // Separate loop to put text on top of bg
-      timepointBars.forEach(t => {
+      timepointBars.forEach((t, index) => {
         this.svg.append("text")
           .attr("text-anchor", "start")
-          .attr("y", t.height * (!this.isBasal(t.condition) ? 0.15 : 0.05))
-          .attr("x", t.x)
+          .attr("y", 0)
+          .attr("x", 0)
           .attr("font-size", "smaller")
+          .attr("transform", `translate(${t.textPosition},0) rotate(-45)`)
           .text(this.isBasal(t.condition) ? t.condition.replaceAll("Secretion", "Secr.") 
-            : t.condition.replaceAll("phase", "ph."));
+            : t.condition);
       });
       this.tooltip = d3
         .select(`#${this.plotId}`)
@@ -327,11 +320,9 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
     },
     donors(){
+      console.log("New donor list received");
         this.drawChart();
     },
-    emptyChart(){
-      this.drawChart();
-    }
   }
 });
 </script>

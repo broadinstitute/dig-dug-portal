@@ -5,191 +5,177 @@
         <!-- BODY -->
         <div class="pkb-body">
             <div class="card mdkp-card">
-                <div class="card-body">
-                    <h2>Data Explorer</h2>
-                    <div id="stats" class="row" v-if="$store.state.metadata.length > 0">
-                        <div class="col-md-6">
-                            Total donors
-                            <h3>{{ $store.state.metadata.length }}</h3>
-                        </div>
-                        <div class="col-md-6">
-                            Donors with available functional data
-                            <h3>{{ Object.keys(this.$store.state.ins[0]).length - 2 }}</h3>
-                        </div>
+                <div class="card-body functional-page">
+                    <div id="stats">
+                        <span id="stats-header">Data Explorer</span>
+                        <span v-if="$parent.filteredMetadata.length > 0">
+                            ({{ $parent.donorsWithData.length }} donors with available functional data)</span>
                     </div>
-                    <b-tabs>
-                        <b-tab title="Filter and explore donor data">
-                            <div v-if="$parent.filteredMetadata.length > 0">
-                                <criterion-function-group>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ageMin)"
-                                        :labelFormatter="fieldName => 'Age (years)'">
-                                        <div class="label">Age (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ageMax)"
-                                        >
-                                        <div class="label">Age (max)</div>
-                                    </filter-less-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.sex)"
-                                        :options="
-                                            $store.state.metadata.map(m => m.Gender)
-                                        "
-                                    >
-                                        <div class="label">Gender</div>
-                                    </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.bmiMin)"
-                                        :labelFormatter="fieldName => 'BMI'">
-                                        <div class="label">BMI (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.bmiMax)"
-                                        >
-                                        <div class="label">BMI (max)</div>
-                                    </filter-less-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.diabetes)"
-                                        :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.diabetes)])
-                                        "
-                                    >
-                                        <div class="label">Derived Diabetes Status</div>
-                                    </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.hba1cMin)"
-                                        :labelFormatter="fieldName => 'HBA1C %'">
-                                        <div class="label">HBA1C (min)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.hba1cMax)"
-                                        :labelFormatter="fieldName => 'HBA1C %'"
-                                        >
-                                        <div class="label">HBA1C (max)</div>
-                                    </filter-less-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.ethnicity)"
-                                        :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.ethnicity)])
-                                        "
-                                    >
-                                        <div class="label">Ethnicity</div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.isolation)"
-                                        :options="
-                                            $store.state.metadata.map(m => m[$parent.fieldKey($parent.fieldsObject.isolation)])
-                                        "
-                                    >
-                                        <div class="label">Isolation Center</div>
-                                    </filter-enumeration-control>
-                                    <filter-greater-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMin)"
-                                        :labelFormatter="fieldName => 'Culture time (hrs)'">
-                                        <div class="label">Culture time (min hrs)</div>
-                                    </filter-greater-control>
-                                    <filter-less-control
-                                        :field="$parent.fieldKey($parent.fieldsObject.cultureTimeMax)"
-                                        :labelFormatter="fieldName => 'Culture time (hrs)'"
-                                        >
-                                        <div class="label">Culture time (max hrs)</div>
-                                    </filter-less-control>
-                                    <template slot="filtered" slot-scope="{ filter }">
-                                        <div class="row">
-                                            <div class="insulin-plot line-plot col-md-6">
-                                                <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
+                    <div v-if="$parent.filteredMetadata.length > 0">
+                        <div class="row">
+                            <div class="col-md-3 side-panel-filters">
+                                <b-tabs>
+                                    <b-tab title="Filter donor data"
+                                        @click="$parent.useSelectedDonors(false)">
+                                        <criterion-function-group
+                                            @update:filter-list="event => $parent.getFilters(event)">
+                                            <filter-slider :field="$parent.fieldsObject.age.key"
+                                                :range="$parent.getRange($parent.fieldsObject.age)">
+                                                <div class="label">Age</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.bmi.key"
+                                                :range="$parent.getRange($parent.fieldsObject.age)">
+                                                <div class="label">BMI</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.hba1c.key"
+                                                :range="$parent.getRange($parent.fieldsObject.hba1c)">
+                                                <div class="label">HBA1C (%)</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.cultureTime.key"
+                                                :range="$parent.getRange($parent.fieldsObject.cultureTime)">
+                                                <div class="label">Culture time (hrs)</div>
+                                            </filter-slider>
+                                            <filter-radio :field="$parent.fieldsObject.sex.key"
+                                                :options="$parent.filteredMetadata.map(m => m.Gender)"
+                                                :filtersActive="$parent.filtersActive">
+                                                <div class="label">Gender</div>
+                                            </filter-radio>
+
+                                            <filter-enum-with-any
+                                                :field="$parent.fieldsObject.diabetesDesc.key"
+                                                :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
+                                                :clearFilter="false"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.diabetesDesc.key])
+                                                "
+                                            >
+                                                <div class="label">Diabetes status</div>
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
+                                                :field="$parent.fieldsObject.diabetes.key"
+                                                :clearFilter="false"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.diabetes.key])
+                                                "
+                                            >
+                                                <div class="label">Derived diabetes status</div>
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
+                                                :field="$parent.fieldsObject.ethnicity.key"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.ethnicity.key])
+                                                "
+                                            >
+                                                <div class="label">Ethnicity</div>
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
+                                                :field="$parent.fieldsObject.isolation.key"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.isolation.key])
+                                                "
+                                            >
+                                                <div class="label">Isolation Center</div>
+                                            </filter-enum-with-any>
+                                            <template slot="filtered" slot-scope="{ filter }">
+                                                <div class="invisible-table">
+                                                    <b-table v-model="$parent.filteredDonors"
+                                                        
+                                                        :items="$parent.filteredMetadata.filter(filter)">
+                                                    </b-table>
+                                                </div>
+                                            </template>
+                                        </criterion-function-group>
+                                        </b-tab>
+                                        <b-tab title="Select donors"
+                                            @click="$parent.useSelectedDonors(true)">
+                                            <div class="filter-tab-liner">
+                                                <textarea v-model="$parent.selectedDonors"
+                                                    rows="10" cols="25">
+
+                                                </textarea>
+                                            </div>
+                                            <div class="donor-search-button">
+                                                <button @click="$parent.selectDonors()" class="btn btn-primary">
+                                                    Search donors
+                                                </button>
+                                            </div>
+                                        </b-tab>
+                                </b-tabs>
+                            </div>
+                            <div class="col-md-9">
+                                <b-tabs>
+                                    <b-tab title="Perifusion traces">
+                                        <div class="line-plots">
+                                            {{ $parent.filteredAccession.length }} donors meeting filter criteria
+                                            <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
+                                                    plotTitle="Islet Insulin Secretion"
                                                     :maxTime="$parent.maxTimeIns"
                                                     :maxScore="$parent.maxScoreIns"
-                                                    :donors="$parent.filteredDonors"
+                                                    :donors="$parent.filteredAccession"
                                                     :plotId="`insulin_ieq`"
                                                     :timepoints="$parent.insTimepoints"
-                                                    :lineColor="$parent.insColor">
+                                                    :lineColor="$parent.insColor"
+                                                    yAxisLabel="ng/100IEQ/min">
                                                 </time-series-line-plot>
                                             </div>
-                                            <div class="glucagon-plot line-plot col-md-6">
-                                                <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
+                                            <div class="glucagon-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
                                                     :plotData="$parent.resultsGcg"
+                                                    plotTitle="Islet Glucagon Secretion"
                                                     :maxTime="$parent.maxTimeGcg"
                                                     :maxScore="$parent.maxScoreGcg"
-                                                    :donors="$parent.filteredDonors"
+                                                    :donors="$parent.filteredAccession"
                                                     :plotId="`glucagon_ieq`"
                                                     :timepoints="$parent.gcgTimepoints"
-                                                    :lineColor="$parent.gcgColor">
+                                                    :lineColor="$parent.gcgColor"
+                                                    yAxisLabel="pg/100IEQ/min">
                                                 </time-series-line-plot>
                                             </div>
                                         </div>
-                                        
-                                        <donor-metadata-table
-                                            :metadata="$parent.filteredMetadata"
-                                            :filter="filter"
-                                            :fieldsObject="$parent.fieldsObject"
-                                            :minSuffix="$parent.minSuffix"
-                                            @filteredDonors="data => $parent.getDonors(data)">
-
-                                        </donor-metadata-table>
-                                    </template>
-                                </criterion-function-group>
-                            </div>
-                        </b-tab>
-                        <b-tab title="Search by individual donor" active>
-                            <div v-if="$parent.filteredMetadata.length > 0">
-                        <criterion-function-group>
-                            <filter-enumeration-control
-                                :field="'Accession'"
-                                :options="
-                                    $parent.filteredMetadata.map(m => m.Accession)
-                                "
-                                :multiple="true"
-                            >
-                                <div class="label">Donor (Accession #)</div>
-                            </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <div class="row">
-                                    <div class="insulin-plot line-plot col-md-6">
-                                        <h5>Visualize perifusion time-series data: Insulin IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
-                                            :plotData="$parent.resultsIns"
-                                            :maxTime="$parent.maxTimeIns"
-                                            :maxScore="$parent.maxScoreIns"
-                                            :donors="$parent.filteredDonors"
-                                            :plotId="`insulin_ieq_donortab`"
-                                            :timepoints="$parent.insTimepoints"
-                                            :lineColor="$parent.insColor">
-                                        </time-series-line-plot>
-                                    </div>
-                                    <div class="glucagon-plot line-plot col-md-6">
-                                        <h5>Visualize perifusion time-series data: Glucagon IEQ</h5>
-                                        <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
-                                            :plotData="$parent.resultsGcg"
-                                            :maxTime="$parent.maxTimeGcg"
-                                            :maxScore="$parent.maxScoreGcg"
-                                            :donors="$parent.filteredDonors"
-                                            :plotId="`glucagon_ieq_donortab`"
-                                            :timepoints="$parent.gcgTimepoints"
-                                            :lineColor="$parent.gcgColor"
-                                            :startEmpty="true">
-                                        </time-series-line-plot>
-                                    </div>
-                                </div>
+                                    </b-tab>
+                                    <b-tab title="Functional data by trait">
+                                        Coming soon
+                                    </b-tab>
+                                </b-tabs>
                                 
-                                <donor-metadata-table
-                                    :metadata="$parent.filteredMetadata"
-                                    :filter="filter"
-                                    :fieldsObject="$parent.fieldsObject"
-                                    :minSuffix="$parent.minSuffix"
-                                    @filteredDonors="data => $parent.getDonors(data)">
-
-                                </donor-metadata-table>
-                            </template>
-                        </criterion-function-group>
+                            </div>
+                        </div>            
                     </div>
-                        </b-tab>
-                    </b-tabs>
-                    
+                    <div>
+                        <div class="download-button">
+                            <data-download
+                                :data="$parent.filteredDonors"
+                                filename="pankbase_functional_donor_metadata_filtered">
+                            </data-download>
+                        </div>
+                        {{ $parent.filteredDonors.length }} results
+                        <b-table
+                            small
+                            :items="$parent.filteredDonors"
+                            :fields="Object.values($parent.fieldsObject)"
+                            :sortable="true"
+                            :per-page="$parent.perPage"
+                            :current-page="$parent.currentPage"
+                        >
+                            <template #cell(Accession)="r">
+                                <a :href="`https://data.pankbase.org/human-donors/${r.item.Accession}/`">
+                                    {{ r.item.Accession }}
+                                </a>
+                            </template>
+                        </b-table>
+                    <b-pagination
+                        class="pagination-md justify-content-center"
+                        v-model="$parent.currentPage"
+                        :per-page="$parent.perPage"
+                        :total-rows="$parent.filteredDonors.length">
+                    </b-pagination>    
+                    </div>
                 </div>
             </div>
         </div>
@@ -228,6 +214,7 @@
 .mdkp-card {
     margin-top: 20px;
     margin-bottom: 20px;
+    border: none !important;
 }
 .toc-item {
     padding: 10px;
@@ -237,10 +224,53 @@
     border-radius: 5px;
 }
 .stats {
-    margin-bottom: 10px;;
+    margin-bottom: 20px;
+    display: flex !important;
+    vertical-align: baseline;
+}
+#stats-header {
+    font-size: 2rem;
+    margin-right: 10px;
 }
 .line-plot{
     align-items: center;
-    padding: 25px;
+}
+.side-panel {
+    display: block !important;
+}
+.invisible-table {
+    display: none;
+    overflow-x: scroll;
+}
+.download-button {
+    display: flex;
+    justify-content: right;
+}
+.filter-tab-liner {
+    padding-left: 50px;
+    padding-top: 20px;
+}
+.filter-tab-liner textarea {
+    width: 80%;
+}
+.donor-search-button button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    background-color: white;
+    color: inherit;
+    border: 1px solid;
+}
+.donor-search-button {
+    text-align: right;
+    padding-top: 10px;
+    margin-right: 50px;
+}
+.line-plots {
+    margin-top: 20px;
+}
+div.line-plot:first-child {
+    margin-top: 20px;
 }
 </style>
