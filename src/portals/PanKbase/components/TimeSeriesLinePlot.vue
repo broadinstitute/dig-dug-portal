@@ -70,6 +70,7 @@ export default Vue.component("time-series-line-plot", {
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
   computed: {
