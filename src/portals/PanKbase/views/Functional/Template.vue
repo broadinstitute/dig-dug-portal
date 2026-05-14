@@ -97,7 +97,7 @@
 
                                                 </textarea>
                                             </div>
-                                            <div>
+                                            <div class="donor-search-button">
                                                 <button @click="$parent.selectDonors()" class="btn btn-primary">
                                                     Search donors
                                                 </button>
@@ -236,10 +236,24 @@
     justify-content: right;
 }
 .filter-tab-liner {
-    padding-left: 20%;
+    padding-left: 50px;
     padding-top: 20px;
 }
 .filter-tab-liner textarea {
     width: 80%;
+}
+.donor-search-button button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    background-color: white;
+    color: inherit;
+    border: 1px solid;
+}
+.donor-search-button {
+    text-align: right;
+    padding-top: 10px;
+    margin-right: 50px;
 }
 </style>

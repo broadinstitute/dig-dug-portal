@@ -255,7 +255,7 @@ tr.downregulated {
 .side-panel-filters .row.filtering-ui-content {
     display: block !important;
     text-align: left;
-    padding-left: 20%;
+    padding-left: 50px !important;
 }
 .side-panel-filters .row.filtering-ui-content div.col {
     display: block  !important;
