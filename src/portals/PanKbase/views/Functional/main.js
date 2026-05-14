@@ -118,7 +118,7 @@ new Vue({
             filtersActive: [],
             selectedDonors: "",
             selectedDonorList: [],
-            useSelectedDonors: true
+            useSelected: false
         };
     },
     async created() {
@@ -147,7 +147,7 @@ new Vue({
             return this.collateData(this.$store.state.gcg);
         },
         filteredAccession(){
-            if (this.selectedDonorList.length > 0 && this.useSelectedDonors){
+            if (this.selectedDonorList.length > 0 && this.useSelected){
                 return this.selectedDonorList;
             }
             let results = this.filteredDonors.map(d => d.Accession);
@@ -158,6 +158,9 @@ new Vue({
         getFilters(filters){
             console.log(JSON.stringify(filters));
             this.filtersActive = filters.map(filter => filter.field);
+        },
+        useSelectedDonors(useSelected){
+            this.useSelected = useSelected;
         },
         selectDonors(){
             let delimiters = /[,\s]/;

@@ -17,93 +17,95 @@
                         <div class="row">
                             <div class="col-md-3 side-panel-filters">
                                 <b-tabs>
-                                    <b-tab title="Filter donor data">
-                                <criterion-function-group
-                                    @update:filter-list="event => $parent.getFilters(event)">
-                                    <filter-slider :field="$parent.fieldsObject.age.key"
-                                        :range="$parent.getRange($parent.fieldsObject.age)">
-                                        <div class="label">Age</div>
-                                    </filter-slider>
-                                    <filter-slider :field="$parent.fieldsObject.bmi.key"
-                                        :range="$parent.getRange($parent.fieldsObject.age)">
-                                        <div class="label">BMI</div>
-                                    </filter-slider>
-                                    <filter-slider :field="$parent.fieldsObject.hba1c.key"
-                                        :range="$parent.getRange($parent.fieldsObject.hba1c)">
-                                        <div class="label">HBA1C (%)</div>
-                                    </filter-slider>
-                                    <filter-slider :field="$parent.fieldsObject.cultureTime.key"
-                                        :range="$parent.getRange($parent.fieldsObject.cultureTime)">
-                                        <div class="label">Culture time (hrs)</div>
-                                    </filter-slider>
-                                    <filter-radio :field="$parent.fieldsObject.sex.key"
-                                        :options="$parent.filteredMetadata.map(m => m.Gender)"
-                                        :filtersActive="$parent.filtersActive">
-                                        <div class="label">Gender</div>
-                                    </filter-radio>
+                                    <b-tab title="Filter donor data"
+                                        @click="$parent.useSelectedDonors(false)">
+                                        <criterion-function-group
+                                            @update:filter-list="event => $parent.getFilters(event)">
+                                            <filter-slider :field="$parent.fieldsObject.age.key"
+                                                :range="$parent.getRange($parent.fieldsObject.age)">
+                                                <div class="label">Age</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.bmi.key"
+                                                :range="$parent.getRange($parent.fieldsObject.age)">
+                                                <div class="label">BMI</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.hba1c.key"
+                                                :range="$parent.getRange($parent.fieldsObject.hba1c)">
+                                                <div class="label">HBA1C (%)</div>
+                                            </filter-slider>
+                                            <filter-slider :field="$parent.fieldsObject.cultureTime.key"
+                                                :range="$parent.getRange($parent.fieldsObject.cultureTime)">
+                                                <div class="label">Culture time (hrs)</div>
+                                            </filter-slider>
+                                            <filter-radio :field="$parent.fieldsObject.sex.key"
+                                                :options="$parent.filteredMetadata.map(m => m.Gender)"
+                                                :filtersActive="$parent.filtersActive">
+                                                <div class="label">Gender</div>
+                                            </filter-radio>
 
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldsObject.diabetesDesc.key"
-                                        :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
-                                        :clearFilter="false"
-                                        :options="
-                                            $parent.filteredMetadata.map(m => 
-                                                m[$parent.fieldsObject.diabetesDesc.key])
-                                        "
-                                    >
-                                        <div class="label">Diabetes status</div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldsObject.diabetes.key"
-                                        :clearFilter="false"
-                                        :options="
-                                            $parent.filteredMetadata.map(m => 
-                                                m[$parent.fieldsObject.diabetes.key])
-                                        "
-                                    >
-                                        <div class="label">Derived diabetes status</div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldsObject.ethnicity.key"
-                                        :options="
-                                            $parent.filteredMetadata.map(m => 
-                                                m[$parent.fieldsObject.ethnicity.key])
-                                        "
-                                    >
-                                        <div class="label">Ethnicity</div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="$parent.fieldsObject.isolation.key"
-                                        :options="
-                                            $parent.filteredMetadata.map(m => 
-                                            m[$parent.fieldsObject.isolation.key])
-                                        "
-                                    >
-                                        <div class="label">Isolation Center</div>
-                                    </filter-enumeration-control>
-                                    <template slot="filtered" slot-scope="{ filter }">
-                                        <div class="invisible-table">
-                                            <b-table v-model="$parent.filteredDonors"
-                                                
-                                                :items="$parent.filteredMetadata.filter(filter)">
-                                            </b-table>
-                                        </div>
-                                    </template>
-                                </criterion-function-group>
-                                </b-tab>
-                                <b-tab title="Select donors">
-                                    <div>
-                                        <textarea v-model="$parent.selectedDonors"
-                                            rows="10" cols="25">
+                                            <filter-enumeration-control
+                                                :field="$parent.fieldsObject.diabetesDesc.key"
+                                                :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
+                                                :clearFilter="false"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.diabetesDesc.key])
+                                                "
+                                            >
+                                                <div class="label">Diabetes status</div>
+                                            </filter-enumeration-control>
+                                            <filter-enumeration-control
+                                                :field="$parent.fieldsObject.diabetes.key"
+                                                :clearFilter="false"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.diabetes.key])
+                                                "
+                                            >
+                                                <div class="label">Derived diabetes status</div>
+                                            </filter-enumeration-control>
+                                            <filter-enumeration-control
+                                                :field="$parent.fieldsObject.ethnicity.key"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                        m[$parent.fieldsObject.ethnicity.key])
+                                                "
+                                            >
+                                                <div class="label">Ethnicity</div>
+                                            </filter-enumeration-control>
+                                            <filter-enumeration-control
+                                                :field="$parent.fieldsObject.isolation.key"
+                                                :options="
+                                                    $parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.isolation.key])
+                                                "
+                                            >
+                                                <div class="label">Isolation Center</div>
+                                            </filter-enumeration-control>
+                                            <template slot="filtered" slot-scope="{ filter }">
+                                                <div class="invisible-table">
+                                                    <b-table v-model="$parent.filteredDonors"
+                                                        
+                                                        :items="$parent.filteredMetadata.filter(filter)">
+                                                    </b-table>
+                                                </div>
+                                            </template>
+                                        </criterion-function-group>
+                                        </b-tab>
+                                        <b-tab title="Select donors"
+                                            @click="$parent.useSelectedDonors(true)">
+                                            <div>
+                                                <textarea v-model="$parent.selectedDonors"
+                                                    rows="10" cols="25">
 
-                                        </textarea>
-                                    </div>
-                                    <div>
-                                        <button @click="$parent.selectDonors()" class="btn btn-primary">
-                                            Search donors
-                                        </button>
-                                    </div>
-                                </b-tab>
+                                                </textarea>
+                                            </div>
+                                            <div>
+                                                <button @click="$parent.selectDonors()" class="btn btn-primary">
+                                                    Search donors
+                                                </button>
+                                            </div>
+                                        </b-tab>
                                 </b-tabs>
                             </div>
                             <div class="col-md-9">
