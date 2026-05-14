@@ -1,6 +1,16 @@
 <template>
     <div>
+      <div>
         {{ availableDonors }} donors available meeting criteria
+      </div>
+        <div class="download-images-setting">
+            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
+              Download SVG <b-icon icon="download"></b-icon>
+            </button>
+        </div>
+        <div :id=plotId class="plot" ref="time-series-line">
+            <p>Loading...</p>
+        </div>
         <div class="donorData">
           <div v-if="donorMetadata !== null">
             <div class="donorLabel"><strong>Highlighted donor:</strong> {{ donorMetadata.Accession }}</div>
@@ -21,14 +31,7 @@
             Mouse over the plot to highlight an individual donor.
           </div>
         </div>
-        <div :id=plotId class="plot" ref="time-series-line">
-            <p>Loading...</p>
-        </div>
-        <div class="download-images-setting">
-            <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
-              Download SVG <b-icon icon="download"></b-icon>
-            </button>
-        </div>
+        
     </div>
 </template>
 <script>
@@ -138,7 +141,8 @@ export default Vue.component("time-series-line-plot", {
         bottom: 40,
         left: 40
       };
-      let width = this.chartWidth - margin.left - margin.right;
+      let elementWidth = this.chart.clientWidth;
+      let width = elementWidth - margin.left - margin.right;
       let height = this.chartHeight - margin.top - margin.bottom;
       this.innerHeight = height;
 
