@@ -250,7 +250,7 @@ tr.downregulated {
     background-color: white !important;
 }
 .side-panel-filters .filter-pill-collection {
-    display: block !important;
+    display: none !important;
 }
 .side-panel-filters .row.filtering-ui-content {
     display: block !important;

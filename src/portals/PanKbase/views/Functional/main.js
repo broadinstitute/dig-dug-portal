@@ -18,6 +18,7 @@ import TimeSeriesLinePlot from "../../components/TimeSeriesLinePlot.vue";
 import DataDownload from "@/components/DataDownload.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
 import FilterRadio from "../../components/FilterRadio.vue";
+import FilterEnumWithAny from "../../components/FilterEnumWithAny.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -39,7 +40,8 @@ new Vue({
         FilterGreaterLess,
         TimeSeriesLinePlot,
         FilterSlider,
-        FilterRadio
+        FilterRadio,
+        FilterEnumWithAny
     },
     mixins: [pankbaseMixin],
     data() {

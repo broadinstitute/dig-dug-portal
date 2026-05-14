@@ -40,7 +40,7 @@
                                                 <div class="label">Gender</div>
                                             </filter-radio>
 
-                                            <filter-enumeration-control
+                                            <filter-enum-with-any
                                                 :field="$parent.fieldsObject.diabetesDesc.key"
                                                 :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
                                                 :clearFilter="false"
@@ -50,8 +50,8 @@
                                                 "
                                             >
                                                 <div class="label">Diabetes status</div>
-                                            </filter-enumeration-control>
-                                            <filter-enumeration-control
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
                                                 :field="$parent.fieldsObject.diabetes.key"
                                                 :clearFilter="false"
                                                 :options="
@@ -60,8 +60,8 @@
                                                 "
                                             >
                                                 <div class="label">Derived diabetes status</div>
-                                            </filter-enumeration-control>
-                                            <filter-enumeration-control
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
                                                 :field="$parent.fieldsObject.ethnicity.key"
                                                 :options="
                                                     $parent.filteredMetadata.map(m => 
@@ -69,8 +69,8 @@
                                                 "
                                             >
                                                 <div class="label">Ethnicity</div>
-                                            </filter-enumeration-control>
-                                            <filter-enumeration-control
+                                            </filter-enum-with-any>
+                                            <filter-enum-with-any
                                                 :field="$parent.fieldsObject.isolation.key"
                                                 :options="
                                                     $parent.filteredMetadata.map(m => 
@@ -78,7 +78,7 @@
                                                 "
                                             >
                                                 <div class="label">Isolation Center</div>
-                                            </filter-enumeration-control>
+                                            </filter-enum-with-any>
                                             <template slot="filtered" slot-scope="{ filter }">
                                                 <div class="invisible-table">
                                                     <b-table v-model="$parent.filteredDonors"
