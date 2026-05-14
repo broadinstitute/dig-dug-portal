@@ -5,7 +5,7 @@
         <!-- BODY -->
         <div class="pkb-body">
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body functional-page">
                     <h2>Data Explorer</h2>
                     <div id="stats" class="row" v-if="$store.state.metadata.length > 0">
                         <div class="col-md-6">
