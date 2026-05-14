@@ -4,7 +4,7 @@
             <slot>{{ field }}</slot>
         <div v-if="!!options && Array.isArray(options)" class="radio-button-wrapper">
             <div v-for="option in options">
-                <input type="radio" class="form-control-sm"
+                <input type="checkbox" class="form-control-sm"
                         :id="`button_${option}`"
                         name="radioButtons" 
                         :value="option"
@@ -14,8 +14,6 @@
                     
                 </label>
             </div>
-            <input type="radio" name="radioButtons" class="invisible-button"
-                :value="null" v-model="filterThreshold"></input>
         </div>
     </div>
 </template>
@@ -85,7 +83,7 @@ export default Vue.component("filter-radio-template", {
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
                 computedField: this.computedField,
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.options, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {

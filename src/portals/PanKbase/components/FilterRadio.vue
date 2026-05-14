@@ -23,7 +23,7 @@ export default Vue.component("filter-radio", {
     color: String,
     predicate: {
       type: Function,
-      default: (item, threshold) => item === threshold,
+      default: (item, thresholdArray) => thresholdArray.includes(item),
     },
     filtersActive: {
       type: Array,
