@@ -61,16 +61,49 @@
                         v-if="$parent.searchHierarchy && $parent.searchHierarchy.length"
                         class="liger-results-tree"
                     >
-                        <div class="liger-results-legend">
-                            <div class="liger-results-legend-title">Legend</div>
-                            <div class="liger-results-legend-items">
-                                <div class="liger-entity-badge is-search">
-                                    {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
+                        <div class="liger-results-toolbar">
+                            <div class="liger-results-legend">
+                                <div class="liger-results-legend-title">Legend</div>
+                                <div class="liger-results-legend-items">
+                                    <template v-if="$parent.browserMode === 'hierarchy'">
+                                        <div class="liger-entity-badge is-search">
+                                            {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
+                                        </div>
+                                        <div class="liger-entity-badge is-dataset">Tissue</div>
+                                        <div class="liger-entity-badge is-cell-type">Cell Type</div>
+                                        <div class="liger-entity-badge is-model">Model</div>
+                                        <div class="liger-entity-badge is-factor">Gene Program</div>
+                                    </template>
+                                    <template v-else>
+                                        <div class="liger-entity-badge is-search">
+                                            {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
+                                        </div>
+                                        <div class="liger-entity-badge is-factor">Shared Program</div>
+                                        <div class="liger-entity-badge is-model">Supporting Context</div>
+                                    </template>
                                 </div>
-                                <div class="liger-entity-badge is-dataset">Tissue</div>
-                                <div class="liger-entity-badge is-cell-type">Cell Type</div>
-                                <div class="liger-entity-badge is-model">Model</div>
-                                <div class="liger-entity-badge is-factor">Gene Program</div>
+                            </div>
+
+                            <div class="liger-browser-mode-wrap">
+                                <div class="liger-results-legend-title">Explore Mode</div>
+                                <div class="liger-browser-mode-group">
+                                <button
+                                    class="liger-mode-button liger-browser-mode-button"
+                                    :class="{ 'is-active': $parent.browserMode === 'hierarchy' }"
+                                    type="button"
+                                    @click="$parent.setBrowserMode('hierarchy')"
+                                >
+                                    Heirarchy
+                                </button>
+                                <button
+                                    class="liger-mode-button liger-browser-mode-button"
+                                    :class="{ 'is-active': $parent.browserMode === 'sharedPrograms' }"
+                                    type="button"
+                                    @click="$parent.setBrowserMode('sharedPrograms')"
+                                >
+                                    Shared Programs
+                                </button>
+                                </div>
                             </div>
                         </div>
 
@@ -106,169 +139,265 @@
                                         transform: `scale(${$parent.browserCanvas.scale})`
                                     }"
                                 >
-                                    <div class="liger-browser-column is-search">
-                                        <div class="liger-browser-column-header">
-                                            <span class="liger-entity-badge is-search">
-                                                {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
-                                            </span>
-                                        </div>
-                                        <div class="liger-browser-list">
-                                            <button
-                                                class="liger-browser-item"
-                                                :class="{ 'is-active': $parent.isHierarchyItemActive('searchRoot') }"
-                                                type="button"
-                                                @click="$parent.selectHierarchyItem('searchRoot')"
-                                            >
-                                                <span class="liger-browser-item-label">{{ $parent.getSearchRootDisplayValue() }}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="liger-browser-column is-dataset">
-                                        <div class="liger-browser-column-header">
-                                            <span class="liger-entity-badge is-dataset">Tissue</span>
-                                        </div>
-                                        <div class="liger-browser-list">
-                                            <button
-                                                v-for="datasetGroup in $parent.searchHierarchy"
-                                                :key="datasetGroup.dataset"
-                                                class="liger-browser-item"
-                                                :class="{ 'is-active': $parent.isHierarchyItemActive('dataset', datasetGroup.dataset) }"
-                                                type="button"
-                                                @click="$parent.selectHierarchyItem('dataset', { dataset: datasetGroup.dataset })"
-                                            >
-                                                <span class="liger-browser-item-copy">
-                                                    <span class="liger-browser-item-label">{{ $parent.getDatasetDisplayLabel(datasetGroup.dataset) }}</span>
-                                                    <span class="liger-browser-item-sublabel">{{ $parent.getDatasetDisplaySubLabel(datasetGroup.dataset) }}</span>
+                                    <template v-if="$parent.browserMode === 'hierarchy'">
+                                        <div class="liger-browser-column is-search">
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-search">
+                                                    {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
                                                 </span>
-                                                <span class="liger-browser-item-meta">{{ datasetGroup.cellTypes.length }}</span>
-                                                <span class="liger-browser-item-chevron">›</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        v-if="$parent.getActiveDatasetGroup()"
-                                        class="liger-browser-column is-cell-type"
-                                    >
-                                        <div class="liger-browser-column-header">
-                                            <span class="liger-entity-badge is-cell-type">Cell Type</span>
-                                        </div>
-                                        <div class="liger-browser-list">
-                                            <button
-                                                v-for="cellTypeGroup in $parent.getActiveDatasetGroup().cellTypes"
-                                                :key="`${$parent.getActiveDatasetGroup().dataset}-${cellTypeGroup.cellType}`"
-                                                class="liger-browser-item"
-                                                :class="{ 'is-active': $parent.isHierarchyItemActive('cellType', cellTypeGroup.cellType, { dataset: $parent.getActiveDatasetGroup().dataset }) }"
-                                                type="button"
-                                                @click="$parent.selectHierarchyItem('cellType', {
-                                                    dataset: $parent.getActiveDatasetGroup().dataset,
-                                                    cellType: cellTypeGroup.cellType
-                                                })"
-                                            >
-                                                <span class="liger-browser-item-label">{{ cellTypeGroup.cellType }}</span>
-                                                <span class="liger-browser-item-meta">{{ cellTypeGroup.models.length }}</span>
-                                                <span class="liger-browser-item-chevron">›</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        v-if="$parent.getActiveCellTypeGroup()"
-                                        class="liger-browser-column is-model"
-                                    >
-                                        <div class="liger-browser-column-header">
-                                            <span class="liger-entity-badge is-model">Model</span>
-                                        </div>
-                                        <div class="liger-browser-list">
-                                            <button
-                                                v-for="modelGroup in $parent.getActiveCellTypeGroup().models"
-                                                :key="`${$parent.activeHierarchyPath.dataset}-${$parent.getActiveCellTypeGroup().cellType}-${modelGroup.model}`"
-                                                class="liger-browser-item"
-                                                :class="{ 'is-active': $parent.isHierarchyItemActive('model', modelGroup.model, {
-                                                    dataset: $parent.activeHierarchyPath.dataset,
-                                                    cellType: $parent.getActiveCellTypeGroup().cellType
-                                                }) }"
-                                                type="button"
-                                                @click="$parent.selectHierarchyItem('model', {
-                                                    dataset: $parent.activeHierarchyPath.dataset,
-                                                    cellType: $parent.getActiveCellTypeGroup().cellType,
-                                                    model: modelGroup.model
-                                                })"
-                                            >
-                                                <span class="liger-browser-item-label">{{ modelGroup.model }}</span>
-                                                <span class="liger-browser-item-meta">{{ modelGroup.factors.length }}</span>
-                                                <span class="liger-browser-item-chevron">›</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        v-if="$parent.getActiveModelGroup()"
-                                        class="liger-browser-column is-factor"
-                                    >
-                                        <div class="liger-browser-column-header">
-                                            <span class="liger-entity-badge is-factor">Gene Program</span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isHierarchyItemActive('searchRoot') }"
+                                                    type="button"
+                                                    @click="$parent.selectHierarchyItem('searchRoot')"
+                                                >
+                                                    <span class="liger-browser-item-label">{{ $parent.getSearchRootDisplayValue() }}</span>
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        <div
-                                            v-if="$parent.isModelFactorLoading(
-                                                $parent.activeHierarchyPath.dataset,
-                                                $parent.activeHierarchyPath.cellType,
-                                                $parent.activeHierarchyPath.model
-                                            )"
-                                            class="liger-browser-status"
-                                        >
-                                            Loading gene programs...
-                                        </div>
-
-                                        <div
-                                            v-else
-                                            class="liger-browser-list"
-                                        >
-                                            <button
-                                                v-for="factorGroup in $parent.getActiveModelGroup().factors"
-                                                :key="`${$parent.activeHierarchyPath.dataset}-${$parent.activeHierarchyPath.cellType}-${$parent.activeHierarchyPath.model}-${factorGroup.factor}`"
-                                                class="liger-browser-item is-leaf"
-                                                :class="{
-                                                    'is-active': $parent.factorModalData
-                                                        && $parent.factorModalData.dataset === $parent.activeHierarchyPath.dataset
-                                                        && $parent.factorModalData.cellType === $parent.activeHierarchyPath.cellType
-                                                        && $parent.factorModalData.model === $parent.activeHierarchyPath.model
-                                                        && $parent.factorModalData.factor === factorGroup.factor
-                                                }"
-                                                type="button"
-                                                @click="$parent.openFactorModal({
-                                                    dataset: $parent.activeHierarchyPath.dataset,
-                                                    cellType: $parent.activeHierarchyPath.cellType,
-                                                    model: $parent.activeHierarchyPath.model,
-                                                    factor: factorGroup.factor,
-                                                    score: factorGroup.score,
-                                                    scoreField: factorGroup.scoreField
-                                                })"
-                                            >
-                                                <span class="liger-browser-item-copy">
-                                                    <span
-                                                        class="liger-browser-item-label"
-                                                        :title="$parent.getFactorSummary(
-                                                            $parent.activeHierarchyPath.dataset,
-                                                            $parent.activeHierarchyPath.cellType,
-                                                            $parent.activeHierarchyPath.model,
-                                                            factorGroup.factor
-                                                        )?.label || factorGroup.factor"
-                                                    >
-                                                        {{ $parent.getFactorSummary(
-                                                            $parent.activeHierarchyPath.dataset,
-                                                            $parent.activeHierarchyPath.cellType,
-                                                            $parent.activeHierarchyPath.model,
-                                                            factorGroup.factor
-                                                        )?.label || factorGroup.factor }}
+                                        <div class="liger-browser-column is-dataset">
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-dataset">Tissue</span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    v-for="datasetGroup in $parent.searchHierarchy"
+                                                    :key="datasetGroup.dataset"
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isHierarchyItemActive('dataset', datasetGroup.dataset) }"
+                                                    type="button"
+                                                    @click="$parent.selectHierarchyItem('dataset', { dataset: datasetGroup.dataset })"
+                                                >
+                                                    <span class="liger-browser-item-copy">
+                                                        <span class="liger-browser-item-label">{{ $parent.getDatasetDisplayLabel(datasetGroup.dataset) }}</span>
+                                                        <span class="liger-browser-item-sublabel">{{ $parent.getDatasetDisplaySubLabel(datasetGroup.dataset) }}</span>
                                                     </span>
-                                                </span>
-                                                <span class="liger-browser-item-chevron">↗</span>
-                                            </button>
+                                                    <span class="liger-browser-item-meta">{{ datasetGroup.cellTypes.length }}</span>
+                                                    <span class="liger-browser-item-chevron">›</span>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+
+                                        <div
+                                            v-if="$parent.getActiveDatasetGroup()"
+                                            class="liger-browser-column is-cell-type"
+                                        >
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-cell-type">Cell Type</span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    v-for="cellTypeGroup in $parent.getActiveDatasetGroup().cellTypes"
+                                                    :key="`${$parent.getActiveDatasetGroup().dataset}-${cellTypeGroup.cellType}`"
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isHierarchyItemActive('cellType', cellTypeGroup.cellType, { dataset: $parent.getActiveDatasetGroup().dataset }) }"
+                                                    type="button"
+                                                    @click="$parent.selectHierarchyItem('cellType', {
+                                                        dataset: $parent.getActiveDatasetGroup().dataset,
+                                                        cellType: cellTypeGroup.cellType
+                                                    })"
+                                                >
+                                                    <span class="liger-browser-item-label">{{ cellTypeGroup.cellType }}</span>
+                                                    <span class="liger-browser-item-meta">{{ cellTypeGroup.models.length }}</span>
+                                                    <span class="liger-browser-item-chevron">›</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            v-if="$parent.getActiveCellTypeGroup()"
+                                            class="liger-browser-column is-model"
+                                        >
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-model">Model</span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    v-for="modelGroup in $parent.getActiveCellTypeGroup().models"
+                                                    :key="`${$parent.activeHierarchyPath.dataset}-${$parent.getActiveCellTypeGroup().cellType}-${modelGroup.model}`"
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isHierarchyItemActive('model', modelGroup.model, {
+                                                        dataset: $parent.activeHierarchyPath.dataset,
+                                                        cellType: $parent.getActiveCellTypeGroup().cellType
+                                                    }) }"
+                                                    type="button"
+                                                    @click="$parent.selectHierarchyItem('model', {
+                                                        dataset: $parent.activeHierarchyPath.dataset,
+                                                        cellType: $parent.getActiveCellTypeGroup().cellType,
+                                                        model: modelGroup.model
+                                                    })"
+                                                >
+                                                    <span class="liger-browser-item-label">{{ modelGroup.model }}</span>
+                                                    <span class="liger-browser-item-meta">{{ modelGroup.factors.length }}</span>
+                                                    <span class="liger-browser-item-chevron">›</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            v-if="$parent.getActiveModelGroup()"
+                                            class="liger-browser-column is-factor"
+                                        >
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-factor">Gene Program</span>
+                                            </div>
+
+                                            <div
+                                                v-if="$parent.isModelFactorLoading(
+                                                    $parent.activeHierarchyPath.dataset,
+                                                    $parent.activeHierarchyPath.cellType,
+                                                    $parent.activeHierarchyPath.model
+                                                )"
+                                                class="liger-browser-status"
+                                            >
+                                                Loading gene programs...
+                                            </div>
+
+                                            <div
+                                                v-else
+                                                class="liger-browser-list"
+                                            >
+                                                <button
+                                                    v-for="factorGroup in $parent.getActiveModelGroup().factors"
+                                                    :key="`${$parent.activeHierarchyPath.dataset}-${$parent.activeHierarchyPath.cellType}-${$parent.activeHierarchyPath.model}-${factorGroup.factor}`"
+                                                    class="liger-browser-item is-leaf"
+                                                    :class="{
+                                                        'is-active': $parent.factorModalData
+                                                            && $parent.factorModalData.dataset === $parent.activeHierarchyPath.dataset
+                                                            && $parent.factorModalData.cellType === $parent.activeHierarchyPath.cellType
+                                                            && $parent.factorModalData.model === $parent.activeHierarchyPath.model
+                                                            && $parent.factorModalData.factor === factorGroup.factor
+                                                    }"
+                                                    type="button"
+                                                    @click="$parent.openFactorModal({
+                                                        dataset: $parent.activeHierarchyPath.dataset,
+                                                        cellType: $parent.activeHierarchyPath.cellType,
+                                                        model: $parent.activeHierarchyPath.model,
+                                                        factor: factorGroup.factor,
+                                                        score: factorGroup.score,
+                                                        scoreField: factorGroup.scoreField
+                                                    })"
+                                                >
+                                                    <span class="liger-browser-item-copy">
+                                                        <span
+                                                            class="liger-browser-item-label"
+                                                            :title="$parent.getFactorSummary(
+                                                                $parent.activeHierarchyPath.dataset,
+                                                                $parent.activeHierarchyPath.cellType,
+                                                                $parent.activeHierarchyPath.model,
+                                                                factorGroup.factor
+                                                            )?.label || factorGroup.factor"
+                                                        >
+                                                            {{ $parent.getFactorSummary(
+                                                                $parent.activeHierarchyPath.dataset,
+                                                                $parent.activeHierarchyPath.cellType,
+                                                                $parent.activeHierarchyPath.model,
+                                                                factorGroup.factor
+                                                            )?.label || factorGroup.factor }}
+                                                        </span>
+                                                    </span>
+                                                    <span class="liger-browser-item-chevron">↗</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template v-else>
+                                        <div class="liger-browser-column is-search">
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-search">
+                                                    {{ $parent.searchType === "gene" ? "Gene" : "Trait" }}
+                                                </span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isSharedSearchRootActive() }"
+                                                    type="button"
+                                                    @click="$parent.selectHierarchyItem('searchRoot')"
+                                                >
+                                                    <span class="liger-browser-item-label">{{ $parent.getSearchRootDisplayValue() }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="liger-browser-column is-factor is-shared-programs">
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-factor">Shared Programs</span>
+                                            </div>
+
+                                            <div
+                                                v-if="$parent.sharedProgramsLoading"
+                                                class="liger-browser-status"
+                                            >
+                                                Loading shared program labels...
+                                            </div>
+
+                                            <div
+                                                v-else-if="$parent.sharedProgramGroups.length"
+                                                class="liger-browser-list"
+                                            >
+                                                <button
+                                                    v-for="programGroup in $parent.sharedProgramGroups"
+                                                    :key="programGroup.key"
+                                                    class="liger-browser-item"
+                                                    :class="{ 'is-active': $parent.isSharedProgramGroupActive(programGroup.key) }"
+                                                    type="button"
+                                                    @click="$parent.selectSharedProgramGroup(programGroup.key)"
+                                                >
+                                                    <span class="liger-browser-item-copy">
+                                                        <span class="liger-browser-item-label" :title="programGroup.label">
+                                                            {{ programGroup.label }}
+                                                        </span>
+                                                        <span class="liger-browser-item-sublabel">
+                                                            {{ programGroup.datasetCount }} tissues · {{ programGroup.cellTypeCount }} cell types
+                                                        </span>
+                                                    </span>
+                                                    <span class="liger-browser-item-meta">{{ programGroup.contextCount }}</span>
+                                                    <span class="liger-browser-item-chevron">›</span>
+                                                </button>
+                                            </div>
+
+                                            <div v-else class="liger-browser-status">
+                                                No shared programs available for this result set.
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            v-if="$parent.activeSharedProgramGroup"
+                                            class="liger-browser-column is-model is-shared-contexts"
+                                        >
+                                            <div class="liger-browser-column-header">
+                                                <span class="liger-entity-badge is-model">Supporting Contexts</span>
+                                            </div>
+                                            <div class="liger-browser-list">
+                                                <button
+                                                    v-for="context in $parent.activeSharedProgramGroup.contexts"
+                                                    :key="context.key"
+                                                    class="liger-browser-item is-shared-context"
+                                                    :class="{ 'is-active': $parent.isSharedProgramContextActive(context.key) }"
+                                                    type="button"
+                                                    @click="$parent.openSharedProgramContext(context)"
+                                                >
+                                                    <span class="liger-browser-item-copy">
+                                                        <span class="liger-browser-item-label">
+                                                            {{ context.cellType }}
+                                                        </span>
+                                                        <span class="liger-browser-item-sublabel">
+                                                            {{ context.datasetLabel }} · {{ context.model }}
+                                                        </span>
+                                                    </span>
+                                                    <span class="liger-browser-item-meta" :title="context.scoreField">
+                                                        {{ context.score }}
+                                                    </span>
+                                                    <span class="liger-browser-item-chevron">↗</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -558,12 +687,43 @@
     background: #fcfcfc;
 }
 
+.liger-results-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0 0 10px 0;
+    border-bottom: 1px solid #e6e6e6;
+}
+
 .liger-results-legend {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 0 0 10px 0;
-    border-bottom: 1px solid #e6e6e6;
+    min-width: 0;
+}
+
+.liger-browser-mode-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.liger-browser-mode-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.liger-browser-mode-button {
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
 }
 
 .liger-results-legend-title {
@@ -651,6 +811,16 @@
     border-radius: 14px;
     background: #ffffff;
     box-shadow: 0 6px 18px rgba(17, 17, 17, 0.06);
+}
+
+.liger-browser-column.is-shared-programs {
+    width: min(320px, 100%);
+    min-width: 280px;
+}
+
+.liger-browser-column.is-shared-contexts {
+    width: min(320px, 100%);
+    min-width: 280px;
 }
 
 .liger-browser-column-header {
@@ -766,6 +936,17 @@
     color: #888888;
     font-size: 16px;
     line-height: 1;
+}
+
+.liger-browser-item.is-shared-context {
+    align-items: flex-start;
+}
+
+.liger-browser-item.is-shared-context .liger-browser-item-meta {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
 }
 
 .liger-browser-status {
@@ -1116,5 +1297,20 @@
 .liger-pill {
     padding: 6px 8px;
     border: 1px solid #d9d9d9;
+}
+
+@media (max-width: 880px) {
+    .liger-results-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .liger-browser-mode-wrap {
+        align-items: flex-start;
+    }
+
+    .liger-browser-mode-group {
+        justify-content: flex-start;
+    }
 }
 </style>

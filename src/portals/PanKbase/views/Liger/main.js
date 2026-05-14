@@ -20,6 +20,7 @@ new Vue({
             isLoading: false,
             errorMessage: "",
             searchType: "trait",
+            browserMode: "hierarchy",
             searchTerm: "",
             selectedSearchValue: "",
             searchMatches: null,
@@ -35,6 +36,9 @@ new Vue({
                 type: null,
                 key: null
             },
+            activeSharedProgramKey: null,
+            activeSharedProgramContextKey: null,
+            sharedProgramsLoading: false,
             browserCanvas: {
                 x: 0,
                 y: 0,
@@ -170,6 +174,108 @@ new Vue({
     },
 
     computed: {
+        sharedProgramGroups() {
+            const groupedPrograms = new Map();
+
+            (this.searchHierarchy || []).forEach((datasetGroup) => {
+                (datasetGroup.cellTypes || []).forEach((cellTypeGroup) => {
+                    (cellTypeGroup.models || []).forEach((modelGroup) => {
+                        (modelGroup.factors || []).forEach((factorGroup) => {
+                            const summary = this.getFactorSummary(
+                                datasetGroup.dataset,
+                                cellTypeGroup.cellType,
+                                modelGroup.model,
+                                factorGroup.factor
+                            );
+                            const label = summary?.label || factorGroup.factor;
+                            const groupKey = (label || factorGroup.factor || "").trim();
+
+                            if (!groupKey) {
+                                return;
+                            }
+
+                            if (!groupedPrograms.has(groupKey)) {
+                                groupedPrograms.set(groupKey, {
+                                    key: groupKey,
+                                    label,
+                                    contexts: [],
+                                    distinctDatasets: new Set(),
+                                    distinctCellTypes: new Set(),
+                                    distinctModels: new Set()
+                                });
+                            }
+
+                            const group = groupedPrograms.get(groupKey);
+                            const contextKey = [
+                                datasetGroup.dataset,
+                                cellTypeGroup.cellType,
+                                modelGroup.model,
+                                factorGroup.factor
+                            ].join("::");
+
+                            group.contexts.push({
+                                key: contextKey,
+                                dataset: datasetGroup.dataset,
+                                cellType: cellTypeGroup.cellType,
+                                model: modelGroup.model,
+                                factor: factorGroup.factor,
+                                score: factorGroup.score,
+                                scoreField: factorGroup.scoreField,
+                                summary,
+                                label,
+                                datasetLabel: this.getDatasetDisplayLabel(datasetGroup.dataset),
+                                datasetSubLabel: this.getDatasetDisplaySubLabel(datasetGroup.dataset)
+                            });
+                            group.distinctDatasets.add(datasetGroup.dataset);
+                            group.distinctCellTypes.add(`${datasetGroup.dataset}::${cellTypeGroup.cellType}`);
+                            group.distinctModels.add(`${datasetGroup.dataset}::${cellTypeGroup.cellType}::${modelGroup.model}`);
+                        });
+                    });
+                });
+            });
+
+            const sharedGroups = Array.from(groupedPrograms.values())
+                .map((group) => ({
+                    key: group.key,
+                    label: group.label,
+                    contexts: group.contexts.sort((contextA, contextB) => {
+                        const scoreA = Number(contextA.score);
+                        const scoreB = Number(contextB.score);
+                        const normalizedScoreA = Number.isFinite(scoreA) ? scoreA : Number.NEGATIVE_INFINITY;
+                        const normalizedScoreB = Number.isFinite(scoreB) ? scoreB : Number.NEGATIVE_INFINITY;
+
+                        return normalizedScoreB - normalizedScoreA;
+                    }),
+                    contextCount: group.contexts.length,
+                    datasetCount: group.distinctDatasets.size,
+                    cellTypeCount: group.distinctCellTypes.size,
+                    modelCount: group.distinctModels.size
+                }))
+                .sort((groupA, groupB) => {
+                    if (groupB.contextCount !== groupA.contextCount) {
+                        return groupB.contextCount - groupA.contextCount;
+                    }
+
+                    const bestScoreA = Number(groupA.contexts[0]?.score);
+                    const bestScoreB = Number(groupB.contexts[0]?.score);
+                    const normalizedScoreA = Number.isFinite(bestScoreA) ? bestScoreA : Number.NEGATIVE_INFINITY;
+                    const normalizedScoreB = Number.isFinite(bestScoreB) ? bestScoreB : Number.NEGATIVE_INFINITY;
+
+                    if (normalizedScoreB !== normalizedScoreA) {
+                        return normalizedScoreB - normalizedScoreA;
+                    }
+
+                    return groupA.label.localeCompare(groupB.label);
+                });
+
+            const recurringGroups = sharedGroups.filter((group) => group.contextCount > 1);
+            return recurringGroups.length ? recurringGroups : sharedGroups;
+        },
+        activeSharedProgramGroup() {
+            return this.sharedProgramGroups.find(
+                (group) => group.key === this.activeSharedProgramKey
+            ) || null;
+        }
     },
 
     methods: {  
@@ -476,6 +582,73 @@ new Vue({
             // right mode, especially with debounced search calls in flight.
             this.resetSearchState();
         },
+        async setBrowserMode(nextBrowserMode) {
+            if (this.browserMode === nextBrowserMode) {
+                return;
+            }
+
+            const selectedSharedContext = this.activeSharedProgramContextKey
+                ? this.activeSharedProgramGroup?.contexts.find(
+                    (context) => context.key === this.activeSharedProgramContextKey
+                ) || null
+                : null;
+
+            this.browserMode = nextBrowserMode;
+            this.factorModalData = null;
+            this.activeDetailPanel = {
+                type: null,
+                key: null
+            };
+
+            if (nextBrowserMode === "sharedPrograms") {
+                this.activeHierarchyPath = {
+                    dataset: null,
+                    cellType: null,
+                    model: null
+                };
+                await this.ensureSharedProgramModeReady();
+
+                if (this.sharedProgramGroups.length) {
+                    this.activeSharedProgramKey = this.sharedProgramGroups[0].key;
+                    this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                }
+            } else {
+                if (selectedSharedContext) {
+                    this.activeHierarchyPath = {
+                        dataset: selectedSharedContext.dataset,
+                        cellType: selectedSharedContext.cellType,
+                        model: selectedSharedContext.model
+                    };
+                    await this.ensureModelFactorDetails(
+                        selectedSharedContext.dataset,
+                        selectedSharedContext.cellType,
+                        selectedSharedContext.model
+                    );
+                    const openFactorModalPromise = this.openFactorModal({
+                        dataset: selectedSharedContext.dataset,
+                        cellType: selectedSharedContext.cellType,
+                        model: selectedSharedContext.model,
+                        factor: selectedSharedContext.factor,
+                        score: selectedSharedContext.score,
+                        scoreField: selectedSharedContext.scoreField
+                    });
+                    this.fitAndCenterBrowserCanvas();
+                    await openFactorModalPromise;
+                } else {
+                    this.activeHierarchyPath = {
+                        dataset: null,
+                        cellType: null,
+                        model: null
+                    };
+                    this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                }
+
+                this.activeSharedProgramKey = null;
+                this.activeSharedProgramContextKey = null;
+            }
+
+            this.fitAndCenterBrowserCanvas();
+        },
         buildFactorContextKey({ dataset, cellType, model }) {
             return [dataset, cellType, model].join("::");
         },
@@ -560,12 +733,16 @@ new Vue({
         },
         async selectHierarchyItem(level, context = {}) {
             if (level === "searchRoot") {
+                this.factorModalData = null;
+                this.activeSharedProgramContextKey = null;
                 this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.selectedSearchValue || this.searchTerm}`);
                 this.fitAndCenterBrowserCanvas();
                 return;
             }
 
             if (level === "dataset") {
+                this.factorModalData = null;
+                this.activeSharedProgramContextKey = null;
                 this.activeHierarchyPath = {
                     dataset: context.dataset || null,
                     cellType: null,
@@ -577,6 +754,8 @@ new Vue({
             }
 
             if (level === "cellType") {
+                this.factorModalData = null;
+                this.activeSharedProgramContextKey = null;
                 this.activeHierarchyPath = {
                     dataset: context.dataset || null,
                     cellType: context.cellType || null,
@@ -588,6 +767,8 @@ new Vue({
             }
 
             if (level === "model") {
+                this.factorModalData = null;
+                this.activeSharedProgramContextKey = null;
                 this.activeHierarchyPath = {
                     dataset: context.dataset || null,
                     cellType: context.cellType || null,
@@ -631,6 +812,10 @@ new Vue({
                     value: searchValue,
                     placeholder: `${this.searchType === "gene" ? "Gene" : "Trait"} detail placeholder`
                 });
+            }
+
+            if (this.browserMode === "sharedPrograms" && !this.activeSharedProgramContextKey) {
+                return panels;
             }
 
             if (this.activeHierarchyPath.dataset) {
@@ -683,6 +868,9 @@ new Vue({
         isDetailPanelActive(panel) {
             return this.activeDetailPanel.type === panel.type && this.activeDetailPanel.key === panel.key;
         },
+        isSharedSearchRootActive() {
+            return Boolean(this.getSearchRootDisplayValue());
+        },
         getActiveDatasetGroup() {
             return (this.searchHierarchy || []).find(
                 (datasetGroup) => datasetGroup.dataset === this.activeHierarchyPath.dataset
@@ -709,6 +897,76 @@ new Vue({
             return (cellTypeGroup.models || []).find(
                 (modelGroup) => modelGroup.model === this.activeHierarchyPath.model
             ) || null;
+        },
+        getAllHierarchyModelContexts() {
+            return (this.searchHierarchy || []).flatMap((datasetGroup) =>
+                (datasetGroup.cellTypes || []).flatMap((cellTypeGroup) =>
+                    (cellTypeGroup.models || []).map((modelGroup) => ({
+                        dataset: datasetGroup.dataset,
+                        cellType: cellTypeGroup.cellType,
+                        model: modelGroup.model
+                    }))
+                )
+            );
+        },
+        async ensureSharedProgramModeReady() {
+            const modelContexts = this.getAllHierarchyModelContexts();
+
+            if (!modelContexts.length) {
+                return;
+            }
+
+            this.sharedProgramsLoading = true;
+
+            try {
+                await Promise.all(
+                    modelContexts.map((context) => this.ensureModelFactorDetails(
+                        context.dataset,
+                        context.cellType,
+                        context.model
+                    ))
+                );
+            } finally {
+                this.sharedProgramsLoading = false;
+            }
+        },
+        isSharedProgramGroupActive(groupKey) {
+            return this.activeSharedProgramKey === groupKey;
+        },
+        isSharedProgramContextActive(contextKey) {
+            return this.activeSharedProgramContextKey === contextKey;
+        },
+        selectSharedProgramGroup(groupKey) {
+            this.activeSharedProgramKey = groupKey;
+            this.activeSharedProgramContextKey = null;
+            this.activeHierarchyPath = {
+                dataset: null,
+                cellType: null,
+                model: null
+            };
+            this.factorModalData = null;
+            this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+            this.fitAndCenterBrowserCanvas();
+        },
+        async openSharedProgramContext(context) {
+            this.activeSharedProgramKey = this.activeSharedProgramKey || context.label || context.factor;
+            this.activeSharedProgramContextKey = context.key;
+            this.activeHierarchyPath = {
+                dataset: context.dataset,
+                cellType: context.cellType,
+                model: context.model
+            };
+
+            await this.ensureModelFactorDetails(context.dataset, context.cellType, context.model);
+            await this.openFactorModal({
+                dataset: context.dataset,
+                cellType: context.cellType,
+                model: context.model,
+                factor: context.factor,
+                score: context.score,
+                scoreField: context.scoreField
+            });
+            this.fitAndCenterBrowserCanvas();
         },
         getBrowserViewportElement() {
             return this.$el?.querySelector(".liger-browser-viewport") || null;
@@ -932,6 +1190,7 @@ new Vue({
             }
         },
         resetSearchState() {
+            this.browserMode = "hierarchy";
             this.searchTerm = "";
             this.selectedSearchValue = "";
             this.searchMatches = null;
@@ -947,6 +1206,9 @@ new Vue({
                 type: null,
                 key: null
             };
+            this.activeSharedProgramKey = null;
+            this.activeSharedProgramContextKey = null;
+            this.sharedProgramsLoading = false;
             this.browserCanvas = {
                 ...this.browserCanvas,
                 x: 0,
@@ -995,6 +1257,9 @@ new Vue({
                     type: null,
                     key: null
                 };
+                this.activeSharedProgramKey = null;
+                this.activeSharedProgramContextKey = null;
+                this.sharedProgramsLoading = false;
                 this.browserCanvas = {
                     ...this.browserCanvas,
                     x: 0,
@@ -1058,6 +1323,9 @@ new Vue({
                     type: null,
                     key: null
                 };
+                this.activeSharedProgramKey = null;
+                this.activeSharedProgramContextKey = null;
+                this.sharedProgramsLoading = false;
                 this.browserCanvas = {
                     ...this.browserCanvas,
                     x: 0,
@@ -1092,6 +1360,9 @@ new Vue({
                     type: "searchRoot",
                     key: `${searchType}::${normalizedSearchTerm}`
                 };
+                this.activeSharedProgramKey = null;
+                this.activeSharedProgramContextKey = null;
+                this.sharedProgramsLoading = false;
                 this.browserCanvas = {
                     ...this.browserCanvas,
                     x: 0,
@@ -1103,6 +1374,15 @@ new Vue({
                 this.modelFactorDetails = {};
                 this.modelFactorLoading = {};
                 this.factorModalData = null;
+
+                if (this.browserMode === "sharedPrograms") {
+                    await this.ensureSharedProgramModeReady();
+
+                    if (this.sharedProgramGroups.length) {
+                        this.activeSharedProgramKey = this.sharedProgramGroups[0].key;
+                    }
+                }
+
                 this.fitAndCenterBrowserCanvas();
             } catch (error) {
                 this.errorMessage = error.message || "Unable to load exact search results.";
@@ -1174,6 +1454,12 @@ new Vue({
         },
         closeFactorModal() {
             this.factorModalData = null;
+
+            if (this.browserMode === "sharedPrograms") {
+                this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                return;
+            }
+
             if (this.activeHierarchyPath.model) {
                 this.setActiveDetailPanel(
                     "model",
