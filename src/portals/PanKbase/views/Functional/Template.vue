@@ -110,10 +110,11 @@
                                 <b-tabs>
                                     <b-tab title="Perifusion traces">
                                         <div class="line-plots">
+                                            {{ $parent.filteredAccession.length }} donors meeting filter criteria
                                             <div class="insulin-plot line-plot">
-                                                <h5>Insulin IEQ</h5>
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
+                                                    plotTitle="Islet Insulin Secretion"
                                                     :maxTime="$parent.maxTimeIns"
                                                     :maxScore="$parent.maxScoreIns"
                                                     :donors="$parent.filteredAccession"
@@ -124,9 +125,9 @@
                                                 </time-series-line-plot>
                                             </div>
                                             <div class="glucagon-plot line-plot">
-                                                <h5>Glucagon IEQ</h5>
                                                 <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
                                                     :plotData="$parent.resultsGcg"
+                                                    plotTitle="Islet Glucagon Secretion"
                                                     :maxTime="$parent.maxTimeGcg"
                                                     :maxScore="$parent.maxScoreGcg"
                                                     :donors="$parent.filteredAccession"
@@ -265,5 +266,11 @@
     text-align: right;
     padding-top: 10px;
     margin-right: 50px;
+}
+.line-plots {
+    margin-top: 20px;
+}
+div.line-plot:first-child {
+    margin-top: 20px;
 }
 </style>

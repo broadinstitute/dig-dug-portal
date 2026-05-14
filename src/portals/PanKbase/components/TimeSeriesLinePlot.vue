@@ -1,8 +1,6 @@
 <template>
     <div>
-      <div>
-        {{ availableDonors }} donors available meeting criteria
-      </div>
+      <h5>{{ plotTitle }}</h5>
         <div class="download-images-setting">
           Mouse over the plot to highlight an individual donor.
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
@@ -42,7 +40,8 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "yAxisLabel"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
+    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
@@ -83,10 +82,6 @@ export default Vue.component("time-series-line-plot", {
         }
       });
       return output;
-    },
-    availableDonors(){
-      let donorsPresent = new Set(this.chartData.flatMap(m => m.map(n => n.donor)));
-      return donorsPresent.size;
     },
     allHoverFields(){
       return [this.dotKey, this.xField, this.yField];
@@ -129,7 +124,7 @@ export default Vue.component("time-series-line-plot", {
     },
     drawChart(){
       let margin = {
-        top: 100,
+        top: 80,
         right: 10,
         bottom: 40,
         left: 55
