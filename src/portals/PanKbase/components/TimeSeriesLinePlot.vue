@@ -48,7 +48,6 @@ export default Vue.component("time-series-line-plot", {
   data() {
       return {
         chart: null,
-        chartWidth: 750,
         chartHeight: 300,
         innerHeight: null,
         svg: null,
@@ -132,7 +131,7 @@ export default Vue.component("time-series-line-plot", {
     },
     drawChart(){
       let margin = {
-        top: 10,
+        top: 100,
         right: 10,
         bottom: 40,
         left: 55
@@ -177,14 +176,15 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke-width", 1);
       });
       // Separate loop to put text on top of bg
-      timepointBars.forEach(t => {
+      timepointBars.forEach((t, index) => {
         this.svg.append("text")
           .attr("text-anchor", "start")
-          .attr("y", t.height * (!this.isBasal(t.condition) ? 0.15 : 0.05))
-          .attr("x", t.x)
+          .attr("y", 0)
+          .attr("x", 0)
           .attr("font-size", "smaller")
+          .attr("transform", `translate(${t.textPosition},0) rotate(-45)`)
           .text(this.isBasal(t.condition) ? t.condition.replaceAll("Secretion", "Secr.") 
-            : t.condition.replaceAll("phase", "ph."));
+            : t.condition);
       });
       this.tooltip = d3
         .select(`#${this.plotId}`)

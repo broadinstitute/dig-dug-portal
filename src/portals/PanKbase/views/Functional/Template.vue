@@ -190,7 +190,6 @@
 }
 .line-plot{
     align-items: center;
-    padding: 25px;
 }
 .side-panel {
     display: block !important;
