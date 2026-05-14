@@ -254,7 +254,14 @@ let pages = {
         filename: "donors.html",
         title: "Donor Metadata",
         chunks: ["chunk-vendors", "chunk-common", "donors"]
-    }
+    },
+    liger: {
+        entry: "src/portals/PanKbase/views/Liger/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "liger.html",
+        title: "Liger",
+        chunks: ["chunk-vendors", "chunk-common", "liger"]
+    },
 };
 
 module.exports = {
