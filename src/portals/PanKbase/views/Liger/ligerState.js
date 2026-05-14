@@ -39,6 +39,7 @@ export function createClearedResultsState() {
         expandedGroups: {},
         activeHierarchyPath: createInitialHierarchyPath(),
         activeDetailPanel: createInitialDetailPanel(),
+        sharedProgramVisibility: "shared",
         activeSharedProgramKey: null,
         activeSharedProgramContextKey: null,
         sharedProgramsLoading: false,

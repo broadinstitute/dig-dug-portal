@@ -48,6 +48,20 @@ export async function fetchLigerJson(url) {
     }
 }
 
+export async function fetchLigerText(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Liger API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.text();
+    } catch (error) {
+        console.error("Liger API fetch error:", error);
+        throw error;
+    }
+}
+
 export async function fetchCachedLigerResource({ apiCache, cacheGroup, queryParts, urlBuilder, extraParams = {} }) {
     const cacheKey = buildLigerCacheKey(queryParts, extraParams);
 
@@ -60,6 +74,224 @@ export async function fetchCachedLigerResource({ apiCache, cacheGroup, queryPart
     apiCache[cacheGroup][cacheKey] = payload;
 
     return payload;
+}
+
+function firstNonEmptyValue(...values) {
+    const flattened = values.flatMap((value) => {
+        if (Array.isArray(value)) {
+            return value;
+        }
+
+        return [value];
+    });
+
+    for (const value of flattened) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+
+        if (typeof value === "string" && !value.trim()) {
+            continue;
+        }
+
+        return value;
+    }
+
+    return null;
+}
+
+function unwrapJsonLdValue(value) {
+    if (Array.isArray(value)) {
+        const unwrappedValues = value
+            .map((item) => unwrapJsonLdValue(item))
+            .filter((item) => item !== null && item !== undefined && item !== "");
+
+        if (!unwrappedValues.length) {
+            return null;
+        }
+
+        return unwrappedValues.length === 1 ? unwrappedValues[0] : unwrappedValues;
+    }
+
+    if (value && typeof value === "object") {
+        if (Object.prototype.hasOwnProperty.call(value, "@value")) {
+            return unwrapJsonLdValue(value["@value"]);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(value, "@id")) {
+            return value["@id"];
+        }
+
+        if (Object.prototype.hasOwnProperty.call(value, "name")) {
+            return unwrapJsonLdValue(value.name);
+        }
+    }
+
+    return value;
+}
+
+function coerceString(value, fallback = "") {
+    const unwrappedValue = unwrapJsonLdValue(value);
+
+    if (Array.isArray(unwrappedValue)) {
+        return unwrappedValue.map((item) => `${item}`).join(", ");
+    }
+
+    if (unwrappedValue === undefined || unwrappedValue === null) {
+        return fallback;
+    }
+
+    return `${unwrappedValue}`;
+}
+
+function coerceNumber(value, fallback = null) {
+    const unwrappedValue = unwrapJsonLdValue(value);
+
+    if (unwrappedValue === undefined || unwrappedValue === null || unwrappedValue === "") {
+        return fallback;
+    }
+
+    const numericValue = Number(unwrappedValue);
+    return Number.isFinite(numericValue) ? numericValue : fallback;
+}
+
+function coerceArray(value) {
+    const unwrappedValue = unwrapJsonLdValue(value);
+
+    if (Array.isArray(unwrappedValue)) {
+        return unwrappedValue.map((item) => `${item}`);
+    }
+
+    if (unwrappedValue === undefined || unwrappedValue === null || unwrappedValue === "") {
+        return [];
+    }
+
+    return [`${unwrappedValue}`];
+}
+
+function normalizeDatasetMetadataEntry(entry = {}, fallbackKey = null) {
+    const datasetId = coerceString(firstNonEmptyValue(
+        entry.datasetId,
+        entry.dataset_id,
+        entry.identifier,
+        entry.id,
+        entry["@id"],
+        fallbackKey
+    ));
+
+    if (!datasetId) {
+        return null;
+    }
+
+    const summary = coerceString(firstNonEmptyValue(
+        entry.summary,
+        entry.description,
+        entry.abstract
+    ));
+
+    const sourceValue = firstNonEmptyValue(
+        entry.source,
+        entry.publisher,
+        entry.provider,
+        entry.includedInDataCatalog
+    );
+    const doiValue = firstNonEmptyValue(
+        entry.doi,
+        entry.sameAs,
+        entry.url
+    );
+
+    return {
+        ...entry,
+        datasetId,
+        datasetName: coerceString(firstNonEmptyValue(
+            entry.datasetName,
+            entry.name,
+            entry.title,
+            entry.headline,
+            datasetId
+        ), datasetId),
+        source: coerceString(sourceValue),
+        species: coerceString(firstNonEmptyValue(entry.species, entry.organism, entry.species__ontology_label)),
+        tissue: coerceString(firstNonEmptyValue(entry.tissue, entry.organ, entry.tissue__ontology_label, entry.organ__ontology_label)),
+        method: coerceString(firstNonEmptyValue(entry.method, entry.assay, entry.measurementTechnique)),
+        platform: coerceString(firstNonEmptyValue(entry.platform, entry.instrument, entry.technique)),
+        summary,
+        doi: coerceString(doiValue),
+        authors: coerceString(firstNonEmptyValue(entry.authors, entry.author, entry.creator)),
+        totalDonors: coerceNumber(firstNonEmptyValue(entry.totalDonors, entry.total_donors, entry.donorCount)),
+        totalCells: coerceNumber(firstNonEmptyValue(entry.totalCells, entry.total_cells, entry.cellCount)),
+        species__ontology_label: coerceArray(entry.species__ontology_label),
+        tissue__ontology_label: coerceArray(entry.tissue__ontology_label),
+        organ__ontology_label: coerceArray(entry.organ__ontology_label),
+        disease__ontology_label: coerceArray(entry.disease__ontology_label)
+    };
+}
+
+export function normalizeDatasetMetadataCollection(payload) {
+    const payloadGraph = Array.isArray(payload?.["@graph"]) ? payload["@graph"] : null;
+    const payloadData = Array.isArray(payload?.data) ? payload.data : null;
+    const collection = Array.isArray(payload)
+        ? payload
+        : payloadGraph || payloadData;
+
+    if (Array.isArray(collection)) {
+        return collection.reduce((lookup, entry) => {
+            const normalizedEntry = normalizeDatasetMetadataEntry(entry);
+
+            if (normalizedEntry?.datasetId) {
+                lookup[normalizedEntry.datasetId] = normalizedEntry;
+            }
+
+            return lookup;
+        }, {});
+    }
+
+    return Object.entries(payload || {}).reduce((lookup, [key, value]) => {
+        if (!value || typeof value !== "object" || key.startsWith("@")) {
+            return lookup;
+        }
+
+        const normalizedEntry = normalizeDatasetMetadataEntry(value, key);
+
+        if (normalizedEntry?.datasetId) {
+            lookup[normalizedEntry.datasetId] = normalizedEntry;
+        }
+
+        return lookup;
+    }, {});
+}
+
+export function parseDatasetMetadataPayload(payloadText) {
+    const normalizedText = `${payloadText || ""}`.trim();
+
+    if (!normalizedText) {
+        return {};
+    }
+
+    try {
+        return normalizeDatasetMetadataCollection(JSON.parse(normalizedText));
+    } catch (jsonError) {
+        const lines = normalizedText
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+        const parsedLines = lines.map((line) => JSON.parse(line));
+        return normalizeDatasetMetadataCollection(parsedLines);
+    }
+}
+
+export async function fetchLigerDatasetMetadata({ apiConfig, apiCache }) {
+    if (apiCache.datasetMetadata) {
+        return apiCache.datasetMetadata;
+    }
+
+    const payloadText = await fetchLigerText(apiConfig.datasetMetadataUrl);
+    const normalizedPayload = parseDatasetMetadataPayload(payloadText);
+    apiCache.datasetMetadata = normalizedPayload;
+
+    return normalizedPayload;
 }
 
 export function parseGraphFactorValue(factorValue) {

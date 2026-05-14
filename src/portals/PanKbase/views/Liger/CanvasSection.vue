@@ -44,6 +44,15 @@ export default {
     },
 
     methods: {
+        formatSharedContextScore(score) {
+            const numericScore = Number(score);
+
+            if (!Number.isFinite(numericScore)) {
+                return score;
+            }
+
+            return numericScore.toFixed(3);
+        },
         getBrowserViewportElement() {
             return this.$el || null;
         },
@@ -436,9 +445,32 @@ export default {
                         </div>
                     </div>
 
-                    <div class="liger-browser-column is-factor is-shared-programs">
+                        <div class="liger-browser-column is-factor is-shared-programs">
                         <div class="liger-browser-column-header">
                             <span class="liger-entity-badge is-factor">Shared Programs</span>
+                            <div
+                                v-if="!viewModel.sharedProgramsLoading"
+                                class="liger-browser-toggle-group"
+                                role="group"
+                                aria-label="Shared program visibility"
+                            >
+                                <button
+                                    class="liger-browser-toggle"
+                                    :class="{ 'is-active': viewModel.sharedProgramVisibility === 'shared' }"
+                                    type="button"
+                                    @click="viewModel.setSharedProgramVisibility('shared')"
+                                >
+                                    Show shared
+                                </button>
+                                <button
+                                    class="liger-browser-toggle"
+                                    :class="{ 'is-active': viewModel.sharedProgramVisibility === 'all' }"
+                                    type="button"
+                                    @click="viewModel.setSharedProgramVisibility('all')"
+                                >
+                                    Show all
+                                </button>
+                            </div>
                         </div>
 
                         <div
@@ -469,7 +501,6 @@ export default {
                                     </span>
                                 </span>
                                 <span class="liger-browser-item-meta">{{ programGroup.contextCount }}</span>
-                                <span class="liger-browser-item-chevron">›</span>
                             </button>
                         </div>
 
@@ -503,9 +534,8 @@ export default {
                                     </span>
                                 </span>
                                 <span class="liger-browser-item-meta" :title="context.scoreField">
-                                    {{ context.score }}
+                                    {{ formatSharedContextScore(context.score) }}
                                 </span>
-                                <span class="liger-browser-item-chevron">↗</span>
                             </button>
                         </div>
                     </div>

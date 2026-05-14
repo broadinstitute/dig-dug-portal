@@ -251,8 +251,37 @@ export default {
 .liger-browser-column-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     min-height: 26px;
+}
+
+.liger-browser-toggle-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 999px;
+    background: #f4f6f8;
+}
+
+.liger-browser-toggle {
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #5f6773;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.liger-browser-toggle.is-active {
+    background: #ffffff;
+    color: #5e2fa0;
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.1);
 }
 
 .liger-browser-list {
@@ -355,12 +384,6 @@ export default {
     color: #666666;
     font-size: 12px;
     white-space: nowrap;
-}
-
-.liger-browser-item-chevron {
-    color: #888888;
-    font-size: 16px;
-    line-height: 1;
 }
 
 .liger-browser-item.is-shared-context {
@@ -736,6 +759,11 @@ export default {
 
     .liger-browser-mode-group {
         justify-content: flex-start;
+    }
+
+    .liger-browser-column-header {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }
 </style>

@@ -4,10 +4,11 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
-import { createLigerApiCache, ligerApiConfig, ligerDatasetMetadata, ligerDefaults } from "./ligerConfig";
+import { createLigerApiCache, ligerApiConfig, ligerDefaults } from "./ligerConfig";
 import {
     buildDetailScoreItems,
     buildFactorContext,
+    fetchLigerDatasetMetadata,
     fetchLigerFactorDetailScores,
     fetchLigerFactors,
     fetchLigerSearchMatches,
@@ -57,6 +58,7 @@ new Vue({
             expandedGroups: {},
             activeHierarchyPath: createInitialHierarchyPath(),
             activeDetailPanel: createInitialDetailPanel(),
+            sharedProgramVisibility: "shared",
             activeSharedProgramKey: null,
             activeSharedProgramContextKey: null,
             sharedProgramsLoading: false,
@@ -72,7 +74,7 @@ new Vue({
             detailsSectionApi: null,
 
             ligerDefaults,
-            ligerDatasetMetadata,
+            ligerDatasetMetadata: {},
             ligerApi: ligerApiConfig,
             ligerApiCache: createLigerApiCache()
         }
@@ -91,6 +93,7 @@ new Vue({
     },
 
     async created() {
+        this.ensureDatasetMetadataLoaded();
     },
 
     watch: {
@@ -105,6 +108,8 @@ new Vue({
                 getFactorSummary: (...args) => this.getFactorSummary(...args),
                 getDatasetDisplayLabel: (...args) => this.getDatasetDisplayLabel(...args),
                 getDatasetDisplaySubLabel: (...args) => this.getDatasetDisplaySubLabel(...args)
+            }, {
+                includeSingletonPrograms: this.sharedProgramVisibility === "all"
             });
         },
         activeSharedProgramGroup() {
@@ -149,6 +154,12 @@ new Vue({
                 model
             });
         },
+        async fetchLigerDatasetMetadata() {
+            return await fetchLigerDatasetMetadata({
+                apiConfig: this.ligerApi,
+                apiCache: this.ligerApiCache
+            });
+        },
         async fetchLigerFactorDetailScores({ dataset, cellType, model, factor, summary }) {
             return await fetchLigerFactorDetailScores({
                 apiConfig: this.ligerApi,
@@ -186,6 +197,21 @@ new Vue({
                 cellType: this.ligerDefaults.cellType,
                 model: this.ligerDefaults.model
             });
+        },
+        async ensureDatasetMetadataLoaded() {
+            if (Object.keys(this.ligerDatasetMetadata || {}).length) {
+                return this.ligerDatasetMetadata;
+            }
+
+            try {
+                const datasetMetadata = await this.fetchLigerDatasetMetadata();
+                this.ligerDatasetMetadata = datasetMetadata || {};
+            } catch (error) {
+                console.error("Unable to load Liger dataset metadata:", error);
+                this.ligerDatasetMetadata = {};
+            }
+
+            return this.ligerDatasetMetadata;
         },
         registerCanvasSectionApi(api) {
             this.canvasSectionApi = api;
@@ -395,6 +421,42 @@ new Vue({
         isSharedProgramContextActive(contextKey) {
             return this.activeSharedProgramContextKey === contextKey;
         },
+        setSharedProgramVisibility(nextVisibility) {
+            if (this.sharedProgramVisibility === nextVisibility) {
+                return;
+            }
+
+            this.sharedProgramVisibility = nextVisibility;
+            this.ensureActiveSharedProgramSelection();
+            this.fitAndCenterBrowserCanvas();
+        },
+        ensureActiveSharedProgramSelection() {
+            if (!this.sharedProgramGroups.length) {
+                this.activeSharedProgramKey = null;
+                this.activeSharedProgramContextKey = null;
+                this.factorModalData = null;
+                this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                return;
+            }
+
+            const activeGroupExists = this.sharedProgramGroups.some(
+                (group) => group.key === this.activeSharedProgramKey
+            );
+
+            if (!activeGroupExists) {
+                this.activeSharedProgramKey = this.sharedProgramGroups[0].key;
+                this.activeSharedProgramContextKey = null;
+                this.factorModalData = null;
+                this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                return;
+            }
+
+            const activeGroup = this.activeSharedProgramGroup;
+
+            if (!activeGroup?.contexts.some((context) => context.key === this.activeSharedProgramContextKey)) {
+                this.activeSharedProgramContextKey = null;
+            }
+        },
         selectSharedProgramGroup(groupKey) {
             this.activeSharedProgramKey = groupKey;
             this.activeSharedProgramContextKey = null;
@@ -579,9 +641,7 @@ new Vue({
                 if (this.browserMode === "sharedPrograms") {
                     await this.ensureSharedProgramModeReady();
 
-                    if (this.sharedProgramGroups.length) {
-                        this.activeSharedProgramKey = this.sharedProgramGroups[0].key;
-                    }
+                    this.ensureActiveSharedProgramSelection();
                 }
 
                 this.fitAndCenterBrowserCanvas();

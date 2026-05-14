@@ -84,7 +84,10 @@ export function isHierarchyItemActive({ activeHierarchyPath, selectedSearchValue
 
 export function resolveDatasetMetadataId(dataset) {
     if (dataset === "scRNA") {
-        return "islet_of_Langerhans_scRNA_v3-3";
+        // Temporary bridge: current Liger responses still return "scRNA"
+        // instead of the real dataset ID. Once the API returns dataset IDs
+        // directly, this mapping can be removed.
+        return "islet_of_Langerhans_scRNA_v3-4";
     }
 
     return dataset;
@@ -224,8 +227,9 @@ export function buildVisibleDetailPanels({
     return panels;
 }
 
-export function buildSharedProgramGroups(searchHierarchy = [], helpers) {
+export function buildSharedProgramGroups(searchHierarchy = [], helpers, options = {}) {
     const { getFactorSummary, getDatasetDisplayLabel, getDatasetDisplaySubLabel } = helpers;
+    const { includeSingletonPrograms = false } = options;
     const groupedPrograms = new Map();
 
     searchHierarchy.forEach((datasetGroup) => {
@@ -318,6 +322,10 @@ export function buildSharedProgramGroups(searchHierarchy = [], helpers) {
 
             return groupA.label.localeCompare(groupB.label);
         });
+
+    if (includeSingletonPrograms) {
+        return sharedGroups;
+    }
 
     const recurringGroups = sharedGroups.filter((group) => group.contextCount > 1);
     return recurringGroups.length ? recurringGroups : sharedGroups;
