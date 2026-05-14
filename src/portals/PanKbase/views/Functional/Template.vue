@@ -89,7 +89,8 @@
                                             :donors="$parent.filteredAccession"
                                             :plotId="`insulin_ieq`"
                                             :timepoints="$parent.insTimepoints"
-                                            :lineColor="$parent.insColor">
+                                            :lineColor="$parent.insColor"
+                                            yAxisLabel="ng/100IEQ/min">
                                         </time-series-line-plot>
                                     </div>
                                     <div class="glucagon-plot line-plot">
@@ -101,7 +102,8 @@
                                             :donors="$parent.filteredAccession"
                                             :plotId="`glucagon_ieq`"
                                             :timepoints="$parent.gcgTimepoints"
-                                            :lineColor="$parent.gcgColor">
+                                            :lineColor="$parent.gcgColor"
+                                            yAxisLabel="pg/100IEQ/min">
                                         </time-series-line-plot>
                                     </div>
                                 </div>

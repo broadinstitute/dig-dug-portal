@@ -44,7 +44,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "startEmpty"],
+  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", "utils", "timepoints", "lineColor", "yAxisLabel"],
   data() {
       return {
         chart: null,
@@ -63,7 +63,6 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        yAxisLabel: null,
         axesDrawn: false,
         highlightedDonor: null,
       };
@@ -78,7 +77,6 @@ export default Vue.component("time-series-line-plot", {
       let data = structuredClone(this.plotData);
       if (this.filter){
         data = data.filter(this.filter);
-        this.startEmpty = false;
       }
       let output = [];
       this.donors.forEach(d => {
@@ -102,9 +100,6 @@ export default Vue.component("time-series-line-plot", {
       }
       return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
     },
-    emptyChart(){
-      return this.startEmpty && this.donors.length === this.availableDonors;
-    }
   },
   methods: {
     extractTimepoints(data, xScale, yScale){
@@ -140,7 +135,7 @@ export default Vue.component("time-series-line-plot", {
         top: 10,
         right: 10,
         bottom: 40,
-        left: 40
+        left: 55
       };
       let elementWidth = this.chart.clientWidth;
       let width = elementWidth - margin.left - margin.right;
@@ -335,9 +330,6 @@ export default Vue.component("time-series-line-plot", {
       console.log("New donor list received");
         this.drawChart();
     },
-    emptyChart(){
-      this.drawChart();
-    }
   }
 });
 </script>
