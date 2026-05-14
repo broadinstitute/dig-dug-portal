@@ -91,7 +91,7 @@
                                         </b-tab>
                                         <b-tab title="Select donors"
                                             @click="$parent.useSelectedDonors(true)">
-                                            <div>
+                                            <div class="filter-tab-liner">
                                                 <textarea v-model="$parent.selectedDonors"
                                                     rows="10" cols="25">
 
@@ -234,5 +234,12 @@
 .download-button {
     display: flex;
     justify-content: right;
+}
+.filter-tab-liner {
+    padding-left: 20%;
+    padding-top: 20px;
+}
+.filter-tab-liner textarea {
+    width: 80%;
 }
 </style>
