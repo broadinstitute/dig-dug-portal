@@ -14,9 +14,10 @@
                         </div>
                     </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
-                        Filter and explore donor data
                         <div class="row">
                             <div class="col-md-3 side-panel-filters">
+                                <b-tabs>
+                                    <b-tab title="Filter donor data">
                                 <criterion-function-group
                                     @update:filter-list="event => $parent.getFilters(event)">
                                     <filter-slider :field="$parent.fieldsObject.age.key"
@@ -89,6 +90,21 @@
                                         </div>
                                     </template>
                                 </criterion-function-group>
+                                </b-tab>
+                                <b-tab title="Select donors">
+                                    <div>
+                                        <textarea v-model="$parent.selectedDonors"
+                                            rows="10" cols="10">
+
+                                        </textarea>
+                                    </div>
+                                    <div>
+                                        <button @click="$parent.selectDonors()" class="btn btn-primary">
+                                            Search donors
+                                        </button>
+                                    </div>
+                                </b-tab>
+                                </b-tabs>
                             </div>
                             <div class="col-md-9">
                                 <div class="line-plots">

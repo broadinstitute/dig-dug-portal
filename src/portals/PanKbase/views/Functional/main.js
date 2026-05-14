@@ -116,12 +116,14 @@ new Vue({
             perPage: 10,
             currentPage: 1,
             filtersActive: [],
+            selectedDonors: "",
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
+        console.log(JSON.stringify(this.donorsWithData.slice(0,10)));
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
@@ -145,12 +147,17 @@ new Vue({
         filteredAccession(){
             let results = this.filteredDonors.map(d => d.Accession);
             return results;
-        }
+        },
     },
     methods: {
         getFilters(filters){
             console.log(JSON.stringify(filters));
             this.filtersActive = filters.map(filter => filter.field);
+        },
+        selectDonors(){
+            let delimiters = /[,\s]/;
+            let entries = this.selectedDonors.split(delimiters);
+            entries.forEach(e => console.log(e));
         },
         collateData(data){
             let maxTime = null;
