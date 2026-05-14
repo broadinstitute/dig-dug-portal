@@ -11,7 +11,8 @@
                     :value="option"
                     v-model="filterThreshold"/>
             </label>
-            
+            <input type="radio" name="radioButtons" class="invisible-button"
+                :value="null" v-model="filterThreshold"></input>
         </div>
     </div>
 </template>
@@ -36,6 +37,7 @@ export default Vue.component("filter-radio-template", {
         options: Array,
         multiple: Boolean,
         inclusive: Boolean,
+        valueCleared: Boolean,
         color: {
             type: String,
         },
@@ -104,14 +106,17 @@ export default Vue.component("filter-radio-template", {
                             ...this.filterDefinition,
                         });
             }
-            if (this.clear) {
-                this.filterThreshold = null;
-            }
         },
     },
     watch: {
         filterThreshold(newThreshold){
+            console.log(newThreshold);
             this.updateFilter(newThreshold);
+        },
+        valueCleared(isCleared){
+            if (isCleared){
+                this.filterThreshold = null;
+            }
         }
     }
 });
@@ -130,5 +135,8 @@ export default Vue.component("filter-radio-template", {
         height: inherit !important;
         width: inherit !important;
         margin-right: 10px !important;
+    }
+    .invisible-button {
+        display: none !important;
     }
 </style>

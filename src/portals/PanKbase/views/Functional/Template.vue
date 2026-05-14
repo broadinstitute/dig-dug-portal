@@ -17,7 +17,8 @@
                         Filter and explore donor data
                         <div class="row">
                             <div class="col-md-3 side-panel-filters">
-                                <criterion-function-group>
+                                <criterion-function-group
+                                    @update:filter-list="event => $parent.getFilters(event)">
                                     <filter-slider :field="$parent.fieldsObject.age.key"
                                         :range="$parent.getRange($parent.fieldsObject.age)">
                                         <div class="label">Age</div>
@@ -35,12 +36,14 @@
                                         <div class="label">Culture time (hrs)</div>
                                     </filter-slider>
                                     <filter-radio :field="$parent.fieldsObject.sex.key"
-                                        :options="$parent.filteredMetadata.map(m => m.Gender)">
+                                        :options="$parent.filteredMetadata.map(m => m.Gender)"
+                                        :filtersActive="$parent.filtersActive">
                                         <div class="label">Gender</div>
                                     </filter-radio>
                                     <filter-radio :field="$parent.fieldsObject.diabetes.key"
                                         :options="$parent.filteredMetadata.map(m => 
-                                            m[$parent.fieldsObject.diabetes.key])">
+                                            m[$parent.fieldsObject.diabetes.key])"
+                                        :filtersActive="$parent.filtersActive">
                                         <div class="label">Derived diabetes status</div>
                                     </filter-radio>
                                     <filter-enumeration-control

@@ -107,6 +107,7 @@ new Vue({
             },
             perPage: 10,
             currentPage: 1,
+            filtersActive: [],
         };
     },
     async created() {
@@ -139,6 +140,10 @@ new Vue({
         }
     },
     methods: {
+        getFilters(filters){
+            console.log(JSON.stringify(filters));
+            this.filtersActive = filters.map(filter => filter.field);
+        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;

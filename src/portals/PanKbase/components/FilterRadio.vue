@@ -2,15 +2,13 @@
   <filter-radio-template
     class="filter-col-md"
     :field="field"
-    :placeholder="placeholder"
     :predicate="predicate"
     :options="dedupedOptions"
     @input-change="$emit('input-change', $event)"
     :color="color"
     :multiple="false"
     :inclusive="false"
-    :splitBy="splitBy"
-    :computedField="computedField"
+    :valueCleared="valueCleared"
   >
     <slot> </slot>
   </filter-radio-template>
@@ -21,19 +19,16 @@ import FilterRadioTemplate from "./FilterRadioTemplate.vue";
 export default Vue.component("filter-radio", {
   props: {
     field: String,
-    placeholder: String,
     options: Array,
     color: String,
-    splitBy: String,
-    inclusive: {
-      type: Boolean,
-      default: true,
-    },
     predicate: {
       type: Function,
       default: (item, threshold) => item === threshold,
     },
-    computedField: Function,
+    filtersActive: {
+      type: Array,
+      default: []
+    }
   },
   components: {
     FilterRadioTemplate,
@@ -41,6 +36,9 @@ export default Vue.component("filter-radio", {
   computed: {
     dedupedOptions(){
       return Array.from(new Set(this.options));
+    },
+    valueCleared(){
+      return !this.filtersActive.includes(this.field);
     }
   }
 });
