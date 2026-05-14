@@ -35,7 +35,13 @@ export default Vue.component("filter-radio", {
   },
   computed: {
     dedupedOptions(){
-      return Array.from(new Set(this.options));
+      let allOptions = Array.from(new Set(this.options));
+      let emptyValue = "-";
+      // Put the empty/ Not Applicable value last if it is present
+      if (allOptions.includes(emptyValue)){
+        allOptions = allOptions.filter(o => o !== emptyValue).concat([emptyValue]);
+      }
+      return allOptions;
     },
     valueCleared(){
       return !this.filtersActive.includes(this.field);

@@ -3,14 +3,17 @@
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             <slot>{{ field }}</slot>
         <div v-if="!!options && Array.isArray(options)" class="radio-button-wrapper">
-            <label v-for="option in options" :for="`button_${option}`">
-                {{ option }}
+            <div v-for="option in options">
                 <input type="radio" class="form-control-sm"
-                    :id="`button_${option}`"
-                    name="radioButtons" 
-                    :value="option"
-                    v-model="filterThreshold"/>
-            </label>
+                        :id="`button_${option}`"
+                        name="radioButtons" 
+                        :value="option"
+                        v-model="filterThreshold"/>
+                <label :for="`button_${option}`">
+                    {{ option === "-" ? "N/A" : option }}
+                    
+                </label>
+            </div>
             <input type="radio" name="radioButtons" class="invisible-button"
                 :value="null" v-model="filterThreshold"></input>
         </div>
@@ -129,7 +132,7 @@ export default Vue.component("filter-radio-template", {
         display: block;
     }
     .radio-button-wrapper {
-        display: inline;
+        /*display: inline;*/
     }
     input {
         height: inherit !important;

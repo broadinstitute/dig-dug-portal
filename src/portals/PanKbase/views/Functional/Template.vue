@@ -40,12 +40,16 @@
                                         :filtersActive="$parent.filtersActive">
                                         <div class="label">Gender</div>
                                     </filter-radio>
-                                    <filter-radio :field="$parent.fieldsObject.diabetes.key"
-                                        :options="$parent.filteredMetadata.map(m => 
-                                            m[$parent.fieldsObject.diabetes.key])"
-                                        :filtersActive="$parent.filtersActive">
+                                    <filter-enumeration-control
+                                        :field="$parent.fieldsObject.diabetes.key"
+                                        :clearFilter="false"
+                                        :options="
+                                            $parent.filteredMetadata.map(m => 
+                                                m[$parent.fieldsObject.diabetes.key])
+                                        "
+                                    >
                                         <div class="label">Derived diabetes status</div>
-                                    </filter-radio>
+                                    </filter-enumeration-control>
                                     <filter-enumeration-control
                                         :field="$parent.fieldsObject.ethnicity.key"
                                         :options="

@@ -150,7 +150,7 @@ export default Vue.component("dual-slider", {
 	right: 0;
 }
 .outer-wrapper {
-    display: flex;
+    display: inline-block !important;
     padding: 5px;
     background-color: #ffffff;
     border-radius: 5px;

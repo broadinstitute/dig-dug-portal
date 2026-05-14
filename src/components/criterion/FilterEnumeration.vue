@@ -15,6 +15,7 @@
         :inclusive="!!inclusive || !!multiple"
         :disabled="disabled"
         :computedField="computedField"
+        :clear="clearFilter"
     >
         <slot> </slot>
     </filter-control-template>
@@ -65,6 +66,10 @@ export default Vue.component("filter-enumeration-control", {
         disabled: {
             type: Boolean,
             default: false,
+        },
+        clearFilter: {
+            type: Boolean,
+            default: true,
         },
         computedField: Function,
     },
