@@ -125,9 +125,9 @@ new Vue({
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
-        console.log(JSON.stringify(this.donorsWithData.slice(0,10)));
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
+        console.log(JSON.stringify(this.filteredMetadata.slice(0,10).map(e => e[this.fieldsObject.donorId.key])));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -147,16 +147,23 @@ new Vue({
             return this.collateData(this.$store.state.gcg);
         },
         filteredAccession(){
-            if (this.selectedDonorList.length > 0 && this.useSelected){
-                return this.selectedDonorList;
-            }
-            let results = this.filteredDonors.map(d => d.Accession);
+            let results = this.tableItems.map(d => d.Accession);
             return results;
         },
+        tableItems(){
+            if (!this.useSelected){
+                return this.filteredDonors;
+            }
+            console.log("OK let's filter them");
+            console.log(JSON.stringify(this.selectedDonorList));
+            return this.filteredMetadata.filter(d => 
+                this.selectedDonorList.includes(d.Accession) ||
+                this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
+            );
+        }
     },
     methods: {
         getFilters(filters){
-            console.log(JSON.stringify(filters));
             this.filtersActive = filters.map(filter => filter.field);
         },
         useSelectedDonors(useSelected){
@@ -165,9 +172,9 @@ new Vue({
         selectDonors(){
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters);
+            console.log("Entries:", JSON.stringify(entries));
             let donorIdFinder = /[\w]+/
             entries = entries.map(e => e.match(donorIdFinder)[0]);
-            entries.forEach(e => console.log(e));
             this.selectedDonorList = entries;
         },
         collateData(data){
@@ -235,9 +242,6 @@ new Vue({
         filteredDonors(newList){
             console.log("Is this thing on?");
         },
-        selectedDonorList(newList){
-
-        }
     },
     render(createElement, context) {
         return createElement(Template);
