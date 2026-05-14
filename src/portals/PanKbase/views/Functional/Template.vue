@@ -40,6 +40,18 @@
                                         :filtersActive="$parent.filtersActive">
                                         <div class="label">Gender</div>
                                     </filter-radio>
+
+                                    <filter-enumeration-control
+                                        :field="$parent.fieldsObject.diabetesDesc.key"
+                                        :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
+                                        :clearFilter="false"
+                                        :options="
+                                            $parent.filteredMetadata.map(m => 
+                                                m[$parent.fieldsObject.diabetesDesc.key])
+                                        "
+                                    >
+                                        <div class="label">Diabetes status</div>
+                                    </filter-enumeration-control>
                                     <filter-enumeration-control
                                         :field="$parent.fieldsObject.diabetes.key"
                                         :clearFilter="false"

@@ -68,6 +68,10 @@ new Vue({
                     key: "Accession",
                     sortable: true
                 },
+                donorId: {
+                    key: "Center Donor ID",
+                    sortable: true
+                },
                 age: {
                     key: "Age (years)",
                     isNumeric: true,
@@ -80,6 +84,10 @@ new Vue({
                 bmi: {
                     key: "BMI",
                     isNumeric: true,
+                    sortable: true
+                },
+                diabetesDesc: {
+                    key: "Description of diabetes status",
                     sortable: true
                 },
                 diabetes: {
