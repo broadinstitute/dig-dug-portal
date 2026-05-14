@@ -157,6 +157,8 @@ new Vue({
         selectDonors(){
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters);
+            let donorIdFinder = /[\w]+/
+            entries = entries.map(e => e.match(donorIdFinder)[0]);
             entries.forEach(e => console.log(e));
         },
         collateData(data){

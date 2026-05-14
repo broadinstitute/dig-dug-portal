@@ -94,7 +94,7 @@
                                 <b-tab title="Select donors">
                                     <div>
                                         <textarea v-model="$parent.selectedDonors"
-                                            rows="10" cols="10">
+                                            rows="10" cols="25">
 
                                         </textarea>
                                     </div>
