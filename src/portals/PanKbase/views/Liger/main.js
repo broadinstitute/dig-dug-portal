@@ -4,12 +4,40 @@ import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
+import { createLigerApiCache, ligerApiConfig, ligerDatasetMetadata, ligerDefaults } from "./ligerConfig";
+import {
+    buildDetailScoreItems,
+    buildFactorContext,
+    fetchLigerFactorDetailScores,
+    fetchLigerFactors,
+    fetchLigerSearchMatches,
+    fetchLigerSearchResults
+} from "./ligerApi";
+import {
+    buildFactorContextKey,
+    buildSearchHierarchy,
+    buildSharedProgramGroups,
+    buildVisibleDetailPanels,
+    getActiveCellTypeGroup,
+    getActiveDatasetGroup,
+    getActiveModelGroup,
+    getAllHierarchyModelContexts,
+    getDatasetDisplayLabel,
+    getDatasetDisplaySubLabel,
+    getDatasetMetadata,
+    getSearchRootDisplayValue,
+    isHierarchyItemActive,
+    isSharedSearchRootActive
+} from "./ligerHierarchy";
+import {
+    createClearedResultsState,
+    createInitialBrowserCanvas,
+    createInitialDetailPanel,
+    createInitialHierarchyPath,
+    createSearchResetState
+} from "./ligerState";
 
 new Vue({
-    components: {
-
-    },
-    
     mixins: [pankbaseMixin],
 
     data() {
@@ -27,29 +55,12 @@ new Vue({
             searchResults: null,
             searchHierarchy: null,
             expandedGroups: {},
-            activeHierarchyPath: {
-                dataset: null,
-                cellType: null,
-                model: null
-            },
-            activeDetailPanel: {
-                type: null,
-                key: null
-            },
+            activeHierarchyPath: createInitialHierarchyPath(),
+            activeDetailPanel: createInitialDetailPanel(),
             activeSharedProgramKey: null,
             activeSharedProgramContextKey: null,
             sharedProgramsLoading: false,
-            browserCanvas: {
-                x: 0,
-                y: 0,
-                scale: 1,
-                isDragging: false,
-                isAnimating: false,
-                startX: 0,
-                startY: 0,
-                originX: 0,
-                originY: 0
-            },
+            browserCanvas: createInitialBrowserCanvas(),
             browserCanvasAnimationTimer: null,
             modelFactorDetails: {},
             modelFactorLoading: {},
@@ -57,107 +68,22 @@ new Vue({
             searchDebounceMs: 250,
             searchDebounceTimer: null,
             suppressNextSearchWatch: false,
+            canvasSectionApi: null,
+            detailsSectionApi: null,
 
-            // Keep the default context close to the examples we validated while
-            // exploring the API. This gives us a reliable baseline for early UI work.
-            ligerDefaults: {
-                dataset: "scRNA",
-                cellType: "Delta",
-                model: "mouse_msigdb",
-                factor: "Factor4"
-            },
-            ligerDatasetMetadata: {
-                "islet_of_Langerhans_scRNA_v3-3": {
-                    datasetName: "2. Single cell expression map of pancreatic islets using data from HPAP, IIDP and Prodo",
-                    datasetId: "islet_of_Langerhans_scRNA_v3-3",
-                    previous_versions: {
-                        v1: "https://doi.org/10.5281/zenodo.15588240"
-                    },
-                    source: "PanKbase",
-                    species: "Human",
-                    tissue: "islet of Langerhans",
-                    depot: "",
-                    depot2: "",
-                    method: "scRNAseq",
-                    platform: "10x genomics",
-                    summary: "This dataset represents the islet of Langerhans tissue from human samples from HPAP, IIDP and Prodo",
-                    doi: "https://zenodo.org/records/15596314",
-                    pmid: "",
-                    contact: "",
-                    authors: "Ha T.H. Vu, Han Sun, Seth Sharp, Parul Kudtarkar, Liza Brusman, Julie Jurgens, The PanKbase Consortium, Jason Flannick, Noel Burtt, Shuibing Chen, Jie Liu, Jean-Pilippe Cartailler, Benjamin F. Voight, Michael Lee Stitzel, Marcela Brissova, Anna L. Gloyn, Kyle Gaulton, Stephen C.J. Parker",
-                    download: "https://pankbase-data-v1.s3.us-west-2.amazonaws.com/analysis_resources/single_cell_objects/060425_scRNA_v3.3.rds",
-                    genMods: "No modifications",
-                    otherProperties: [""],
-                    development_stage__ontology_label: [],
-                    organism_age__group: [],
-                    cell_cycle__phase: [],
-                    disease__ontology_label: ["Diabetes"],
-                    bmi__group: [],
-                    library_preparation_protocol__ontology_label: [],
-                    organ__ontology_label: ["islets"],
-                    race__ontology_label: [""],
-                    tissue__ontology_label: ["islet of Langerhans"],
-                    species__ontology_label: ["Homo sapiens"],
-                    ethnicity__ontology_label: [""],
-                    fat__type: [],
-                    organism_age__unit__ontology_label: [""],
-                    sex: [""],
-                    bmi__unit__ontology_label: [""],
-                    mouse_strain__ontology_label: [],
-                    diet__schedule: [],
-                    diet__type: [],
-                    totalDonors: 140,
-                    totalCells: 448935
-                }
-            },
-
-            // Centralize endpoint names here so the UI layer can stay focused on
-            // user interactions instead of string-building.
-            ligerApi: {
-                baseUrl: "https://private.hugeampkpnbi.org/api/bio",
-                queryEndpoints: {
-                    factors: "pankbase-scb-factor",
-                    factorGenes: "pankbase-scb-gene-factor",
-                    factorTraits: "pankbase-scb-trait-factor",
-                    factorGeneSets: "pankbase-scb-gene-set-factor",
-                    factorCells: "pankbase-scb-cell-factor",
-                    graphEdges: "pankbase-scb-graph-all-edges"
-                },
-                matchEndpoints: {
-                    graphEdges: "pankbase-scb-graph-all-edges"
-                }
-            },
-
-            // These caches are intentionally simple for now. Once the UI is in place,
-            // we can decide whether cache invalidation should be route-based, session-
-            // based, or fully reactive to filter changes.
-            ligerApiCache: {
-                factors: {},
-                factorGenes: {},
-                factorTraits: {},
-                factorGeneSets: {},
-                factorCells: {},
-                graphTraitMatches: {},
-                graphGeneMatches: {},
-                graphTraitResults: {},
-                graphGeneResults: {}
-            }
+            ligerDefaults,
+            ligerDatasetMetadata,
+            ligerApi: ligerApiConfig,
+            ligerApiCache: createLigerApiCache()
         }
             
     },
 
     mounted() {
         this.injectScript("https://cdn.jsdelivr.net/npm/d3@7");
-        window.addEventListener("pointermove", this.handleBrowserCanvasPointerMove);
-        window.addEventListener("pointerup", this.handleBrowserCanvasPointerUp);
-        window.addEventListener("pointercancel", this.handleBrowserCanvasPointerUp);
     },
 
     beforeDestroy() {
-        window.removeEventListener("pointermove", this.handleBrowserCanvasPointerMove);
-        window.removeEventListener("pointerup", this.handleBrowserCanvasPointerUp);
-        window.removeEventListener("pointercancel", this.handleBrowserCanvasPointerUp);
-
         if (this.browserCanvasAnimationTimer) {
             clearTimeout(this.browserCanvasAnimationTimer);
             this.browserCanvasAnimationTimer = null;
@@ -175,101 +101,11 @@ new Vue({
 
     computed: {
         sharedProgramGroups() {
-            const groupedPrograms = new Map();
-
-            (this.searchHierarchy || []).forEach((datasetGroup) => {
-                (datasetGroup.cellTypes || []).forEach((cellTypeGroup) => {
-                    (cellTypeGroup.models || []).forEach((modelGroup) => {
-                        (modelGroup.factors || []).forEach((factorGroup) => {
-                            const summary = this.getFactorSummary(
-                                datasetGroup.dataset,
-                                cellTypeGroup.cellType,
-                                modelGroup.model,
-                                factorGroup.factor
-                            );
-                            const label = summary?.label || factorGroup.factor;
-                            const groupKey = (label || factorGroup.factor || "").trim();
-
-                            if (!groupKey) {
-                                return;
-                            }
-
-                            if (!groupedPrograms.has(groupKey)) {
-                                groupedPrograms.set(groupKey, {
-                                    key: groupKey,
-                                    label,
-                                    contexts: [],
-                                    distinctDatasets: new Set(),
-                                    distinctCellTypes: new Set(),
-                                    distinctModels: new Set()
-                                });
-                            }
-
-                            const group = groupedPrograms.get(groupKey);
-                            const contextKey = [
-                                datasetGroup.dataset,
-                                cellTypeGroup.cellType,
-                                modelGroup.model,
-                                factorGroup.factor
-                            ].join("::");
-
-                            group.contexts.push({
-                                key: contextKey,
-                                dataset: datasetGroup.dataset,
-                                cellType: cellTypeGroup.cellType,
-                                model: modelGroup.model,
-                                factor: factorGroup.factor,
-                                score: factorGroup.score,
-                                scoreField: factorGroup.scoreField,
-                                summary,
-                                label,
-                                datasetLabel: this.getDatasetDisplayLabel(datasetGroup.dataset),
-                                datasetSubLabel: this.getDatasetDisplaySubLabel(datasetGroup.dataset)
-                            });
-                            group.distinctDatasets.add(datasetGroup.dataset);
-                            group.distinctCellTypes.add(`${datasetGroup.dataset}::${cellTypeGroup.cellType}`);
-                            group.distinctModels.add(`${datasetGroup.dataset}::${cellTypeGroup.cellType}::${modelGroup.model}`);
-                        });
-                    });
-                });
+            return buildSharedProgramGroups(this.searchHierarchy || [], {
+                getFactorSummary: (...args) => this.getFactorSummary(...args),
+                getDatasetDisplayLabel: (...args) => this.getDatasetDisplayLabel(...args),
+                getDatasetDisplaySubLabel: (...args) => this.getDatasetDisplaySubLabel(...args)
             });
-
-            const sharedGroups = Array.from(groupedPrograms.values())
-                .map((group) => ({
-                    key: group.key,
-                    label: group.label,
-                    contexts: group.contexts.sort((contextA, contextB) => {
-                        const scoreA = Number(contextA.score);
-                        const scoreB = Number(contextB.score);
-                        const normalizedScoreA = Number.isFinite(scoreA) ? scoreA : Number.NEGATIVE_INFINITY;
-                        const normalizedScoreB = Number.isFinite(scoreB) ? scoreB : Number.NEGATIVE_INFINITY;
-
-                        return normalizedScoreB - normalizedScoreA;
-                    }),
-                    contextCount: group.contexts.length,
-                    datasetCount: group.distinctDatasets.size,
-                    cellTypeCount: group.distinctCellTypes.size,
-                    modelCount: group.distinctModels.size
-                }))
-                .sort((groupA, groupB) => {
-                    if (groupB.contextCount !== groupA.contextCount) {
-                        return groupB.contextCount - groupA.contextCount;
-                    }
-
-                    const bestScoreA = Number(groupA.contexts[0]?.score);
-                    const bestScoreB = Number(groupB.contexts[0]?.score);
-                    const normalizedScoreA = Number.isFinite(bestScoreA) ? bestScoreA : Number.NEGATIVE_INFINITY;
-                    const normalizedScoreB = Number.isFinite(bestScoreB) ? bestScoreB : Number.NEGATIVE_INFINITY;
-
-                    if (normalizedScoreB !== normalizedScoreA) {
-                        return normalizedScoreB - normalizedScoreA;
-                    }
-
-                    return groupA.label.localeCompare(groupB.label);
-                });
-
-            const recurringGroups = sharedGroups.filter((group) => group.contextCount > 1);
-            return recurringGroups.length ? recurringGroups : sharedGroups;
         },
         activeSharedProgramGroup() {
             return this.sharedProgramGroups.find(
@@ -281,7 +117,7 @@ new Vue({
     methods: {  
         // Generic API helpers -------------------------------------------------
         async getPageInfo(){
-            const content = await getTextContent(this.infoPageId, false, true);
+            const content = await getPankbaseContent(this.infoPageId, false, true);
             console.log('content', content);
             this.title = content.title;
             this.info = content.body;
@@ -298,266 +134,47 @@ new Vue({
             };
             document.head.appendChild(script);
         },
-        buildLigerApiUrl(mode, endpoint, queryParts, extraParams = {}) {
-            const searchParams = new URLSearchParams();
-            searchParams.set("q", queryParts.join(","));
-
-            Object.entries(extraParams).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && value !== "") {
-                    searchParams.set(key, value);
-                }
-            });
-
-            return `${this.ligerApi.baseUrl}/${mode}/${endpoint}?${searchParams.toString()}`;
-        },
-        buildLigerCacheKey(queryParts, extraParams = {}) {
-            const extraKey = Object.entries(extraParams)
-                .filter(([, value]) => value !== undefined && value !== null && value !== "")
-                .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                .map(([key, value]) => `${key}=${value}`)
-                .join("::");
-
-            return extraKey ? `${queryParts.join("::")}::${extraKey}` : queryParts.join("::");
-        },
-        async fetchLigerJson(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Liger API request failed: ${response.status} ${response.statusText}`);
-                }
-
-                return await response.json();
-            } catch (error) {
-                // Leave the logging in place for now. During UI wiring this will make it
-                // much easier to separate API failures from rendering bugs.
-                console.error("Liger API fetch error:", error);
-                throw error;
-            }
-        },
-        async fetchCachedLigerResource(cacheGroup, queryParts, urlBuilder, extraParams = {}) {
-            const cacheKey = this.buildLigerCacheKey(queryParts, extraParams);
-
-            if (this.ligerApiCache[cacheGroup][cacheKey]) {
-                return this.ligerApiCache[cacheGroup][cacheKey];
-            }
-
-            const url = urlBuilder(queryParts, extraParams);
-            const payload = await this.fetchLigerJson(url);
-            this.$set(this.ligerApiCache[cacheGroup], cacheKey, payload);
-
-            return payload;
-        },
-
-        // Query parsing helpers -----------------------------------------------
         buildFactorContext({ dataset, cellType, model, factor }) {
-            const context = [dataset, cellType, model];
-
-            if (factor) {
-                context.push(factor);
-            }
-
-            return context;
-        },
-        parseGraphFactorValue(factorValue) {
-            const [dataset, cellType, model, factor] = (factorValue || "").split(";");
-
-            // The graph search endpoint encodes factor context into one string.
-            // Breaking it out once here will keep the UI code much cleaner later.
-            return {
-                dataset: dataset || null,
-                cellType: cellType || null,
-                model: model || null,
-                factor: factor || null
-            };
-        },
-        normalizeGraphEdges(edges = []) {
-            return edges.map((edge) => {
-                const factorContext = this.parseGraphFactorValue(edge.n2_value);
-
-                return {
-                    ...edge,
-                    factorContext
-                };
-            });
-        },
-        normalizeFactorRows(rows = []) {
-            return rows.map((row) => ({
-                ...row,
-                top_cells_list: this.splitCommaSeparatedValues(row.top_cells),
-                top_gene_sets_list: Array.isArray(row.top_gene_sets) ? row.top_gene_sets : [],
-                top_genes_list: Array.isArray(row.top_genes) ? row.top_genes : [],
-                top_traits_list: Array.isArray(row.top_traits) ? row.top_traits : []
-            }));
-        },
-        splitCommaSeparatedValues(value) {
-            if (!value) return [];
-            return value.split(",").map((item) => item.trim()).filter(Boolean);
+            return buildFactorContext({ dataset, cellType, model, factor });
         },
         buildDetailScoreItems(labels = [], rows = []) {
-            return labels.map((label, index) => {
-                const row = rows[index] || {};
-
-                return {
-                    label,
-                    value: row.value ?? null,
-                    pValue: row.pValue ?? row.p_value ?? null,
-                    beta: row.beta ?? null
-                };
+            return buildDetailScoreItems(labels, rows);
+        },
+        async fetchLigerFactors({ dataset, cellType, model }) {
+            return await fetchLigerFactors({
+                apiConfig: this.ligerApi,
+                apiCache: this.ligerApiCache,
+                dataset,
+                cellType,
+                model
             });
         },
-
-        // Factor catalog + detail methods ------------------------------------
-        async fetchLigerFactors({ dataset, cellType, model }) {
-            const queryParts = this.buildFactorContext({ dataset, cellType, model });
-            const payload = await this.fetchCachedLigerResource(
-                "factors",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.factors, parts)
-            );
-
-            return {
-                ...payload,
-                data: this.normalizeFactorRows(payload.data || [])
-            };
-        },
-        async fetchLigerFactorGenes({ dataset, cellType, model, factor, limit }) {
-            const queryParts = this.buildFactorContext({ dataset, cellType, model, factor });
-            return await this.fetchCachedLigerResource(
-                "factorGenes",
-                queryParts,
-                (parts, extraParams) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.factorGenes, parts, extraParams),
-                { limit }
-            );
-        },
-        async fetchLigerFactorTraits({ dataset, cellType, model, factor, limit }) {
-            const queryParts = this.buildFactorContext({ dataset, cellType, model, factor });
-            return await this.fetchCachedLigerResource(
-                "factorTraits",
-                queryParts,
-                (parts, extraParams) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.factorTraits, parts, extraParams),
-                { limit }
-            );
-        },
-        async fetchLigerFactorGeneSets({ dataset, cellType, model, factor, limit }) {
-            const queryParts = this.buildFactorContext({ dataset, cellType, model, factor });
-            return await this.fetchCachedLigerResource(
-                "factorGeneSets",
-                queryParts,
-                (parts, extraParams) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.factorGeneSets, parts, extraParams),
-                { limit }
-            );
-        },
-        async fetchLigerFactorCells({ dataset, cellType, model, factor }) {
-            const queryParts = this.buildFactorContext({ dataset, cellType, model, factor });
-            return await this.fetchCachedLigerResource(
-                "factorCells",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.factorCells, parts)
-            );
-        },
-        async fetchLigerFactorBundle({ dataset, cellType, model, factor }) {
-            // Future UI note: this is the main drill-down bundle the factor detail
-            // panel will likely call after a user selects a factor from search results.
-            const [traits, geneSets, cells] = await Promise.all([
-                this.fetchLigerFactorTraits({ dataset, cellType, model, factor }),
-                this.fetchLigerFactorGeneSets({ dataset, cellType, model, factor }),
-                this.fetchLigerFactorCells({ dataset, cellType, model, factor })
-            ]);
-
-            return {
-                traits,
-                geneSets,
-                cells
-            };
-        },
         async fetchLigerFactorDetailScores({ dataset, cellType, model, factor, summary }) {
-            const topGenes = summary?.top_genes_list || [];
-            const topTraits = summary?.top_traits_list || [];
-            const topGeneSets = summary?.top_gene_sets_list || [];
-
-            const [genePayload, traitPayload, geneSetPayload] = await Promise.all([
-                topGenes.length
-                    ? this.fetchLigerFactorGenes({ dataset, cellType, model, factor, limit: topGenes.length })
-                    : Promise.resolve({ data: [] }),
-                topTraits.length
-                    ? this.fetchLigerFactorTraits({ dataset, cellType, model, factor, limit: topTraits.length })
-                    : Promise.resolve({ data: [] }),
-                topGeneSets.length
-                    ? this.fetchLigerFactorGeneSets({ dataset, cellType, model, factor, limit: topGeneSets.length })
-                    : Promise.resolve({ data: [] })
-            ]);
-
-            return {
-                topGenes: this.buildDetailScoreItems(topGenes, genePayload.data || []),
-                topTraits: this.buildDetailScoreItems(topTraits, traitPayload.data || []),
-                topGeneSets: this.buildDetailScoreItems(topGeneSets, geneSetPayload.data || [])
-            };
-        },
-
-        // Search + graph methods ---------------------------------------------
-        async searchLigerTraitMatches(searchTerm) {
-            const queryParts = ["trait", searchTerm];
-            return await this.fetchCachedLigerResource(
-                "graphTraitMatches",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("match", this.ligerApi.matchEndpoints.graphEdges, parts)
-            );
-        },
-        async searchLigerGeneMatches(searchTerm) {
-            const queryParts = ["gene", searchTerm];
-            return await this.fetchCachedLigerResource(
-                "graphGeneMatches",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("match", this.ligerApi.matchEndpoints.graphEdges, parts)
-            );
-        },
-        async fetchLigerTraitGraphResults(trait) {
-            const queryParts = ["trait", trait];
-            const payload = await this.fetchCachedLigerResource(
-                "graphTraitResults",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.graphEdges, parts)
-            );
-
-            return {
-                ...payload,
-                data: this.normalizeGraphEdges(payload.data || [])
-            };
-        },
-        async fetchLigerGeneGraphResults(gene) {
-            const queryParts = ["gene", gene];
-            const payload = await this.fetchCachedLigerResource(
-                "graphGeneResults",
-                queryParts,
-                (parts) => this.buildLigerApiUrl("query", this.ligerApi.queryEndpoints.graphEdges, parts)
-            );
-
-            return {
-                ...payload,
-                data: this.normalizeGraphEdges(payload.data || [])
-            };
+            return await fetchLigerFactorDetailScores({
+                apiConfig: this.ligerApi,
+                apiCache: this.ligerApiCache,
+                dataset,
+                cellType,
+                model,
+                factor,
+                summary
+            });
         },
         async fetchLigerSearchResults({ searchType, searchTerm }) {
-            if (searchType === "trait") {
-                return await this.fetchLigerTraitGraphResults(searchTerm);
-            }
-
-            if (searchType === "gene") {
-                return await this.fetchLigerGeneGraphResults(searchTerm);
-            }
-
-            throw new Error(`Unsupported Liger search type: ${searchType}`);
+            return await fetchLigerSearchResults({
+                apiConfig: this.ligerApi,
+                apiCache: this.ligerApiCache,
+                searchType,
+                searchTerm
+            });
         },
         async fetchLigerSearchMatches({ searchType, searchTerm }) {
-            if (searchType === "trait") {
-                return await this.searchLigerTraitMatches(searchTerm);
-            }
-
-            if (searchType === "gene") {
-                return await this.searchLigerGeneMatches(searchTerm);
-            }
-
-            throw new Error(`Unsupported Liger search type: ${searchType}`);
+            return await fetchLigerSearchMatches({
+                apiConfig: this.ligerApi,
+                apiCache: this.ligerApiCache,
+                searchType,
+                searchTerm
+            });
         },
 
         // Small convenience method for early testing and future mounted hooks.
@@ -569,6 +186,18 @@ new Vue({
                 cellType: this.ligerDefaults.cellType,
                 model: this.ligerDefaults.model
             });
+        },
+        registerCanvasSectionApi(api) {
+            this.canvasSectionApi = api;
+        },
+        registerDetailsSectionApi(api) {
+            this.detailsSectionApi = api;
+        },
+        clearBrowserCanvasAnimationTimer() {
+            if (this.browserCanvasAnimationTimer) {
+                clearTimeout(this.browserCanvasAnimationTimer);
+                this.browserCanvasAnimationTimer = null;
+            }
         },
         setSearchType(nextSearchType) {
             if (this.searchType === nextSearchType) {
@@ -595,17 +224,10 @@ new Vue({
 
             this.browserMode = nextBrowserMode;
             this.factorModalData = null;
-            this.activeDetailPanel = {
-                type: null,
-                key: null
-            };
+            this.activeDetailPanel = createInitialDetailPanel();
 
             if (nextBrowserMode === "sharedPrograms") {
-                this.activeHierarchyPath = {
-                    dataset: null,
-                    cellType: null,
-                    model: null
-                };
+                this.activeHierarchyPath = createInitialHierarchyPath();
                 await this.ensureSharedProgramModeReady();
 
                 if (this.sharedProgramGroups.length) {
@@ -635,11 +257,7 @@ new Vue({
                     this.fitAndCenterBrowserCanvas();
                     await openFactorModalPromise;
                 } else {
-                    this.activeHierarchyPath = {
-                        dataset: null,
-                        cellType: null,
-                        model: null
-                    };
+                    this.activeHierarchyPath = createInitialHierarchyPath();
                     this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
                 }
 
@@ -650,80 +268,13 @@ new Vue({
             this.fitAndCenterBrowserCanvas();
         },
         buildFactorContextKey({ dataset, cellType, model }) {
-            return [dataset, cellType, model].join("::");
-        },
-        buildHierarchyGroupKey(level, parts) {
-            return [level, ...parts].join("::");
-        },
-        groupSearchEdgesByHierarchy(edges = []) {
-            const hierarchyMap = new Map();
-
-            edges.forEach((edge) => {
-                const { dataset, cellType, model, factor } = edge.factorContext || {};
-
-                if (!dataset || !cellType || !model || !factor) {
-                    return;
-                }
-
-                if (!hierarchyMap.has(dataset)) {
-                    hierarchyMap.set(dataset, new Map());
-                }
-
-                const datasetMap = hierarchyMap.get(dataset);
-
-                if (!datasetMap.has(cellType)) {
-                    datasetMap.set(cellType, new Map());
-                }
-
-                const cellTypeMap = datasetMap.get(cellType);
-
-                if (!cellTypeMap.has(model)) {
-                    cellTypeMap.set(model, []);
-                }
-
-                cellTypeMap.get(model).push({
-                    factor: factor,
-                    score: edge.value,
-                    scoreField: edge.value_field,
-                    edge
-                });
-            });
-
-            return Array.from(hierarchyMap.entries()).map(([dataset, cellTypesMap]) => ({
-                dataset,
-                cellTypes: Array.from(cellTypesMap.entries()).map(([cellType, modelsMap]) => ({
-                    cellType,
-                    models: Array.from(modelsMap.entries()).map(([model, factors]) => ({
-                        model,
-                        factors
-                    }))
-                }))
-            }));
+            return buildFactorContextKey({ dataset, cellType, model });
         },
         buildSearchHierarchy(searchPayload) {
-            return this.groupSearchEdgesByHierarchy(searchPayload?.data || []);
+            return buildSearchHierarchy(searchPayload);
         },
         isHierarchyItemActive(level, value, context = {}) {
-            if (level === "searchRoot") {
-                return Boolean(this.getSearchRootDisplayValue());
-            }
-
-            if (level === "dataset") {
-                return this.activeHierarchyPath.dataset === value;
-            }
-
-            if (level === "cellType") {
-                return this.activeHierarchyPath.dataset === context.dataset
-                    && this.activeHierarchyPath.cellType === value;
-            }
-
-            if (level === "model") {
-                return this.activeHierarchyPath.dataset === context.dataset
-                    && this.activeHierarchyPath.cellType === context.cellType
-                    && this.activeHierarchyPath.model === value;
-            }
-
-            return false;
+            return isHierarchyItemActive(this, level, value, context);
         },
         setActiveDetailPanel(type, key) {
             this.activeDetailPanel = {
@@ -743,11 +294,8 @@ new Vue({
             if (level === "dataset") {
                 this.factorModalData = null;
                 this.activeSharedProgramContextKey = null;
-                this.activeHierarchyPath = {
-                    dataset: context.dataset || null,
-                    cellType: null,
-                    model: null
-                };
+                this.activeHierarchyPath = createInitialHierarchyPath();
+                this.activeHierarchyPath.dataset = context.dataset || null;
                 this.setActiveDetailPanel("dataset", context.dataset || null);
                 this.fitAndCenterBrowserCanvas();
                 return;
@@ -756,11 +304,9 @@ new Vue({
             if (level === "cellType") {
                 this.factorModalData = null;
                 this.activeSharedProgramContextKey = null;
-                this.activeHierarchyPath = {
-                    dataset: context.dataset || null,
-                    cellType: context.cellType || null,
-                    model: null
-                };
+                this.activeHierarchyPath = createInitialHierarchyPath();
+                this.activeHierarchyPath.dataset = context.dataset || null;
+                this.activeHierarchyPath.cellType = context.cellType || null;
                 this.setActiveDetailPanel("cellType", [context.dataset, context.cellType].join("::"));
                 this.fitAndCenterBrowserCanvas();
                 return;
@@ -781,133 +327,46 @@ new Vue({
             }
         },
         getSearchRootDisplayValue() {
-            return this.selectedSearchValue || this.searchTerm || "";
-        },
-        resolveDatasetMetadataId(dataset) {
-            if (dataset === "scRNA") {
-                return "islet_of_Langerhans_scRNA_v3-3";
-            }
-
-            return dataset;
+            return getSearchRootDisplayValue(this);
         },
         getDatasetMetadata(dataset) {
-            return this.ligerDatasetMetadata[this.resolveDatasetMetadataId(dataset)] || null;
+            return getDatasetMetadata(this.ligerDatasetMetadata, dataset);
         },
         getDatasetDisplayLabel(dataset) {
-            return this.getDatasetMetadata(dataset)?.tissue || dataset;
+            return getDatasetDisplayLabel(this.ligerDatasetMetadata, dataset);
         },
         getDatasetDisplaySubLabel(dataset) {
-            return dataset;
+            return getDatasetDisplaySubLabel(dataset);
         },
         getVisibleDetailPanels() {
-            const panels = [];
-            const searchValue = this.getSearchRootDisplayValue();
-
-            if (searchValue) {
-                panels.push({
-                    type: "searchRoot",
-                    key: `${this.searchType}::${searchValue}`,
-                    badgeClass: "is-search",
-                    badgeLabel: this.searchType === "gene" ? "Gene" : "Trait",
-                    value: searchValue,
-                    placeholder: `${this.searchType === "gene" ? "Gene" : "Trait"} detail placeholder`
-                });
-            }
-
-            if (this.browserMode === "sharedPrograms" && !this.activeSharedProgramContextKey) {
-                return panels;
-            }
-
-            if (this.activeHierarchyPath.dataset) {
-                const datasetMetadata = this.getDatasetMetadata(this.activeHierarchyPath.dataset);
-                panels.push({
-                    type: "dataset",
-                    key: this.activeHierarchyPath.dataset,
-                    badgeClass: "is-dataset",
-                    badgeLabel: "Tissue",
-                    value: this.getDatasetDisplayLabel(this.activeHierarchyPath.dataset),
-                    placeholder: "Dataset detail placeholder",
-                    metadata: datasetMetadata
-                });
-            }
-
-            if (this.activeHierarchyPath.cellType) {
-                panels.push({
-                    type: "cellType",
-                    key: [this.activeHierarchyPath.dataset, this.activeHierarchyPath.cellType].join("::"),
-                    badgeClass: "is-cell-type",
-                    badgeLabel: "Cell Type",
-                    value: this.activeHierarchyPath.cellType,
-                    placeholder: "Cell type detail placeholder"
-                });
-            }
-
-            if (this.activeHierarchyPath.model) {
-                panels.push({
-                    type: "model",
-                    key: [this.activeHierarchyPath.dataset, this.activeHierarchyPath.cellType, this.activeHierarchyPath.model].join("::"),
-                    badgeClass: "is-model",
-                    badgeLabel: "Model",
-                    value: this.activeHierarchyPath.model,
-                    placeholder: "Model detail placeholder"
-                });
-            }
-
-            if (this.factorModalData) {
-                panels.push({
-                    type: "geneProgram",
-                    key: this.factorModalData.factorContextKey,
-                    badgeClass: "is-factor",
-                    badgeLabel: "Gene Program",
-                    value: this.factorModalData.summary?.label || this.factorModalData.factor
-                });
-            }
-
-            return panels;
+            return buildVisibleDetailPanels({
+                searchType: this.searchType,
+                browserMode: this.browserMode,
+                activeSharedProgramContextKey: this.activeSharedProgramContextKey,
+                activeHierarchyPath: this.activeHierarchyPath,
+                factorModalData: this.factorModalData,
+                ligerDatasetMetadata: this.ligerDatasetMetadata,
+                selectedSearchValue: this.selectedSearchValue,
+                searchTerm: this.searchTerm
+            });
         },
         isDetailPanelActive(panel) {
             return this.activeDetailPanel.type === panel.type && this.activeDetailPanel.key === panel.key;
         },
         isSharedSearchRootActive() {
-            return Boolean(this.getSearchRootDisplayValue());
+            return isSharedSearchRootActive(this);
         },
         getActiveDatasetGroup() {
-            return (this.searchHierarchy || []).find(
-                (datasetGroup) => datasetGroup.dataset === this.activeHierarchyPath.dataset
-            ) || null;
+            return getActiveDatasetGroup(this.searchHierarchy || [], this.activeHierarchyPath);
         },
         getActiveCellTypeGroup() {
-            const datasetGroup = this.getActiveDatasetGroup();
-
-            if (!datasetGroup) {
-                return null;
-            }
-
-            return (datasetGroup.cellTypes || []).find(
-                (cellTypeGroup) => cellTypeGroup.cellType === this.activeHierarchyPath.cellType
-            ) || null;
+            return getActiveCellTypeGroup(this.searchHierarchy || [], this.activeHierarchyPath);
         },
         getActiveModelGroup() {
-            const cellTypeGroup = this.getActiveCellTypeGroup();
-
-            if (!cellTypeGroup) {
-                return null;
-            }
-
-            return (cellTypeGroup.models || []).find(
-                (modelGroup) => modelGroup.model === this.activeHierarchyPath.model
-            ) || null;
+            return getActiveModelGroup(this.searchHierarchy || [], this.activeHierarchyPath);
         },
         getAllHierarchyModelContexts() {
-            return (this.searchHierarchy || []).flatMap((datasetGroup) =>
-                (datasetGroup.cellTypes || []).flatMap((cellTypeGroup) =>
-                    (cellTypeGroup.models || []).map((modelGroup) => ({
-                        dataset: datasetGroup.dataset,
-                        cellType: cellTypeGroup.cellType,
-                        model: modelGroup.model
-                    }))
-                )
-            );
+            return getAllHierarchyModelContexts(this.searchHierarchy || []);
         },
         async ensureSharedProgramModeReady() {
             const modelContexts = this.getAllHierarchyModelContexts();
@@ -939,11 +398,7 @@ new Vue({
         selectSharedProgramGroup(groupKey) {
             this.activeSharedProgramKey = groupKey;
             this.activeSharedProgramContextKey = null;
-            this.activeHierarchyPath = {
-                dataset: null,
-                cellType: null,
-                model: null
-            };
+            this.activeHierarchyPath = createInitialHierarchyPath();
             this.factorModalData = null;
             this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
             this.fitAndCenterBrowserCanvas();
@@ -968,175 +423,8 @@ new Vue({
             });
             this.fitAndCenterBrowserCanvas();
         },
-        getBrowserViewportElement() {
-            return this.$el?.querySelector(".liger-browser-viewport") || null;
-        },
-        getBrowserContentElement() {
-            return this.$el?.querySelector(".liger-browser-content") || null;
-        },
-        setBrowserCanvasAnimationState(isAnimating) {
-            if (this.browserCanvasAnimationTimer) {
-                clearTimeout(this.browserCanvasAnimationTimer);
-                this.browserCanvasAnimationTimer = null;
-            }
-
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                isAnimating
-            };
-
-            if (isAnimating) {
-                this.browserCanvasAnimationTimer = setTimeout(() => {
-                    this.browserCanvas = {
-                        ...this.browserCanvas,
-                        isAnimating: false
-                    };
-                    this.browserCanvasAnimationTimer = null;
-                }, 220);
-            }
-        },
-        animateBrowserCanvasTo({ x, y, scale = this.browserCanvas.scale }) {
-            this.setBrowserCanvasAnimationState(true);
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                x,
-                y,
-                scale,
-                isDragging: false,
-                isAnimating: true
-            };
-        },
-        isEventOverBrowserColumn(event) {
-            return Boolean(event.target?.closest(".liger-browser-column"));
-        },
-        startBrowserCanvasPan(event) {
-            if (event.button !== undefined && event.button !== 0) {
-                return;
-            }
-
-            if (this.isEventOverBrowserColumn(event)) {
-                return;
-            }
-
-            this.setBrowserCanvasAnimationState(false);
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                isDragging: true,
-                startX: event.clientX,
-                startY: event.clientY,
-                originX: this.browserCanvas.x,
-                originY: this.browserCanvas.y
-            };
-        },
-        handleBrowserCanvasPointerMove(event) {
-            if (!this.browserCanvas.isDragging) {
-                return;
-            }
-
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                x: this.browserCanvas.originX + (event.clientX - this.browserCanvas.startX),
-                y: this.browserCanvas.originY + (event.clientY - this.browserCanvas.startY)
-            };
-        },
-        canScrollBrowserList(listElement, deltaY) {
-            if (!listElement || listElement.scrollHeight <= listElement.clientHeight) {
-                return false;
-            }
-
-            if (deltaY < 0) {
-                return listElement.scrollTop > 0;
-            }
-
-            if (deltaY > 0) {
-                return listElement.scrollTop + listElement.clientHeight < listElement.scrollHeight;
-            }
-
-            return false;
-        },
-        normalizeWheelDelta(deltaY) {
-            const limitedDelta = Math.max(-120, Math.min(120, deltaY));
-            return limitedDelta / 120;
-        },
-        handleBrowserCanvasWheel(event) {
-            if (this.isEventOverBrowserColumn(event)) {
-                return;
-            }
-
-            const scrollableList = event.target?.closest(".liger-browser-list");
-
-            if (scrollableList && this.canScrollBrowserList(scrollableList, event.deltaY)) {
-                return;
-            }
-
-            const viewportElement = this.getBrowserViewportElement();
-            const contentElement = this.getBrowserContentElement();
-
-            if (!viewportElement || !contentElement) {
-                return;
-            }
-
-            event.preventDefault();
-
-            const normalizedDelta = this.normalizeWheelDelta(event.deltaY);
-            const zoomMultiplier = 1 - (normalizedDelta * 0.045);
-            const nextScale = Math.min(2.25, Math.max(0.55, this.browserCanvas.scale * zoomMultiplier));
-
-            if (nextScale === this.browserCanvas.scale) {
-                return;
-            }
-
-            const viewportRect = viewportElement.getBoundingClientRect();
-            const pointerX = event.clientX - viewportRect.left;
-            const pointerY = event.clientY - viewportRect.top;
-            const contentX = (pointerX - this.browserCanvas.x) / this.browserCanvas.scale;
-            const contentY = (pointerY - this.browserCanvas.y) / this.browserCanvas.scale;
-
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                scale: nextScale,
-                x: pointerX - (contentX * nextScale),
-                y: pointerY - (contentY * nextScale),
-                isAnimating: false
-            };
-        },
-        handleBrowserCanvasPointerUp() {
-            if (!this.browserCanvas.isDragging) {
-                return;
-            }
-
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                isDragging: false
-            };
-        },
         fitAndCenterBrowserCanvas() {
-            this.$nextTick(() => {
-                const viewportElement = this.getBrowserViewportElement();
-                const contentElement = this.getBrowserContentElement();
-
-                if (!viewportElement || !contentElement) {
-                    return;
-                }
-
-                const contentWidth = contentElement.offsetWidth;
-                const contentHeight = contentElement.offsetHeight;
-
-                if (!contentWidth || !contentHeight) {
-                    return;
-                }
-
-                const padding = 40;
-                const availableWidth = Math.max(viewportElement.clientWidth - padding, 1);
-                const availableHeight = Math.max(viewportElement.clientHeight - padding, 1);
-                const fittedScale = Math.min(1.15, availableWidth / contentWidth, availableHeight / contentHeight);
-
-                this.animateBrowserCanvasTo({
-                    x: (viewportElement.clientWidth - (contentWidth * fittedScale)) / 2,
-                    y: (viewportElement.clientHeight - (contentHeight * fittedScale)) / 2,
-                    scale: fittedScale
-                });
-            });
+            this.canvasSectionApi?.fitAndCenterBrowserCanvas?.();
         },
         isGroupExpanded(groupKey) {
             return Boolean(this.expandedGroups[groupKey]);
@@ -1190,37 +478,8 @@ new Vue({
             }
         },
         resetSearchState() {
-            this.browserMode = "hierarchy";
-            this.searchTerm = "";
-            this.selectedSearchValue = "";
-            this.searchMatches = null;
-            this.searchResults = null;
-            this.searchHierarchy = null;
-            this.expandedGroups = {};
-            this.activeHierarchyPath = {
-                dataset: null,
-                cellType: null,
-                model: null
-            };
-            this.activeDetailPanel = {
-                type: null,
-                key: null
-            };
-            this.activeSharedProgramKey = null;
-            this.activeSharedProgramContextKey = null;
-            this.sharedProgramsLoading = false;
-            this.browserCanvas = {
-                ...this.browserCanvas,
-                x: 0,
-                y: 0,
-                scale: 1,
-                isDragging: false,
-                isAnimating: false
-            };
-            this.modelFactorDetails = {};
-            this.modelFactorLoading = {};
-            this.factorModalData = null;
-            this.errorMessage = "";
+            this.clearBrowserCanvasAnimationTimer();
+            Object.assign(this, createSearchResetState());
 
             if (this.searchDebounceTimer) {
                 clearTimeout(this.searchDebounceTimer);
@@ -1244,31 +503,8 @@ new Vue({
             }
 
             if (!normalizedSearchTerm) {
-                this.searchMatches = null;
-                this.searchResults = null;
-                this.searchHierarchy = null;
-                this.expandedGroups = {};
-                this.activeHierarchyPath = {
-                    dataset: null,
-                    cellType: null,
-                    model: null
-                };
-                this.activeDetailPanel = {
-                    type: null,
-                    key: null
-                };
-                this.activeSharedProgramKey = null;
-                this.activeSharedProgramContextKey = null;
-                this.sharedProgramsLoading = false;
-                this.browserCanvas = {
-                    ...this.browserCanvas,
-                    x: 0,
-                    y: 0,
-                    scale: 1,
-                    isDragging: false,
-                    isAnimating: false
-                };
-                this.factorModalData = null;
+                this.clearBrowserCanvasAnimationTimer();
+                Object.assign(this, createClearedResultsState());
                 this.isLoading = false;
                 return;
             }
@@ -1311,30 +547,8 @@ new Vue({
             const normalizedSearchTerm = (searchTerm || "").trim();
 
             if (!normalizedSearchTerm) {
-                this.searchResults = null;
-                this.searchHierarchy = null;
-                this.expandedGroups = {};
-                this.activeHierarchyPath = {
-                    dataset: null,
-                    cellType: null,
-                    model: null
-                };
-                this.activeDetailPanel = {
-                    type: null,
-                    key: null
-                };
-                this.activeSharedProgramKey = null;
-                this.activeSharedProgramContextKey = null;
-                this.sharedProgramsLoading = false;
-                this.browserCanvas = {
-                    ...this.browserCanvas,
-                    x: 0,
-                    y: 0,
-                    scale: 1,
-                    isDragging: false,
-                    isAnimating: false
-                };
-                this.factorModalData = null;
+                this.clearBrowserCanvasAnimationTimer();
+                Object.assign(this, createClearedResultsState());
                 this.errorMessage = "Enter a trait or gene search term first.";
                 return;
             }
@@ -1349,28 +563,15 @@ new Vue({
                     searchType,
                     searchTerm: normalizedSearchTerm
                 });
+                this.clearBrowserCanvasAnimationTimer();
                 this.searchHierarchy = this.buildSearchHierarchy(this.searchResults);
                 this.expandedGroups = {};
-                this.activeHierarchyPath = {
-                    dataset: null,
-                    cellType: null,
-                    model: null
-                };
-                this.activeDetailPanel = {
-                    type: "searchRoot",
-                    key: `${searchType}::${normalizedSearchTerm}`
-                };
+                this.activeHierarchyPath = createInitialHierarchyPath();
+                this.activeDetailPanel = createInitialDetailPanel("searchRoot", `${searchType}::${normalizedSearchTerm}`);
                 this.activeSharedProgramKey = null;
                 this.activeSharedProgramContextKey = null;
                 this.sharedProgramsLoading = false;
-                this.browserCanvas = {
-                    ...this.browserCanvas,
-                    x: 0,
-                    y: 0,
-                    scale: 1,
-                    isDragging: false,
-                    isAnimating: false
-                };
+                this.browserCanvas = createInitialBrowserCanvas();
                 this.modelFactorDetails = {};
                 this.modelFactorLoading = {};
                 this.factorModalData = null;
@@ -1402,70 +603,10 @@ new Vue({
             });
         },
         async openFactorModal({ dataset, cellType, model, factor, score, scoreField }) {
-            const summary = this.getFactorSummary(dataset, cellType, model, factor);
-            const factorContextKey = [dataset, cellType, model, factor].join("::");
-
-            this.factorModalData = {
-                dataset,
-                cellType,
-                model,
-                factor,
-                score,
-                scoreField,
-                summary,
-                factorContextKey,
-                detailLoading: true,
-                detailScores: {
-                    topGenes: this.buildDetailScoreItems(summary?.top_genes_list || [], []),
-                    topTraits: this.buildDetailScoreItems(summary?.top_traits_list || [], []),
-                    topGeneSets: this.buildDetailScoreItems(summary?.top_gene_sets_list || [], [])
-                }
-            };
-            this.setActiveDetailPanel("geneProgram", factorContextKey);
-
-            try {
-                const detailScores = await this.fetchLigerFactorDetailScores({
-                    dataset,
-                    cellType,
-                    model,
-                    factor,
-                    summary
-                });
-
-                if (this.factorModalData?.factorContextKey !== factorContextKey) {
-                    return;
-                }
-
-                this.factorModalData = {
-                    ...this.factorModalData,
-                    detailLoading: false,
-                    detailScores
-                };
-            } catch (error) {
-                if (this.factorModalData?.factorContextKey !== factorContextKey) {
-                    return;
-                }
-
-                this.factorModalData = {
-                    ...this.factorModalData,
-                    detailLoading: false
-                };
-            }
+            return await this.detailsSectionApi?.openFactorModal?.({ dataset, cellType, model, factor, score, scoreField });
         },
         closeFactorModal() {
-            this.factorModalData = null;
-
-            if (this.browserMode === "sharedPrograms") {
-                this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
-                return;
-            }
-
-            if (this.activeHierarchyPath.model) {
-                this.setActiveDetailPanel(
-                    "model",
-                    [this.activeHierarchyPath.dataset, this.activeHierarchyPath.cellType, this.activeHierarchyPath.model].join("::")
-                );
-            }
+            this.detailsSectionApi?.closeFactorModal?.();
         },
 
     },
