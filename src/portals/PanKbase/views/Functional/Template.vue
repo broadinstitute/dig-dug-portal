@@ -8,7 +8,8 @@
                 <div class="card-body functional-page">
                     <div id="stats">
                         <span id="stats-header">Data Explorer</span>
-                        <span>({{ $parent.donorsWithData.length }} donors with available functional data)</span>
+                        <span v-if="$parent.filteredMetadata.length > 0">
+                            ({{ $parent.donorsWithData.length }} donors with available functional data)</span>
                     </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
                         <div class="row">
@@ -204,6 +205,7 @@
 .mdkp-card {
     margin-top: 20px;
     margin-bottom: 20px;
+    border: none !important;
 }
 .toc-item {
     padding: 10px;
