@@ -4,6 +4,7 @@
         {{ availableDonors }} donors available meeting criteria
       </div>
         <div class="download-images-setting">
+          Mouse over the plot to highlight an individual donor.
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
               Download SVG <b-icon icon="download"></b-icon>
             </button>
@@ -26,9 +27,6 @@
                 </tr>
               </table>
             </div>
-          </div>
-          <div v-else>
-            Mouse over the plot to highlight an individual donor.
           </div>
         </div>
         
