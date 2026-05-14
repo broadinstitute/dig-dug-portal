@@ -6,12 +6,9 @@
         <div class="pkb-body">
             <div class="card mdkp-card">
                 <div class="card-body functional-page">
-                    <h2>Data Explorer</h2>
-                    <div id="stats" class="row" v-if="$store.state.metadata.length > 0">
-                        <div class="col-md-6">
-                            Donors with available functional data
-                            <h3>{{ $parent.donorsWithData.length }}</h3>
-                        </div>
+                    <div id="stats">
+                        <span id="stats-header">Data Explorer</span>
+                        <span>({{ $parent.donorsWithData.length }} donors with available functional data)</span>
                     </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
                         <div class="row">
@@ -217,6 +214,12 @@
 }
 .stats {
     margin-bottom: 20px;
+    display: flex !important;
+    vertical-align: baseline;
+}
+#stats-header {
+    font-size: 2rem;
+    margin-right: 10px;
 }
 .line-plot{
     align-items: center;
