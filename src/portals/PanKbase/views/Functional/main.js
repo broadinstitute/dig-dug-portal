@@ -120,15 +120,23 @@ new Vue({
             filtersActive: [],
             selectedDonors: "",
             selectedDonorList: [],
-            useSelected: false
+            useSelected: false,
+            linkedFilters: null,
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
+        if (!!keyParams.donorFilters){
+            this.linkedFilters = JSON.parse(keyParams.donorFilters);
+            console.log(this.linkedFilters);
+        }
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
+        if (this.linkedFilters !== null){
+            this.filteredMetadata = this.applyLinkedFilters(this.filteredMetadata, this.linkedFilters);
+        }
         console.log(JSON.stringify(this.filteredMetadata.slice(0,10).map(e => e[this.fieldsObject.donorId.key])));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
@@ -229,6 +237,17 @@ new Vue({
             // TODO figure out why this is happening
             min = min === "" ? 0 : min;
             return [min, max];
+        },
+        applyLinkedFilters(data, filters){
+            let results = structuredClone(data);
+            for (let i = 0; i < filters.length; i++){
+                let filter = filters[i];
+                let field = filter.name;
+                if (!!filter.values){
+                    results = results.filter(r => filter.values.includes(r[field]));
+                }
+            }
+            return results;
         }
     },
     watch: {
