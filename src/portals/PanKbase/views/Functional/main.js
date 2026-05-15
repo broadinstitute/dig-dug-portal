@@ -68,11 +68,13 @@ new Vue({
             fieldsObject: {
                 accession: {
                     key: "Accession",
-                    sortable: true
+                    sortable: true,
+                    noSidebar: true,
                 },
                 donorId: {
                     key: "Center Donor ID",
-                    sortable: true
+                    sortable: true,
+                    noSidebar: true,
                 },
                 age: {
                     key: "Age (years)",
@@ -284,7 +286,8 @@ new Vue({
             // If the pasted-in donor list is applied, use that
             let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
             // If filters are linked in URL params from donor page, use those
-            return this.applyLinkedFilters(results);
+            //return this.applyLinkedFilters(results);
+            return results;
         }
     },
     methods: {

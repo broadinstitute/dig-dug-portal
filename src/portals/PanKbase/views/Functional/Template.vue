@@ -40,34 +40,11 @@
                                                 :range="$parent.getRange($parent.fieldsObject.cultureTime)">
                                                 <div class="label">Culture time (hrs)</div>
                                             </filter-slider>
-                                            <filter-radio :field="$parent.fieldsObject.sex.key"
-                                                :options="$parent.filteredMetadata.map(m => m.Gender)"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Gender</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.diabetesDesc.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.diabetesDesc.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Diabetes status</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.diabetes.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.diabetes.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Derived diabetes status</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.ethnicity.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.ethnicity.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Ethnicity</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.isolation.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.isolation.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Isolation center</div>
+                                            <filter-radio v-for="field in Object.values($parent.fieldsObject)
+                                                .filter(f => !f.isNumeric && !f.noSidebar)"
+                                                :options="$parent.filteredMetadata.map(m => m[field.key])"
+                                                :presets="$parent.linkedFilters">
+                                                <div class="label">{{ field.key }}</div>
                                             </filter-radio>
                                             <div class="advanced-filters" :hidden="!$parent.showAdvanced">
                                                 <filter-slider v-for="field in Object.values($parent.advancedFields)

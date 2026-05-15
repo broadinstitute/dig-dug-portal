@@ -9,6 +9,7 @@
     :multiple="false"
     :inclusive="false"
     :valueCleared="valueCleared"
+    :presets="presets"
   >
     <slot> </slot>
   </filter-radio-template>
@@ -25,10 +26,8 @@ export default Vue.component("filter-radio", {
       type: Function,
       default: (item, thresholdArray) => thresholdArray.includes(item),
     },
-    filtersActive: {
-      type: Array,
-      default: []
-    }
+    presets: Array
+
   },
   components: {
     FilterRadioTemplate,
@@ -43,9 +42,6 @@ export default Vue.component("filter-radio", {
       }
       return allOptions;
     },
-    valueCleared(){
-      return !this.filtersActive.includes(this.field);
-    }
   }
 });
 </script>
