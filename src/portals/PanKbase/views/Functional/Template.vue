@@ -69,7 +69,7 @@
                                                 :filtersActive="$parent.filtersActive">
                                                 <div class="label">Isolation center</div>
                                             </filter-radio>
-                                            <div class="advanced-filters">
+                                            <div class="advanced-filters" :hidden="!$parent.showAdvanced">
                                                 <filter-slider v-for="field in Object.values($parent.advancedFields)
                                                     .filter(f => f.isNumeric)"
                                                     :field="field.key"
@@ -83,6 +83,9 @@
 
                                                 </filter-radio>
                                             </div>
+                                            <button class="btn btn-secondary" @click="$parent.toggleAdvanced">
+                                                {{ $parent.showAdvanced ? "Hide" : "Show" }} advanced filters
+                                            </button>
                                             <template slot="filtered" slot-scope="{ filter }">
                                                 <div class="invisible-table">
                                                     <b-table v-model="$parent.filteredDonors"
@@ -279,6 +282,6 @@ div.line-plot:first-child {
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
-    overflow-y: scroll;
+    overflow-y: scroll !important;
 }
 </style>

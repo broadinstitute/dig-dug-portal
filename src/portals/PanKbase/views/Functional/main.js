@@ -241,6 +241,7 @@ new Vue({
             selectedDonorList: [],
             useSelected: false,
             linkedFilters: null,
+            showAdvanced: false,
         };
     },
     async created() {
@@ -368,6 +369,9 @@ new Vue({
                 }
             }
             return results;
+        },
+        toggleAdvanced(){
+            this.showAdvanced = !this.showAdvanced;
         }
     },
     watch: {
