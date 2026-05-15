@@ -209,8 +209,8 @@
                                             :chart-id="availabilityPlotChartId"
                                             category-key="dataType"
                                             value-key="donorCount"
-                                            :series-key="plotCategoryField ? 'groupValue' : ''"
-                                            :stacked="!!plotCategoryField"
+                                            :series-key="resolvedPlotCategoryField ? 'groupValue' : ''"
+                                            :stacked="!!resolvedPlotCategoryField"
                                             :height="200"
                                             :fit-width="true"
                                             :fit-height="false"
@@ -263,7 +263,7 @@
                                                     >
                                                         <div class="availability-data-type-segments-header">
                                                             <div class="availability-data-type-segments-title">
-                                                                {{ getColumnLabel(plotCategoryField) }}
+                                                                {{ getColumnLabel(resolvedPlotCategoryField) }}
                                                             </div>
                                                             <button
                                                                 class="availability-data-type-link availability-data-type-table-link"
@@ -597,6 +597,20 @@ export default {
 
             return this.preparedDataset.columns.map((column) => column.name);
         },
+        datasetFieldMap() {
+            return {
+                donorId: this.findColumn(["Accession", "accession", "donor_id", "Center Donor ID"]),
+                availability: this.findColumn(["Data_available_Pankbase", "Data available Pankbase"]),
+                defaultPlotCategory: this.findColumn(["Collections", "Collection", "collections"]),
+            };
+        },
+        resolvedPlotCategoryField() {
+            if (this.plotCategoryField && this.availableColumns.includes(this.plotCategoryField)) {
+                return this.plotCategoryField;
+            }
+
+            return this.datasetFieldMap.defaultPlotCategory || "";
+        },
         columnConfigMap() {
             if (!this.donorTableConfig || !Array.isArray(this.donorTableConfig.columns)) {
                 return {};
@@ -758,28 +772,29 @@ export default {
         },
         plotGroupingOptions() {
             return this.categoricalFilterColumns
-                .filter((column) => column.name !== "Data_available_Pankbase")
+                .filter((column) => column.name !== this.datasetFieldMap.availability)
                 .map((column) => ({
                     value: column.name,
                     text: this.getColumnLabel(column.name),
                 }));
         },
         donorAvailabilityPlotData() {
-            const availabilityKey = "Data_available_Pankbase";
-            if (!this.filteredRows.length) {
+            const availabilityKey = this.datasetFieldMap.availability;
+            const groupField = this.resolvedPlotCategoryField;
+            if (!this.filteredRows.length || !availabilityKey) {
                 return [];
             }
 
             const donorMap = {};
 
             this.filteredRows.forEach((row) => {
-                const donorId = row.Accession || row.accession || row.donor_id || null;
+                const donorId = this.getRowDonorId(row);
                 if (!donorId) {
                     return;
                 }
 
                 const uniqueDataTypes = this.parseAvailabilityValues(row[availabilityKey]);
-                const rawGroupValue = this.plotCategoryField ? row[this.plotCategoryField] : null;
+                const rawGroupValue = groupField ? row[groupField] : null;
 
                 if (!donorMap[donorId]) {
                     donorMap[donorId] = {
@@ -794,7 +809,7 @@ export default {
                 });
 
                 if (
-                    this.plotCategoryField &&
+                    groupField &&
                     donorMap[donorId].groupValue === null &&
                     !this.isMissingCategoricalValue(rawGroupValue)
                 ) {
@@ -812,7 +827,7 @@ export default {
                 }
 
                 const groupValue = donor.groupValue;
-                const includeGroupValue = !this.plotCategoryField || groupValue !== null;
+                const includeGroupValue = !groupField || groupValue !== null;
 
                 dataTypes.forEach((dataType) => {
                     counts[dataType] = (counts[dataType] || 0) + 1;
@@ -824,7 +839,7 @@ export default {
                 });
             });
 
-            if (!this.plotCategoryField) {
+            if (!groupField) {
                 return Object.keys(counts)
                     .map((dataType) => ({
                         dataType,
@@ -858,7 +873,7 @@ export default {
                 });
         },
         donorAvailabilityLegend() {
-            if (!this.plotCategoryField) {
+            if (!this.resolvedPlotCategoryField) {
                 return [];
             }
 
@@ -876,7 +891,7 @@ export default {
             }));
         },
         availabilityPlotColors() {
-            const seriesCount = this.plotCategoryField
+            const seriesCount = this.resolvedPlotCategoryField
                 ? [...new Set(this.donorAvailabilityPlotData.map((entry) => entry.groupValue))].length
                 : 0;
 
@@ -972,8 +987,8 @@ export default {
             return "pankbase_donors_filtered";
         },
         availabilityPlotDownloadFilename() {
-            return this.plotCategoryField
-                ? `pankbase-donors-by-data-type-${this.slugifyValue(this.plotCategoryField)}`
+            return this.resolvedPlotCategoryField
+                ? `pankbase-donors-by-data-type-${this.slugifyValue(this.resolvedPlotCategoryField)}`
                 : "pankbase-donors-by-data-type";
         },
     },
@@ -983,10 +998,14 @@ export default {
             handler(newColumns) {
                 if (!newColumns.length) {
                     this.selectedColumns = [];
+                    this.plotCategoryField = "";
                     return;
                 }
 
                 this.selectedColumns = this.initialVisibleColumns.slice();
+                if (!newColumns.includes(this.plotCategoryField)) {
+                    this.plotCategoryField = this.datasetFieldMap.defaultPlotCategory || "";
+                }
             },
         },
         donorTableConfig: {
@@ -1288,7 +1307,12 @@ export default {
             });
         },
         getRowDonorId(row) {
-            return row.Accession || row.accession || row.donor_id || null;
+            const donorIdField = this.datasetFieldMap.donorId;
+            if (donorIdField && row[donorIdField]) {
+                return row[donorIdField];
+            }
+
+            return row.Accession || row.accession || row.donor_id || row["Center Donor ID"] || null;
         },
         getDataTypeDetails(dataType) {
             return DATA_TYPE_DETAILS[dataType] || {
@@ -1339,8 +1363,13 @@ export default {
                 : `${basePath}${hashSuffix}`;
         },
         getRowsForDataType(dataType) {
+            const availabilityKey = this.datasetFieldMap.availability;
+            if (!availabilityKey) {
+                return [];
+            }
+
             return this.filteredRows.filter((row) => {
-                const dataTypes = this.parseAvailabilityValues(row.Data_available_Pankbase);
+                const dataTypes = this.parseAvailabilityValues(row[availabilityKey]);
                 return dataTypes.includes(dataType);
             });
         },
@@ -1351,15 +1380,16 @@ export default {
             }
 
             return dataTypeRows.filter((row) => {
-                if (!this.plotCategoryField) {
+                const groupField = this.resolvedPlotCategoryField;
+                if (!groupField) {
                     return false;
                 }
 
-                if (this.isMissingCategoricalValue(row[this.plotCategoryField])) {
+                if (this.isMissingCategoricalValue(row[groupField])) {
                     return false;
                 }
 
-                return this.normalizeCategoricalValue(row[this.plotCategoryField]) === tab.groupValue;
+                return this.normalizeCategoricalValue(row[groupField]) === tab.groupValue;
             });
         },
         buildTableRows(rows) {
@@ -1411,8 +1441,8 @@ export default {
         getScopedTableFilterSummary(tab) {
             const filterLabels = this.activeFilterPills.map((pill) => pill.label);
             const scopedLabels = [`Data Type: ${this.getDataTypeLabel(tab.dataType)}`];
-            if (tab.groupValue && this.plotCategoryField) {
-                scopedLabels.push(`${this.getColumnLabel(this.plotCategoryField)}: ${tab.groupValue}`);
+            if (tab.groupValue && this.resolvedPlotCategoryField) {
+                scopedLabels.push(`${this.getColumnLabel(this.resolvedPlotCategoryField)}: ${tab.groupValue}`);
             }
             return scopedLabels.concat(filterLabels).join(" | ");
         },
@@ -1485,6 +1515,41 @@ export default {
                         return !["-", "na", "n/a", "null", "none", "missing"].includes(normalized);
                     })
             )];
+        },
+        findColumn(candidates) {
+            if (!this.availableColumns.length) {
+                return "";
+            }
+
+            const exactMatch = candidates.find((candidate) => this.availableColumns.includes(candidate));
+            if (exactMatch) {
+                return exactMatch;
+            }
+
+            const loweredColumns = this.availableColumns.map((name) => ({
+                original: name,
+                lowered: String(name).trim().toLowerCase(),
+            }));
+
+            const loweredCandidate = candidates
+                .map((candidate) => String(candidate).trim().toLowerCase())
+                .find((candidate) => loweredColumns.some((column) => column.lowered === candidate));
+
+            if (loweredCandidate) {
+                const matchingColumn = loweredColumns.find((column) => column.lowered === loweredCandidate);
+                return matchingColumn ? matchingColumn.original : "";
+            }
+
+            const containsCandidate = candidates
+                .map((candidate) => String(candidate).trim().toLowerCase())
+                .find((candidate) => loweredColumns.some((column) => column.lowered.includes(candidate)));
+
+            if (!containsCandidate) {
+                return "";
+            }
+
+            const matchingColumn = loweredColumns.find((column) => column.lowered.includes(containsCandidate));
+            return matchingColumn ? matchingColumn.original : "";
         },
         getColumnLabel(columnName) {
             const configuredColumn = this.columnConfigMap[columnName];
@@ -1584,8 +1649,8 @@ export default {
             const width = Number(sourceSvg.getAttribute("width")) || 960;
             const height = Number(sourceSvg.getAttribute("height")) || 400;
             const title = "Donors by Data Type in PanKbase";
-            const subtitle = this.plotCategoryField
-                ? `Segment by: ${this.getColumnLabel(this.plotCategoryField)}`
+            const subtitle = this.resolvedPlotCategoryField
+                ? `Segment by: ${this.getColumnLabel(this.resolvedPlotCategoryField)}`
                 : "";
             const legendLayout = this.getAvailabilityPlotLegendLayout(width);
             const titleBlockHeight = subtitle ? 48 : 30;

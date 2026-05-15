@@ -9,30 +9,8 @@ import keyParams from "@/utils/keyParams";
 
 const donorTableConfig = {
     columns: [
-        { name: "Classifications", showOnLoad: false },
-        { name: "Sample_terms", showOnLoad: false },
-        { name: "Isolation_center", showOnLoad: false },
-        { name: "Biosample_type", showOnLoad: false },
-        { name: "External Resources", showOnLoad: false },
-        { name: "Biosample derived from", showOnLoad: false },
-        { name: "Biosample origin of", showOnLoad: false },
-        { name: "Treatments", showOnLoad: false },
-        { name: "Description", showOnLoad: false },
-        { name: "Cold Ischaemia Time (hours)", showOnLoad: false },
-        { name: "Warm Ischaemia Duration / Down Time (hours)", showOnLoad: false },
-        { name: "Date Obtained", showOnLoad: false },
-        { name: "Digest Time (hours)", showOnLoad: false },
-        { name: "IEQ/Pancreas Weight (grams)", showOnLoad: false },
-        { name: "Islet Function Available", showOnLoad: false },
-        { name: "Islet Histology", showOnLoad: false },
-        { name: "Islet Morphology", showOnLoad: false },
-        { name: "Islet Yield (IEQ)", showOnLoad: false },
-        { name: "Organ Source", showOnLoad: false },
-        { name: "Percentage Trapped (percentage)", showOnLoad: false },
-        { name: "Pre-Shipment Culture Time (hours)", showOnLoad: false },
-        { name: "Prep Viability (percentage)", showOnLoad: false },
-        { name: "Preservation Method", showOnLoad: false },
-        { name: "Purity (Percentage)", showOnLoad: false },
+        { name: "External link", label: "External Link" },
+        { name: "Data_available_Pankbase", label: "Data Available in PanKbase" },
     ],
 };
 
