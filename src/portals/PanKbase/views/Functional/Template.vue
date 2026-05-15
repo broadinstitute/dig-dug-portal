@@ -69,6 +69,20 @@
                                                 :filtersActive="$parent.filtersActive">
                                                 <div class="label">Isolation center</div>
                                             </filter-radio>
+                                            <div class="advanced-filters">
+                                                <filter-slider v-for="field in Object.values($parent.advancedFields)
+                                                    .filter(f => f.isNumeric)"
+                                                    :field="field.key"
+                                                    :range="$parent.getRange(field)">
+                                                    <div class="label">{{ field.key }}</div>
+                                                </filter-slider>
+                                                <filter-radio v-for="field in Object.values($parent.advancedFields)
+                                                    .filter(f => !f.isNumeric)"
+                                                    :options="$parent.filteredMetadata.map(m => m[field.key])">
+                                                    <div class="label">{{ field.key }}</div>
+
+                                                </filter-radio>
+                                            </div>
                                             <template slot="filtered" slot-scope="{ filter }">
                                                 <div class="invisible-table">
                                                     <b-table v-model="$parent.filteredDonors"
@@ -265,5 +279,6 @@ div.line-plot:first-child {
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
+    overflow-y: scroll;
 }
 </style>
