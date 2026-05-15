@@ -238,7 +238,6 @@ new Vue({
             },
             perPage: 10,
             currentPage: 1,
-            filtersActive: [],
             selectedDonors: "",
             selectedDonorList: [],
             useSelected: false,
@@ -285,8 +284,6 @@ new Vue({
             );
             // If the pasted-in donor list is applied, use that
             let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
-            // If filters are linked in URL params from donor page, use those
-            //return this.applyLinkedFilters(results);
             return results;
         },
         presets(){
@@ -294,9 +291,6 @@ new Vue({
         }
     },
     methods: {
-        getFilters(filters){
-            this.filtersActive = filters.map(filter => filter.field);
-        },
         useSelectedDonors(useSelected){
             this.useSelected = useSelected;
         },

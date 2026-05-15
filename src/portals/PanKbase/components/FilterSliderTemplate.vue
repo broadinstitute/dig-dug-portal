@@ -64,6 +64,7 @@ export default Vue.component("filter-slider-template", {
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
+        presets: Array
     },
     components: {
         DualSlider
@@ -87,8 +88,11 @@ export default Vue.component("filter-slider-template", {
     },
     created() {
         // set initial filter value in the widget
-        if (!!this.filterThreshold) {
-            this.updateFilter(this.filterThreshold);
+        if (this.presets.length > 0){
+            let preset = this.presets.find(p => p.name === this.field);
+            if (preset !== undefined){
+                this.updateFilter([preset.min, preset.max]);
+            }
         }
     },
     mounted() {

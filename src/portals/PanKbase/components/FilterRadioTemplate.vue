@@ -88,17 +88,12 @@ export default Vue.component("filter-radio-template", {
         };
     },
     created() {
-        // set initial filter value in the widget
-        if (!!this.filterThreshold) {
-            this.updateFilter(this.filterThreshold);
-        }
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
                 this.updateFilter(preset.values);
             }
         }
-        
     },
     mounted() {
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);

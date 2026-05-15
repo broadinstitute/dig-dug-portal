@@ -17,28 +17,13 @@
                                 <b-tabs>
                                     <b-tab title="Filter donor data"
                                         @click="$parent.useSelectedDonors(false)">
-                                        <criterion-function-group
-                                            @update:filter-list="event => $parent.getFilters(event)">
-                                            <button class="btn btn-secondary" id="clearPresets"
-                                                v-if="!!$parent.presets !== null"
-                                                @click="$parent.clearPresets">
-                                                Clear preset filters
-                                            </button>
-                                            <filter-slider :field="$parent.fieldsObject.age.key"
-                                                :range="$parent.getRange($parent.fieldsObject.age)">
-                                                <div class="label">Age</div>
-                                            </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.bmi.key"
-                                                :range="$parent.getRange($parent.fieldsObject.bmi)">
-                                                <div class="label">BMI</div>
-                                            </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.hba1c.key"
-                                                :range="$parent.getRange($parent.fieldsObject.hba1c)">
-                                                <div class="label">HBA1C (%)</div>
-                                            </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.cultureTime.key"
-                                                :range="$parent.getRange($parent.fieldsObject.cultureTime)">
-                                                <div class="label">Culture time (hrs)</div>
+                                        <criterion-function-group>
+                                            <filter-slider v-for="oField in Object.values($parent.fieldsObject)
+                                                .filter(f => f.isNumeric && !f.noSidebar)"
+                                                :field="oField.key"
+                                                :range="$parent.getRange(oField)"
+                                                :presets="$parent.presets">
+                                                <div class="label">{{ oField.key }}</div>
                                             </filter-slider>
                                             <filter-radio v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => !f.isNumeric && !f.noSidebar)"
@@ -48,11 +33,11 @@
                                                 <div class="label">{{ oField.key }}</div>
                                             </filter-radio>
                                             <div class="advanced-filters" :hidden="!$parent.showAdvanced">
-                                                <filter-slider v-for="field in Object.values($parent.advancedFields)
+                                                <filter-slider v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => f.isNumeric)"
-                                                    :field="field.key"
-                                                    :range="$parent.getRange(field)">
-                                                    <div class="label">{{ field.key }}</div>
+                                                    :field="advField.key"
+                                                    :range="$parent.getRange(advField)">
+                                                    <div class="label">{{ advField.key }}</div>
                                                 </filter-slider>
                                                 <filter-radio v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => !f.isNumeric)"

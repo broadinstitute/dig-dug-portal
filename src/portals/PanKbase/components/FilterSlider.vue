@@ -13,6 +13,7 @@
     :inclusive="false"
     :splitBy="splitBy"
     :computedField="computedField"
+    :presets="presets"
   >
     <slot> </slot>
   </filter-slider-template>
@@ -41,6 +42,7 @@ export default Vue.component("filter-slider", {
         `${filterDefinition.threshold[0]} ≤ ${filterDefinition.field} ≤ ${filterDefinition.threshold[1]}`,
     },
     computedField: Function,
+    presets: Array
   },
   components: {
     FilterSliderTemplate,
