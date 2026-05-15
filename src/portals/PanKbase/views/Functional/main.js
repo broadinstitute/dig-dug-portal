@@ -115,6 +115,125 @@ new Vue({
                     sortable: true
                 },
             },
+            advancedFields: {
+                cPeptide: {
+                    key: "C-Peptide (ng/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabGada: {
+                    key: "AAB GADA value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabIa2: {
+                    key: "AAB IA2 value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabIaa: {
+                    key: "AAB IAA value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true
+                },
+                aabZnt8: {
+                    key: "AAB ZNT8 value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true
+                },
+                numberAab: {
+                    key: "Number AAB",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                hospitalStay: {
+                    key: "Hospital Stay (hours)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                collections: {
+                    key: "Collections",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                donationType: {
+                    key: "Donation Type",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                aabGadaPositive: {
+                    key: "AAB GADA POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabIa2Positive: {
+                    key: "AAB IA2 POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabIaaPositive: {
+                    key: "AAB IAA POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabZnt8Positive: {
+                    key: "AAB ZNT8 POSITIVE",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                multiAab: {
+                    key: "Multi AAB",
+                    isNumeric: false,
+                    sortable: true
+                },
+                onlyAabGada: {
+                    key: "Only AAB GADA",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabIa2: {
+                    key: "Only AAB IA2",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabIaa: {
+                    key: "Only AAB IAA",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabZnt8: {
+                    key: "Only AAB ZNT8",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                causeOfDeath: {
+                    key: "Cause of Death",
+                    isNumeric: false,
+                    sortable: true
+                },
+                familyHistory: {
+                    key: "Family History of Diabetes",
+                    isNumeric: false,
+                    sortable: true
+                },
+                geneticSex: {
+                    key: "Genetic Sex",
+                    isNumeric: false,
+                    sortable: true
+                },
+                t1dStage: {
+                    key: "T1D stage",
+                    isNumeric: false,
+                    sortable: true
+                },
+                otherTherapy: {
+                    key: "Other Therapy",
+                    isNumeric: false,
+                    sortable: true
+                }
+
+
+            },
             perPage: 10,
             currentPage: 1,
             filtersActive: [],
