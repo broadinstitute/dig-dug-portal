@@ -227,15 +227,14 @@ new Vue({
         },
         getRange(field){
             let fieldKey = field.key;
-            let min = this.filteredMetadata[0][fieldKey];
-            let max = this.filteredMetadata[0][fieldKey];
-            this.filteredMetadata.filter(d => !Number.isNaN(d[fieldKey]))
-                .forEach(d => {
+            let availableEntries = this.filteredMetadata.filter(d => 
+                typeof d[fieldKey] === "number");
+            let min = availableEntries[0][fieldKey];
+            let max = availableEntries[0][fieldKey];
+            availableEntries.forEach(d => {
                     min = d[fieldKey] < min ? d[fieldKey] : min;
                     max = d[fieldKey] > max ? d[fieldKey] : max;
                 });
-            // TODO figure out why this is happening
-            min = min === "" ? 0 : min;
             return [min, max];
         },
         applyLinkedFilters(data, filters){

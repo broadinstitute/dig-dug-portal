@@ -24,7 +24,7 @@
                                                 <div class="label">Age</div>
                                             </filter-slider>
                                             <filter-slider :field="$parent.fieldsObject.bmi.key"
-                                                :range="$parent.getRange($parent.fieldsObject.age)">
+                                                :range="$parent.getRange($parent.fieldsObject.bmi)">
                                                 <div class="label">BMI</div>
                                             </filter-slider>
                                             <filter-slider :field="$parent.fieldsObject.hba1c.key"
