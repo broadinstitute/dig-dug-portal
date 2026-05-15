@@ -8,7 +8,7 @@
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${safeSliderId}_from`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_from`,true)" 
                     @change="filterDataSlider($event)"/>
                 <input style="padding:0;" class="slider to-slider" type="range" 
                     :id="`filter_${safeSliderId}_to_slider`"
@@ -16,7 +16,7 @@
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${safeSliderId}_to`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_to`,false)" 
                     @change="filterDataSlider($event)"/>
 
                     <output class="range-slider-tip range-from-value" 
@@ -67,9 +67,26 @@ export default Vue.component("dual-slider", {
 			}
             this.ready = true;
 		},
-        setSliderTip(EVENT,ID) {
-			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
+        setSliderTip(EVENT,ID,isFrom) {
+            let newValue = EVENT.target.value;
+            let element = document.getElementById(ID);
+            let valid = this.validRange(isFrom, newValue);
+            console.log(valid);
+            if (!valid){
+                // If you've slid too far, snap back until the sliders are the same
+                newValue = isFrom ? this.sliderRange.to : this.sliderRange.from;
+            }
+            element.value = Math.round(newValue * 10000) / 10000;
+			
 		},
+        validRange(isFrom, value){
+            let currentFrom = this.sliderRange.from;
+            let currentTo = this.sliderRange.to;
+            if (isFrom){
+                return Number(value) <= currentTo;
+            }
+            return Number(value) >= currentFrom;
+        },
 		filterDataSlider(EVENT) {
 			let searchValueFrom = document.getElementById(`filter_${this.safeSliderId}_from`).value
             let searchValueTo = document.getElementById(`filter_${this.safeSliderId}_to`).value
