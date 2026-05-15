@@ -129,7 +129,6 @@ new Vue({
         await this.$store.dispatch("populateData", this.files);
         if (!!keyParams.donorFilters){
             this.linkedFilters = JSON.parse(keyParams.donorFilters);
-            console.log(this.linkedFilters);
         }
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
@@ -137,7 +136,6 @@ new Vue({
         if (this.linkedFilters !== null){
             this.filteredMetadata = this.applyLinkedFilters(this.filteredMetadata, this.linkedFilters);
         }
-        console.log(JSON.stringify(this.filteredMetadata.slice(0,10).map(e => e[this.fieldsObject.donorId.key])));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -164,8 +162,6 @@ new Vue({
             if (!this.useSelected){
                 return this.filteredDonors;
             }
-            console.log("OK let's filter them");
-            console.log(JSON.stringify(this.selectedDonorList));
             return this.filteredMetadata.filter(d => 
                 this.selectedDonorList.includes(d.Accession) ||
                 this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
@@ -183,7 +179,6 @@ new Vue({
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters)
                 .filter(e => e.length > 0);
-            console.log("Entries:", JSON.stringify(entries));
             let donorIdFinder = /[\w]+/
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
@@ -259,9 +254,6 @@ new Vue({
             this.resultsGcg = newData.results;
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
-        },
-        filteredDonors(newList){
-            console.log("Is this thing on?");
         },
     },
     render(createElement, context) {
