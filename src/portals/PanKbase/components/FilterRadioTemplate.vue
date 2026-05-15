@@ -91,7 +91,8 @@ export default Vue.component("filter-radio-template", {
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                this.updateFilter(preset.values);
+                this.filterThreshold = preset.values;
+                this.updateFilter(this.filterThreshold);
             }
         }
     },
