@@ -123,19 +123,30 @@ export default Vue.component("dual-slider", {
   appearance: none;
   width: 10px;
   height: 10px;
-  margin-top: -10px;
-  background: #666666;
   border-radius: 15px;
   cursor: pointer;
 }
 
+
 .slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
-  margin-top: -10px;
-  background: #666666;
   border-radius: 15px;
   cursor: pointer;
+}
+
+.from-slider::-moz-range-thumb, .from-slider::-webkit-slider-thumb {
+  width: 6px !important;
+  height: 6px !important;
+  background: #333333;
+  border: 1px solid black;
+  
+}
+.to-slider::-moz-range-thumb, .to-slider::-webkit-slider-thumb  {
+  width: 12px !important;
+  height: 12px !important;
+  background: #999999;
+  border: 1px solid black;
 }
 
 .range-slider-tip {
