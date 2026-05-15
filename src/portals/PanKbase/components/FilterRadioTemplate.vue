@@ -140,4 +140,7 @@ export default Vue.component("filter-radio-template", {
     .invisible-button {
         display: none !important;
     }
+    label {
+        display: inline !important;
+    }
 </style>
