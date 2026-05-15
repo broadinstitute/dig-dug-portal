@@ -40,46 +40,30 @@
                                                 :filtersActive="$parent.filtersActive">
                                                 <div class="label">Gender</div>
                                             </filter-radio>
-
-                                            <filter-enum-with-any
-                                                :field="$parent.fieldsObject.diabetesDesc.key"
-                                                :pillFormatter="(filterDef) => `Diabetes = ${filterDef.threshold}`"
-                                                :clearFilter="false"
-                                                :options="
-                                                    $parent.filteredMetadata.map(m => 
-                                                        m[$parent.fieldsObject.diabetesDesc.key])
-                                                "
-                                            >
+                                            <filter-radio :field="$parent.fieldsObject.diabetesDesc.key"
+                                                :options="$parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.diabetesDesc.key])"
+                                                :filtersActive="$parent.filtersActive">
                                                 <div class="label">Diabetes status</div>
-                                            </filter-enum-with-any>
-                                            <filter-enum-with-any
-                                                :field="$parent.fieldsObject.diabetes.key"
-                                                :clearFilter="false"
-                                                :options="
-                                                    $parent.filteredMetadata.map(m => 
-                                                        m[$parent.fieldsObject.diabetes.key])
-                                                "
-                                            >
+                                            </filter-radio>
+                                            <filter-radio :field="$parent.fieldsObject.diabetes.key"
+                                                :options="$parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.diabetes.key])"
+                                                :filtersActive="$parent.filtersActive">
                                                 <div class="label">Derived diabetes status</div>
-                                            </filter-enum-with-any>
-                                            <filter-enum-with-any
-                                                :field="$parent.fieldsObject.ethnicity.key"
-                                                :options="
-                                                    $parent.filteredMetadata.map(m => 
-                                                        m[$parent.fieldsObject.ethnicity.key])
-                                                "
-                                            >
+                                            </filter-radio>
+                                            <filter-radio :field="$parent.fieldsObject.ethnicity.key"
+                                                :options="$parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.ethnicity.key])"
+                                                :filtersActive="$parent.filtersActive">
                                                 <div class="label">Ethnicity</div>
-                                            </filter-enum-with-any>
-                                            <filter-enum-with-any
-                                                :field="$parent.fieldsObject.isolation.key"
-                                                :options="
-                                                    $parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.isolation.key])
-                                                "
-                                            >
-                                                <div class="label">Isolation Center</div>
-                                            </filter-enum-with-any>
+                                            </filter-radio>
+                                            <filter-radio :field="$parent.fieldsObject.isolation.key"
+                                                :options="$parent.filteredMetadata.map(m => 
+                                                    m[$parent.fieldsObject.isolation.key])"
+                                                :filtersActive="$parent.filtersActive">
+                                                <div class="label">Isolation center</div>
+                                            </filter-radio>
                                             <template slot="filtered" slot-scope="{ filter }">
                                                 <div class="invisible-table">
                                                     <b-table v-model="$parent.filteredDonors"
@@ -223,8 +207,8 @@
     border: 1px solid #dddddd;
     border-radius: 5px;
 }
-.stats {
-    margin-bottom: 20px;
+#stats {
+    margin-bottom: 40px;
     display: flex !important;
     vertical-align: baseline;
 }
@@ -269,8 +253,12 @@
 }
 .line-plots {
     margin-top: 20px;
+    margin-left: 20px;
 }
 div.line-plot:first-child {
     margin-top: 20px;
+}
+.side-panel-filters {
+    border-right: 3px solid lightgray;
 }
 </style>
