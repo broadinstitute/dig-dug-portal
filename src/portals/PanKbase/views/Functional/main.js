@@ -288,6 +288,9 @@ new Vue({
             // If filters are linked in URL params from donor page, use those
             //return this.applyLinkedFilters(results);
             return results;
+        },
+        presets(){
+            return this.linkedFilters === null ? [] : this.linkedFilters;
         }
     },
     methods: {

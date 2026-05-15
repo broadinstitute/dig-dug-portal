@@ -8,7 +8,6 @@
     :color="color"
     :multiple="false"
     :inclusive="false"
-    :valueCleared="valueCleared"
     :presets="presets"
   >
     <slot> </slot>
@@ -28,6 +27,9 @@ export default Vue.component("filter-radio", {
     },
     presets: Array
 
+  },
+  mounted(){
+    console.log(JSON.stringify(this.presets));
   },
   components: {
     FilterRadioTemplate,

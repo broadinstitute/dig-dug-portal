@@ -20,7 +20,7 @@
                                         <criterion-function-group
                                             @update:filter-list="event => $parent.getFilters(event)">
                                             <button class="btn btn-secondary" id="clearPresets"
-                                                v-if="!!$parent.linkedFilters !== null"
+                                                v-if="!!$parent.presets !== null"
                                                 @click="$parent.clearPresets">
                                                 Clear preset filters
                                             </button>
@@ -40,11 +40,12 @@
                                                 :range="$parent.getRange($parent.fieldsObject.cultureTime)">
                                                 <div class="label">Culture time (hrs)</div>
                                             </filter-slider>
-                                            <filter-radio v-for="field in Object.values($parent.fieldsObject)
+                                            <filter-radio v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => !f.isNumeric && !f.noSidebar)"
-                                                :options="$parent.filteredMetadata.map(m => m[field.key])"
-                                                :presets="$parent.linkedFilters">
-                                                <div class="label">{{ field.key }}</div>
+                                                :field="oField.key"
+                                                :options="$parent.filteredMetadata.map(m => m[oField.key])"
+                                                :presets="$parent.presets">
+                                                <div class="label">{{ oField.key }}</div>
                                             </filter-radio>
                                             <div class="advanced-filters" :hidden="!$parent.showAdvanced">
                                                 <filter-slider v-for="field in Object.values($parent.advancedFields)
@@ -53,10 +54,12 @@
                                                     :range="$parent.getRange(field)">
                                                     <div class="label">{{ field.key }}</div>
                                                 </filter-slider>
-                                                <filter-radio v-for="field in Object.values($parent.advancedFields)
+                                                <filter-radio v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => !f.isNumeric)"
-                                                    :options="$parent.filteredMetadata.map(m => m[field.key])">
-                                                    <div class="label">{{ field.key }}</div>
+                                                    :field="advField.key"
+                                                    :options="$parent.filteredMetadata.map(m => m[advField.key])"
+                                                    :presets="$parent.presets">
+                                                    <div class="label">{{ advField.key }}</div>
 
                                                 </filter-radio>
                                             </div>
