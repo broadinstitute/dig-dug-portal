@@ -8,7 +8,7 @@
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${safeSliderId}_from`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_from`,true)" 
                     @change="filterDataSlider($event)"/>
                 <input style="padding:0;" class="slider to-slider" type="range" 
                     :id="`filter_${safeSliderId}_to_slider`"
@@ -16,7 +16,7 @@
                     :min="sliderRange.min" 
                     :max="sliderRange.max" 
                     :step="sliderRange.step"
-                    @input="setSliderTip($event, `filter_${safeSliderId}_to`)" 
+                    @input="setSliderTip($event, `filter_${safeSliderId}_to`,false)" 
                     @change="filterDataSlider($event)"/>
 
                     <output class="range-slider-tip range-from-value" 
@@ -33,7 +33,7 @@
 import Vue from "vue";
 export default Vue.component("dual-slider", {
     props: [
-        "sliderId", "rangeMin", "rangeMax"
+        "sliderId", "rangeMin", "rangeMax", "presetMin", "presetMax"
     ],
     data() {
         return {
@@ -41,8 +41,10 @@ export default Vue.component("dual-slider", {
             sliderRange : {
                 min: this.rangeMin,
                 max: this.rangeMax,
-                from: Math.round(this.rangeMin * 10000) / 10000,
-                to: Math.round(this.rangeMax * 10000) / 10000,
+                from: this.presetMin !== null ? Math.round(this.presetMin * 10000) / 10000
+                    : Math.round(this.rangeMin * 10000) / 10000,
+                to: this.presetMax !== null ? Math.round(this.presetMax * 10000) / 10000
+                    : Math.round(this.rangeMax * 10000) / 10000,
                 step: (this.rangeMax - this.rangeMin) / 10000
             },
             lastFilter: {},
@@ -65,9 +67,26 @@ export default Vue.component("dual-slider", {
 			}
             this.ready = true;
 		},
-        setSliderTip(EVENT,ID) {
-			document.getElementById(ID).value = Math.round(EVENT.target.value * 10000) / 10000;
+        setSliderTip(EVENT,ID,isFrom) {
+            let newValue = EVENT.target.value;
+            let element = document.getElementById(ID);
+            let valid = this.validRange(isFrom, newValue);
+            console.log(valid);
+            if (!valid){
+                // If you've slid too far, snap back until the sliders are the same
+                newValue = isFrom ? this.sliderRange.to : this.sliderRange.from;
+            }
+            element.value = Math.round(newValue * 10000) / 10000;
+			
 		},
+        validRange(isFrom, value){
+            let currentFrom = this.sliderRange.from;
+            let currentTo = this.sliderRange.to;
+            if (isFrom){
+                return Number(value) <= currentTo;
+            }
+            return Number(value) >= currentFrom;
+        },
 		filterDataSlider(EVENT) {
 			let searchValueFrom = document.getElementById(`filter_${this.safeSliderId}_from`).value
             let searchValueTo = document.getElementById(`filter_${this.safeSliderId}_to`).value
@@ -121,19 +140,30 @@ export default Vue.component("dual-slider", {
   appearance: none;
   width: 10px;
   height: 10px;
-  margin-top: -10px;
-  background: #666666;
   border-radius: 15px;
   cursor: pointer;
 }
 
+
 .slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
-  margin-top: -10px;
-  background: #666666;
   border-radius: 15px;
   cursor: pointer;
+}
+
+.from-slider::-moz-range-thumb, .from-slider::-webkit-slider-thumb {
+  width: 6px !important;
+  height: 6px !important;
+  background: #333333;
+  border: 1px solid black;
+  
+}
+.to-slider::-moz-range-thumb, .to-slider::-webkit-slider-thumb  {
+  width: 12px !important;
+  height: 12px !important;
+  background: #999999;
+  border: 1px solid black;
 }
 
 .range-slider-tip {

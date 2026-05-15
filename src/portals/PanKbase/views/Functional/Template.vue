@@ -17,53 +17,41 @@
                                 <b-tabs>
                                     <b-tab title="Filter donor data"
                                         @click="$parent.useSelectedDonors(false)">
-                                        <criterion-function-group
-                                            @update:filter-list="event => $parent.getFilters(event)">
-                                            <filter-slider :field="$parent.fieldsObject.age.key"
-                                                :range="$parent.getRange($parent.fieldsObject.age)">
-                                                <div class="label">Age</div>
+                                        <criterion-function-group>
+                                            <filter-slider v-for="oField in Object.values($parent.fieldsObject)
+                                                .filter(f => f.isNumeric && !f.noSidebar)"
+                                                :field="oField.key"
+                                                :range="$parent.getRange(oField)"
+                                                :presets="$parent.presets">
+                                                <div class="label">{{ oField.key }}</div>
                                             </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.bmi.key"
-                                                :range="$parent.getRange($parent.fieldsObject.age)">
-                                                <div class="label">BMI</div>
-                                            </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.hba1c.key"
-                                                :range="$parent.getRange($parent.fieldsObject.hba1c)">
-                                                <div class="label">HBA1C (%)</div>
-                                            </filter-slider>
-                                            <filter-slider :field="$parent.fieldsObject.cultureTime.key"
-                                                :range="$parent.getRange($parent.fieldsObject.cultureTime)">
-                                                <div class="label">Culture time (hrs)</div>
-                                            </filter-slider>
-                                            <filter-radio :field="$parent.fieldsObject.sex.key"
-                                                :options="$parent.filteredMetadata.map(m => m.Gender)"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Gender</div>
+                                            <filter-radio v-for="oField in Object.values($parent.fieldsObject)
+                                                .filter(f => !f.isNumeric && !f.noSidebar)"
+                                                :field="oField.key"
+                                                :options="$parent.filteredMetadata.map(m => m[oField.key])"
+                                                :presets="$parent.presets">
+                                                <div class="label">{{ oField.key }}</div>
                                             </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.diabetesDesc.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.diabetesDesc.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Diabetes status</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.diabetes.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.diabetes.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Derived diabetes status</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.ethnicity.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.ethnicity.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Ethnicity</div>
-                                            </filter-radio>
-                                            <filter-radio :field="$parent.fieldsObject.isolation.key"
-                                                :options="$parent.filteredMetadata.map(m => 
-                                                    m[$parent.fieldsObject.isolation.key])"
-                                                :filtersActive="$parent.filtersActive">
-                                                <div class="label">Isolation center</div>
-                                            </filter-radio>
+                                            <div class="advanced-filters" :hidden="!$parent.showAdvanced">
+                                                <filter-slider v-for="advField in Object.values($parent.advancedFields)
+                                                    .filter(f => f.isNumeric)"
+                                                    :field="advField.key"
+                                                    :range="$parent.getRange(advField)"
+                                                    :presets="$parent.presets">
+                                                    <div class="label">{{ advField.key }}</div>
+                                                </filter-slider>
+                                                <filter-radio v-for="advField in Object.values($parent.advancedFields)
+                                                    .filter(f => !f.isNumeric)"
+                                                    :field="advField.key"
+                                                    :options="$parent.filteredMetadata.map(m => m[advField.key])"
+                                                    :presets="$parent.presets">
+                                                    <div class="label">{{ advField.key }}</div>
+
+                                                </filter-radio>
+                                            </div>
+                                            <button class="btn btn-secondary" @click="$parent.toggleAdvanced">
+                                                {{ $parent.showAdvanced ? "Hide" : "Show" }} advanced filters
+                                            </button>
                                             <template slot="filtered" slot-scope="{ filter }">
                                                 <div class="invisible-table">
                                                     <b-table v-model="$parent.filteredDonors"
@@ -209,7 +197,6 @@
 }
 #stats {
     margin-bottom: 40px;
-    display: flex !important;
     vertical-align: baseline;
 }
 #stats-header {
@@ -260,5 +247,6 @@ div.line-plot:first-child {
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
+    overflow-y: scroll !important;
 }
 </style>

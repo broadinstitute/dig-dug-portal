@@ -11,6 +11,8 @@
                 :slider-id="field"
                 :rangeMin="rangeMin"
                 :rangeMax="rangeMax"
+                :presetMin="presetRange[0]"
+                :presetMax="presetRange[1]"
                 @filterChanged="filterRange => updateFilter(filterRange)">
             </dual-slider>
         </div>
@@ -64,6 +66,7 @@ export default Vue.component("filter-slider-template", {
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
+        presets: Array
     },
     components: {
         DualSlider
@@ -82,18 +85,25 @@ export default Vue.component("filter-slider-template", {
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
                 computedField: this.computedField,
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default,
+            presetRange: [null,null]
         };
     },
     created() {
         // set initial filter value in the widget
-        if (!!this.filterThreshold) {
-            this.updateFilter(this.filterThreshold);
+        if (this.presets.length > 0){
+            let preset = this.presets.find(p => p.name === this.field);
+            if (preset !== undefined){
+                this.filterThreshold = [preset.min, preset.max];
+                this.presetRange = this.filterThreshold;
+                this.updateFilter(this.filterThreshold);
+            }
         }
     },
     mounted() {
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
+    computed(){},
     methods: {
         validateInput(newInput) {
             // TODO: elaborate validation cases here

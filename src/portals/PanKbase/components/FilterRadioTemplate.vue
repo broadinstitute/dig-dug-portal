@@ -66,6 +66,7 @@ export default Vue.component("filter-radio-template", {
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
+        presets: Array
     },
     components: {
     },
@@ -87,9 +88,12 @@ export default Vue.component("filter-radio-template", {
         };
     },
     created() {
-        // set initial filter value in the widget
-        if (!!this.filterThreshold) {
-            this.updateFilter(this.filterThreshold);
+        if (this.presets.length > 0){
+            let preset = this.presets.find(p => p.name === this.field);
+            if (preset !== undefined){
+                this.filterThreshold = preset.values;
+                this.updateFilter(this.filterThreshold);
+            }
         }
     },
     mounted() {

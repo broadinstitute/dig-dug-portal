@@ -68,11 +68,13 @@ new Vue({
             fieldsObject: {
                 accession: {
                     key: "Accession",
-                    sortable: true
+                    sortable: true,
+                    noSidebar: true,
                 },
                 donorId: {
                     key: "Center Donor ID",
-                    sortable: true
+                    sortable: true,
+                    noSidebar: true,
                 },
                 age: {
                     key: "Age (years)",
@@ -115,21 +117,143 @@ new Vue({
                     sortable: true
                 },
             },
+            advancedFields: {
+                cPeptide: {
+                    key: "C-Peptide (ng/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabGada: {
+                    key: "AAB GADA value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabIa2: {
+                    key: "AAB IA2 value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                aabIaa: {
+                    key: "AAB IAA value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true
+                },
+                aabZnt8: {
+                    key: "AAB ZNT8 value (unit/ml)",
+                    isNumeric: true,
+                    sortable: true
+                },
+                numberAab: {
+                    key: "Number AAB",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                hospitalStay: {
+                    key: "Hospital Stay (hours)",
+                    isNumeric: true,
+                    sortable: true,
+                },
+                collections: {
+                    key: "Collections",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                donationType: {
+                    key: "Donation Type",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                aabGadaPositive: {
+                    key: "AAB GADA POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabIa2Positive: {
+                    key: "AAB IA2 POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabIaaPositive: {
+                    key: "AAB IAA POSITIVE",
+                    isNumeric: false,
+                    sortable: true
+                },
+                aabZnt8Positive: {
+                    key: "AAB ZNT8 POSITIVE",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                multiAab: {
+                    key: "Multi AAB",
+                    isNumeric: false,
+                    sortable: true
+                },
+                onlyAabGada: {
+                    key: "Only AAB GADA",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabIa2: {
+                    key: "Only AAB IA2",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabIaa: {
+                    key: "Only AAB IAA",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                onlyAabZnt8: {
+                    key: "Only AAB ZNT8",
+                    isNumeric: false,
+                    sortable: true,
+                },
+                causeOfDeath: {
+                    key: "Cause of Death",
+                    isNumeric: false,
+                    sortable: true
+                },
+                familyHistory: {
+                    key: "Family History of Diabetes",
+                    isNumeric: false,
+                    sortable: true
+                },
+                geneticSex: {
+                    key: "Genetic Sex",
+                    isNumeric: false,
+                    sortable: true
+                },
+                t1dStage: {
+                    key: "T1D stage",
+                    isNumeric: false,
+                    sortable: true
+                },
+                otherTherapy: {
+                    key: "Other Therapy",
+                    isNumeric: false,
+                    sortable: true
+                }
+
+
+            },
             perPage: 10,
             currentPage: 1,
-            filtersActive: [],
             selectedDonors: "",
             selectedDonorList: [],
-            useSelected: false
+            useSelected: false,
+            linkedFilters: null,
+            showAdvanced: false,
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
+        if (!!keyParams.donorFilters){
+            this.linkedFilters = JSON.parse(keyParams.donorFilters);
+        }
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
-        console.log(JSON.stringify(this.filteredMetadata.slice(0,10).map(e => e[this.fieldsObject.donorId.key])));
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -153,21 +277,20 @@ new Vue({
             return results;
         },
         tableItems(){
-            if (!this.useSelected){
-                return this.filteredDonors;
-            }
-            console.log("OK let's filter them");
-            console.log(JSON.stringify(this.selectedDonorList));
-            return this.filteredMetadata.filter(d => 
+            // If only sidebar filters are used, apply sidebar filters
+            let selection = this.filteredMetadata.filter(d => 
                 this.selectedDonorList.includes(d.Accession) ||
                 this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
             );
+            // If the pasted-in donor list is applied, use that
+            let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
+            return results;
+        },
+        presets(){
+            return this.linkedFilters === null ? [] : this.linkedFilters;
         }
     },
     methods: {
-        getFilters(filters){
-            this.filtersActive = filters.map(filter => filter.field);
-        },
         useSelectedDonors(useSelected){
             this.useSelected = useSelected;
         },
@@ -175,7 +298,6 @@ new Vue({
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters)
                 .filter(e => e.length > 0);
-            console.log("Entries:", JSON.stringify(entries));
             let donorIdFinder = /[\w]+/
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
@@ -212,6 +334,11 @@ new Vue({
             }
             return output;
         },
+        clearPresets(){
+            this.linkedFilters = [];
+            let presetButton = document.getElementById("clearPresets");
+            presetButton.setAttribute("disabled", true);
+        },
         getDonorsWithData(insData){
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
@@ -219,16 +346,32 @@ new Vue({
         },
         getRange(field){
             let fieldKey = field.key;
-            let min = this.filteredMetadata[0][fieldKey];
-            let max = this.filteredMetadata[0][fieldKey];
-            this.filteredMetadata.filter(d => !Number.isNaN(d[fieldKey]))
-                .forEach(d => {
+            let availableEntries = this.filteredMetadata.filter(d => 
+                typeof d[fieldKey] === "number");
+            let min = availableEntries[0][fieldKey];
+            let max = availableEntries[0][fieldKey];
+            availableEntries.forEach(d => {
                     min = d[fieldKey] < min ? d[fieldKey] : min;
                     max = d[fieldKey] > max ? d[fieldKey] : max;
                 });
-            // TODO figure out why this is happening
-            min = min === "" ? 0 : min;
             return [min, max];
+        },
+        applyLinkedFilters(data){
+            if (this.linkedFilters === null){
+                return data;
+            }
+            let results = structuredClone(data);
+            for (let i = 0; i < this.linkedFilters.length; i++){
+                let filter = this.linkedFilters[i];
+                let field = filter.name;
+                if (!!filter.values){
+                    results = results.filter(r => filter.values.includes(r[field]));
+                }
+            }
+            return results;
+        },
+        toggleAdvanced(){
+            this.showAdvanced = !this.showAdvanced;
         }
     },
     watch: {
@@ -241,9 +384,6 @@ new Vue({
             this.resultsGcg = newData.results;
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
-        },
-        filteredDonors(newList){
-            console.log("Is this thing on?");
         },
     },
     render(createElement, context) {
