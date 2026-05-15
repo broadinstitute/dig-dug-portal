@@ -33,7 +33,7 @@
 import Vue from "vue";
 export default Vue.component("dual-slider", {
     props: [
-        "sliderId", "rangeMin", "rangeMax"
+        "sliderId", "rangeMin", "rangeMax", "presetMin", "presetMax"
     ],
     data() {
         return {
@@ -41,8 +41,10 @@ export default Vue.component("dual-slider", {
             sliderRange : {
                 min: this.rangeMin,
                 max: this.rangeMax,
-                from: Math.round(this.rangeMin * 10000) / 10000,
-                to: Math.round(this.rangeMax * 10000) / 10000,
+                from: this.presetMin !== null ? Math.round(this.presetMin * 10000) / 10000
+                    : Math.round(this.rangeMin * 10000) / 10000,
+                to: this.presetMax !== null ? Math.round(this.presetMax * 10000) / 10000
+                    : Math.round(this.rangeMax * 10000) / 10000,
                 step: (this.rangeMax - this.rangeMin) / 10000
             },
             lastFilter: {},

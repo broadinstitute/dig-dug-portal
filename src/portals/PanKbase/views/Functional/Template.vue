@@ -196,7 +196,6 @@
 }
 #stats {
     margin-bottom: 40px;
-    display: flex !important;
     vertical-align: baseline;
 }
 #stats-header {
