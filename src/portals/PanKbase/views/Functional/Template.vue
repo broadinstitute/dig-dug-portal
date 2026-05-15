@@ -19,6 +19,11 @@
                                         @click="$parent.useSelectedDonors(false)">
                                         <criterion-function-group
                                             @update:filter-list="event => $parent.getFilters(event)">
+                                            <button class="btn btn-secondary" id="clearPresets"
+                                                v-if="!!$parent.linkedFilters !== null"
+                                                @click="$parent.clearPresets">
+                                                Clear preset filters
+                                            </button>
                                             <filter-slider :field="$parent.fieldsObject.age.key"
                                                 :range="$parent.getRange($parent.fieldsObject.age)">
                                                 <div class="label">Age</div>

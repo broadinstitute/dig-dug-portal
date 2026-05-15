@@ -133,9 +133,6 @@ new Vue({
         this.donorsWithData = this.getDonorsWithData(this.$store.state.ins);
         this.filteredMetadata = this.$store.state.metadata.filter(m => 
                 this.donorsWithData.includes(m.Accession));
-        if (this.linkedFilters !== null){
-            this.filteredMetadata = this.applyLinkedFilters(this.filteredMetadata, this.linkedFilters);
-        }
         const insTimepointsData = await fetch(insTimepointsFile).then(r => r.text());
         this.insTimepoints = dataConvert.tsv2Json(insTimepointsData);
         const gcgTimepointsData = await fetch(gcgTimepointsFile).then(r => r.text());
@@ -159,13 +156,15 @@ new Vue({
             return results;
         },
         tableItems(){
-            if (!this.useSelected){
-                return this.filteredDonors;
-            }
-            return this.filteredMetadata.filter(d => 
+            // If only sidebar filters are used, apply sidebar filters
+            let selection = this.filteredMetadata.filter(d => 
                 this.selectedDonorList.includes(d.Accession) ||
                 this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
             );
+            // If the pasted-in donor list is applied, use that
+            let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
+            // If filters are linked in URL params from donor page, use those
+            return this.applyLinkedFilters(results);
         }
     },
     methods: {
@@ -215,6 +214,11 @@ new Vue({
             }
             return output;
         },
+        clearPresets(){
+            this.linkedFilters = [];
+            let presetButton = document.getElementById("clearPresets");
+            presetButton.setAttribute("disabled", true);
+        },
         getDonorsWithData(insData){
             let dataPoint = insData[0];
             let donors = Object.keys(dataPoint).filter(d =>!d.startsWith("time"));
@@ -232,10 +236,13 @@ new Vue({
                 });
             return [min, max];
         },
-        applyLinkedFilters(data, filters){
+        applyLinkedFilters(data){
+            if (this.linkedFilters === null){
+                return data;
+            }
             let results = structuredClone(data);
-            for (let i = 0; i < filters.length; i++){
-                let filter = filters[i];
+            for (let i = 0; i < this.linkedFilters.length; i++){
+                let filter = this.linkedFilters[i];
                 let field = filter.name;
                 if (!!filter.values){
                     results = results.filter(r => filter.values.includes(r[field]));
