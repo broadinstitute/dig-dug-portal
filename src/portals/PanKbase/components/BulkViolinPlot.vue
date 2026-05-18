@@ -1,11 +1,11 @@
 <template>
     <div>
         <download-chart
-            :filename="`${gene}_expression_cpm_by_${xField.split('__')[1]}`"
-            :chartId="`violinChart_${gene}_svg`"
+            :filename="`Functional_data_by_${safeField}`"
+            :chartId="`violinChart_${safeField}_svg`"
             >
         </download-chart>
-        <div class="plot" :id="`violinChart_${gene}`">
+        <div class="plot" :id="`violinChart_${safeField}`">
         </div>
     </div>
 </template>
@@ -29,14 +29,11 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
-      gene: {
-        type: (String, null),
-        required: true
-      },
     },
     data() {
         return {
             plotId: "",
+            safeField: this.xField.replaceAll(" ", "_"),
             chart: null,
             chartWidth: 0,
             eventElements: [],
@@ -64,7 +61,7 @@ import { truncate } from 'lodash';
         }
     },
     mounted() {
-        this.plotId = `violinChart_${this.gene}`;
+        this.plotId = `violinChart_${this.safeField}`;
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -197,12 +194,9 @@ import { truncate } from 'lodash';
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text("Gene expression (CPM)");
+				.text("AUC");
         },
         truncateLabel(label){
-            if (!this.xField === "cat__custom__surgery"){
-                return label;
-            }
             if (label.indexOf(" ") !== -1){
                 return label.replaceAll(" ", "");
             }

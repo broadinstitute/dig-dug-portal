@@ -19,6 +19,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
 import FilterRadio from "../../components/FilterRadio.vue";
 import FilterEnumWithAny from "../../components/FilterEnumWithAny.vue";
+import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -41,7 +42,8 @@ new Vue({
         TimeSeriesLinePlot,
         FilterSlider,
         FilterRadio,
-        FilterEnumWithAny
+        FilterEnumWithAny,
+        BulkViolinPlot
     },
     mixins: [pankbaseMixin],
     data() {
@@ -243,6 +245,7 @@ new Vue({
             useSelected: false,
             linkedFilters: null,
             showAdvanced: false,
+            functionalTrait: "",
         };
     },
     async created() {

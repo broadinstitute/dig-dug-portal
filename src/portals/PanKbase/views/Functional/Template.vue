@@ -112,7 +112,21 @@
                                         </div>
                                     </b-tab>
                                     <b-tab title="Functional data by trait">
-                                        Coming soon
+                                        <div>
+                                            <select v-model="$parent.functionalTrait">
+                                                <option value="">Select a trait</option>
+                                                <option v-for="oField in Object.values($parent.fieldsObject)
+                                                .filter(f => !f.isNumeric && !f.noSidebar)"
+                                                :value="oField.key">
+                                                    {{ oField.key }}
+                                                </option>
+                                            </select>
+                                            <bulk-violin-plot 
+                                                :data="$parent.tableItems"
+                                                :xField="$parent.functionalTrait"
+                                                :xLabel="$parent.functionalTrait"
+                                            />
+                                        </div>
                                     </b-tab>
                                 </b-tabs>
                                 
