@@ -112,7 +112,47 @@
                                         </div>
                                     </b-tab>
                                     <b-tab title="Functional data by trait">
-                                        Coming soon
+                                        <div>
+                                            <div class="functional-select">
+                                                <select 
+                                                    v-model="$parent.functionalTrait">
+                                                    <option :value="null">Select a trait</option>
+                                                    <option v-for="oField in Object.values($parent.fieldsObject)
+                                                    .filter(f => !f.isNumeric && !f.noSidebar)"
+                                                    :value="oField.key">
+                                                        {{ oField.key }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
+                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
+                                                <div v-for="(condition, index) in 
+                                                    $parent.vlnConditions.filter(c => c.startsWith('INS'))"
+                                                    class="vlnPlot col-md-4">
+                                                    <functional-violin-plot
+                                                        v-if="$parent.filteredAucData.length > 0"
+                                                        :data="$parent.filteredAucData"
+                                                        :index="index"
+                                                        :xField="$parent.violinTrait"
+                                                        :xLabel="$parent.violinTrait"
+                                                        :yField="condition"
+                                                    >
+                                                    </functional-violin-plot>
+                                                </div>
+                                                <!-- <div v-for="(condition, index) in 
+                                                    $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
+                                                    class="vlnPlot col-md-4">
+                                                    <functional-violin-plot 
+                                                        :data="$parent.filteredAucData"
+                                                        :index="index"
+                                                        :xField="$parent.violinTrait"
+                                                        :xLabel="$parent.violinTrait"
+                                                        :yField="condition"
+                                                    >
+                                                    </functional-violin-plot>
+                                                </div> -->
+                                            </div>
+                                        </div>
                                     </b-tab>
                                 </b-tabs>
                                 
@@ -248,5 +288,12 @@ div.line-plot:first-child {
 .side-panel-filters {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
+}
+.vln-plot {
+    background-color:  #efefef !important;
+}
+.functional-select {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>

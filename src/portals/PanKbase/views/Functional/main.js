@@ -19,6 +19,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
 import FilterRadio from "../../components/FilterRadio.vue";
 import FilterEnumWithAny from "../../components/FilterEnumWithAny.vue";
+import FunctionalViolinPlot from "../../components/FunctionalViolinPlot.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -41,7 +42,8 @@ new Vue({
         TimeSeriesLinePlot,
         FilterSlider,
         FilterRadio,
-        FilterEnumWithAny
+        FilterEnumWithAny,
+        FunctionalViolinPlot
     },
     mixins: [pankbaseMixin],
     data() {
@@ -243,11 +245,17 @@ new Vue({
             useSelected: false,
             linkedFilters: null,
             showAdvanced: false,
+            functionalTrait: null,
+            vlnConditions: [],
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
+        let aucData = this.$store.state.allTraits;
+        let violinConditions = Object.keys(aucData[0])
+            .filter(c => c !== "Pankbase_ID" && c !== "Donor ID");
+        this.vlnConditions = violinConditions;
         if (!!keyParams.donorFilters){
             this.linkedFilters = JSON.parse(keyParams.donorFilters);
         }
@@ -288,6 +296,22 @@ new Vue({
         },
         presets(){
             return this.linkedFilters === null ? [] : this.linkedFilters;
+        },
+        filteredAucData(){
+            if (this.functionalTrait === null){
+                return [];
+            }
+            let results = structuredClone(this.$store.state.allTraits);
+            results = results.filter(d => this.filteredAccession.includes(d.Pankbase_ID));
+            results.forEach(r => {
+                let demoData = this.filteredMetadata.find(m => m.Accession === r.Pankbase_ID);
+                r[this.functionalTrait] = demoData[this.functionalTrait];
+            });
+            return results;
+        },
+        violinTrait(){
+            // Needs to be computed for the plot to update in real time
+            return this.functionalTrait;
         }
     },
     methods: {

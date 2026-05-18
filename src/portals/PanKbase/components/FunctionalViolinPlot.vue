@@ -1,11 +1,12 @@
 <template>
     <div>
-        <download-chart
-            :filename="`${gene}_expression_cpm_by_${xField.split('__')[1]}`"
-            :chartId="`violinChart_${gene}_svg`"
+<!--         <download-chart
+            :filename="`Functional_data_by_${safeField}`"
+            :chartId="`violinChart_${index}_svg`"
             >
-        </download-chart>
-        <div class="plot" :id="`violinChart_${gene}`">
+        </download-chart> -->
+        <div class="label">{{ yField }}</div>
+        <div class="plot" :id="`violinChart_${index}`">
         </div>
     </div>
 </template>
@@ -15,7 +16,7 @@
 import { truncate } from 'lodash';
   import Vue from 'vue';
   
-  export default Vue.component('bulk-violin-plot', {
+  export default Vue.component('functional-violin-plot', {
     props: {
       data: {                           
         type: (Array, null),
@@ -29,18 +30,22 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
-      gene: {
+      yField: {
         type: (String, null),
         required: true
       },
+      index: {
+        type: Number,
+        required: true
+      }
     },
     data() {
         return {
             plotId: "",
+            safeField: this.xField.replaceAll(" ", "_"),
             chart: null,
             chartWidth: 0,
             eventElements: [],
-            yField: "norm_counts",
             margin: {
                 top: 10,
                 right: 10,
@@ -49,7 +54,7 @@ import { truncate } from 'lodash';
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 350
+            plotHeight: 250
         }
     },
     watch: {
@@ -64,7 +69,8 @@ import { truncate } from 'lodash';
         }
     },
     mounted() {
-        this.plotId = `violinChart_${this.gene}`;
+        this.plotId = `violinChart_${this.index}`;
+        console.log("Violin plot ID:", this.plotId);
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -81,6 +87,8 @@ import { truncate } from 'lodash';
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
+    },
+    computed: {
     },
     methods: {
         handleResize(){
@@ -116,6 +124,7 @@ import { truncate } from 'lodash';
             
             let minVal = d3.min(this.data.map(d => d[yField]));
             let maxVal = d3.max(this.data.map(d => d[yField]));
+            console.log(minVal, maxVal);
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
@@ -124,6 +133,7 @@ import { truncate } from 'lodash';
                 .style("font-size", this.fontSize);
 
             let categories = Array.from(new Set(this.data.map(d => d[xField])));
+            console.log("Categories are:", JSON.stringify(categories));
 
             let x = d3.scaleBand()
                 .range([0,width])
@@ -186,23 +196,20 @@ import { truncate } from 'lodash';
 				.attr("transform", "translate(0,0)")
                 .style("text-anchor", "middle");
 
-			this.svg.select("#axisLabelsGroup")
+			/* this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
 				.attr("y", (height + this.margin.bottom - 10))
-				.text(this.xLabel);
+				.text(this.xLabel); */
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text("Gene expression (CPM)");
+				.text(`AUC`);
         },
         truncateLabel(label){
-            if (!this.xField === "cat__custom__surgery"){
-                return label;
-            }
             if (label.indexOf(" ") !== -1){
                 return label.replaceAll(" ", "");
             }

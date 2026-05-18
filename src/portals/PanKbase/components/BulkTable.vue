@@ -84,27 +84,6 @@
                         </div>
                         <div class="col-md-1"></div>
                     </div>
-                    <div class="row subtable-plots">
-                        <div class="col-md-6">
-                            <bulk-violin-plot 
-                                :data="subtableData[subtableKey(row.item)]"
-                                :gene="row.item.gene"
-                                :xField="catField?.key || catFields[0].key"
-                                :xLabel="catField?.label || catFields[0].label"
-                            />
-                        </div>
-                        <div class="col-md-6">
-                        <scatterplot
-                            :plotData="subtableData[subtableKey(row.item)]"
-                            :config="scatterConfig"
-                            :plotId="`bulk_${row.item.gene}`"
-                            :hideDownload="true"
-                            :tightenLeft="true"
-                            :plotName="`${dataset}_${row.item.gene}_bulk`">
-
-                        </scatterplot>
-                        </div>
-                    </div>
                     <bulk-table              
                         :bulkData="subtableData[subtableKey(row.item)]"
                         :config="{fields : subtableFields[subtableKey(row.item)]}"
