@@ -245,7 +245,7 @@ new Vue({
             useSelected: false,
             linkedFilters: null,
             showAdvanced: false,
-            functionalTrait: "Gender",
+            functionalTrait: null,
             vlnConditions: [],
         };
     },
@@ -298,6 +298,9 @@ new Vue({
             return this.linkedFilters === null ? [] : this.linkedFilters;
         },
         filteredAucData(){
+            if (this.functionalTrait === null){
+                return [];
+            }
             let results = structuredClone(this.$store.state.allTraits);
             results = results.filter(d => this.filteredAccession.includes(d.Pankbase_ID));
             results.forEach(r => {

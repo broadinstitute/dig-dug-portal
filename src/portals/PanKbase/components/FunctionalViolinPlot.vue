@@ -1,10 +1,11 @@
 <template>
     <div>
-        <download-chart
+<!--         <download-chart
             :filename="`Functional_data_by_${safeField}`"
             :chartId="`violinChart_${index}_svg`"
             >
-        </download-chart>
+        </download-chart> -->
+        <div class="label">{{ yField }}</div>
         <div class="plot" :id="`violinChart_${index}`">
         </div>
     </div>
@@ -206,7 +207,7 @@ import { truncate } from 'lodash';
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text(`${this.yField} (AUC)`);
+				.text(`AUC`);
         },
         truncateLabel(label){
             if (label.indexOf(" ") !== -1){

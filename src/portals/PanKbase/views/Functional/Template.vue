@@ -125,7 +125,8 @@
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
                                                     class="vlnPlot col-md-4">
-                                                    <functional-violin-plot 
+                                                    <functional-violin-plot
+                                                        v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
                                                         :index="index"
                                                         :xField="$parent.violinTrait"
@@ -134,7 +135,7 @@
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
-                                                <div v-for="(condition, index) in 
+                                                <!-- <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
                                                     class="vlnPlot col-md-4">
                                                     <functional-violin-plot 
@@ -145,7 +146,7 @@
                                                         :yField="condition"
                                                     >
                                                     </functional-violin-plot>
-                                                </div>
+                                                </div> -->
                                             </div>
                                         </div>
                                     </b-tab>
@@ -283,5 +284,8 @@ div.line-plot:first-child {
 .side-panel-filters {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
+}
+.vln-plot {
+    padding: 20px;
 }
 </style>
