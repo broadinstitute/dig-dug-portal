@@ -2,10 +2,10 @@
     <div>
         <download-chart
             :filename="`Functional_data_by_${safeField}`"
-            :chartId="`violinChart_${safeField}_svg`"
+            :chartId="`violinChart_${index}_svg`"
             >
         </download-chart>
-        <div class="plot" :id="`violinChart_${safeField}`">
+        <div class="plot" :id="`violinChart_${index}`">
         </div>
     </div>
 </template>
@@ -32,6 +32,10 @@ import { truncate } from 'lodash';
       yField: {
         type: (String, null),
         required: true
+      },
+      index: {
+        type: Number,
+        required: true
       }
     },
     data() {
@@ -49,7 +53,7 @@ import { truncate } from 'lodash';
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 350
+            plotHeight: 250
         }
     },
     watch: {
@@ -64,7 +68,8 @@ import { truncate } from 'lodash';
         }
     },
     mounted() {
-        this.plotId = `violinChart_${this.safeField}`;
+        this.plotId = `violinChart_${this.index}`;
+        console.log("Violin plot ID:", this.plotId);
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -118,6 +123,7 @@ import { truncate } from 'lodash';
             
             let minVal = d3.min(this.data.map(d => d[yField]));
             let maxVal = d3.max(this.data.map(d => d[yField]));
+            console.log(minVal, maxVal);
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
@@ -189,11 +195,11 @@ import { truncate } from 'lodash';
 				.attr("transform", "translate(0,0)")
                 .style("text-anchor", "middle");
 
-			this.svg.select("#axisLabelsGroup")
+			/* this.svg.select("#axisLabelsGroup")
 				.append("text")
 				.attr("x", ((width / 2)))
 				.attr("y", (height + this.margin.bottom - 10))
-				.text(this.xLabel);
+				.text(this.xLabel); */
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")

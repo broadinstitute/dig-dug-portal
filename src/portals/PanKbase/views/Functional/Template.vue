@@ -121,11 +121,25 @@
                                                     {{ oField.key }}
                                                 </option>
                                             </select>
-                                            <div class="vlnPlots">
-                                                <div v-for="condition in $parent.vlnConditions.slice(0,1)"
+                                            <div class="vlnPlots" v-if="$parent.vlnConditions.length > 0">
+                                                <div v-for="(condition, index) in 
+                                                    $parent.vlnConditions.filter(c => c.startsWith('INS'))"
                                                     class="vlnPlot">
                                                     <functional-violin-plot 
                                                         :data="$parent.filteredAucData"
+                                                        :index="index"
+                                                        :xField="$parent.violinTrait"
+                                                        :xLabel="$parent.violinTrait"
+                                                        :yField="condition"
+                                                    >
+                                                    </functional-violin-plot>
+                                                </div>
+                                                <div v-for="(condition, index) in 
+                                                    $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
+                                                    class="vlnPlot">
+                                                    <functional-violin-plot 
+                                                        :data="$parent.filteredAucData"
+                                                        :index="index"
                                                         :xField="$parent.violinTrait"
                                                         :xLabel="$parent.violinTrait"
                                                         :yField="condition"
