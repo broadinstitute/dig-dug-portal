@@ -5,7 +5,9 @@
   "scripts": {
     "watch": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development --watch",
     "build": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development",
-    "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production"
+    "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production",
+    "preview": "serve -l 8080 dist",
+    "preview:dir": "serve -l 8080"
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.40",
@@ -65,6 +67,7 @@
     "eslint-plugin-vue": "^9.17.0",
     "prettier": "^2.8.8",
     "regenerator-runtime": "^0.13.11",
+    "serve": "^14.2.4",
     "vue-template-compiler": "^2.7.16"
   }
 }
