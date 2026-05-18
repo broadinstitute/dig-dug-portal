@@ -245,12 +245,17 @@ new Vue({
             useSelected: false,
             linkedFilters: null,
             showAdvanced: false,
-            functionalTrait: "",
+            functionalTrait: "Gender",
+            vlnConditions: [],
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
+        let aucData = this.$store.state.allTraits;
+        let violinConditions = Object.keys(aucData[0])
+            .filter(c => c !== "Pankbase_ID" && c !== "Donor ID");
+        this.vlnConditions = violinConditions;
         if (!!keyParams.donorFilters){
             this.linkedFilters = JSON.parse(keyParams.donorFilters);
         }
@@ -291,6 +296,15 @@ new Vue({
         },
         presets(){
             return this.linkedFilters === null ? [] : this.linkedFilters;
+        },
+        filteredAucData(){
+            let results = structuredClone(this.$store.state.allTraits);
+            results = results.filter(d => this.filteredAccession.includes(d.Pankbase_ID));
+            results.forEach(r => {
+                let demoData = this.filteredMetadata.find(m => m.Accession === r.Pankbase_ID);
+                r[this.functionalTrait] = demoData[this.functionalTrait];
+            });
+            return results;
         }
     },
     methods: {

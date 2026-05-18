@@ -29,6 +29,10 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
+      yField: {
+        type: (String, null),
+        required: true
+      }
     },
     data() {
         return {
@@ -37,7 +41,6 @@ import { truncate } from 'lodash';
             chart: null,
             chartWidth: 0,
             eventElements: [],
-            yField: "norm_counts",
             margin: {
                 top: 10,
                 right: 10,
@@ -78,6 +81,8 @@ import { truncate } from 'lodash';
         if(this.eventElements.length>0) {
             this.removeAllListeners(this.eventElements);
         }
+    },
+    computed: {
     },
     methods: {
         handleResize(){
@@ -121,6 +126,7 @@ import { truncate } from 'lodash';
                 .style("font-size", this.fontSize);
 
             let categories = Array.from(new Set(this.data.map(d => d[xField])));
+            console.log("Categories are:", JSON.stringify(categories));
 
             let x = d3.scaleBand()
                 .range([0,width])

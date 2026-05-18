@@ -114,18 +114,26 @@
                                     <b-tab title="Functional data by trait">
                                         <div>
                                             <select v-model="$parent.functionalTrait">
-                                                <option value="">Select a trait</option>
+                                                <option :value="null">Select a trait</option>
                                                 <option v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => !f.isNumeric && !f.noSidebar)"
                                                 :value="oField.key">
                                                     {{ oField.key }}
                                                 </option>
                                             </select>
-                                            <bulk-violin-plot 
-                                                :data="$parent.tableItems"
-                                                :xField="$parent.functionalTrait"
-                                                :xLabel="$parent.functionalTrait"
-                                            />
+                                            <div class="vlnPlots">
+                                                <div v-for="condition in $parent.vlnConditions.slice(0,1)"
+                                                    v-if="$parent.functionalTrait !== null"
+                                                    class="vlnPlot">
+                                                    <div class="label">{{ condition }}</div>
+                                                    <bulk-violin-plot 
+                                                        :data="$parent.filteredAucData"
+                                                        :xField="$parent.functionalTrait"
+                                                        :xLabel="$parent.functionalTrait"
+                                                        :yField="condition"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </b-tab>
                                 </b-tabs>
