@@ -124,7 +124,7 @@
                                                     </option>
                                                 </select>
                                             </div>
-                                            <strong>Insulin secretion traits</strong>
+                                            <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
                                             <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
