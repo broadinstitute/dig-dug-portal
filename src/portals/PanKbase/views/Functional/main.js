@@ -19,7 +19,7 @@ import DataDownload from "@/components/DataDownload.vue";
 import FilterSlider from "../../components/FilterSlider.vue";
 import FilterRadio from "../../components/FilterRadio.vue";
 import FilterEnumWithAny from "../../components/FilterEnumWithAny.vue";
-import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
+import FunctionalViolinPlot from "../../components/FunctionalViolinPlot.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
@@ -43,7 +43,7 @@ new Vue({
         FilterSlider,
         FilterRadio,
         FilterEnumWithAny,
-        BulkViolinPlot
+        FunctionalViolinPlot
     },
     mixins: [pankbaseMixin],
     data() {
@@ -305,6 +305,10 @@ new Vue({
                 r[this.functionalTrait] = demoData[this.functionalTrait];
             });
             return results;
+        },
+        violinTrait(){
+            // Needs to be computed for the plot to update in real time
+            return this.functionalTrait;
         }
     },
     methods: {

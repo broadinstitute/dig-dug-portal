@@ -15,7 +15,7 @@
 import { truncate } from 'lodash';
   import Vue from 'vue';
   
-  export default Vue.component('bulk-violin-plot', {
+  export default Vue.component('functional-violin-plot', {
     props: {
       data: {                           
         type: (Array, null),
@@ -200,7 +200,7 @@ import { truncate } from 'lodash';
 				.attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", - height / 2)
-				.text("AUC");
+				.text(`${this.yField} (AUC)`);
         },
         truncateLabel(label){
             if (label.indexOf(" ") !== -1){

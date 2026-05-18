@@ -123,15 +123,14 @@
                                             </select>
                                             <div class="vlnPlots">
                                                 <div v-for="condition in $parent.vlnConditions.slice(0,1)"
-                                                    v-if="$parent.functionalTrait !== null"
                                                     class="vlnPlot">
-                                                    <div class="label">{{ condition }}</div>
-                                                    <bulk-violin-plot 
+                                                    <functional-violin-plot 
                                                         :data="$parent.filteredAucData"
-                                                        :xField="$parent.functionalTrait"
-                                                        :xLabel="$parent.functionalTrait"
+                                                        :xField="$parent.violinTrait"
+                                                        :xLabel="$parent.violinTrait"
                                                         :yField="condition"
-                                                    />
+                                                    >
+                                                    </functional-violin-plot>
                                                 </div>
                                             </div>
                                         </div>
