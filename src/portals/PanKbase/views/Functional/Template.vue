@@ -121,10 +121,10 @@
                                                     {{ oField.key }}
                                                 </option>
                                             </select>
-                                            <div class="vlnPlots" v-if="$parent.vlnConditions.length > 0">
+                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
-                                                    class="vlnPlot">
+                                                    class="vlnPlot col-md-4">
                                                     <functional-violin-plot 
                                                         :data="$parent.filteredAucData"
                                                         :index="index"
@@ -136,7 +136,7 @@
                                                 </div>
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
-                                                    class="vlnPlot">
+                                                    class="vlnPlot col-md-4">
                                                     <functional-violin-plot 
                                                         :data="$parent.filteredAucData"
                                                         :index="index"
