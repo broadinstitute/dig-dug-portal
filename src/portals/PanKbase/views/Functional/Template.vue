@@ -113,14 +113,18 @@
                                     </b-tab>
                                     <b-tab title="Functional data by trait">
                                         <div>
-                                            <select v-model="$parent.functionalTrait">
-                                                <option :value="null">Select a trait</option>
-                                                <option v-for="oField in Object.values($parent.fieldsObject)
-                                                .filter(f => !f.isNumeric && !f.noSidebar)"
-                                                :value="oField.key">
-                                                    {{ oField.key }}
-                                                </option>
-                                            </select>
+                                            <div class="functional-select">
+                                                <select 
+                                                    v-model="$parent.functionalTrait">
+                                                    <option :value="null">Select a trait</option>
+                                                    <option v-for="oField in Object.values($parent.fieldsObject)
+                                                    .filter(f => !f.isNumeric && !f.noSidebar)"
+                                                    :value="oField.key">
+                                                        {{ oField.key }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <strong>Insulin secretion traits</strong>
                                             <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
@@ -286,6 +290,10 @@ div.line-plot:first-child {
     overflow-y: scroll !important;
 }
 .vln-plot {
-    padding: 20px;
+    background-color:  #efefef !important;
+}
+.functional-select {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>

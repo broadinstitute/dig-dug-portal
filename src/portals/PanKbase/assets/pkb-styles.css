@@ -265,3 +265,9 @@ tr.downregulated {
     color: inherit !important;
     background-color: white !important
 }
+.functional-page .vlnPlot {
+    background-color: #efefef !important;
+}
+.functional-page .vlnPlots {
+    margin-left: 20px !important
+}
