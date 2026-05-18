@@ -1,179 +1,167 @@
 <template>
     <section v-if="isLoading || hasRows" class="donor-snapshot">
-        <div v-if="isLoading" class="snapshot-strip">
-            <article
-                v-for="cardIndex in 5"
-                :key="`snapshot-skeleton-${cardIndex}`"
-                class="snapshot-card snapshot-card-skeleton"
-                aria-hidden="true"
+        <div
+            v-if="isLoading"
+            class="snapshot-skeleton-rows"
+        >
+            <div
+                v-for="rowIndex in 2"
+                :key="`snapshot-skeleton-row-${rowIndex}`"
+                class="snapshot-comparison snapshot-comparison-loading"
+                :style="skeletonGridStyle"
             >
-                <div class="snapshot-skeleton-line snapshot-skeleton-line-kicker"></div>
-                <div class="snapshot-skeleton-line snapshot-skeleton-line-title"></div>
-                <div class="snapshot-skeleton-line snapshot-skeleton-line-copy"></div>
-                <div class="snapshot-skeleton-line snapshot-skeleton-line-copy"></div>
-                <div class="snapshot-skeleton-stack">
-                    <div
-                        v-for="rowIndex in 3"
-                        :key="`snapshot-skeleton-${cardIndex}-${rowIndex}`"
-                        class="snapshot-skeleton-row"
-                    >
-                        <div class="snapshot-skeleton-line snapshot-skeleton-line-label"></div>
+                <article
+                    v-for="(cardType, columnIndex) in skeletonCardTypes"
+                    :key="`snapshot-skeleton-${rowIndex}-${columnIndex}`"
+                    class="snapshot-card snapshot-card-skeleton"
+                    aria-hidden="true"
+                >
+                    <div v-if="cardType === 'summary'" class="snapshot-skeleton-special">
+                        <div class="snapshot-skeleton-line snapshot-skeleton-line-kicker"></div>
+                        <div class="snapshot-skeleton-line snapshot-skeleton-line-title"></div>
                         <div class="snapshot-skeleton-line snapshot-skeleton-line-value"></div>
                     </div>
-                </div>
-            </article>
+                    <div v-else-if="cardType === 'histogram'" class="snapshot-skeleton-plot">
+                        <div class="snapshot-skeleton-cap"></div>
+                        <div class="snapshot-skeleton-histogram">
+                            <div
+                                v-for="miniRowIndex in 6"
+                                :key="`snapshot-skeleton-${rowIndex}-${columnIndex}-${miniRowIndex}`"
+                                class="snapshot-skeleton-histogram-bar"
+                                :style="getSkeletonHistogramBarStyle(miniRowIndex)"
+                            ></div>
+                        </div>
+                        <div class="snapshot-skeleton-axis">
+                            <div class="snapshot-skeleton-line snapshot-skeleton-line-axis"></div>
+                            <div class="snapshot-skeleton-line snapshot-skeleton-line-axis"></div>
+                        </div>
+                    </div>
+                    <div v-else class="snapshot-skeleton-plot">
+                        <div class="snapshot-skeleton-cap"></div>
+                        <div class="snapshot-skeleton-chart">
+                            <div
+                                v-for="miniRowIndex in getSkeletonRowCount(cardType)"
+                                :key="`snapshot-skeleton-${rowIndex}-${columnIndex}-${miniRowIndex}`"
+                                class="snapshot-skeleton-chart-row"
+                            >
+                                <div class="snapshot-skeleton-line snapshot-skeleton-line-label"></div>
+                                <div class="snapshot-skeleton-line snapshot-skeleton-line-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
         </div>
-        <div v-else class="snapshot-strip">
-            <article class="snapshot-card snapshot-card-overview">
-                <div class="snapshot-card-kicker">Cohort snapshot</div>
-                <div class="snapshot-overview-value">{{ formatCount(donorRecords.length) }}</div>
-                <div class="snapshot-overview-label">unique donors</div>
-                <div class="snapshot-overview-meta">
-                    <div v-if="medianAgeValue !== null">Median age {{ formatNumericValue(medianAgeValue, 1) }}</div>
-                    <div v-if="assayTypeCount" :title="assayTypeTooltip">{{ assayTypeCount }} modalities</div>
-                    <div v-if="nonDiabeticPercent !== null">{{ formatPercent(nonDiabeticPercent) }} non-diabetic</div>
+        <div v-else class="snapshot-shell">
+            <div class="snapshot-header">
+                <div>
+                    <div class="snapshot-title">Donor composition snapshot</div>
+                    <div class="snapshot-subtitle">
+                        Compare the full donor cohort with the subset that has assay data available in PanKbase.
+                    </div>
                 </div>
                 <a class="snapshot-overview-link" href="/donors.html">See full donor summary</a>
-            </article>
+            </div>
 
-            <article class="snapshot-card">
-                <div class="snapshot-card-heading">
-                    <div class="snapshot-card-title">Assay coverage</div>
-                    <span
-                        v-b-tooltip.hover
-                        class="snapshot-info"
-                        tabindex="0"
-                        title="Non-exclusive counts. A donor may contribute to multiple assay modalities."
-                    >i</span>
-                </div>
-                <div v-if="availabilityMicroRows.length" class="snapshot-micro-bars">
-                    <div
-                        v-for="row in availabilityMicroRows"
-                        :key="`assay-${row.label}`"
-                        class="snapshot-micro-row snapshot-micro-row-compact"
-                    >
-                        <div class="snapshot-micro-meta">
-                            <span class="snapshot-micro-label snapshot-micro-label-full" :title="row.label">{{ row.label }}</span>
-                            <span class="snapshot-micro-value">{{ row.value }}</span>
-                        </div>
-                        <div class="snapshot-micro-track">
-                            <div
-                                class="snapshot-micro-fill"
-                                :style="{ width: `${row.percent}%`, background: row.color }"
-                                :title="`${row.label}: ${row.value} donors`"
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="snapshot-empty-state">No assay metadata found.</div>
-            </article>
+            <div class="snapshot-scroll">
+                <div class="snapshot-comparison" :style="comparisonGridStyle">
+                    <template v-for="row in comparisonRows">
+                        <article
+                            :key="`${row.key}-special`"
+                            class="snapshot-card snapshot-card-special"
+                            :class="row.cardClass"
+                        >
+                            <div class="snapshot-card-kicker">{{ row.kicker }}</div>
+                            <div class="snapshot-special-title">{{ row.label }}</div>
+                            <div class="snapshot-overview-value">{{ formatCount(row.count) }}</div>
+                            <div v-if="row.overviewLabel" class="snapshot-overview-label">{{ row.overviewLabel }}</div>
 
-            <article class="snapshot-card">
-                <div class="snapshot-card-heading">
-                    <div class="snapshot-card-title">Diabetes status</div>
-                </div>
-                <div v-if="diabetesStatusSegments.length" class="snapshot-micro-bars">
-                    <div
-                        v-for="segment in diabetesStatusSegments"
-                        :key="`status-${segment.label}`"
-                        class="snapshot-micro-row snapshot-micro-row-compact"
-                    >
-                        <div class="snapshot-micro-meta">
-                            <span class="snapshot-micro-label snapshot-micro-label-strong">
-                                <span class="snapshot-dot" :style="{ background: segment.color }"></span>
-                                <span>{{ shortenLabel(segment.label, 16) }}</span>
-                            </span>
-                            <span class="snapshot-micro-value">{{ segment.value }} · {{ formatPercent(segment.percent) }}</span>
-                        </div>
-                        <div class="snapshot-micro-track">
-                            <div
-                                class="snapshot-micro-fill"
-                                :style="{ width: `${segment.percent}%`, background: segment.color }"
-                                :title="`${segment.label}: ${segment.value} donors (${formatPercent(segment.percent)})`"
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="snapshot-empty-state">No disease-status field found.</div>
-            </article>
+                            <div class="snapshot-overview-meta">
+                                <div v-for="line in row.metaLines" :key="`${row.key}-${line}`">{{ line }}</div>
+                            </div>
 
-            <article class="snapshot-card">
-                <div class="snapshot-card-heading">
-                    <div class="snapshot-card-title">Age by status</div>
-                    <span
-                        v-b-tooltip.hover
-                        class="snapshot-info"
-                        tabindex="0"
-                        title="Whisker = full range, box = interquartile range, line = median age."
-                    >i</span>
-                </div>
-                <div v-if="ageSummaryRows.length" class="snapshot-range-list">
-                    <div
-                        v-for="row in ageSummaryRows.slice(0, 4)"
-                        :key="`age-${row.label}`"
-                        class="snapshot-range-row snapshot-range-row-compact"
-                    >
-                        <div class="snapshot-range-head">
-                            <span>{{ shortenLabel(row.label, 16) }}</span>
-                            <span>median {{ formatNumericValue(row.median, 0) }}</span>
-                        </div>
-                        <div class="snapshot-range-track">
-                            <div
-                                class="snapshot-range-line"
-                                :style="getWhiskerStyle(row, ageScale)"
-                            ></div>
-                            <div
-                                class="snapshot-range-box"
-                                :style="getBoxStyle(row, ageScale)"
-                            ></div>
-                            <div
-                                class="snapshot-range-marker"
-                                :style="getMedianStyle(row, ageScale)"
-                            ></div>
-                        </div>
-                    </div>
-                    <div class="snapshot-range-axis" aria-hidden="true">
-                        <span class="snapshot-range-axis-spacer"></span>
-                        <div class="snapshot-range-axis-values">
-                            <span>{{ formatNumericValue(ageScale.min, 0) }}</span>
-                            <span>{{ formatNumericValue(ageScale.max, 0) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="snapshot-empty-state">Not enough age data.</div>
-            </article>
+                            <div v-if="row.coverageBadge" class="snapshot-coverage-badge">
+                                {{ row.coverageBadge }}
+                            </div>
 
-            <article class="snapshot-card">
-                <div class="snapshot-card-heading">
-                    <div class="snapshot-card-title">Donors by collection</div>
-                    <span
-                        v-b-tooltip.hover
-                        class="snapshot-info"
-                        tabindex="0"
-                        title="Counts are donor-level and may be non-exclusive when a donor is represented in multiple collections."
-                    >i</span>
+                        </article>
+
+                        <article
+                            v-for="card in comparisonCards"
+                            :key="`${row.key}-${card.key}`"
+                            class="snapshot-card"
+                            :class="row.cardClass"
+                        >
+                            <div class="snapshot-card-heading">
+                                <div class="snapshot-card-title">{{ card.title }}</div>
+                                <span
+                                    v-if="card.tooltip"
+                                    v-b-tooltip.hover
+                                    class="snapshot-info"
+                                    tabindex="0"
+                                    :title="card.tooltip"
+                                >i</span>
+                            </div>
+
+                            <div v-if="card.kind === 'categorical' && card.rowsByCohort[row.key].rows.length" class="snapshot-micro-bars">
+                                <div
+                                    v-for="plotRow in card.rowsByCohort[row.key].rows"
+                                    :key="`${row.key}-${card.key}-${plotRow.label}`"
+                                    class="snapshot-micro-row"
+                                >
+                                    <div class="snapshot-micro-meta">
+                                        <span class="snapshot-micro-label snapshot-micro-label-full" :title="plotRow.label">
+                                            {{ plotRow.label }}
+                                        </span>
+                                        <span class="snapshot-micro-value">{{ plotRow.value }} · {{ formatPercent(plotRow.percent) }}</span>
+                                    </div>
+                                    <div class="snapshot-micro-track">
+                                        <div
+                                            class="snapshot-micro-fill"
+                                            :style="{ width: `${plotRow.percent}%`, background: plotRow.color }"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-else-if="card.kind === 'histogram' && card.rowsByCohort[row.key].bins.length" class="snapshot-histogram">
+                                <div class="snapshot-histogram-bars" aria-hidden="true">
+                                    <div
+                                        v-for="(bin, binIndex) in card.rowsByCohort[row.key].bins"
+                                        :key="`${row.key}-${card.key}-bin-${binIndex}`"
+                                        class="snapshot-histogram-bar-wrap"
+                                    >
+                                        <div
+                                            class="snapshot-histogram-bar"
+                                            :style="{
+                                                height: `${bin.heightPercent}%`,
+                                                background: bin.color,
+                                            }"
+                                            :title="`${bin.label}: ${bin.count} donors (${formatPercent(bin.percent)})`"
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div class="snapshot-histogram-axis">
+                                    <span>{{ card.rowsByCohort[row.key].rangeLabel.min }}</span>
+                                    <span>{{ card.rowsByCohort[row.key].rangeLabel.max }}</span>
+                                </div>
+                            </div>
+
+                            <div v-else class="snapshot-empty-state">{{ card.emptyState }}</div>
+
+                            <div v-if="card.rowsByCohort[row.key].footer" class="snapshot-card-footer">
+                                <span
+                                    v-for="(part, partIndex) in splitFooterParts(card.rowsByCohort[row.key].footer)"
+                                    :key="`${row.key}-${card.key}-footer-${partIndex}`"
+                                    class="snapshot-card-footer-part"
+                                >
+                                    {{ part }}
+                                </span>
+                            </div>
+                        </article>
+                    </template>
                 </div>
-                <div v-if="collectionMicroRows.length" class="snapshot-micro-bars snapshot-micro-bars-tight">
-                    <div
-                        v-for="row in collectionMicroRows"
-                        :key="`collection-${row.label}`"
-                        class="snapshot-micro-row snapshot-micro-row-compact"
-                    >
-                        <div class="snapshot-micro-meta">
-                            <span class="snapshot-micro-label snapshot-micro-label-full" :title="row.label">{{ row.label }}</span>
-                            <span class="snapshot-micro-value">{{ row.value }} · {{ formatPercent(row.percent) }}</span>
-                        </div>
-                        <div class="snapshot-micro-track">
-                            <div
-                                class="snapshot-micro-fill"
-                                :style="{ width: `${row.percent}%`, background: row.color }"
-                                :title="`${row.label}: ${row.value} donors (${formatPercent(row.percent)})`"
-                            ></div>
-                        </div>
-                    </div>
-                </div>
-                <div v-else class="snapshot-empty-state">No collection metadata found.</div>
-            </article>
+            </div>
         </div>
     </section>
 </template>
@@ -182,10 +170,10 @@
 import Vue from "vue";
 import { parseNumericValue } from "./datasetUtils";
 
-const STATUS_COLORS = ["#0c5c63", "#1b8b8f", "#4eb8b4", "#82d0bc", "#e7c566", "#d98d58"];
-const ASSAY_COLORS = ["#0f766e", "#1d8f7d", "#34a98d", "#6ec2a9", "#9dd9c8", "#cfeee3"];
-const COLLECTION_COLORS = ["#1e6f64", "#379683", "#56ab91", "#86c3ab", "#b8ddcb", "#dceddf"];
-const STATUS_ORDER = ["Normal", "Prediabetes", "T2D", "T1D", "Diabetes"];
+const STATUS_ORDER = ["Control w/o diabetes", "Prediabetes", "T2D", "T1D"];
+const ALL_DONOR_COLORS = ["#1a7b79", "#2f918e", "#47a8a1", "#68bcb0", "#8fd0c0"];
+const ASSAY_DONOR_COLORS = ["#12647a", "#1a7ca0", "#2598c5", "#53b1dc", "#8fd0ee"];
+const DATA_TYPE_COLORS = ["#0f766e", "#1d8f7d", "#34a98d", "#6ec2a9", "#9dd9c8"];
 
 const DATA_TYPE_LABELS = {
     dynamic_perifusion: "Dynamic perifusion",
@@ -239,8 +227,9 @@ export default Vue.component("DonorSnapshot", {
                 ]),
                 age: this.findColumn(["Age (years)", "custom__organism_age", "age"]),
                 bmi: this.findColumn(["BMI", "bmi"]),
+                sex: this.findColumn(["Sex", "sex", "Biological sex", "Gender", "gender"]),
                 collections: this.findColumn(["Collections", "Collection", "collections"]),
-                availability: this.findColumn(["Data_available_Pankbase"]),
+                availability: this.findColumn(["Data_available_Pankbase", "Data available Pankbase"]),
             };
         },
         donorRecords() {
@@ -258,6 +247,7 @@ export default Vue.component("DonorSnapshot", {
                     normalizedDiabetesStatus: "",
                     age: null,
                     bmi: null,
+                    sex: "",
                     collections: new Set(),
                     dataTypes: new Set(),
                 };
@@ -278,6 +268,11 @@ export default Vue.component("DonorSnapshot", {
                     current.bmi = bmiValue;
                 }
 
+                const sexValue = this.normalizeSexLabel(row[this.fieldMap.sex]);
+                if (!current.sex && sexValue) {
+                    current.sex = sexValue;
+                }
+
                 this.parseCollectionsValue(row[this.fieldMap.collections]).forEach((value) => {
                     current.collections.add(value);
                 });
@@ -291,108 +286,362 @@ export default Vue.component("DonorSnapshot", {
 
             return Object.values(donorMap);
         },
-        medianAgeValue() {
-            const ageValues = this.donorRecords
-                .map((record) => record.age)
-                .filter((value) => value !== null)
-                .sort((left, right) => left - right);
+        allDonorRecords() {
+            return this.donorRecords;
+        },
+        assayDonorRecords() {
+            return this.donorRecords.filter((record) => record.dataTypes.size > 0);
+        },
+        assayCoveragePercent() {
+            return this.allDonorRecords.length
+                ? (this.assayDonorRecords.length / this.allDonorRecords.length) * 100
+                : null;
+        },
+        comparisonRows() {
+            return [
+                {
+                    key: "all",
+                    kicker: "Cohort",
+                    label: "All donors",
+                    overviewLabel: "",
+                    count: this.allDonorRecords.length,
+                    cardClass: "snapshot-card-all",
+                    metaLines: [],
+                    coverageBadge: null,
+                },
+                {
+                    key: "assay",
+                    kicker: "Subset",
+                    label: "Donors with assays",
+                    overviewLabel: "",
+                    count: this.assayDonorRecords.length,
+                    cardClass: "snapshot-card-assay",
+                    metaLines: [],
+                    coverageBadge: null,
+                },
+            ];
+        },
+        comparisonCards() {
+            const cards = [];
 
-            return ageValues.length ? this.quantile(ageValues, 0.5) : null;
-        },
-        assayTypeCount() {
-            const assayValues = this.donorRecords.reduce((values, record) => {
-                record.dataTypes.forEach((dataType) => values.push(dataType));
-                return values;
-            }, []);
+            if (this.allDonorRecords.length || this.assayDonorRecords.length) {
+                cards.push({
+                    key: "assay-profile",
+                    title: "Assay profile",
+                    kind: "categorical",
+                    tooltip: "Assay modality counts are non-exclusive. A donor may contribute to multiple assay modalities.",
+                    emptyState: "No assay metadata found.",
+                    rowsByCohort: {
+                        all: {
+                            rows: this.buildCoverageRows(),
+                            footer: "",
+                        },
+                        assay: {
+                            rows: this.buildAssayTypeRows(this.assayDonorRecords),
+                            footer: "",
+                        },
+                    },
+                });
+            }
 
-            return new Set(assayValues).size;
+            if (this.hasDonorData(this.allDonorRecords, "normalizedDiabetesStatus") || this.hasDonorData(this.assayDonorRecords, "normalizedDiabetesStatus")) {
+                cards.push({
+                    key: "diabetes",
+                    title: "Diabetes status",
+                    kind: "categorical",
+                    tooltip: "",
+                    emptyState: "No disease-status field found.",
+                    rowsByCohort: {
+                        all: this.buildCategoricalCardData(this.allDonorRecords, "normalizedDiabetesStatus", {
+                            colors: ALL_DONOR_COLORS,
+                            order: STATUS_ORDER,
+                            limit: STATUS_ORDER.length,
+                        }),
+                        assay: this.buildCategoricalCardData(this.assayDonorRecords, "normalizedDiabetesStatus", {
+                            colors: ASSAY_DONOR_COLORS,
+                            order: STATUS_ORDER,
+                            limit: STATUS_ORDER.length,
+                        }),
+                    },
+                });
+            }
+
+            if (this.hasNumericData(this.allDonorRecords, "age") || this.hasNumericData(this.assayDonorRecords, "age")) {
+                cards.push(this.buildHistogramComparisonCard("age", "Age", "years"));
+            }
+
+            if (this.hasDonorData(this.allDonorRecords, "sex") || this.hasDonorData(this.assayDonorRecords, "sex")) {
+                cards.push({
+                    key: "sex",
+                    title: "Sex",
+                    kind: "categorical",
+                    tooltip: "",
+                    emptyState: "No sex metadata found.",
+                    rowsByCohort: {
+                        all: this.buildCategoricalCardData(this.allDonorRecords, "sex", {
+                            colors: ALL_DONOR_COLORS,
+                            limit: 3,
+                        }),
+                        assay: this.buildCategoricalCardData(this.assayDonorRecords, "sex", {
+                            colors: ASSAY_DONOR_COLORS,
+                            limit: 3,
+                        }),
+                    },
+                });
+            }
+
+            if (this.hasNumericData(this.allDonorRecords, "bmi") || this.hasNumericData(this.assayDonorRecords, "bmi")) {
+                cards.push(this.buildHistogramComparisonCard("bmi", "BMI", ""));
+            }
+
+            if (this.hasCollectionData(this.allDonorRecords) || this.hasCollectionData(this.assayDonorRecords)) {
+                cards.push({
+                    key: "collections",
+                    title: "Collections",
+                    kind: "categorical",
+                    tooltip: "Counts are donor-level and may be non-exclusive when a donor is represented in multiple collections.",
+                    emptyState: "No collection metadata found.",
+                    rowsByCohort: {
+                        all: this.buildCategoricalCardData(this.allDonorRecords, "collections", {
+                            colors: ALL_DONOR_COLORS,
+                            multiValue: true,
+                            limit: 5,
+                        }),
+                        assay: this.buildCategoricalCardData(this.assayDonorRecords, "collections", {
+                            colors: ASSAY_DONOR_COLORS,
+                            multiValue: true,
+                            limit: 5,
+                            order: this.collectionOrder,
+                            sortByOrderOnly: true,
+                        }),
+                    },
+                });
+            }
+
+            return cards;
         },
-        assayTypeTooltip() {
-            const labels = this.availabilityPlotData.map((row) => row.label);
-            return labels.length
-                ? `Modalities: ${labels.join(", ")}`
-                : "";
+        comparisonColumnCount() {
+            return this.comparisonCards.length + 1;
         },
-        nonDiabeticPercent() {
-            const segment = this.diabetesStatusSegments.find((entry) => entry.label === "Normal");
-            return segment ? segment.percent : null;
+        comparisonGridStyle() {
+            return {
+                gridTemplateColumns: `repeat(${this.comparisonColumnCount}, minmax(180px, 1fr))`,
+            };
         },
-        diabetesStatusPlotData() {
-            const ageStatusLabels = new Set(this.ageSummaryRows.map((row) => row.label));
-            return this.buildCountPlotData(
-                this.donorRecords
-                    .map((record) => record.normalizedDiabetesStatus)
-                    .filter((label) => label && ageStatusLabels.has(label)),
-                { limit: STATUS_ORDER.length, includeOther: false }
+        skeletonGridStyle() {
+            return {
+                gridTemplateColumns: `repeat(${this.skeletonCardTypes.length}, minmax(180px, 1fr))`,
+            };
+        },
+        collectionOrder() {
+            return this.buildCategoricalCardData(this.allDonorRecords, "collections", {
+                multiValue: true,
+                limit: 5,
+            }).rows.map((row) => row.label);
+        },
+        skeletonCardTypes() {
+            return ["summary", "bars-2", "bars-4", "histogram", "bars-2", "histogram", "bars-5"];
+        },
+    },
+    methods: {
+        buildAssayTypeRows(records) {
+            const assayRows = this.buildCategoricalCardData(records, "dataTypes", {
+                colors: DATA_TYPE_COLORS,
+                multiValue: true,
+                limit: 4,
+                formatLabel: (value) => DATA_TYPE_LABELS[value] || value,
+            });
+
+            return assayRows.rows;
+        },
+        buildCoverageRows() {
+            if (!this.allDonorRecords.length) {
+                return [];
+            }
+
+            const withAssayCount = this.assayDonorRecords.length;
+            const withoutAssayCount = Math.max(this.allDonorRecords.length - withAssayCount, 0);
+            const total = this.allDonorRecords.length;
+
+            return [
+                {
+                    label: "Donors with assays",
+                    value: withAssayCount,
+                    percent: total ? (withAssayCount / total) * 100 : 0,
+                    color: ASSAY_DONOR_COLORS[1],
+                },
+                {
+                    label: "Without assay",
+                    value: withoutAssayCount,
+                    percent: total ? (withoutAssayCount / total) * 100 : 0,
+                    color: "#b8cec7",
+                },
+            ];
+        },
+        buildHistogramComparisonCard(fieldName, title, unitLabel) {
+            const scale = this.getNumericScale(this.allDonorRecords, fieldName);
+            const allData = this.buildHistogramCardData(this.allDonorRecords, fieldName, scale, ALL_DONOR_COLORS[1], unitLabel);
+            const assayData = this.buildHistogramCardData(this.assayDonorRecords, fieldName, scale, ASSAY_DONOR_COLORS[1], unitLabel);
+            const maxPercent = Math.max(
+                1,
+                ...allData.bins.map((bin) => bin.percent),
+                ...assayData.bins.map((bin) => bin.percent)
             );
-        },
-        diabetesStatusSegments() {
-            const total = this.diabetesStatusPlotData.reduce((sum, row) => sum + row.value, 0) || 1;
 
-            return this.diabetesStatusPlotData.map((row, index) => ({
-                ...row,
-                percent: (row.value / total) * 100,
-                color: STATUS_COLORS[index % STATUS_COLORS.length],
-            }));
+            return {
+                key: fieldName,
+                title,
+                kind: "histogram",
+                tooltip: "",
+                emptyState: `No ${title.toLowerCase()} data found.`,
+                rowsByCohort: {
+                    all: this.applyHistogramHeights(allData, maxPercent),
+                    assay: this.applyHistogramHeights(assayData, maxPercent),
+                },
+            };
         },
-        availabilityPlotData() {
+        buildCategoricalCardData(records, fieldName, options = {}) {
             const counts = {};
+            const totalCount = records.length || 1;
+            let knownCount = 0;
 
-            this.donorRecords.forEach((record) => {
-                record.dataTypes.forEach((dataType) => {
-                    counts[dataType] = (counts[dataType] || 0) + 1;
+            records.forEach((record) => {
+                let values = [];
+                const rawValue = record[fieldName];
+
+                if (options.multiValue) {
+                    values = rawValue instanceof Set ? Array.from(rawValue) : [];
+                } else if (rawValue) {
+                    values = [rawValue];
+                }
+
+                if (values.length) {
+                    knownCount += 1;
+                }
+
+                values.forEach((value) => {
+                    const formattedValue = options.formatLabel ? options.formatLabel(value) : value;
+                    if (!formattedValue) {
+                        return;
+                    }
+                    counts[formattedValue] = (counts[formattedValue] || 0) + 1;
                 });
             });
 
-            return Object.keys(counts)
-                .map((key) => ({
-                    label: DATA_TYPE_LABELS[key] || key,
-                    value: counts[key],
-                }))
-                .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label));
-        },
-        availabilityMicroRows() {
-            const maxValue = this.availabilityPlotData.length
-                ? this.availabilityPlotData[0].value
-                : 1;
-
-            return this.availabilityPlotData.slice(0, 4).map((row, index) => ({
-                ...row,
-                percent: maxValue ? (row.value / maxValue) * 100 : 0,
-                color: ASSAY_COLORS[index % ASSAY_COLORS.length],
-            }));
-        },
-        ageSummaryRows() {
-            return this.buildGroupedNumericSummaries("age");
-        },
-        ageScale() {
-            return this.getSummaryScale(this.ageSummaryRows);
-        },
-        collectionPlotData() {
-            const counts = {};
-
-            this.donorRecords.forEach((record) => {
-                record.collections.forEach((collection) => {
-                    counts[collection] = (counts[collection] || 0) + 1;
-                });
-            });
-
-            return Object.keys(counts)
+            const orderedRows = Object.keys(counts)
                 .map((label) => ({
                     label,
                     value: counts[label],
                 }))
-                .sort((left, right) => right.value - left.value || left.label.localeCompare(right.label));
+                .sort((left, right) => {
+                    const leftRank = options.order ? options.order.indexOf(left.label) : -1;
+                    const rightRank = options.order ? options.order.indexOf(right.label) : -1;
+                    const orderDifference = (leftRank === -1 ? 999 : leftRank) - (rightRank === -1 ? 999 : rightRank);
+                    if (options.sortByOrderOnly && options.order) {
+                        return orderDifference || left.label.localeCompare(right.label);
+                    }
+                    return right.value - left.value || orderDifference || left.label.localeCompare(right.label);
+                })
+                .slice(0, options.limit || 4);
+
+            return {
+                rows: orderedRows.map((row, index) => ({
+                    ...row,
+                    percent: (row.value / totalCount) * 100,
+                    color: (options.colors || ALL_DONOR_COLORS)[index % (options.colors || ALL_DONOR_COLORS).length],
+                })),
+                footer: "",
+            };
         },
-        collectionMicroRows() {
-            return this.collectionPlotData.slice(0, 5).map((row, index) => ({
-                ...row,
-                percent: this.donorRecords.length ? (row.value / this.donorRecords.length) * 100 : 0,
-                color: COLLECTION_COLORS[index % COLLECTION_COLORS.length],
-            }));
+        buildHistogramCardData(records, fieldName, scale, color, unitLabel) {
+            const values = records
+                .map((record) => record[fieldName])
+                .filter((value) => Number.isFinite(value));
+
+            if (!values.length) {
+                return {
+                    bins: [],
+                    footer: "",
+                    rangeLabel: { min: "", max: "" },
+                };
+            }
+
+            const binCount = 6;
+            const span = scale.max - scale.min || 1;
+            const binWidth = span / binCount;
+            const counts = new Array(binCount).fill(0);
+
+            values.forEach((value) => {
+                const normalized = Math.min(Math.max(value, scale.min), scale.max);
+                const relativePosition = normalized === scale.max
+                    ? binCount - 1
+                    : Math.floor((normalized - scale.min) / binWidth);
+                const index = Math.max(0, Math.min(binCount - 1, relativePosition));
+                counts[index] += 1;
+            });
+
+            return {
+                bins: counts.map((count, index) => {
+                    const binStart = scale.min + (binWidth * index);
+                    const binEnd = scale.min + (binWidth * (index + 1));
+                    return {
+                        count,
+                        color,
+                        percent: (count / records.length) * 100,
+                        heightPercent: 0,
+                        label: `${this.formatNumericValue(binStart, 0)}-${this.formatNumericValue(binEnd, 0)}${unitLabel ? ` ${unitLabel}` : ""}`,
+                    };
+                }),
+                footer: `Median ${this.formatNumericValue(this.quantile(values.slice().sort((left, right) => left - right), 0.5), 1)}${unitLabel ? ` ${unitLabel}` : ""} · n=${values.length.toLocaleString()}`,
+                rangeLabel: {
+                    min: this.formatNumericValue(scale.min, 0),
+                    max: this.formatNumericValue(scale.max, 0),
+                },
+            };
         },
-    },
-    methods: {
+        applyHistogramHeights(cardData, maxPercent) {
+            return {
+                ...cardData,
+                bins: cardData.bins.map((bin) => ({
+                    ...bin,
+                    heightPercent: maxPercent ? (bin.percent / maxPercent) * 100 : 0,
+                })),
+            };
+        },
+        getNumericScale(records, fieldName) {
+            const values = records
+                .map((record) => record[fieldName])
+                .filter((value) => Number.isFinite(value));
+
+            if (!values.length) {
+                return { min: 0, max: 1 };
+            }
+
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            if (min === max) {
+                return { min: min - 1, max: max + 1 };
+            }
+
+            return { min, max };
+        },
+        hasDonorData(records, fieldName) {
+            return records.some((record) => {
+                const value = record[fieldName];
+                if (value instanceof Set) {
+                    return value.size > 0;
+                }
+
+                return value !== null && value !== undefined && String(value).trim();
+            });
+        },
+        hasNumericData(records, fieldName) {
+            return records.some((record) => Number.isFinite(record[fieldName]));
+        },
+        hasCollectionData(records) {
+            return records.some((record) => record.collections && record.collections.size);
+        },
         normalizeDiabetesLabel(value) {
             const label = this.normalizeCategoryLabel(value);
             if (!label) {
@@ -407,13 +656,29 @@ export default Vue.component("DonorSnapshot", {
                 return "T2D";
             }
             if (lowered.includes("control") || lowered.includes("normal") || lowered.includes("non-diabetic") || lowered.includes("without diabetes")) {
-                return "Normal";
+                return "Control w/o diabetes";
             }
             if (lowered.includes("predi")) {
                 return "Prediabetes";
             }
-            if (lowered.includes("diabetes")) {
-                return "Diabetes";
+
+            return label;
+        },
+        normalizeSexLabel(value) {
+            const label = this.normalizeCategoryLabel(value);
+            if (!label) {
+                return "";
+            }
+
+            const lowered = label.toLowerCase();
+            if (["m", "male"].includes(lowered)) {
+                return "Male";
+            }
+            if (["f", "female"].includes(lowered)) {
+                return "Female";
+            }
+            if (lowered.includes("unknown") || lowered.includes("not reported")) {
+                return "";
             }
 
             return label;
@@ -423,13 +688,6 @@ export default Vue.component("DonorSnapshot", {
             const descriptionRaw = this.normalizeCategoryLabel(row[this.fieldMap.diabetesStatusDescription]);
             const normalizedDerived = this.normalizeDiabetesLabel(derivedRaw);
             const normalizedDescription = this.normalizeDiabetesLabel(descriptionRaw);
-
-            if (normalizedDerived === "Diabetes" && ["T1D", "T2D"].includes(normalizedDescription)) {
-                return {
-                    raw: descriptionRaw || derivedRaw,
-                    normalized: normalizedDescription,
-                };
-            }
 
             if (normalizedDerived && STATUS_ORDER.includes(normalizedDerived)) {
                 return {
@@ -565,119 +823,6 @@ export default Vue.component("DonorSnapshot", {
                     .filter(Boolean)
             )];
         },
-        buildCountPlotData(values, options = {}) {
-            const counts = values.reduce((map, value) => {
-                map[value] = (map[value] || 0) + 1;
-                return map;
-            }, {});
-
-            const sorted = Object.keys(counts)
-                .map((label) => ({
-                    label,
-                    value: counts[label],
-                }))
-                .sort((left, right) => {
-                    const rankDifference = this.getDiabetesStatusRank(left.label) - this.getDiabetesStatusRank(right.label);
-                    return right.value - left.value || rankDifference || left.label.localeCompare(right.label);
-                });
-
-            const limit = options.limit || sorted.length;
-            const topRows = sorted.slice(0, limit);
-
-            if (!options.includeOther || sorted.length <= limit) {
-                return topRows;
-            }
-
-            const otherCount = sorted.slice(limit).reduce((sum, row) => sum + row.value, 0);
-
-            return otherCount
-                ? topRows.concat({ label: "Other", value: otherCount })
-                : topRows;
-        },
-        buildGroupedNumericSummaries(fieldName) {
-            const grouped = this.donorRecords.reduce((map, record) => {
-                const statusLabel = record.normalizedDiabetesStatus || this.normalizeDiabetesLabel(record.diabetesStatus);
-                if (!statusLabel || record[fieldName] === null) {
-                    return map;
-                }
-
-                if (!map[statusLabel]) {
-                    map[statusLabel] = [];
-                }
-
-                map[statusLabel].push(record[fieldName]);
-                return map;
-            }, {});
-
-            return Object.keys(grouped)
-                .map((label) => {
-                    const values = grouped[label].slice().sort((left, right) => left - right);
-                    if (values.length < 3) {
-                        return null;
-                    }
-
-                    return {
-                        label,
-                        count: values.length,
-                        min: values[0],
-                        q1: this.quantile(values, 0.25),
-                        median: this.quantile(values, 0.5),
-                        q3: this.quantile(values, 0.75),
-                        max: values[values.length - 1],
-                    };
-                })
-                .filter(Boolean)
-                .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
-                .slice(0, 4);
-        },
-        getSummaryScale(rows) {
-            if (!rows.length) {
-                return { min: 0, max: 1 };
-            }
-
-            const values = [];
-            rows.forEach((row) => {
-                values.push(row.min, row.max);
-            });
-
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-
-            return min === max
-                ? { min: min - 1, max: max + 1 }
-                : { min, max };
-        },
-        toPercent(value, scale) {
-            if (!scale || scale.max <= scale.min) {
-                return 0;
-            }
-
-            const ratio = ((value - scale.min) / (scale.max - scale.min)) * 100;
-            return Math.max(0, Math.min(100, ratio));
-        },
-        getWhiskerStyle(row, scale) {
-            const left = this.toPercent(row.min, scale);
-            const right = this.toPercent(row.max, scale);
-
-            return {
-                left: `${left}%`,
-                width: `${Math.max(right - left, 0)}%`,
-            };
-        },
-        getBoxStyle(row, scale) {
-            const left = this.toPercent(row.q1, scale);
-            const right = this.toPercent(row.q3, scale);
-
-            return {
-                left: `${left}%`,
-                width: `${Math.max(right - left, 2)}%`,
-            };
-        },
-        getMedianStyle(row, scale) {
-            return {
-                left: `${this.toPercent(row.median, scale)}%`,
-            };
-        },
         quantile(sortedValues, q) {
             if (!sortedValues.length) {
                 return null;
@@ -717,47 +862,115 @@ export default Vue.component("DonorSnapshot", {
 
             return `${Math.round(value)}%`;
         },
-        shortenLabel(value, maxLength = 20) {
-            const label = String(value || "");
-            if (label.length <= maxLength) {
-                return label;
+        splitFooterParts(footer) {
+            if (!footer) {
+                return [];
             }
 
-            return `${label.slice(0, Math.max(maxLength - 1, 1))}…`;
+            return String(footer)
+                .split(" · ")
+                .map((part) => part.trim())
+                .filter(Boolean);
+        },
+        getSkeletonRowCount(cardType) {
+            const match = String(cardType).match(/bars-(\d+)/);
+            return match ? Number(match[1]) : 3;
+        },
+        getSkeletonHistogramBarStyle(index) {
+            const heights = [16, 52, 72, 84, 24, 8];
+            return {
+                height: `${heights[index - 1] || 20}%`,
+            };
         },
     },
 });
+
+function formatPercentValue(value) {
+    if (!Number.isFinite(value)) {
+        return "N/A";
+    }
+
+    return `${Math.round(value)}%`;
+}
 </script>
 
 <style scoped>
 .donor-snapshot {
     margin-top: 24px;
     width: 100%;
-    min-width: 850px;
 }
 
-.snapshot-strip {
+.snapshot-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.snapshot-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.snapshot-title {
+    color: #173d39;
+    font-size: 1.6em;
+    font-weight: 700;
+}
+
+.snapshot-subtitle {
+    margin-top: 2px;
+    font-size: 1.2em;
+    max-width: 720px;
+}
+
+.snapshot-scroll {
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.snapshot-skeleton-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.snapshot-comparison {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
+    gap: 8px;
+    min-width: 1100px;
+}
+
+.snapshot-comparison-loading {
+    overflow: visible;
 }
 
 .snapshot-card {
     min-width: 0;
-    padding: 12px;
-    border: 1px solid #d9e5df;
+    padding: 10px;
+    border: 1px solid #d8e6e1;
+    border-top-width: 4px;
     background: #fbfbfb;
-    box-shadow: 0 8px 20px rgba(21, 53, 47, 0.04);
-}
-
-.snapshot-card-overview {
+    box-shadow: 0 10px 24px rgba(19, 48, 44, 0.05);
     display: flex;
     flex-direction: column;
-    background: #ecf5f1;
+}
+
+.snapshot-card-all {
+    border-top-color: #4faea8;
+}
+
+.snapshot-card-assay {
+    border-top-color: #3d9fd2;
+}
+
+.snapshot-card-special {
+    background: #fbfbfb;
 }
 
 .snapshot-card-skeleton {
-    gap: 8px;
+    border-top-color: #d8e6e1;
 }
 
 .snapshot-skeleton-line {
@@ -772,47 +985,94 @@ export default Vue.component("DonorSnapshot", {
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
     animation: snapshot-skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
-.snapshot-skeleton-line-kicker {
-    width: 34%;
-    height: 10px;
+.snapshot-skeleton-cap {
+    width: 52%;
+    height: 8px;
+    border-radius: 999px;
+    background: #dce8e2;
 }
 
-.snapshot-skeleton-line-title {
-    width: 62%;
-    height: 26px;
-    margin-top: 6px;
-}
-
-.snapshot-skeleton-line-copy {
-    width: 76%;
-    height: 11px;
-}
-
-.snapshot-skeleton-stack {
+.snapshot-skeleton-special,
+.snapshot-skeleton-plot {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    flex: 1 1 auto;
+}
+
+.snapshot-skeleton-special {
+    justify-content: flex-start;
+}
+
+.snapshot-skeleton-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+    flex: 1 1 auto;
+}
+
+.snapshot-skeleton-histogram {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: end;
+    gap: 4px;
+    height: 54px;
     margin-top: 8px;
 }
 
-.snapshot-skeleton-row {
+.snapshot-skeleton-axis {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.snapshot-skeleton-chart-row {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
+}
+
+.snapshot-skeleton-line-kicker {
+    width: 32%;
+    height: 8px;
+}
+
+.snapshot-skeleton-line-title {
+    width: 64%;
+    height: 14px;
+    margin-top: 8px;
 }
 
 .snapshot-skeleton-line-label {
-    width: 58%;
-    height: 10px;
+    width: 38%;
+    height: 7px;
 }
 
 .snapshot-skeleton-line-value {
+    width: 48%;
+    height: 24px;
+    margin-top: 12px;
+}
+
+.snapshot-skeleton-line-bar {
     width: 100%;
     height: 6px;
+}
+
+.snapshot-skeleton-line-axis {
+    width: 20px;
+    height: 7px;
+}
+
+.snapshot-skeleton-histogram-bar {
+    border-radius: 5px 5px 2px 2px;
+    background: #dce8e2;
 }
 
 .snapshot-card-kicker,
@@ -830,54 +1090,54 @@ export default Vue.component("DonorSnapshot", {
     font-size: 10px;
 }
 
+.snapshot-special-title {
+    margin-top: 4px;
+    color: #163c39;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
 .snapshot-overview-value {
-    margin-top: 10px;
+    margin-top: 8px;
     color: #183c3a;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1;
 }
 
 .snapshot-overview-label {
-    margin-top: 4px;
+    margin-top: 2px;
     color: #55706a;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .snapshot-overview-meta {
-    margin-top: 10px;
+    margin-top: 6px;
     color: #64807a;
-    font-size: 11px;
-    line-height: 1.4;
+    font-size: 10px;
+    line-height: 1.35;
 }
 
 .snapshot-overview-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 12px;
-    align-self: flex-end;
     padding: 7px 10px;
     border: 1px solid #b8d7ce;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.8);
     color: #1d5f56;
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
     text-decoration: none;
-}
-
-.snapshot-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 10px;
+    white-space: nowrap;
 }
 
 .snapshot-card-heading {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
 }
@@ -897,81 +1157,60 @@ export default Vue.component("DonorSnapshot", {
     flex: 0 0 auto;
 }
 
-.snapshot-list-row,
-.snapshot-micro-meta,
-.snapshot-range-head {
+.snapshot-coverage-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(19, 126, 188, 0.1);
+    color: #145776;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.snapshot-micro-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.snapshot-micro-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.snapshot-micro-meta {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
 }
 
-.snapshot-list-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    min-width: 0;
-    color: #365652;
-    font-size: 11px;
-}
-
-.snapshot-list-value,
-.snapshot-micro-value,
-.snapshot-range-head {
-    color: #365652;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.snapshot-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex: 0 0 auto;
-}
-
-.snapshot-micro-bars,
-.snapshot-range-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 8px;
-}
-
-.snapshot-list-tight {
-    margin-top: 6px;
-}
-
-.snapshot-micro-bars-tight {
-    margin-top: 8px;
-}
-
-.snapshot-micro-row-compact {
-    gap: 2px;
-}
-
-.snapshot-micro-label-strong {
-    font-weight: 600;
-}
-
 .snapshot-micro-label,
-.snapshot-range-head span:first-child {
-    min-width: 0;
+.snapshot-micro-value {
     color: #365652;
-    font-size: 11px;
+    font-size: 10px;
+}
+
+.snapshot-micro-value {
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .snapshot-micro-label-full {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.snapshot-micro-track,
-.snapshot-range-track {
+.snapshot-micro-track {
     position: relative;
-    height: 6px;
-    margin-top: 2px;
+    height: 5px;
     overflow: hidden;
     border-radius: 999px;
     background: #e7f0ec;
@@ -982,62 +1221,69 @@ export default Vue.component("DonorSnapshot", {
     border-radius: 999px;
 }
 
-.snapshot-range-line {
-    position: absolute;
-    top: 50%;
-    height: 2px;
-    margin-top: -1px;
-    border-radius: 999px;
-    background: #6fa79b;
+.snapshot-histogram {
+    margin-top: 6px;
+    flex: 1 1 auto;
 }
 
-.snapshot-range-box {
-    position: absolute;
-    top: 0;
-    height: 6px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #44a28d 0%, #7ecdb6 100%);
-}
-
-.snapshot-range-marker {
-    position: absolute;
-    top: -1px;
-    width: 2px;
-    height: 8px;
-    margin-left: -1px;
-    border-radius: 999px;
-    background: #163b39;
-}
-
-.snapshot-range-row-compact {
-    gap: 4px;
-}
-
-.snapshot-range-axis {
+.snapshot-histogram-bars {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: end;
     gap: 4px;
-    margin-top: 2px;
+    height: 52px;
+    padding: 0 1px;
 }
 
-.snapshot-range-axis-spacer {
-    display: none;
+.snapshot-histogram-bar-wrap {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
 }
 
-.snapshot-range-axis-values {
+.snapshot-histogram-bar {
+    width: 100%;
+    min-height: 3px;
+    border-radius: 6px 6px 2px 2px;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.snapshot-histogram-axis {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 5px;
     color: #7a9089;
     font-size: 10px;
     line-height: 1;
 }
 
-.snapshot-empty-state {
-    margin-top: 8px;
+.snapshot-card-footer {
+    margin-top: auto;
+    padding-top: 8px;
     color: #6f8780;
-    font-size: 11px;
-    line-height: 1.5;
+    font-size: 10px;
+    line-height: 1.25;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.snapshot-card-footer-part {
+    white-space: nowrap;
+}
+
+.snapshot-card-footer-part:last-child {
+    margin-left: auto;
+    text-align: right;
+}
+
+.snapshot-empty-state {
+    margin-top: 6px;
+    color: #6f8780;
+    font-size: 10px;
+    line-height: 1.35;
 }
 
 @keyframes snapshot-skeleton-shimmer {
