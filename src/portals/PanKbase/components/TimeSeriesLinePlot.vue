@@ -1,6 +1,17 @@
 <template>
     <div>
       <h5>{{ plotTitle }}</h5>
+      <div>
+        <label>
+          Confidence intervals
+          <input type="radio" :value="true" :name="`${plotId}confidence`" v-model="showConfidence"/>
+        </label>
+        <label>
+          Individual donor traces
+          <input type="radio" :value="false" :name="`${plotId}confidence`" v-model="showConfidence"/>
+        </label>
+        
+      </div>
         <div class="download-images-setting">
           Mouse over the plot to highlight an individual donor.
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
@@ -61,6 +72,7 @@ export default Vue.component("time-series-line-plot", {
         xAxisLabel: "time (min)",
         axesDrawn: false,
         highlightedDonor: null,
+        showConfidence: true
       };
   },
   mounted(){
@@ -245,8 +257,7 @@ export default Vue.component("time-series-line-plot", {
           );
 
         let highlightedDonorData = null;
-        let showConfidenceInterval = true;
-        if (!showConfidenceInterval){
+        if (!this.showConfidence){
             this.chartData.forEach(c => {
             if (c[0].donor === this.highlightedDonor){
               highlightedDonorData = c;
@@ -278,7 +289,7 @@ export default Vue.component("time-series-line-plot", {
           console.log(JSON.stringify(this.confidenceIntervals));
           this.svg.append("path")
             .datum(this.confidenceIntervals)
-            .attr("fill", "#cce5df")
+            .attr("fill", `${this.lineColor}99`)
             .attr("stroke", "none")
             .attr("d", d3.area()
               .x(d => this.xScale(d.time))
@@ -341,6 +352,9 @@ export default Vue.component("time-series-line-plot", {
       console.log("New donor list received");
         this.drawChart();
     },
+    showConfidence(){
+      this.drawLines();
+    }
   }
 });
 </script>
