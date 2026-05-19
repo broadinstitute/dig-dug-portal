@@ -267,13 +267,35 @@ p {
 }
 
 .glens-answer-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
+    display: flex;
+    min-width: 0;
 }
 
 .glens-answer-card {
     padding: 0.85rem;
+}
+
+.glens-answer-card--compact {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    align-items: center;
+}
+
+.glens-answer-item {
+    min-width: 0;
+    padding: 0 0.85rem;
+    border-left: 1px solid #dbe5ef;
+}
+
+.glens-answer-item:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.glens-answer-item:last-child {
+    padding-right: 0;
 }
 
 .glens-answer-card span,
@@ -293,7 +315,8 @@ p {
     display: block;
     margin-top: 0.3rem;
     color: #162033;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    line-height: 1.25;
 }
 
 .glens-answer-card p {

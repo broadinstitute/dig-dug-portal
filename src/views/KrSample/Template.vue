@@ -105,11 +105,12 @@
                         </div>
                     </div>
 
-                    <div class="glens-answer-grid">
-                        <article v-for="answer in topAnswers" :key="answer.label" class="glens-answer-card">
-                            <span>{{ answer.label }}</span>
-                            <strong>{{ answer.value }}</strong>
-                            <p>{{ answer.text }}</p>
+                    <div class="glens-answer-grid" aria-label="Top evidence summary">
+                        <article class="glens-answer-card glens-answer-card--compact">
+                            <div v-for="answer in topAnswers" :key="answer.label" class="glens-answer-item">
+                                <span>{{ answer.label }}</span>
+                                <strong>{{ answer.value }}</strong>
+                            </div>
                         </article>
                     </div>
                 </section>
@@ -550,18 +551,15 @@ export default {
             return [
                 {
                     label: "Closest phenotype match",
-                    value: "BCH-12-34210-01 · 91% similar to this sample",
-                    text: "The searched sample is 100% similar to itself and excluded; this is the nearest other sample by phenotype profile.",
+                    value: "BCH-12-34210-01 · 91%",
                 },
                 {
                     label: "Group affinity",
                     value: "Investigator 2",
-                    text: "Best match among 40 investigator phenotype signatures after annotation-burden correction.",
                 },
                 {
-                    label: "Disease hypothesis to review",
+                    label: "Disease hypothesis",
                     value: "Kabuki syndrome-like",
-                    text: "Phenotype-based public disease profile overlaps 11 / 18 expected features; GenDX reports a KMT2D LP variant.",
                 },
             ];
         },
