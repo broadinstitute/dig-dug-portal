@@ -11,7 +11,6 @@ import Scatterplot from "../../../../components/Scatterplot.vue";
 import BulkHeatmap from "../../components/BulkHeatmap.vue";
 import BulkVolcanoPlot from "../../components/BulkVolcanoPlot.vue";
 import BulkTable from "../../components/BulkTable.vue";
-import BulkViolinPlot from "../../components/BulkViolinPlot.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
@@ -35,7 +34,6 @@ new Vue({
         BulkHeatmap,
         BulkVolcanoPlot,
         BulkTable,
-        BulkViolinPlot,
         GeneSelectPicker,
         MouseGeneSelect,
         CriterionFunctionGroup,

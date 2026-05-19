@@ -1,6 +1,21 @@
 <template>
     <div>
       <h5>{{ plotTitle }}</h5>
+      <div class="radio-labels">
+        <label>
+          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (all donors)
+        </label>
+        <label>
+          <input type="radio" value="some" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (filtered donors)
+        </label>
+        <label>
+          <input type="radio" value="none" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          Individual donors
+        </label>
+        
+      </div>
         <div class="download-images-setting">
           Mouse over the plot to highlight an individual donor.
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
@@ -17,7 +32,7 @@
               <table>
                 <tr>
                   <td class="leftTable"><strong>Age:</strong> {{ donorMetadata["Age (years)"] }}</td>
-                  <td><strong>Gender:</strong> {{ donorMetadata.Gender }}</td>
+                  <td><strong>Reported gender:</strong> {{ donorMetadata.Gender }}</td>
                 </tr>
                 <tr>
                   <td class="leftTable"><strong>BMI:</strong> {{ donorMetadata.BMI }}</td>
@@ -61,10 +76,13 @@ export default Vue.component("time-series-line-plot", {
         xAxisLabel: "time (min)",
         axesDrawn: false,
         highlightedDonor: null,
+        showConfidence: "all",
+        allConfidence: []
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
@@ -82,6 +100,10 @@ export default Vue.component("time-series-line-plot", {
         }
       });
       return output;
+    },
+    filteredConfidence(){
+      let data = this.plotData.filter(d => this.donors.includes(d.donor));
+      return this.confidenceIntervals(data);
     },
     allHoverFields(){
       return [this.dotKey, this.xField, this.yField];
@@ -122,6 +144,36 @@ export default Vue.component("time-series-line-plot", {
       }
       return output;
     },
+
+        confidenceIntervals(rawData){
+            let z = 1.96;
+            let times = Array.from(new Set(
+                rawData.filter(r => r.time !== undefined)
+                .map(r => r.time)));
+            let output = [];
+            times.forEach((t, index) => {
+                // Compute standard deviation
+                let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
+                    .map(r => r.score);
+                let n = allData.length;
+                console.log(n);
+                let sum = allData.reduce((total, entry) => total + entry, 0);
+                let x = sum/n;
+                let sqDiff = allData.map(r => (r - x)**2);
+                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
+                let sigma = Math.sqrt(sumDiff / n);
+
+                let confidenceInterval = z * sigma / (Math.sqrt(n));
+                let timeEntry = {
+                    time: t,
+                    mean: x,
+                    ciUpper: x + confidenceInterval,
+                    ciLower: x - confidenceInterval
+                };
+                output.push(timeEntry);
+            });
+            return output;
+        },
     drawChart(){
       let margin = {
         top: 80,
@@ -169,6 +221,8 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke-width", 1);
       });
       // Separate loop to put text on top of bg
+
+      let basalCondition = /\((.*)\)/;
       timepointBars.forEach((t, index) => {
         this.svg.append("text")
           .attr("text-anchor", "start")
@@ -176,7 +230,8 @@ export default Vue.component("time-series-line-plot", {
           .attr("x", 0)
           .attr("font-size", "smaller")
           .attr("transform", `translate(${t.textPosition},0) rotate(-45)`)
-          .text(this.isBasal(t.condition) ? t.condition.replaceAll("Secretion", "Secr.") 
+          .text(this.isBasal(t.condition) 
+            ? t.condition.match(basalCondition)[1]
             : t.condition);
       });
       this.tooltip = d3
@@ -193,7 +248,7 @@ export default Vue.component("time-series-line-plot", {
       //Labels
       this.svg.append("text")
         .attr("text-anchor", "middle")
-        .attr("y", height + margin.top + 20)
+        .attr("y", height + 32)
         .attr("x", width/2)
         .text(this.xAxisLabel || this.xField);
       this.svg.append("text")
@@ -242,33 +297,48 @@ export default Vue.component("time-series-line-plot", {
           );
 
         let highlightedDonorData = null;
-        this.chartData.forEach(c => {
-          if (c[0].donor === this.highlightedDonor){
-            highlightedDonorData = c;
-          } else {
+        if (this.showConfidence === "none"){
+            this.chartData.forEach(c => {
+            if (c[0].donor === this.highlightedDonor){
+              highlightedDonorData = c;
+            } else {
+              this.svg.append("path")
+              .datum(c)
+              .attr("class", "linegraph")
+              .attr("fill", "none")
+              .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
+              .attr("stroke-width", 1)
+              .attr("class", "line-path")
+              .attr("d", lineGenerator)
+              .on("mouseover", c => this.showTooltip(c));
+            }
+          });
+          // Put highlighted line on top
+          if (highlightedDonorData !== null){
             this.svg.append("path")
-            .datum(c)
-            .attr("class", "linegraph")
-            .attr("fill", "none")
-            .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
-            .attr("stroke-width", 1)
-            .attr("class", "line-path")
-            .attr("d", lineGenerator)
-            .on("mouseover", c => this.showTooltip(c));
+              .datum(highlightedDonorData)
+              .attr("class", "linegraph")
+              .attr("fill", "none")
+              .attr("stroke", this.lineColor)
+              .attr("stroke-width", 2)
+              .attr("class", "line-path")
+              .attr("d", lineGenerator)
+              .on("mouseover", c => this.showTooltip(c))
           }
-        });
-        // Put highlighted line on top
-        if (highlightedDonorData !== null){
+        } else {
+          let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
           this.svg.append("path")
-            .datum(highlightedDonorData)
-            .attr("class", "linegraph")
-            .attr("fill", "none")
-            .attr("stroke", this.lineColor)
-            .attr("stroke-width", 2)
+            .datum(intervals)
+            .attr("fill", `${this.lineColor}99`)
+            .attr("stroke", "none")
             .attr("class", "line-path")
-            .attr("d", lineGenerator)
-            .on("mouseover", c => this.showTooltip(c))
+            .attr("d", d3.area()
+              .x(d => this.xScale(d.time))
+              .y0(d => this.yScale(d.ciUpper))
+              .y1(d => this.yScale(d.ciLower))
+          )
         }
+        
     },
     hoverLine(donor) {
 
@@ -323,6 +393,9 @@ export default Vue.component("time-series-line-plot", {
       console.log("New donor list received");
         this.drawChart();
     },
+    showConfidence(){
+      this.drawLines();
+    }
   }
 });
 </script>
@@ -348,5 +421,11 @@ export default Vue.component("time-series-line-plot", {
   .donorLabel {
     padding-top: 2px;
     padding-bottom: 2px;
+  }
+  .radio-labels {
+    margin-bottom: 10px;
+  }
+  .radio-labels label {
+    margin-right: 10px;
   }
 </style>

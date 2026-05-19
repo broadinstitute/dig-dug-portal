@@ -85,6 +85,7 @@ new Vue({
                 },
                 sex: {
                     key: "Gender",
+                    label: "Reported gender",
                     sortable: true
                 },
                 bmi: {
@@ -312,7 +313,7 @@ new Vue({
         violinTrait(){
             // Needs to be computed for the plot to update in real time
             return this.functionalTrait;
-        }
+        },
     },
     methods: {
         useSelectedDonors(useSelected){
@@ -335,12 +336,18 @@ new Vue({
                 if (!data[0][donor]){
                     return;
                 }
+                let badData = false;
+                let singleDonorResults = [];
+                // TODO ask Kyle how we want to handle this
                 data.forEach(timePoint => {
                     let donorResults = {};
                     donorResults.donor = donor;
                     donorResults.time = timePoint.time;
                     donorResults.score = timePoint[donor];
-                    results.push(donorResults);
+                    if (donorResults.score === "-"){
+                        badData = true;
+                    }
+                    singleDonorResults.push(donorResults);
                     if (maxTime === null || timePoint.time > maxTime){
                         maxTime = timePoint.time;
                     }
@@ -348,6 +355,8 @@ new Vue({
                         maxScore = timePoint[donor];
                     }
                 });
+                singleDonorResults.forEach(r => r.donorHasGaps = badData);
+                results = results.concat(singleDonorResults)
             });
             this.maxTime = maxTime;
             this.maxScore = maxScore;
@@ -396,7 +405,7 @@ new Vue({
         },
         toggleAdvanced(){
             this.showAdvanced = !this.showAdvanced;
-        }
+        },
     },
     watch: {
         insData(newData){
