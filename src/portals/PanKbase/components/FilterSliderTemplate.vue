@@ -95,10 +95,11 @@ export default Vue.component("filter-slider-template", {
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
+                console.log(JSON.stringify(preset));
                 this.presetRange = preset;
+                this.updateFilter(preset);
             }
         }
-        console.log(this.customStep);
     },
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);
