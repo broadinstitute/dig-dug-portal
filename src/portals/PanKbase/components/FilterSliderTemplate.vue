@@ -9,8 +9,8 @@
         <numeric-range-filter
                 :columnName="field"
                 :displayLabel="field"
-                :values="values"
-                :totalRowCount="values.length"
+                :values="cleanupValues"
+                :totalRowCount="cleanupValues.length"
                 :value="presetRange"
 
             ></numeric-range-filter>
@@ -102,7 +102,15 @@ export default Vue.component("filter-slider-template", {
     mounted() {
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
-    computed(){},
+    computed:{
+        cleanupValues(){
+            console.log(this.field);
+            console.log("In : ", JSON.stringify(this.values));
+            let output = this.values.filter(v => !isNaN(v));
+            console.log("Out: ", JSON.stringify(output));
+            return output;
+        }
+    },
     methods: {
         validateInput(newInput) {
             // TODO: elaborate validation cases here

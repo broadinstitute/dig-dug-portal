@@ -35,9 +35,8 @@
                                                 <filter-slider v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => f.isNumeric)"
                                                     :field="advField.key"
-                                                    :range="$parent.getRange(advField)"
+                                                    :values="$parent.filteredMetadata.map(m => m[advField.key])"
                                                     :presets="$parent.presets">
-                                                    <div class="label">{{ advField.key }}</div>
                                                 </filter-slider>
                                                 <filter-radio v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => !f.isNumeric)"
