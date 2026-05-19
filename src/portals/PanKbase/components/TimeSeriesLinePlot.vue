@@ -275,6 +275,7 @@ export default Vue.component("time-series-line-plot", {
               .on("mouseover", c => this.showTooltip(c))
           }
         } else {
+          console.log(JSON.stringify(this.confidenceIntervals));
           this.svg.append("path")
             .datum(this.confidenceIntervals)
             .attr("fill", "#cce5df")

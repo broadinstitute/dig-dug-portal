@@ -248,8 +248,6 @@ new Vue({
             showAdvanced: false,
             functionalTrait: null,
             vlnConditions: [],
-            insConfidence: [],
-            gcgConfidence: [],
         };
     },
     async created() {
@@ -315,6 +313,12 @@ new Vue({
         violinTrait(){
             // Needs to be computed for the plot to update in real time
             return this.functionalTrait;
+        },
+        insConfidence(){
+            return this.confidenceIntervals(this.resultsIns);
+        },
+        gcgConfidence(){
+            return this.confidenceIntervals(this.resultsGcg);
         }
     },
     methods: {
@@ -338,12 +342,18 @@ new Vue({
                 if (!data[0][donor]){
                     return;
                 }
+                let badData = false;
+                let singleDonorResults = [];
+                // TODO ask Kyle how we want to handle this
                 data.forEach(timePoint => {
                     let donorResults = {};
                     donorResults.donor = donor;
                     donorResults.time = timePoint.time;
                     donorResults.score = timePoint[donor];
-                    results.push(donorResults);
+                    if (donorResults.score === "-"){
+                        badData = true;
+                    }
+                    singleDonorResults.push(donorResults);
                     if (maxTime === null || timePoint.time > maxTime){
                         maxTime = timePoint.time;
                     }
@@ -351,6 +361,9 @@ new Vue({
                         maxScore = timePoint[donor];
                     }
                 });
+                if (!badData){
+                    results = results.concat(singleDonorResults)
+                }
             });
             this.maxTime = maxTime;
             this.maxScore = maxScore;
@@ -402,15 +415,16 @@ new Vue({
         },
         confidenceIntervals(rawData){
             let z = 1.96;
-            let times = Array.from(new Set(rawData.map(r => r.time)));
+            let times = Array.from(new Set(
+                rawData.filter(r => r.time !== undefined)
+                .map(r => r.time)));
             let output = [];
-            times.forEach(t => {
+            times.forEach((t, index) => {
                 // Compute standard deviation
                 let allData = rawData.filter(r => r.time === t)
                     .map(r => r.score);
-                console.log(JSON.stringify(allData));
-                return;
                 let n = allData.length;
+                console.log(n);
                 let sum = allData.reduce((total, entry) => total + entry, 0);
                 let x = sum/n;
                 let sqDiff = allData.map(r => (r - x)**2);
@@ -425,7 +439,6 @@ new Vue({
                     ciLower: x - confidenceInterval
                 };
                 output.push(timeEntry);
-                console.log(JSON.stringify(timeEntry));
             });
             return output;
         },
@@ -433,13 +446,11 @@ new Vue({
     watch: {
         insData(newData){
             this.resultsIns = newData.results;
-            this.insConfidence = this.confidenceIntervals(newData.results);
             this.maxScoreIns = newData.maxScore;
             this.maxTimeIns = newData.maxTime;
         },
         gcgData(newData){
             this.resultsGcg = newData.results;
-            this.gcgConfidence = this.confidenceIntervals(newData.results);
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
         },
