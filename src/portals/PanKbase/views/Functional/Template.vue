@@ -86,7 +86,6 @@
                                             <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
-                                                    :confidenceIntervals="$parent.insConfidence"
                                                     plotTitle="Islet Insulin Secretion"
                                                     :maxTime="$parent.maxTimeIns"
                                                     :maxScore="$parent.maxScoreIns"
@@ -100,7 +99,6 @@
                                             <div class="glucagon-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
                                                     :plotData="$parent.resultsGcg"
-                                                    :confidenceIntervals="$parent.gcgConfidence"
                                                     plotTitle="Islet Glucagon Secretion"
                                                     :maxTime="$parent.maxTimeGcg"
                                                     :maxScore="$parent.maxScoreGcg"

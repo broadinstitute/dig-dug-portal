@@ -3,12 +3,16 @@
       <h5>{{ plotTitle }}</h5>
       <div>
         <label>
-          Confidence intervals
-          <input type="radio" :value="true" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          Confidence intervals (all donors)
+          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
+        </label>
+        <label>
+          Confidence intervals ({{donors.length}} donors)
+          <input type="radio" value="some" :name="`${plotId}confidence`" v-model="showConfidence"/>
         </label>
         <label>
           Individual donor traces
-          <input type="radio" :value="false" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          <input type="radio" value="none" :name="`${plotId}confidence`" v-model="showConfidence"/>
         </label>
         
       </div>
@@ -52,7 +56,7 @@ export default Vue.component("time-series-line-plot", {
   components: {
   },
   props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
-    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle", "confidenceIntervals"],
+    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
@@ -72,11 +76,13 @@ export default Vue.component("time-series-line-plot", {
         xAxisLabel: "time (min)",
         axesDrawn: false,
         highlightedDonor: null,
-        showConfidence: true
+        showConfidence: "all",
+        allConfidence: []
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
@@ -94,6 +100,10 @@ export default Vue.component("time-series-line-plot", {
         }
       });
       return output;
+    },
+    filteredConfidence(){
+      let data = this.plotData.filter(d => this.donors.includes(d.donor));
+      return this.confidenceIntervals(data);
     },
     allHoverFields(){
       return [this.dotKey, this.xField, this.yField];
@@ -134,6 +144,36 @@ export default Vue.component("time-series-line-plot", {
       }
       return output;
     },
+
+        confidenceIntervals(rawData){
+            let z = 1.96;
+            let times = Array.from(new Set(
+                rawData.filter(r => r.time !== undefined)
+                .map(r => r.time)));
+            let output = [];
+            times.forEach((t, index) => {
+                // Compute standard deviation
+                let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
+                    .map(r => r.score);
+                let n = allData.length;
+                console.log(n);
+                let sum = allData.reduce((total, entry) => total + entry, 0);
+                let x = sum/n;
+                let sqDiff = allData.map(r => (r - x)**2);
+                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
+                let sigma = Math.sqrt(sumDiff / n);
+
+                let confidenceInterval = z * sigma / (Math.sqrt(n));
+                let timeEntry = {
+                    time: t,
+                    mean: x,
+                    ciUpper: x + confidenceInterval,
+                    ciLower: x - confidenceInterval
+                };
+                output.push(timeEntry);
+            });
+            return output;
+        },
     drawChart(){
       let margin = {
         top: 80,
@@ -257,7 +297,7 @@ export default Vue.component("time-series-line-plot", {
           );
 
         let highlightedDonorData = null;
-        if (!this.showConfidence){
+        if (this.showConfidence === "none"){
             this.chartData.forEach(c => {
             if (c[0].donor === this.highlightedDonor){
               highlightedDonorData = c;
@@ -286,11 +326,12 @@ export default Vue.component("time-series-line-plot", {
               .on("mouseover", c => this.showTooltip(c))
           }
         } else {
-          console.log(JSON.stringify(this.confidenceIntervals));
+          let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
           this.svg.append("path")
-            .datum(this.confidenceIntervals)
+            .datum(intervals)
             .attr("fill", `${this.lineColor}99`)
             .attr("stroke", "none")
+            .attr("class", "line-path")
             .attr("d", d3.area()
               .x(d => this.xScale(d.time))
               .y0(d => this.yScale(d.ciUpper))

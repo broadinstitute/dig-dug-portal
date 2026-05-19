@@ -314,12 +314,6 @@ new Vue({
             // Needs to be computed for the plot to update in real time
             return this.functionalTrait;
         },
-        insConfidence(){
-            return this.confidenceIntervals(this.resultsIns);
-        },
-        gcgConfidence(){
-            return this.confidenceIntervals(this.resultsGcg);
-        }
     },
     methods: {
         useSelectedDonors(useSelected){
@@ -411,35 +405,6 @@ new Vue({
         },
         toggleAdvanced(){
             this.showAdvanced = !this.showAdvanced;
-        },
-        confidenceIntervals(rawData){
-            let z = 1.96;
-            let times = Array.from(new Set(
-                rawData.filter(r => r.time !== undefined)
-                .map(r => r.time)));
-            let output = [];
-            times.forEach((t, index) => {
-                // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
-                    .map(r => r.score);
-                let n = allData.length;
-                console.log(n);
-                let sum = allData.reduce((total, entry) => total + entry, 0);
-                let x = sum/n;
-                let sqDiff = allData.map(r => (r - x)**2);
-                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
-                let sigma = Math.sqrt(sumDiff / n);
-
-                let confidenceInterval = z * sigma / (Math.sqrt(n));
-                let timeEntry = {
-                    time: t,
-                    mean: x,
-                    ciUpper: x + confidenceInterval,
-                    ciLower: x - confidenceInterval
-                };
-                output.push(timeEntry);
-            });
-            return output;
         },
     },
     watch: {
