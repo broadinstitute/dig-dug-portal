@@ -283,6 +283,14 @@ new Vue({
         },
         filteredAccession(){
             let results = this.tableItems.map(d => d.Accession);
+            if (results.length >= this.donorsWithData.length - 5){
+                let missingDonors = this.donorsWithData.filter(d => !results.includes(d));
+                console.log("Missing donors:", JSON.stringify(missingDonors));
+                missingDonors.forEach(m => {
+                    let donorMetadata = this.filteredMetadata.find(fm => fm.Accession === m);
+                    console.log(JSON.stringify(donorMetadata));
+                });
+            }
             return results;
         },
         tableItems(){

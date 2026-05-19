@@ -130,11 +130,3 @@ export default Vue.component("filter-slider-template", {
     },
 });
 </script>
-<style scoped>
-    .col {
-        vertical-align: text-top;
-    }
-    .format-fix-textfield{
-        display: block;
-    }
-</style>
