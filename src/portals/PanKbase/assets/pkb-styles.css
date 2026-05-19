@@ -271,3 +271,6 @@ tr.downregulated {
 .functional-page .vlnPlots {
     margin-left: 20px !important
 }
+.functional-page .numeric-filter-input {
+    width: 100% !important;
+}

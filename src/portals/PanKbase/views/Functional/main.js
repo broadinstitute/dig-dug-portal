@@ -387,7 +387,7 @@ new Vue({
                     min = d[fieldKey] < min ? d[fieldKey] : min;
                     max = d[fieldKey] > max ? d[fieldKey] : max;
                 });
-            return [min, max];
+            return {min: min, max: max};
         },
         applyLinkedFilters(data){
             if (this.linkedFilters === null){

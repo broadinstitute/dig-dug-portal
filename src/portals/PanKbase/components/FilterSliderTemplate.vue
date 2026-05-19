@@ -6,22 +6,12 @@
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-<!--         <div class="format-fix-textfield">
-            <dual-slider
-                :slider-id="field"
-                :rangeMin="rangeMin"
-                :rangeMax="rangeMax"
-                :presetMin="presetRange[0]"
-                :presetMax="presetRange[1]"
-                @filterChanged="filterRange => updateFilter(filterRange)">
-            </dual-slider>
-        </div> -->
         <numeric-range-filter
                 :columnName="field"
                 :displayLabel="field"
                 :values="values"
                 :totalRowCount="values.length"
-                :value="{min: presetRange[0], max: presetRange[1]}"
+                :value="presetRange"
 
             ></numeric-range-filter>
     </div>
@@ -43,8 +33,6 @@ export default Vue.component("filter-slider-template", {
     props: {
         value: Object,
         field: String,
-        rangeMin: Number,
-        rangeMax: Number,
         values: Array,
         label: String,
         placeholder: String,
@@ -97,7 +85,7 @@ export default Vue.component("filter-slider-template", {
                 computedField: this.computedField,
             },
             filterThreshold: this.default,
-            presetRange: [null,null]
+            presetRange: null
         };
     },
     created() {
@@ -106,7 +94,7 @@ export default Vue.component("filter-slider-template", {
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
                 this.filterThreshold = [preset.min, preset.max];
-                this.presetRange = this.filterThreshold;
+                this.presetRange = preset;
                 this.updateFilter(this.filterThreshold);
             }
         }
