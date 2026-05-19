@@ -402,15 +402,18 @@ new Vue({
         },
         confidenceIntervals(rawData){
             let z = 1.96;
-            let times = rawData.map(r => r.time);
+            let times = Array.from(new Set(rawData.map(r => r.time)));
             let output = [];
             times.forEach(t => {
                 // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t);
+                let allData = rawData.filter(r => r.time === t)
+                    .map(r => r.score);
+                console.log(JSON.stringify(allData));
+                return;
                 let n = allData.length;
                 let sum = allData.reduce((total, entry) => total + entry, 0);
                 let x = sum/n;
-                let sqDiff = allData.map(r => (r - mean)**2);
+                let sqDiff = allData.map(r => (r - x)**2);
                 let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
                 let sigma = Math.sqrt(sumDiff / n);
 
@@ -422,6 +425,7 @@ new Vue({
                     ciLower: x - confidenceInterval
                 };
                 output.push(timeEntry);
+                console.log(JSON.stringify(timeEntry));
             });
             return output;
         },

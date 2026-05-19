@@ -41,7 +41,7 @@ export default Vue.component("time-series-line-plot", {
   components: {
   },
   props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
-    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
+    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle", "confidenceIntervals"],
   data() {
       return {
         chart: null,
@@ -276,13 +276,13 @@ export default Vue.component("time-series-line-plot", {
           }
         } else {
           this.svg.append("path")
-            .datum(this.chartData)
+            .datum(this.confidenceIntervals)
             .attr("fill", "#cce5df")
             .attr("stroke", "none")
             .attr("d", d3.area()
-              .x(d => this.xScale(d[this.xField]))
-              .y0(d => this.yScale(d.CI_right))
-              .y1(d => this.yScale(d.CI_left))
+              .x(d => this.xScale(d.mean))
+              .y0(d => this.yScale(d.ciUpper))
+              .y1(d => this.yScale(d.ciLower))
           )
         }
         
