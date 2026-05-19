@@ -1,7 +1,7 @@
 <template>
     <div class="col" style="padding: 5px 7px 5px 7px">
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            <slot>{{ field }}</slot>
+            <!-- <slot>{{ field }}</slot> -->
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
@@ -19,7 +19,6 @@
 
 <script>
 import Vue from "vue";
-import DualSlider from "./DualSlider.vue";
 import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
@@ -67,7 +66,6 @@ export default Vue.component("filter-slider-template", {
         presets: Array
     },
     components: {
-        DualSlider,
         NumericRangeFilter
     },
     data() {
