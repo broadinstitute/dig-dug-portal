@@ -233,10 +233,12 @@ export default {
             immediate: true,
             deep: true,
             handler() {
+                console.log("Value watcher");
                 this.syncFromValue();
             },
         },
         values() {
+            console.log("PLURAL values watcher");
             this.syncFromValue();
         },
     },

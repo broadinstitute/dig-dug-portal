@@ -80,7 +80,8 @@ export default Vue.component("filter-slider-template", {
                 computedField: this.computedField,
             },
             filterThreshold: this.default,
-            presetRange: null
+            presetRange: null,
+            cleanupValues: null,
         };
     },
     created() {
@@ -94,13 +95,8 @@ export default Vue.component("filter-slider-template", {
         }
     },
     mounted() {
+        this.cleanupValues = this.values.filter(v => !isNaN(v));
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
-    },
-    computed:{
-        cleanupValues(){
-            let output = this.values.filter(v => !isNaN(v));
-            return output;
-        }
     },
     methods: {
         validateInput(newInput) {
