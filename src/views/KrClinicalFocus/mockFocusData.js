@@ -21,8 +21,10 @@ export const mockFocusProfiles = {
     orphanet: {
         source: "orphanet",
         label: "Kabuki syndrome-like Orphanet HPO profile",
+        orphaId: "ORPHA:2322",
+        sourceId: "ORPHA:2322",
         sourceDetail: "Mock profile resolved from an Orphanet disease label to disease HPO annotations.",
-        queryExample: "Kabuki syndrome",
+        queryExample: "Kabuki syndrome · ORPHA:2322",
         sourceInputLabel: "Orphanet disease",
         sourceInputPlaceholder: "e.g. Kabuki syndrome or ORPHA:2322",
         sourceInputHelp: "The disease label resolves to an HPO-term profile before comparison.",
@@ -31,7 +33,6 @@ export const mockFocusProfiles = {
             { id: "HP:0000175", label: "Cleft palate" },
             { id: "HP:0000347", label: "Micrognathia" },
             { id: "HP:0001252", label: "Hypotonia" },
-            { id: "HP:0011968", label: "Feeding difficulty" },
         ],
     },
     omim: {

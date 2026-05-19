@@ -14,14 +14,10 @@
                         <h1 class="glens-title">
                             Clinical context-guided rare disease cohort search
                         </h1>
-                        <p class="glens-context-question">
-                            Is this finding meaningful in this clinical context, or is it background noise?
-                        </p>
                         <p class="glens-subtitle">
-                            Set a clinical context for targeted interpretation, or leave it empty
-                            for discovery mode. Then search a patient, phenotype profile, or rare
-                            variant/gene against hospital-wide rare disease data and public
-                            disease-phenotype knowledge.
+                            Search a patient, phenotype profile, rare variant, or gene against hospital
+                            cohort evidence. Add clinical context when you want to test whether that
+                            result is meaningful in a specific disease, sample, or HPO background.
                         </p>
 
                         <form class="glens-search-card glens-search-card--embedded" @submit.prevent="openResults">
@@ -87,14 +83,35 @@
                         </div>
 
                         <div class="glens-principle-context">
-                            <span class="glens-query-step">
-                                Clinical context <small>(Background knowledge)</small>
-                            </span>
-                            <clinical-focus-bar
-                                class="glens-front-focus-bar"
-                                :show-no-focus-note="true"
-                                :hide-kicker="true"
-                            ></clinical-focus-bar>
+                            <div class="glens-context-heading-row">
+                                <span class="glens-query-step">
+                                    Clinical context <small>(Background knowledge)</small>
+                                </span>
+                                <button
+                                    class="glens-context-toggle"
+                                    type="button"
+                                    :aria-expanded="contextPanelOpen ? 'true' : 'false'"
+                                    @click="contextPanelOpen = !contextPanelOpen"
+                                >
+                                    <span class="glens-context-toggle-arrow">{{ contextPanelOpen ? "▾" : "▸" }}</span>
+                                    Set context
+                                </button>
+                            </div>
+                            <div class="glens-context-status">
+                                <span>{{ hasActiveContext ? "Active context" : "No context set" }}</span>
+                                <strong>{{ contextStatusLabel }}</strong>
+                            </div>
+                            <div v-if="contextPanelOpen" class="glens-context-panel">
+                                <clinical-focus-bar
+                                    class="glens-front-focus-bar"
+                                    :show-no-focus-note="true"
+                                    :hide-kicker="true"
+                                    :open-editor-on-mount="true"
+                                    :hide-summary="true"
+                                    @focus-confirmed="contextPanelOpen = false"
+                                    @focus-cancelled="contextPanelOpen = false"
+                                ></clinical-focus-bar>
+                            </div>
                         </div>
                     </aside>
                 </div>
@@ -139,6 +156,8 @@
 
 <script>
 import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
+import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
+import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
 
 export default {
     name: "KrFrontTemplate",
@@ -151,6 +170,9 @@ export default {
             query: "",
             pendingMessage: "",
             summaryOpen: false,
+            contextPanelOpen: false,
+            clinicalFocus: readClinicalFocus(),
+            unsubscribeClinicalFocus: null,
             searchModes: [
                 { key: "cohort", label: "Search by ID", shortLabel: "Sample ID" },
                 { key: "phenotype", label: "Search by phenotype", shortLabel: "Phenotype" },
@@ -237,6 +259,29 @@ export default {
         activeExamples() {
             return this.activeFixture.examples;
         },
+        hasActiveContext() {
+            return hasClinicalFocus(this.clinicalFocus);
+        },
+        contextStatusLabel() {
+            if (!this.hasActiveContext) return "Search will run in discovery mode";
+
+            if (this.clinicalFocus.source === "orphanet") {
+                const orphaId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId;
+                const termCount = this.clinicalFocus.contextTermCount || this.clinicalFocus.hpoTerms.length;
+                const terms = `${termCount} HPO terms`;
+                return [this.clinicalFocus.label, orphaId, terms].filter(Boolean).join(" · ");
+            }
+
+            return `${this.clinicalFocus.label} · ${this.clinicalFocus.hpoTerms.length} HPO terms`;
+        },
+    },
+    mounted() {
+        this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
+            this.clinicalFocus = focus;
+        });
+    },
+    beforeDestroy() {
+        if (this.unsubscribeClinicalFocus) this.unsubscribeClinicalFocus();
     },
     methods: {
         openResults() {
@@ -270,7 +315,7 @@ export default {
 
 .glens-hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.72fr) minmax(22rem, 0.78fr);
+    grid-template-columns: minmax(0, 1.9fr) minmax(20rem, 0.72fr);
     gap: 1rem;
     align-items: stretch;
 }
@@ -399,14 +444,10 @@ export default {
 }
 
 .glens-principle-context {
+    position: relative;
     margin-top: 0.85rem;
     padding-top: 0.75rem;
     border-top: 1px solid #e1e8f2;
-}
-
-.glens-query-step {
-    display: block;
-    margin-bottom: 0.42rem;
 }
 
 .glens-query-step small {
@@ -415,11 +456,78 @@ export default {
     letter-spacing: inherit;
 }
 
+.glens-context-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: 0.42rem;
+}
+
+.glens-context-heading-row .glens-query-step {
+    margin-bottom: 0;
+}
+
 .glens-front-focus-bar {
     margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
+}
+
+.glens-context-status {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.72rem;
+    background: #f8fafc;
+}
+
+.glens-context-status span {
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+.glens-context-status strong {
+    color: #162033;
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.glens-context-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 1.75rem;
+    border: 1px solid #c9d6e7;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #243b5a;
+    padding: 0.22rem 0.55rem;
+    font-size: 0.76rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.glens-context-toggle-arrow {
+    color: #d97706;
+    margin-right: 0.35rem;
+}
+
+.glens-context-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    width: min(35rem, 78vw);
+    padding: 0.85rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.95rem;
+    background: #fff;
+    box-shadow: 0 18px 46px rgba(22, 32, 51, 0.14);
 }
 
 .glens-search-card {

@@ -1,6 +1,6 @@
 <template>
     <section class="glens-clinical-focus-bar" aria-label="Clinical context">
-        <div class="glens-clinical-focus-main">
+        <div v-if="!hideSummary" class="glens-clinical-focus-main">
             <div>
                 <span v-if="!hideKicker" class="glens-clinical-focus-kicker">Clinical context</span>
                 <strong v-if="hasFocus">{{ focus.label }} · {{ focus.hpoTerms.length }} HPO terms</strong>
@@ -87,7 +87,7 @@
             </p>
             <div class="glens-clinical-focus-editor-actions">
                 <button type="button" @click="saveFocus">{{ focusSaveLabel }}</button>
-                <button type="button" class="glens-clinical-focus-plain" @click="editorOpen = false">
+                <button type="button" class="glens-clinical-focus-plain" @click="cancelEditor">
                     Cancel
                 </button>
             </div>
@@ -116,6 +116,14 @@ export default {
             type: Boolean,
             default: false,
         },
+        openEditorOnMount: {
+            type: Boolean,
+            default: false,
+        },
+        hideSummary: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         const focus = readClinicalFocus();
@@ -123,7 +131,7 @@ export default {
         const profile = mockFocusProfiles[selectedSource] || mockFocusProfiles.orphanet;
         return {
             focus,
-            editorOpen: false,
+            editorOpen: this.openEditorOnMount,
             selectedSource,
             sourceQuery: focus ? focus.sourceQuery || profile.queryExample : profile.queryExample,
             draft: focus || this.cloneProfile(profile),
@@ -145,7 +153,7 @@ export default {
             return this.selectedSource !== "none";
         },
         focusSaveLabel() {
-            return this.hasEditableFocusSource ? "Set context" : "Use no context";
+            return "Confirm";
         },
         sourceInputLabel() {
             return this.activeSourceProfile.sourceInputLabel;
@@ -197,7 +205,7 @@ export default {
             const profile = this.cloneProfile(this.activeSourceProfile);
             const query = this.sourceQuery || profile.queryExample;
             const cleanQuery = query.replace(/\s+/g, " ").trim();
-            const resolvedLabel = this.resolvedFocusLabel(profile.source, cleanQuery, profile.label);
+            const resolvedLabel = this.resolvedFocusLabel(profile, cleanQuery);
 
             this.draft = {
                 ...profile,
@@ -206,13 +214,15 @@ export default {
                 sourceDetail: this.resolvedSourceDetail(profile.source),
             };
         },
-        resolvedFocusLabel(source, query, fallback) {
-            if (!query) return fallback;
-            if (source === "omim") return `${query} HPO profile`;
-            if (source === "orphanet") return `${query} HPO profile`;
-            if (source === "sample") return `${query} sample HPO profile`;
-            if (source === "investigator") return `${query} phenotype signature`;
-            return fallback;
+        resolvedFocusLabel(profile, query) {
+            if (!query) return profile.label;
+            if (profile.source === "omim") return `${query} HPO profile`;
+            if (profile.source === "orphanet") {
+                return profile.label;
+            }
+            if (profile.source === "sample") return `${query} sample HPO profile`;
+            if (profile.source === "investigator") return `${query} phenotype signature`;
+            return profile.label;
         },
         resolvedSourceDetail(source) {
             if (source === "omim") {
@@ -245,6 +255,7 @@ export default {
             if (!this.hasEditableFocusSource) {
                 clearClinicalFocus();
                 this.editorOpen = false;
+                this.$emit("focus-confirmed");
                 return;
             }
 
@@ -253,14 +264,21 @@ export default {
                 sourceQuery: this.sourceQuery || this.draft.sourceQuery || this.draft.label,
             });
             this.editorOpen = false;
+            this.$emit("focus-confirmed");
+        },
+        cancelEditor() {
+            this.editorOpen = false;
+            this.$emit("focus-cancelled");
         },
         clearFocus() {
             clearClinicalFocus();
             this.editorOpen = false;
+            this.$emit("focus-confirmed");
         },
         useCurrentPhenotypeAsFocus() {
             writeClinicalFocus(createFocusFromTerms("Current phenotype search", this.currentPhenotypeTerms));
             this.editorOpen = false;
+            this.$emit("focus-confirmed");
         },
     },
 };
