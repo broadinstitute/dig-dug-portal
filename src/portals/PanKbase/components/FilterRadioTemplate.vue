@@ -115,7 +115,6 @@ export default Vue.component("filter-radio-template", {
     },
     watch: {
         filterThreshold(newThreshold){
-            console.log(newThreshold);
             this.updateFilter(newThreshold);
         },
         valueCleared(isCleared){

@@ -33,7 +33,7 @@ export default Vue.component("filter-slider", {
     },
     predicate: {
       type: Function,
-      default: (item, threshold) => item >= threshold.min && item <= threshold.max,
+      default: (item, threshold) => threshold.includeMissing || (item >= threshold.min && item <= threshold.max),
     },
     pillFormatter: {
       type: Function,

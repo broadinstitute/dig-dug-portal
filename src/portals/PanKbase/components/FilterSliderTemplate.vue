@@ -84,6 +84,8 @@ export default Vue.component("filter-slider-template", {
             filterThreshold: this.default,
             presetRange: null,
             cleanupValues: [],
+            overallMin: null,
+            overallMax: null,
         };
     },
     created() {
@@ -98,25 +100,14 @@ export default Vue.component("filter-slider-template", {
     },
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);
+        this.overallMin = this.cleanupValues[0];
+        this.overallMax = this.cleanupValues[this.cleanupValues.length -1];
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
     methods: {
-        validateInput(newInput) {
-            // TODO: elaborate validation cases here
-            // TODO: validation utils?
-            if (!!this.type) {
-                if (this.type === "number") {
-                    return !isNaN(newInput.min) && !isNaN(newInput.max);
-                } else if (typeof newInput !== this.type) {
-                    return false;
-                }
-            }
-            return true;
-        },
         cleanValues(vals){
             let output = vals.map(v => parseNumericValue(v))
                 .filter(v => !isNull(v));
-            console.log(`${this.field} In: ${vals.length} Out: ${output.length}`);
             return output.sort((left, right) => left - right);
         },
         updateFilter(newThreshold) {
@@ -125,23 +116,15 @@ export default Vue.component("filter-slider-template", {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                const isValid = this.validateInput(newThreshold);
-                if (isValid) {
-                    // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit("change", newThreshold, {
-                            // label: this.pillFormatter,
-                            // color: this.color,
-                            ...this.filterDefinition,
-                        });
-                } else {
-                    // TODO: handle error in here, or go silent?
-                    console.warn(
-                        "invalid input given for type",
-                        this.type,
-                        ":",
-                        newThreshold
-                    );
-                }
+                let includeMissing = 
+                    newThreshold.min === this.overallMin 
+                    && newThreshold.max === this.overallMax;
+                newThreshold.includeMissing = includeMissing;
+                this.$parent.$parent.$emit("change", newThreshold, {
+                        // label: this.pillFormatter,
+                        // color: this.color,
+                        ...this.filterDefinition,
+                    });
             }
         },
     },
