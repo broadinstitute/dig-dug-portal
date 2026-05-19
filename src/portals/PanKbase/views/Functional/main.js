@@ -91,6 +91,7 @@ new Vue({
                 bmi: {
                     key: "BMI",
                     isNumeric: true,
+                    customStep: 0.01,
                     sortable: true
                 },
                 diabetesDesc: {
@@ -285,10 +286,8 @@ new Vue({
             let results = this.tableItems.map(d => d.Accession);
             if (results.length >= this.donorsWithData.length - 5){
                 let missingDonors = this.donorsWithData.filter(d => !results.includes(d));
-                console.log("Missing donors:", JSON.stringify(missingDonors));
                 missingDonors.forEach(m => {
                     let donorMetadata = this.filteredMetadata.find(fm => fm.Accession === m);
-                    console.log(JSON.stringify(donorMetadata));
                 });
             }
             return results;

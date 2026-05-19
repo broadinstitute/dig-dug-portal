@@ -117,6 +117,10 @@ export default {
             type: Object,
             default: null,
         },
+        customStep: {
+            type: Number,
+            default: 0
+        }
     },
     data() {
         return {
@@ -160,7 +164,9 @@ export default {
             if (!range) {
                 return 1;
             }
-
+            if (this.customStep > 0){
+                return this.customStep;
+            }
             return Math.max(range / 200, 0.01);
         },
         histogramData() {

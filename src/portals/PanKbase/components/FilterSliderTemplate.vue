@@ -12,6 +12,7 @@
                 :values="cleanupValues"
                 :totalRowCount="cleanupValues.length"
                 :value="presetRange"
+                :customStep="customStep"
                 @input="e => updateFilter(e)"
 
             ></numeric-range-filter>
@@ -62,7 +63,8 @@ export default Vue.component("filter-slider-template", {
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
-        presets: Array
+        presets: Array,
+        customStep: Number
     },
     components: {
         NumericRangeFilter
@@ -94,9 +96,9 @@ export default Vue.component("filter-slider-template", {
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
                 this.presetRange = preset;
-                //this.updateFilter([preset.min, preset.max]);
             }
         }
+        console.log(this.customStep);
     },
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);

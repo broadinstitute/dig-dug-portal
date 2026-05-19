@@ -22,6 +22,7 @@
                                                 .filter(f => f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
                                                 :values="$parent.filteredMetadata.map(m => m[oField.key])"
+                                                :customStep="!!oField.customStep ? oField.customStep : 0"
                                                 :presets="$parent.presets">
                                             </filter-slider>
                                             <filter-radio v-for="oField in Object.values($parent.fieldsObject)
@@ -36,6 +37,7 @@
                                                     .filter(f => f.isNumeric)"
                                                     :field="advField.key"
                                                     :values="$parent.filteredMetadata.map(m => m[advField.key])"
+                                                    :customStep="!!advField.customStep ? advField.customStep : 0"
                                                     :presets="$parent.presets">
                                                 </filter-slider>
                                                 <filter-radio v-for="advField in Object.values($parent.advancedFields)
