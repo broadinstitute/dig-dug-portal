@@ -1,18 +1,18 @@
 <template>
     <div>
       <h5>{{ plotTitle }}</h5>
-      <div>
+      <div class="radio-labels">
         <label>
-          Confidence intervals (all donors)
           <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (all donors)
         </label>
         <label>
-          Confidence intervals ({{donors.length}} donors)
           <input type="radio" value="some" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (filtered donors)
         </label>
         <label>
-          Individual donor traces
           <input type="radio" value="none" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          Individual donors
         </label>
         
       </div>
@@ -421,5 +421,11 @@ export default Vue.component("time-series-line-plot", {
   .donorLabel {
     padding-top: 2px;
     padding-bottom: 2px;
+  }
+  .radio-labels {
+    margin-bottom: 10px;
+  }
+  .radio-labels label {
+    margin-right: 10px;
   }
 </style>
