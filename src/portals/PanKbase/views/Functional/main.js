@@ -361,9 +361,8 @@ new Vue({
                         maxScore = timePoint[donor];
                     }
                 });
-                if (!badData){
-                    results = results.concat(singleDonorResults)
-                }
+                singleDonorResults.forEach(r => r.donorHasGaps = badData);
+                results = results.concat(singleDonorResults)
             });
             this.maxTime = maxTime;
             this.maxScore = maxScore;
@@ -421,7 +420,7 @@ new Vue({
             let output = [];
             times.forEach((t, index) => {
                 // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t)
+                let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
                     .map(r => r.score);
                 let n = allData.length;
                 console.log(n);
