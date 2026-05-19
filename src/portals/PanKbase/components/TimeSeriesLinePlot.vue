@@ -196,7 +196,7 @@ export default Vue.component("time-series-line-plot", {
       //Labels
       this.svg.append("text")
         .attr("text-anchor", "middle")
-        .attr("y", height + margin.top + 20)
+        .attr("y", height + 32)
         .attr("x", width/2)
         .text(this.xAxisLabel || this.xField);
       this.svg.append("text")
