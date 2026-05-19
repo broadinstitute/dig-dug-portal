@@ -3,6 +3,7 @@
   "version": "4.0.1",
   "private": true,
   "scripts": {
+    "serve:radiant": "env VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.radiant.js env BIOINDEX_HOST_PRIVATE=https://radiant.hugeampkpnbi.org vue-cli-service serve",
     "watch": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development --watch",
     "build": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode development",
     "deploy": "export NODE_OPTIONS=$(node -p \"+(process.versions.node.split('.')[0])>=17?'--openssl-legacy-provider':''\") && vue-cli-service build --mode production",
