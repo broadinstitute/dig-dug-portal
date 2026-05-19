@@ -153,8 +153,11 @@ export default Vue.component("time-series-line-plot", {
             let output = [];
             times.forEach((t, index) => {
                 // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
-                    .map(r => r.score);
+                let allData = rawData.filter(r => r.time === t);
+                // TODO figure out how to convey that the data filtering is done on the timepoint level
+                //allData = rawData.filter(r => !r.donorHasGaps);
+                allData = allData.filter(r => r.score !== "-");
+                allData = allData.map(r => r.score);
                 let n = allData.length;
                 let sum = allData.reduce((total, entry) => total + entry, 0);
                 let x = sum/n;
@@ -335,9 +338,17 @@ export default Vue.component("time-series-line-plot", {
               .x(d => this.xScale(d.time))
               .y0(d => this.yScale(d.ciUpper))
               .y1(d => this.yScale(d.ciLower))
-          )
+          );
+          this.svg.append("path")
+            .datum(intervals)
+            .attr("fill", "none")
+            .attr("stroke", this.lineColor)
+            .attr("class", "line-path")
+            .attr("d", d3.line()
+              .x(d => this.xScale(d.time))
+              .y(d => this.yScale(d.mean))
+          );
         }
-        
     },
     hoverLine(donor) {
 
