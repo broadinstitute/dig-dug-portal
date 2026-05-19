@@ -17,7 +17,7 @@
                             <button
                                 class="glens-result-tool-button"
                                 type="button"
-                                @click="contextPopoverOpen = !contextPopoverOpen"
+                                @click="contextPopoverOpen = !contextPopoverOpen; optionsPopoverOpen = false"
                             >
                                 Edit Context
                             </button>
@@ -47,10 +47,30 @@
                                 </button>
                             </div>
                         </div>
-                        <label class="glens-text-toggle">
-                            <input v-model="largeText" type="checkbox" />
-                            Large text
-                        </label>
+                        <div class="glens-result-options-tool" @click.stop>
+                            <button
+                                class="glens-result-options-button"
+                                type="button"
+                                aria-label="Options"
+                                @click="optionsPopoverOpen = !optionsPopoverOpen; contextPopoverOpen = false"
+                            >
+                                ⋮
+                            </button>
+                            <div v-if="optionsPopoverOpen" class="glens-result-options-popover">
+                                <button
+                                    class="glens-result-popover-close"
+                                    type="button"
+                                    aria-label="Close options"
+                                    @click="optionsPopoverOpen = false"
+                                >
+                                    ×
+                                </button>
+                                <label class="glens-text-toggle glens-text-toggle--popover">
+                                    <input v-model="largeText" type="checkbox" />
+                                    Large text
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <section class="glens-header-card">
@@ -653,6 +673,7 @@ export default {
             ...createKrVariantState(),
             clinicalFocus: readClinicalFocus(),
             contextPopoverOpen: false,
+            optionsPopoverOpen: false,
             unsubscribeClinicalFocus: null,
         };
     },
@@ -838,15 +859,16 @@ export default {
         this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
             this.clinicalFocus = focus;
         });
-        document.addEventListener("click", this.closeContextPopover);
+        document.addEventListener("click", this.closeToolPopovers);
     },
     beforeDestroy() {
         if (this.unsubscribeClinicalFocus) this.unsubscribeClinicalFocus();
-        document.removeEventListener("click", this.closeContextPopover);
+        document.removeEventListener("click", this.closeToolPopovers);
     },
     methods: {
-        closeContextPopover() {
+        closeToolPopovers() {
             this.contextPopoverOpen = false;
+            this.optionsPopoverOpen = false;
         },
         removeClinicalContext() {
             clearClinicalFocus();

@@ -272,6 +272,12 @@
     gap: 0.45rem;
 }
 
+.glens-result-options-tool {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
 .glens-result-context-label {
     max-width: 19rem;
     overflow: hidden;
@@ -294,12 +300,40 @@
     white-space: nowrap;
 }
 
+.glens-result-options-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid #c9d6e7;
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #243b5a;
+    font-size: 1.15rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
 .glens-result-context-popover {
     position: absolute;
     z-index: 50;
     top: calc(100% + 0.45rem);
     right: 0;
     width: min(35rem, 86vw);
+    padding: 0.85rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.95rem;
+    background: #fff;
+    box-shadow: 0 18px 46px rgba(22, 32, 51, 0.14);
+}
+
+.glens-result-options-popover {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    min-width: 12rem;
     padding: 0.85rem;
     border: 1px solid #d8e2ef;
     border-radius: 0.95rem;
@@ -345,6 +379,12 @@
     font-size: 0.8rem;
     font-weight: 850;
     padding: 0.32rem 0.7rem;
+}
+
+.glens-text-toggle--popover {
+    margin-top: 1.55rem;
+    width: 100%;
+    justify-content: flex-start;
 }
 
 .glens-focus-result-card {
