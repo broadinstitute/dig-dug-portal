@@ -12,6 +12,7 @@
                 :values="cleanupValues"
                 :totalRowCount="cleanupValues.length"
                 :value="presetRange"
+                @input="e => updateFilter(e)"
 
             ></numeric-range-filter>
     </div>
@@ -56,10 +57,6 @@ export default Vue.component("filter-slider-template", {
             type: String,
             // 'string', 'number', 'boolean', 'object', 'function'...
         },
-        clear: {
-            type: Boolean,
-            default: true,
-        },
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
@@ -91,9 +88,8 @@ export default Vue.component("filter-slider-template", {
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                this.filterThreshold = [preset.min, preset.max];
                 this.presetRange = preset;
-                this.updateFilter(this.filterThreshold);
+                //this.updateFilter([preset.min, preset.max]);
             }
         }
     },
@@ -102,10 +98,7 @@ export default Vue.component("filter-slider-template", {
     },
     computed:{
         cleanupValues(){
-            console.log(this.field);
-            console.log("In : ", JSON.stringify(this.values));
             let output = this.values.filter(v => !isNaN(v));
-            console.log("Out: ", JSON.stringify(output));
             return output;
         }
     },
@@ -123,15 +116,14 @@ export default Vue.component("filter-slider-template", {
             return true;
         },
         updateFilter(newThreshold) {
-            let newMin = newThreshold[0];
-            let newMax = newThreshold[1];
+            let thresholdArray = [newThreshold.min, newThreshold.max];
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                const isValid = this.validateInput(newThreshold);
+                const isValid = this.validateInput(thresholdArray);
                 if (isValid) {
                     // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit("change", newThreshold, {
+                        this.$parent.$parent.$emit("change", thresholdArray, {
                             // label: this.pillFormatter,
                             // color: this.color,
                             ...this.filterDefinition,
@@ -145,9 +137,6 @@ export default Vue.component("filter-slider-template", {
                         newThreshold
                     );
                 }
-            }
-            if (this.clear) {
-                this.filterThreshold = null;
             }
         },
     },
