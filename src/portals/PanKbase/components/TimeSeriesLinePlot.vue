@@ -245,33 +245,47 @@ export default Vue.component("time-series-line-plot", {
           );
 
         let highlightedDonorData = null;
-        this.chartData.forEach(c => {
-          if (c[0].donor === this.highlightedDonor){
-            highlightedDonorData = c;
-          } else {
+        let showConfidenceInterval = true;
+        if (!showConfidenceInterval){
+            this.chartData.forEach(c => {
+            if (c[0].donor === this.highlightedDonor){
+              highlightedDonorData = c;
+            } else {
+              this.svg.append("path")
+              .datum(c)
+              .attr("class", "linegraph")
+              .attr("fill", "none")
+              .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
+              .attr("stroke-width", 1)
+              .attr("class", "line-path")
+              .attr("d", lineGenerator)
+              .on("mouseover", c => this.showTooltip(c));
+            }
+          });
+          // Put highlighted line on top
+          if (highlightedDonorData !== null){
             this.svg.append("path")
-            .datum(c)
-            .attr("class", "linegraph")
-            .attr("fill", "none")
-            .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
-            .attr("stroke-width", 1)
-            .attr("class", "line-path")
-            .attr("d", lineGenerator)
-            .on("mouseover", c => this.showTooltip(c));
+              .datum(highlightedDonorData)
+              .attr("class", "linegraph")
+              .attr("fill", "none")
+              .attr("stroke", this.lineColor)
+              .attr("stroke-width", 2)
+              .attr("class", "line-path")
+              .attr("d", lineGenerator)
+              .on("mouseover", c => this.showTooltip(c))
           }
-        });
-        // Put highlighted line on top
-        if (highlightedDonorData !== null){
+        } else {
           this.svg.append("path")
-            .datum(highlightedDonorData)
-            .attr("class", "linegraph")
-            .attr("fill", "none")
-            .attr("stroke", this.lineColor)
-            .attr("stroke-width", 2)
-            .attr("class", "line-path")
-            .attr("d", lineGenerator)
-            .on("mouseover", c => this.showTooltip(c))
+            .datum(this.chartData)
+            .attr("fill", "#cce5df")
+            .attr("stroke", "none")
+            .attr("d", d3.area()
+              .x(d => this.xScale(d[this.xField]))
+              .y0(d => this.yScale(d.CI_right))
+              .y1(d => this.yScale(d.CI_left))
+          )
         }
+        
     },
     hoverLine(donor) {
 

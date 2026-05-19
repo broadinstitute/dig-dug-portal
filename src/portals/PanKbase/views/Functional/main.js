@@ -248,6 +248,8 @@ new Vue({
             showAdvanced: false,
             functionalTrait: null,
             vlnConditions: [],
+            insConfidence: [],
+            gcgConfidence: [],
         };
     },
     async created() {
@@ -397,16 +399,43 @@ new Vue({
         },
         toggleAdvanced(){
             this.showAdvanced = !this.showAdvanced;
-        }
+        },
+        confidenceIntervals(rawData){
+            let z = 1.96;
+            let times = rawData.map(r => r.time);
+            let output = [];
+            times.forEach(t => {
+                // Compute standard deviation
+                let allData = rawData.filter(r => r.time === t);
+                let n = allData.length;
+                let sum = allData.reduce((total, entry) => total + entry, 0);
+                let x = sum/n;
+                let sqDiff = allData.map(r => (r - mean)**2);
+                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
+                let sigma = Math.sqrt(sumDiff / n);
+
+                let confidenceInterval = z * sigma / (Math.sqrt(n));
+                let timeEntry = {
+                    time: t,
+                    mean: x,
+                    ciUpper: x + confidenceInterval,
+                    ciLower: x - confidenceInterval
+                };
+                output.push(timeEntry);
+            });
+            return output;
+        },
     },
     watch: {
         insData(newData){
             this.resultsIns = newData.results;
+            this.insConfidence = this.confidenceIntervals(newData.results);
             this.maxScoreIns = newData.maxScore;
             this.maxTimeIns = newData.maxTime;
         },
         gcgData(newData){
             this.resultsGcg = newData.results;
+            this.gcgConfidence = this.confidenceIntervals(newData.results);
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
         },
