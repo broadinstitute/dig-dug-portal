@@ -281,7 +281,7 @@ export default Vue.component("time-series-line-plot", {
             .attr("fill", "#cce5df")
             .attr("stroke", "none")
             .attr("d", d3.area()
-              .x(d => this.xScale(d.mean))
+              .x(d => this.xScale(d.time))
               .y0(d => this.yScale(d.ciUpper))
               .y1(d => this.yScale(d.ciLower))
           )
