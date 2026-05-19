@@ -21,6 +21,7 @@
                                             <filter-slider v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
+                                                :values="$parent.filteredMetadata.map(m => m[oField.key])"
                                                 :range="$parent.getRange(oField)"
                                                 :presets="$parent.presets">
                                                 <div class="label">{{ oField.key }}</div>

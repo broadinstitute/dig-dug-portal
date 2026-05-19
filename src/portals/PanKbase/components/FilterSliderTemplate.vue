@@ -6,7 +6,7 @@
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <div class="format-fix-textfield">
+<!--         <div class="format-fix-textfield">
             <dual-slider
                 :slider-id="field"
                 :rangeMin="rangeMin"
@@ -15,13 +15,22 @@
                 :presetMax="presetRange[1]"
                 @filterChanged="filterRange => updateFilter(filterRange)">
             </dual-slider>
-        </div>
+        </div> -->
+        <numeric-range-filter
+                :columnName="field"
+                :displayLabel="field"
+                :values="values"
+                :totalRowCount="values.length"
+                :value="{min: presetRange[0], max: presetRange[1]}"
+
+            ></numeric-range-filter>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
 import DualSlider from "./DualSlider.vue";
+import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
 Vue.use(BootstrapVue);
@@ -36,6 +45,7 @@ export default Vue.component("filter-slider-template", {
         field: String,
         rangeMin: Number,
         rangeMax: Number,
+        values: Array,
         label: String,
         placeholder: String,
         predicate: Function,
@@ -69,7 +79,8 @@ export default Vue.component("filter-slider-template", {
         presets: Array
     },
     components: {
-        DualSlider
+        DualSlider,
+        NumericRangeFilter
     },
     data() {
         return {
