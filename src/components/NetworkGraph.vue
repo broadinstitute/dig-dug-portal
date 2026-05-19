@@ -53,7 +53,8 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
-import { Network } from "vis-network";`r`nimport { DataSet } from "vis-data";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 
 export default Vue.component("NetworkGraph", {
     props: {

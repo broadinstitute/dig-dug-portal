@@ -142,7 +142,8 @@
 
 <script>
 import Vue from "vue";
-import { Network } from "vis-network";`r`nimport { DataSet } from "vis-data";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default Vue.component("PigeanGraphViz", {
