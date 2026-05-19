@@ -1170,6 +1170,7 @@ export default {
 
             nextFilterData.__rowValues = rowValues;
             this.numericFilterData = nextFilterData;
+            console.log(JSON.stringify(this.numericFilterData));
         },
         initializeCategoricalFilterData() {
             if (!this.preparedDataset || !this.preparedDataset.rows) {

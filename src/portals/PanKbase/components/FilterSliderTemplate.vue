@@ -21,6 +21,7 @@
 <script>
 import Vue from "vue";
 import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
+import { parseNumericValue } from "../views/Donors/datasetUtils";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
 Vue.use(BootstrapVue);
@@ -28,6 +29,7 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import { isNull } from "lodash";
 
 export default Vue.component("filter-slider-template", {
     props: {
@@ -95,7 +97,7 @@ export default Vue.component("filter-slider-template", {
         }
     },
     mounted() {
-        this.cleanupValues = this.values.filter(v => !isNaN(v));
+        this.cleanupValues = this.cleanValues(this.values);
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
     methods: {
@@ -110,6 +112,11 @@ export default Vue.component("filter-slider-template", {
                 }
             }
             return true;
+        },
+        cleanValues(vals){
+            let output = vals.map(v => parseNumericValue(v))
+                .filter(v => !isNull(v));
+            return output.sort((left, right) => left - right);
         },
         updateFilter(newThreshold) {
             let thresholdArray = [newThreshold.min, newThreshold.max];
