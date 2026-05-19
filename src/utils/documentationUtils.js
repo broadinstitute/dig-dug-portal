@@ -1,4 +1,5 @@
-import * as showdown from "showdown";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 function findTemplateTagsFromContent(content) {
     let regexp = /{{([A-Za-z]+)}}/g;
@@ -14,9 +15,8 @@ function makeExtensions(contentFill, valid_tags) {
         replacements = replacements.filter(fill => valid_tags.includes(fill[0]))
     }
     return replacements.map(filler => ({
-        type: "lang",
-        regex: `{{${filler[0]}}}`,
-        replace: filler[1]
+        regex: new RegExp(`{{${filler[0]}}}`, "g"),
+        replace: String(filler[1])
     }));
 }
 
@@ -35,15 +35,22 @@ function make_name_and_class_extensions(name) {
         a: "doc link"
     };
 
-    const name_and_class_extensions = Object.keys(
-        classMap
-    ).map(key => ({
-        type: "output",
-        regex: new RegExp(`<${key}(.*)>`, "g"),
-        replace: `<${key} id="${name}" class="${classMap[key]}" $1>`
+    const safeName = String(name || "");
+
+    const name_and_class_extensions = Object.keys(classMap).map(key => ({
+        regex: new RegExp(`<${key}(\\s[^>]*)?>`, "g"),
+        replace: (_match, attrs = "") => {
+            const trimmedAttrs = attrs.trim();
+            const spacer = trimmedAttrs ? ` ${trimmedAttrs}` : "";
+            return `<${key} id="${safeName}" class="${classMap[key]}"${spacer}>`;
+        }
     }));
 
     return name_and_class_extensions;
+}
+
+function applyReplacements(input, replacements) {
+    return replacements.reduce((result, rule) => result.replace(rule.regex, rule.replace), input);
 }
 
 function makeConverter(content, contentFill, name) {
@@ -57,16 +64,17 @@ function makeConverter(content, contentFill, name) {
 
     const name_and_class_extensions = make_name_and_class_extensions(name);
 
-    let converter = new showdown.Converter({
-        extensions: [
-            ...fill_extensions,
-            ...name_and_class_extensions
-        ]
-    });
-
-    //converter.setOption('openLinksInNewWindow', true);
-
-    return converter
+    return {
+        makeHtml(markdown = "") {
+            const withTemplateValues = applyReplacements(String(markdown), fill_extensions);
+            const rendered = marked.parse(withTemplateValues, {
+                gfm: true,
+                breaks: false
+            });
+            const withClasses = applyReplacements(String(rendered), name_and_class_extensions);
+            return DOMPurify.sanitize(withClasses);
+        }
+    };
 }
 
 export default {
