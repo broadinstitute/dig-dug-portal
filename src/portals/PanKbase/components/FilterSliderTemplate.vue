@@ -1,5 +1,5 @@
 <template>
-    <div class="col" style="padding: 5px 7px 5px 7px">
+    <div>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             <!-- <slot>{{ field }}</slot> -->
         <!--
