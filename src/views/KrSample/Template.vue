@@ -12,13 +12,47 @@
                         <span>Current workflow</span>
                         <strong>Sample ID search</strong>
                     </div>
-                    <label class="glens-text-toggle">
-                        <input v-model="largeText" type="checkbox" />
-                        Large text
-                    </label>
+                    <div class="glens-result-tools">
+                        <div class="glens-result-context-tool" @click.stop>
+                            <button
+                                class="glens-result-tool-button"
+                                type="button"
+                                @click="contextPopoverOpen = !contextPopoverOpen"
+                            >
+                                Edit Context
+                            </button>
+                            <div v-if="contextPopoverOpen" class="glens-result-context-popover">
+                                <button
+                                    class="glens-result-popover-close"
+                                    type="button"
+                                    aria-label="Close context editor"
+                                    @click="contextPopoverOpen = false"
+                                >
+                                    ×
+                                </button>
+                                <clinical-focus-bar
+                                    class="glens-result-focus-bar"
+                                    :open-editor-on-mount="true"
+                                    :hide-summary="true"
+                                    @focus-confirmed="contextPopoverOpen = false"
+                                    @focus-cancelled="contextPopoverOpen = false"
+                                ></clinical-focus-bar>
+                                <button
+                                    v-if="hasActiveContext"
+                                    class="glens-result-remove-context"
+                                    type="button"
+                                    @click="removeClinicalContext"
+                                >
+                                    Remove Context
+                                </button>
+                            </div>
+                        </div>
+                        <label class="glens-text-toggle">
+                            <input v-model="largeText" type="checkbox" />
+                            Large text
+                        </label>
+                    </div>
                 </div>
-                <focus-result-accordion :insight="sampleFocusInsight"></focus-result-accordion>
-
                 <section class="glens-hero-card">
                     <div class="glens-identity">
                         <p class="glens-eyebrow">Sample-centered evidence hub</p>
@@ -442,21 +476,22 @@
 </template>
 
 <script>
-import FocusResultAccordion from "../KrClinicalFocus/FocusResultAccordion.vue";
-import { buildFocusInsight } from "../KrClinicalFocus/focusComparison";
-import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
+import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
+import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
+import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { createKrSampleState } from "./mockData";
 import "./style.css";
 
 export default {
     name: "KrSampleTemplate",
     components: {
-        FocusResultAccordion,
+        ClinicalFocusBar,
     },
     data() {
         return {
             ...createKrSampleState(),
             clinicalFocus: readClinicalFocus(),
+            contextPopoverOpen: false,
             unsubscribeClinicalFocus: null,
         };
     },
@@ -476,10 +511,13 @@ export default {
         selectedInvestigatorAffinity() {
             return this.allInvestigatorOptions.find((group) => group.label === this.selectedInvestigatorGroup);
         },
-        sampleFocusInsight() {
-            return buildFocusInsight("sample", this.clinicalFocus, {
-                subjectLabel: `${this.displaySampleId} sample`,
-            });
+        hasActiveContext() {
+            return hasClinicalFocus(this.clinicalFocus);
+        },
+        compactContextLabel() {
+            if (!this.hasActiveContext) return "";
+            const contextId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId || "";
+            return [this.clinicalFocus.label, contextId].filter(Boolean).join(" · ");
         },
         topAnswers() {
             return [
@@ -525,11 +563,20 @@ export default {
         this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
             this.clinicalFocus = focus;
         });
+        document.addEventListener("click", this.closeContextPopover);
     },
     beforeDestroy() {
         if (this.unsubscribeClinicalFocus) this.unsubscribeClinicalFocus();
+        document.removeEventListener("click", this.closeContextPopover);
     },
     methods: {
+        closeContextPopover() {
+            this.contextPopoverOpen = false;
+        },
+        removeClinicalContext() {
+            clearClinicalFocus();
+            this.contextPopoverOpen = false;
+        },
         sampleHref(sampleId) {
             return `/sample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },

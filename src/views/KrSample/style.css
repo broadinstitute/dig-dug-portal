@@ -32,8 +32,9 @@
 
 .glens-page-mode-label strong {
     color: #162033;
-    font-size: 15px;
-    font-weight: 900;
+    font-size: clamp(1.45rem, 2.4vw, 2.35rem);
+    font-weight: 950;
+    line-height: 1.05;
 }
 
 .glens-text-toggle {

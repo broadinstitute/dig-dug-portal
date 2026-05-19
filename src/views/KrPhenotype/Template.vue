@@ -12,13 +12,47 @@
                         <span>Current workflow</span>
                         <strong>Phenotype search</strong>
                     </div>
-                    <label class="glens-text-toggle">
-                        <input v-model="largeText" type="checkbox" />
-                        Large text
-                    </label>
+                    <div class="glens-result-tools">
+                        <div class="glens-result-context-tool" @click.stop>
+                            <button
+                                class="glens-result-tool-button"
+                                type="button"
+                                @click="contextPopoverOpen = !contextPopoverOpen"
+                            >
+                                Edit Context
+                            </button>
+                            <div v-if="contextPopoverOpen" class="glens-result-context-popover">
+                                <button
+                                    class="glens-result-popover-close"
+                                    type="button"
+                                    aria-label="Close context editor"
+                                    @click="contextPopoverOpen = false"
+                                >
+                                    ×
+                                </button>
+                                <clinical-focus-bar
+                                    class="glens-result-focus-bar"
+                                    :open-editor-on-mount="true"
+                                    :hide-summary="true"
+                                    @focus-confirmed="contextPopoverOpen = false"
+                                    @focus-cancelled="contextPopoverOpen = false"
+                                ></clinical-focus-bar>
+                                <button
+                                    v-if="hasActiveContext"
+                                    class="glens-result-remove-context"
+                                    type="button"
+                                    @click="removeClinicalContext"
+                                >
+                                    Remove Context
+                                </button>
+                            </div>
+                        </div>
+                        <label class="glens-text-toggle">
+                            <input v-model="largeText" type="checkbox" />
+                            Large text
+                        </label>
+                    </div>
                 </div>
-                <focus-result-accordion :insight="phenotypeFocusInsight"></focus-result-accordion>
-
                 <section class="glens-hero">
                     <div class="glens-query">
                         <p class="glens-eyebrow">Phenotype-first clinical matching</p>
@@ -619,21 +653,22 @@
 </template>
 
 <script>
-import FocusResultAccordion from "../KrClinicalFocus/FocusResultAccordion.vue";
-import { buildFocusInsight } from "../KrClinicalFocus/focusComparison";
-import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
+import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
+import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
+import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { createKrPhenotypeState } from "./mockData";
 import "./style.css";
 
 export default {
     name: "KrPhenotypeTemplate",
     components: {
-        FocusResultAccordion,
+        ClinicalFocusBar,
     },
     data() {
         return {
             ...createKrPhenotypeState(),
             clinicalFocus: readClinicalFocus(),
+            contextPopoverOpen: false,
             unsubscribeClinicalFocus: null,
         };
     },
@@ -644,10 +679,13 @@ export default {
                 label: term.label,
             }));
         },
-        phenotypeFocusInsight() {
-            return buildFocusInsight("phenotype", this.clinicalFocus, {
-                subjectLabel: `${this.currentPhenotypeTermsForFocus.length} HPO-term phenotype search`,
-            });
+        hasActiveContext() {
+            return hasClinicalFocus(this.clinicalFocus);
+        },
+        compactContextLabel() {
+            if (!this.hasActiveContext) return "";
+            const contextId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId || "";
+            return [this.clinicalFocus.label, contextId].filter(Boolean).join(" · ");
         },
         activeResidualGroupData() {
             return this.phenotype.residualGroups.find(
@@ -696,11 +734,20 @@ export default {
         this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
             this.clinicalFocus = focus;
         });
+        document.addEventListener("click", this.closeContextPopover);
     },
     beforeDestroy() {
         if (this.unsubscribeClinicalFocus) this.unsubscribeClinicalFocus();
+        document.removeEventListener("click", this.closeContextPopover);
     },
     methods: {
+        closeContextPopover() {
+            this.contextPopoverOpen = false;
+        },
+        removeClinicalContext() {
+            clearClinicalFocus();
+            this.contextPopoverOpen = false;
+        },
         togglePanel(panel) {
             this.openPanels[panel] = !this.openPanels[panel];
         },
