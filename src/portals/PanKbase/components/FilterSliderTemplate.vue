@@ -106,7 +106,7 @@ export default Vue.component("filter-slider-template", {
             // TODO: validation utils?
             if (!!this.type) {
                 if (this.type === "number") {
-                    return !isNaN(newInput[0]) && !isNaN(newInput[1]);
+                    return !isNaN(newInput.min) && !isNaN(newInput.max);
                 } else if (typeof newInput !== this.type) {
                     return false;
                 }
@@ -116,17 +116,19 @@ export default Vue.component("filter-slider-template", {
         cleanValues(vals){
             let output = vals.map(v => parseNumericValue(v))
                 .filter(v => !isNull(v));
+            console.log(`${this.field} In: ${vals.length} Out: ${output.length}`);
             return output.sort((left, right) => left - right);
         },
         updateFilter(newThreshold) {
-            let thresholdArray = [newThreshold.min, newThreshold.max];
+            // TODO apply checking logic to include all including missing data if filters are set to min and max
+
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                const isValid = this.validateInput(thresholdArray);
+                const isValid = this.validateInput(newThreshold);
                 if (isValid) {
                     // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit("change", thresholdArray, {
+                        this.$parent.$parent.$emit("change", newThreshold, {
                             // label: this.pillFormatter,
                             // color: this.color,
                             ...this.filterDefinition,
