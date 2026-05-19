@@ -8,116 +8,128 @@
 
         <div class="container-fluid mdkp-body glens-page">
             <section class="glens-hero">
-                <div class="glens-topbar">
-                    <div>
-                        <p class="glens-eyebrow">The Genomic Lens</p>
+                <div class="glens-hero-grid">
+                    <div class="glens-hero-copy glens-hero-copy--combined">
+                        <p class="glens-eyebrow">Clinical Evidence Matching</p>
                         <h1 class="glens-title">
-                            Rare disease genomics portal prototype
+                            Clinical context-guided rare disease cohort search
                         </h1>
-                    </div>
-                    <span class="glens-badge">Local prototype</span>
-                </div>
-
-                <div class="row no-gutters glens-split">
-                    <div class="col-lg-6 glens-panel glens-panel--variant">
-                        <div class="glens-panel-badge">Variant / Gene / Disease</div>
-                        <h2 class="glens-panel-title">Search by genomic finding.</h2>
-                        <p class="glens-panel-copy">
-                            Use one input for variant coordinates, gene symbols, or
-                            rare disease names. This path opens a variant-centered
-                            result page.
+                        <p class="glens-context-question">
+                            Is this finding meaningful in this clinical context, or is it background noise?
+                        </p>
+                        <p class="glens-subtitle">
+                            Set a clinical context for targeted interpretation, or leave it empty
+                            for discovery mode. Then search a patient, phenotype profile, or rare
+                            variant/gene against hospital-wide rare disease data and public
+                            disease-phenotype knowledge.
                         </p>
 
-                        <form class="glens-search" @submit.prevent="goToVariant">
-                            <label class="glens-label" for="variant-search">
-                                Search input
-                            </label>
-                            <div class="glens-search-shell">
+                        <form class="glens-search-card glens-search-card--embedded" @submit.prevent="openResults">
+                            <span class="glens-query-step">Search subject</span>
+
+                            <div class="glens-search-shell glens-search-shell--typed">
+                                <select
+                                    v-model="activeMode"
+                                    class="glens-search-type-select"
+                                    aria-label="Search type"
+                                >
+                                    <option
+                                        v-for="mode in searchModes"
+                                        :key="mode.key"
+                                        :value="mode.key"
+                                    >
+                                        {{ mode.shortLabel }}
+                                    </option>
+                                </select>
                                 <input
-                                    id="variant-search"
-                                    v-model.trim="variantQuery"
+                                    id="clinical-search"
+                                    v-model.trim="query"
                                     class="glens-input"
                                     type="text"
-                                    :placeholder="frontFixture.variantPlaceholder"
+                                    aria-label="Search input"
+                                    :placeholder="activePlaceholder"
                                 />
-                                <button class="glens-button glens-button--primary" type="submit">
-                                    Open Results
+                                <button class="glens-button" type="submit">
+                                    Start workflow
                                 </button>
                             </div>
-                        </form>
 
-                        <div class="row glens-mini-grid">
-                            <div class="col-sm-6">
-                                <div class="glens-mini-card">
-                                    <p class="glens-mini-label">Mode</p>
-                                    <p class="glens-mini-title">Variant-centered route</p>
-                                    <p class="glens-mini-copy">
-                                        Structured for locus-first exploration.
-                                    </p>
-                                </div>
+                            <div class="glens-example-row">
+                                <span v-for="example in activeExamples" :key="example">{{ example }}</span>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="glens-mini-card">
-                                    <p class="glens-mini-label">Examples</p>
-                                    <p class="glens-mini-title">Coordinate, gene, disease</p>
-                                    <p class="glens-mini-copy">
-                                        {{ frontFixture.variantExample }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                            <p v-if="activeFixture.hint" class="glens-search-hint">
+                                {{ activeFixture.hint }}
+                            </p>
+                            <p v-if="pendingMessage" class="glens-pending-message">
+                                {{ pendingMessage }}
+                            </p>
+                        </form>
                     </div>
 
-                    <div class="col-lg-6 glens-panel glens-panel--phenotype">
-                        <div class="glens-panel-badge glens-panel-badge--green">
-                            Phenotype (HPO Terms)
-                        </div>
-                        <h2 class="glens-panel-title">Search by phenotype profile.</h2>
-                        <p class="glens-panel-copy">
-                            Enter one or more phenotype terms or HPO identifiers.
-                            This path opens a phenotype-centered result page.
-                        </p>
-
-                        <form class="glens-search" @submit.prevent="goToPhenotype">
-                            <label class="glens-label" for="phenotype-search">
-                                Phenotype input
-                            </label>
-                            <div class="glens-search-shell">
-                                <input
-                                    id="phenotype-search"
-                                    v-model.trim="phenotypeQuery"
-                                    class="glens-input"
-                                    type="text"
-                                    :placeholder="frontFixture.phenotypePlaceholder"
-                                />
-                                <button class="glens-button glens-button--green" type="submit">
-                                    Open Results
+                    <aside class="glens-principle-card glens-principle-card--context">
+                        <div class="glens-principle-copy">
+                            <div class="glens-principle-head">
+                                <span class="glens-badge">Our purpose</span>
+                                <button
+                                    class="glens-info-button"
+                                    type="button"
+                                    aria-label="Open workflow summary"
+                                    @click="summaryOpen = true"
+                                >
+                                    <img src="/images/context_info.png" alt="" />
                                 </button>
                             </div>
-                        </form>
-
-                        <div class="row glens-mini-grid">
-                            <div class="col-sm-6">
-                                <div class="glens-mini-card">
-                                    <p class="glens-mini-label">Mode</p>
-                                    <p class="glens-mini-title">Phenotype-led route</p>
-                                    <p class="glens-mini-copy">
-                                        Built for symptom-first reverse lookup.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="glens-mini-card">
-                                    <p class="glens-mini-label">Examples</p>
-                                    <p class="glens-mini-title">Plain terms or HPO IDs</p>
-                                    <p class="glens-mini-copy">
-                                        {{ frontFixture.phenotypeExample }}
-                                    </p>
-                                </div>
-                            </div>
+                            <strong>Context makes the search interpretable.</strong>
+                            <p>
+                                Same patient, phenotype, or variant input; different interpretation
+                                depending on the clinical context being tested.
+                            </p>
                         </div>
+
+                        <div class="glens-principle-context">
+                            <span class="glens-query-step">
+                                Clinical context <small>(Background knowledge)</small>
+                            </span>
+                            <clinical-focus-bar
+                                class="glens-front-focus-bar"
+                                :show-no-focus-note="true"
+                                :hide-kicker="true"
+                            ></clinical-focus-bar>
+                        </div>
+                    </aside>
+                </div>
+
+                <div
+                    v-if="summaryOpen"
+                    class="glens-summary-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Workflow summary"
+                    @click.self="summaryOpen = false"
+                >
+                    <div class="glens-summary-modal-card">
+                        <button type="button" @click="summaryOpen = false">Close</button>
+                        <img
+                            src="/images/context_summary_20260519.png"
+                            alt="Clinical context, search subject, interpretation engine, and evidence outputs"
+                        />
                     </div>
                 </div>
+
+                <div class="glens-workflow-grid">
+                    <article
+                        v-for="workflow in workflows"
+                        :key="workflow.key"
+                        class="glens-workflow-card"
+                    >
+                        <p class="glens-card-label">{{ workflow.kicker }}</p>
+                        <h2>{{ workflow.title }}</h2>
+                        <ol>
+                            <li v-for="step in workflow.steps" :key="step">{{ step }}</li>
+                        </ol>
+                    </article>
+                </div>
+
             </section>
         </div>
 
@@ -126,34 +138,119 @@
 </template>
 
 <script>
+import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
+
 export default {
     name: "KrFrontTemplate",
+    components: {
+        ClinicalFocusBar,
+    },
     data() {
         return {
-            variantQuery: "",
-            phenotypeQuery: "",
-            frontFixture: {
-                variantPlaceholder:
-                    "chr15:22,000,220 G>C / UBE3A / 15q11-q13 microdeletion syndrome",
-                phenotypePlaceholder:
-                    "hypotonia / developmental delay / HP:0001250",
-                variantExample:
-                    "chr15:22,000,220 G>C / UBE3A / 15q11-q13 microdeletion syndrome",
-                phenotypeExample:
-                    "hypotonia / developmental delay / HP:0001250",
+            activeMode: "cohort",
+            query: "",
+            pendingMessage: "",
+            summaryOpen: false,
+            searchModes: [
+                { key: "cohort", label: "Search by ID", shortLabel: "Sample ID" },
+                { key: "phenotype", label: "Search by phenotype", shortLabel: "Phenotype" },
+                { key: "variant", label: "Search by variant / gene", shortLabel: "Variant / gene" },
+            ],
+            fixtures: {
+                variant: {
+                    destination: "/krVariant_V3.html",
+                    placeholder:
+                        "chr15:22,000,220 G>C / UBE3A / 15q11-q13 microdeletion syndrome",
+                    fallback: "chr15:22,000,220 G>C",
+                    examples: [
+                        "chr15:22,000,220 G>C",
+                        "UBE3A",
+                        "15q11-q13 microdeletion syndrome",
+                    ],
+                    hint: "Use this when you already have a variant, gene, or disease-related term.",
+                },
+                phenotype: {
+                    destination: "/krPhenotype.html",
+                    placeholder:
+                        "cleft palate [HP:0000175], developmental delay [HP:0001263]",
+                    fallback: "cleft palate [HP:0000175]",
+                    examples: [
+                        "cleft palate [HP:0000175]",
+                        "HP:0001248, HP:0000343",
+                        "hypotonia, developmental delay",
+                    ],
+                    hint: "For multiple HPO terms, separate terms with commas. The backend can treat them as a phenotype profile.",
+                },
+                cohort: {
+                    destination: "/sample.html",
+                    queryParam: "sample_id",
+                    placeholder:
+                        "BCH-12-34567-01",
+                    fallback: "BCH-12-34567-01",
+                    examples: [
+                        "BCH-12-34567-01",
+                    ],
+                    hint: "Search one sample ID to open the sample-centered evidence hub.",
+                },
             },
+            workflows: [
+                {
+                    key: "sample",
+                    kicker: "Sample ID-first workflow",
+                    title: "Patient in context",
+                    steps: [
+                        "Search one BCH sample ID",
+                        "Find similar patients and cohort position",
+                        "Move to gene or variant evidence after context fit is clear",
+                    ],
+                },
+                {
+                    key: "phenotype",
+                    kicker: "Phenotype-first workflow",
+                    title: "Phenotype signal",
+                    steps: [
+                        "Search one or more HPO terms",
+                        "Check whether the pattern is context-specific",
+                        "Review matched samples and co-observed phenotypes",
+                    ],
+                },
+                {
+                    key: "variant",
+                    kicker: "Variant-first workflow",
+                    title: "Variant in context",
+                    steps: [
+                        "Search a rare variant or gene",
+                        "Inspect carrier recurrence and carrier phenotypes",
+                        "Separate context-supported signal from background noise",
+                    ],
+                },
+            ],
         };
     },
-    methods: {
-        goToVariant() {
-            const query = this.variantQuery || "chr15:22,000,220 G>C";
-            window.location.assign(`/krVariant.html?query=${encodeURIComponent(query)}`);
+    computed: {
+        activeFixture() {
+            return this.fixtures[this.activeMode];
         },
-        goToPhenotype() {
-            const query =
-                this.phenotypeQuery || "cleft palate [HP:0001250]";
+        activePlaceholder() {
+            return this.activeFixture.placeholder;
+        },
+        activeExamples() {
+            return this.activeFixture.examples;
+        },
+    },
+    methods: {
+        openResults() {
+            const value = this.query || this.activeFixture.fallback;
+            this.pendingMessage = "";
+
+            if (!this.activeFixture.destination) {
+                this.pendingMessage = `Cohort filter search is planned for version 02. Example filter captured: ${value}`;
+                return;
+            }
+
+            const param = this.activeFixture.queryParam || "query";
             window.location.assign(
-                `/krPhenotype.html?query=${encodeURIComponent(query)}`
+                `${this.activeFixture.destination}?${param}=${encodeURIComponent(value)}`
             );
         },
     },
@@ -162,131 +259,215 @@ export default {
 
 <style scoped>
 .glens-page {
-    padding: 2.8rem 2.5rem 3.4rem;
-    background: linear-gradient(180deg, #f6f9ff 0%, #eef5ff 50%, #edf6f1 100%);
+    padding: 1.15rem 2.5rem 2.2rem;
+    background: #f3f6fa;
 }
 
 .glens-hero {
-    max-width: 1280px;
+    max-width: 1240px;
     margin: 0 auto;
-    padding: 2.3rem 2.45rem;
-    border-radius: 1.75rem;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 24px 70px rgba(22, 32, 51, 0.08);
 }
 
-.glens-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.glens-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.72fr) minmax(22rem, 0.78fr);
     gap: 1rem;
-    margin-bottom: 1rem;
+    align-items: stretch;
+}
+
+.glens-hero-copy,
+.glens-principle-card,
+.glens-workflow-grid {
+    border: 1px solid rgba(203, 213, 225, 0.64);
+    border-radius: 1.45rem;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 48px rgba(22, 32, 51, 0.055);
+}
+
+.glens-hero-copy {
+    padding: 1.25rem 1.45rem 1.15rem;
+}
+
+.glens-principle-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
 }
 
 .glens-eyebrow,
-.glens-mini-label,
-.glens-label {
+.glens-label,
+.glens-card-label,
+.glens-query-step {
     margin: 0;
     color: #526276;
     font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-weight: 850;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
 .glens-title,
-.glens-panel-title,
-.glens-mini-title {
+.glens-context-question,
+.glens-principle-card strong,
+.glens-workflow-card h2 {
     margin: 0;
     color: #162033;
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    font-weight: 800;
+    font-weight: 850;
 }
 
 .glens-title {
-    margin-top: 0.35rem;
-    font-size: 2rem;
+    max-width: 54rem;
+    margin-top: 0.2rem;
+    font-size: clamp(1.85rem, 3.4vw, 2.85rem);
+    line-height: 1.02;
+    letter-spacing: -0.055em;
 }
 
-.glens-badge,
-.glens-panel-badge {
+.glens-context-question {
+    margin-top: 0.7rem;
+    font-size: 1.05rem;
+    line-height: 1.24;
+}
+
+.glens-subtitle,
+.glens-principle-card p {
+    color: #526276;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.glens-subtitle {
+    max-width: 57rem;
+    margin: 0.35rem 0 0;
+}
+
+.glens-badge {
+    display: inline-flex;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.glens-principle-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+}
+
+.glens-principle-card strong {
+    display: block;
+    font-size: 1.12rem;
+    line-height: 1.16;
+}
+
+.glens-principle-card p {
+    margin: 0.45rem 0 0;
+}
+
+.glens-info-button {
     display: inline-flex;
     align-items: center;
-    padding: 0.45rem 0.8rem;
-    border-radius: 999px;
-    background: #eef3fb;
-    color: #526276;
-    font-size: 0.82rem;
-    font-weight: 700;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid #2f73c9;
+    border-radius: 0.55rem;
+    background: #eef5ff;
+    color: #0b66c3;
+    padding: 0.22rem;
 }
 
-.glens-split {
-    overflow: hidden;
-    border-radius: 1.5rem;
-    background: rgba(255, 255, 255, 0.65);
+.glens-info-button:hover,
+.glens-info-button:focus-visible {
+    border-color: #0b66c3;
+    background: #e2efff;
 }
 
-.glens-panel {
-    min-height: 32rem;
-    padding: 2.55rem 2.25rem 2.55rem 3.45rem;
+.glens-info-button img {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    filter: invert(34%) sepia(90%) saturate(1470%) hue-rotate(190deg) brightness(88%) contrast(94%);
+    object-fit: contain;
 }
 
-.glens-panel--variant {
-    border-right: 1px solid rgba(203, 213, 225, 0.45);
-    background: linear-gradient(160deg, rgba(232, 240, 255, 0.92), rgba(247, 249, 255, 0.96));
+.glens-principle-context {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e1e8f2;
 }
 
-.glens-panel--phenotype {
-    background: linear-gradient(160deg, rgba(236, 247, 241, 0.96), rgba(249, 252, 250, 0.98));
+.glens-query-step {
+    display: block;
+    margin-bottom: 0.42rem;
 }
 
-.glens-panel-badge {
-    margin-bottom: 1.5rem;
-    background: rgba(255, 255, 255, 0.82);
-    color: #0d4d91;
+.glens-query-step small {
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
 }
 
-.glens-panel-badge--green {
-    color: #3f715b;
+.glens-front-focus-bar {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
 }
 
-.glens-panel-title {
-    font-size: 2.1rem;
-    line-height: 1.1;
+.glens-search-card {
+    padding: 0.7rem;
 }
 
-.glens-panel-copy,
-.glens-mini-copy {
-    color: #526276;
+.glens-search-card--embedded {
+    margin-top: 0.9rem;
+    padding: 0.65rem 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
 }
 
-.glens-panel-copy {
-    margin: 1rem 0 0;
-    max-width: 38rem;
-    font-size: 1rem;
-    line-height: 1.7;
-}
-
-.glens-search {
-    margin-top: 2rem;
+.glens-label {
+    display: block;
+    margin-top: 0.2rem;
 }
 
 .glens-search-shell {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-    padding: 0.65rem;
-    border: 1px solid rgba(203, 213, 225, 0.5);
-    border-radius: 1.25rem;
+    gap: 0.55rem;
+    margin-top: 0.45rem;
+    padding: 0.38rem;
+    border: 1px solid rgba(203, 213, 225, 0.72);
+    border-radius: 1rem;
     background: #fff;
+}
+
+.glens-search-type-select {
+    flex: 0 0 10.2rem;
+    min-height: 2.35rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.78rem;
+    background: #f8fafc;
+    color: #162033;
+    font-weight: 850;
+    padding: 0 0.7rem;
 }
 
 .glens-input {
     flex: 1 1 auto;
-    padding: 0.9rem 1rem;
+    min-width: 0;
+    padding: 0.62rem 0.65rem;
     border: 0;
-    border-radius: 1rem;
+    border-radius: 0.85rem;
     background: transparent;
     color: #162033;
     font-size: 1rem;
@@ -298,48 +479,133 @@ export default {
 }
 
 .glens-button {
-    padding: 0.9rem 1.2rem;
+    padding: 0.65rem 0.9rem;
     border: 0;
-    border-radius: 1rem;
+    border-radius: 0.85rem;
+    background: #162033;
     color: #fff;
-    font-weight: 700;
+    font-weight: 850;
+    white-space: nowrap;
 }
 
-.glens-button--primary {
-    background: #0d4d91;
+.glens-example-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.55rem;
 }
 
-.glens-button--green {
-    background: #3f715b;
+.glens-example-row span {
+    display: inline-flex;
+    padding: 0.34rem 0.55rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 750;
 }
 
-.glens-mini-grid {
-    margin-top: 2rem;
+.glens-search-hint,
+.glens-pending-message {
+    margin: 0.55rem 0 0;
+    color: #526276;
+    font-size: 0.84rem;
+    line-height: 1.42;
 }
 
-.glens-mini-card {
-    height: 100%;
-    padding: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    border-radius: 1.25rem;
-    background: rgba(255, 255, 255, 0.82);
+.glens-pending-message {
+    font-weight: 800;
 }
 
-.glens-mini-title {
-    margin-top: 0.5rem;
-    font-size: 1.1rem;
+.glens-summary-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(15, 23, 42, 0.54);
 }
 
-.glens-mini-copy {
-    margin: 0.6rem 0 0;
-    font-size: 0.92rem;
-    line-height: 1.6;
+.glens-summary-modal-card {
+    position: relative;
+    width: min(92vw, 70rem);
+    max-height: 88vh;
+    padding: 1rem;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
+    overflow: auto;
+}
+
+.glens-summary-modal-card button {
+    position: sticky;
+    top: 0;
+    margin-left: auto;
+    display: block;
+    border: 1px solid #cdd9e7;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #162033;
+    font-weight: 800;
+    padding: 0.35rem 0.6rem;
+}
+
+.glens-summary-modal-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.65rem;
+}
+
+.glens-workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.glens-workflow-card {
+    padding: 1rem 1.15rem;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.glens-workflow-card + .glens-workflow-card {
+    border-left: 1px solid #d8e2ef;
+}
+
+.glens-workflow-card h2 {
+    margin-top: 0.35rem;
+    font-size: 1.18rem;
+    line-height: 1.18;
+}
+
+.glens-workflow-card ol {
+    margin: 0.75rem 0 0;
+    padding-left: 1.05rem;
+    color: #526276;
+}
+
+.glens-workflow-card li {
+    margin-top: 0.42rem;
+    line-height: 1.38;
+    font-size: 0.88rem;
 }
 
 @media (max-width: 991.98px) {
-    .glens-panel--variant {
-        border-right: 0;
-        border-bottom: 1px solid rgba(203, 213, 225, 0.45);
+    .glens-hero-grid,
+    .glens-workflow-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-workflow-card + .glens-workflow-card {
+        border-left: 0;
+        border-top: 1px solid #d8e2ef;
     }
 }
 
@@ -348,26 +614,24 @@ export default {
         padding: 1.25rem 0.9rem 2rem;
     }
 
-    .glens-hero {
-        padding: 1.2rem;
+    .glens-hero-copy,
+    .glens-principle-card,
+    .glens-workflow-card {
+        padding: 1.05rem;
     }
 
-    .glens-topbar,
     .glens-search-shell {
-        display: block;
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    .glens-badge {
-        margin-top: 0.75rem;
+    .glens-search-type-select {
+        flex: 0 0 auto;
+        width: 100%;
     }
 
     .glens-button {
         width: 100%;
-        margin-top: 0.75rem;
-    }
-
-    .glens-panel {
-        padding: 1.6rem 1.2rem 1.6rem 1.7rem;
     }
 }
 </style>

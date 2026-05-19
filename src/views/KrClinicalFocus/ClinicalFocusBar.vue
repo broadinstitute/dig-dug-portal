@@ -1,0 +1,267 @@
+<template>
+    <section class="glens-clinical-focus-bar" aria-label="Clinical context">
+        <div class="glens-clinical-focus-main">
+            <div>
+                <span v-if="!hideKicker" class="glens-clinical-focus-kicker">Clinical context</span>
+                <strong v-if="hasFocus">{{ focus.label }} · {{ focus.hpoTerms.length }} HPO terms</strong>
+                <strong v-else>No context set</strong>
+                <p v-if="!hasFocus && showNoFocusNote">
+                    You can start without a context. The portal will suggest possible contexts from the result.
+                </p>
+                <p v-if="hasFocus">
+                    Search results will be interpreted against this resolved HPO profile as clinical context until it is edited or cleared.
+                </p>
+            </div>
+            <div class="glens-clinical-focus-actions">
+                <button type="button" @click="toggleEditor">
+                    {{ hasFocus ? "Edit context" : "Set context" }}
+                </button>
+                <button v-if="hasFocus" type="button" class="glens-clinical-focus-plain" @click="clearFocus">
+                    Clear
+                </button>
+                <button
+                    v-if="currentPhenotypeTerms.length"
+                    type="button"
+                    class="glens-clinical-focus-plain"
+                    @click="useCurrentPhenotypeAsFocus"
+                >
+                    Use this phenotype search as context
+                </button>
+            </div>
+        </div>
+
+        <div v-if="editorOpen" class="glens-clinical-focus-editor">
+            <div class="glens-clinical-focus-source-row">
+                <label for="clinical-focus-source">Context source</label>
+                <select id="clinical-focus-source" v-model="selectedSource" @change="loadSourceProfile">
+                    <option v-for="source in sourceOptions" :key="source.key" :value="source.key">
+                        {{ source.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div v-if="hasEditableFocusSource" class="glens-clinical-focus-source-input">
+                <label for="clinical-focus-query">{{ sourceInputLabel }}</label>
+                <div class="glens-clinical-focus-resolve-row">
+                    <input
+                        id="clinical-focus-query"
+                        v-model.trim="sourceQuery"
+                        type="text"
+                        :placeholder="sourceInputPlaceholder"
+                        @keyup.enter="resolveSourceProfile"
+                    />
+                    <button type="button" @click="resolveSourceProfile">Resolve to HPO profile</button>
+                </div>
+            </div>
+
+            <div v-if="hasEditableFocusSource" class="glens-clinical-focus-draft-head">
+                <span>Total {{ draft.hpoTerms.length }} HPO terms</span>
+            </div>
+            <div v-if="hasEditableFocusSource" class="glens-clinical-focus-term-list">
+                <div class="glens-clinical-focus-term-head">
+                    <span>HPO term</span>
+                    <span>HPO ID</span>
+                    <span></span>
+                </div>
+                <div
+                    v-for="term in draft.hpoTerms"
+                    :key="term.id"
+                    class="glens-clinical-focus-term-row"
+                >
+                    <span>{{ term.label }}</span>
+                    <code>{{ term.id }}</code>
+                    <button type="button" @click="removeTerm(term.id)">Remove</button>
+                </div>
+            </div>
+            <div v-if="hasEditableFocusSource" class="glens-clinical-focus-add">
+                <input
+                    v-model.trim="newTerm"
+                    type="text"
+                    placeholder="Add HPO term, e.g. HP:0001250 Seizure"
+                    @keyup.enter="addTerm"
+                />
+                <button type="button" @click="addTerm">Add term</button>
+            </div>
+            <p v-else class="glens-clinical-focus-no-source">
+                No clinical context will be used. Search results will open in discovery mode and suggest contexts worth checking.
+            </p>
+            <div class="glens-clinical-focus-editor-actions">
+                <button type="button" @click="saveFocus">{{ focusSaveLabel }}</button>
+                <button type="button" class="glens-clinical-focus-plain" @click="editorOpen = false">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script>
+import { clearClinicalFocus, readClinicalFocus, writeClinicalFocus, onClinicalFocusChange } from "./focusStore";
+import { createFocusFromTerms, focusSourceOptions, mockFocusProfiles } from "./mockFocusData";
+import { hasClinicalFocus } from "./focusComparison";
+import "./style.css";
+
+export default {
+    name: "ClinicalFocusBar",
+    props: {
+        showNoFocusNote: {
+            type: Boolean,
+            default: false,
+        },
+        currentPhenotypeTerms: {
+            type: Array,
+            default: () => [],
+        },
+        hideKicker: {
+            type: Boolean,
+            default: false,
+        },
+    },
+    data() {
+        const focus = readClinicalFocus();
+        const selectedSource = focus ? focus.source : "orphanet";
+        const profile = mockFocusProfiles[selectedSource] || mockFocusProfiles.orphanet;
+        return {
+            focus,
+            editorOpen: false,
+            selectedSource,
+            sourceQuery: focus ? focus.sourceQuery || profile.queryExample : profile.queryExample,
+            draft: focus || this.cloneProfile(profile),
+            newTerm: "",
+            unsubscribeFocus: null,
+        };
+    },
+    computed: {
+        hasFocus() {
+            return hasClinicalFocus(this.focus);
+        },
+        sourceOptions() {
+            return focusSourceOptions;
+        },
+        activeSourceProfile() {
+            return mockFocusProfiles[this.selectedSource] || mockFocusProfiles.orphanet;
+        },
+        hasEditableFocusSource() {
+            return this.selectedSource !== "none";
+        },
+        focusSaveLabel() {
+            return this.hasEditableFocusSource ? "Set context" : "Use no context";
+        },
+        sourceInputLabel() {
+            return this.activeSourceProfile.sourceInputLabel;
+        },
+        sourceInputPlaceholder() {
+            return this.activeSourceProfile.sourceInputPlaceholder;
+        },
+        sourceInputHelp() {
+            return this.activeSourceProfile.sourceInputHelp;
+        },
+    },
+    mounted() {
+        this.unsubscribeFocus = onClinicalFocusChange((focus) => {
+            this.focus = focus;
+        });
+    },
+    beforeDestroy() {
+        if (this.unsubscribeFocus) this.unsubscribeFocus();
+    },
+    methods: {
+        cloneProfile(profile) {
+            return {
+                ...profile,
+                hpoTerms: profile.hpoTerms.map((term) => ({ ...term })),
+            };
+        },
+        toggleEditor() {
+            if (this.editorOpen) {
+                this.editorOpen = false;
+                return;
+            }
+
+            const profile = mockFocusProfiles[this.selectedSource] || mockFocusProfiles.orphanet;
+            this.draft = this.focus ? this.cloneProfile(this.focus) : this.cloneProfile(profile);
+            this.sourceQuery = this.focus ? this.focus.sourceQuery || profile.queryExample : profile.queryExample;
+            this.editorOpen = true;
+        },
+        loadSourceProfile() {
+            const profile = this.activeSourceProfile;
+            this.sourceQuery = profile.queryExample;
+            this.draft = this.cloneProfile(profile);
+        },
+        resolveSourceProfile() {
+            if (!this.hasEditableFocusSource) {
+                this.draft = this.cloneProfile(mockFocusProfiles.none);
+                return;
+            }
+
+            const profile = this.cloneProfile(this.activeSourceProfile);
+            const query = this.sourceQuery || profile.queryExample;
+            const cleanQuery = query.replace(/\s+/g, " ").trim();
+            const resolvedLabel = this.resolvedFocusLabel(profile.source, cleanQuery, profile.label);
+
+            this.draft = {
+                ...profile,
+                label: resolvedLabel,
+                sourceQuery: cleanQuery,
+                sourceDetail: this.resolvedSourceDetail(profile.source),
+            };
+        },
+        resolvedFocusLabel(source, query, fallback) {
+            if (!query) return fallback;
+            if (source === "omim") return `${query} HPO profile`;
+            if (source === "orphanet") return `${query} HPO profile`;
+            if (source === "sample") return `${query} sample HPO profile`;
+            if (source === "investigator") return `${query} phenotype signature`;
+            return fallback;
+        },
+        resolvedSourceDetail(source) {
+            if (source === "omim") {
+                return "OMIM disease names are resolved to disease HPO annotations before comparison; the disease name itself is not used as the comparison vector.";
+            }
+            if (source === "orphanet") {
+                return "Orphanet disease labels are resolved to disease HPO annotations before comparison.";
+            }
+            if (source === "sample") {
+                return "The selected sample is resolved to that sample's observed HPO profile.";
+            }
+            if (source === "investigator") {
+                return "The investigator group is resolved to an enriched HPO phenotype signature.";
+            }
+            return "Manual context uses the editable HPO terms below.";
+        },
+        removeTerm(termId) {
+            this.draft.hpoTerms = this.draft.hpoTerms.filter((term) => term.id !== termId);
+        },
+        addTerm() {
+            if (!this.newTerm) return;
+
+            const match = this.newTerm.match(/(HP:\d{7})/);
+            const id = match ? match[1] : `HP:MOCK${String(this.draft.hpoTerms.length + 1).padStart(3, "0")}`;
+            const label = this.newTerm.replace(id, "").replace(/[\[\]]/g, "").trim() || "Manual HPO term";
+            this.draft.hpoTerms.push({ id, label });
+            this.newTerm = "";
+        },
+        saveFocus() {
+            if (!this.hasEditableFocusSource) {
+                clearClinicalFocus();
+                this.editorOpen = false;
+                return;
+            }
+
+            writeClinicalFocus({
+                ...this.draft,
+                sourceQuery: this.sourceQuery || this.draft.sourceQuery || this.draft.label,
+            });
+            this.editorOpen = false;
+        },
+        clearFocus() {
+            clearClinicalFocus();
+            this.editorOpen = false;
+        },
+        useCurrentPhenotypeAsFocus() {
+            writeClinicalFocus(createFocusFromTerms("Current phenotype search", this.currentPhenotypeTerms));
+            this.editorOpen = false;
+        },
+    },
+};
+</script>

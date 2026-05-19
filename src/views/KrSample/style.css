@@ -1,0 +1,1138 @@
+.glens-page {
+    padding: 1.25rem 1rem 2.25rem;
+    background: #f3f6fa;
+}
+
+.glens-sample {
+    max-width: 1380px;
+    margin: 0 auto;
+}
+
+.glens-access-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.glens-page-mode-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    color: #52657f;
+}
+
+.glens-page-mode-label span {
+    font-size: 13px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-page-mode-label strong {
+    color: #162033;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.glens-text-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #162033;
+    padding: 0.45rem 0.65rem;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.glens-text-toggle input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #174a7c;
+}
+
+.glens-sample :where(p, span, small, button, a, label, input, select) {
+    font-size: max(13px, 1em);
+}
+
+.glens-sample.glens-large-text {
+    font-size: 18px;
+}
+
+.glens-sample.glens-large-text :where(p, span, small, button, a, label, input, select) {
+    font-size: max(16px, 1em) !important;
+}
+
+.glens-hero-card,
+.glens-tab-card,
+.glens-panel,
+.glens-answer-card,
+.glens-position-row,
+.glens-domain-row,
+.glens-domain-stack-card,
+.glens-genotype-card,
+.glens-disease-card,
+.glens-gene-card,
+.glens-compare-card,
+.glens-gendx-card {
+    border: 1px solid #dbe5ef;
+    background: #fff;
+}
+
+.glens-hero-card,
+.glens-tab-card {
+    border-radius: 1.35rem;
+    box-shadow: 0 18px 48px rgba(22, 32, 51, 0.06);
+}
+
+.glens-hero-card {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.glens-identity,
+.glens-answer-card,
+.glens-panel,
+.glens-position-row,
+.glens-domain-row,
+.glens-domain-stack-card,
+.glens-genotype-card,
+.glens-disease-card,
+.glens-gene-card,
+.glens-compare-card,
+.glens-gendx-card {
+    border-radius: 1rem;
+}
+
+.glens-identity {
+    padding: 0.85rem;
+}
+
+.glens-eyebrow {
+    margin: 0 0 0.4rem;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+h1,
+h2 {
+    margin: 0;
+    color: #162033;
+    font-weight: 850;
+}
+
+h1 {
+    font-size: clamp(1.8rem, 3.2vw, 3.15rem);
+    line-height: 0.95;
+    overflow-wrap: anywhere;
+}
+
+h2 {
+    font-size: 1.25rem;
+}
+
+p {
+    color: #526276;
+    line-height: 1.45;
+}
+
+.glens-hero-note {
+    max-width: 42rem;
+    margin: 0.85rem 0 0;
+    color: #42526a;
+    font-size: 0.9rem;
+}
+
+.glens-identity-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.9rem;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.7rem 0;
+}
+
+.glens-identity-summary span {
+    display: block;
+    color: #6a788a;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.glens-identity-summary span.glens-case-label {
+    text-transform: none;
+}
+
+.glens-identity-summary strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+    font-size: 0.94rem;
+}
+
+.glens-term-grid span {
+    border-radius: 999px;
+    background: #f2f5f8;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 750;
+}
+
+.glens-term-grid span {
+    padding: 0.35rem 0.55rem;
+}
+
+.glens-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.glens-answer-card {
+    padding: 0.85rem;
+}
+
+.glens-answer-card span,
+.glens-kv-row span,
+.glens-gene-grid span,
+.glens-disease-detail span,
+.glens-gendx-card span {
+    display: block;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-answer-card strong {
+    display: block;
+    margin-top: 0.3rem;
+    color: #162033;
+    font-size: 1.1rem;
+}
+
+.glens-answer-card p {
+    margin: 0.45rem 0 0;
+    font-size: 0.82rem;
+}
+
+.glens-tab-card {
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.glens-tab-strip {
+    display: flex;
+    gap: 0.15rem;
+    padding: 0.9rem 0.9rem 0;
+    background: #f8fafc;
+    overflow-x: auto;
+}
+
+.glens-tab-button {
+    position: relative;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: 0.9rem 0.9rem 0 0;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: #6a788a;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.glens-tab-button--active {
+    border-color: #dbe5ef;
+    background: #fff;
+    color: #162033;
+}
+
+.glens-tab-button--active::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: #fff;
+    content: "";
+}
+
+.glens-tab-panel {
+    border-top: 1px solid #dbe5ef;
+    padding: 1rem;
+    background: #fff;
+}
+
+.glens-overview-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(20rem, 0.88fr);
+    gap: 1rem;
+}
+
+.glens-panel,
+.glens-compare-card {
+    padding: 1rem;
+}
+
+.glens-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.glens-method-note {
+    margin: 0.75rem 0 0;
+    border-left: 3px solid #dbe5ef;
+    padding-left: 0.8rem;
+    font-size: 0.88rem;
+}
+
+.glens-position-list,
+.glens-kv-grid,
+.glens-domain-list,
+.glens-genotype-groups,
+.glens-disease-list,
+.glens-gene-list {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.glens-position-row {
+    overflow: hidden;
+    padding: 0;
+}
+
+.glens-position-summary {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    border: 0;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+    text-align: left;
+}
+
+.glens-position-summary i {
+    color: #526276;
+    font-style: normal;
+    font-weight: 850;
+}
+
+.glens-position-summary strong,
+.glens-position-summary span,
+.glens-kv-row strong,
+.glens-gendx-card strong {
+    color: #162033;
+}
+
+.glens-position-summary span {
+    font-weight: 850;
+}
+
+.glens-position-explain,
+.glens-gendx-card p {
+    margin: 0;
+    border-top: 1px solid #edf2f7;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.82rem;
+}
+
+.glens-subgroup-box {
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 0.85rem;
+}
+
+.glens-subgroup-head,
+.glens-subgroup-row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.5fr) minmax(6rem, 0.5fr);
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.glens-subgroup-head {
+    padding-bottom: 0.65rem;
+    color: #526276;
+    font-size: 0.78rem;
+}
+
+.glens-subgroup-row {
+    padding: 0.5rem 0;
+    border-top: 1px solid #edf2f7;
+    color: #42526a;
+    font-weight: 800;
+}
+
+.glens-subgroup-track {
+    position: relative;
+    height: 1.1rem;
+}
+
+.glens-subgroup-track::before {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: #cbd8e6;
+    content: "";
+    transform: translateY(-50%);
+}
+
+.glens-subgroup-boxplot {
+    position: absolute;
+    top: 50%;
+    height: 0.7rem;
+    border: 2px solid #8fb4dc;
+    border-radius: 0.25rem;
+    background: rgba(143, 180, 220, 0.14);
+    transform: translateY(-50%);
+}
+
+.glens-subgroup-median {
+    position: absolute;
+    top: 0.1rem;
+    width: 2px;
+    height: 0.9rem;
+    background: #0d4d91;
+}
+
+.glens-subgroup-dot {
+    position: absolute;
+    top: 50%;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 999px;
+    background: #d96d3a;
+    transform: translate(-50%, -50%);
+}
+
+.glens-source-note {
+    margin: 0.65rem 0 0;
+    color: #526276;
+    font-size: 0.82rem;
+}
+
+.glens-affinity-box {
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 0.85rem;
+}
+
+.glens-affinity-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.glens-affinity-head strong,
+.glens-affinity-head span {
+    display: block;
+}
+
+.glens-affinity-head strong {
+    color: #162033;
+}
+
+.glens-affinity-head span,
+.glens-affinity-head em {
+    margin-top: 0.2rem;
+    color: #6a788a;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 750;
+}
+
+.glens-affinity-method {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #6a788a;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: left;
+}
+
+.glens-affinity-method i {
+    color: #0d4d91;
+    font-style: normal;
+}
+
+.glens-affinity-list {
+    display: grid;
+    border-top: 1px solid #e2e8f0;
+}
+
+.glens-affinity-columns {
+    display: grid;
+    grid-template-columns: 5.4rem minmax(8rem, 0.75fr) minmax(10rem, 1.15fr) 4.4rem;
+    gap: 0.65rem;
+    align-items: end;
+    margin-top: 0.7rem;
+    padding-bottom: 0.3rem;
+    color: #6a788a;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.glens-affinity-columns > span:last-child {
+    text-align: right;
+}
+
+.glens-affinity-scale {
+    display: grid;
+    grid-template-columns: minmax(5rem, 1fr) minmax(5.5rem, 0.8fr) minmax(5rem, 1fr);
+    gap: 0.25rem;
+    align-items: end;
+}
+
+.glens-affinity-scale > span:first-child {
+    text-align: left;
+}
+
+.glens-affinity-scale > span:last-child {
+    text-align: right;
+}
+
+.glens-affinity-ruler {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.18rem;
+    text-align: center;
+}
+
+.glens-affinity-ruler::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0.42rem;
+    left: 0;
+    height: 1px;
+    background: #cbd8e6;
+}
+
+.glens-affinity-ruler span {
+    position: relative;
+    z-index: 1;
+    padding: 0 0.3rem;
+    background: #fff;
+    text-align: center;
+}
+
+.glens-affinity-ruler span::after {
+    content: "";
+    position: absolute;
+    bottom: -0.18rem;
+    left: 50%;
+    width: 1px;
+    height: 0.32rem;
+    background: #9fb6cf;
+}
+
+.glens-affinity-row {
+    display: grid;
+    grid-template-columns: 5.4rem minmax(8rem, 0.75fr) minmax(10rem, 1.15fr) 4.4rem;
+    gap: 0.65rem;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.65rem 0;
+    color: #42526a;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.glens-affinity-rank {
+    color: #0d4d91;
+    font-weight: 850;
+}
+
+.glens-affinity-row strong {
+    color: #162033;
+}
+
+.glens-affinity-row--muted {
+    opacity: 0.78;
+}
+
+.glens-affinity-track {
+    position: relative;
+    height: 1.2rem;
+}
+
+.glens-affinity-track i {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: #cbd8e6;
+    transform: translateY(-50%);
+}
+
+.glens-affinity-track b {
+    position: absolute;
+    top: 50%;
+    width: 0.72rem;
+    height: 0.72rem;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #0d4d91;
+    box-shadow: 0 0 0 3px rgba(13, 77, 145, 0.12);
+    transform: translate(-50%, -50%);
+}
+
+.glens-affinity-toggle {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+    margin-top: 0.8rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 999px;
+    padding: 0.45rem 0.7rem;
+    background: #fff;
+    color: #0d4d91;
+    font-weight: 850;
+}
+
+.glens-affinity-select {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(11rem, 0.55fr);
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    margin-top: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.8rem;
+}
+
+.glens-affinity-select label {
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 850;
+}
+
+.glens-affinity-select select {
+    width: 100%;
+    max-width: 14rem;
+    justify-self: end;
+    min-height: 2.2rem;
+    border: 1px solid #d5e0ec;
+    border-radius: 999px;
+    padding: 0 0.85rem;
+    background: #fff;
+    color: #162033;
+    font-weight: 800;
+}
+
+.glens-affinity-select p {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.glens-sim-mode-panel {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    margin-top: 0.85rem;
+}
+
+.glens-sim-mode-panel > span {
+    color: #526276;
+    font-size: 0.7rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-sim-mode-panel > strong {
+    color: #162033;
+    font-weight: 850;
+}
+
+.glens-kv-grid {
+    gap: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.glens-kv-row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 1rem;
+    padding: 0.85rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.glens-kv-row:first-child {
+    border-top: 0;
+}
+
+.glens-gendx-card {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding: 0.85rem;
+}
+
+.glens-gendx-evidence {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.glens-gendx-evidence > div {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 0.65rem;
+    background: #f8fafc;
+}
+
+.glens-gendx-card a,
+.glens-plain-link,
+.glens-accordion-toggle,
+.glens-compare-inputs button {
+    border: 1px solid #dbe5ef;
+    border-radius: 999px;
+    background: #fff;
+    color: #0d4d91;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.glens-gendx-card a,
+.glens-plain-link {
+    display: inline-flex;
+    width: max-content;
+    padding: 0.55rem 0.8rem;
+}
+
+.glens-similar-table,
+.glens-variant-table {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.glens-table-head,
+.glens-table-row {
+    display: grid;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 64rem;
+}
+
+.glens-table-head--phenotype,
+.glens-table-row--phenotype {
+    grid-template-columns: 1fr 0.9fr 1.25fr 1fr 1.25fr 1.45fr;
+}
+
+.glens-table-head--genotype,
+.glens-table-row--genotype {
+    grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr 1.4fr;
+}
+
+.glens-table-head--variant,
+.glens-table-row--variant {
+    grid-template-columns: 1.55fr 1fr 1fr 0.75fr 0.45fr 0.55fr 0.8fr 0.5fr 0.7fr 0.45fr 0.6fr 1.25fr;
+    min-width: 78rem;
+}
+
+.glens-table-head {
+    padding: 0.65rem 0.75rem;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-table-row {
+    padding: 0.8rem 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    color: #42526a;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.glens-table-row:hover {
+    background: #f8fbff;
+}
+
+.glens-table-row strong {
+    color: #0d4d91;
+}
+
+.glens-accordion-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.glens-accordion-toggle--small {
+    margin-top: 0.75rem;
+}
+
+.glens-accordion-body {
+    margin-top: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.75rem;
+}
+
+.glens-domain-row {
+    padding: 0.8rem;
+}
+
+.glens-domain-stack-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(8rem, 1fr));
+    gap: 0.75rem;
+}
+
+.glens-domain-stack-card {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: 0.65rem;
+    min-height: 12.25rem;
+    padding: 0.7rem;
+}
+
+.glens-domain-stack-plot {
+    position: relative;
+    align-self: stretch;
+    width: 1.7rem;
+    border-radius: 999px;
+    background: #edf2f7;
+    overflow: hidden;
+}
+
+.glens-domain-stack-fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: 0.35rem;
+    border-radius: 999px 999px 0 0;
+    background: #0072b2;
+}
+
+.glens-domain-stack-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.glens-domain-stack-copy strong {
+    color: #162033;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.glens-domain-stack-copy > span {
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 850;
+}
+
+.glens-term-grid--compact {
+    grid-template-columns: 1fr;
+    gap: 0.28rem;
+    margin-top: 0.1rem;
+}
+
+.glens-term-grid--compact span {
+    min-width: 0;
+    padding: 0.28rem 0;
+    border: 0;
+    border-bottom: 1px solid #e7edf5;
+    border-radius: 0;
+    background: transparent;
+    color: #526276;
+}
+
+.glens-domain-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #162033;
+}
+
+.glens-bar-shell {
+    height: 0.55rem;
+    margin-top: 0.55rem;
+    border-radius: 999px;
+    background: #edf2f7;
+    overflow: hidden;
+}
+
+.glens-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: #0072b2;
+}
+
+.glens-term-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+}
+
+.glens-term-grid--full {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.glens-genotype-head,
+.glens-disease-head,
+.glens-gene-summary {
+    display: grid;
+    width: 100%;
+    gap: 0.65rem;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: #162033;
+    text-align: left;
+    cursor: pointer;
+}
+
+.glens-genotype-head {
+    grid-template-columns: 1.2rem minmax(8rem, 0.8fr) minmax(0, 1.2fr);
+    padding: 0.9rem;
+}
+
+.glens-genotype-head small,
+.glens-gene-summary em {
+    color: #526276;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.glens-disease-card,
+.glens-genotype-card,
+.glens-gene-card {
+    overflow: hidden;
+}
+
+.glens-disease-head {
+    grid-template-columns: 1.2rem minmax(0, 1fr) auto;
+    padding: 0.9rem;
+}
+
+.glens-disease-head em {
+    color: #526276;
+    font-style: normal;
+    font-weight: 850;
+}
+
+.glens-disease-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0 0.9rem 0.9rem 2.75rem;
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-disease-detail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.9rem;
+    background: #fbfcfe;
+}
+
+.glens-disease-detail p {
+    margin: 0.35rem 0 0;
+    font-size: 0.82rem;
+}
+
+.glens-gene-summary {
+    grid-template-columns: 1.2rem 0.7fr minmax(0, 1.3fr);
+    padding: 0.9rem;
+}
+
+.glens-gene-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.9rem;
+}
+
+.glens-gene-grid strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+}
+
+.glens-variant-table {
+    border-top: 1px solid #e2e8f0;
+    background: #fbfcfe;
+}
+
+.glens-compare-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.glens-compare-inputs label {
+    display: grid;
+    gap: 0.35rem;
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-compare-inputs input {
+    min-height: 2.6rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.8rem;
+    padding: 0 0.8rem;
+    color: #162033;
+    font-weight: 800;
+}
+
+.glens-compare-inputs button {
+    min-height: 2.6rem;
+    padding: 0 1rem;
+}
+
+.glens-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.glens-compare-grid > div {
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 0.8rem;
+}
+
+.glens-compare-grid span {
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-compare-grid strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+}
+
+.glens-compare-grid p {
+    margin: 0.35rem 0 0;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 991.98px) {
+    .glens-hero-card,
+    .glens-overview-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-answer-grid,
+    .glens-identity-summary,
+    .glens-gendx-evidence,
+    .glens-gene-grid,
+    .glens-disease-detail,
+    .glens-compare-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .glens-term-grid,
+    .glens-term-grid--full {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .glens-domain-stack-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .glens-page {
+        padding: 1rem 0.75rem 2rem;
+    }
+
+    .glens-answer-grid,
+    .glens-identity-summary,
+    .glens-gendx-evidence,
+    .glens-gene-grid,
+    .glens-disease-summary,
+    .glens-disease-detail,
+    .glens-compare-inputs,
+    .glens-compare-grid,
+    .glens-term-grid,
+    .glens-term-grid--full,
+    .glens-domain-stack-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-domain-stack-card {
+        min-height: 9.5rem;
+    }
+
+    .glens-section-head {
+        display: block;
+    }
+
+    .glens-subgroup-head,
+    .glens-subgroup-row,
+    .glens-affinity-row {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-plain-link {
+        margin-top: 0.75rem;
+    }
+}
+
+.glens-sample :where(p, span, small, button, a, label, input, select, b, .glens-position-row, .glens-domain-row, .glens-domain-stack-card, .glens-subgroup-head, .glens-subgroup-row, .glens-affinity-row, .glens-small-heading, .glens-eyebrow) {
+    font-size: max(13px, 1em) !important;
+}
+
+.glens-sample.glens-large-text :where(p, span, small, button, a, label, input, select, b, .glens-position-row, .glens-domain-row, .glens-domain-stack-card, .glens-subgroup-head, .glens-subgroup-row, .glens-affinity-row, .glens-small-heading, .glens-eyebrow) {
+    font-size: max(16px, 1em) !important;
+}

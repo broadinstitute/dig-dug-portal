@@ -8,17 +8,11 @@
         <div class="container-fluid mdkp-body glens-page">
             <div class="glens-phenotype" :class="{ 'glens-large-text': largeText }">
                 <div class="glens-access-toolbar" aria-label="Display options">
-                    <div class="glens-page-mode-label" aria-label="Current workflow">
-                        <span>Current workflow</span>
-                        <strong>Phenotype search</strong>
-                    </div>
                     <label class="glens-text-toggle">
                         <input v-model="largeText" type="checkbox" />
                         Large text
                     </label>
                 </div>
-                <focus-result-accordion :insight="phenotypeFocusInsight"></focus-result-accordion>
-
                 <section class="glens-hero">
                     <div class="glens-query">
                         <p class="glens-eyebrow">Phenotype-first clinical matching</p>
@@ -619,36 +613,15 @@
 </template>
 
 <script>
-import FocusResultAccordion from "../KrClinicalFocus/FocusResultAccordion.vue";
-import { buildFocusInsight } from "../KrClinicalFocus/focusComparison";
-import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { createKrPhenotypeState } from "./mockData";
 import "./style.css";
 
 export default {
     name: "KrPhenotypeTemplate",
-    components: {
-        FocusResultAccordion,
-    },
     data() {
-        return {
-            ...createKrPhenotypeState(),
-            clinicalFocus: readClinicalFocus(),
-            unsubscribeClinicalFocus: null,
-        };
+        return createKrPhenotypeState();
     },
     computed: {
-        currentPhenotypeTermsForFocus() {
-            return this.phenotype.queryTerms.exact.map((term) => ({
-                id: term.id,
-                label: term.label,
-            }));
-        },
-        phenotypeFocusInsight() {
-            return buildFocusInsight("phenotype", this.clinicalFocus, {
-                subjectLabel: `${this.currentPhenotypeTermsForFocus.length} HPO-term phenotype search`,
-            });
-        },
         activeResidualGroupData() {
             return this.phenotype.residualGroups.find(
                 (group) => group.name === this.activeResidualGroup
@@ -691,14 +664,6 @@ export default {
                 bottom: `${Math.min(Math.max(bottom + 7, 10), 84)}%`,
             };
         },
-    },
-    mounted() {
-        this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
-            this.clinicalFocus = focus;
-        });
-    },
-    beforeDestroy() {
-        if (this.unsubscribeClinicalFocus) this.unsubscribeClinicalFocus();
     },
     methods: {
         togglePanel(panel) {

@@ -1,0 +1,1662 @@
+.glens-page {
+    padding: 1.15rem 1rem 2.25rem;
+    background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 52%, #f7f9fc 100%);
+}
+
+.glens-phenotype {
+    max-width: 1380px;
+    margin: 0 auto;
+}
+
+.glens-access-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+.glens-text-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #162033;
+    padding: 0.45rem 0.65rem;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.glens-text-toggle input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #174a7c;
+}
+
+.glens-phenotype :where(p, span, small, button, a, label, input, select) {
+    font-size: max(13px, 1em);
+}
+
+.glens-phenotype.glens-large-text {
+    font-size: 18px;
+}
+
+.glens-phenotype.glens-large-text :where(p, span, small, button, a, label, input, select) {
+    font-size: max(16px, 1em) !important;
+}
+
+.glens-hero,
+.glens-card,
+.glens-step-card {
+    border-radius: 1.3rem;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 18px 40px rgba(22, 32, 51, 0.08);
+}
+
+.glens-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.45fr);
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+}
+
+.glens-query-label {
+    margin: 0.5rem 0 0.35rem;
+    color: #162033;
+    font-size: 0.76rem;
+    font-weight: 780;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.glens-searching-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    margin: 0.3rem 0 0.65rem;
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-searching-line span {
+    color: #31445c;
+}
+
+.glens-searching-line b,
+.glens-search-term-link {
+    padding: 0.32rem 0.55rem;
+    border-radius: 0.55rem;
+    background: #fff2a8;
+    color: #162033;
+    font-weight: 820;
+    text-decoration: none;
+    box-shadow: inset 0 -0.26rem 0 rgba(243, 112, 33, 0.18);
+}
+
+.glens-query-label--mt {
+    margin-top: 0.85rem;
+}
+
+.glens-query-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.glens-query-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.65rem;
+    color: #162033;
+    font-size: 0.92rem;
+    font-weight: 760;
+    text-decoration: none;
+}
+
+.glens-query-chip--exact {
+    background: #fff2a8;
+    box-shadow: inset 0 -0.35rem 0 rgba(243, 112, 33, 0.2);
+}
+
+.glens-query-chip--expanded {
+    border: 1px solid rgba(196, 95, 115, 0.26);
+    background: rgba(255, 255, 255, 0.72);
+    color: #64748b;
+    font-size: 0.88rem;
+    font-weight: 560;
+    box-shadow: none;
+}
+
+.glens-query-note,
+.glens-helper-text,
+.glens-source-note {
+    margin: 0.55rem 0 0;
+    color: #31445c;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.glens-helper-text,
+.glens-source-note {
+    font-size: 0.84rem;
+}
+
+.glens-eyebrow,
+.glens-section-label {
+    margin: 0 0 0.35rem;
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.glens-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+    align-self: start;
+}
+
+.glens-hero-results {
+    display: grid;
+    gap: 0.6rem;
+    align-self: start;
+}
+
+.glens-hero-cohort {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.62rem 0.72rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-hero-cohort strong,
+.glens-hero-cohort span {
+    display: block;
+}
+
+.glens-hero-cohort strong {
+    color: #162033;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.glens-hero-cohort span {
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 750;
+}
+
+.glens-hero-age-histogram {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.55rem;
+    justify-content: flex-end;
+    min-width: 24rem;
+}
+
+.glens-hero-age-col {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    text-align: center;
+}
+
+.glens-hero-age-col small {
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+}
+
+.glens-answer-card {
+    min-height: 3.45rem;
+    padding: 0.62rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-answer-card span,
+.glens-answer-card small {
+    display: block;
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-answer-card span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.glens-answer-card strong {
+    display: block;
+    margin: 0.22rem 0 0.1rem;
+    color: #162033;
+    font-size: 0.94rem;
+    font-weight: 900;
+}
+
+.glens-hero-decision {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    margin-top: 0.2rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.glens-hero-decision strong {
+    display: block;
+    color: #162033;
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+
+.glens-workflow {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.62);
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    overflow-x: auto;
+}
+
+.glens-workflow i {
+    flex: 0 0 1.1rem;
+    height: 1px;
+    background: #cbd5e1;
+}
+
+.glens-card,
+.glens-step-card {
+    margin-top: 0.85rem;
+    padding: 1.1rem;
+}
+
+.glens-evidence-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: start;
+    margin-top: 0.85rem;
+}
+
+.glens-evidence-grid .glens-card,
+.glens-evidence-grid .glens-step-card {
+    margin-top: 0;
+}
+
+.glens-card--decision {
+    border: 1px solid rgba(13, 77, 145, 0.12);
+}
+
+.glens-card--core {
+    border: 1px solid #dbe5ef;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.glens-card--molecular {
+    border: 1px solid rgba(13, 77, 145, 0.16);
+}
+
+.glens-step-card--open {
+    border: 1px solid #dbe5ef;
+}
+
+.glens-section-head,
+.glens-panel-title,
+.glens-gene-card,
+.glens-step-summary,
+.glens-expand-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.glens-section-head h2 {
+    margin: 0;
+    color: #162033;
+    font-size: 1.18rem;
+    font-weight: 900;
+}
+
+.glens-chip,
+.glens-link-pill,
+.glens-mini-tag,
+.glens-text-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.glens-chip,
+.glens-link-pill {
+    padding: 0.45rem 0.8rem;
+}
+
+.glens-link-pill--primary {
+    background: #0d4d91;
+    color: #fff;
+}
+
+.glens-link-pill--ghost {
+    background: #fff;
+    color: #0d4d91;
+    cursor: pointer;
+}
+
+.glens-link-pill--ghost span {
+    display: inline-grid;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-right: 0.35rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #eef4fb;
+    color: #0d4d91;
+    font-size: 0.9rem;
+    font-weight: 950;
+}
+
+.glens-tab-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.85rem;
+    padding: 0.35rem;
+    border-radius: 999px;
+    background: rgba(238, 244, 251, 0.85);
+}
+
+.glens-tab-row button {
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #7a8798;
+    padding: 0.5rem 0.85rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.glens-tab-row .glens-tab-button--active {
+    background: #fff;
+    color: #162033;
+    box-shadow: 0 6px 16px rgba(22, 32, 51, 0.08);
+}
+
+.glens-tab-row .glens-tab-button--molecular {
+    color: #526276;
+}
+
+.glens-tab-row .glens-tab-button--molecular.glens-tab-button--active {
+    background: #fff;
+    color: #162033;
+    box-shadow: 0 6px 16px rgba(22, 32, 51, 0.08);
+}
+
+.glens-tab-row--insights {
+    align-items: flex-end;
+    gap: 0.12rem;
+    margin: 0;
+    padding: 0 0.65rem;
+    border-bottom: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow-x: auto;
+}
+
+.glens-tab-row--insights button {
+    position: relative;
+    top: 1px;
+    min-width: 12rem;
+    border: 1px solid transparent;
+    border-bottom-color: #dbe5ef;
+    border-radius: 1rem 1rem 0 0;
+    background: #eef4fb;
+    color: #7a8798;
+    padding: 0.75rem 1rem 0.7rem;
+    text-align: left;
+    box-shadow: none;
+}
+
+.glens-tab-row--insights .glens-tab-button--active {
+    z-index: 2;
+    border-color: #dbe5ef;
+    border-bottom-color: #fff;
+    background: #fff;
+    color: #162033;
+    font-weight: 950;
+    box-shadow: 0 -8px 18px rgba(22, 32, 51, 0.06);
+}
+
+.glens-tab-row--insights .glens-tab-button--active::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: -2px;
+    left: 0;
+    height: 3px;
+    background: #fff;
+}
+
+.glens-tab-row--insights .glens-tab-button--molecular {
+    color: #526276;
+}
+
+.glens-tab-row--insights .glens-tab-button--molecular.glens-tab-button--active {
+    border-color: #dbe5ef;
+    border-bottom-color: #fff;
+    background: #fff;
+    color: #162033;
+    box-shadow: 0 -8px 18px rgba(22, 32, 51, 0.06);
+}
+
+.glens-mini-tag,
+.glens-text-pill {
+    margin: 0.2rem 0.25rem 0.2rem 0;
+    padding: 0.32rem 0.55rem;
+}
+
+.mt-space { margin-top: 0.85rem; }
+
+.glens-decision-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.85rem;
+}
+
+.glens-decision-list div {
+    min-height: 6rem;
+    padding: 0.75rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+    color: #526276;
+    font-weight: 700;
+}
+
+.glens-decision-list b,
+.glens-decision-list strong {
+    color: #162033;
+}
+
+.glens-step-summary {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.glens-step-summary strong {
+    display: block;
+    color: #162033;
+    font-size: 1.08rem;
+    font-weight: 900;
+}
+
+.glens-step-summary small {
+    display: block;
+    margin-top: 0.2rem;
+    color: #526276;
+    font-weight: 700;
+}
+
+.glens-step-number {
+    display: inline-grid;
+    width: 1.7rem;
+    height: 1.7rem;
+    margin-right: 0.5rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #e6f0ff;
+    color: #0d4d91;
+    font-weight: 900;
+}
+
+.glens-step-body {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.glens-term-layout,
+.glens-core-grid,
+.glens-candidate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.glens-hero-logic {
+    grid-column: 1 / -1;
+}
+
+.glens-hero-logic .glens-term-layout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.glens-hero-logic .glens-term-row {
+    grid-template-columns: minmax(0, 0.85fr) minmax(6.5rem, 0.42fr) minmax(0, 1fr);
+    column-gap: 0.65rem;
+    align-items: start;
+}
+
+.glens-evidence-grid .glens-core-grid {
+    grid-template-columns: minmax(18rem, 0.7fr) minmax(48rem, 1.3fr);
+    align-items: stretch;
+}
+
+.glens-evidence-grid .glens-residual-panel {
+    grid-column: auto;
+    min-width: 0;
+}
+
+.glens-evidence-grid .glens-selected-sample {
+    min-width: 0;
+}
+
+.glens-candidate-grid {
+    grid-template-columns: 0.95fr 1.05fr;
+}
+
+.glens-term-group,
+.glens-cohort-summary,
+.glens-residual-panel,
+.glens-selected-sample,
+.glens-expand-row,
+.glens-domain-row,
+.glens-gene-card,
+.glens-variant-row {
+    border: 1px solid #dbe5ef;
+    border-radius: 1.05rem;
+    background: #fff;
+}
+
+.glens-small-heading {
+    margin: 0 0 0.6rem;
+    color: #162033;
+    font-size: 0.86rem;
+    font-weight: 900;
+}
+
+.glens-term-group {
+    padding: 0.85rem;
+}
+
+.glens-term-group:nth-child(1) {
+    border-color: rgba(243, 112, 33, 0.35);
+    background: #fffdf0;
+}
+
+.glens-term-group:nth-child(2) {
+    border-color: rgba(196, 95, 115, 0.28);
+    background: #fff6f8;
+}
+
+.glens-term-row {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.glens-term-row:last-child { border-bottom: 0; }
+.glens-term-row strong { color: #162033; }
+.glens-term-row span,
+.glens-term-row small {
+    color: #526276;
+    font-weight: 700;
+}
+.glens-term-row--muted { opacity: 0.7; }
+
+.glens-contribution-table {
+    margin-top: 0.85rem;
+    overflow: hidden;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-contribution-head,
+.glens-contribution-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) 0.85fr 0.75fr 0.8fr 1fr;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.7rem 0.85rem;
+}
+
+.glens-contribution-head {
+    background: #f8fafc;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.glens-contribution-row {
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.glens-cohort-summary,
+.glens-residual-panel,
+.glens-selected-sample {
+    padding: 0.9rem;
+}
+
+.glens-selected-sample {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+}
+
+.glens-sample-id-link {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    padding: 0.28rem 0.62rem;
+    border: 1px solid rgba(243, 112, 33, 0.34);
+    border-radius: 0.7rem;
+    background: #fff2a8;
+    color: #162033;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: clamp(1.15rem, 1.65vw, 1.45rem);
+    font-weight: 950;
+    line-height: 1;
+    text-decoration: none;
+    box-shadow: inset 0 -0.28rem 0 rgba(243, 112, 33, 0.16);
+}
+
+.glens-sample-id-link:hover,
+.glens-inline-link:hover,
+.glens-signal-links a:hover {
+    color: #0d4d91;
+    text-decoration: underline;
+}
+
+.glens-cohort-summary > strong {
+    display: block;
+    color: #162033;
+    font-size: clamp(2rem, 3vw, 3.1rem);
+    font-weight: 950;
+    line-height: 1;
+}
+
+.glens-cohort-summary > span,
+.glens-cohort-summary p,
+.glens-panel-title small,
+.glens-explain-text {
+    color: #526276;
+    font-weight: 700;
+}
+
+.glens-age-legend {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.7rem;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 850;
+}
+
+.glens-dot {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    margin-right: 0.32rem;
+    border-radius: 999px;
+}
+
+.glens-dot--female { background: #c45f73; }
+.glens-dot--male { background: #355f83; }
+
+.glens-age-mini {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.55rem;
+    min-height: 5.5rem;
+    margin-top: 0.85rem;
+}
+
+.glens-age-mini-col {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.glens-age-pair {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.22rem;
+}
+
+.glens-age-pair span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.16rem;
+}
+
+.glens-age-pair b {
+    color: #162033;
+    font-size: 0.66rem;
+    font-weight: 900;
+}
+
+.glens-age-bar {
+    display: block;
+    width: 0.78rem;
+    border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.glens-age-bar--female { background: #c45f73; }
+.glens-age-bar--male { background: #355f83; }
+
+.glens-score-plot {
+    position: relative;
+    min-height: 13.75rem;
+    margin-top: 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 1rem;
+    background: transparent;
+    overflow: hidden;
+}
+
+.glens-score-plot::before,
+.glens-score-plot::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    background: #111827;
+}
+
+.glens-score-plot::before {
+    left: 2.2rem;
+    top: 1rem;
+    bottom: 2rem;
+    width: 2px;
+}
+
+.glens-score-plot::after {
+    left: 2.2rem;
+    right: 1rem;
+    bottom: 2rem;
+    height: 2px;
+}
+
+.glens-axis-y,
+.glens-axis-x {
+    position: absolute;
+    color: #111827;
+    font-size: 0.76rem;
+    font-weight: 950;
+}
+
+.glens-axis-y--top { left: 0.7rem; top: 0.5rem; }
+.glens-axis-y--bottom { left: 0.7rem; bottom: 0.5rem; }
+.glens-axis-x { right: 0.7rem; bottom: 0.5rem; }
+
+.glens-trend-line {
+    position: absolute;
+    left: 8%;
+    width: 82%;
+    top: 75%;
+    height: 0;
+    border-top: 2px dashed #111827;
+    transform: rotate(-34deg);
+    transform-origin: left center;
+}
+
+.glens-residual-line {
+    position: absolute;
+    left: 76%;
+    bottom: 48%;
+    width: 2px;
+    height: 4.6rem;
+    border-left: 2px dashed #f37021;
+}
+
+.glens-score-point {
+    position: absolute;
+    z-index: 2;
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #94a3b8;
+    box-shadow: 0 5px 12px rgba(22, 32, 51, 0.18);
+}
+
+.glens-score-plot--selected .glens-score-point:not(.glens-score-point--selected) {
+    opacity: 0.2;
+    filter: grayscale(1);
+}
+
+.glens-score-point--affected { background: #4b6f9f; }
+.glens-score-point--proband { background: #0072b2; }
+.glens-score-point--outlier {
+    background: #e69f00;
+    box-shadow: 0 0 0 5px rgba(230, 159, 0, 0.18), 0 5px 12px rgba(22, 32, 51, 0.2);
+}
+.glens-score-point--selected {
+    width: 1.2rem;
+    height: 1.2rem;
+    background: #cc79a7;
+    box-shadow: 0 0 0 6px rgba(204, 121, 167, 0.18);
+}
+
+.glens-selected-label {
+    position: absolute;
+    z-index: 3;
+    max-width: 12rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.6rem;
+    background: #fff1f1;
+    color: #b91c1c;
+    font-size: 0.72rem;
+    font-weight: 850;
+    line-height: 1.25;
+    white-space: normal;
+}
+
+.glens-plot-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.65rem;
+}
+
+.glens-plot-controls--below {
+    justify-content: flex-end;
+}
+
+.glens-plot-controls button,
+.glens-diagnosis-button {
+    border: 1px solid #dbe5ef;
+    border-radius: 999px;
+    background: #fff;
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 850;
+    padding: 0.38rem 0.65rem;
+}
+
+.glens-plot-control--active,
+.glens-diagnosis-button {
+    display: inline-flex;
+    justify-content: flex-start;
+    width: fit-content;
+    max-width: 100%;
+    border-color: #f37021 !important;
+    color: #0d4d91 !important;
+    box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.16);
+}
+
+.glens-panel-title span {
+    color: #162033;
+    font-weight: 950;
+}
+
+.glens-inline-boxplot {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(243, 112, 33, 0.28);
+    border-radius: 0.95rem;
+    background: #fffaf4;
+}
+
+.glens-inline-boxplot-row {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) 5.6rem;
+    gap: 0.6rem;
+    align-items: center;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.glens-inline-outliers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed #fde7d1;
+}
+
+.glens-outlier-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+    padding: 0.25rem 0.48rem;
+    border: 1px solid rgba(243, 112, 33, 0.2);
+    border-radius: 999px;
+    background: rgba(243, 112, 33, 0.12);
+    color: #b45309;
+    font-size: 0.72rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.glens-outlier-chip--selected {
+    background: #fee2e2;
+    border-color: #f37021;
+    color: #b91c1c;
+    box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.16);
+}
+
+.glens-outlier-chip small {
+    color: inherit;
+    font-size: 0.65rem;
+    opacity: 0.82;
+}
+
+.glens-outlier-note {
+    margin: 0.1rem 0 0;
+    color: #526276;
+    font-size: 0.74rem;
+    font-weight: 750;
+}
+
+.glens-score-kv {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, 0.55fr) minmax(9rem, 0.75fr);
+    gap: 0.38rem 0.85rem;
+    max-width: 34rem;
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-score-kv strong {
+    color: #162033;
+    justify-self: start;
+    text-align: left;
+}
+
+.glens-score-kv button,
+.glens-score-kv a {
+    justify-self: start;
+    text-align: left;
+}
+
+.glens-diagnosis-panel {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    margin-top: 0.75rem;
+    padding: 0.65rem;
+    border: 1px solid rgba(243, 112, 33, 0.35);
+    border-radius: 0.85rem;
+    background: #fff7ed;
+    color: #526276;
+    font-weight: 850;
+}
+
+.glens-score-kv-wide {
+    grid-column: 1 / -1;
+    margin-top: 0;
+}
+
+.glens-diagnosis-panel a {
+    color: #0d4d91;
+    font-weight: 950;
+    text-decoration: none;
+}
+
+.glens-subsection-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.glens-subsection-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 999px;
+    background: rgba(248, 251, 255, 0.82);
+    color: #0d4d91;
+    padding: 0.48rem 0.78rem;
+    font-weight: 850;
+    box-shadow: 0 8px 18px rgba(22, 32, 51, 0.06);
+    cursor: pointer;
+}
+
+.glens-subsection-toggle span,
+.glens-disclosure {
+    display: inline-grid;
+    width: 1.8rem;
+    height: 1.8rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #eef4fb;
+    color: #0d4d91;
+    font-size: 1rem;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.glens-disclosure {
+    flex: 0 0 auto;
+    background: rgba(13, 77, 145, 0.08);
+}
+
+.glens-phenotype-match-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(24rem, 0.85fr);
+    gap: 0.85rem;
+    align-items: start;
+}
+
+.glens-insight-tabs-card {
+    margin-top: 0.85rem;
+    padding: 1rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1.3rem;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 18px 40px rgba(22, 32, 51, 0.08);
+}
+
+.glens-insight-tabs-card .glens-step-card {
+    margin-top: 0;
+    box-shadow: none;
+}
+
+.glens-insight-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.34fr);
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.glens-insight-nav > div {
+    min-width: 0;
+}
+
+.glens-insight-nav .glens-small-heading {
+    margin: 0 0 0.35rem;
+}
+
+.glens-supporting-evidence {
+    padding-left: 0.85rem;
+    border-left: 1px solid #dbe5ef;
+}
+
+.glens-supporting-evidence button {
+    min-width: 13rem;
+}
+
+.glens-supporting-evidence .glens-tab-button--active {
+    border-color: #dbe5ef;
+    border-bottom-color: #fff;
+    color: #162033;
+}
+
+.glens-step-card--tabbed {
+    margin-top: -1px;
+    border: 1px solid #dbe5ef;
+    border-top: 0;
+    border-radius: 0 0 1.05rem 1.05rem;
+    background: #fff;
+}
+
+.glens-phenotype-match-grid .glens-step-card {
+    margin-top: 0.85rem;
+}
+
+.glens-sample-table {
+    margin-top: 0;
+    overflow-x: visible;
+    overflow-y: hidden;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-sample-row--selected {
+    background: #fff9e6;
+}
+
+.glens-sample-accordion {
+    margin-top: 0.8rem;
+}
+
+.glens-sample-accordion-head {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.95rem;
+    background: #f8fafc;
+    color: #162033;
+    padding: 0.72rem 0.85rem;
+    font-size: 0.86rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.glens-sample-accordion-head span {
+    display: inline-grid;
+    width: 1.6rem;
+    height: 1.6rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #eef4fb;
+    color: #0d4d91;
+}
+
+.glens-sample-accordion .glens-sample-table {
+    margin-top: 0.55rem;
+}
+
+.glens-sample-head,
+.glens-sample-row {
+    display: grid;
+    grid-template-columns: 2.6rem minmax(6.2rem, 0.9fr) minmax(7.2rem, 1fr) minmax(7.2rem, 1fr) minmax(4.2rem, 0.6fr) minmax(4.2rem, 0.6fr) minmax(4.8rem, 0.6fr) minmax(6rem, 0.8fr);
+    gap: 0.45rem;
+    align-items: center;
+    min-width: 46rem;
+    padding: 0.7rem 0.85rem;
+}
+
+.glens-sample-head {
+    background: #f8fafc;
+    color: #526276;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.glens-sample-row {
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.glens-inline-link {
+    color: #0d4d91;
+    font-weight: 950;
+    text-decoration: none;
+}
+
+.glens-inline-link--button {
+    border: 0;
+    background: transparent;
+    color: #0d4d91;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 950;
+    padding: 0;
+    text-align: left;
+}
+
+.glens-inline-link--outlier {
+    color: #c85f27;
+}
+
+.glens-outlier-panel .glens-inline-link--button {
+    color: #526276;
+}
+
+.glens-outlier-panel .glens-inline-link--selected {
+    color: #c85f27;
+    font-weight: 950;
+}
+
+.glens-inline-link--selected {
+    display: inline-flex;
+    width: fit-content;
+    padding: 0.12rem 0.35rem;
+    border-radius: 999px;
+    background: rgba(243, 112, 33, 0.13);
+}
+
+.glens-signal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem;
+}
+
+.glens-signal-links a {
+    color: #0d4d91;
+    font-weight: 950;
+    text-decoration: none;
+}
+
+.glens-boxplot-grid {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.glens-group-qc-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.glens-residual-panel--group {
+    min-height: 100%;
+}
+
+.glens-score-plot--group-average {
+    min-height: 15rem;
+}
+
+.glens-score-plot--group-average .glens-axis-x {
+    right: 0.85rem;
+}
+
+.glens-score-point--group-average {
+    background: #0d4d91;
+}
+
+.glens-trend-line--group {
+    opacity: 0.42;
+    transform: rotate(-21deg);
+}
+
+.glens-selected-label--group {
+    background: #eef6ff;
+    color: #0d4d91;
+}
+
+.glens-boxplot-entry {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.glens-boxplot-row {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr) 5.8rem;
+    gap: 0.75rem;
+    align-items: center;
+    color: #526276;
+    font-weight: 750;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    padding: 0.28rem 0.35rem;
+    border-radius: 0.65rem;
+}
+
+.glens-boxplot-row--active {
+    background: rgba(238, 244, 251, 0.86);
+    outline: 0;
+}
+
+.glens-boxplot-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.glens-boxplot-label b {
+    display: inline-grid;
+    width: 1.1rem;
+    height: 1.1rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #eef4fb;
+    color: #0d4d91;
+    font-size: 0.78rem;
+    line-height: 1;
+}
+
+.glens-boxplot-line {
+    position: relative;
+    height: 1.32rem;
+}
+
+.glens-boxplot-whisker,
+.glens-boxplot-line i,
+.glens-boxplot-line b,
+.glens-boxplot-line em {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.glens-boxplot-whisker {
+    left: 4%;
+    right: 4%;
+    height: 2px;
+    background: #cbd8e8;
+}
+
+.glens-outlier-panel {
+    margin: 0.1rem 0 0.45rem 9.25rem;
+    padding: 0.85rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: transparent;
+}
+
+.glens-outlier-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.55rem;
+    color: #526276;
+    font-weight: 850;
+}
+
+.glens-outlier-head strong {
+    color: #162033;
+}
+
+.glens-outlier-threshold {
+    margin: -0.25rem 0 0.45rem;
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+.glens-outlier-row {
+    display: grid;
+    grid-template-columns: 1fr 0.7fr 0.8fr 1fr;
+    gap: 0.65rem;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-top: 1px solid #fde7d1;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.glens-outlier-row strong {
+    color: #162033;
+}
+
+.glens-boxplot-line i {
+    height: 0.9rem;
+    border: 2px solid #9db7d8;
+    border-radius: 0.25rem;
+    background: rgba(157, 183, 216, 0.24);
+}
+
+.glens-boxplot-line b {
+    width: 0.18rem;
+    height: 1.15rem;
+    border-radius: 999px;
+    background: #0d4d91;
+}
+
+.glens-boxplot-line em {
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #f37021;
+}
+
+.glens-phenotype-rows {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.glens-expand-row {
+    overflow: hidden;
+}
+
+.glens-expand-row--open {
+    border-color: #cbd8e8;
+    outline: 1px solid #cbd8e8;
+    box-shadow: 0 14px 28px rgba(13, 77, 145, 0.08);
+}
+
+.glens-expand-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem) 2rem;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0.85rem;
+    text-align: left;
+}
+
+.glens-expand-summary strong,
+.glens-expand-summary span {
+    display: block;
+}
+
+.glens-expand-summary strong {
+    color: #162033;
+}
+
+.glens-expand-summary span {
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-expand-metric {
+    min-width: 0;
+    width: 100%;
+}
+
+.glens-bar-shell {
+    height: 0.55rem;
+    margin-top: 0.35rem;
+    border-radius: 999px;
+    background: #eef2f7;
+    overflow: hidden;
+}
+
+.glens-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #0072b2;
+}
+
+.glens-expand-panel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border-top: 1px solid #eef2f7;
+}
+
+.glens-domain-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.glens-domain-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 9rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.85rem;
+}
+
+.glens-domain-main strong,
+.glens-domain-main span {
+    display: block;
+}
+
+.glens-domain-main strong {
+    color: #162033;
+    font-weight: 900;
+}
+
+.glens-domain-main span,
+.glens-domain-row small,
+.glens-domain-score span {
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-domain-score {
+    text-align: right;
+}
+
+.glens-domain-score strong {
+    display: block;
+    color: #162033;
+    font-size: 1.1rem;
+}
+
+.glens-gene-list,
+.glens-variant-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.glens-gene-card,
+.glens-variant-row {
+    padding: 0.8rem;
+    color: #162033;
+    text-decoration: none;
+}
+
+.glens-gene-card strong {
+    display: block;
+    color: #0d4d91;
+    font-size: 1.15rem;
+}
+
+.glens-gene-card span,
+.glens-gene-card b,
+.glens-variant-row span {
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.glens-gene-card b {
+    color: #162033;
+}
+
+.glens-variant-row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) 5.5rem minmax(0, 1fr) 2.6rem;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.glens-variant-row b {
+    color: #b94c42;
+}
+
+@media (max-width: 1320px) {
+    .glens-evidence-grid .glens-core-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-sample-table {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .glens-hero,
+    .glens-evidence-grid,
+    .glens-phenotype-match-grid,
+    .glens-core-grid,
+    .glens-candidate-grid,
+    .glens-group-qc-layout,
+    .glens-insight-nav {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-supporting-evidence {
+        padding-top: 0.85rem;
+        padding-left: 0;
+        border-top: 1px solid #dbe5ef;
+        border-left: 0;
+    }
+
+    .glens-answer-grid,
+    .glens-term-layout,
+    .glens-expand-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .glens-outlier-panel {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .glens-section-head,
+    .glens-step-summary,
+    .glens-expand-summary,
+    .glens-gene-card {
+        display: block;
+    }
+
+    .glens-answer-grid,
+    .glens-decision-list,
+    .glens-term-layout,
+    .glens-expand-panel,
+    .glens-domain-row,
+    .glens-variant-row,
+    .glens-sample-head,
+    .glens-sample-row {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-expand-metric {
+        min-width: 0;
+        margin-top: 0.6rem;
+    }
+
+    .glens-domain-score {
+        text-align: left;
+    }
+}
+
+.glens-phenotype :where(p, span, small, button, a, label, input, select, b, .glens-sample-head, .glens-sample-row, .glens-contribution-head, .glens-contribution-row, .glens-axis-x, .glens-axis-y, .glens-small-heading, .glens-eyebrow, .glens-query-label) {
+    font-size: max(13px, 1em) !important;
+}
+
+.glens-phenotype.glens-large-text :where(p, span, small, button, a, label, input, select, b, .glens-sample-head, .glens-sample-row, .glens-contribution-head, .glens-contribution-row, .glens-axis-x, .glens-axis-y, .glens-small-heading, .glens-eyebrow, .glens-query-label) {
+    font-size: max(16px, 1em) !important;
+}
