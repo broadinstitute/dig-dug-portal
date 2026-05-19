@@ -169,6 +169,8 @@ export default Vue.component("time-series-line-plot", {
           .attr("stroke-width", 1);
       });
       // Separate loop to put text on top of bg
+
+      let basalCondition = /\((.*)\)/;
       timepointBars.forEach((t, index) => {
         this.svg.append("text")
           .attr("text-anchor", "start")
@@ -176,7 +178,8 @@ export default Vue.component("time-series-line-plot", {
           .attr("x", 0)
           .attr("font-size", "smaller")
           .attr("transform", `translate(${t.textPosition},0) rotate(-45)`)
-          .text(this.isBasal(t.condition) ? t.condition.replaceAll("Secretion", "Secr.") 
+          .text(this.isBasal(t.condition) 
+            ? t.condition.match(basalCondition)[1]
             : t.condition);
       });
       this.tooltip = d3
