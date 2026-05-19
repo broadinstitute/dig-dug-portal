@@ -82,6 +82,10 @@ jobs:
             - name: Create .gitignore in target
               run: |
                   echo 'node_modules/' > repo-b/.gitignore
+            # Step 4.9: Remove any AGENTS.md files from target before commit
+            - name: Remove AGENTS.md files from target
+              run: |
+                  find repo-b -type f -iname 'agents.md' -delete
 
             # Step 5: Commit and push the changes to the target repository
             # This creates a single squashed commit on the 'main' branch of sysbio-portal.
