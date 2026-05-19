@@ -21,9 +21,9 @@
                                             <filter-slider v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
-                                                :range="$parent.getRange(oField)"
+                                                :values="$parent.filteredMetadata.map(m => m[oField.key])"
+                                                :customStep="!!oField.customStep ? oField.customStep : 0"
                                                 :presets="$parent.presets">
-                                                <div class="label">{{ oField.key }}</div>
                                             </filter-slider>
                                             <filter-radio v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => !f.isNumeric && !f.noSidebar)"
@@ -36,9 +36,9 @@
                                                 <filter-slider v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => f.isNumeric)"
                                                     :field="advField.key"
-                                                    :range="$parent.getRange(advField)"
+                                                    :values="$parent.filteredMetadata.map(m => m[advField.key])"
+                                                    :customStep="!!advField.customStep ? advField.customStep : 0"
                                                     :presets="$parent.presets">
-                                                    <div class="label">{{ advField.key }}</div>
                                                 </filter-slider>
                                                 <filter-radio v-for="advField in Object.values($parent.advancedFields)
                                                     .filter(f => !f.isNumeric)"

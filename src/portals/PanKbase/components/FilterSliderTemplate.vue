@@ -1,27 +1,28 @@
 <template>
-    <div class="col" style="padding: 5px 7px 5px 7px">
+    <div>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            <slot>{{ field }}</slot>
+            <!-- <slot>{{ field }}</slot> -->
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <div class="format-fix-textfield">
-            <dual-slider
-                :slider-id="field"
-                :rangeMin="rangeMin"
-                :rangeMax="rangeMax"
-                :presetMin="presetRange[0]"
-                :presetMax="presetRange[1]"
-                @filterChanged="filterRange => updateFilter(filterRange)">
-            </dual-slider>
-        </div>
+        <numeric-range-filter
+                :columnName="field"
+                :displayLabel="field"
+                :values="cleanupValues"
+                :totalRowCount="cleanupValues.length"
+                :value="presetRange"
+                :customStep="customStep"
+                @input="e => updateFilter(e)"
+
+            ></numeric-range-filter>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-import DualSlider from "./DualSlider.vue";
+import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
+import { parseNumericValue } from "../views/Donors/datasetUtils";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
 Vue.use(BootstrapVue);
@@ -29,13 +30,13 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import { isNull } from "lodash";
 
 export default Vue.component("filter-slider-template", {
     props: {
         value: Object,
         field: String,
-        rangeMin: Number,
-        rangeMax: Number,
+        values: Array,
         label: String,
         placeholder: String,
         predicate: Function,
@@ -59,17 +60,14 @@ export default Vue.component("filter-slider-template", {
             type: String,
             // 'string', 'number', 'boolean', 'object', 'function'...
         },
-        clear: {
-            type: Boolean,
-            default: true,
-        },
         disabled: Boolean,
         // called "computedField" instead of "computed" to prevent terminology collisions
         computedField: Function,
-        presets: Array
+        presets: Array,
+        customStep: Number
     },
     components: {
-        DualSlider
+        NumericRangeFilter
     },
     data() {
         return {
@@ -86,7 +84,10 @@ export default Vue.component("filter-slider-template", {
                 computedField: this.computedField,
             },
             filterThreshold: this.default,
-            presetRange: [null,null]
+            presetRange: null,
+            cleanupValues: [],
+            overallMin: null,
+            overallMax: null,
         };
     },
     created() {
@@ -94,65 +95,40 @@ export default Vue.component("filter-slider-template", {
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                this.filterThreshold = [preset.min, preset.max];
-                this.presetRange = this.filterThreshold;
-                this.updateFilter(this.filterThreshold);
+                this.presetRange = preset;
             }
         }
+        console.log(this.customStep);
     },
     mounted() {
+        this.cleanupValues = this.cleanValues(this.values);
+        this.overallMin = this.cleanupValues[0];
+        this.overallMax = this.cleanupValues[this.cleanupValues.length -1];
         this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
-    computed(){},
     methods: {
-        validateInput(newInput) {
-            // TODO: elaborate validation cases here
-            // TODO: validation utils?
-            if (!!this.type) {
-                if (this.type === "number") {
-                    return !isNaN(newInput[0]) && !isNaN(newInput[1]);
-                } else if (typeof newInput !== this.type) {
-                    return false;
-                }
-            }
-            return true;
+        cleanValues(vals){
+            let output = vals.map(v => parseNumericValue(v))
+                .filter(v => !isNull(v));
+            return output.sort((left, right) => left - right);
         },
         updateFilter(newThreshold) {
-            let newMin = newThreshold[0];
-            let newMax = newThreshold[1];
+            // TODO apply checking logic to include all including missing data if filters are set to min and max
+
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                const isValid = this.validateInput(newThreshold);
-                if (isValid) {
-                    // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit("change", newThreshold, {
-                            // label: this.pillFormatter,
-                            // color: this.color,
-                            ...this.filterDefinition,
-                        });
-                } else {
-                    // TODO: handle error in here, or go silent?
-                    console.warn(
-                        "invalid input given for type",
-                        this.type,
-                        ":",
-                        newThreshold
-                    );
-                }
-            }
-            if (this.clear) {
-                this.filterThreshold = null;
+                let includeMissing = 
+                    newThreshold.min === this.overallMin 
+                    && newThreshold.max === this.overallMax;
+                newThreshold.includeMissing = includeMissing;
+                this.$parent.$parent.$emit("change", newThreshold, {
+                        // label: this.pillFormatter,
+                        // color: this.color,
+                        ...this.filterDefinition,
+                    });
             }
         },
     },
 });
 </script>
-<style scoped>
-    .col {
-        vertical-align: text-top;
-    }
-    .format-fix-textfield{
-        display: block;
-    }
-</style>

@@ -29,7 +29,6 @@ export default Vue.component("filter-radio", {
 
   },
   mounted(){
-    console.log(JSON.stringify(this.presets));
   },
   components: {
     FilterRadioTemplate,

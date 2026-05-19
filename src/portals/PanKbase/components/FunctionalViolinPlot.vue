@@ -70,7 +70,6 @@ import { truncate } from 'lodash';
     },
     mounted() {
         this.plotId = `violinChart_${this.index}`;
-        console.log("Violin plot ID:", this.plotId);
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -124,7 +123,6 @@ import { truncate } from 'lodash';
             
             let minVal = d3.min(this.data.map(d => d[yField]));
             let maxVal = d3.max(this.data.map(d => d[yField]));
-            console.log(minVal, maxVal);
             let y = d3.scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
@@ -133,7 +131,6 @@ import { truncate } from 'lodash';
                 .style("font-size", this.fontSize);
 
             let categories = Array.from(new Set(this.data.map(d => d[xField])));
-            console.log("Categories are:", JSON.stringify(categories));
 
             let x = d3.scaleBand()
                 .range([0,width])

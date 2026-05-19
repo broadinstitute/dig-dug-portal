@@ -2,8 +2,7 @@
   <filter-slider-template
     class="filter-col-md"
     :field="field"
-    :rangeMin="range[0]"
-    :rangeMax="range[1]"
+    :values="values"
     :placeholder="placeholder"
     :predicate="predicate"
     :pillFormatter="pillFormatter"
@@ -14,6 +13,7 @@
     :splitBy="splitBy"
     :computedField="computedField"
     :presets="presets"
+    :customStep="customStep"
   >
     <slot> </slot>
   </filter-slider-template>
@@ -26,7 +26,7 @@ export default Vue.component("filter-slider", {
     field: String,
     placeholder: String,
     color: String,
-    range: Array,
+    values: Array,
     splitBy: String,
     inclusive: {
       type: Boolean,
@@ -34,7 +34,7 @@ export default Vue.component("filter-slider", {
     },
     predicate: {
       type: Function,
-      default: (item, thresholdArray) => item >= thresholdArray[0] && item <= thresholdArray[1],
+      default: (item, threshold) => threshold.includeMissing || (item >= threshold.min && item <= threshold.max),
     },
     pillFormatter: {
       type: Function,
@@ -42,7 +42,8 @@ export default Vue.component("filter-slider", {
         `${filterDefinition.threshold[0]} ≤ ${filterDefinition.field} ≤ ${filterDefinition.threshold[1]}`,
     },
     computedField: Function,
-    presets: Array
+    presets: Array,
+    customStep: Number
   },
   components: {
     FilterSliderTemplate,

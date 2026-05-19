@@ -156,7 +156,6 @@ export default Vue.component("time-series-line-plot", {
                 let allData = rawData.filter(r => r.time === t && !r.donorHasGaps)
                     .map(r => r.score);
                 let n = allData.length;
-                console.log(n);
                 let sum = allData.reduce((total, entry) => total + entry, 0);
                 let x = sum/n;
                 let sqDiff = allData.map(r => (r - x)**2);
@@ -390,7 +389,6 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
     },
     donors(){
-      console.log("New donor list received");
         this.drawChart();
     },
     showConfidence(){

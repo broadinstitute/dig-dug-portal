@@ -91,6 +91,7 @@ new Vue({
                 bmi: {
                     key: "BMI",
                     isNumeric: true,
+                    customStep: 0.01,
                     sortable: true
                 },
                 diabetesDesc: {
@@ -283,6 +284,12 @@ new Vue({
         },
         filteredAccession(){
             let results = this.tableItems.map(d => d.Accession);
+            if (results.length >= this.donorsWithData.length - 5){
+                let missingDonors = this.donorsWithData.filter(d => !results.includes(d));
+                missingDonors.forEach(m => {
+                    let donorMetadata = this.filteredMetadata.find(fm => fm.Accession === m);
+                });
+            }
             return results;
         },
         tableItems(){
@@ -387,7 +394,7 @@ new Vue({
                     min = d[fieldKey] < min ? d[fieldKey] : min;
                     max = d[fieldKey] > max ? d[fieldKey] : max;
                 });
-            return [min, max];
+            return {min: min, max: max};
         },
         applyLinkedFilters(data){
             if (this.linkedFilters === null){
