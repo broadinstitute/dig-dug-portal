@@ -134,7 +134,6 @@
                             <article class="glens-panel glens-panel--wide">
                                 <div class="glens-section-head">
                                     <div>
-                                        <p class="glens-eyebrow">Cohort position</p>
                                         <h2>Who is closest to this sample, and which investigator phenotype signatures fit this sample?</h2>
                                     </div>
                                 </div>
@@ -213,7 +212,6 @@
                                 <div class="glens-section-head">
                                     <div>
                                         <p class="glens-eyebrow">Sample overview</p>
-                                        <h2>Identity, phenotype load, and existing evidence</h2>
                                     </div>
                                 </div>
 
@@ -221,6 +219,16 @@
                                     <div v-for="item in overviewItems" :key="item.label" class="glens-kv-row">
                                         <span>{{ item.label }}</span>
                                         <strong>{{ item.value }}</strong>
+                                    </div>
+                                </div>
+
+                                <div v-if="hasActiveContext" class="glens-context-comparison">
+                                    <h3>Context comparison</h3>
+                                    <div class="glens-kv-grid glens-kv-grid--compact">
+                                        <div v-for="item in contextComparisonItems" :key="item.label" class="glens-kv-row">
+                                            <span>{{ item.label }}</span>
+                                            <strong>{{ item.value }}</strong>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -565,11 +573,22 @@ export default {
         },
         overviewItems() {
             return [
-                { label: "Affected / proband", value: `${this.sample.affected} · ${this.sample.proband}` },
-                { label: "Sex / age", value: `${this.sample.sex} · ${this.sample.ageGroup}` },
+                { label: "Proband", value: this.sample.probandStatus },
+                { label: "Affected", value: this.sample.affectedStatus },
+                { label: "Sex", value: this.sample.sex },
+                { label: "Age group", value: this.displayAgeGroup },
                 { label: "Investigator", value: this.sample.investigator },
-                { label: "HPO profile", value: `${this.sample.hpoTotal} terms · ${this.sample.dominantPhenotypeDomain} ${this.sample.dominantPhenotypeCount}/${this.sample.hpoTotal}` },
-                { label: "Genes with rare coding variants", value: `${this.sample.rareCodingGenes} genes` },
+                { label: "Total HPO term count", value: this.sample.overviewHpoTermCount },
+                { label: "Dominant HPO group", value: this.sample.overviewDominantHpoGroup },
+                { label: "Rare coding variant carrier genes", value: this.sample.rareCodingGenes },
+            ];
+        },
+        contextComparisonItems() {
+            return [
+                { label: "Context HPO term count", value: this.sample.contextComparison.hpoTermCount },
+                { label: "Context dominant HPO group", value: this.sample.contextComparison.dominantHpoGroup },
+                { label: "Sample-context HPO overlap", value: this.sample.contextComparison.overlap },
+                { label: "Dominant overlap group", value: this.sample.contextComparison.dominantOverlapGroup },
             ];
         },
         phenotypeQueryHref() {

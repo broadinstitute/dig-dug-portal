@@ -791,6 +791,25 @@ p {
     border-top: 0;
 }
 
+.glens-context-comparison {
+    margin-top: 0.9rem;
+}
+
+.glens-context-comparison h3 {
+    margin: 0 0 0.55rem;
+    color: #162033;
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.glens-kv-grid--compact {
+    margin-top: 0;
+}
+
+.glens-kv-grid--compact .glens-kv-row {
+    padding: 0.65rem 0.8rem;
+}
+
 .glens-gendx-card {
     display: grid;
     gap: 0.6rem;
