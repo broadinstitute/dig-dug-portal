@@ -81,7 +81,7 @@ export default Vue.component("filter-slider-template", {
             },
             filterThreshold: this.default,
             presetRange: null,
-            cleanupValues: null,
+            cleanupValues: [],
         };
     },
     created() {
