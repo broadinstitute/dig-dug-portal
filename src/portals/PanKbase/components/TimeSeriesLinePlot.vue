@@ -17,7 +17,7 @@
               <table>
                 <tr>
                   <td class="leftTable"><strong>Age:</strong> {{ donorMetadata["Age (years)"] }}</td>
-                  <td><strong>Gender:</strong> {{ donorMetadata.Gender }}</td>
+                  <td><strong>Reported gender:</strong> {{ donorMetadata.Gender }}</td>
                 </tr>
                 <tr>
                   <td class="leftTable"><strong>BMI:</strong> {{ donorMetadata.BMI }}</td>

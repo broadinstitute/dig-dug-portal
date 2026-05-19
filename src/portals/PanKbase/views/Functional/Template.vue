@@ -30,7 +30,7 @@
                                                 :field="oField.key"
                                                 :options="$parent.filteredMetadata.map(m => m[oField.key])"
                                                 :presets="$parent.presets">
-                                                <div class="label">{{ oField.key }}</div>
+                                                <div class="label">{{ oField.label || oField.key }}</div>
                                             </filter-radio>
                                             <div class="advanced-filters" :hidden="!$parent.showAdvanced">
                                                 <filter-slider v-for="advField in Object.values($parent.advancedFields)

@@ -85,6 +85,7 @@ new Vue({
                 },
                 sex: {
                     key: "Gender",
+                    label: "Reported gender",
                     sortable: true
                 },
                 bmi: {
