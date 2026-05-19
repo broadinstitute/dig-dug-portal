@@ -338,9 +338,17 @@ export default Vue.component("time-series-line-plot", {
               .x(d => this.xScale(d.time))
               .y0(d => this.yScale(d.ciUpper))
               .y1(d => this.yScale(d.ciLower))
-          )
+          );
+          this.svg.append("path")
+            .datum(intervals)
+            .attr("fill", "none")
+            .attr("stroke", this.lineColor)
+            .attr("class", "line-path")
+            .attr("d", d3.line()
+              .x(d => this.xScale(d.time))
+              .y(d => this.yScale(d.mean))
+          );
         }
-        
     },
     hoverLine(donor) {
 
