@@ -99,6 +99,10 @@
                 <section class="glens-hero-card">
                     <div class="glens-identity">
                         <h1>{{ displaySampleId }}</h1>
+                        <div class="glens-sample-header-meta" aria-label="Sample metadata summary">
+                            <span>{{ sample.sex }} | Age {{ displayAgeGroup }} | GenDx: {{ sample.gendx.shortStatus }}</span>
+                            <span>{{ sample.hpoTotal }} HPO terms | {{ sample.rareCodingGenes }} genes with rare coding variants</span>
+                        </div>
                     </div>
 
                     <div class="glens-answer-grid">
@@ -580,6 +584,9 @@ export default {
                 return this.sample.sampleId;
             }
             return requestedSampleId;
+        },
+        displayAgeGroup() {
+            return String(this.sample.ageGroup || "").replace("-", "–");
         },
     },
     mounted() {

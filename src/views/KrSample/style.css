@@ -210,6 +210,20 @@ p {
     font-size: 0.9rem;
 }
 
+.glens-sample-header-meta {
+    display: grid;
+    gap: 0.18rem;
+    margin-top: 0.55rem;
+    color: #526276;
+    font-size: 0.88rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.glens-sample-header-meta span {
+    display: block;
+}
+
 .glens-identity-summary {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
