@@ -1,6 +1,5 @@
 <template>
   <filter-radio-template
-    class="filter-col-md"
     :field="field"
     :predicate="predicate"
     :options="options"

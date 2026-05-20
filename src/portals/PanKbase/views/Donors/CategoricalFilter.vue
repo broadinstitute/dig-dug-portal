@@ -57,9 +57,6 @@ export default {
             default: () => [],
         },
     },
-    mounted(){
-        console.log(JSON.stringify(this.options));
-    },
     computed: {
         optionCount() {
             return this.options.length;
