@@ -101,13 +101,12 @@ export default {
                 return;
             }
 
-            if (this.viewModel.activeHierarchyPath.model) {
+            if (this.viewModel.activeHierarchyPath.cellType) {
                 this.setActiveDetailPanel(
-                    "model",
+                    "cellType",
                     [
                         this.viewModel.activeHierarchyPath.dataset,
-                        this.viewModel.activeHierarchyPath.cellType,
-                        this.viewModel.activeHierarchyPath.model
+                        this.viewModel.activeHierarchyPath.cellType
                     ].join("::")
                 );
             }
@@ -227,7 +226,6 @@ export default {
                         <div><span class="liger-detail-meta-label">Factor ID</span>{{ viewModel.factorModalData.factor }}</div>
                         <div><span class="liger-detail-meta-label">Dataset</span>{{ viewModel.factorModalData.dataset }}</div>
                         <div><span class="liger-detail-meta-label">Cell Type</span>{{ viewModel.factorModalData.cellType }}</div>
-                        <div><span class="liger-detail-meta-label">Model</span>{{ viewModel.factorModalData.model }}</div>
                         <div><span class="liger-detail-meta-label">{{ viewModel.factorModalData.scoreField }}</span>{{ viewModel.factorModalData.score }}</div>
                     </div>
 

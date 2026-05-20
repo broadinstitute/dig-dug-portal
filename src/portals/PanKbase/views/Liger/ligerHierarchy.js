@@ -203,17 +203,6 @@ export function buildVisibleDetailPanels({
         });
     }
 
-    if (activeHierarchyPath.model) {
-        panels.push({
-            type: "model",
-            key: [activeHierarchyPath.dataset, activeHierarchyPath.cellType, activeHierarchyPath.model].join("::"),
-            badgeClass: "is-model",
-            badgeLabel: "Model",
-            value: activeHierarchyPath.model,
-            placeholder: "Model detail placeholder"
-        });
-    }
-
     if (factorModalData) {
         panels.push({
             type: "geneProgram",
@@ -229,7 +218,7 @@ export function buildVisibleDetailPanels({
 
 export function buildSharedProgramGroups(searchHierarchy = [], helpers, options = {}) {
     const { getFactorSummary, getDatasetDisplayLabel, getDatasetDisplaySubLabel } = helpers;
-    const { includeSingletonPrograms = false } = options;
+    const { groupPrograms = true } = options;
     const groupedPrograms = new Map();
 
     searchHierarchy.forEach((datasetGroup) => {
@@ -323,10 +312,30 @@ export function buildSharedProgramGroups(searchHierarchy = [], helpers, options 
             return groupA.label.localeCompare(groupB.label);
         });
 
-    if (includeSingletonPrograms) {
+    if (groupPrograms) {
         return sharedGroups;
     }
 
-    const recurringGroups = sharedGroups.filter((group) => group.contextCount > 1);
-    return recurringGroups.length ? recurringGroups : sharedGroups;
+    return sharedGroups
+        .flatMap((group) => group.contexts.map((context) => ({
+            key: context.key,
+            label: context.label,
+            contexts: [context],
+            contextCount: 1,
+            datasetCount: 1,
+            cellTypeCount: 1,
+            modelCount: 1
+        })))
+        .sort((groupA, groupB) => {
+            const scoreA = Number(groupA.contexts[0]?.score);
+            const scoreB = Number(groupB.contexts[0]?.score);
+            const normalizedScoreA = Number.isFinite(scoreA) ? scoreA : Number.NEGATIVE_INFINITY;
+            const normalizedScoreB = Number.isFinite(scoreB) ? scoreB : Number.NEGATIVE_INFINITY;
+
+            if (normalizedScoreB !== normalizedScoreA) {
+                return normalizedScoreB - normalizedScoreA;
+            }
+
+            return groupA.label.localeCompare(groupB.label);
+        });
 }

@@ -148,6 +148,10 @@ export default Vue.component("BarPlotD3", {
             type: String,
             default: "",
         },
+        categoryLabelFormatter: {
+            type: Function,
+            default: null,
+        },
     },
     data() {
         return {
@@ -276,6 +280,9 @@ export default Vue.component("BarPlotD3", {
         highlightedSeriesKey() {
             this.renderChart();
         },
+        categoryLabelFormatter() {
+            this.renderChart();
+        },
     },
     mounted() {
         this.observeContainer();
@@ -294,6 +301,13 @@ export default Vue.component("BarPlotD3", {
         }
     },
     methods: {
+        formatCategoryLabel(value) {
+            if (typeof this.categoryLabelFormatter === "function") {
+                return this.categoryLabelFormatter(value);
+            }
+
+            return String(value);
+        },
         formatTickLabel(value) {
             if (typeof value === "number" && Number.isFinite(value)) {
                 if (Math.abs(value) >= 1000 || Number.isInteger(value)) {
@@ -379,8 +393,12 @@ export default Vue.component("BarPlotD3", {
             const numericTickLabels = d3.scaleLinear().domain([0, axisMax]).nice().ticks(this.tickCount).map((tick) =>
                 this.formatTickLabel(tick)
             );
-            const xTickLabels = this.orientation === "vertical" ? categories : numericTickLabels;
-            const yTickLabels = this.orientation === "vertical" ? numericTickLabels : categories;
+            const xTickLabels = this.orientation === "vertical"
+                ? categories.map((category) => this.formatCategoryLabel(category))
+                : numericTickLabels;
+            const yTickLabels = this.orientation === "vertical"
+                ? numericTickLabels
+                : categories.map((category) => this.formatCategoryLabel(category));
             const xTickSize = this.showXAxis && this.showXAxisTicks
                 ? this.measureText(svg, xTickLabels, 11)
                 : { maxWidth: 0, maxHeight: 0 };
@@ -765,7 +783,7 @@ export default Vue.component("BarPlotD3", {
                     .attr("fill", (row) => colorScale(row.category))
                     .on("mousemove", (row) => {
                         this.showTooltip(d3.event, {
-                            title: row.category,
+                            title: this.formatCategoryLabel(row.category),
                             lines: [{ label: this.valueKey, value: row.value }],
                         });
                     })
@@ -792,7 +810,7 @@ export default Vue.component("BarPlotD3", {
                     plotWidth,
                     plotHeight,
                     xAxis: d3.axisBottom(xScale).ticks(this.tickCount),
-                    yAxis: d3.axisLeft(yScale),
+                    yAxis: d3.axisLeft(yScale).tickFormat((value) => this.formatCategoryLabel(value)),
                     xAxisLabelText: this.xAxisLabel,
                     yAxisLabelText: this.yAxisLabel,
                 });
@@ -815,7 +833,7 @@ export default Vue.component("BarPlotD3", {
                 .attr("fill", (row) => colorScale(row.category))
                 .on("mousemove", (row) => {
                     this.showTooltip(d3.event, {
-                        title: row.category,
+                        title: this.formatCategoryLabel(row.category),
                         lines: [{ label: this.valueKey, value: row.value }],
                     });
                 })
@@ -830,7 +848,7 @@ export default Vue.component("BarPlotD3", {
                 layout,
                 plotWidth,
                 plotHeight,
-                xAxis: d3.axisBottom(xScale),
+                xAxis: d3.axisBottom(xScale).tickFormat((value) => this.formatCategoryLabel(value)),
                 yAxis: d3.axisLeft(yScale).ticks(this.tickCount),
                 xAxisLabelText: this.xAxisLabel,
                 yAxisLabelText: this.yAxisLabel,
@@ -993,7 +1011,7 @@ export default Vue.component("BarPlotD3", {
                     .attr("height", yScale.bandwidth())
                     .on("mousemove", (segment) => {
                         this.showTooltip(d3.event, {
-                            title: segment.category,
+                            title: this.formatCategoryLabel(segment.category),
                             lines: [
                                 { label: this.seriesKey || "Series", value: segment.series },
                                 { label: this.valueKey, value: segment.value },
@@ -1033,7 +1051,7 @@ export default Vue.component("BarPlotD3", {
                     plotWidth,
                     plotHeight,
                     xAxis: d3.axisBottom(xScale).ticks(this.tickCount),
-                    yAxis: d3.axisLeft(yScale),
+                    yAxis: d3.axisLeft(yScale).tickFormat((value) => this.formatCategoryLabel(value)),
                     xAxisLabelText: this.xAxisLabel,
                     yAxisLabelText: this.yAxisLabel,
                 });
@@ -1062,7 +1080,7 @@ export default Vue.component("BarPlotD3", {
                 .attr("height", (segment) => yScale(segment.start) - yScale(segment.end))
                 .on("mousemove", (segment) => {
                     this.showTooltip(d3.event, {
-                        title: segment.category,
+                        title: this.formatCategoryLabel(segment.category),
                         lines: [
                             { label: this.seriesKey || "Series", value: segment.series },
                             { label: this.valueKey, value: segment.value },
@@ -1080,7 +1098,7 @@ export default Vue.component("BarPlotD3", {
                 layout,
                 plotWidth,
                 plotHeight,
-                xAxis: d3.axisBottom(xScale),
+                xAxis: d3.axisBottom(xScale).tickFormat((value) => this.formatCategoryLabel(value)),
                 yAxis: d3.axisLeft(yScale).ticks(this.tickCount),
                 xAxisLabelText: this.xAxisLabel,
                 yAxisLabelText: this.yAxisLabel,

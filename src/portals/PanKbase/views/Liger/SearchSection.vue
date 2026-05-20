@@ -82,15 +82,14 @@ export default {
                             </div>
                             <div class="liger-entity-badge is-dataset">Tissue</div>
                             <div class="liger-entity-badge is-cell-type">Cell Type</div>
-                            <div class="liger-entity-badge is-model">Model</div>
                             <div class="liger-entity-badge is-factor">Gene Program</div>
                         </template>
                         <template v-else>
                             <div class="liger-entity-badge is-search">
                                 {{ viewModel.searchType === "gene" ? "Gene" : "Trait" }}
                             </div>
-                            <div class="liger-entity-badge is-factor">Shared Program</div>
-                            <div class="liger-entity-badge is-model">Supporting Context</div>
+                            <div class="liger-entity-badge is-factor">Gene Program</div>
+                            <div class="liger-entity-badge is-associated-cell-type">Associated Cell Type</div>
                         </template>
                     </div>
                 </div>
@@ -112,7 +111,7 @@ export default {
                             type="button"
                             @click="viewModel.setBrowserMode('sharedPrograms')"
                         >
-                            Shared Programs
+                            Gene Programs
                         </button>
                     </div>
                 </div>

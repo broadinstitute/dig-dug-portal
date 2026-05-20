@@ -39,7 +39,7 @@ export function createClearedResultsState() {
         expandedGroups: {},
         activeHierarchyPath: createInitialHierarchyPath(),
         activeDetailPanel: createInitialDetailPanel(),
-        sharedProgramVisibility: "shared",
+        groupProgramsEnabled: false,
         activeSharedProgramKey: null,
         activeSharedProgramContextKey: null,
         sharedProgramsLoading: false,
@@ -50,7 +50,7 @@ export function createClearedResultsState() {
 
 export function createSearchResetState() {
     return {
-        browserMode: "hierarchy",
+        browserMode: "sharedPrograms",
         searchTerm: "",
         selectedSearchValue: "",
         ...createClearedResultsState(),
