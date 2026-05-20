@@ -3,7 +3,7 @@
     class="filter-col-md"
     :field="field"
     :predicate="predicate"
-    :options="dedupedOptions"
+    :options="options"
     @input-change="$emit('input-change', $event)"
     :color="color"
     :multiple="false"
