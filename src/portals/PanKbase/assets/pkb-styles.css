@@ -271,7 +271,8 @@ tr.downregulated {
 .functional-page .vlnPlots {
     margin-left: 20px !important
 }
-.functional-page .numeric-filter-card {
+.functional-page .numeric-filter-card,
+.functional-page .categorical-filter-card {
     width: 220px !important;
 }
 .functional-page .numeric-filter-input,
