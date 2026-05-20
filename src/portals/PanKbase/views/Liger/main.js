@@ -21,7 +21,6 @@ import {
     buildVisibleDetailPanels,
     getActiveCellTypeGroup,
     getActiveDatasetGroup,
-    getActiveModelGroup,
     getAllHierarchyModelContexts,
     getDatasetDisplayLabel,
     getDatasetDisplaySubLabel,
@@ -49,7 +48,7 @@ new Vue({
             isLoading: false,
             errorMessage: "",
             searchType: "trait",
-            browserMode: "hierarchy",
+            browserMode: "sharedPrograms",
             searchTerm: "",
             selectedSearchValue: "",
             searchMatches: null,
@@ -58,7 +57,7 @@ new Vue({
             expandedGroups: {},
             activeHierarchyPath: createInitialHierarchyPath(),
             activeDetailPanel: createInitialDetailPanel(),
-            sharedProgramVisibility: "shared",
+            groupProgramsEnabled: false,
             activeSharedProgramKey: null,
             activeSharedProgramContextKey: null,
             sharedProgramsLoading: false,
@@ -109,7 +108,7 @@ new Vue({
                 getDatasetDisplayLabel: (...args) => this.getDatasetDisplayLabel(...args),
                 getDatasetDisplaySubLabel: (...args) => this.getDatasetDisplaySubLabel(...args)
             }, {
-                includeSingletonPrograms: this.sharedProgramVisibility === "all"
+                groupPrograms: this.groupProgramsEnabled
             });
         },
         activeSharedProgramGroup() {
@@ -257,8 +256,7 @@ new Vue({
                 await this.ensureSharedProgramModeReady();
 
                 if (this.sharedProgramGroups.length) {
-                    this.activeSharedProgramKey = this.sharedProgramGroups[0].key;
-                    this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+                    await this.ensureActiveSharedProgramSelection();
                 }
             } else {
                 if (selectedSharedContext) {
@@ -333,8 +331,23 @@ new Vue({
                 this.activeHierarchyPath = createInitialHierarchyPath();
                 this.activeHierarchyPath.dataset = context.dataset || null;
                 this.activeHierarchyPath.cellType = context.cellType || null;
+                this.activeHierarchyPath.model = this.getActiveHierarchyModelValue(
+                    getActiveCellTypeGroup(this.searchHierarchy || [], {
+                        dataset: context.dataset || null,
+                        cellType: context.cellType || null,
+                        model: null
+                    })
+                );
                 this.setActiveDetailPanel("cellType", [context.dataset, context.cellType].join("::"));
                 this.fitAndCenterBrowserCanvas();
+                if (this.activeHierarchyPath.model) {
+                    await this.ensureModelFactorDetails(
+                        this.activeHierarchyPath.dataset,
+                        this.activeHierarchyPath.cellType,
+                        this.activeHierarchyPath.model
+                    );
+                    this.fitAndCenterBrowserCanvas();
+                }
                 return;
             }
 
@@ -388,8 +401,24 @@ new Vue({
         getActiveCellTypeGroup() {
             return getActiveCellTypeGroup(this.searchHierarchy || [], this.activeHierarchyPath);
         },
+        getActiveHierarchyModelValue(cellTypeGroup = this.getActiveCellTypeGroup()) {
+            const matchingModel = (cellTypeGroup?.models || []).find(
+                (modelGroup) => modelGroup.model === this.ligerDefaults.model
+            );
+
+            return matchingModel?.model || cellTypeGroup?.models?.[0]?.model || null;
+        },
         getActiveModelGroup() {
-            return getActiveModelGroup(this.searchHierarchy || [], this.activeHierarchyPath);
+            const cellTypeGroup = this.getActiveCellTypeGroup();
+            const activeModelValue = this.getActiveHierarchyModelValue(cellTypeGroup);
+
+            if (!cellTypeGroup || !activeModelValue) {
+                return null;
+            }
+
+            return (cellTypeGroup.models || []).find(
+                (modelGroup) => modelGroup.model === activeModelValue
+            ) || null;
         },
         getAllHierarchyModelContexts() {
             return getAllHierarchyModelContexts(this.searchHierarchy || []);
@@ -421,16 +450,16 @@ new Vue({
         isSharedProgramContextActive(contextKey) {
             return this.activeSharedProgramContextKey === contextKey;
         },
-        setSharedProgramVisibility(nextVisibility) {
-            if (this.sharedProgramVisibility === nextVisibility) {
+        async setGroupProgramsEnabled(isEnabled) {
+            if (this.groupProgramsEnabled === isEnabled) {
                 return;
             }
 
-            this.sharedProgramVisibility = nextVisibility;
-            this.ensureActiveSharedProgramSelection();
+            this.groupProgramsEnabled = isEnabled;
+            await this.ensureActiveSharedProgramSelection();
             this.fitAndCenterBrowserCanvas();
         },
-        ensureActiveSharedProgramSelection() {
+        async ensureActiveSharedProgramSelection() {
             if (!this.sharedProgramGroups.length) {
                 this.activeSharedProgramKey = null;
                 this.activeSharedProgramContextKey = null;
@@ -448,7 +477,7 @@ new Vue({
                 this.activeSharedProgramContextKey = null;
                 this.factorModalData = null;
                 this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
-                return;
+                return await this.ensureUngroupedSharedProgramContextSelection();
             }
 
             const activeGroup = this.activeSharedProgramGroup;
@@ -456,13 +485,33 @@ new Vue({
             if (!activeGroup?.contexts.some((context) => context.key === this.activeSharedProgramContextKey)) {
                 this.activeSharedProgramContextKey = null;
             }
+
+            return await this.ensureUngroupedSharedProgramContextSelection();
         },
-        selectSharedProgramGroup(groupKey) {
+        async ensureUngroupedSharedProgramContextSelection() {
+            if (this.groupProgramsEnabled) {
+                return;
+            }
+
+            const firstContext = this.activeSharedProgramGroup?.contexts?.[0] || null;
+
+            if (!firstContext) {
+                return;
+            }
+
+            if (this.activeSharedProgramContextKey === firstContext.key) {
+                return;
+            }
+
+            await this.openSharedProgramContext(firstContext);
+        },
+        async selectSharedProgramGroup(groupKey) {
             this.activeSharedProgramKey = groupKey;
             this.activeSharedProgramContextKey = null;
             this.activeHierarchyPath = createInitialHierarchyPath();
             this.factorModalData = null;
             this.setActiveDetailPanel("searchRoot", `${this.searchType}::${this.getSearchRootDisplayValue()}`);
+            await this.ensureUngroupedSharedProgramContextSelection();
             this.fitAndCenterBrowserCanvas();
         },
         async openSharedProgramContext(context) {
@@ -641,7 +690,7 @@ new Vue({
                 if (this.browserMode === "sharedPrograms") {
                     await this.ensureSharedProgramModeReady();
 
-                    this.ensureActiveSharedProgramSelection();
+                    await this.ensureActiveSharedProgramSelection();
                 }
 
                 this.fitAndCenterBrowserCanvas();

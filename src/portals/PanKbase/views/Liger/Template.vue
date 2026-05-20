@@ -259,29 +259,64 @@ export default {
 .liger-browser-toggle-group {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    padding: 2px;
-    border-radius: 999px;
-    background: #f4f6f8;
-}
-
-.liger-browser-toggle {
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: #5f6773;
-    font: inherit;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 8px;
-    cursor: pointer;
+    margin-left: auto;
     white-space: nowrap;
 }
 
-.liger-browser-toggle.is-active {
+.liger-browser-tooltip-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.liger-browser-toggle {
+    border: 1px solid #d9d9d9;
+    border-radius: 999px;
     background: #ffffff;
-    color: #5e2fa0;
-    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.1);
+    color: #111111;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 44px;
+    padding: 3px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.liger-browser-toggle.is-active {
+    border-color: #111111;
+    box-shadow: none;
+}
+
+.liger-browser-toggle:not(.is-active) {
+    border-color: #d9d9d9;
+}
+
+.liger-browser-tooltip {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 4;
+    width: 220px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(17, 17, 17, 0.94);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: normal;
+    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.18);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 80ms ease, transform 80ms ease;
+}
+
+.liger-browser-tooltip-wrap:hover .liger-browser-tooltip,
+.liger-browser-tooltip-wrap:focus-within .liger-browser-tooltip {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .liger-browser-list {
@@ -347,6 +382,11 @@ export default {
 .liger-browser-column.is-model .liger-browser-item.is-active {
     background: #fff3df;
     color: #9a5a00;
+}
+
+.liger-browser-column.is-shared-contexts .liger-browser-item.is-active {
+    background: #e8f7ef;
+    color: #22784e;
 }
 
 .liger-browser-column.is-factor .liger-browser-item.is-active,
@@ -718,6 +758,11 @@ export default {
 }
 
 .liger-entity-badge.is-cell-type {
+    background: #e8f7ef;
+    color: #22784e;
+}
+
+.liger-entity-badge.is-associated-cell-type {
     background: #e8f7ef;
     color: #22784e;
 }

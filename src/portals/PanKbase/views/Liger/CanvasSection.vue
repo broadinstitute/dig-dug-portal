@@ -1,6 +1,6 @@
 <script>
 // This file renders the interactive browser canvas, including both hierarchy
-// and shared-program views, while delegating state and behavior to the parent.
+// and gene-program views, while delegating state and behavior to the parent.
 
 export default {
     name: "LigerCanvasSection",
@@ -44,6 +44,10 @@ export default {
     },
 
     methods: {
+        toggleGroupLabels(event) {
+            this.viewModel.setGroupProgramsEnabled(!this.viewModel.groupProgramsEnabled);
+            event?.currentTarget?.blur?.();
+        },
         formatSharedContextScore(score) {
             const numericScore = Number(score);
 
@@ -52,6 +56,28 @@ export default {
             }
 
             return numericScore.toFixed(3);
+        },
+        getSharedProgramRowMeta(programGroup) {
+            if (this.viewModel.groupProgramsEnabled) {
+                return programGroup.cellTypeCount;
+            }
+
+            return this.formatSharedContextScore(programGroup.contexts[0]?.score);
+        },
+        getSharedProgramRowMetaTitle(programGroup) {
+            if (this.viewModel.groupProgramsEnabled) {
+                return `${programGroup.cellTypeCount} cell type${programGroup.cellTypeCount === 1 ? "" : "s"}`;
+            }
+
+            return programGroup.contexts[0]?.scoreField || "";
+        },
+        getSharedProgramRowSubLabel(programGroup) {
+            if (this.viewModel.groupProgramsEnabled) {
+                return `${programGroup.datasetCount} tissues · ${programGroup.cellTypeCount} cell types`;
+            }
+
+            const context = programGroup.contexts[0] || {};
+            return [context.datasetLabel, context.cellType].filter(Boolean).join(" · ");
         },
         getBrowserViewportElement() {
             return this.$el || null;
@@ -329,36 +355,6 @@ export default {
                     </div>
 
                     <div
-                        v-if="viewModel.getActiveCellTypeGroup()"
-                        class="liger-browser-column is-model"
-                    >
-                        <div class="liger-browser-column-header">
-                            <span class="liger-entity-badge is-model">Model</span>
-                        </div>
-                        <div class="liger-browser-list">
-                            <button
-                                v-for="modelGroup in viewModel.getActiveCellTypeGroup().models"
-                                :key="`${viewModel.activeHierarchyPath.dataset}-${viewModel.getActiveCellTypeGroup().cellType}-${modelGroup.model}`"
-                                class="liger-browser-item"
-                                :class="{ 'is-active': viewModel.isHierarchyItemActive('model', modelGroup.model, {
-                                    dataset: viewModel.activeHierarchyPath.dataset,
-                                    cellType: viewModel.getActiveCellTypeGroup().cellType
-                                }) }"
-                                type="button"
-                                @click="viewModel.selectHierarchyItem('model', {
-                                    dataset: viewModel.activeHierarchyPath.dataset,
-                                    cellType: viewModel.getActiveCellTypeGroup().cellType,
-                                    model: modelGroup.model
-                                })"
-                            >
-                                <span class="liger-browser-item-label">{{ modelGroup.model }}</span>
-                                <span class="liger-browser-item-meta">{{ modelGroup.factors.length }}</span>
-                                <span class="liger-browser-item-chevron">›</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
                         v-if="viewModel.getActiveModelGroup()"
                         class="liger-browser-column is-factor"
                     >
@@ -445,31 +441,34 @@ export default {
                         </div>
                     </div>
 
-                        <div class="liger-browser-column is-factor is-shared-programs">
+                    <div class="liger-browser-column is-factor is-shared-programs">
                         <div class="liger-browser-column-header">
-                            <span class="liger-entity-badge is-factor">Shared Programs</span>
+                            <span class="liger-entity-badge is-factor">Gene Programs</span>
                             <div
                                 v-if="!viewModel.sharedProgramsLoading"
                                 class="liger-browser-toggle-group"
                                 role="group"
-                                aria-label="Shared program visibility"
+                                aria-label="Group labels"
                             >
-                                <button
-                                    class="liger-browser-toggle"
-                                    :class="{ 'is-active': viewModel.sharedProgramVisibility === 'shared' }"
-                                    type="button"
-                                    @click="viewModel.setSharedProgramVisibility('shared')"
-                                >
-                                    Show shared
-                                </button>
-                                <button
-                                    class="liger-browser-toggle"
-                                    :class="{ 'is-active': viewModel.sharedProgramVisibility === 'all' }"
-                                    type="button"
-                                    @click="viewModel.setSharedProgramVisibility('all')"
-                                >
-                                    Show all
-                                </button>
+                                <div class="liger-browser-tooltip-wrap">
+                                    <button
+                                        class="liger-browser-toggle"
+                                        :class="{ 'is-active': viewModel.groupProgramsEnabled }"
+                                        type="button"
+                                        :aria-pressed="viewModel.groupProgramsEnabled ? 'true' : 'false'"
+                                        aria-describedby="liger-group-labels-tooltip"
+                                        @click="toggleGroupLabels($event)"
+                                    >
+                                        Group Labels
+                                    </button>
+                                    <div
+                                        id="liger-group-labels-tooltip"
+                                        class="liger-browser-tooltip"
+                                        role="tooltip"
+                                    >
+                                        Toggle to group matching gene program labels.
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -477,7 +476,7 @@ export default {
                             v-if="viewModel.sharedProgramsLoading"
                             class="liger-browser-status"
                         >
-                            Loading shared program labels...
+                            Loading gene program labels...
                         </div>
 
                         <div
@@ -497,15 +496,17 @@ export default {
                                         {{ programGroup.label }}
                                     </span>
                                     <span class="liger-browser-item-sublabel">
-                                        {{ programGroup.datasetCount }} tissues · {{ programGroup.cellTypeCount }} cell types
+                                        {{ getSharedProgramRowSubLabel(programGroup) }}
                                     </span>
                                 </span>
-                                <span class="liger-browser-item-meta">{{ programGroup.contextCount }}</span>
+                                <span class="liger-browser-item-meta" :title="getSharedProgramRowMetaTitle(programGroup)">
+                                    {{ getSharedProgramRowMeta(programGroup) }}
+                                </span>
                             </button>
                         </div>
 
                         <div v-else class="liger-browser-status">
-                            No shared programs available for this result set.
+                            No gene programs available for this result set.
                         </div>
                     </div>
 
@@ -514,7 +515,7 @@ export default {
                         class="liger-browser-column is-model is-shared-contexts"
                     >
                         <div class="liger-browser-column-header">
-                            <span class="liger-entity-badge is-model">Supporting Contexts</span>
+                            <span class="liger-entity-badge is-associated-cell-type">Associated Cell Types</span>
                         </div>
                         <div class="liger-browser-list">
                             <button
@@ -530,10 +531,14 @@ export default {
                                         {{ context.cellType }}
                                     </span>
                                     <span class="liger-browser-item-sublabel">
-                                        {{ context.datasetLabel }} · {{ context.model }}
+                                        {{ context.datasetLabel }}
                                     </span>
                                 </span>
-                                <span class="liger-browser-item-meta" :title="context.scoreField">
+                                <span
+                                    v-if="viewModel.groupProgramsEnabled"
+                                    class="liger-browser-item-meta"
+                                    :title="context.scoreField"
+                                >
                                     {{ formatSharedContextScore(context.score) }}
                                 </span>
                             </button>

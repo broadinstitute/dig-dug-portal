@@ -6,7 +6,7 @@ At a high level, this page is meant to help a user:
 
 - search for a trait or gene
 - see which Liger gene programs are connected to that query
-- explore those results either as a hierarchy or as shared programs across contexts
+- explore those results either as a hierarchy or as gene programs across contexts
 - inspect detail panels for the search root, tissue, cell type, model, and gene program
 
 The page currently uses a Vue 2 parent-coordinator pattern:
