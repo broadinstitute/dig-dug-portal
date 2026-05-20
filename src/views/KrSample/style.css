@@ -812,25 +812,110 @@ p {
 
 .glens-gendx-card {
     display: grid;
-    gap: 0.6rem;
-    margin-top: 1rem;
+    gap: 0.55rem;
+    margin-top: 0.9rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.glens-gendx-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.glens-gendx-head h3 {
+    margin: 0;
+    color: #162033;
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.glens-gendx-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+}
+
+.glens-gendx-dots button {
+    width: 0.42rem;
+    height: 0.42rem;
+    border: 1px solid #9aa8ba;
+    border-radius: 999px;
+    background: #fff;
+    padding: 0;
+}
+
+.glens-gendx-dots .glens-gendx-dot--active {
+    background: #526276;
+    border-color: #526276;
+}
+
+.glens-gendx-info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid #2f73c9;
+    border-radius: 999px;
+    background: #eef5ff;
+    color: #0b66c3;
+    font-size: 0.75rem;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.glens-gendx-info-popover {
+    position: absolute;
+    z-index: 45;
+    top: calc(100% + 0.4rem);
+    left: 0;
+    width: min(25rem, 78vw);
     padding: 0.85rem;
-}
-
-.glens-gendx-evidence {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-}
-
-.glens-gendx-evidence > div {
-    border: 1px solid #e2e8f0;
+    border: 1px solid #d8e2ef;
     border-radius: 0.85rem;
-    padding: 0.65rem;
-    background: #f8fafc;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(22, 32, 51, 0.14);
 }
 
-.glens-gendx-card a,
+.glens-gendx-info-popover p {
+    margin: 1.25rem 0 0;
+    color: #42526a;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.glens-gendx-info-close {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.5rem;
+    width: 1.45rem;
+    height: 1.45rem;
+    border: 0;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #52657f;
+    font-size: 0.95rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.glens-gendx-table {
+    margin-top: 0;
+}
+
+.glens-gendx-variant-link {
+    color: #0d4d91;
+    font-weight: 850;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18rem;
+}
+
 .glens-plain-link,
 .glens-accordion-toggle,
 .glens-compare-inputs button {
@@ -842,7 +927,6 @@ p {
     text-decoration: none;
 }
 
-.glens-gendx-card a,
 .glens-plain-link {
     display: inline-flex;
     width: max-content;

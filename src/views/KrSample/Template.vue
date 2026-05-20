@@ -232,27 +232,51 @@
                                     </div>
                                 </div>
 
-                                <div class="glens-gendx-card">
-                                    <div>
-                                        <span>GenDX panel result</span>
-                                        <strong>{{ sample.gendx.status }}</strong>
+                                <div class="glens-gendx-card" @click.stop>
+                                    <div class="glens-gendx-head">
+                                        <h3>{{ gendxPanelTitle }}</h3>
+                                        <div v-if="sample.gendx.resultCount > 1" class="glens-gendx-dots" aria-label="Reported GenDx variants">
+                                            <button
+                                                v-for="index in sample.gendx.resultCount"
+                                                :key="index"
+                                                type="button"
+                                                :class="{ 'glens-gendx-dot--active': index === 1 }"
+                                                :aria-label="`GenDx reported variant ${index}`"
+                                            ></button>
+                                        </div>
+                                        <button
+                                            class="glens-gendx-info-button"
+                                            type="button"
+                                            aria-label="GenDx panel explanation"
+                                            @click="gendxInfoOpen = !gendxInfoOpen"
+                                        >
+                                            i
+                                        </button>
+                                        <div v-if="gendxInfoOpen" class="glens-gendx-info-popover">
+                                            <button
+                                                class="glens-gendx-info-close"
+                                                type="button"
+                                                aria-label="Close GenDx panel explanation"
+                                                @click="gendxInfoOpen = false"
+                                            >
+                                                ×
+                                            </button>
+                                            <p>{{ sample.gendx.interpretation }}</p>
+                                        </div>
                                     </div>
-                                    <div class="glens-gendx-evidence">
-                                        <div>
-                                            <span>Gene</span>
-                                            <strong>{{ sample.gendx.gene }}</strong>
-                                        </div>
-                                        <div>
-                                            <span>Variant</span>
-                                            <strong>{{ sample.gendx.variantId }}</strong>
-                                        </div>
-                                        <div>
-                                            <span>Pathogenicity</span>
-                                            <strong>{{ sample.gendx.pathogenicity }}</strong>
+                                    <div class="glens-kv-grid glens-kv-grid--compact glens-gendx-table">
+                                        <div v-for="item in gendxRows" :key="item.label" class="glens-kv-row">
+                                            <span>{{ item.label }}</span>
+                                            <a
+                                                v-if="item.href"
+                                                class="glens-gendx-variant-link"
+                                                :href="item.href"
+                                            >
+                                                {{ item.value }}
+                                            </a>
+                                            <strong v-else>{{ item.value }}</strong>
                                         </div>
                                     </div>
-                                    <p>{{ sample.gendx.interpretation }}</p>
-                                    <a :href="variantHref(sample.gendx.variantId)">Review reported variant</a>
                                 </div>
                             </article>
                         </div>
@@ -528,6 +552,7 @@ export default {
             contextPopoverOpen: false,
             optionsPopoverOpen: false,
             sampleInfoOpen: false,
+            gendxInfoOpen: false,
             unsubscribeClinicalFocus: null,
         };
     },
@@ -591,6 +616,17 @@ export default {
                 { label: "Dominant overlap group", value: this.sample.contextComparison.dominantOverlapGroup },
             ];
         },
+        gendxPanelTitle() {
+            return "GenDx panel";
+        },
+        gendxRows() {
+            return [
+                { label: "Status", value: this.sample.gendx.status },
+                { label: "Gene", value: this.sample.gendx.gene },
+                { label: "Variant", value: this.sample.gendx.variantId, href: this.variantHref(this.sample.gendx.variantId) },
+                { label: "Pathogenicity", value: this.sample.gendx.pathogenicity },
+            ];
+        },
         phenotypeQueryHref() {
             return `/krPhenotype.html?query=${encodeURIComponent(this.sample.fullHpoTerms.join(", "))}`;
         },
@@ -621,6 +657,7 @@ export default {
             this.contextPopoverOpen = false;
             this.optionsPopoverOpen = false;
             this.sampleInfoOpen = false;
+            this.gendxInfoOpen = false;
         },
         removeClinicalContext() {
             clearClinicalFocus();

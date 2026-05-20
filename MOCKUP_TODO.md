@@ -323,3 +323,77 @@ Tasks:
 8. If current mock data does not support a field, either remove that field or add a clearly named mock field that represents the intended future data structure.
 
 Do not modify phenotype or variant pages in this task.
+
+----
+# SAMPLE-3 결과 중 GenDx panel 부분만 수정해주세요.
+
+수정 대상:
+
+* src/views/KrSample/Template.vue
+* 필요할 경우에만 src/views/KrSample/style.css
+* 필요할 경우에만 src/views/KrSample/mockData.js
+
+현재 문제:
+GenDX PANEL RESULT 섹션이 너무 별도 카드처럼 보이고, Gene / Variant / Pathogenicity가 각각 큰 카드 3개로 나뉘어 있습니다. 이 방식은 샘플 overview 흐름과 맞지 않습니다.
+
+원하는 수정:
+
+1. 제목을 “GenDX panel result”가 아니라 “GenDx panel”로 바꿔주세요.
+
+2. “GenDx panel” 제목 옆에 파란색 info 아이콘을 추가해주세요.
+
+3. 아래 설명 문장은 화면에 직접 길게 노출하지 말고, info 아이콘을 눌렀을 때 뜨는 작은 floating popover 안으로 넣어주세요.
+
+   문장:
+   “Existing panel evidence is treated as a reported candidate, not automatic proof. The page checks whether phenotype similarity, similar-patient recurrence, and public disease match support the same interpretation.”
+
+4. 기존의 Gene / Variant / Pathogenicity 3개 큰 카드는 제거하고, Sample overview와 비슷한 row-by-row table 형태로 바꿔주세요.
+
+5. GenDx에서 보고된 변이가 있는지 여부가 가장 중요한 정보이므로, table 맨 위 row에 넣어주세요.
+
+   원하는 표시 예시:
+
+   GenDx panel
+
+   Status          Yes · reported panel variant
+   Gene            KMT2D
+   Variant         chr12:49,431,208 C>T
+   Pathogenicity   Likely pathogenic
+
+6. Variant 값은 클릭 가능한 값처럼 보여야 합니다.
+   클릭하면 variant page로 이동하는 링크처럼 처리해주세요.
+   실제 routing이 아직 없으면 기존 mockup에서 쓰는 방식과 맞춰 placeholder link로 처리해도 됩니다.
+
+7. 하단의 “Review reported variant” 버튼은 제거해주세요.
+   Variant row 자체가 variant page로 넘어가는 entry point이면 충분합니다.
+
+8. 만약 GenDx panel result가 1개 이상일 수 있다면, 제목 또는 Status row에 개수를 표시해주세요.
+   예:
+   “GenDx panel (1)”
+   또는
+   “GenDx panel (3)”
+
+9. GenDx panel result가 여러 개일 경우, GenDx panel 제목 row 오른쪽에 작은 dot navigation을 추가해주세요.
+   예:
+   ○ ○ ○
+   사용자가 dot을 누르면 다음 GenDx-reported variant 정보로 전환되는 구조입니다.
+   단, 현재 mockData에 1개만 있으면 dot은 1개만 보이거나 생략해도 됩니다.
+
+10. 이 GenDx panel은 최종 진단처럼 보이면 안 됩니다.
+    “reported candidate evidence”처럼 보여야 합니다.
+    과도한 색상이나 strong label은 쓰지 마세요.
+
+하지 말아야 할 것:
+
+* phenotype page, variant page, front page는 수정하지 마세요.
+* SAMPLE-4 이후 작업은 하지 마세요.
+* 전체 Sample overview 레이아웃을 다시 디자인하지 마세요.
+* GenDx 정보를 새로운 큰 카드 3개로 다시 만들지 마세요.
+* “Review reported variant” 버튼을 유지하지 마세요.
+
+수정 후 아래만 짧게 보고해주세요:
+
+1. 수정한 파일
+2. 수정 내용 요약
+3. 확인 URL
+

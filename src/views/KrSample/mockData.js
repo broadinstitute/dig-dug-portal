@@ -53,8 +53,9 @@ export function createKrSampleState() {
                 selectedResidual: "+1.8",
                 groupScanSummary: "40 investigator signatures scored with annotation-burden correction",
                 gendx: {
+                    resultCount: 1,
                     shortStatus: "Yes",
-                    status: "Yes · reported panel variant",
+                    status: "Yes · 1 reported panel variant",
                     gene: "KMT2D",
                     variantId: "chr12:49,431,208 C>T",
                     pathogenicity: "Likely pathogenic",
