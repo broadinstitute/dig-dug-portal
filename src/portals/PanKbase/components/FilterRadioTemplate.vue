@@ -1,26 +1,22 @@
 <template>
-    <div class="col" style="padding: 5px 7px 5px 7px">
+    <div>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            <slot>{{ field }}</slot>
-        <div v-if="!!options && Array.isArray(options)" class="radio-button-wrapper">
-            <div v-for="option in options">
-                <input type="checkbox" class="form-control-sm"
-                        :id="`button_${option}`"
-                        name="radioButtons" 
-                        :value="option"
-                        v-model="filterThreshold"/>
-                <label :for="`button_${option}`">
-                    {{ option === "-" ? "N/A" : option }}
-                    
-                </label>
-            </div>
-        </div>
+        <categorical-filter
+            v-model="catFilter[field]"
+            :columnName="field"
+            :displayLabel="field === 'Gender' ? 'Reported gender' : field"
+            :options="processedOptions"
+            :totalRowCount="options.length"
+            @input="e => updateFilter(e)">
+
+        </categorical-filter>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import CategoricalFilter from "../views/Donors/CategoricalFilter.vue";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -38,7 +34,6 @@ export default Vue.component("filter-radio-template", {
         options: Array,
         multiple: Boolean,
         inclusive: Boolean,
-        valueCleared: Boolean,
         color: {
             type: String,
         },
@@ -69,6 +64,7 @@ export default Vue.component("filter-radio-template", {
         presets: Array
     },
     components: {
+        CategoricalFilter
     },
     data() {
         return {
@@ -85,14 +81,18 @@ export default Vue.component("filter-radio-template", {
                 computedField: this.computedField,
             },
             filterThreshold: this.options, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            processedOptions: [],
+            catFilter: {}
         };
     },
     created() {
+        this.processedOptions = this.process(this.options);
+        this.catFilter[this.field] = this.processedOptions.map(o => o.value);
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                this.filterThreshold = preset.values;
-                this.updateFilter(this.filterThreshold);
+                this.catFilter[this.field] = preset.values;
+                this.updateFilter(preset.values);
             }
         }
     },
@@ -112,38 +112,24 @@ export default Vue.component("filter-radio-template", {
                         });
             }
         },
+        process(options){
+            let discreteOptions = Array.from(new Set(options));
+            let output = discreteOptions.map(discreteOption => {
+                let count = options.filter(o => o === discreteOption).length;
+                let entry = {
+                    value: discreteOption,
+                    label: discreteOption,
+                    count: count
+                };
+                return entry;
+            });
+            return output;
+        }
     },
     watch: {
         filterThreshold(newThreshold){
             this.updateFilter(newThreshold);
         },
-        valueCleared(isCleared){
-            if (isCleared){
-                this.filterThreshold = null;
-            }
-        }
     }
 });
 </script>
-<style scoped>
-    .col {
-        vertical-align: text-top;
-    }
-    .format-fix-textfield{
-        display: block;
-    }
-    .radio-button-wrapper {
-        /*display: inline;*/
-    }
-    input {
-        height: inherit !important;
-        width: inherit !important;
-        margin-right: 10px !important;
-    }
-    .invisible-button {
-        display: none !important;
-    }
-    label {
-        display: inline !important;
-    }
-</style>
