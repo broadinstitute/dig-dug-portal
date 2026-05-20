@@ -548,41 +548,79 @@
                     <section v-if="activeTab === 'disease'" class="glens-tab-panel">
                         <div class="glens-section-head">
                             <div>
-                                <p class="glens-eyebrow">Public disease hypotheses</p>
-                                <h2>Does this sample resemble a disease profile outside CRDC?</h2>
+                                <p class="glens-eyebrow">Public disease profile matches</p>
+                                <h2>Which public disease-HPO profiles resemble this sample?</h2>
                             </div>
                         </div>
                         <p class="glens-method-note">
-                            Disease matches compare this sample's HPO profile and candidate genes against public disease phenotype annotations. They are review hypotheses, not diagnoses; GenDX evidence is shown as support only when phenotype consistency also fits.
+                            Disease profile matches compare this sample's HPO profile against public disease phenotype annotations. They are reference matches, not confirmed diagnoses.
                         </p>
 
-                        <div class="glens-disease-list">
-                            <article v-for="disease in sample.diseaseMatches" :key="disease.name" class="glens-disease-card">
-                                <button class="glens-disease-head" type="button" @click="toggleDisease(disease.name)">
-                                    <span>{{ openDiseases[disease.name] ? "▾" : "▸" }}</span>
-                                    <strong>{{ disease.name }}</strong>
-                                    <em>{{ disease.confidence }}</em>
-                                </button>
-                                <div class="glens-disease-summary">
-                                    <span>{{ disease.matchedPhenotypes }}</span>
-                                    <span>{{ disease.supportingGenes }}</span>
-                                    <span>{{ disease.source }}</span>
-                                </div>
-                                <div v-if="openDiseases[disease.name]" class="glens-disease-detail">
-                                    <div>
-                                        <span>Matched features</span>
-                                        <p>{{ disease.matchedDetail }}</p>
+                        <div class="glens-disease-table">
+                            <div class="glens-table-head glens-table-head--disease">
+                                <span>Disease profile</span>
+                                <span>Source</span>
+                                <span>Matched HPO terms</span>
+                                <span>Total disease HPO terms</span>
+                                <span>Overlap</span>
+                                <span>Notes</span>
+                            </div>
+                            <div
+                                v-for="disease in sample.diseaseMatches"
+                                :key="disease.name"
+                                class="glens-table-row glens-table-row--disease"
+                            >
+                                <strong>{{ disease.name }}</strong>
+                                <span>{{ disease.source }}</span>
+                                <span class="glens-disease-overlap-cell" @click.stop>
+                                    <button
+                                        class="glens-table-link glens-table-link-button"
+                                        type="button"
+                                        @click="toggleDiseaseMatchTerms(disease.name, 'matched')"
+                                    >
+                                        {{ disease.matchedHpoCount }}
+                                    </button>
+                                    <div v-if="activeDiseaseMatchName === `${disease.name}:matched`" class="glens-disease-hpo-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close matched HPO terms"
+                                            @click="activeDiseaseMatchName = null"
+                                        >
+                                            ×
+                                        </button>
+                                        <strong>{{ disease.name }} matched HPO terms</strong>
+                                        <ul>
+                                            <li v-for="term in disease.matchedHpoTerms" :key="term">{{ term }}</li>
+                                        </ul>
                                     </div>
-                                    <div>
-                                        <span>Missing or discordant</span>
-                                        <p>{{ disease.discordant }}</p>
+                                </span>
+                                <span>{{ disease.totalDiseaseHpoTerms }}</span>
+                                <span class="glens-disease-overlap-cell" @click.stop>
+                                    <button
+                                        class="glens-table-link glens-table-link-button"
+                                        type="button"
+                                        @click="toggleDiseaseMatchTerms(disease.name, 'overlap')"
+                                    >
+                                        {{ disease.overlap }}
+                                    </button>
+                                    <div v-if="activeDiseaseMatchName === `${disease.name}:overlap`" class="glens-disease-hpo-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close matched HPO terms"
+                                            @click="activeDiseaseMatchName = null"
+                                        >
+                                            ×
+                                        </button>
+                                        <strong>{{ disease.name }} matched HPO terms</strong>
+                                        <ul>
+                                            <li v-for="term in disease.matchedHpoTerms" :key="term">{{ term }}</li>
+                                        </ul>
                                     </div>
-                                    <div>
-                                        <span>Interpretation</span>
-                                        <p>{{ disease.interpretation }}</p>
-                                    </div>
-                                </div>
-                            </article>
+                                </span>
+                                <span>{{ disease.notes }}</span>
+                            </div>
                         </div>
                     </section>
 
@@ -594,7 +632,7 @@
                             </div>
                         </div>
                         <p class="glens-method-note">
-                            Candidate genes are gene-level explanations first. A gene is prioritized when this sample's rare variants, phenotype-similar patients, same-gene carriers, public disease profiles, and GenDX evidence converge.
+                            Genes are prioritized when rare sample variants align with phenotype evidence, known disease links, internal same-gene carriers, and GenDx support.
                         </p>
 
                         <div class="glens-gene-list">
@@ -602,40 +640,57 @@
                                 <button class="glens-gene-summary" type="button" @click="toggleGene(gene.gene)">
                                     <span>{{ expandedGenes[gene.gene] ? "▾" : "▸" }}</span>
                                     <strong>{{ gene.gene }}</strong>
-                                    <em>{{ gene.reason }}</em>
+                                    <em>{{ gene.priorityReason }}</em>
                                 </button>
-                                <div class="glens-gene-grid">
-                                    <div>
-                                        <span>Rare coding variants</span>
-                                        <strong>{{ gene.variantCount }}</strong>
+                                <div class="glens-gene-checklist">
+                                    <div class="glens-gene-check-row">
+                                        <span>Gene</span>
+                                        <a class="glens-table-link" :href="variantHref(gene.gene)">{{ gene.gene }}</a>
                                     </div>
-                                    <div>
-                                        <span>Highest consequence</span>
-                                        <strong>{{ gene.highestConsequence }}</strong>
+                                    <div class="glens-gene-check-row">
+                                        <span>Best variant</span>
+                                        <strong>{{ gene.bestVariant }}</strong>
                                     </div>
-                                    <div>
-                                        <span>Best pathogenicity evidence</span>
-                                        <strong>{{ gene.bestEvidence }}</strong>
+                                    <div class="glens-gene-check-row">
+                                        <span>Disease link</span>
+                                        <a class="glens-table-link" :href="diseaseProfileHref(gene.diseaseLink)">{{ gene.diseaseLink }}</a>
                                     </div>
-                                    <div>
-                                        <span>ClinVar</span>
-                                        <strong>{{ gene.clinvar }}</strong>
+                                    <div class="glens-gene-check-row glens-gene-check-row--popover" @click.stop>
+                                        <span>Phenotype fit</span>
+                                        <button
+                                            class="glens-table-link glens-table-link-button"
+                                            type="button"
+                                            @click="toggleGenePhenotypeFit(gene.gene)"
+                                        >
+                                            {{ gene.phenotypeFit }}
+                                        </button>
+                                        <div v-if="activeGenePhenotypeFit === gene.gene" class="glens-gene-hpo-popover">
+                                            <button
+                                                class="glens-section-info-close"
+                                                type="button"
+                                                aria-label="Close phenotype fit terms"
+                                                @click="activeGenePhenotypeFit = null"
+                                            >
+                                                ×
+                                            </button>
+                                            <strong>Phenotype fit: {{ gene.phenotypeFit }}</strong>
+                                            <p>Matched HPO terms:</p>
+                                            <ul>
+                                                <li v-for="term in gene.phenotypeFitTerms" :key="term">{{ term }}</li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span>MOI</span>
-                                        <strong>{{ gene.inheritance }}</strong>
+                                    <div class="glens-gene-check-row">
+                                        <span>Internal support</span>
+                                        <strong>{{ gene.internalSupport }}</strong>
                                     </div>
-                                    <div>
-                                        <span>Linked disease</span>
-                                        <strong>{{ gene.diseases }}</strong>
+                                    <div class="glens-gene-check-row">
+                                        <span>GenDx</span>
+                                        <strong>{{ gene.gendxSupport }}</strong>
                                     </div>
-                                    <div>
-                                        <span>Phenotype support</span>
-                                        <strong>{{ gene.phenotypeMatch }}</strong>
-                                    </div>
-                                    <div>
-                                        <span>Similar samples same gene</span>
-                                        <strong>{{ gene.similarCarrierSamples }}</strong>
+                                    <div class="glens-gene-check-row">
+                                        <span>Priority reason</span>
+                                        <strong>{{ gene.priorityReason }}</strong>
                                     </div>
                                 </div>
 
@@ -654,13 +709,12 @@
                                         <span>Carriers</span>
                                         <span>Phenotype consistency</span>
                                     </div>
-                                    <a
+                                    <div
                                         v-for="variant in gene.variants"
                                         :key="variant.variantId"
                                         class="glens-table-row glens-table-row--variant"
-                                        :href="variantHref(variant.variantId)"
                                     >
-                                        <strong>{{ variant.variantId }}</strong>
+                                        <a class="glens-table-link" :href="variantHref(variant.variantId)">{{ variant.variantId }}</a>
                                         <span>{{ variant.consequence }}</span>
                                         <span>{{ variant.transcript }}</span>
                                         <span>{{ variant.gnomad }}</span>
@@ -672,7 +726,7 @@
                                         <span>{{ variant.tier }}</span>
                                         <span>{{ variant.carriers }}</span>
                                         <span>{{ variant.consistency }}</span>
-                                    </a>
+                                    </div>
                                 </div>
                             </article>
                         </div>
@@ -712,6 +766,8 @@ export default {
             genotypeInfoOpen: false,
             activeSharedPhenotypeSampleId: null,
             activeSharedGeneSampleId: null,
+            activeDiseaseMatchName: null,
+            activeGenePhenotypeFit: null,
             expandedSharedHpoSampleIds: {},
             expandedDomainTerms: {},
             unsubscribeClinicalFocus: null,
@@ -723,7 +779,7 @@ export default {
                 { id: "overview", label: "Overview" },
                 { id: "phenotype", label: "Similar samples" },
                 { id: "genotype", label: "Similar by genotype" },
-                { id: "disease", label: "Disease hypotheses" },
+                { id: "disease", label: "Disease profile matches" },
                 { id: "genes", label: "Gene / variant evidence" },
             ];
         },
@@ -830,6 +886,8 @@ export default {
             this.genotypeInfoOpen = false;
             this.activeSharedPhenotypeSampleId = null;
             this.activeSharedGeneSampleId = null;
+            this.activeDiseaseMatchName = null;
+            this.activeGenePhenotypeFit = null;
         },
         removeClinicalContext() {
             clearClinicalFocus();
@@ -843,6 +901,9 @@ export default {
         },
         phenotypeMatchHref(row) {
             return `/krPhenotype.html?query=${encodeURIComponent(row.sharedHpoTerms.join(", "))}`;
+        },
+        diseaseProfileHref(diseaseName) {
+            return `/sample.html?sample_id=${encodeURIComponent(this.displaySampleId)}&view=disease&profile=${encodeURIComponent(diseaseName)}`;
         },
         toggleSharedPhenotypes(sampleId) {
             this.activeSharedPhenotypeSampleId = this.activeSharedPhenotypeSampleId === sampleId ? null : sampleId;
@@ -871,6 +932,13 @@ export default {
         },
         toggleSharedGenes(sampleId) {
             this.activeSharedGeneSampleId = this.activeSharedGeneSampleId === sampleId ? null : sampleId;
+        },
+        toggleDiseaseMatchTerms(diseaseName, anchor) {
+            const key = `${diseaseName}:${anchor}`;
+            this.activeDiseaseMatchName = this.activeDiseaseMatchName === key ? null : key;
+        },
+        toggleGenePhenotypeFit(gene) {
+            this.activeGenePhenotypeFit = this.activeGenePhenotypeFit === gene ? null : gene;
         },
         formatAgeBand(ageBand) {
             return String(ageBand || "").replace("-", "–");

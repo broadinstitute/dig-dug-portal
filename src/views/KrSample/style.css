@@ -1052,6 +1052,12 @@ p {
     grid-template-columns: 1.1fr 0.9fr 0.85fr 1.65fr 0.9fr 1.45fr;
 }
 
+.glens-table-head--disease,
+.glens-table-row--disease {
+    grid-template-columns: 1.25fr 0.95fr 0.9fr 1.05fr 0.75fr 1.6fr;
+    min-width: 72rem;
+}
+
 .glens-table-head--variant,
 .glens-table-row--variant {
     grid-template-columns: 1.55fr 1fr 1fr 0.75fr 0.45fr 0.55fr 0.8fr 0.5fr 0.7fr 0.45fr 0.6fr 1.25fr;
@@ -1165,6 +1171,47 @@ p {
     color: #42526a;
     font-weight: 700;
     line-height: 1.35;
+}
+
+.glens-disease-table {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.glens-disease-overlap-cell {
+    position: relative;
+    display: inline-flex;
+    width: max-content;
+    max-width: 100%;
+}
+
+.glens-disease-hpo-popover {
+    position: absolute;
+    z-index: 45;
+    top: calc(100% + 0.45rem);
+    left: 0;
+    width: min(23rem, 72vw);
+    padding: 0.85rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.85rem;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(22, 32, 51, 0.14);
+}
+
+.glens-disease-hpo-popover strong {
+    display: block;
+    padding-right: 1.8rem;
+    color: #162033;
+    font-size: 0.88rem;
+}
+
+.glens-disease-hpo-popover ul {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0.65rem 0 0;
+    padding-left: 1.1rem;
+    color: #42526a;
+    font-size: 0.82rem;
 }
 
 .glens-genotype-query-variant {
@@ -1467,8 +1514,12 @@ p {
     padding: 0.9rem;
 }
 
-.glens-gene-grid {
+.glens-gene-grid,
+.glens-gene-checklist {
     display: grid;
+}
+
+.glens-gene-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.75rem;
     border-top: 1px solid #e2e8f0;
@@ -1479,6 +1530,80 @@ p {
     display: block;
     margin-top: 0.25rem;
     color: #162033;
+}
+
+.glens-gene-checklist {
+    gap: 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.glens-gene-check-row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.38fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    border-top: 1px solid #edf2f7;
+    padding: 0.68rem 0.9rem;
+    color: #42526a;
+    font-size: 0.84rem;
+    font-weight: 750;
+}
+
+.glens-gene-check-row:first-child {
+    border-top: 0;
+}
+
+.glens-gene-check-row > span:first-child {
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-gene-check-row strong {
+    color: #162033;
+    font-weight: 800;
+}
+
+.glens-gene-check-row--popover {
+    position: relative;
+}
+
+.glens-gene-hpo-popover {
+    position: absolute;
+    z-index: 45;
+    top: calc(100% + 0.35rem);
+    left: min(10rem, 36%);
+    width: min(23rem, 72vw);
+    padding: 0.85rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.85rem;
+    background: #fff;
+    box-shadow: 0 16px 40px rgba(22, 32, 51, 0.14);
+}
+
+.glens-gene-hpo-popover strong {
+    display: block;
+    padding-right: 1.8rem;
+    color: #162033;
+    font-size: 0.88rem;
+}
+
+.glens-gene-hpo-popover p {
+    margin: 0.65rem 0 0;
+    color: #42526a;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.glens-gene-hpo-popover ul {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0.35rem 0 0;
+    padding-left: 1.1rem;
+    color: #42526a;
+    font-size: 0.82rem;
 }
 
 .glens-variant-table {
