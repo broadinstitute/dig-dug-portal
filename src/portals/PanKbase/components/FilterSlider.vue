@@ -41,7 +41,8 @@ export default Vue.component("filter-slider", {
         placeholder: String,
         predicate: {
             type: Function,
-            default: (item, threshold) => threshold.includeMissing || (item >= threshold.min && item <= threshold.max),
+            default: (item, threshold) => 
+            isNaN(item) || (item >= threshold.min && item <= threshold.max),
         },
         color: {
             type: String,
@@ -105,9 +106,6 @@ export default Vue.component("filter-slider", {
     },
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);
-        //console.log(this.field, JSON.stringify(this.values));
-        //console.log(this.field, JSON.stringify(this.cleanupValues));
-        console.log(this.field, "removed", this.values.length - this.cleanupValues.length);
         this.overallMin = this.cleanupValues[0];
         this.overallMax = this.cleanupValues[this.cleanupValues.length -1];
         this.$parent.$emit('filter-mounted', this.filterDefinition);
