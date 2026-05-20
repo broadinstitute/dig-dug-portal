@@ -88,6 +88,10 @@
     gap: 1rem;
 }
 
+.glens-header-row {
+    align-items: flex-start;
+}
+
 .glens-page-title,
 .glens-section-label {
     margin: 0;
@@ -906,6 +910,19 @@
     background: transparent;
 }
 
+.glens-demographic-panel--header {
+    flex: 0 1 34rem;
+    min-width: 28rem;
+}
+
+.glens-demographic-panel--header .glens-section-head {
+    gap: 0.7rem;
+}
+
+.glens-demographic-panel--header .glens-section-label {
+    white-space: nowrap;
+}
+
 .glens-demographic-panel .glens-age-card {
     border: 0;
     background: transparent;
@@ -926,6 +943,22 @@
 
 .glens-age-card--compact .glens-age-sex-col {
     width: 0.75rem;
+}
+
+.glens-demographic-panel--header .glens-age-card--compact {
+    margin-top: 0.35rem;
+}
+
+.glens-demographic-panel--header .glens-age-card--compact .glens-age-bars {
+    height: 4.9rem;
+}
+
+.glens-demographic-panel--header .glens-demography-line {
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 650;
 }
 
 .glens-carrier-profile-card {
@@ -1600,6 +1633,11 @@
     .glens-header-row,
     .glens-top-tools {
         display: block;
+    }
+
+    .glens-demographic-panel--header {
+        min-width: 0;
+        margin-top: 1rem;
     }
 
     .glens-meta-summary,

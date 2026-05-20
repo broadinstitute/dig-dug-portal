@@ -96,6 +96,50 @@
                                 18 queried-variant carriers · 12 probands · 17 affected
                             </div>
                         </div>
+                        <div class="glens-demographic-panel glens-demographic-panel--header">
+                            <div class="glens-section-head">
+                                <p class="glens-section-label">Demographic Summary</p>
+                                <div class="glens-level-toggle">
+                                    <button
+                                        v-for="level in summaryLevels"
+                                        :key="`header-demo-${level.key}`"
+                                        class="glens-level-button"
+                                        :class="{ 'glens-level-button--active': activeDemographicLevel === level.key }"
+                                        type="button"
+                                        @click="activeDemographicLevel = level.key"
+                                    >
+                                        {{ level.label }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="glens-age-card glens-age-card--compact">
+                                <div class="glens-age-bars">
+                                    <div
+                                        v-for="bin in demographicPanelAgeBins"
+                                        :key="`header-panel-${bin.label}`"
+                                        class="glens-age-col"
+                                    >
+                                        <div class="glens-age-pair">
+                                            <div class="glens-age-sex-col">
+                                                <div class="glens-age-sex-count">{{ bin.female }}</div>
+                                                <div class="glens-age-female" :style="{ height: bin.femaleHeight }"></div>
+                                            </div>
+                                            <div class="glens-age-sex-col">
+                                                <div class="glens-age-sex-count">{{ bin.male }}</div>
+                                                <div class="glens-age-male" :style="{ height: bin.maleHeight }"></div>
+                                            </div>
+                                        </div>
+                                        <div class="glens-age-bin-label">{{ bin.label }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="glens-demography-line">
+                                <span><i class="glens-dot glens-dot--female"></i>Female {{ demographicPanelScope.female }}</span>
+                                <span><i class="glens-dot glens-dot--male"></i>Male {{ demographicPanelScope.male }}</span>
+                                <span>All {{ demographicPanelScope.all }}</span>
+                                <span>Proband {{ demographicPanelScope.proband }} ({{ demographicPanelScope.probandPercent }}%)</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -312,51 +356,6 @@
                         </div>
 
                         <aside class="glens-evidence-stack" id="variant-evidence">
-                            <div class="glens-evidence-panel glens-demographic-panel">
-                                <div class="glens-section-head">
-                                    <p class="glens-section-label">Demographic Summary</p>
-                                    <div class="glens-level-toggle">
-                                        <button
-                                            v-for="level in summaryLevels"
-                                            :key="`demo-${level.key}`"
-                                            class="glens-level-button"
-                                            :class="{ 'glens-level-button--active': activeDemographicLevel === level.key }"
-                                            type="button"
-                                            @click="activeDemographicLevel = level.key"
-                                        >
-                                            {{ level.label }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="glens-age-card glens-age-card--compact">
-                                    <div class="glens-age-bars">
-                                        <div
-                                            v-for="bin in demographicPanelAgeBins"
-                                            :key="`panel-${bin.label}`"
-                                            class="glens-age-col"
-                                        >
-                                            <div class="glens-age-pair">
-                                                <div class="glens-age-sex-col">
-                                                    <div class="glens-age-sex-count">{{ bin.female }}</div>
-                                                    <div class="glens-age-female" :style="{ height: bin.femaleHeight }"></div>
-                                                </div>
-                                                <div class="glens-age-sex-col">
-                                                    <div class="glens-age-sex-count">{{ bin.male }}</div>
-                                                    <div class="glens-age-male" :style="{ height: bin.maleHeight }"></div>
-                                                </div>
-                                            </div>
-                                            <div class="glens-age-bin-label">{{ bin.label }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="glens-demography-line">
-                                    <span><i class="glens-dot glens-dot--female"></i>Female {{ demographicPanelScope.female }}</span>
-                                    <span><i class="glens-dot glens-dot--male"></i>Male {{ demographicPanelScope.male }}</span>
-                                    <span class="glens-mini-pill">All {{ demographicPanelScope.all }}</span>
-                                    <span class="glens-mini-pill">Proband {{ demographicPanelScope.proband }} ({{ demographicPanelScope.probandPercent }}%)</span>
-                                </div>
-                            </div>
-
                             <div class="glens-evidence-panel glens-evidence-panel--variant">
                                 <p class="glens-section-label">Queried variant evidence</p>
                                 <div class="glens-kv-grid">
