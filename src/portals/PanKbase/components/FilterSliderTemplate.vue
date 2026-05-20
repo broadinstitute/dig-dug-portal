@@ -39,7 +39,10 @@ export default Vue.component("filter-slider-template", {
         values: Array,
         label: String,
         placeholder: String,
-        predicate: Function,
+        predicate: {
+            type: Function,
+            default: (item, threshold) => threshold.includeMissing || (item >= threshold.min && item <= threshold.max),
+        },
         color: {
             type: String,
         },
