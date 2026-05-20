@@ -451,6 +451,7 @@
     border-radius: 0;
     background: transparent;
     overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .glens-tab-row--insights button {

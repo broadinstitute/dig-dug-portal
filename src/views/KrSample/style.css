@@ -335,6 +335,7 @@ p {
     padding: 0.9rem 0.9rem 0;
     background: #f8fafc;
     overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .glens-tab-button {
