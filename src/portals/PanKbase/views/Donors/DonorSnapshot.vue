@@ -180,6 +180,7 @@ const DATA_TYPE_LABELS = {
     bulk_RNA_seq: "Bulk RNA-seq",
     "bulk_RNA-seq": "Bulk RNA-seq",
     "single_cell_RNA-seq": "Single-cell RNA-seq",
+    "single_nucleus_ATAC-seq": "Single-nucleus ATAC-seq",
     "single_nuclear_ATAC-seq": "Single-nucleus ATAC-seq",
 };
 
@@ -471,7 +472,7 @@ export default Vue.component("DonorSnapshot", {
                     color: ASSAY_DONOR_COLORS[1],
                 },
                 {
-                    label: "Without assay",
+                    label: "Without assay in PanKbase",
                     value: withoutAssayCount,
                     percent: total ? (withoutAssayCount / total) * 100 : 0,
                     color: "#b8cec7",
@@ -1203,9 +1204,8 @@ function formatPercentValue(value) {
 
 .snapshot-micro-label-full {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.2;
+    white-space: normal;
 }
 
 .snapshot-micro-track {
