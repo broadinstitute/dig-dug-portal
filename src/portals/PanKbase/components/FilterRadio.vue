@@ -1,47 +1,136 @@
 <template>
-  <filter-radio-template
-    :field="field"
-    :predicate="predicate"
-    :options="options"
-    @input-change="$emit('input-change', $event)"
-    :color="color"
-    :multiple="false"
-    :inclusive="false"
-    :presets="presets"
-  >
-    <slot> </slot>
-  </filter-radio-template>
+    <div>
+        <categorical-filter
+            v-model="catFilter[field]"
+            :columnName="field"
+            :displayLabel="field === 'Gender' ? 'Reported gender' : field"
+            :options="processedOptions"
+            :totalRowCount="options.length"
+            @input="e => updateFilter(e)">
+
+        </categorical-filter>
+    </div>
 </template>
+
 <script>
 import Vue from "vue";
-import FilterRadioTemplate from "./FilterRadioTemplate.vue";
-export default Vue.component("filter-radio", {
-  props: {
-    field: String,
-    options: Array,
-    color: String,
-    predicate: {
-      type: Function,
-      default: (item, thresholdArray) => thresholdArray.includes(item),
-    },
-    presets: Array
+import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import CategoricalFilter from "../views/Donors/CategoricalFilter.vue";
 
-  },
-  mounted(){
-  },
-  components: {
-    FilterRadioTemplate,
-  },
-  computed: {
-    dedupedOptions(){
-      let allOptions = Array.from(new Set(this.options));
-      let emptyValue = "-";
-      // Put the empty/ Not Applicable value last if it is present
-      if (allOptions.includes(emptyValue)){
-        allOptions = allOptions.filter(o => o !== emptyValue).concat([emptyValue]);
-      }
-      return allOptions;
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
+
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
+export default Vue.component("filter-radio", {
+    props: {
+        value: Object,
+        field: String,
+        label: String,
+        placeholder: String,
+        predicate: {
+            type: Function,
+            default: (item, thresholdArray) => thresholdArray.includes(item),
+        },
+        options: Array,
+        multiple: Boolean,
+        inclusive: Boolean,
+        color: {
+            type: String,
+        },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) =>
+                `${filterDefinition.field} = ${filterDefinition.threshold}`,
+        },
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
+        },
+        splitBy: {
+            type: String,
+            default: "",
+        },
+        type: {
+            type: String,
+            // 'string', 'number', 'boolean', 'object', 'function'...
+        },
+        clear: {
+            type: Boolean,
+            default: true,
+        },
+        disabled: Boolean,
+        // called "computedField" instead of "computed" to prevent terminology collisions
+        computedField: Function,
+        presets: Array
     },
-  }
+    components: {
+        CategoricalFilter
+    },
+    data() {
+        return {
+            filterDefinition: {
+                field: this.field,
+                placeholder: this.placeholder,
+                label: this.pillFormatter,
+                pillFormatter: this.pillFormatter,
+                labelFormatter: this.labelFormatter,
+                color: this.color,
+                predicate: this.predicate,
+                multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
+                inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                computedField: this.computedField,
+            },
+            filterThreshold: this.options, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            processedOptions: [],
+            catFilter: {}
+        };
+    },
+    created() {
+        this.processedOptions = this.process(this.options);
+        this.catFilter[this.field] = this.processedOptions.map(o => o.value);
+        if (this.presets.length > 0){
+            let preset = this.presets.find(p => p.name === this.field);
+            if (preset !== undefined){
+                this.catFilter[this.field] = preset.values;
+                this.updateFilter(preset.values);
+            }
+        }
+    },
+    mounted() {
+        this.$parent.$emit('filter-mounted', this.filterDefinition);
+    },
+    methods: {
+        updateFilter(newThreshold) {
+            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
+            // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
+            if (newThreshold !== null) {
+              this.$parent.$emit("change", newThreshold, {
+                  // label: this.pillFormatter,
+                  // color: this.color,
+                  ...this.filterDefinition,
+              });
+            }
+        },
+        process(options){
+            let discreteOptions = Array.from(new Set(options));
+            let output = discreteOptions.map(discreteOption => {
+                let count = options.filter(o => o === discreteOption).length;
+                let entry = {
+                    value: discreteOption,
+                    label: discreteOption,
+                    count: count
+                };
+                return entry;
+            });
+            return output;
+        }
+    },
+    watch: {
+        filterThreshold(newThreshold){
+            this.updateFilter(newThreshold);
+        },
+    }
 });
 </script>
