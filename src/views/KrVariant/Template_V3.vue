@@ -529,6 +529,7 @@
                                                         id="carrier-context-investigator"
                                                         v-model="activeResidualGroupName"
                                                         class="glens-select"
+                                                        @change="syncPhenotypeSummaryToResidualGroup"
                                                     >
                                                         <option
                                                             v-for="group in activeResidualGroups"
@@ -546,7 +547,7 @@
                                                         type="button"
                                                         class="glens-residual-row"
                                                         :class="{ 'glens-residual-row--active': activeResidualGroupName === group.name }"
-                                                        @click="activeResidualGroupName = group.name"
+                                                        @click="setResidualGroup(group.name)"
                                                     >
                                                         <span>{{ group.name }}</span>
                                                         <div class="glens-residual-boxplot" aria-label="Residual boxplot">
@@ -831,11 +832,7 @@ export default {
                 .sort((left, right) => Number(left.active) - Number(right.active));
         },
         phenotypeRows() {
-            const source = this.activeSummaryLevel === "variant"
-                ? this.variant.variantPhenotypes
-                : this.variant.phenotypes;
-
-            return source[this.activePhenotypeInvestigator];
+            return this.phenotypeRowsForInvestigator(this.activePhenotypeInvestigator);
         },
         activePhenotypeDetails() {
             return this.variant.phenotypeDetails[this.activePhenotypeCategory] || [];
@@ -887,6 +884,30 @@ export default {
             this.activeSummaryLevel = level;
             this.activeDemographicLevel = level;
             this.activePhenotypeCategory = "";
+            this.syncPhenotypeSummaryToResidualGroup();
+        },
+        setResidualGroup(groupName) {
+            this.activeResidualGroupName = groupName;
+            this.syncPhenotypeSummaryToResidualGroup();
+        },
+        syncPhenotypeSummaryToResidualGroup() {
+            const investigatorKey = this.residualGroupToInvestigatorKey(this.activeResidualGroupName);
+            if (this.phenotypeRowsForInvestigator(investigatorKey).length) {
+                this.activePhenotypeInvestigator = investigatorKey;
+            }
+        },
+        residualGroupToInvestigatorKey(groupName) {
+            if (!groupName || groupName === "All CRDC") return "all-investigators";
+            const normalized = groupName.toLowerCase().replace(/\s+/g, "-");
+            return this.investigatorOptions.some((option) => option.key === normalized)
+                ? normalized
+                : "all-investigators";
+        },
+        phenotypeRowsForInvestigator(investigatorKey) {
+            const source = this.activeSummaryLevel === "variant"
+                ? this.variant.variantPhenotypes
+                : this.variant.phenotypes;
+            return source[investigatorKey] || [];
         },
         selectPhenotypeCategory(label) {
             this.activePhenotypeCategory = label;

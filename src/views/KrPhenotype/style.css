@@ -162,6 +162,11 @@
     line-height: 1;
 }
 
+.glens-query-info-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
 .glens-query-info-popover {
     position: absolute;
     z-index: 30;
@@ -177,9 +182,10 @@
     box-shadow: 0 12px 28px rgba(22, 32, 51, 0.12);
     color: #42526a;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0;
     line-height: 1.35;
+    text-align: left;
     text-transform: none;
 }
 
@@ -191,12 +197,52 @@
 .glens-query-info-popover--wide strong,
 .glens-query-info-popover--wide span {
     display: block;
+    font-weight: 500;
+    text-align: left;
 }
 
 .glens-query-info-popover--wide strong {
     margin-bottom: 0.35rem;
     color: #162033;
     font-size: 0.82rem;
+}
+
+.glens-query-info-popover--candidate {
+    right: 0;
+    left: auto;
+    width: 20rem;
+    max-width: min(20rem, calc(100vw - 2rem));
+    font-weight: 500;
+    text-align: left;
+}
+
+.glens-query-info-popover--open {
+    display: block;
+}
+
+.glens-query-info-popover--candidate span,
+.glens-summary-cell .glens-query-info-popover--candidate span {
+    color: #42526a;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+}
+
+.glens-query-info-close {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.42rem;
+    border: 0;
+    background: transparent;
+    color: #526276;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0;
 }
 
 .glens-query-info-popover--wide span + span {
@@ -395,6 +441,32 @@
 
 .glens-summary-cell small {
     color: #526276;
+    font-weight: 750;
+}
+
+.glens-candidate-source-list {
+    display: grid;
+    gap: 0.18rem;
+    margin-top: 0.3rem;
+}
+
+.glens-candidate-source-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.glens-candidate-source-row strong {
+    margin: 0;
+    min-width: 3.4rem;
+    font-size: 0.88rem;
+}
+
+.glens-candidate-source-row small {
+    display: inline;
+    color: #526276;
+    font-size: 0.72rem;
     font-weight: 750;
 }
 
@@ -1467,8 +1539,8 @@
 .glens-sample-head,
 .glens-sample-row {
     display: grid;
-    grid-template-columns: 2.6rem minmax(6.2rem, 0.85fr) minmax(7.2rem, 0.95fr) minmax(7.8rem, 0.9fr) minmax(4.8rem, 0.55fr) minmax(4.6rem, 0.55fr) minmax(4.8rem, 0.55fr) minmax(6rem, 0.8fr);
-    gap: 0.45rem;
+    grid-template-columns: 3.5rem minmax(9rem, 0.95fr) minmax(7.2rem, 0.9fr) minmax(7.8rem, 0.9fr) minmax(4.8rem, 0.55fr) minmax(4.6rem, 0.55fr) minmax(4.8rem, 0.55fr) minmax(6rem, 0.8fr);
+    gap: 0.65rem;
     align-items: center;
     min-width: 60rem;
     padding: 0.7rem 0.85rem;
@@ -1486,14 +1558,18 @@
 .glens-sample-row {
     border-top: 1px solid #eef2f7;
     color: #526276;
-    font-size: 0.8rem;
-    font-weight: 750;
+    font-size: 0.82rem;
+    font-weight: 500;
     text-decoration: none;
+}
+
+.glens-sample-row strong {
+    font-weight: 500;
 }
 
 .glens-inline-link {
     color: #0d4d91;
-    font-weight: 950;
+    font-weight: 500;
     text-decoration: none;
 }
 
@@ -1503,7 +1579,7 @@
     color: #0d4d91;
     cursor: pointer;
     font: inherit;
-    font-weight: 950;
+    font-weight: 500;
     padding: 0;
     text-align: left;
 }
@@ -1537,7 +1613,7 @@
 
 .glens-signal-links a {
     color: #0d4d91;
-    font-weight: 950;
+    font-weight: 500;
     text-decoration: none;
 }
 
@@ -1687,6 +1763,7 @@
 
 .glens-profile-row strong {
     color: #162033;
+    font-weight: 500;
 }
 
 .glens-profile-toggle {
@@ -1757,7 +1834,7 @@
 }
 
 .glens-group-qc-layout--support {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .glens-outlier-panel--support {
@@ -1771,7 +1848,6 @@
 
 .glens-group-qc-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
     gap: 0.9rem;
     align-items: start;
 }
@@ -1809,7 +1885,7 @@
 
 .glens-boxplot-row {
     display: grid;
-    grid-template-columns: 8.5rem minmax(0, 1fr) 5.8rem;
+    grid-template-columns: minmax(10rem, 0.28fr) minmax(16rem, 1fr) minmax(8rem, 0.22fr);
     gap: 0.75rem;
     align-items: center;
     color: #526276;
@@ -1868,7 +1944,7 @@
 }
 
 .glens-outlier-panel {
-    margin: 0.1rem 0 0.45rem 9.25rem;
+    margin: 0.1rem 0 0.45rem;
     padding: 0.85rem;
     border: 1px solid #dbe5ef;
     border-radius: 1rem;
@@ -1898,7 +1974,7 @@
 
 .glens-outlier-row {
     display: grid;
-    grid-template-columns: 1fr 0.7fr 0.8fr 1fr;
+    grid-template-columns: minmax(10rem, 1.1fr) minmax(8rem, 0.75fr) minmax(10rem, 0.9fr) minmax(12rem, 1.15fr);
     gap: 0.65rem;
     align-items: center;
     padding: 0.5rem 0;
@@ -1908,8 +1984,18 @@
     font-weight: 750;
 }
 
+.glens-outlier-row--head {
+    border-top: 1px solid #e2e8f0;
+    color: #526276;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
 .glens-outlier-row strong {
     color: #162033;
+    font-weight: 500;
 }
 
 .glens-boxplot-line i {
@@ -2054,17 +2140,17 @@
     border-top: 1px solid #eef2f7;
     color: #526276;
     font-size: 0.82rem;
-    font-weight: 750;
+    font-weight: 500;
 }
 
 .glens-candidate-row strong {
     color: #162033;
-    font-weight: 900;
+    font-weight: 500;
 }
 
 .glens-candidate-row a {
     color: #0d4d91;
-    font-weight: 900;
+    font-weight: 500;
     text-decoration: none;
 }
 

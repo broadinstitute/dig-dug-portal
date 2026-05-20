@@ -6,6 +6,7 @@ export function createKrPhenotypeState() {
             activeOutlierSample: "BCH-12-34567-01",
             activeEvidenceTab: "individual",
             activeInsightTab: "disease",
+            candidateInfoOpen: false,
             activeExactCategory: "Abnormality of the nervous system",
             activeSampleProfileCategory: "Abnormality of the nervous system",
             diagnosisOpen: false,
@@ -29,9 +30,13 @@ export function createKrPhenotypeState() {
                 },
                 headline: [
                     { label: "Phenotype-similar samples", value: "132 / 904", detail: "raw weighted similarity search" },
-                    { label: "Annotation-burden QC", value: "top 6.2%", detail: "best sample remains high after n_terms correction" },
+                    { label: "Annotation-burden check", value: "Top 6.2% after total HPO-term correction", detail: "Best-matched sample is not explained only by many HPO terms" },
                     { label: "Dominant phenotype structure", value: "craniofacial + neurodevelopmental", detail: "co-observed domains" },
-                    { label: "Candidate molecular evidence", value: "KMT2D · CHD7 · SATB2", detail: "from phenotype-similar samples" },
+                ],
+                candidateEvidenceSummary: [
+                    { gene: "KMT2D", sources: ["External", "CRDC"] },
+                    { gene: "CHD7", sources: ["External"] },
+                    { gene: "SATB2", sources: ["CRDC"] },
                 ],
                 queryTerms: {
                     exact: [

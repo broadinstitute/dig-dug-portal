@@ -146,14 +146,57 @@
                             </div>
                         </div>
                         <div class="glens-summary-group glens-summary-group--triplet">
-                            <div
-                                v-for="item in phenotype.headline.slice(1)"
-                                :key="item.label"
-                                class="glens-summary-cell"
-                            >
-                                <span>{{ item.label }}</span>
-                                <strong>{{ item.value }}</strong>
-                                <small>{{ item.detail }}</small>
+                            <div class="glens-summary-cell">
+                                <span>{{ phenotype.headline[1].label }}</span>
+                                <strong>{{ phenotype.headline[1].value }}</strong>
+                                <small>{{ phenotype.headline[1].detail }}</small>
+                            </div>
+                            <div class="glens-summary-cell">
+                                <span>{{ phenotype.headline[2].label }}</span>
+                                <strong>{{ phenotype.headline[2].value }}</strong>
+                                <small>{{ phenotype.headline[2].detail }}</small>
+                            </div>
+                            <div class="glens-summary-cell glens-summary-cell--candidate">
+                                <div class="glens-heading-with-info">
+                                    <span>Candidate gene evidence</span>
+                                    <span class="glens-query-info-wrap">
+                                        <button
+                                            class="glens-query-info"
+                                            type="button"
+                                            aria-label="Candidate gene evidence source explanation"
+                                            @click.stop="candidateInfoOpen = !candidateInfoOpen"
+                                        >
+                                            i
+                                        </button>
+                                        <span
+                                            v-if="candidateInfoOpen"
+                                            class="glens-query-info-popover glens-query-info-popover--wide glens-query-info-popover--candidate glens-query-info-popover--open"
+                                        >
+                                            <button
+                                                class="glens-query-info-close"
+                                                type="button"
+                                                aria-label="Close evidence source explanation"
+                                                @click.stop="candidateInfoOpen = false"
+                                            >
+                                                ×
+                                            </button>
+                                            <span>Evidence source</span>
+                                            <span>External: Supported by external disease or gene-phenotype annotations from the input HPO terms.</span>
+                                            <span>CRDC: Supported by variants observed in phenotype-matched CRDC samples.</span>
+                                            <span>Genes with both labels have support from both reference annotations and CRDC cohort evidence.</span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="glens-candidate-source-list">
+                                    <div
+                                        v-for="item in phenotype.candidateEvidenceSummary"
+                                        :key="item.gene"
+                                        class="glens-candidate-source-row"
+                                    >
+                                        <strong>{{ item.gene }}</strong>
+                                        <small>[{{ item.sources.join(" | ") }}]</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -339,7 +382,7 @@
                 </section>
 
                 <section class="glens-evidence-grid">
-                    <section class="glens-card glens-card--core">
+                    <section class="glens-insight-tabs-card glens-cohort-tabs-card">
                         <div class="glens-section-head">
                             <div>
                                 <p class="glens-section-label">CRDC cohort evidence</p>
@@ -350,7 +393,7 @@
                             </div>
                         </div>
 
-                        <div class="glens-tab-row glens-tab-row--evidence">
+                        <div class="glens-tab-row glens-tab-row--insights">
                             <button
                                 type="button"
                                 :class="{ 'glens-tab-button--active': activeEvidenceTab === 'individual' }"
@@ -374,7 +417,7 @@
                             </button>
                         </div>
 
-                        <div v-if="activeEvidenceTab === 'individual'" class="glens-cohort-tab-panel">
+                        <div v-if="activeEvidenceTab === 'individual'" class="glens-cohort-tab-panel glens-step-card glens-step-card--tabbed">
                             <div class="glens-sample-table glens-sample-table--primary mt-space">
                                 <div class="glens-sample-head">
                                     <span>Rank</span>
@@ -537,7 +580,7 @@
                             </div>
                         </div>
 
-                        <div v-else-if="activeEvidenceTab === 'coobserved'" class="glens-cohort-tab-panel">
+                        <div v-else-if="activeEvidenceTab === 'coobserved'" class="glens-cohort-tab-panel glens-step-card glens-step-card--tabbed">
                             <div class="glens-coobserved-panel mt-space">
                                 <div class="glens-heading-with-info">
                                     <p class="glens-small-heading">Co-observed phenotypes among matched samples</p>
@@ -597,7 +640,7 @@
                             </div>
                         </div>
 
-                        <div v-else-if="activeEvidenceTab === 'group'" class="glens-group-tab-panel mt-space">
+                        <div v-else-if="activeEvidenceTab === 'group'" class="glens-group-tab-panel glens-step-card glens-step-card--tabbed">
                             <p class="glens-source-note">
                                 This view shows whether the phenotype-matched cohort signal is broadly distributed or driven by specific investigator groups.
                             </p>
@@ -631,11 +674,17 @@
                                 <div class="glens-outlier-panel glens-outlier-panel--support">
                                     <div class="glens-outlier-head">
                                         <strong>{{ activeResidualGroupData.name }}</strong>
-                                        <span>group median corrected score {{ activeResidualGroupData.medianValue }} · selected sample corrected score {{ selectedSampleData.residual }}</span>
+                                        <span>Group median burden-corrected score: {{ activeResidualGroupData.medianValue }} · Selected sample burden-corrected score: {{ selectedSampleData.residual }}</span>
                                     </div>
                                     <p class="glens-outlier-threshold">
-                                        Rows show high-scoring samples for this investigator phenotype signature. This is group-context evidence, not the main nearest-patient ranking.
+                                        This table shows high-scoring samples within the selected investigator group. This is group-context evidence, not the nearest-patient ranking.
                                     </p>
+                                    <div class="glens-outlier-row glens-outlier-row--head">
+                                        <span>Sample</span>
+                                        <span>Status</span>
+                                        <span>Burden-corrected score</span>
+                                        <span>Candidate signals</span>
+                                    </div>
                                     <div
                                         v-for="sample in activeResidualGroupData.outliers"
                                         :key="sample.id"
@@ -669,10 +718,10 @@
                             <div class="glens-residual-panel glens-residual-panel--group mt-space">
                                 <div class="glens-panel-title">
                                     <span>Investigator-level scatter plot</span>
-                                    <small>Group-average corrected scores by phenotype signature.</small>
+                                    <small>Group-average burden-corrected scores by phenotype signature.</small>
                                 </div>
                                 <div class="glens-score-plot glens-score-plot--group-average">
-                                    <span class="glens-axis-y glens-axis-y--top">Y-axis: group-average corrected score</span>
+                                    <span class="glens-axis-y glens-axis-y--top">Y-axis: group-average burden-corrected score</span>
                                     <span class="glens-axis-y glens-axis-y--bottom">0</span>
                                     <span class="glens-axis-x">X-axis: group phenotype complexity</span>
                                     <div class="glens-trend-line glens-trend-line--group"></div>
@@ -683,12 +732,12 @@
                                         :class="{ 'glens-score-point--selected': activeResidualGroup === group.name }"
                                         :style="{ left: group.x, bottom: group.y }"
                                         type="button"
-                                        :title="group.name + ' · median corrected score ' + group.medianValue"
+                                        :title="group.name + ' · median burden-corrected score ' + group.medianValue"
                                         @click="activeResidualGroup = group.name"
                                     ></button>
                                     <div class="glens-selected-label glens-selected-label--group" :style="groupLabelStyle">
                                         {{ activeResidualGroupData.name }}<br>
-                                        median {{ activeResidualGroupData.medianValue }}
+                                        median burden-corrected score {{ activeResidualGroupData.medianValue }}
                                     </div>
                                 </div>
                             </div>
