@@ -98,7 +98,6 @@ export default Vue.component("filter-slider", {
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                console.log(JSON.stringify(preset));
                 this.presetRange = preset;
                 this.updateFilter(preset);
             }
@@ -106,6 +105,9 @@ export default Vue.component("filter-slider", {
     },
     mounted() {
         this.cleanupValues = this.cleanValues(this.values);
+        //console.log(this.field, JSON.stringify(this.values));
+        //console.log(this.field, JSON.stringify(this.cleanupValues));
+        console.log(this.field, "removed", this.values.length - this.cleanupValues.length);
         this.overallMin = this.cleanupValues[0];
         this.overallMax = this.cleanupValues[this.cleanupValues.length -1];
         this.$parent.$emit('filter-mounted', this.filterDefinition);
@@ -125,6 +127,9 @@ export default Vue.component("filter-slider", {
                 let includeMissing = 
                     newThreshold.min === this.overallMin 
                     && newThreshold.max === this.overallMax;
+                if (includeMissing){
+                    console.log("This should include everything");
+                }
                 newThreshold.includeMissing = includeMissing;
                 this.$parent.$emit("change", newThreshold, {
                         // label: this.pillFormatter,
