@@ -2,11 +2,11 @@
     <div>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
         <categorical-filter
+            v-model="catFilter"
             :columnName="field"
-            :displayLabel="field"
+            :displayLabel="field === 'Gender' ? 'Reported gender' : field"
             :options="processedOptions"
             :totalRowCount="options.length"
-            :value="presetRange"
             @input="e => updateFilter(e)">
 
         </categorical-filter>
@@ -34,7 +34,6 @@ export default Vue.component("filter-radio-template", {
         options: Array,
         multiple: Boolean,
         inclusive: Boolean,
-        valueCleared: Boolean,
         color: {
             type: String,
         },
@@ -82,16 +81,17 @@ export default Vue.component("filter-radio-template", {
                 computedField: this.computedField,
             },
             filterThreshold: this.options, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
-            presetRange: null,
-            processedOptions: []
+            processedOptions: [],
+            catFilter: {}
         };
     },
     created() {
         this.processedOptions = this.process(this.options);
+        this.catFilter[this.field] = this.processedOptions.map(o => o.value);
         if (this.presets.length > 0){
             let preset = this.presets.find(p => p.name === this.field);
             if (preset !== undefined){
-                this.presetRange = preset.values;
+                this.catFilter[this.field] = preset.values;
                 this.updateFilter(preset.values);
             }
         }
@@ -101,6 +101,7 @@ export default Vue.component("filter-radio-template", {
     },
     methods: {
         updateFilter(newThreshold) {
+            console.log(JSON.stringify(newThreshold));
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
@@ -126,14 +127,17 @@ export default Vue.component("filter-radio-template", {
             return output;
         }
     },
+    computed: {
+        catFilterString(){
+            return JSON.stringify(this.catFilter);
+        },
+    },
     watch: {
         filterThreshold(newThreshold){
             this.updateFilter(newThreshold);
         },
-        valueCleared(isCleared){
-            if (isCleared){
-                this.filterThreshold = null;
-            }
+        catFilterString(newString){
+            console.log("Filter radio template component", newString);
         }
     }
 });

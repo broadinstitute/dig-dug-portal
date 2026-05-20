@@ -581,6 +581,9 @@ export default {
         };
     },
     computed: {
+        catFilterString(){
+            return JSON.stringify(this.categoricalFilters);
+        },
         preparedDataset() {
             return this.$parent.preparedDataset;
         },
@@ -1080,6 +1083,9 @@ export default {
                 this.activeContentTab = "table";
             }
         },
+        catFilterString(newString){
+            //console.log(newString);
+        }
     },
     mounted() {
         console.log("[Donors] template:mounted");
