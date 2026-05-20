@@ -122,13 +122,6 @@ export default Vue.component("filter-slider", {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                let includeMissing = 
-                    newThreshold.min === this.overallMin 
-                    && newThreshold.max === this.overallMax;
-                if (includeMissing){
-                    console.log("This should include everything");
-                }
-                newThreshold.includeMissing = includeMissing;
                 this.$parent.$emit("change", newThreshold, {
                         // label: this.pillFormatter,
                         // color: this.color,
