@@ -261,8 +261,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 0.55rem;
-    flex-wrap: wrap;
+    gap: 0.42rem;
+    flex-wrap: nowrap;
 }
 
 .glens-result-context-tool {
@@ -288,27 +288,53 @@
     white-space: nowrap;
 }
 
+.glens-result-context-badge {
+    display: inline;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 760;
+    line-height: 1;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.glens-result-context-badge--active {
+    color: #42526a;
+}
+
 .glens-result-tool-button {
-    min-height: 2rem;
-    border: 1px solid #c9d6e7;
-    border-radius: 999px;
-    background: #f8fafc;
-    color: #243b5a;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #0055FF;
     font-size: 0.82rem;
     font-weight: 850;
-    padding: 0.3rem 0.7rem;
+    padding: 0;
     white-space: nowrap;
+}
+
+.glens-result-context-tool::before,
+.glens-result-options-tool::before {
+    content: "|";
+    color: #cbd5e1;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding-right: 0.42rem;
 }
 
 .glens-result-options-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid #c9d6e7;
-    border-radius: 999px;
-    background: #f8fafc;
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: #243b5a;
     font-size: 1.15rem;
     font-weight: 900;

@@ -78,8 +78,8 @@
 
 .glens-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.45fr);
-    gap: 0.75rem;
+    grid-template-columns: minmax(17rem, 0.7fr) minmax(0, 1.45fr);
+    gap: 1rem;
     padding: 0.85rem 1rem;
 }
 
@@ -90,6 +90,155 @@
     font-weight: 780;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.glens-query-plain {
+    display: grid;
+    gap: 0.38rem;
+    color: #42526a;
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.glens-query-plain strong {
+    color: #162033;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.glens-query-plain span,
+.glens-plain-term-list span {
+    display: block;
+}
+
+.glens-query-plain span {
+    color: #42526a;
+    font-size: 1.12rem;
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.glens-query-match-summary {
+    display: grid;
+    gap: 0.24rem;
+    margin-top: 1rem;
+    color: #42526a;
+}
+
+.glens-query-match-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 820;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.glens-query-match-summary strong {
+    color: #162033;
+    font-size: 1.35rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.glens-query-info {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    border: 1px solid #8fb8e8;
+    border-radius: 999px;
+    background: transparent;
+    color: #0055FF;
+    font-size: 0.66rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.glens-query-info-popover {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    display: none;
+    width: max-content;
+    max-width: 15rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.55rem;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(22, 32, 51, 0.12);
+    color: #42526a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-transform: none;
+}
+
+.glens-query-info-popover--wide {
+    width: 22rem;
+    max-width: min(22rem, 72vw);
+}
+
+.glens-query-info-popover--wide strong,
+.glens-query-info-popover--wide span {
+    display: block;
+}
+
+.glens-query-info-popover--wide strong {
+    margin-bottom: 0.35rem;
+    color: #162033;
+    font-size: 0.82rem;
+}
+
+.glens-query-info-popover--wide span + span {
+    margin-top: 0.36rem;
+}
+
+.glens-query-info:hover .glens-query-info-popover,
+.glens-query-info:focus .glens-query-info-popover,
+.glens-query-info:focus-visible .glens-query-info-popover {
+    display: block;
+}
+
+.glens-semantic-plain {
+    margin-top: 0.9rem;
+}
+
+.glens-plain-disclosure {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 0;
+    background: transparent;
+    color: #42526a;
+    padding: 0;
+    font-size: 0.9rem;
+    font-weight: 850;
+    text-align: left;
+}
+
+.glens-plain-disclosure span {
+    color: #d97706;
+    font-weight: 950;
+}
+
+.glens-plain-term-list {
+    display: grid;
+    gap: 0.28rem;
+    margin-top: 0.45rem;
+    color: #526276;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.35;
 }
 
 .glens-searching-line {
@@ -189,32 +338,114 @@
     align-self: start;
 }
 
-.glens-hero-cohort {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
-    padding: 0.62rem 0.72rem;
-    border: 1px solid #dbe5ef;
-    border-radius: 1rem;
-    background: #fff;
+.glens-summary-group {
+    display: grid;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
-.glens-hero-cohort strong,
-.glens-hero-cohort span {
+.glens-summary-group--cohort {
+    grid-template-columns: 1fr;
+    align-items: center;
+}
+
+.glens-summary-group--triplet {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.72rem;
+}
+
+.glens-summary-cell {
+    min-width: 0;
+    padding: 0.05rem 0.72rem;
+}
+
+.glens-summary-cell:first-child {
+    padding-left: 0;
+}
+
+.glens-summary-cell + .glens-summary-cell {
+    border-left: 1px solid #e2e8f0;
+}
+
+.glens-summary-cell span,
+.glens-summary-cell small,
+.glens-hero-cohort-copy strong,
+.glens-hero-cohort-copy span {
     display: block;
 }
 
-.glens-hero-cohort strong {
+.glens-summary-cell span {
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.glens-summary-cell strong {
+    display: block;
+    margin: 0.22rem 0 0.1rem;
+    color: #162033;
+    font-size: 0.94rem;
+    font-weight: 900;
+}
+
+.glens-summary-cell small {
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-hero-cohort-copy strong {
     color: #162033;
     font-size: 1rem;
     font-weight: 900;
 }
 
-.glens-hero-cohort span {
+.glens-hero-cohort-copy span {
     color: #526276;
     font-size: 0.8rem;
-    font-weight: 750;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.glens-summary-cell--chart {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.glens-hero-age-block {
+    display: grid;
+    gap: 0.34rem;
+}
+
+.glens-hero-age-heading {
+    display: grid;
+    gap: 0.12rem;
+    text-align: right;
+}
+
+.glens-hero-age-heading strong,
+.glens-hero-age-heading span {
+    display: block;
+}
+
+.glens-hero-age-heading strong {
+    color: #162033;
+    font-size: 0.82rem;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+.glens-hero-age-heading span {
+    color: #526276;
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.25;
 }
 
 .glens-hero-age-histogram {
@@ -222,7 +453,7 @@
     align-items: flex-end;
     gap: 0.55rem;
     justify-content: flex-end;
-    min-width: 24rem;
+    min-width: 19rem;
 }
 
 .glens-hero-age-col {
@@ -695,7 +926,8 @@
 
 .glens-cohort-summary,
 .glens-residual-panel,
-.glens-selected-sample {
+.glens-selected-sample,
+.glens-phenotype-profile-panel {
     padding: 0.9rem;
 }
 
@@ -721,6 +953,16 @@
     line-height: 1;
     text-decoration: none;
     box-shadow: inset 0 -0.28rem 0 rgba(243, 112, 33, 0.16);
+}
+
+.glens-selected-sample .glens-sample-id-link {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #0d4d91;
+    padding: 0;
+    font-size: 1.18rem;
+    box-shadow: none;
 }
 
 .glens-sample-id-link:hover,
@@ -1124,7 +1366,7 @@
 
 .glens-insight-nav {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.34fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.85rem;
     align-items: end;
 }
@@ -1135,6 +1377,12 @@
 
 .glens-insight-nav .glens-small-heading {
     margin: 0 0 0.35rem;
+}
+
+.glens-insight-nav small {
+    display: block;
+    color: #526276;
+    font-weight: 700;
 }
 
 .glens-supporting-evidence {
@@ -1166,11 +1414,15 @@
 
 .glens-sample-table {
     margin-top: 0;
-    overflow-x: visible;
+    overflow-x: auto;
     overflow-y: hidden;
     border: 1px solid #dbe5ef;
     border-radius: 1rem;
     background: #fff;
+}
+
+.glens-sample-table--primary {
+    box-shadow: 0 10px 24px rgba(22, 32, 51, 0.05);
 }
 
 .glens-sample-row--selected {
@@ -1215,10 +1467,10 @@
 .glens-sample-head,
 .glens-sample-row {
     display: grid;
-    grid-template-columns: 2.6rem minmax(6.2rem, 0.9fr) minmax(7.2rem, 1fr) minmax(7.2rem, 1fr) minmax(4.2rem, 0.6fr) minmax(4.2rem, 0.6fr) minmax(4.8rem, 0.6fr) minmax(6rem, 0.8fr);
+    grid-template-columns: 2.6rem minmax(6.2rem, 0.85fr) minmax(7.2rem, 0.95fr) minmax(7.8rem, 0.9fr) minmax(4.8rem, 0.55fr) minmax(4.6rem, 0.55fr) minmax(4.8rem, 0.55fr) minmax(6rem, 0.8fr);
     gap: 0.45rem;
     align-items: center;
-    min-width: 46rem;
+    min-width: 60rem;
     padding: 0.7rem 0.85rem;
 }
 
@@ -1287,6 +1539,223 @@
     color: #0d4d91;
     font-weight: 950;
     text-decoration: none;
+}
+
+.glens-signal-links--coobserved {
+    gap: 0.18rem;
+}
+
+.glens-signal-links--coobserved a:not(:last-child)::after {
+    content: "·";
+    margin-left: 0.18rem;
+    color: #526276;
+    font-weight: 750;
+}
+
+.glens-shared-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-shared-head,
+.glens-shared-row {
+    display: grid;
+    grid-template-columns: minmax(13rem, 1.35fr) minmax(9rem, 0.8fr) minmax(9rem, 0.9fr) minmax(11rem, 1fr);
+    gap: 0.7rem;
+    align-items: center;
+    min-width: 46rem;
+    padding: 0.7rem 0.85rem;
+}
+
+.glens-shared-head {
+    background: #f8fafc;
+    color: #526276;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.glens-shared-row {
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.glens-shared-row strong {
+    color: #162033;
+    font-weight: 850;
+}
+
+.glens-coobserved-panel {
+    padding: 0.75rem 0 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.glens-coobserved-panel > small {
+    display: block;
+    max-width: 50rem;
+    color: #526276;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.glens-heading-with-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+}
+
+.glens-heading-with-info .glens-small-heading {
+    margin-bottom: 0;
+}
+
+.glens-core-grid--cohort {
+    grid-template-columns: minmax(18rem, 0.58fr) minmax(24rem, 0.42fr);
+    align-items: start;
+}
+
+.glens-phenotype-profile-panel {
+    border: 1px solid #dbe5ef;
+    border-radius: 1.05rem;
+    background: #fff;
+}
+
+.glens-phenotype-profile-panel > small {
+    display: block;
+    color: #526276;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.glens-profile-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.75rem;
+    margin-top: 0.65rem;
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 750;
+}
+
+.glens-profile-metrics strong {
+    color: #162033;
+}
+
+.glens-profile-table {
+    margin-top: 0.7rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.8rem;
+}
+
+.glens-profile-head,
+.glens-profile-row {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(7rem, 0.55fr) minmax(15rem, 1.35fr);
+    gap: 0.6rem;
+    min-width: 36rem;
+    padding: 0.58rem 0.7rem;
+}
+
+.glens-profile-head {
+    background: #f8fafc;
+    color: #526276;
+    font-size: 0.64rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-profile-row {
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 750;
+}
+
+.glens-profile-row strong {
+    color: #162033;
+}
+
+.glens-profile-toggle {
+    width: 100%;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.glens-profile-toggle strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+}
+
+.glens-profile-toggle b {
+    color: #d97706;
+    font-weight: 950;
+}
+
+.glens-profile-expanded {
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.62rem 0.85rem 0.75rem 2.1rem;
+    border-top: 1px solid #eef2f7;
+    background: #fbfdff;
+}
+
+.glens-profile-expanded span {
+    color: #42526a;
+    font-size: 0.8rem;
+    font-weight: 750;
+}
+
+.glens-support-trigger-list {
+    display: grid;
+    align-content: start;
+    gap: 0.4rem;
+    padding: 0.65rem 0;
+}
+
+.glens-support-trigger {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.35rem;
+    border: 0;
+    background: transparent;
+    color: #526276;
+    padding: 0.2rem 0;
+    font-size: 0.86rem;
+    font-weight: 850;
+    text-align: left;
+}
+
+.glens-support-trigger span {
+    color: #d97706;
+    font-weight: 950;
+}
+
+.glens-support-panel {
+    padding: 0.95rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-group-qc-layout--support {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.glens-outlier-panel--support {
+    margin-left: 0;
 }
 
 .glens-boxplot-grid {
@@ -1532,6 +2001,63 @@
     gap: 0.75rem;
 }
 
+.glens-candidate-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid #dbe5ef;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.glens-candidate-head,
+.glens-candidate-row {
+    display: grid;
+    gap: 0.7rem;
+    align-items: center;
+    min-width: 48rem;
+    padding: 0.72rem 0.85rem;
+}
+
+.glens-candidate-table--disease .glens-candidate-head,
+.glens-candidate-table--disease .glens-candidate-row,
+.glens-candidate-table--gene .glens-candidate-head,
+.glens-candidate-table--gene .glens-candidate-row {
+    grid-template-columns: minmax(12rem, 1.25fr) minmax(6.5rem, 0.55fr) minmax(12rem, 1.2fr) minmax(9rem, 0.8fr) minmax(8rem, 0.75fr);
+}
+
+.glens-candidate-table--variant .glens-candidate-head,
+.glens-candidate-table--variant .glens-candidate-row {
+    grid-template-columns: minmax(12rem, 1.2fr) minmax(5rem, 0.5fr) minmax(10rem, 0.95fr) minmax(10rem, 1fr) minmax(8rem, 0.75fr) minmax(6rem, 0.55fr);
+    min-width: 58rem;
+}
+
+.glens-candidate-head {
+    background: #f8fafc;
+    color: #526276;
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-candidate-row {
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.glens-candidate-row strong {
+    color: #162033;
+    font-weight: 900;
+}
+
+.glens-candidate-row a {
+    color: #0d4d91;
+    font-weight: 900;
+    text-decoration: none;
+}
+
 .glens-domain-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 9rem minmax(0, 1fr);
@@ -1657,6 +2183,8 @@
     }
 
     .glens-answer-grid,
+    .glens-summary-group--cohort,
+    .glens-summary-group--triplet,
     .glens-decision-list,
     .glens-term-layout,
     .glens-expand-panel,
@@ -1665,6 +2193,25 @@
     .glens-sample-head,
     .glens-sample-row {
         grid-template-columns: 1fr;
+    }
+
+    .glens-summary-cell,
+    .glens-summary-cell:first-child {
+        padding: 0.55rem 0;
+    }
+
+    .glens-summary-cell + .glens-summary-cell {
+        border-top: 1px solid #e2e8f0;
+        border-left: 0;
+    }
+
+    .glens-summary-cell--chart {
+        display: grid;
+    }
+
+    .glens-hero-age-histogram {
+        min-width: 0;
+        justify-content: stretch;
     }
 
     .glens-expand-metric {

@@ -36,6 +36,12 @@
                         </div>
                     </div>
                     <div class="glens-result-tools">
+                        <span
+                            class="glens-result-context-badge"
+                            :class="{ 'glens-result-context-badge--active': hasActiveContext }"
+                        >
+                            {{ hasActiveContext ? "Context active" : "No context" }}
+                        </span>
                         <div class="glens-result-context-tool" @click.stop>
                             <button
                                 class="glens-result-tool-button"
