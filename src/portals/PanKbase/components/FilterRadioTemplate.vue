@@ -1,6 +1,5 @@
 <template>
     <div>
-            <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
         <categorical-filter
             v-model="catFilter[field]"
             :columnName="field"
@@ -30,7 +29,10 @@ export default Vue.component("filter-radio-template", {
         field: String,
         label: String,
         placeholder: String,
-        predicate: Function,
+        predicate: {
+            type: Function,
+            default: (item, thresholdArray) => thresholdArray.includes(item),
+        },
         options: Array,
         multiple: Boolean,
         inclusive: Boolean,
@@ -97,15 +99,14 @@ export default Vue.component("filter-radio-template", {
         }
     },
     mounted() {
-        this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
+        this.$parent.$emit('filter-mounted', this.filterDefinition);
     },
     methods: {
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit("change", newThreshold, {
+                        this.$parent.$emit("change", newThreshold, {
                             // label: this.pillFormatter,
                             // color: this.color,
                             ...this.filterDefinition,
