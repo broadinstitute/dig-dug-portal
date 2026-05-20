@@ -134,13 +134,33 @@
                             <article class="glens-panel glens-panel--wide">
                                 <div class="glens-section-head">
                                     <div>
-                                        <h2>Who is closest to this sample, and which investigator phenotype signatures fit this sample?</h2>
+                                        <div class="glens-title-with-info" @click.stop>
+                                            <h2>Who is closest to this sample, and which investigator phenotype signatures fit this sample?</h2>
+                                            <button
+                                                class="glens-section-info-button"
+                                                type="button"
+                                                aria-label="Overview score basis explanation"
+                                                @click="overviewInfoOpen = !overviewInfoOpen"
+                                            >
+                                                i
+                                            </button>
+                                            <div v-if="overviewInfoOpen" class="glens-section-info-popover">
+                                                <button
+                                                    class="glens-section-info-close"
+                                                    type="button"
+                                                    aria-label="Close overview score basis explanation"
+                                                    @click="overviewInfoOpen = false"
+                                                >
+                                                    ×
+                                                </button>
+                                                <p>
+                                                    Score basis: similar-patient retrieval uses raw weighted phenotype similarity with self excluded. Investigator context is a separate signature-affinity analysis: each investigator group contributes an enriched HPO signature, and this sample is scored against those group signatures using annotation-burden-corrected z-scores.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <p class="glens-method-note">
-                                    Score basis: similar-patient retrieval uses raw weighted phenotype similarity with self excluded. Investigator context is a separate signature-affinity analysis: each investigator group contributes an enriched HPO signature, and this sample is scored against those group signatures using annotation-burden-corrected z-scores.
-                                </p>
                                 <div class="glens-sim-mode-panel glens-sim-mode-panel--overview">
                                     <span>Similarity basis</span>
                                     <strong>Phenotype-based</strong>
@@ -285,36 +305,57 @@
                     <section v-if="activeTab === 'phenotype'" class="glens-tab-panel">
                         <div class="glens-section-head">
                             <div>
-                                <p class="glens-eyebrow">Phenotype similarity</p>
-                                <h2>Who looks most like this sample?</h2>
+                                <div class="glens-title-with-info" @click.stop>
+                                    <h2>Who looks most like this sample?</h2>
+                                    <button
+                                        class="glens-section-info-button"
+                                        type="button"
+                                        aria-label="Similar phenotype explanation"
+                                        @click="phenotypeInfoOpen = !phenotypeInfoOpen"
+                                    >
+                                        i
+                                    </button>
+                                    <div v-if="phenotypeInfoOpen" class="glens-section-info-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close similar phenotype explanation"
+                                            @click="phenotypeInfoOpen = false"
+                                        >
+                                            ×
+                                        </button>
+                                        <p>
+                                            The searched sample is not compared to itself here. Rows show other CRDC samples ranked by raw weighted phenotype similarity: query-term overlap, rare phenotype weight, and semantic/related-term consistency. Residual is not used for this nearest-patient ranking.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <a class="glens-plain-link" :href="phenotypeQueryHref">Open phenotype workflow</a>
                         </div>
-                        <p class="glens-method-note">
-                            The searched sample is not compared to itself here. Rows show other CRDC samples ranked by raw weighted phenotype similarity: query-term overlap, rare phenotype weight, and semantic/related-term consistency. Residual is not used for this nearest-patient ranking.
-                        </p>
                         <div class="glens-similar-table">
                             <div class="glens-table-head glens-table-head--phenotype">
                                 <span>Sample</span>
                                 <span>Similarity rank</span>
-                                <span>Shared phenotype signal</span>
-                                <span>Diagnosis</span>
+                                <span>Shared phenotype counts</span>
+                                <span>Best Disease</span>
                                 <span>Best genetic clue</span>
-                                <span>Why it matters</span>
+                                <span>Note</span>
                             </div>
-                            <a
+                            <div
                                 v-for="row in sample.phenotypeMatches"
                                 :key="row.sampleId"
                                 class="glens-table-row glens-table-row--phenotype"
-                                :href="sampleHref(row.sampleId)"
                             >
-                                <strong>{{ row.sampleId }}</strong>
-                                <span>{{ row.similarityRank }}</span>
-                                <span>{{ row.sharedSymptoms }}</span>
-                                <span>{{ row.diagnosis }}</span>
-                                <span>{{ row.topSignal }}</span>
+                                <a class="glens-table-link" :href="sampleHref(row.sampleId)">{{ row.sampleId }}</a>
+                                <span class="glens-table-plain">{{ row.similarityRank }}</span>
+                                <a class="glens-table-link" :href="phenotypeMatchHref(row)">{{ row.sharedPhenotypeCount }}</a>
+                                <a class="glens-table-link" :href="diseaseEvidenceHref(row)">{{ row.bestDisease }}</a>
+                                <span class="glens-genetic-clue">
+                                    <a class="glens-table-link" :href="variantHref(row.topSignalVariantId)">{{ row.gene }}</a>
+                                    <span>{{ row.geneticClue }}</span>
+                                </span>
                                 <span>{{ row.notes }}</span>
-                            </a>
+                            </div>
                         </div>
 
                         <button class="glens-accordion-toggle" type="button" @click="togglePanel('phenotypeProfile')">
@@ -553,6 +594,8 @@ export default {
             optionsPopoverOpen: false,
             sampleInfoOpen: false,
             gendxInfoOpen: false,
+            overviewInfoOpen: false,
+            phenotypeInfoOpen: false,
             unsubscribeClinicalFocus: null,
         };
     },
@@ -658,6 +701,8 @@ export default {
             this.optionsPopoverOpen = false;
             this.sampleInfoOpen = false;
             this.gendxInfoOpen = false;
+            this.overviewInfoOpen = false;
+            this.phenotypeInfoOpen = false;
         },
         removeClinicalContext() {
             clearClinicalFocus();
@@ -668,6 +713,12 @@ export default {
         },
         variantHref(variantId) {
             return `/krVariant_V3.html?query=${encodeURIComponent(variantId)}`;
+        },
+        phenotypeMatchHref(row) {
+            return `/krPhenotype.html?query=${encodeURIComponent(row.sharedHpoTerms.join(", "))}`;
+        },
+        diseaseEvidenceHref(row) {
+            return `/sample.html?sample_id=${encodeURIComponent(this.displaySampleId)}&view=disease&disease=${encodeURIComponent(row.bestDisease)}`;
         },
         togglePanel(panel) {
             this.$set(this.openPanels, panel, !this.openPanels[panel]);
