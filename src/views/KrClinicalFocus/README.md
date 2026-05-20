@@ -2,7 +2,7 @@
 
 Clinical Context is a global comparison context, not a search mode and not a separate page.
 
-The current mock stores context state in `sessionStorage` under `krClinicalFocus.v1` so it persists while navigating between `krFront.html`, `sample.html`, `krPhenotype.html`, and `krVariant_V3.html`.
+The current mock stores context state in `sessionStorage` under `krClinicalFocus.v1` so it persists while navigating between `krFront.html`, `krSample.html`, `krPhenotype.html`, and `krVariant.html`.
 
 
 ## Two-input interpretation model

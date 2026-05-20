@@ -877,7 +877,7 @@ export default {
             this.contextPopoverOpen = false;
         },
         sampleHref(sampleId) {
-            return `sample.html?sample_id=${encodeURIComponent(sampleId)}`;
+            return `krSample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },
         setSummaryLevel(level) {
             this.activeSummaryLevel = level;

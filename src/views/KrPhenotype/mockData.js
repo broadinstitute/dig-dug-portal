@@ -315,9 +315,9 @@ export function createKrPhenotypeState() {
                     { gene: "IRF6", carriers: "15 / 132 carriers", relevance: "0.74", domain: "cleft phenotype focused" },
                 ],
                 candidateVariants: [
-                    { gene: "KMT2D", id: "chr12:49,431,208 C>T", carriers: "8 / 132 matched samples", coherence: "11 / 18 disease HPO terms", pathogenicity: "Likely pathogenic", link: "/krVariant_V3.html?query=KMT2D" },
-                    { gene: "CHD7", id: "chr8:61,725,430 G>A", carriers: "6 / 132 matched samples", coherence: "6 / 16 disease HPO terms", pathogenicity: "Pathogenic", link: "/krVariant_V3.html?query=CHD7" },
-                    { gene: "IRF6", id: "chr1:209,989,401 A>G", carriers: "5 / 132 matched samples", coherence: "cleft-focused phenotype fit", pathogenicity: "Likely pathogenic", link: "/krVariant_V3.html?query=IRF6" },
+                    { gene: "KMT2D", id: "chr12:49,431,208 C>T", carriers: "8 / 132 matched samples", coherence: "11 / 18 disease HPO terms", pathogenicity: "Likely pathogenic", link: "/krVariant.html?query=KMT2D" },
+                    { gene: "CHD7", id: "chr8:61,725,430 G>A", carriers: "6 / 132 matched samples", coherence: "6 / 16 disease HPO terms", pathogenicity: "Pathogenic", link: "/krVariant.html?query=CHD7" },
+                    { gene: "IRF6", id: "chr1:209,989,401 A>G", carriers: "5 / 132 matched samples", coherence: "cleft-focused phenotype fit", pathogenicity: "Likely pathogenic", link: "/krVariant.html?query=IRF6" },
                 ],
             },
         };

@@ -900,16 +900,16 @@ export default {
             this.contextPopoverOpen = false;
         },
         sampleHref(sampleId) {
-            return `/sample.html?sample_id=${encodeURIComponent(sampleId)}`;
+            return `/krSample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },
         variantHref(variantId) {
-            return `/krVariant_V3.html?query=${encodeURIComponent(variantId)}`;
+            return `/krVariant.html?query=${encodeURIComponent(variantId)}`;
         },
         phenotypeMatchHref(row) {
             return `/krPhenotype.html?query=${encodeURIComponent(row.sharedHpoTerms.join(", "))}`;
         },
         diseaseProfileHref(diseaseName) {
-            return `/sample.html?sample_id=${encodeURIComponent(this.displaySampleId)}&view=disease&profile=${encodeURIComponent(diseaseName)}`;
+            return `/krSample.html?sample_id=${encodeURIComponent(this.displaySampleId)}&view=disease&profile=${encodeURIComponent(diseaseName)}`;
         },
         toggleSharedPhenotypes(sampleId) {
             this.activeSharedPhenotypeSampleId = this.activeSharedPhenotypeSampleId === sampleId ? null : sampleId;

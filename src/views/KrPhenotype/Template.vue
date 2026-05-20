@@ -887,10 +887,10 @@ export default {
             return `/krPhenotype.html?term=${encodeURIComponent(term.id)}&label=${encodeURIComponent(term.label)}`;
         },
         sampleHref(sampleId) {
-            return `/sample.html?sample_id=${encodeURIComponent(sampleId)}`;
+            return `/krSample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },
         variantHref(query) {
-            return `/krVariant_V3.html?query=${encodeURIComponent(query)}`;
+            return `/krVariant.html?query=${encodeURIComponent(query)}`;
         },
         signalGenes(signals) {
             return String(signals || "")

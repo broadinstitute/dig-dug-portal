@@ -180,7 +180,7 @@ export default {
             ],
             fixtures: {
                 variant: {
-                    destination: "/krVariant_V3.html",
+                    destination: "/krVariant.html",
                     placeholder:
                         "chr15:22,000,220 G>C / UBE3A / 15q11-q13 microdeletion syndrome",
                     fallback: "chr15:22,000,220 G>C",
@@ -204,7 +204,7 @@ export default {
                     hint: "For multiple HPO terms, separate terms with commas. The backend can treat them as a phenotype profile.",
                 },
                 cohort: {
-                    destination: "/sample.html",
+                    destination: "/krSample.html",
                     queryParam: "sample_id",
                     placeholder:
                         "BCH-12-34567-01",
