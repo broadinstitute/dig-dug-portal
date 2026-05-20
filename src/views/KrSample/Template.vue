@@ -473,12 +473,39 @@
                         <div class="glens-section-head">
                             <div>
                                 <p class="glens-eyebrow">Genotype similarity</p>
-                                <h2>Who shares a relevant genetic mechanism?</h2>
+                                <div class="glens-title-with-info" @click.stop>
+                                    <h2>Who shares a relevant genetic mechanism?</h2>
+                                    <button
+                                        class="glens-section-info-button"
+                                        type="button"
+                                        aria-label="Similar genotype explanation"
+                                        @click="genotypeInfoOpen = !genotypeInfoOpen"
+                                    >
+                                        i
+                                    </button>
+                                    <div v-if="genotypeInfoOpen" class="glens-section-info-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close similar genotype explanation"
+                                            @click="genotypeInfoOpen = false"
+                                        >
+                                            ×
+                                        </button>
+                                        <p>
+                                            This is genotype-first context for the same searched sample. Exact same variant, same gene, and same mechanism are separated because they imply different evidence strength and should not be interpreted as equivalent.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <p class="glens-method-note">
-                            This is genotype-first context for the same searched sample. Exact same variant, same gene, and same mechanism are separated because they imply different evidence strength and should not be interpreted as equivalent.
-                        </p>
+
+                        <div class="glens-genotype-query-variant" aria-label="Searched sample reference variant">
+                            <span>Reference variant for searched sample</span>
+                            <a class="glens-table-link" :href="variantHref(sample.gendx.variantId)">{{ sample.gendx.variantId }}</a>
+                            <strong>{{ sample.gendx.gene }}</strong>
+                            <em>{{ sample.gendx.consequence }} · {{ sample.gendx.pathogenicity }}</em>
+                        </div>
 
                         <div class="glens-genotype-groups">
                             <article v-for="group in sample.genotypeGroups" :key="group.label" class="glens-genotype-card">
@@ -491,24 +518,28 @@
                                     <div class="glens-table-head glens-table-head--genotype">
                                         <span>Sample</span>
                                         <span>Genetic similarity</span>
-                                        <span>Shared gene / class</span>
+                                        <span>Shared gene</span>
+                                        <span>Variant evidence</span>
                                         <span>Phenotype overlap</span>
-                                        <span>Diagnosis</span>
-                                        <span>Key phenotypes</span>
+                                        <span>Key HPO terms</span>
                                     </div>
-                                    <a
+                                    <div
                                         v-for="row in group.rows"
                                         :key="row.sampleId"
                                         class="glens-table-row glens-table-row--genotype"
-                                        :href="row.sampleId === 'none' ? '#' : sampleHref(row.sampleId)"
                                     >
-                                        <strong>{{ row.sampleId }}</strong>
-                                        <span>{{ row.similarity }}</span>
-                                        <span>{{ row.sharedSignal }}</span>
+                                        <a v-if="row.sampleId !== 'none'" class="glens-table-link" :href="sampleHref(row.sampleId)">{{ row.sampleId }}</a>
+                                        <span v-else class="glens-table-plain">{{ row.sampleLabel }}</span>
+                                        <span class="glens-table-plain">{{ row.similarity }}</span>
+                                        <a v-if="row.sharedGene" class="glens-table-link" :href="variantHref(row.sharedGene)">{{ row.sharedGene }}</a>
+                                        <span v-else class="glens-table-plain">-</span>
+                                        <span class="glens-genotype-variant-evidence">
+                                            <span>{{ row.queryVariantEvidence }}</span>
+                                            <span>{{ row.matchedVariantEvidence }}</span>
+                                        </span>
                                         <span>{{ row.phenotypeOverlap }}</span>
-                                        <span>{{ row.diagnosis }}</span>
                                         <span>{{ row.keyPhenotypes }}</span>
-                                    </a>
+                                    </div>
                                 </div>
                             </article>
                         </div>
@@ -678,6 +709,7 @@ export default {
             overviewInfoOpen: false,
             activeOverviewCardTab: "summary",
             phenotypeInfoOpen: false,
+            genotypeInfoOpen: false,
             activeSharedPhenotypeSampleId: null,
             activeSharedGeneSampleId: null,
             expandedSharedHpoSampleIds: {},
@@ -795,6 +827,7 @@ export default {
             this.gendxInfoOpen = false;
             this.overviewInfoOpen = false;
             this.phenotypeInfoOpen = false;
+            this.genotypeInfoOpen = false;
             this.activeSharedPhenotypeSampleId = null;
             this.activeSharedGeneSampleId = null;
         },
