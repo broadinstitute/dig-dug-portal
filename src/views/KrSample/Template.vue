@@ -235,66 +235,124 @@
                                     </div>
                                 </div>
 
-                                <div class="glens-kv-grid">
-                                    <div v-for="item in overviewItems" :key="item.label" class="glens-kv-row">
-                                        <span>{{ item.label }}</span>
-                                        <strong>{{ item.value }}</strong>
-                                    </div>
-                                </div>
+                                <nav class="glens-card-tabs" aria-label="Sample overview card sections">
+                                    <button
+                                        v-for="tab in overviewCardTabs"
+                                        :key="tab.id"
+                                        type="button"
+                                        class="glens-card-tab-button"
+                                        :class="{ 'glens-card-tab-button--active': activeOverviewCardTab === tab.id }"
+                                        @click="activeOverviewCardTab = tab.id"
+                                    >
+                                        {{ tab.label }}
+                                    </button>
+                                </nav>
 
-                                <div v-if="hasActiveContext" class="glens-context-comparison">
-                                    <h3>Context comparison</h3>
-                                    <div class="glens-kv-grid glens-kv-grid--compact">
-                                        <div v-for="item in contextComparisonItems" :key="item.label" class="glens-kv-row">
+                                <div v-if="activeOverviewCardTab === 'summary'" class="glens-card-tab-panel">
+                                    <div class="glens-kv-grid">
+                                        <div v-for="item in overviewItems" :key="item.label" class="glens-kv-row">
                                             <span>{{ item.label }}</span>
                                             <strong>{{ item.value }}</strong>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="glens-gendx-card" @click.stop>
-                                    <div class="glens-gendx-head">
-                                        <h3>{{ gendxPanelTitle }}</h3>
-                                        <div v-if="sample.gendx.resultCount > 1" class="glens-gendx-dots" aria-label="Reported GenDx variants">
-                                            <button
-                                                v-for="index in sample.gendx.resultCount"
-                                                :key="index"
-                                                type="button"
-                                                :class="{ 'glens-gendx-dot--active': index === 1 }"
-                                                :aria-label="`GenDx reported variant ${index}`"
-                                            ></button>
-                                        </div>
-                                        <button
-                                            class="glens-gendx-info-button"
-                                            type="button"
-                                            aria-label="GenDx panel explanation"
-                                            @click="gendxInfoOpen = !gendxInfoOpen"
-                                        >
-                                            i
-                                        </button>
-                                        <div v-if="gendxInfoOpen" class="glens-gendx-info-popover">
-                                            <button
-                                                class="glens-gendx-info-close"
-                                                type="button"
-                                                aria-label="Close GenDx panel explanation"
-                                                @click="gendxInfoOpen = false"
-                                            >
-                                                ×
-                                            </button>
-                                            <p>{{ sample.gendx.interpretation }}</p>
+                                    <div v-if="hasActiveContext" class="glens-context-comparison">
+                                        <h3>Context comparison</h3>
+                                        <div class="glens-kv-grid glens-kv-grid--compact">
+                                            <div v-for="item in contextComparisonItems" :key="item.label" class="glens-kv-row">
+                                                <span>{{ item.label }}</span>
+                                                <strong>{{ item.value }}</strong>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="glens-kv-grid glens-kv-grid--compact glens-gendx-table">
-                                        <div v-for="item in gendxRows" :key="item.label" class="glens-kv-row">
-                                            <span>{{ item.label }}</span>
-                                            <a
-                                                v-if="item.href"
-                                                class="glens-gendx-variant-link"
-                                                :href="item.href"
+
+                                    <div class="glens-gendx-card" @click.stop>
+                                        <div class="glens-gendx-head">
+                                            <h3>{{ gendxPanelTitle }}</h3>
+                                            <div v-if="sample.gendx.resultCount > 1" class="glens-gendx-dots" aria-label="Reported GenDx variants">
+                                                <button
+                                                    v-for="index in sample.gendx.resultCount"
+                                                    :key="index"
+                                                    type="button"
+                                                    :class="{ 'glens-gendx-dot--active': index === 1 }"
+                                                    :aria-label="`GenDx reported variant ${index}`"
+                                                ></button>
+                                            </div>
+                                            <button
+                                                class="glens-gendx-info-button"
+                                                type="button"
+                                                aria-label="GenDx panel explanation"
+                                                @click="gendxInfoOpen = !gendxInfoOpen"
                                             >
-                                                {{ item.value }}
-                                            </a>
-                                            <strong v-else>{{ item.value }}</strong>
+                                                i
+                                            </button>
+                                            <div v-if="gendxInfoOpen" class="glens-gendx-info-popover">
+                                                <button
+                                                    class="glens-gendx-info-close"
+                                                    type="button"
+                                                    aria-label="Close GenDx panel explanation"
+                                                    @click="gendxInfoOpen = false"
+                                                >
+                                                    ×
+                                                </button>
+                                                <p>{{ sample.gendx.interpretation }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="glens-kv-grid glens-kv-grid--compact glens-gendx-table">
+                                            <div v-for="item in gendxRows" :key="item.label" class="glens-kv-row">
+                                                <span>{{ item.label }}</span>
+                                                <a
+                                                    v-if="item.href"
+                                                    class="glens-gendx-variant-link"
+                                                    :href="item.href"
+                                                >
+                                                    {{ item.value }}
+                                                </a>
+                                                <strong v-else>{{ item.value }}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="activeOverviewCardTab === 'phenotype'" class="glens-card-tab-panel">
+                                    <h3 class="glens-card-tab-heading">Phenotype profile composition</h3>
+                                    <div class="glens-domain-stack-grid" aria-label="Phenotype category composition">
+                                        <article v-for="domain in sample.phenotypeDomains" :key="domain.name" class="glens-domain-stack-card">
+                                            <div class="glens-domain-stack-copy">
+                                                <strong>{{ domain.name }}</strong>
+                                                <div class="glens-domain-stack-metric">
+                                                    <span>{{ domain.count }} / {{ sample.hpoTotal }} HPO terms</span>
+                                                    <div class="glens-domain-stack-plot" aria-hidden="true">
+                                                        <div class="glens-domain-stack-fill" :style="{ width: domainFillPercent(domain) }"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="glens-hpo-term-list">
+                                                    <div v-for="term in visibleDomainTerms(domain)" :key="term" class="glens-hpo-term-row">{{ term }}</div>
+                                                    <button
+                                                        v-if="domainMoreCount(domain) > 0"
+                                                        class="glens-inline-more-button"
+                                                        type="button"
+                                                        @click="toggleDomainTerms(domain.name)"
+                                                    >
+                                                        {{ isDomainExpanded(domain.name) ? "Show less" : `+${domainMoreCount(domain)} more` }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </div>
+
+                                    <button class="glens-accordion-toggle glens-accordion-toggle--small" type="button" @click="togglePanel('allHpo')">
+                                        <span>{{ openPanels.allHpo ? "▾" : "▸" }}</span>
+                                        Full HPO term list
+                                    </button>
+                                    <div v-if="openPanels.allHpo" class="glens-hpo-table" aria-label="Full HPO term list">
+                                        <div class="glens-hpo-table-head">
+                                            <span>HPO term</span>
+                                            <span>HPO ID</span>
+                                        </div>
+                                        <div v-for="term in sample.fullHpoTerms" :key="term" class="glens-hpo-table-row">
+                                            <span>{{ hpoTermName(term) }}</span>
+                                            <strong>{{ hpoTermId(term) }}</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -330,15 +388,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <a class="glens-plain-link" :href="phenotypeQueryHref">Open phenotype workflow</a>
                         </div>
                         <div class="glens-similar-table">
                             <div class="glens-table-head glens-table-head--phenotype">
                                 <span>Sample</span>
                                 <span>Similarity rank</span>
                                 <span>Shared phenotype counts</span>
-                                <span>Best Disease</span>
-                                <span>Best genetic clue</span>
+                                <span>Shared genes</span>
+                                <span>Investigator</span>
+                                <span>Sex</span>
+                                <span>Age band</span>
                                 <span>Note</span>
                             </div>
                             <div
@@ -348,44 +407,66 @@
                             >
                                 <a class="glens-table-link" :href="sampleHref(row.sampleId)">{{ row.sampleId }}</a>
                                 <span class="glens-table-plain">{{ row.similarityRank }}</span>
-                                <a class="glens-table-link" :href="phenotypeMatchHref(row)">{{ row.sharedPhenotypeCount }}</a>
-                                <a class="glens-table-link" :href="diseaseEvidenceHref(row)">{{ row.bestDisease }}</a>
-                                <span class="glens-genetic-clue">
-                                    <a class="glens-table-link" :href="variantHref(row.topSignalVariantId)">{{ row.gene }}</a>
-                                    <span>{{ row.geneticClue }}</span>
+                                <span class="glens-shared-count-cell" @click.stop>
+                                    <button
+                                        class="glens-table-link glens-table-link-button"
+                                        type="button"
+                                        @click="toggleSharedPhenotypes(row.sampleId)"
+                                    >
+                                        {{ row.sharedPhenotypeCount }}
+                                    </button>
+                                    <div v-if="activeSharedPhenotypeSampleId === row.sampleId" class="glens-shared-hpo-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close shared HPO terms"
+                                            @click="activeSharedPhenotypeSampleId = null"
+                                        >
+                                            ×
+                                        </button>
+                                        <strong>Shared HPO terms: {{ row.sharedPhenotypeCount }}</strong>
+                                        <ul>
+                                            <li v-for="term in visibleSharedHpoTerms(row)" :key="term">{{ term }}</li>
+                                            <li v-if="sharedHpoMoreCount(row) > 0">
+                                                <button class="glens-inline-more-button" type="button" @click="toggleSharedHpoExpanded(row.sampleId)">
+                                                    {{ isSharedHpoExpanded(row.sampleId) ? "Show less" : `+${sharedHpoMoreCount(row)} more` }}
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </span>
+                                <span class="glens-shared-gene-cell" @click.stop>
+                                    <a class="glens-table-link" :href="variantHref(row.topSignalVariantId)">{{ sharedGenesLabel(row) }}</a>
+                                    <button
+                                        v-if="sharedGeneMoreCount(row) > 0"
+                                        class="glens-inline-more-button"
+                                        type="button"
+                                        @click.prevent="toggleSharedGenes(row.sampleId)"
+                                    >
+                                        {{ activeSharedGeneSampleId === row.sampleId ? "Show less" : `+${sharedGeneMoreCount(row)} more` }}
+                                    </button>
+                                    <div v-if="activeSharedGeneSampleId === row.sampleId" class="glens-shared-gene-popover">
+                                        <button
+                                            class="glens-section-info-close"
+                                            type="button"
+                                            aria-label="Close shared genes"
+                                            @click="activeSharedGeneSampleId = null"
+                                        >
+                                            ×
+                                        </button>
+                                        <strong>Shared genes</strong>
+                                        <ul>
+                                            <li v-for="gene in row.sharedGenes" :key="gene">{{ gene }}</li>
+                                        </ul>
+                                    </div>
+                                </span>
+                                <span>{{ row.investigator }}</span>
+                                <span>{{ row.sex }}</span>
+                                <span>{{ formatAgeBand(row.ageBand) }}</span>
                                 <span>{{ row.notes }}</span>
                             </div>
                         </div>
 
-                        <button class="glens-accordion-toggle" type="button" @click="togglePanel('phenotypeProfile')">
-                            <span>{{ openPanels.phenotypeProfile ? "▾" : "▸" }}</span>
-                            Phenotype profile composition
-                        </button>
-                        <div v-if="openPanels.phenotypeProfile" class="glens-accordion-body">
-                            <div class="glens-domain-stack-grid" aria-label="Phenotype category composition">
-                                <article v-for="domain in sample.phenotypeDomains" :key="domain.name" class="glens-domain-stack-card">
-                                    <div class="glens-domain-stack-plot" aria-hidden="true">
-                                        <div class="glens-domain-stack-fill" :style="{ height: domain.width }"></div>
-                                    </div>
-                                    <div class="glens-domain-stack-copy">
-                                        <strong>{{ domain.name }}</strong>
-                                        <span>{{ domain.count }} / {{ sample.hpoTotal }} HPO terms</span>
-                                        <div class="glens-term-grid glens-term-grid--compact">
-                                            <span v-for="term in domain.representativeTerms" :key="term">{{ term }}</span>
-                                        </div>
-                                    </div>
-                                </article>
-                            </div>
-
-                            <button class="glens-accordion-toggle glens-accordion-toggle--small" type="button" @click="togglePanel('allHpo')">
-                                <span>{{ openPanels.allHpo ? "▾" : "▸" }}</span>
-                                Full HPO term list
-                            </button>
-                            <div v-if="openPanels.allHpo" class="glens-term-grid glens-term-grid--full">
-                                <span v-for="term in sample.fullHpoTerms" :key="term">{{ term }}</span>
-                            </div>
-                        </div>
                     </section>
 
                     <section v-if="activeTab === 'genotype'" class="glens-tab-panel">
@@ -595,7 +676,12 @@ export default {
             sampleInfoOpen: false,
             gendxInfoOpen: false,
             overviewInfoOpen: false,
+            activeOverviewCardTab: "summary",
             phenotypeInfoOpen: false,
+            activeSharedPhenotypeSampleId: null,
+            activeSharedGeneSampleId: null,
+            expandedSharedHpoSampleIds: {},
+            expandedDomainTerms: {},
             unsubscribeClinicalFocus: null,
         };
     },
@@ -603,10 +689,16 @@ export default {
         tabs() {
             return [
                 { id: "overview", label: "Overview" },
-                { id: "phenotype", label: "Similar by phenotype" },
+                { id: "phenotype", label: "Similar samples" },
                 { id: "genotype", label: "Similar by genotype" },
                 { id: "disease", label: "Disease hypotheses" },
                 { id: "genes", label: "Gene / variant evidence" },
+            ];
+        },
+        overviewCardTabs() {
+            return [
+                { id: "summary", label: "Sample overview" },
+                { id: "phenotype", label: "Phenotype profile" },
             ];
         },
         allInvestigatorOptions() {
@@ -703,6 +795,8 @@ export default {
             this.gendxInfoOpen = false;
             this.overviewInfoOpen = false;
             this.phenotypeInfoOpen = false;
+            this.activeSharedPhenotypeSampleId = null;
+            this.activeSharedGeneSampleId = null;
         },
         removeClinicalContext() {
             clearClinicalFocus();
@@ -717,8 +811,61 @@ export default {
         phenotypeMatchHref(row) {
             return `/krPhenotype.html?query=${encodeURIComponent(row.sharedHpoTerms.join(", "))}`;
         },
-        diseaseEvidenceHref(row) {
-            return `/sample.html?sample_id=${encodeURIComponent(this.displaySampleId)}&view=disease&disease=${encodeURIComponent(row.bestDisease)}`;
+        toggleSharedPhenotypes(sampleId) {
+            this.activeSharedPhenotypeSampleId = this.activeSharedPhenotypeSampleId === sampleId ? null : sampleId;
+        },
+        visibleSharedHpoTerms(row) {
+            return this.isSharedHpoExpanded(row.sampleId) ? row.sharedHpoTerms : row.sharedHpoTerms.slice(0, 5);
+        },
+        sharedHpoMoreCount(row) {
+            return Math.max(row.sharedHpoTerms.length - 5, 0);
+        },
+        isSharedHpoExpanded(sampleId) {
+            return Boolean(this.expandedSharedHpoSampleIds[sampleId]);
+        },
+        toggleSharedHpoExpanded(sampleId) {
+            this.$set(this.expandedSharedHpoSampleIds, sampleId, !this.expandedSharedHpoSampleIds[sampleId]);
+        },
+        sharedGenesLabel(row) {
+            const genes = row.sharedGenes || [row.gene];
+            if (genes.length === 1) return genes[0];
+            if (genes.length <= 3) return `${genes.length} genes: ${genes.join(", ")}`;
+            return `${genes.length} genes: ${genes.slice(0, 3).join(", ")} +${genes.length - 3} more`;
+        },
+        sharedGeneMoreCount(row) {
+            const genes = row.sharedGenes || [row.gene];
+            return Math.max(genes.length - 3, 0);
+        },
+        toggleSharedGenes(sampleId) {
+            this.activeSharedGeneSampleId = this.activeSharedGeneSampleId === sampleId ? null : sampleId;
+        },
+        formatAgeBand(ageBand) {
+            return String(ageBand || "").replace("-", "–");
+        },
+        hpoTermName(term) {
+            return String(term).replace(/\s*\[[^\]]+\]\s*$/, "");
+        },
+        hpoTermId(term) {
+            const match = String(term).match(/\[([^\]]+)\]$/);
+            return match ? match[1] : "";
+        },
+        domainFillPercent(domain) {
+            const ratio = this.sample.hpoTotal ? (domain.count / this.sample.hpoTotal) * 100 : 0;
+            return `${Math.max(0, Math.min(100, ratio))}%`;
+        },
+        isDomainExpanded(domainName) {
+            return Boolean(this.expandedDomainTerms[domainName]);
+        },
+        visibleDomainTerms(domain) {
+            const terms = domain.representativeTerms || [];
+            return this.isDomainExpanded(domain.name) ? terms : terms.slice(0, 2);
+        },
+        domainMoreCount(domain) {
+            const terms = domain.representativeTerms || [];
+            return Math.max(terms.length - 2, 0);
+        },
+        toggleDomainTerms(domainName) {
+            this.$set(this.expandedDomainTerms, domainName, !this.expandedDomainTerms[domainName]);
         },
         togglePanel(panel) {
             this.$set(this.openPanels, panel, !this.openPanels[panel]);
