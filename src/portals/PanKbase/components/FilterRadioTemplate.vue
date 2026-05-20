@@ -2,7 +2,7 @@
     <div>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
         <categorical-filter
-            v-model="catFilter"
+            v-model="catFilter[field]"
             :columnName="field"
             :displayLabel="field === 'Gender' ? 'Reported gender' : field"
             :options="processedOptions"
