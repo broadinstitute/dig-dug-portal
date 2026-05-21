@@ -17,10 +17,14 @@
         
       </div>
         <div class="download-images-setting">
-          <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
+          <div>
+            <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
+          </div>
+          <div>
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
               Download SVG <b-icon icon="download"></b-icon>
             </button>
+          </div>
         </div>
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
@@ -435,7 +439,12 @@ export default Vue.component("time-series-line-plot", {
   }
 
   .download-images-setting {
-    margin-top: -25px;
+    display: inline;
+  }
+  .download-images-setting div {
+    display: inline;
+  }
+  .download-images-setting div:last-child {
     float: right;
   }
   .donorData{
@@ -448,9 +457,6 @@ export default Vue.component("time-series-line-plot", {
   .donorLabel {
     padding-top: 2px;
     padding-bottom: 2px;
-  }
-  .radio-labels {
-    margin-bottom: 10px;
   }
   .radio-labels label {
     margin-right: 10px;
