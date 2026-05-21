@@ -416,16 +416,17 @@ new Vue({
             let filterParams = [];
             filterList.forEach(filter => {
                 let param = { name: filter.field };
-                if (!isNaN(f.min) && !isNaN(f.max)){
-                    param.min = f.min;
-                    param.max = f.max;
-                } else if (f.values !== undefined){
-                    param.values = f.values;
+                if (!isNaN(filter.threshold.min) && !isNaN(filter.threshold.max)){
+                    param.min = filter.threshold.min;
+                    param.max = filter.threshold.max;
+                } else {
+                    param.values = filter.threshold;
                 }
                 filterParams.push(param);
             });
             let donorFilters = JSON.stringify(filterParams);
             keyParams.set({donorFilters: donorFilters});
+            console.log(donorFilters);
         },
     },
     watch: {
