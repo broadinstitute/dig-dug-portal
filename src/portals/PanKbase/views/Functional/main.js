@@ -412,7 +412,6 @@ new Vue({
             this.showAdvanced = !this.showAdvanced;
         },
         updateFilterList(filterList){
-            console.log(JSON.stringify(filterList));
             let filterParams = [];
             filterList.forEach(filter => {
                 let param = { name: filter.field };
@@ -426,7 +425,6 @@ new Vue({
             });
             let donorFilters = JSON.stringify(filterParams);
             keyParams.set({donorFilters: donorFilters});
-            console.log(donorFilters);
         },
     },
     watch: {
