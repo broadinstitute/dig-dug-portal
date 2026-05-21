@@ -64,6 +64,15 @@
                         {{ row.label }}
                     </text>
 
+                    <text
+                        :x="layout.plotWidth + layout.rowCountGap"
+                        :y="layout.matrixTop + (rowIndex * layout.rowStep) + layout.rowTextOffset"
+                        text-anchor="start"
+                        class="upset-plot-row-count"
+                    >
+                        {{ row.count.toLocaleString() }}
+                    </text>
+
                     <g
                         v-for="column in positionedColumns"
                         :key="`cell-${row.key}-${column.key}`"
@@ -178,6 +187,7 @@ export default {
             return this.rowLabels.map((row) => ({
                 key: row.key,
                 label: row.label,
+                count: Number(row.count || 0),
             }));
         },
         hasData() {
@@ -186,12 +196,16 @@ export default {
         rowLabelWidth() {
             return Math.max(90, Math.ceil(this.measureLabels(this.displayRows.map((row) => row.label), "11px \"Open Sans\"")) + 10);
         },
+        rowCountWidth() {
+            return Math.max(26, Math.ceil(this.measureLabels(this.displayRows.map((row) => Number(row.count || 0).toLocaleString()), "11px \"Open Sans\"")) + 4);
+        },
         layout() {
             const width = Math.max(this.containerWidth || 320, 320);
             const yAxisLabelWidth = 22;
             const rowLabelGap = 10;
+            const rowCountGap = 10;
             const plotLeft = yAxisLabelWidth + this.rowLabelWidth + rowLabelGap;
-            const plotWidth = Math.max(width - plotLeft, 40);
+            const plotWidth = Math.max(width - plotLeft - rowCountGap - this.rowCountWidth, 40);
             const topAxisLabelY = 12;
             const barTopY = 18;
             const barAreaHeight = 56;
@@ -199,7 +213,7 @@ export default {
             const barValueY = axisLineY + 13;
             const matrixTop = axisLineY + 21;
             const bottomAxisLabelY = this.height - 3;
-            const rowAreaBottom = this.height - 18;
+            const rowAreaBottom = this.height - 30;
             const matrixHeight = Math.max(rowAreaBottom - matrixTop, 24);
             const rowStep = this.displayRows.length ? matrixHeight / this.displayRows.length : 0;
             const rowCenterOffset = rowStep / 2;
@@ -210,6 +224,7 @@ export default {
                 height: this.height,
                 plotLeft,
                 plotWidth,
+                rowCountGap,
                 topAxisLabelY,
                 barAreaHeight,
                 axisLineY,
@@ -331,16 +346,16 @@ export default {
                 node.setAttribute("font-family", "'Open Sans', sans-serif");
             });
             clone.querySelectorAll(".upset-plot-row-label").forEach((node) => {
-                node.setAttribute("fill", "#4f6571");
+                node.setAttribute("fill", "#3f3a34");
                 node.setAttribute("font-size", "11");
-                node.setAttribute("font-weight", "400");
-                node.setAttribute("font-family", "'Open Sans', sans-serif");
+            });
+            clone.querySelectorAll(".upset-plot-row-count").forEach((node) => {
+                node.setAttribute("fill", "#3f3a34");
+                node.setAttribute("font-size", "11");
             });
             clone.querySelectorAll(".upset-plot-axis-label").forEach((node) => {
-                node.setAttribute("fill", "#4f6571");
-                node.setAttribute("font-size", "11");
-                node.setAttribute("font-weight", "600");
-                node.setAttribute("font-family", "'Open Sans', sans-serif");
+                node.setAttribute("fill", "#3f3a34");
+                node.setAttribute("font-size", "12");
             });
             clone.querySelectorAll(".upset-plot-dot").forEach((node) => {
                 node.setAttribute("fill", "#d4dde1");
@@ -377,10 +392,8 @@ export default {
 }
 
 .upset-plot-axis-label {
-    fill: #4f6571;
-    font-size: 11px;
-    font-weight: 600;
-    font-family: "Open Sans", sans-serif;
+    fill: #3f3a34;
+    font-size: 12px;
 }
 
 .upset-plot-bar {
@@ -395,10 +408,13 @@ export default {
 }
 
 .upset-plot-row-label {
-    fill: #4f6571;
+    fill: #3f3a34;
     font-size: 11px;
-    font-weight: 400;
-    font-family: "Open Sans", sans-serif;
+}
+
+.upset-plot-row-count {
+    fill: #3f3a34;
+    font-size: 11px;
 }
 
 .upset-plot-dot {

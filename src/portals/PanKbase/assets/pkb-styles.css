@@ -16,6 +16,7 @@ body {
     min-height: 100vh;
     width: fit-content;
     min-width: 100%;
+    overflow-x:hidden;
     display: flex;
     flex-direction: column;
 }

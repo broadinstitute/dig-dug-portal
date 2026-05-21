@@ -168,21 +168,13 @@
 
 <script>
 import Vue from "vue";
+import { formatDataTypeLabel, normalizeDataTypeValue } from "./dataTypeUtils";
 import { parseNumericValue } from "./datasetUtils";
 
 const STATUS_ORDER = ["Control w/o diabetes", "Prediabetes", "T2D", "T1D"];
 const ALL_DONOR_COLORS = ["#1a7b79", "#2f918e", "#47a8a1", "#68bcb0", "#8fd0c0"];
 const ASSAY_DONOR_COLORS = ["#12647a", "#1a7ca0", "#2598c5", "#53b1dc", "#8fd0ee"];
 const DATA_TYPE_COLORS = ["#0f766e", "#1d8f7d", "#34a98d", "#6ec2a9", "#9dd9c8"];
-
-const DATA_TYPE_LABELS = {
-    dynamic_perifusion: "Dynamic perifusion",
-    bulk_RNA_seq: "Bulk RNA-seq",
-    "bulk_RNA-seq": "Bulk RNA-seq",
-    "single_cell_RNA-seq": "Single-cell RNA-seq",
-    "single_nucleus_ATAC-seq": "Single-nucleus ATAC-seq",
-    "single_nuclear_ATAC-seq": "Single-nucleus ATAC-seq",
-};
 
 export default Vue.component("DonorSnapshot", {
     props: {
@@ -450,7 +442,7 @@ export default Vue.component("DonorSnapshot", {
                 colors: DATA_TYPE_COLORS,
                 multiValue: true,
                 limit: 4,
-                formatLabel: (value) => DATA_TYPE_LABELS[value] || value,
+                formatLabel: (value) => formatDataTypeLabel(value),
             });
 
             return assayRows.rows;
@@ -801,7 +793,7 @@ export default Vue.component("DonorSnapshot", {
             return [...new Set(
                 String(value)
                     .split(";")
-                    .map((entry) => entry.trim())
+                    .map((entry) => normalizeDataTypeValue(entry))
                     .filter((entry) => {
                         if (!entry) {
                             return false;
