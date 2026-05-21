@@ -17,7 +17,8 @@
                                 <b-tabs>
                                     <b-tab title="Filter donor data"
                                         @click="$parent.useSelectedDonors(false)">
-                                        <criterion-function-group>
+                                        <criterion-function-group
+                                            @update:filter-list="list => $parent.updateFilterList(list)">
                                             <filter-slider v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
@@ -80,6 +81,9 @@
                                     <b-tab title="Perifusion traces">
                                         <div class="line-plots">
                                             {{ $parent.filteredAccession.length }} donors meeting filter criteria
+                                            <button class="btn btn-secondary btn-sm" @click="$parent.copyResults()">
+                                                Copy link to results
+                                            </button>
                                             <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"

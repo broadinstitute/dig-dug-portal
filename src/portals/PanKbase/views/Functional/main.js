@@ -411,6 +411,25 @@ new Vue({
         toggleAdvanced(){
             this.showAdvanced = !this.showAdvanced;
         },
+        updateFilterList(filterList){
+            let filterParams = [];
+            filterList.forEach(filter => {
+                let param = { name: filter.field };
+                if (!isNaN(filter.threshold.min) && !isNaN(filter.threshold.max)){
+                    param.min = filter.threshold.min;
+                    param.max = filter.threshold.max;
+                } else {
+                    param.values = filter.threshold;
+                }
+                filterParams.push(param);
+            });
+            let donorFilters = JSON.stringify(filterParams);
+            keyParams.set({donorFilters: donorFilters});
+        },
+        copyResults(){
+            window.navigator.clipboard.writeText(window.location);
+            console.log(window.location);
+        }
     },
     watch: {
         insData(newData){
