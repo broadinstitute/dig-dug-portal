@@ -13,7 +13,7 @@ export function createKrSampleState() {
             openMetrics: {
                 "Closest phenotype neighbor": true,
                 "Investigator context": false,
-                "Public disease hypothesis": false,
+                "Public disease profile reference": false,
             },
             openGenotypeGroups: {
                 "Same variant": false,
@@ -73,9 +73,9 @@ export function createKrSampleState() {
                         text: "This is not a nearest-neighbor count. Each investigator group is summarized into a phenotype signature from enriched HPO terms. BCH-12-34567-01 is scored against all 40 group signatures; Investigator 2 is the strongest match in this mockup.",
                     },
                     {
-                        label: "Public disease hypothesis",
-                        value: "Kabuki-like · 11 / 18 phenotype features",
-                        text: "Phenotype-based public disease matching finds 11 of 18 expected Kabuki-like features in the sample profile. The matched and missing features should be reviewed in the Disease hypotheses tab before interpreting this as diagnostic evidence.",
+                        label: "Public disease profile reference",
+                        value: "Kabuki syndrome profile · 11 / 18 HPO terms",
+                        text: "Public disease profile matching compares this sample's HPO profile with external disease-HPO annotations. This is reference evidence for review, not a clinical conclusion.",
                     },
                 ],
                 groupAffinityTop: [
@@ -301,7 +301,7 @@ export function createKrSampleState() {
                                 sharedGene: "KMT2D",
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: LoF",
-                                phenotypeOverlap: "High",
+                                phenotypeOverlap: "12 / 47 shared HPO terms",
                                 keyPhenotypes: "Cleft palate; Speech delay; Short stature",
                             },
                             {
@@ -310,7 +310,7 @@ export function createKrSampleState() {
                                 sharedGene: "KMT2D",
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: missense",
-                                phenotypeOverlap: "Moderate-high",
+                                phenotypeOverlap: "10 / 47 shared HPO terms",
                                 keyPhenotypes: "Cleft palate; Hypotonia",
                             },
                             {
@@ -319,7 +319,7 @@ export function createKrSampleState() {
                                 sharedGene: "KMT2D",
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: splice-region",
-                                phenotypeOverlap: "Moderate",
+                                phenotypeOverlap: "6 / 47 shared HPO terms",
                                 keyPhenotypes: "Short stature; Characteristic facial features",
                             },
                         ],
@@ -474,10 +474,10 @@ export function createKrSampleState() {
                     },
                 ],
                 comparePreview: [
-                    { label: "Phenotype overlap", value: "12 / 15 shared", text: "Strong overlap in craniofacial, neurodevelopmental, and growth domains." },
+                    { label: "Phenotype overlap", value: "12 / 15 shared", text: "Shared craniofacial, neurodevelopmental, and growth-domain HPO terms." },
                     { label: "Genetic overlap", value: "same gene", text: "Both samples carry rare KMT2D variants, but not the exact same allele." },
-                    { label: "Disease hypothesis overlap", value: "Kabuki-like", text: "Both samples map to the same public disease hypothesis." },
-                    { label: "Conclusion", value: "related, not confirmed", text: "Similarity supports reviewing the same disease mechanism, not automatic same diagnosis." },
+                    { label: "Disease profile reference overlap", value: "Kabuki syndrome profile", text: "Both samples map to the same public disease profile reference." },
+                    { label: "Conclusion", value: "related, not final", text: "Similarity supports reviewing the same disease mechanism, not an automatic clinical conclusion." },
                 ],
             },
         };

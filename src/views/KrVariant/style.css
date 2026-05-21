@@ -979,6 +979,127 @@
     border-bottom: 1px solid #eef2f7;
 }
 
+.glens-carrier-context-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.glens-main-context-button,
+.glens-context-draft-actions button,
+.glens-context-draft-add button {
+    border: 1px solid #cbd8e8;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #0055ff;
+    font-size: 0.78rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.glens-main-context-button {
+    padding: 0.45rem 0.65rem;
+}
+
+.glens-main-context-button:disabled,
+.glens-context-draft-actions button:disabled,
+.glens-context-draft-add button:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.glens-context-draft-panel {
+    display: grid;
+    gap: 0.65rem;
+    margin: -0.25rem 0 0.9rem;
+    padding: 0.8rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.95rem;
+    background: #fff;
+    box-shadow: 0 16px 35px rgba(22, 32, 51, 0.08);
+}
+
+.glens-context-draft-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.glens-context-draft-head div {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.glens-context-draft-head strong {
+    color: #162033;
+    font-size: 0.9rem;
+    font-weight: 750;
+}
+
+.glens-context-draft-head span,
+.glens-context-draft-item,
+.glens-context-selection-note span {
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+.glens-context-draft-head > button,
+.glens-context-draft-item button {
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.glens-context-draft-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.glens-context-draft-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.45rem;
+    background: #f8fafc;
+}
+
+.glens-context-draft-add,
+.glens-context-draft-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.glens-context-draft-add .glens-select {
+    min-width: min(26rem, 100%);
+}
+
+.glens-context-draft-add button,
+.glens-context-draft-actions button {
+    padding: 0.42rem 0.62rem;
+}
+
+.glens-context-draft-actions {
+    justify-content: space-between;
+}
+
+.glens-context-draft-actions > div {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
 .glens-residual-accordion {
     padding: 0;
 }
@@ -1041,6 +1162,86 @@
     background: transparent;
 }
 
+.glens-context-selection-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin: 0.7rem 0;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    background: #f8fafc;
+}
+
+.glens-context-selection-note button {
+    border: 0;
+    background: transparent;
+    color: #0055ff;
+    font-size: 0.76rem;
+    font-weight: 750;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.glens-set-context-button {
+    justify-self: start;
+    margin-top: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: #0055ff;
+    font-size: 0.8rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.glens-context-guide {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.75rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+}
+
+.glens-context-guide p,
+.glens-context-guide span {
+    margin: 0;
+    color: #526276;
+    font-size: 0.8rem;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.glens-context-position-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+}
+
+.glens-context-position-summary div {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.7rem;
+    background: #fff;
+}
+
+.glens-context-position-summary span {
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.glens-context-position-summary strong {
+    color: #162033;
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
 .glens-carrier-sample-table {
     display: grid;
     gap: 0;
@@ -1054,7 +1255,7 @@
 .glens-carrier-table-head,
 .glens-carrier-table-row {
     display: grid;
-    grid-template-columns: 1.35fr 0.62fr 1.1fr 0.82fr 0.75fr 0.58fr;
+    grid-template-columns: 3.5rem 1.35fr 0.62fr 1.1fr 0.82fr 0.75fr 0.58fr;
     gap: 0.45rem;
     align-items: center;
     font-size: 0.72rem;
@@ -1088,6 +1289,30 @@
     border-top: 1px solid rgba(226, 232, 240, 0.9);
     color: #42526a;
     font-weight: 700;
+}
+
+.glens-context-checkbox,
+.glens-phenotype-context-check,
+.glens-phenotype-term-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.glens-context-checkbox input,
+.glens-phenotype-context-check input,
+.glens-phenotype-term-check input {
+    width: 0.92rem;
+    height: 0.92rem;
+    accent-color: #0055ff;
+}
+
+.glens-context-checkbox input:disabled,
+.glens-phenotype-context-check input:disabled,
+.glens-phenotype-term-check input:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
 }
 
 .glens-sample-link {
@@ -1202,6 +1427,23 @@
     font-weight: 900;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+}
+
+.glens-phenotype-context-check > span {
+    color: #162033;
+    font-size: 0.78rem;
+    font-weight: 750;
+}
+
+.glens-phenotype-term-check {
+    min-width: 0;
+    color: #526276;
+    font-weight: 650;
+}
+
+.glens-phenotype-term-check > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .glens-residual-boxplot {
@@ -1583,6 +1825,8 @@
 
 .glens-detail-row {
     margin-top: 0.6rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     color: #526276;
     font-size: 0.8rem;
 }

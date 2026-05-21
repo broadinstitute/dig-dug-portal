@@ -405,17 +405,64 @@
                                     <p class="glens-section-label">Carrier phenotype profile</p>
                                     <span class="glens-small-meta">{{ carrierReference.levelLabel }} reference set</span>
                                 </div>
-                                <div class="glens-level-toggle" aria-label="Carrier reference level">
+                                <div class="glens-carrier-context-actions">
+                                    <div class="glens-level-toggle" aria-label="Carrier reference level">
+                                        <button
+                                            v-for="level in summaryLevels"
+                                            :key="`carrier-${level.key}`"
+                                            class="glens-level-button"
+                                            :class="{ 'glens-level-button--active': activeSummaryLevel === level.key }"
+                                            type="button"
+                                            @click="setSummaryLevel(level.key)"
+                                        >
+                                            {{ level.label }}
+                                        </button>
+                                    </div>
                                     <button
-                                        v-for="level in summaryLevels"
-                                        :key="`carrier-${level.key}`"
-                                        class="glens-level-button"
-                                        :class="{ 'glens-level-button--active': activeSummaryLevel === level.key }"
+                                        class="glens-main-context-button"
                                         type="button"
-                                        @click="setSummaryLevel(level.key)"
+                                        :disabled="!hasCarrierContextSelection"
+                                        @click="openCarrierContextDraft"
                                     >
-                                        {{ level.label }}
+                                        Set as context
                                     </button>
+                                </div>
+                            </div>
+                            <div v-if="carrierContextDraftOpen" class="glens-context-draft-panel">
+                                <div class="glens-context-draft-head">
+                                    <div>
+                                        <strong>Edit context</strong>
+                                        <span>{{ carrierContextDraftType === 'samples' ? 'Carrier samples selected as context source' : 'Phenotype items selected as context source' }}</span>
+                                    </div>
+                                    <button type="button" aria-label="Close edit context panel" @click="closeCarrierContextDraft">×</button>
+                                </div>
+                                <div class="glens-context-draft-list">
+                                    <span v-for="item in carrierContextDraftItems" :key="item" class="glens-context-draft-item">
+                                        {{ item }}
+                                        <button type="button" :aria-label="`Remove ${item}`" @click="removeCarrierContextDraftItem(item)">×</button>
+                                    </span>
+                                </div>
+                                <div class="glens-context-draft-add">
+                                    <select v-model="carrierContextDraftAddValue" class="glens-select">
+                                        <option value="">Add another {{ carrierContextDraftType === 'samples' ? 'carrier sample' : 'phenotype item' }}</option>
+                                        <option
+                                            v-for="option in carrierContextDraftAddOptions"
+                                            :key="option.value"
+                                            :value="option.value"
+                                        >
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                    <button type="button" :disabled="!carrierContextDraftAddValue" @click="addCarrierContextDraftItem">Add</button>
+                                </div>
+                                <div class="glens-context-draft-actions">
+                                    <button type="button" :disabled="!carrierContextDraftItems.length" @click="clearCarrierContextDraftItems">Clear all</button>
+                                    <div>
+                                        <button type="button" @click="closeCarrierContextDraft">Cancel</button>
+                                        <button type="button" :disabled="!carrierContextDraftItems.length" @click="confirmCarrierContextDraft">
+                                            Confirm context
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -452,13 +499,14 @@
                                                 @click="toggleCarrierDetail('residual')"
                                             >
                                                 <span>{{ activeCarrierDetail === 'residual' ? '▾' : '▸' }}</span>
-                                                <strong>{{ carrierReference.contextRank }}</strong>
-                                                <span>investigator context</span>
+                                                <strong>{{ hasActiveContext ? carrierReference.contextRank : "Set context" }}</strong>
+                                                <span>Context position in CRDC</span>
                                             </button>
                                         </div>
                                         <div v-if="activeCarrierDetail" class="glens-carrier-detail-panel">
                                             <div v-if="activeCarrierDetail === 'samples'" class="glens-carrier-sample-table">
                                                 <div class="glens-carrier-table-head">
+                                                    <span>Context</span>
                                                     <button type="button" @click="setCarrierSampleSort('id')">
                                                         Sample {{ sortIndicator('sample', 'id') }}
                                                     </button>
@@ -483,6 +531,14 @@
                                                     :key="sample.id"
                                                     class="glens-carrier-table-row"
                                                 >
+                                                    <label class="glens-context-checkbox" @click.stop>
+                                                        <input
+                                                            type="checkbox"
+                                                            :checked="selectedCarrierSampleIds.includes(sample.id)"
+                                                            :disabled="isCarrierSampleContextDisabled(sample.id)"
+                                                            @change="toggleCarrierSampleContext(sample.id)"
+                                                        >
+                                                    </label>
                                                     <a class="glens-sample-link" :href="sampleHref(sample.id)">
                                                         {{ sample.id }}
                                                     </a>
@@ -519,10 +575,36 @@
                                                 </button>
                                             </div>
                                             <div v-else class="glens-residual-accordion">
-                                                <p>
-                                                    {{ carrierReference.contextDescription }}
-                                                </p>
-                                                <label class="glens-residual-select-label" for="carrier-context-investigator">
+                                                <div v-if="!hasActiveContext" class="glens-context-guide">
+                                                    <p>
+                                                        No active context. Carrier samples and carrier HPO profile are shown as cohort-wide summaries only. Set a clinical context to score this carrier profile against a disease, sample, investigator cohort, or HPO profile.
+                                                    </p>
+                                                    <span>Set context to evaluate whether this carrier HPO profile is unusual for your clinical question.</span>
+                                                </div>
+                                                <template v-else>
+                                                    <p>
+                                                        {{ carrierReference.contextDescription }}
+                                                    </p>
+                                                    <div class="glens-context-position-summary">
+                                                        <div>
+                                                            <span>Active context</span>
+                                                            <strong>{{ compactContextLabel || carrierReference.contextPosition.activeContext }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span>Carrier reference</span>
+                                                            <strong>{{ carrierReference.contextPosition.carrierReference }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span>Match to context</span>
+                                                            <strong>{{ carrierReference.contextPosition.contextMatch }}</strong>
+                                                        </div>
+                                                        <div>
+                                                            <span>Position vs CRDC</span>
+                                                            <strong>{{ carrierReference.contextPosition.crdcPosition }}</strong>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <label v-if="hasActiveContext" class="glens-residual-select-label" for="carrier-context-investigator">
                                                     Inspect group
                                                     <select
                                                         id="carrier-context-investigator"
@@ -539,7 +621,7 @@
                                                         </option>
                                                     </select>
                                                 </label>
-                                                <div class="glens-residual-mini">
+                                                <div v-if="hasActiveContext" class="glens-residual-mini">
                                                     <button
                                                         v-for="group in activeResidualGroups"
                                                         :key="group.name"
@@ -558,7 +640,7 @@
                                                         <strong>{{ residualGroupLabel(group) }}</strong>
                                                     </button>
                                                 </div>
-                                                <div class="glens-residual-sample-panel">
+                                                <div v-if="hasActiveContext" class="glens-residual-sample-panel">
                                                     <div class="glens-residual-sample-head">
                                                         <strong>{{ activeResidualGroupName }}</strong>
                                                         <span>{{ residualCarrierSamples.length }} carrier samples shown</span>
@@ -619,7 +701,15 @@
                                         @click="togglePhenotypeCategory(phenotype.label)"
                                     >
                                         <div class="glens-bar-header">
-                                            <span>{{ phenotype.label }}</span>
+                                            <label class="glens-phenotype-context-check" @click.stop>
+                                                <input
+                                                    type="checkbox"
+                                                    :checked="selectedCarrierPhenotypeLabels.includes(phenotype.label)"
+                                                    :disabled="isCarrierPhenotypeContextDisabled(phenotype.label)"
+                                                    @change="toggleCarrierPhenotypeContext(phenotype.label)"
+                                                >
+                                                <span>{{ phenotype.label }}</span>
+                                            </label>
                                             <span>
                                                 All {{ phenotype.all }}% ({{ phenotypeCount(phenotype.all, summaryScope.all) }} / {{ summaryScope.all }})
                                                 |
@@ -645,7 +735,15 @@
                                                 :key="item.label"
                                                 class="glens-detail-row"
                                             >
-                                                <span>{{ item.label }}</span>
+                                                <label class="glens-phenotype-term-check" @click.stop>
+                                                    <input
+                                                        type="checkbox"
+                                                        :checked="selectedCarrierPhenotypeLabels.includes(item.label)"
+                                                        :disabled="isCarrierPhenotypeContextDisabled(item.label)"
+                                                        @change="toggleCarrierPhenotypeContext(item.label)"
+                                                    >
+                                                    <span>{{ item.label }}</span>
+                                                </label>
                                                 <strong>{{ item.value }}%</strong>
                                             </div>
                                         </div>
@@ -665,7 +763,7 @@
 <script>
 import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
 import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
-import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
+import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus, writeClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { createKrVariantState } from "./mockData";
 import "./style.css";
 
@@ -680,6 +778,12 @@ export default {
             clinicalFocus: readClinicalFocus(),
             contextPopoverOpen: false,
             optionsPopoverOpen: false,
+            selectedCarrierSampleIds: [],
+            selectedCarrierPhenotypeLabels: [],
+            carrierContextDraftOpen: false,
+            carrierContextDraftType: "",
+            carrierContextDraftItems: [],
+            carrierContextDraftAddValue: "",
             unsubscribeClinicalFocus: null,
         };
     },
@@ -691,6 +795,45 @@ export default {
             if (!this.hasActiveContext) return "";
             const contextId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId || "";
             return [this.clinicalFocus.label, contextId].filter(Boolean).join(" · ");
+        },
+        carrierContextSelectionType() {
+            if (this.selectedCarrierSampleIds.length) return "samples";
+            if (this.selectedCarrierPhenotypeLabels.length) return "phenotypes";
+            return "";
+        },
+        hasCarrierContextSelection() {
+            return Boolean(this.carrierContextSelectionType);
+        },
+        carrierContextSelectionMessage() {
+            if (this.carrierContextSelectionType === "samples") {
+                return `${this.selectedCarrierSampleIds.length} carrier sample${this.selectedCarrierSampleIds.length === 1 ? "" : "s"} selected. Phenotype row selection is disabled until samples are cleared.`;
+            }
+            if (this.carrierContextSelectionType === "phenotypes") {
+                return `${this.selectedCarrierPhenotypeLabels.length} phenotype item${this.selectedCarrierPhenotypeLabels.length === 1 ? "" : "s"} selected. Carrier sample selection is disabled until phenotype items are cleared.`;
+            }
+            return "";
+        },
+        carrierContextDraftAddOptions() {
+            if (this.carrierContextDraftType === "samples") {
+                return this.sortedCarrierSamples
+                    .filter((sample) => !this.carrierContextDraftItems.includes(sample.id))
+                    .map((sample) => ({ value: sample.id, label: sample.id }));
+            }
+            if (this.carrierContextDraftType === "phenotypes") {
+                const options = [
+                    ...this.phenotypeRows.map((phenotype) => ({ value: phenotype.label, label: phenotype.label })),
+                    ...Object.values(this.variant.phenotypeDetails)
+                        .flat()
+                        .map((term) => ({ value: term.label, label: term.label })),
+                ];
+                const seen = new Set();
+                return options.filter((option) => {
+                    if (seen.has(option.value) || this.carrierContextDraftItems.includes(option.value)) return false;
+                    seen.add(option.value);
+                    return true;
+                });
+            }
+            return [];
         },
         investigatorOptions() {
             return [
@@ -733,16 +876,28 @@ export default {
                     sampleCount: 18,
                     hpoCount: 47,
                     contextRank: "top 9.1%",
-                    description: "Variant level: inspect the 18 exact queried-variant carriers, then the 47-term carrier HPO profile, then investigator-level phenotype context.",
-                    contextDescription: "The 47-term queried-variant carrier phenotype profile is treated as a reference set. Investigator context shows where this carrier phenotype profile sits against CRDC subgroup signatures after annotation-burden correction.",
+                    description: "Variant level: inspect the 18 exact queried-variant carriers, then the 47-term carrier HPO profile, then context position in CRDC.",
+                    contextDescription: "The 47-term queried-variant carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.",
+                    contextPosition: {
+                        activeContext: "Kabuki syndrome profile",
+                        carrierReference: "18 queried-variant carriers",
+                        contextMatch: "11 / 18 context HPO terms",
+                        crdcPosition: "top 9.1%",
+                    },
                 },
                 gene: {
                     levelLabel: "UBE3A gene carrier",
                     sampleCount: 132,
                     hpoCount: 86,
                     contextRank: "top 13.4%",
-                    description: "Gene level: inspect UBE3A carrier samples, then the gene-carrier HPO profile, then investigator-level phenotype context.",
-                    contextDescription: "The UBE3A carrier phenotype profile is treated as a reference set. Investigator context shows where the gene-carrier phenotype profile sits against CRDC subgroup signatures after annotation-burden correction.",
+                    description: "Gene level: inspect UBE3A carrier samples, then the gene-carrier HPO profile, then context position in CRDC.",
+                    contextDescription: "The UBE3A carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.",
+                    contextPosition: {
+                        activeContext: "Kabuki syndrome profile",
+                        carrierReference: "132 UBE3A gene carriers",
+                        contextMatch: "13 / 18 context HPO terms",
+                        crdcPosition: "top 13.4%",
+                    },
                 },
             };
 
@@ -876,6 +1031,142 @@ export default {
             clearClinicalFocus();
             this.contextPopoverOpen = false;
         },
+        toggleCarrierSampleContext(sampleId) {
+            if (this.carrierContextSelectionType === "phenotypes") return;
+            const selectedSampleIds = this.selectedCarrierSampleIds.includes(sampleId)
+                ? this.selectedCarrierSampleIds.filter((id) => id !== sampleId)
+                : [...this.selectedCarrierSampleIds, sampleId];
+            this.selectedCarrierSampleIds = selectedSampleIds;
+            if (selectedSampleIds.length) {
+                this.syncCarrierContextDraft("samples", selectedSampleIds);
+            } else {
+                this.closeCarrierContextDraft();
+            }
+        },
+        toggleCarrierPhenotypeContext(label) {
+            if (this.carrierContextSelectionType === "samples") return;
+            const selectedPhenotypeLabels = this.selectedCarrierPhenotypeLabels.includes(label)
+                ? this.selectedCarrierPhenotypeLabels.filter((item) => item !== label)
+                : [...this.selectedCarrierPhenotypeLabels, label];
+            this.selectedCarrierPhenotypeLabels = selectedPhenotypeLabels;
+            if (selectedPhenotypeLabels.length) {
+                this.syncCarrierContextDraft("phenotypes", selectedPhenotypeLabels);
+            } else {
+                this.closeCarrierContextDraft();
+            }
+        },
+        isCarrierSampleContextDisabled(sampleId) {
+            return this.carrierContextSelectionType === "phenotypes" && !this.selectedCarrierSampleIds.includes(sampleId);
+        },
+        isCarrierPhenotypeContextDisabled(label) {
+            return this.carrierContextSelectionType === "samples" && !this.selectedCarrierPhenotypeLabels.includes(label);
+        },
+        clearCarrierContextSelection() {
+            this.selectedCarrierSampleIds = [];
+            this.selectedCarrierPhenotypeLabels = [];
+            this.closeCarrierContextDraft();
+        },
+        openCarrierContextDraft() {
+            if (!this.hasCarrierContextSelection) return;
+            const type = this.carrierContextSelectionType;
+            this.syncCarrierContextDraft(type, type === "samples" ? this.selectedCarrierSampleIds : this.selectedCarrierPhenotypeLabels);
+        },
+        syncCarrierContextDraft(type, items) {
+            this.carrierContextDraftType = type;
+            this.carrierContextDraftItems = [...items];
+            this.carrierContextDraftAddValue = "";
+            this.carrierContextDraftOpen = true;
+        },
+        closeCarrierContextDraft() {
+            this.carrierContextDraftOpen = false;
+            this.carrierContextDraftType = "";
+            this.carrierContextDraftItems = [];
+            this.carrierContextDraftAddValue = "";
+        },
+        addCarrierContextDraftItem() {
+            if (!this.carrierContextDraftAddValue || this.carrierContextDraftItems.includes(this.carrierContextDraftAddValue)) return;
+            const nextItems = [...this.carrierContextDraftItems, this.carrierContextDraftAddValue];
+            this.carrierContextDraftItems = nextItems;
+            if (this.carrierContextDraftType === "samples") {
+                this.selectedCarrierSampleIds = nextItems;
+            }
+            if (this.carrierContextDraftType === "phenotypes") {
+                this.selectedCarrierPhenotypeLabels = nextItems;
+            }
+            this.carrierContextDraftAddValue = "";
+        },
+        removeCarrierContextDraftItem(item) {
+            const nextItems = this.carrierContextDraftItems.filter((current) => current !== item);
+            this.carrierContextDraftItems = nextItems;
+            if (this.carrierContextDraftType === "samples") {
+                this.selectedCarrierSampleIds = nextItems;
+            }
+            if (this.carrierContextDraftType === "phenotypes") {
+                this.selectedCarrierPhenotypeLabels = nextItems;
+            }
+        },
+        clearCarrierContextDraftItems() {
+            this.carrierContextDraftItems = [];
+            if (this.carrierContextDraftType === "samples") {
+                this.selectedCarrierSampleIds = [];
+            }
+            if (this.carrierContextDraftType === "phenotypes") {
+                this.selectedCarrierPhenotypeLabels = [];
+            }
+            this.carrierContextDraftAddValue = "";
+        },
+        confirmCarrierContextDraft() {
+            if (!this.carrierContextDraftItems.length) return;
+            const type = this.carrierContextDraftType;
+            const items = [...this.carrierContextDraftItems];
+            const label = type === "samples"
+                ? `${items.length} selected ${this.carrierReference.levelLabel} sample${items.length === 1 ? "" : "s"}`
+                : `${items.length} selected carrier phenotype item${items.length === 1 ? "" : "s"}`;
+            const hpoTerms = type === "phenotypes"
+                ? this.hpoTermsFromPhenotypeRows(items)
+                : this.hpoTermsFromCarrierProfile();
+            writeClinicalFocus({
+                source: type === "samples" ? "carrier-sample-selection" : "carrier-phenotype-selection",
+                label,
+                sourceDetail: type === "samples"
+                    ? `Mock context created from selected ${this.carrierReference.levelLabel} samples: ${items.join(", ")}.`
+                    : `Mock context created from selected carrier phenotype rows: ${items.join(", ")}.`,
+                sourceQuery: items.join(", "),
+                hpoTerms,
+            });
+            this.clinicalFocus = readClinicalFocus();
+            this.activeCarrierDetail = "residual";
+            if (type === "samples") {
+                this.selectedCarrierSampleIds = items;
+                this.selectedCarrierPhenotypeLabels = [];
+            } else {
+                this.selectedCarrierPhenotypeLabels = items;
+                this.selectedCarrierSampleIds = [];
+            }
+            this.closeCarrierContextDraft();
+        },
+        hpoTermsFromPhenotypeRows(labels) {
+            const selectedTerms = labels
+                .flatMap((label) => {
+                    const categoryTerms = this.variant.phenotypeDetails[label];
+                    return categoryTerms ? categoryTerms.map((term) => term.label) : [label];
+                });
+            return [...new Set(selectedTerms)]
+                .slice(0, 12)
+                .map((termLabel) => ({
+                    id: termLabel.match(/\[(HP:[0-9]+)\]/)?.[1] || "",
+                    label: termLabel.replace(/\s*\[HP:[0-9]+\]/, ""),
+                }));
+        },
+        hpoTermsFromCarrierProfile() {
+            return this.sortedCarrierPhenotypeCategories
+                .flatMap((category) => category.terms || [])
+                .slice(0, 12)
+                .map((term) => ({
+                    id: term.match(/\[(HP:[0-9]+)\]/)?.[1] || "",
+                    label: term.replace(/\s*\[HP:[0-9]+\]/, ""),
+                }));
+        },
         sampleHref(sampleId) {
             return `krSample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },
@@ -883,6 +1174,7 @@ export default {
             this.activeSummaryLevel = level;
             this.activeDemographicLevel = level;
             this.activePhenotypeCategory = "";
+            this.clearCarrierContextSelection();
             this.syncPhenotypeSummaryToResidualGroup();
         },
         setResidualGroup(groupName) {

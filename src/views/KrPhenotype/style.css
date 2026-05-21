@@ -2112,13 +2112,14 @@
 
 .glens-candidate-table--disease .glens-candidate-head,
 .glens-candidate-table--disease .glens-candidate-row {
-    grid-template-columns: minmax(12rem, 1.25fr) minmax(8rem, 0.7fr) minmax(6.5rem, 0.55fr) minmax(12rem, 1.15fr) minmax(9rem, 0.75fr) minmax(8rem, 0.7fr);
-    min-width: 64rem;
+    grid-template-columns: minmax(11rem, 1fr) minmax(11rem, 1fr) minmax(13rem, 1.2fr) minmax(13rem, 1.2fr) minmax(15rem, 1.35fr);
+    min-width: 72rem;
 }
 
 .glens-candidate-table--gene .glens-candidate-head,
 .glens-candidate-table--gene .glens-candidate-row {
-    grid-template-columns: minmax(12rem, 1.25fr) minmax(6.5rem, 0.55fr) minmax(12rem, 1.2fr) minmax(9rem, 0.8fr) minmax(8rem, 0.75fr);
+    grid-template-columns: minmax(7rem, 0.6fr) minmax(11rem, 1fr) minmax(13rem, 1.15fr) minmax(15rem, 1.35fr) minmax(15rem, 1.35fr);
+    min-width: 68rem;
 }
 
 .glens-candidate-table--variant .glens-candidate-head,

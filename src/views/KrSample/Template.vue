@@ -559,7 +559,7 @@
                             </div>
                         </div>
                         <p class="glens-method-note">
-                            Disease profile matches compare this sample's HPO profile against public disease phenotype annotations. They are reference matches, not confirmed diagnoses.
+                            Disease profile matches compare this sample's HPO profile against public disease phenotype annotations. They are reference matches for review, not final clinical conclusions.
                         </p>
 
                         <div class="glens-disease-table">
@@ -820,8 +820,8 @@ export default {
                     value: "Investigator 2",
                 },
                 {
-                    label: "Disease hypothesis",
-                    value: "Kabuki syndrome-like",
+                    label: "Disease profile reference",
+                    value: "Kabuki syndrome profile",
                 },
             ];
         },

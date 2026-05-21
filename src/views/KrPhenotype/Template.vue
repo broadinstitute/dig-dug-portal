@@ -257,7 +257,10 @@
                             <p class="glens-small-heading">Phenotype-derived candidates</p>
                             <small>Which diseases, genes, and cohort variants are supported by the input phenotype profile?</small>
                             <p class="glens-source-note">
-                                Input HPO terms → candidate diseases and genes from external reference databases → cohort variants observed in those candidate genes.
+                                Input HPO profile → weighted PheRS/profile matching → ranked disease and gene candidates → CRDC cohort evidence overlay.
+                            </p>
+                            <p class="glens-source-note">
+                                User-entered HPO terms are evaluated as a weighted phenotype profile, not as independent union filters. Exact matches, related HPO terms, and broad terms are scored differently. External annotations define reference disease/gene profiles, and CRDC cohort evidence is overlaid after profile-based ranking.
                             </p>
                             <div class="glens-tab-row glens-tab-row--insights">
                                 <button
@@ -289,16 +292,15 @@
                     <section v-if="activeInsightTab === 'disease'" class="glens-step-card glens-step-card--tabbed">
                         <div class="glens-step-body">
                             <p class="glens-source-note">
-                                Disease candidates are supported by the original user-entered HPO terms using external reference databases such as Orphanet, OMIM, and HPO annotations.
+                                Disease candidates are ranked by weighted profile match against external disease-HPO references, then checked against CRDC cohort evidence in linked genes.
                             </p>
                             <div class="glens-candidate-table glens-candidate-table--disease">
                                 <div class="glens-candidate-head">
                                     <span>Disease candidate</span>
-                                    <span>Disease profile HPO terms</span>
-                                    <span>Query support</span>
-                                    <span>Matched query terms</span>
-                                    <span>Linked genes</span>
-                                    <span>Source</span>
+                                    <span>PheRS/profile match</span>
+                                    <span>External annotation</span>
+                                    <span>CRDC cohort evidence</span>
+                                    <span>Why matched</span>
                                 </div>
                                 <div
                                     v-for="row in phenotype.diseaseCandidates"
@@ -306,19 +308,21 @@
                                     class="glens-candidate-row"
                                 >
                                     <strong>{{ row.disease }}</strong>
-                                    <span>{{ row.diseaseHpoTerms }}</span>
-                                    <span>{{ row.querySupport }}</span>
-                                    <span>{{ row.matchedTerms }}</span>
-                                    <span class="glens-signal-links glens-signal-links--coobserved">
-                                        <a
-                                            v-for="gene in row.linkedGenes"
-                                            :key="`${row.disease}-${gene}`"
-                                            :href="variantHref(gene)"
-                                        >
-                                            {{ gene }}
-                                        </a>
+                                    <span>{{ row.profileMatch }}</span>
+                                    <span>
+                                        {{ row.externalAnnotation }}
+                                        <span class="glens-signal-links glens-signal-links--coobserved">
+                                            <a
+                                                v-for="gene in row.linkedGenes"
+                                                :key="`${row.disease}-${gene}`"
+                                                :href="variantHref(gene)"
+                                            >
+                                                {{ gene }}
+                                            </a>
+                                        </span>
                                     </span>
-                                    <span>{{ row.source }}</span>
+                                    <span>{{ row.crdcEvidence }}</span>
+                                    <span>{{ row.whyMatched }}</span>
                                 </div>
                             </div>
                         </div>
@@ -327,15 +331,15 @@
                     <section v-if="activeInsightTab === 'gene'" class="glens-step-card glens-step-card--tabbed">
                         <div class="glens-step-body">
                             <p class="glens-source-note">
-                                Gene candidates are supported by the input HPO terms and disease-gene links. Query support counts original user-entered HPO terms, not expanded semantic terms.
+                                Gene candidates are ranked from profile-matched disease/gene annotations, with CRDC variant evidence shown as an overlay.
                             </p>
                             <div class="glens-candidate-table glens-candidate-table--gene">
                                 <div class="glens-candidate-head">
                                     <span>Gene</span>
-                                    <span>Query support</span>
-                                    <span>Supporting query terms</span>
-                                    <span>Linked diseases</span>
-                                    <span>Cohort carrier evidence</span>
+                                    <span>PheRS/profile match</span>
+                                    <span>External annotation</span>
+                                    <span>CRDC cohort evidence</span>
+                                    <span>Why matched</span>
                                 </div>
                                 <div
                                     v-for="row in phenotype.geneCandidates"
@@ -343,10 +347,10 @@
                                     class="glens-candidate-row"
                                 >
                                     <a :href="variantHref(row.gene)">{{ row.gene }}</a>
-                                    <span>{{ row.querySupport }}</span>
-                                    <span>{{ row.supportingTerms }}</span>
-                                    <span>{{ row.linkedDiseases }}</span>
+                                    <span>{{ row.profileMatch }}</span>
+                                    <span>{{ row.externalAnnotation }}</span>
                                     <span>{{ row.cohortCarrierEvidence }}</span>
+                                    <span>{{ row.whyMatched }}</span>
                                 </div>
                             </div>
                         </div>
