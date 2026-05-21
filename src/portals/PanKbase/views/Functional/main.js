@@ -426,6 +426,10 @@ new Vue({
             let donorFilters = JSON.stringify(filterParams);
             keyParams.set({donorFilters: donorFilters});
         },
+        copyResults(){
+            window.navigator.clipboard.writeText(window.location);
+            console.log(window.location);
+        }
     },
     watch: {
         insData(newData){

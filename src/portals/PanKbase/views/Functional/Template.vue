@@ -81,6 +81,9 @@
                                     <b-tab title="Perifusion traces">
                                         <div class="line-plots">
                                             {{ $parent.filteredAccession.length }} donors meeting filter criteria
+                                            <button class="btn btn-secondary btn-sm" @click="$parent.copyResults()">
+                                                Copy link to results
+                                            </button>
                                             <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
