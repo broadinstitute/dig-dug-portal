@@ -3,12 +3,12 @@
       <h5>{{ plotTitle }}</h5>
       <div class="radio-labels">
         <label>
-          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
-          95% confidence (all donors)
-        </label>
-        <label>
           <input type="radio" value="some" :name="`${plotId}confidence`" v-model="showConfidence"/>
           95% confidence (filtered donors)
+        </label>
+        <label>
+          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (all donors)
         </label>
         <label>
           <input type="radio" value="none" :name="`${plotId}confidence`" v-model="showConfidence"/>
@@ -76,7 +76,7 @@ export default Vue.component("time-series-line-plot", {
         xAxisLabel: "time (min)",
         axesDrawn: false,
         highlightedDonor: null,
-        showConfidence: "all",
+        showConfidence: "some",
         allConfidence: [],
         staticAllDonorData: [],
       };
