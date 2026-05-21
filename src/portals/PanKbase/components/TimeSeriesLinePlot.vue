@@ -17,7 +17,7 @@
         
       </div>
         <div class="download-images-setting">
-          Mouse over the plot to highlight an individual donor.
+          <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
               Download SVG <b-icon icon="download"></b-icon>
             </button>
@@ -77,29 +77,20 @@ export default Vue.component("time-series-line-plot", {
         axesDrawn: false,
         highlightedDonor: null,
         showConfidence: "all",
-        allConfidence: []
+        allConfidence: [],
+        staticAllDonorData: [],
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    this.staticAllDonorData = this.computeChartData(this.plotData, false);
     this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
   computed: {
     chartData(){
-      let data = structuredClone(this.plotData);
-      if (this.filter){
-        data = data.filter(this.filter);
-      }
-      let output = [];
-      this.donors.forEach(d => {
-        let donorData = data.filter(e => e.donor === d);
-        if (donorData.length > 0){
-          output.push(donorData);
-        }
-      });
-      return output;
+      return this.computeChartData(this.plotData, true);
     },
     filteredConfidence(){
       let data = this.plotData.filter(d => this.donors.includes(d.donor));
@@ -144,38 +135,54 @@ export default Vue.component("time-series-line-plot", {
       }
       return output;
     },
+    computeChartData(inputData, filterDonors){
+      let data = structuredClone(inputData);
+      if (this.filter){
+        data = data.filter(this.filter);
+      }
+      let output = [];
+      let donors = filterDonors 
+        ? this.donors 
+        : Array.from(new Set(inputData.map(i => i.donor)));
+      donors.forEach(d => {
+        let donorData = data.filter(e => e.donor === d);
+        if (donorData.length > 0){
+          output.push(donorData);
+        }
+      });
+      return output;
+    },
+    confidenceIntervals(rawData){
+        let z = 1.96;
+        let times = Array.from(new Set(
+            rawData.filter(r => r.time !== undefined)
+            .map(r => r.time)));
+        let output = [];
+        times.forEach((t, index) => {
+            // Compute standard deviation
+            let allData = rawData.filter(r => r.time === t);
+            // TODO figure out how to convey that the data filtering is done on the timepoint level
+            //allData = rawData.filter(r => !r.donorHasGaps);
+            allData = allData.filter(r => r.score !== "-");
+            allData = allData.map(r => r.score);
+            let n = allData.length;
+            let sum = allData.reduce((total, entry) => total + entry, 0);
+            let x = sum/n;
+            let sqDiff = allData.map(r => (r - x)**2);
+            let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
+            let sigma = Math.sqrt(sumDiff / n);
 
-        confidenceIntervals(rawData){
-            let z = 1.96;
-            let times = Array.from(new Set(
-                rawData.filter(r => r.time !== undefined)
-                .map(r => r.time)));
-            let output = [];
-            times.forEach((t, index) => {
-                // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t);
-                // TODO figure out how to convey that the data filtering is done on the timepoint level
-                //allData = rawData.filter(r => !r.donorHasGaps);
-                allData = allData.filter(r => r.score !== "-");
-                allData = allData.map(r => r.score);
-                let n = allData.length;
-                let sum = allData.reduce((total, entry) => total + entry, 0);
-                let x = sum/n;
-                let sqDiff = allData.map(r => (r - x)**2);
-                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
-                let sigma = Math.sqrt(sumDiff / n);
-
-                let confidenceInterval = z * sigma / (Math.sqrt(n));
-                let timeEntry = {
-                    time: t,
-                    mean: x,
-                    ciUpper: x + confidenceInterval,
-                    ciLower: x - confidenceInterval
-                };
-                output.push(timeEntry);
-            });
-            return output;
-        },
+            let confidenceInterval = z * sigma / (Math.sqrt(n));
+            let timeEntry = {
+                time: t,
+                mean: x,
+                ciUpper: x + confidenceInterval,
+                ciLower: x - confidenceInterval
+            };
+            output.push(timeEntry);
+        });
+        return output;
+    },
     drawChart(){
       let margin = {
         top: 80,
@@ -298,37 +305,39 @@ export default Vue.component("time-series-line-plot", {
             d[this.yField] !== undefined
           );
       let linesOnly = this.showConfidence === "none";
-        let highlightedDonorData = null;
-        this.chartData.forEach(c => {
-            if (c[0].donor === this.highlightedDonor && linesOnly){
-              highlightedDonorData = c;
-            } else {
-              this.svg.append("path")
-              .datum(c)
-              .attr("class", "linegraph")
-              .attr("fill", "none")
-              .attr("stroke", this.highlightedDonor === null && linesOnly 
-                ? this.lineColor : 
-                "lightgray")
-              .attr("stroke-width", 1)
-              .attr("class", "line-path")
-              .attr("d", lineGenerator)
-              .on("mouseover", c => this.showTooltip(c));
-            }
-          });
-
-          // Put highlighted line on top
-          if (highlightedDonorData !== null && linesOnly){
-            this.svg.append("path")
-              .datum(highlightedDonorData)
-              .attr("class", "linegraph")
-              .attr("fill", "none")
-              .attr("stroke", this.lineColor)
-              .attr("stroke-width", 2)
-              .attr("class", "line-path")
-              .attr("d", lineGenerator)
-              .on("mouseover", c => this.showTooltip(c))
-          }
+      let highlightedDonorData = null;
+      let linesData = this.showConfidence === "all" 
+        ? this.staticAllDonorData 
+        : this.chartData;
+      linesData.forEach(c => {
+        if (c[0].donor === this.highlightedDonor && linesOnly){
+          highlightedDonorData = c;
+        } else {
+          this.svg.append("path")
+          .datum(c)
+          .attr("class", "linegraph")
+          .attr("fill", "none")
+          .attr("stroke", this.highlightedDonor === null && linesOnly 
+            ? this.lineColor : 
+            "lightgray")
+          .attr("stroke-width", 1)
+          .attr("class", "line-path")
+          .attr("d", lineGenerator)
+          .on("mouseover", c => this.showTooltip(c));
+        }
+      });
+      // Put highlighted line on top
+      if (highlightedDonorData !== null && linesOnly){
+        this.svg.append("path")
+          .datum(highlightedDonorData)
+          .attr("class", "linegraph")
+          .attr("fill", "none")
+          .attr("stroke", this.lineColor)
+          .attr("stroke-width", 2)
+          .attr("class", "line-path")
+          .attr("d", lineGenerator)
+          .on("mouseover", c => this.showTooltip(c))
+      }
       this.drawIntervals();
     },
     drawIntervals(){
