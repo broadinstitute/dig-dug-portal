@@ -17,7 +17,8 @@
                                 <b-tabs>
                                     <b-tab title="Filter donor data"
                                         @click="$parent.useSelectedDonors(false)">
-                                        <criterion-function-group>
+                                        <criterion-function-group
+                                            @update:filter-list="list => $parent.updateFilterList(list)">
                                             <filter-slider v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
