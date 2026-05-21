@@ -94,6 +94,75 @@
     line-height: 1;
 }
 
+.glens-sample-context-info-tool {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.glens-sample-context-info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #7aa7ef;
+    border-radius: 999px;
+    background: transparent;
+    color: #0055ff;
+    font-size: 0.68rem;
+    font-weight: 850;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.glens-sample-context-info-popover {
+    position: absolute;
+    z-index: 60;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    width: min(25rem, 82vw);
+    padding: 0.8rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.8rem;
+    background: #fff;
+    box-shadow: 0 18px 46px rgba(22, 32, 51, 0.14);
+    color: #42526a;
+    text-align: left;
+}
+
+.glens-sample-context-info-tool:hover .glens-sample-context-info-popover {
+    display: block;
+}
+
+.glens-sample-context-info-popover p {
+    margin: 0 0 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.42;
+}
+
+.glens-sample-context-info-popover ul {
+    margin: 0.2rem 0 0;
+    padding-left: 1.05rem;
+}
+
+.glens-sample-context-info-popover li {
+    margin: 0 0 0.34rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.glens-sample-context-info-popover .glens-sample-context-info-kicker {
+    margin: 0.1rem 0 0.28rem;
+    color: #162033;
+    font-size: 0.72rem;
+    font-weight: 760;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
 .glens-text-toggle {
     display: inline-flex;
     align-items: center;

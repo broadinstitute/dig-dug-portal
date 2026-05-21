@@ -36,6 +36,40 @@
                         </div>
                     </div>
                     <div class="glens-result-tools">
+                        <div class="glens-sample-context-info-tool" @click.stop>
+                            <button
+                                class="glens-sample-context-info-button"
+                                type="button"
+                                aria-label="Context status explanation"
+                                @click="contextInfoOpen = !contextInfoOpen; contextPopoverOpen = false; optionsPopoverOpen = false"
+                            >
+                                i
+                            </button>
+                            <div v-if="contextInfoOpen" class="glens-sample-context-info-popover">
+                                <div v-if="!hasActiveContext">
+                                    <p class="glens-sample-context-info-kicker">Core question</p>
+                                    <p>
+                                        What are the unique clinical (phenotype) and genetic (genotype) characteristics of this sample, and where does it lie within the overall cohort?
+                                    </p>
+                                    <p class="glens-sample-context-info-kicker">Purpose</p>
+                                    <ul>
+                                        <li>Establish the baseline profile of the searched sample (HPO profile, rare variants, cohort position).</li>
+                                        <li>Workflow priority: understand the searched sample itself, match against known disease patterns, then explore similar samples.</li>
+                                    </ul>
+                                </div>
+                                <div v-else>
+                                    <p class="glens-sample-context-info-kicker">Core question</p>
+                                    <p>
+                                        How well do this sample's clinical and genetic features align with the current clinical hypothesis (active context), and does the variant evidence support that hypothesis?
+                                    </p>
+                                    <p class="glens-sample-context-info-kicker">Purpose</p>
+                                    <ul>
+                                        <li>Hypothesis-driven interpretation and validation.</li>
+                                        <li>Focus on identifying and evaluating the overlap between the sample profile and the active context.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                         <span
                             class="glens-result-context-badge"
                             :class="{ 'glens-result-context-badge--active': hasActiveContext }"
@@ -46,7 +80,7 @@
                             <button
                                 class="glens-result-tool-button"
                                 type="button"
-                                @click="contextPopoverOpen = !contextPopoverOpen; optionsPopoverOpen = false"
+                                @click="contextPopoverOpen = !contextPopoverOpen; contextInfoOpen = false; optionsPopoverOpen = false"
                             >
                                 Edit Context
                             </button>
@@ -81,7 +115,7 @@
                                 class="glens-result-options-button"
                                 type="button"
                                 aria-label="Options"
-                                @click="optionsPopoverOpen = !optionsPopoverOpen; contextPopoverOpen = false"
+                                @click="optionsPopoverOpen = !optionsPopoverOpen; contextInfoOpen = false; contextPopoverOpen = false"
                             >
                                 ⋮
                             </button>
@@ -763,6 +797,7 @@ export default {
             ...createKrSampleState(),
             clinicalFocus: readClinicalFocus(),
             contextPopoverOpen: false,
+            contextInfoOpen: false,
             optionsPopoverOpen: false,
             sampleInfoOpen: false,
             gendxInfoOpen: false,
@@ -883,6 +918,7 @@ export default {
     },
     methods: {
         closeToolPopovers() {
+            this.contextInfoOpen = false;
             this.contextPopoverOpen = false;
             this.optionsPopoverOpen = false;
             this.sampleInfoOpen = false;
