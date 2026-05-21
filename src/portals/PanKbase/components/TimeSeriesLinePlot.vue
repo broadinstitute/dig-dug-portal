@@ -297,26 +297,28 @@ export default Vue.component("time-series-line-plot", {
             d[this.xField] !== undefined &&
             d[this.yField] !== undefined
           );
-
+      let linesOnly = this.showConfidence === "none";
         let highlightedDonorData = null;
-        if (this.showConfidence === "none"){
-            this.chartData.forEach(c => {
-            if (c[0].donor === this.highlightedDonor){
+        this.chartData.forEach(c => {
+            if (c[0].donor === this.highlightedDonor && linesOnly){
               highlightedDonorData = c;
             } else {
               this.svg.append("path")
               .datum(c)
               .attr("class", "linegraph")
               .attr("fill", "none")
-              .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
+              .attr("stroke", this.highlightedDonor === null && linesOnly 
+                ? this.lineColor : 
+                "lightgray")
               .attr("stroke-width", 1)
               .attr("class", "line-path")
               .attr("d", lineGenerator)
               .on("mouseover", c => this.showTooltip(c));
             }
           });
+
           // Put highlighted line on top
-          if (highlightedDonorData !== null){
+          if (highlightedDonorData !== null && linesOnly){
             this.svg.append("path")
               .datum(highlightedDonorData)
               .attr("class", "linegraph")
@@ -327,28 +329,32 @@ export default Vue.component("time-series-line-plot", {
               .attr("d", lineGenerator)
               .on("mouseover", c => this.showTooltip(c))
           }
-        } else {
-          let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
-          this.svg.append("path")
-            .datum(intervals)
-            .attr("fill", `${this.lineColor}99`)
-            .attr("stroke", "none")
-            .attr("class", "line-path")
-            .attr("d", d3.area()
-              .x(d => this.xScale(d.time))
-              .y0(d => this.yScale(d.ciUpper))
-              .y1(d => this.yScale(d.ciLower))
-          );
-          this.svg.append("path")
-            .datum(intervals)
-            .attr("fill", "none")
-            .attr("stroke", this.lineColor)
-            .attr("class", "line-path")
-            .attr("d", d3.line()
-              .x(d => this.xScale(d.time))
-              .y(d => this.yScale(d.mean))
-          );
-        }
+      this.drawIntervals();
+    },
+    drawIntervals(){
+      if (this.showConfidence === "none"){
+        return;
+      }
+      let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
+      this.svg.append("path")
+        .datum(intervals)
+        .attr("fill", `${this.lineColor}99`)
+        .attr("stroke", "none")
+        .attr("class", "line-path")
+        .attr("d", d3.area()
+          .x(d => this.xScale(d.time))
+          .y0(d => this.yScale(d.ciUpper))
+          .y1(d => this.yScale(d.ciLower))
+      );
+      this.svg.append("path")
+        .datum(intervals)
+        .attr("fill", "none")
+        .attr("stroke", this.lineColor)
+        .attr("class", "line-path")
+        .attr("d", d3.line()
+          .x(d => this.xScale(d.time))
+          .y(d => this.yScale(d.mean))
+      );
     },
     hoverLine(donor) {
 
@@ -387,6 +393,9 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
 		},
     showTooltip(c){
+      if (this.showConfidence !== "none"){
+        return;
+      }
       let donor = c[0].donor;
       //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
