@@ -3,12 +3,12 @@
       <h5>{{ plotTitle }}</h5>
       <div class="radio-labels">
         <label>
-          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
-          95% confidence (all donors)
-        </label>
-        <label>
           <input type="radio" value="some" :name="`${plotId}confidence`" v-model="showConfidence"/>
           95% confidence (filtered donors)
+        </label>
+        <label>
+          <input type="radio" value="all" :name="`${plotId}confidence`" v-model="showConfidence"/>
+          95% confidence (all donors)
         </label>
         <label>
           <input type="radio" value="none" :name="`${plotId}confidence`" v-model="showConfidence"/>
@@ -17,10 +17,14 @@
         
       </div>
         <div class="download-images-setting">
-          Mouse over the plot to highlight an individual donor.
+          <div>
+            <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
+          </div>
+          <div>
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
               Download SVG <b-icon icon="download"></b-icon>
             </button>
+          </div>
         </div>
         <div :id=plotId class="plot" ref="time-series-line">
             <p>Loading...</p>
@@ -76,30 +80,21 @@ export default Vue.component("time-series-line-plot", {
         xAxisLabel: "time (min)",
         axesDrawn: false,
         highlightedDonor: null,
-        showConfidence: "all",
-        allConfidence: []
+        showConfidence: "some",
+        allConfidence: [],
+        staticAllDonorData: [],
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
+    this.staticAllDonorData = this.computeChartData(this.plotData, false);
     this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
   computed: {
     chartData(){
-      let data = structuredClone(this.plotData);
-      if (this.filter){
-        data = data.filter(this.filter);
-      }
-      let output = [];
-      this.donors.forEach(d => {
-        let donorData = data.filter(e => e.donor === d);
-        if (donorData.length > 0){
-          output.push(donorData);
-        }
-      });
-      return output;
+      return this.computeChartData(this.plotData, true);
     },
     filteredConfidence(){
       let data = this.plotData.filter(d => this.donors.includes(d.donor));
@@ -144,38 +139,54 @@ export default Vue.component("time-series-line-plot", {
       }
       return output;
     },
+    computeChartData(inputData, filterDonors){
+      let data = structuredClone(inputData);
+      if (this.filter){
+        data = data.filter(this.filter);
+      }
+      let output = [];
+      let donors = filterDonors 
+        ? this.donors 
+        : Array.from(new Set(inputData.map(i => i.donor)));
+      donors.forEach(d => {
+        let donorData = data.filter(e => e.donor === d);
+        if (donorData.length > 0){
+          output.push(donorData);
+        }
+      });
+      return output;
+    },
+    confidenceIntervals(rawData){
+        let z = 1.96;
+        let times = Array.from(new Set(
+            rawData.filter(r => r.time !== undefined)
+            .map(r => r.time)));
+        let output = [];
+        times.forEach((t, index) => {
+            // Compute standard deviation
+            let allData = rawData.filter(r => r.time === t);
+            // TODO figure out how to convey that the data filtering is done on the timepoint level
+            //allData = rawData.filter(r => !r.donorHasGaps);
+            allData = allData.filter(r => r.score !== "-");
+            allData = allData.map(r => r.score);
+            let n = allData.length;
+            let sum = allData.reduce((total, entry) => total + entry, 0);
+            let x = sum/n;
+            let sqDiff = allData.map(r => (r - x)**2);
+            let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
+            let sigma = Math.sqrt(sumDiff / n);
 
-        confidenceIntervals(rawData){
-            let z = 1.96;
-            let times = Array.from(new Set(
-                rawData.filter(r => r.time !== undefined)
-                .map(r => r.time)));
-            let output = [];
-            times.forEach((t, index) => {
-                // Compute standard deviation
-                let allData = rawData.filter(r => r.time === t);
-                // TODO figure out how to convey that the data filtering is done on the timepoint level
-                //allData = rawData.filter(r => !r.donorHasGaps);
-                allData = allData.filter(r => r.score !== "-");
-                allData = allData.map(r => r.score);
-                let n = allData.length;
-                let sum = allData.reduce((total, entry) => total + entry, 0);
-                let x = sum/n;
-                let sqDiff = allData.map(r => (r - x)**2);
-                let sumDiff = sqDiff.reduce((total, entry) => total + entry, 0);
-                let sigma = Math.sqrt(sumDiff / n);
-
-                let confidenceInterval = z * sigma / (Math.sqrt(n));
-                let timeEntry = {
-                    time: t,
-                    mean: x,
-                    ciUpper: x + confidenceInterval,
-                    ciLower: x - confidenceInterval
-                };
-                output.push(timeEntry);
-            });
-            return output;
-        },
+            let confidenceInterval = z * sigma / (Math.sqrt(n));
+            let timeEntry = {
+                time: t,
+                mean: x,
+                ciUpper: x + confidenceInterval,
+                ciLower: x - confidenceInterval
+            };
+            output.push(timeEntry);
+        });
+        return output;
+    },
     drawChart(){
       let margin = {
         top: 80,
@@ -297,58 +308,66 @@ export default Vue.component("time-series-line-plot", {
             d[this.xField] !== undefined &&
             d[this.yField] !== undefined
           );
-
-        let highlightedDonorData = null;
-        if (this.showConfidence === "none"){
-            this.chartData.forEach(c => {
-            if (c[0].donor === this.highlightedDonor){
-              highlightedDonorData = c;
-            } else {
-              this.svg.append("path")
-              .datum(c)
-              .attr("class", "linegraph")
-              .attr("fill", "none")
-              .attr("stroke", this.highlightedDonor === null ? this.lineColor : "lightgray")
-              .attr("stroke-width", 1)
-              .attr("class", "line-path")
-              .attr("d", lineGenerator)
-              .on("mouseover", c => this.showTooltip(c));
-            }
-          });
-          // Put highlighted line on top
-          if (highlightedDonorData !== null){
-            this.svg.append("path")
-              .datum(highlightedDonorData)
-              .attr("class", "linegraph")
-              .attr("fill", "none")
-              .attr("stroke", this.lineColor)
-              .attr("stroke-width", 2)
-              .attr("class", "line-path")
-              .attr("d", lineGenerator)
-              .on("mouseover", c => this.showTooltip(c))
-          }
+      let linesOnly = this.showConfidence === "none";
+      let highlightedDonorData = null;
+      let linesData = this.showConfidence === "all" 
+        ? this.staticAllDonorData 
+        : this.chartData;
+      linesData.forEach(c => {
+        if (c[0].donor === this.highlightedDonor && linesOnly){
+          highlightedDonorData = c;
         } else {
-          let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
           this.svg.append("path")
-            .datum(intervals)
-            .attr("fill", `${this.lineColor}99`)
-            .attr("stroke", "none")
-            .attr("class", "line-path")
-            .attr("d", d3.area()
-              .x(d => this.xScale(d.time))
-              .y0(d => this.yScale(d.ciUpper))
-              .y1(d => this.yScale(d.ciLower))
-          );
-          this.svg.append("path")
-            .datum(intervals)
-            .attr("fill", "none")
-            .attr("stroke", this.lineColor)
-            .attr("class", "line-path")
-            .attr("d", d3.line()
-              .x(d => this.xScale(d.time))
-              .y(d => this.yScale(d.mean))
-          );
+          .datum(c)
+          .attr("class", "linegraph")
+          .attr("fill", "none")
+          .attr("stroke", this.highlightedDonor === null && linesOnly 
+            ? this.lineColor : 
+            "lightgray")
+          .attr("stroke-width", 1)
+          .attr("class", "line-path")
+          .attr("d", lineGenerator)
+          .on("mouseover", c => this.showTooltip(c));
         }
+      });
+      // Put highlighted line on top
+      if (highlightedDonorData !== null && linesOnly){
+        this.svg.append("path")
+          .datum(highlightedDonorData)
+          .attr("class", "linegraph")
+          .attr("fill", "none")
+          .attr("stroke", this.lineColor)
+          .attr("stroke-width", 2)
+          .attr("class", "line-path")
+          .attr("d", lineGenerator)
+          .on("mouseover", c => this.showTooltip(c))
+      }
+      this.drawIntervals();
+    },
+    drawIntervals(){
+      if (this.showConfidence === "none"){
+        return;
+      }
+      let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
+      this.svg.append("path")
+        .datum(intervals)
+        .attr("fill", `${this.lineColor}99`)
+        .attr("stroke", "none")
+        .attr("class", "line-path")
+        .attr("d", d3.area()
+          .x(d => this.xScale(d.time))
+          .y0(d => this.yScale(d.ciUpper))
+          .y1(d => this.yScale(d.ciLower))
+      );
+      this.svg.append("path")
+        .datum(intervals)
+        .attr("fill", "none")
+        .attr("stroke", this.lineColor)
+        .attr("class", "line-path")
+        .attr("d", d3.line()
+          .x(d => this.xScale(d.time))
+          .y(d => this.yScale(d.mean))
+      );
     },
     hoverLine(donor) {
 
@@ -387,6 +406,9 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
 		},
     showTooltip(c){
+      if (this.showConfidence !== "none"){
+        return;
+      }
       let donor = c[0].donor;
       //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
@@ -417,7 +439,12 @@ export default Vue.component("time-series-line-plot", {
   }
 
   .download-images-setting {
-    margin-top: -25px;
+    display: inline;
+  }
+  .download-images-setting div {
+    display: inline;
+  }
+  .download-images-setting div:last-child {
     float: right;
   }
   .donorData{
@@ -430,9 +457,6 @@ export default Vue.component("time-series-line-plot", {
   .donorLabel {
     padding-top: 2px;
     padding-bottom: 2px;
-  }
-  .radio-labels {
-    margin-bottom: 10px;
   }
   .radio-labels label {
     margin-right: 10px;
