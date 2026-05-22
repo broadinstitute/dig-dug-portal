@@ -63,9 +63,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = 
-            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
+        
         let initialPhenotype = this.pigeanPhenotypeMap[keyParams.phenotype];
         this.$store.dispatch("sendSearch", initialPhenotype)
     },

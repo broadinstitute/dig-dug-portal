@@ -16,7 +16,6 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        pigeanAllPhenotypes: cvdiBioIndex("pigean-phenotypes"),
     },
     state: {
         geneOrRegionOrVariant: null,
@@ -91,9 +90,6 @@ export default new Vuex.Store({
         //select gene on autocomplete.
         async onDatasetChange(context, dataset) {
             window.location.href = "./dinspector.html?dataset=" + dataset.name;
-        },
-        async getPigeanPhenotypes(context) {
-            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
 
     },

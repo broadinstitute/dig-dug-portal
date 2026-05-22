@@ -14,7 +14,6 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         pigeanGeneset: cvdiBioIndex("pigean-gene-set"),
-        pigeanAllPhenotypes: cvdiBioIndex("pigean-phenotypes"),
     },
     state: {
         geneset: keyParams.geneset,
@@ -80,9 +79,5 @@ export default new Vuex.Store({
                 context.commit("setPhewasData", traitsData.slice(0,1500));
             }
         },
-        async getPigeanPhenotypes(context) {
-            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
-        },
-        
     },
 });

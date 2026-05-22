@@ -414,7 +414,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.getStats();
-        await this.$store.dispatch("getPigeanPhenotypes");
         this.formatAllPhenotypes();
     },
 
@@ -441,14 +440,6 @@ new Vue({
                 return char.toUpperCase();
             });
         },
-        formatAllPhenotypes(){
-            let newPhenotypes = this.$store.state.pigeanAllPhenotypes.data;
-            let output = [];
-            for (let i = 0; i < newPhenotypes.length; i++){
-                output.push(pigeanUtils.toOldStyle(newPhenotypes[i]));
-            }
-            this.$store.dispatch("phenotypesInSession", output);
-        }
     },
 
     render(createElement, context) {

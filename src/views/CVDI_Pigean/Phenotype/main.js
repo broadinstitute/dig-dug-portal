@@ -359,9 +359,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = 
-            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
         this.lookupInPigeanMap();
     },
     methods: {

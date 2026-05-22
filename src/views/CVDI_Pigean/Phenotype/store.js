@@ -18,7 +18,6 @@ export default new Vuex.Store({
         pigeanFactor: cvdiBioIndex("pigean-factor"),
         pigeanPheWAS: cvdiBioIndex("pigean-phewas"),
         pigeanTopPhewas: cvdiBioIndex("pigean-top-phewas"),
-        pigeanAllPhenotypes: cvdiBioIndex("pigean-phenotypes"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -90,9 +89,6 @@ export default new Vuex.Store({
         },
         selectedPhenotype(context, PHENOTYPE) {
             context.commit("setSelectedPhenotype", PHENOTYPE);
-        },
-        async getPigeanPhenotypes(context) {
-            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });
