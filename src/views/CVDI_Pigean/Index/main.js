@@ -20,7 +20,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST } from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({

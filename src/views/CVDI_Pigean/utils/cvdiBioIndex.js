@@ -1,4 +1,4 @@
-import { query, BIO_INDEX_HOST } from "./cvdiBioIndexUtils";
+import { query } from "./cvdiBioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -94,17 +94,6 @@ export default function (index, extend) {
                     let alertID = postAlertNotice(
                         `Loading ${index}; please wait ...`
                     );
-
-                    // if user is querying variant index with rsid, convert to varId
-                    if (index === "variant" && q.startsWith("rs")) {
-                        await fetch(
-                            `${BIO_INDEX_HOST}/api/bio/varIdLookup/${q}`
-                        )
-                            .then((res) => res.json())
-                            .then((res) => {
-                                q = res.data.varid;
-                            });
-                    }
 
                     // fetch the data
                     let data = await query(index, q, {
