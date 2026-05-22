@@ -88,24 +88,18 @@ export default new Vuex.Store({
             context.commit("setGeneName", name);
             context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
+            let param3 = "mouse_msigdb";
             if (!!name) {
                 context.dispatch("gene/query", { q: name });
                 if (!traitGroup.startsWith('all')){
                     await context.dispatch("pigeanGene/query", { q: 
-                        `${traitGroup},${name},${cvdiBioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
+                        `${traitGroup},${name},${param3}`});
                     context.commit("setPhewasData", context.state.pigeanGene.data);
                 } else {
-                    // If ALL is selected, query all trait groups and get top results across all
-                    let traitsData = [];
-                    let showAll = traitGroup === "all";
-                    let traits = showAll 
-                        ? Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS)
-                        : [traitGroup];
-                    let param3 = "mouse_msigdb";
+                    let traits = Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS)
                     for (let i = 0; i < traits.length; i++){
                         let group = traits[i];
-                        let traitQuery = `${group},${context.state.geneName},${
-                            param3},`;
+                        let traitQuery = `${group},${name},${param3},`;
                         let groupData = await cvdiBioIndexUtils.query("pigean-gene", traitQuery);
                         traitsData = traitsData.concat(groupData);
                     }
