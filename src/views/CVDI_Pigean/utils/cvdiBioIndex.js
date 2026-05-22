@@ -1,4 +1,4 @@
-import { query } from "@/utils/bioIndexUtils";
+import { query, BIO_INDEX_HOST } from "./cvdiBioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -6,7 +6,6 @@ import {
 } from "@/components/Alert";
 
 import { merge } from "lodash";
-const BIO_INDEX_HOST = "https://cvdi.hugeampkpnbi.org";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.

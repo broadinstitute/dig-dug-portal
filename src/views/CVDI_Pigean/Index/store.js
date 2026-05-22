@@ -2,7 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import cvdiBioIndex from "../cvdiBioIndex";
+import cvdiBioIndex from "../utils/cvdiBioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";

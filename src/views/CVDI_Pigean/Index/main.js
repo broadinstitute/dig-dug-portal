@@ -75,7 +75,7 @@ new Vue({
                     },
                     "target page": {
                         label: "Search Gene",
-                        url: "/pigean/gene.html?",
+                        url: "/cvdi_pigean/gene.html?",
                     },
                 },
                 {
@@ -88,7 +88,7 @@ new Vue({
                     },
                     "target page": {
                         label: "Search Geneset",
-                        url: "/pigean/geneset.html?",
+                        url: "/cvdi_pigean/geneset.html?",
                     },
                 },
                 // {
@@ -101,7 +101,7 @@ new Vue({
                 //     },
                 //     "target page": {
                 //         label: "Search Phenotype",
-                //         url: "/pigean/phenotype.html?",
+                //         url: "/cvdi_pigean/phenotype.html?",
                 //     },
                 // },
                 {
@@ -109,7 +109,7 @@ new Vue({
                     values: "kp phenotypes",
                     "target page": {
                         label: "Search Phenotype",
-                        url: "/pigean/phenotype.html?",
+                        url: "/cvdi_pigean/phenotype.html?",
                     },
                 },
             ],
@@ -132,14 +132,14 @@ new Vue({
                     values: "kp genes",
                     "target page": {
                         label: "Search Gene",
-                        url: "/pigean/gene.html?",
+                        url: "/cvdi_pigean/gene.html?",
                     },
                 },
                 {
                     parameter: "geneset",
                     "target page": {
                         label: "Search Geneset",
-                        url: "/pigean/geneset.html?",
+                        url: "/cvdi_pigean/geneset.html?",
                     },
                 },
                 {
@@ -147,7 +147,7 @@ new Vue({
                     values: "kp phenotypes",
                     "target page": {
                         label: "Search Phenotype",
-                        url: "/pigean/phenotype.html?",
+                        url: "/cvdi_pigean/phenotype.html?",
                     },
                 },
             ],
