@@ -45,7 +45,6 @@ export function rawUrl(path, query_params) {
 /* Build a generic request to a BioIndex end-point.
  */
 export async function request(path, query_params) {
-    console.log(rawUrl(path, query_params));
     return fetch(rawUrl(path, query_params), {
         headers: {
             "x-bioindex-access-token": session_cookie,
@@ -58,7 +57,6 @@ export async function request(path, query_params) {
 export async function query(index, q, opts = {}) {
     let { limit, onResolve, onError, onLoad, limitWhile } = opts;
     let req = request(`/api/bio/query/${index}`, { q, limit });
-    console.log("you are here");
     return await processRequest(req, onResolve, onError, onLoad, limitWhile);
 }
 
@@ -111,7 +109,6 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            console.log("Continuing with CVDI");
             let req = request(`/api/bio/cont`, { token: json.continuation });
 
             // follow the continuation

@@ -51,7 +51,6 @@ export default new Vuex.Store({
             state.aliasName = aliasName || state.aliasName;
         },
         setPhewasData(state, phewasData){
-            console.log("store phewas data:", phewasData.length);
             state.phewasData = phewasData;
         }
     },
@@ -104,7 +103,6 @@ export default new Vuex.Store({
                         traitsData = traitsData.concat(groupData);
                     }
                     traitsData = traitsData.sort((a,b) => b.combined - a.combined);
-                    console.log("traits data", traitsData.length);
                     context.commit("setPhewasData", traitsData.slice(0,1500));
                 }
             }
