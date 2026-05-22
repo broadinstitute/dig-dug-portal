@@ -312,6 +312,49 @@ let pages = {
         title: "Mouse Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
     },
+    // CVDI Pigean
+    cvdi_pigeangraph: {
+        entry: "src/views/CVDI_Pigean/PigeanGraph/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigeangraph.html",
+        title: "PIGEAN Graph",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigeangraph"],
+    },
+    cvdi_pigean_index: {
+        entry: "src/views/CVDI_Pigean/Index/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/index.html",
+        title: "PIGEAN Home",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_index"],
+    },
+    cvdi_pigean_gene: {
+        entry: "src/views/CVDI_Pigean/Gene/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/gene.html",
+        title: "PIGEAN Gene Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_gene"],
+    },
+    cvdi_pigean_geneset: {
+        entry: "src/views/CVDI_Pigean/GeneSet/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/geneset.html",
+        title: "PIGEAN Gene Set Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_geneset"],
+    },
+    cvdi_pigean_phenotype: {
+        entry: "src/views/CVDI_Pigean/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/phenotype.html",
+        title: "PIGEAN Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_phenotype"],
+    },
+    cvdi_network_graph: {
+        entry: "src/views/CVDI_Pigean/NetworkGraph/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/network_graph.html",
+        title: "Network Graph",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_network_graph"],
+    },
 };
 
 // remove the debug page in production
