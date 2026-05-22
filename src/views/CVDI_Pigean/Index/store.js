@@ -2,12 +2,11 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import cvdiBioIndex from "../utils/cvdiBioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
 import { postAlertError } from "@/components/Alert.vue";
-import { match } from "@/utils/bioIndexUtils";
+import { match } from "../utils/cvdiBioIndexUtils";
 
 Vue.use(Vuex);
 

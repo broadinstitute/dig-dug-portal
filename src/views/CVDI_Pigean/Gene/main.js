@@ -21,7 +21,7 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils.js";
-import bioIndexUtils from "@/utils/bioIndexUtils";
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
@@ -156,7 +156,7 @@ new Vue({
             );
         },
         traitGroups() {
-            return bioIndexUtils.TRAIT_GROUPS;
+            return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phewasAdjustedData() {
             let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy

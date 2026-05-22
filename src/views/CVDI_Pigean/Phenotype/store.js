@@ -5,7 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import cvdiBioIndex from "../utils/cvdiBioIndex";
 import keyParams from "@/utils/keyParams";
-import bioIndexUtils from "@/utils/bioIndexUtils";
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -24,7 +24,7 @@ export default new Vuex.Store({
         diseaseInSession: null,
         selectedPhenotype: null,
         manhattanPlotAvailable: false,
-        genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
+        genesetSize: keyParams.genesetSize || cvdiBioIndexUtils.DEFAULT_GENESET_SIZE,
         genesetSizeToQuery: null,
         traitGroup: keyParams.traitGroup,
         traitGroupToQuery: null,
@@ -72,7 +72,7 @@ export default new Vuex.Store({
             context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
             
-            let query = { q: `${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
+            let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
             context.dispatch("pigeanFactor/query", query);

@@ -13,7 +13,7 @@ import pigeanUtils from "@/utils/pigeanUtils.js";
 import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-import bioIndexUtils from "@/utils/bioIndexUtils";
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import CVDIPigeanTable from "../CVDIPigeanTable.vue";
@@ -293,7 +293,7 @@ new Vue({
             }
         },
         traitGroups(){
-            return bioIndexUtils.TRAIT_GROUPS;
+            return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phenotypesInSession() {
             if (this.$store.state.phenotypesInSession == null) {

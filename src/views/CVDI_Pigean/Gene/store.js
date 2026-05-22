@@ -2,10 +2,11 @@ import Vue from "vue";
 import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
-import cvdiBioIndex from "../utils/cvdiBioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
-import bioIndexUtils from "@/utils/bioIndexUtils";
+
+import cvdiBioIndex from "../utils/cvdiBioIndex";
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -20,11 +21,11 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
-        genesetSize: keyParams.genesetSize || bioIndexUtils.DEFAULT_GENESET_SIZE,
+        genesetSize: keyParams.genesetSize || cvdiBioIndexUtils.DEFAULT_GENESET_SIZE,
         geneToQuery: "",
         genesetSizeToQuery: null,
         aliasName: null,
-        traitGroup: keyParams.traitGroup || bioIndexUtils.DEFAULT_TRAIT_GROUP,
+        traitGroup: keyParams.traitGroup || cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
         phewasData: [],
     },
@@ -90,12 +91,12 @@ export default new Vuex.Store({
                 context.dispatch("gene/query", { q: name });
                 if (!traitGroup.startsWith('all')){
                     await context.dispatch("pigeanGene/query", { q: 
-                        `${traitGroup},${name},${bioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
+                        `${traitGroup},${name},${cvdiBioIndexUtils.DEFAULT_SIGMA},${genesetSize}`});
                     context.commit("setPhewasData", context.state.pigeanGene.data);
                 } else {
                     // If ALL is selected, query all trait groups and get top results across all
                     let traitsData = [];
-                    let traits = Object.keys(bioIndexUtils.TRAIT_GROUPS);
+                    let traits = Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS);
                     let exclude = [];
                     if (traitGroup === 'all_but_hpo'){
                         exclude.push("hpo");
@@ -107,8 +108,8 @@ export default new Vuex.Store({
                     for (let i = 0; i < traits.length; i++){
                         let group = traits[i];
                         let traitQuery = `${group},${context.state.geneName},${
-                            bioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
-                        let groupData = await bioIndexUtils.query("pigean-gene", traitQuery);
+                            cvdiBioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                        let groupData = await cvdiBioIndexUtils.query("pigean-gene", traitQuery);
                         traitsData = traitsData.concat(groupData);
                     }
                     traitsData = traitsData.sort((a,b) => b.combined - a.combined);

@@ -1,12 +1,11 @@
 <script>
 import Vue from "vue";
-import { query } from "./utils/cvdiBioIndexUtils";
+import { query, DEFAULT_SIGMA } from "./utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import CVDIPigeanTable from "./CVDIPigeanTable.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
-import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
