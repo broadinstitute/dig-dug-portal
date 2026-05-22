@@ -15,6 +15,8 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         pigeanGene: cvdiBioIndex("pigean-gene"),
+        // Is there a CVDI specific bioindex for this? For now use the regular pigean phenotype map
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         geneName: keyParams.gene,
@@ -113,6 +115,9 @@ export default new Vuex.Store({
                     context.commit("setPhewasData", traitsData.slice(0,1500));
                 }
             }
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", {q:1});
         },
     },
 });

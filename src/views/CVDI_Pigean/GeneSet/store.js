@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import cvdiBioIndex from "../utils/cvdiBioIndex";
+import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
