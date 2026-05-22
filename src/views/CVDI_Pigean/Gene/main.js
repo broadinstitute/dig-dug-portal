@@ -150,6 +150,7 @@ new Vue({
             return utils;
         },
         plotReady() {
+            console.log("pigean data", this.pigeanFilteredData.length);
             return (
                 this.pigeanFilteredData.length > 0
                 //&& Object.keys(this.pigeanPhenotypeMap).length > 0
@@ -176,6 +177,7 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
+            console.log("phewas data", this.$store.state.phewasData.length);
             return this.$store.state.phewasData;
         },
         hoverDotsToPigean(){

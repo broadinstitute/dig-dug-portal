@@ -51,6 +51,7 @@ export default new Vuex.Store({
             state.aliasName = aliasName || state.aliasName;
         },
         setPhewasData(state, phewasData){
+            console.log("store phewas data:", phewasData.length);
             state.phewasData = phewasData;
         }
     },
@@ -96,23 +97,20 @@ export default new Vuex.Store({
                 } else {
                     // If ALL is selected, query all trait groups and get top results across all
                     let traitsData = [];
-                    let traits = Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS);
-                    let exclude = [];
-                    if (traitGroup === 'all_but_hpo'){
-                        exclude.push("hpo");
-                    } else if (traitGroup === 'all_complex'){
-                        exclude.push("hpo");
-                        exclude.push("rare_v2");
-                    }
-                    traits = traits.filter(t => !exclude.includes(t));
+                    let showAll = traitGroup === "all";
+                    let traits = showAll 
+                        ? Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS)
+                        : [traitGroup];
+                    let param3 = "mouse_msigdb";
                     for (let i = 0; i < traits.length; i++){
                         let group = traits[i];
                         let traitQuery = `${group},${context.state.geneName},${
-                            cvdiBioIndexUtils.DEFAULT_SIGMA},${context.state.genesetSize}`;
+                            param3},`;
                         let groupData = await cvdiBioIndexUtils.query("pigean-gene", traitQuery);
                         traitsData = traitsData.concat(groupData);
                     }
                     traitsData = traitsData.sort((a,b) => b.combined - a.combined);
+                    console.log("traits data", traitsData.length);
                     context.commit("setPhewasData", traitsData.slice(0,1500));
                 }
             }

@@ -69,7 +69,7 @@ new Vue({
                     parameter: "gene",
                     "data point": {
                         type: "api",
-                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/4?columns=gene`,
+                        url: `${BIO_INDEX_HOST}/api/bio/keys/pigean-gene/3?columns=gene`,
                         "data type": "json",
                         "data wrapper": ["keys"],
                     },

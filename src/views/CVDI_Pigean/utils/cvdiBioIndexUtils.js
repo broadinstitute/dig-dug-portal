@@ -45,6 +45,7 @@ export function rawUrl(path, query_params) {
 /* Build a generic request to a BioIndex end-point.
  */
 export async function request(path, query_params) {
+    console.log(rawUrl(path, query_params));
     return fetch(rawUrl(path, query_params), {
         headers: {
             "x-bioindex-access-token": session_cookie,
@@ -57,7 +58,7 @@ export async function request(path, query_params) {
 export async function query(index, q, opts = {}) {
     let { limit, onResolve, onError, onLoad, limitWhile } = opts;
     let req = request(`/api/bio/query/${index}`, { q, limit });
-
+    console.log("you are here");
     return await processRequest(req, onResolve, onError, onLoad, limitWhile);
 }
 
@@ -110,6 +111,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
+            console.log("Continuing with CVDI");
             let req = request(`/api/bio/cont`, { token: json.continuation });
 
             // follow the continuation
@@ -140,13 +142,12 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
 }
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
-export const DEFAULT_TRAIT_GROUP = "all_but_hpo";
+export const DEFAULT_TRAIT_GROUP = "jurgens_exomes";
 export const TRAIT_GROUPS = {
-    "portal": "A2F", 
-    "gcat_trait": "GWAS Catalog",
-    "rare_v2": "Orphanet",
-    "hpo": "HPO",
-    "portal_exomes": "Exomes"};
+    "jurgens_exomes": "Jurgens Exomes",
+    "jurgens_exomes___portal": "Jurgens Exomes - Portal",
+    "jurgens_exomes___gcat_trait": "Jurgens Exomes - GCAT"
+};
 
 export default {
     query,
