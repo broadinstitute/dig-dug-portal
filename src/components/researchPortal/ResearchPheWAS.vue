@@ -248,6 +248,7 @@ export default Vue.component("ResearchPhewasPlot", {
                 }
 
                 phenotypesData.map((d) => {
+                    console.log(JSON.stringify(d));
                     if (
                         this.renderConfig["convert y -log10"] == true ||
                         this.renderConfig["convert y -log10"] == "true"
@@ -273,6 +274,7 @@ export default Vue.component("ResearchPhewasPlot", {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
+                console.log("you are here :/");
                 this.showCanvas = false;
                 return null;
             }

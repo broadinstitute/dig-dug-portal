@@ -99,7 +99,7 @@ new Vue({
                 type: "phewas plot",
                 "render by": "phenotype",
                 "group by": "group",
-                "phenotype map": "kp phenotype map",
+                "phenotype map": "null",
                 "y axis field": "combined",
                 "convert y -log10": "false",
                 "y axis label": "Combined genetic support",
