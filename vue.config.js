@@ -313,13 +313,6 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
     },
     // CVDI Pigean
-    cvdi_pigeangraph: {
-        entry: "src/views/CVDI_Pigean/PigeanGraph/main.js",
-        template: "public/index.html",
-        filename: "cvdi_pigeangraph.html",
-        title: "PIGEAN Graph",
-        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigeangraph"],
-    },
     cvdi_pigean_index: {
         entry: "src/views/CVDI_Pigean/Index/main.js",
         template: "public/index.html",
