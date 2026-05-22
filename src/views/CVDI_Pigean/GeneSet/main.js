@@ -6,7 +6,7 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSelectPicker from "@/components/GenesetSelectPicker.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import TraitGroupSelectPicker from "@/components/TraitGroupSelectPicker.vue";
-import PigeanTable from "@/components/PigeanTable.vue";
+import CVDIPigeanTable from "../CVDIPigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";

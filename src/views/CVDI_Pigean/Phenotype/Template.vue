@@ -132,7 +132,7 @@
                                 :pigeanColors="$parent.pigeanColors"
                             >
                             </pigean-plot>
-                            <pigean-table
+                            <cvdi-pigean-table
                                 v-if="$store.state.pigeanPhenotype.data.length > 0 &&
                                     Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.pigeanPhenotype.data"
@@ -140,7 +140,7 @@
                                 :filter="filter"
                                 :phenotypeMap="$parent.pigeanMap"
                             >
-                            </pigean-table>
+                            </cvdi-pigean-table>
                         </template>
                     </criterion-function-group>
                 </div>
@@ -189,7 +189,7 @@
                                 :filter="filter"
                             >
                             </pigean-plot>
-                            <pigean-table
+                            <cvdi-pigean-table
                                 v-if="$store.state.genesetPhenotype.data.length > 0 &&
                                     Object.keys($parent.pigeanMap).length > 0"
                                 :pigeanData="$store.state.genesetPhenotype.data"
@@ -197,7 +197,7 @@
                                 :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
                             >
-                            </pigean-table>
+                            </cvdi-pigean-table>
                         </template>
                     </criterion-function-group>
                 </div>
@@ -273,7 +273,7 @@
                             </heatmap>
                         </div>
                     </div>
-                    <pigean-table
+                    <cvdi-pigean-table
                         v-if="$store.state.pigeanFactor.data.length > 0 &&
                             Object.keys($parent.pigeanMap).length > 0"
                         :pigeanData="$store.state.pigeanFactor.data"
@@ -281,7 +281,7 @@
                         :phewasRenderConfig="$parent.renderConfig"
                         :phenotypeMap="$parent.pigeanMap"
                     >
-                    </pigean-table>
+                    </cvdi-pigean-table>
                 </div>
             </div>
         </div>

@@ -16,7 +16,7 @@ import dataConvert from "@/utils/dataConvert";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
-import PigeanTable from "@/components/PigeanTable.vue";
+import CVDIPigeanTable from "../CVDIPigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import Heatmap from "@/components/Heatmap.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap.vue";
@@ -34,7 +34,7 @@ new Vue({
         GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
-        PigeanTable,
+        CVDIPigeanTable,
         PigeanPlot,
         CriterionFunctionGroup,
         FilterEnumeration,

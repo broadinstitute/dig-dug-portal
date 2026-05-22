@@ -139,14 +139,14 @@
                                     </pigean-plot>
                                 </div>
                                 <div class="card-body pigean-table">
-                                    <pigean-table
+                                    <cvdi-pigean-table
                                         v-if="$parent.plotReady"
                                         :pigean-data="$parent.phewasAllData"
                                         :phenotype-map="$parent.pigeanMap"
                                         :config="$parent.tableConfig"
                                         :filter="filter"
                                     >
-                                    </pigean-table>
+                                    </cvdi-pigean-table>
                                 </div>
                             </div>
                         </template>
