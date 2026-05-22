@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
+import cvdiBioIndex from "../cvdiBioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
@@ -12,9 +12,9 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        gene: bioIndex("gene"),
-        pigeanGene: bioIndex("pigean-gene"),
-        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
+        gene: cvdiBioIndex("gene"),
+        pigeanGene: cvdiBioIndex("pigean-gene"),
+        pigeanAllPhenotypes: cvdiBioIndex("pigean-phenotypes"),
     },
     state: {
         geneName: keyParams.gene,
