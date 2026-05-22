@@ -15,9 +15,6 @@ export default new Vuex.Store({
         kp4cd,
         pigeanPhenotype: cvdiBioIndex("pigean-gene-phenotype"),
         genesetPhenotype: cvdiBioIndex("pigean-gene-set-phenotype"),
-        pigeanFactor: cvdiBioIndex("pigean-factor"),
-        pigeanPheWAS: cvdiBioIndex("pigean-phewas"),
-        pigeanTopPhewas: cvdiBioIndex("pigean-top-phewas"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
