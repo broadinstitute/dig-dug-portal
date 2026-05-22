@@ -27,7 +27,7 @@ new Vue({
     store,
     components: {
         SearchHeaderWrapper,
-        PigeanTable,
+        CVDIPigeanTable,
         PigeanPlot,
         ResearchPheWAS,
         GenesetSelectPicker,

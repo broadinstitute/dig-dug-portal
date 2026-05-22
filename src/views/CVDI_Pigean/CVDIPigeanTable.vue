@@ -1,11 +1,10 @@
 <script>
 import Vue from "vue";
-import { query } from ".cvdiBioIndexUtils/utils/bioIndexUtils";
+import { query } from "./utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import CVDIPigeanTable from "./CVDIPigeanTable.vue";
-import PigeanLocusZoom from "./PigeanLocusZoom.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -17,7 +16,6 @@ export default Vue.component("cvdi-pigean-table", {
     components: {
         DataDownload,
         CVDIPigeanTable,
-        PigeanLocusZoom,
     },
     props: [
         "pigeanData",
@@ -452,10 +450,7 @@ export default Vue.component("cvdi-pigean-table", {
                     >
                     </cvdi-pigean-table>
                     <div v-if="row.item.subtableActive === 3">
-                        <pigean-locus-zoom
-                            :phenotype="row.item.phenotype"
-                            :gene="row.item.gene"
-                        ></pigean-locus-zoom>
+                        Locus zoom unavailable
                     </div>
                 </template>
             </b-table>

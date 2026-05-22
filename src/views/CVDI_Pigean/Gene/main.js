@@ -32,7 +32,7 @@ new Vue({
         GeneSelectPicker,
         GenesetSizeSelectPicker,
         TraitGroupSelectPicker,
-        PigeanTable,
+        CVDIPigeanTable,
         PigeanPlot,
         ResearchPheWAS,
         CriterionFunctionGroup,
