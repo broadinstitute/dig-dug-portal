@@ -45,19 +45,19 @@ let pages = {
         title: "KR Front",
         chunks: ["chunk-vendors", "chunk-common", "krFront"],
     },
-    krFrontNew: {
-        entry: "src/views/KrFrontNew/main.js",
-        template: "public/index.html",
-        filename: "krFront_new.html",
-        title: "KR Front New",
-        chunks: ["chunk-vendors", "chunk-common", "krFrontNew"],
-    },
     krPhenotype: {
         entry: "src/views/KrPhenotype/main.js",
         template: "public/index.html",
         filename: "krPhenotype.html",
         title: "KR Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "krPhenotype"],
+    },
+    krPhenotypeNew: {
+        entry: "src/views/KrPhenotypeNew/main.js",
+        template: "public/index.html",
+        filename: "krPhenotype_new.html",
+        title: "KR Phenotype New",
+        chunks: ["chunk-vendors", "chunk-common", "krPhenotypeNew"],
     },
     krVariant: {
         entry: "src/views/KrVariant/main_V3.js",

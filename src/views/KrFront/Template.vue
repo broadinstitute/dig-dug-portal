@@ -6,18 +6,19 @@
             page="front"
         ></page-header>
 
-        <div class="container-fluid mdkp-body glens-page">
+        <div class="container-fluid mdkp-body glens-page glens-page-new">
             <section class="glens-hero">
                 <div class="glens-hero-grid">
                     <div class="glens-hero-copy glens-hero-copy--combined">
-                        <p class="glens-eyebrow">Clinical Evidence Matching</p>
+                        <p class="glens-eyebrow">CRDC rare disease cohort exploration</p>
                         <h1 class="glens-title">
-                            Clinical context-guided rare disease cohort search
+                            Search CRDC first, then review rare disease references.
                         </h1>
                         <p class="glens-subtitle">
-                            Search a patient, phenotype profile, rare variant, or gene against hospital
-                            cohort evidence. Add clinical context when you want to test whether that
-                            result is meaningful in a specific disease, sample, or HPO background.
+                            Start from a sample, variant/gene, or HPO phenotype profile. The portal
+                            first looks for CRDC cohort evidence, then layers Orphanet/HPO reference
+                            matches, DECIPHER/MONDO/OMIM review references, and secondary annotation
+                            badges.
                         </p>
 
                         <form class="glens-search-card glens-search-card--embedded" @submit.prevent="openResults">
@@ -51,7 +52,15 @@
                             </div>
 
                             <div class="glens-example-row">
-                                <span v-for="example in activeExamples" :key="example">{{ example }}</span>
+                                <button
+                                    v-for="example in activeExamples"
+                                    :key="example"
+                                    class="glens-example-token"
+                                    type="button"
+                                    @click="query = example"
+                                >
+                                    {{ example }}
+                                </button>
                             </div>
                             <p v-if="activeFixture.hint" class="glens-search-hint">
                                 {{ activeFixture.hint }}
@@ -75,17 +84,18 @@
                                     <img src="/images/context_info.png" alt="" />
                                 </button>
                             </div>
-                            <strong>Context makes the search interpretable.</strong>
+                            <strong>Find cohort evidence before over-interpreting references.</strong>
                             <p>
-                                Same patient, phenotype, or variant input; different interpretation
-                                depending on the clinical context being tested.
+                                CRDC recurrence, phenotype overlap, carrier groups, and investigator
+                                patterns are the primary evidence. References help interpret what the
+                                internal cohort signal may mean.
                             </p>
                         </div>
 
                         <div class="glens-principle-context">
                             <div class="glens-context-heading-row">
                                 <span class="glens-query-step">
-                                    Clinical context <small>(Background knowledge)</small>
+                                    Clinical context <small>(HPO background)</small>
                                 </span>
                                 <button
                                     class="glens-context-toggle"
@@ -94,12 +104,16 @@
                                     @click="contextPanelOpen = !contextPanelOpen"
                                 >
                                     <span class="glens-context-toggle-arrow">{{ contextPanelOpen ? "▾" : "▸" }}</span>
-                                    Set context
+                                    {{ hasActiveContext ? "Edit context" : "Set context" }}
                                 </button>
                             </div>
                             <div class="glens-context-status">
-                                <span>{{ hasActiveContext ? "Active context" : "No context set" }}</span>
+                                <span>{{ hasActiveContext ? "Active HPO context" : "No context set" }}</span>
                                 <strong>{{ contextStatusLabel }}</strong>
+                                <p>
+                                    Active context is compared to sample, disease, or carrier HPO
+                                    profiles. It is not a direct variant-similarity score.
+                                </p>
                             </div>
                             <div v-if="contextPanelOpen" class="glens-context-panel">
                                 <clinical-focus-bar
@@ -126,6 +140,42 @@
                 >
                     <div class="glens-summary-modal-card">
                         <button type="button" @click="summaryOpen = false">Close</button>
+                        <div class="glens-summary-modal-copy">
+                            <p class="glens-card-label">Workflow summary</p>
+                            <h2>Search subject, optional HPO context, then evidence layers.</h2>
+                            <p>
+                                The portal starts with the object being searched, optionally compares it
+                                against a resolved HPO context, and then separates CRDC cohort evidence
+                                from rare disease references and secondary annotation.
+                            </p>
+                            <div class="glens-summary-step-grid">
+                                <div>
+                                    <span>1</span>
+                                    <strong>Search subject</strong>
+                                    <p>
+                                        Sample ID, variant/gene, or phenotype profile defines what the
+                                        current page should explain first.
+                                    </p>
+                                </div>
+                                <div>
+                                    <span>2</span>
+                                    <strong>Optional HPO context</strong>
+                                    <p>
+                                        Orphanet, OMIM, MONDO, DECIPHER, sample, investigator, or manual
+                                        HPO profiles can be used as the clinical hypothesis.
+                                    </p>
+                                </div>
+                                <div>
+                                    <span>3</span>
+                                    <strong>Evidence layers</strong>
+                                    <p>
+                                        CRDC recurrence and phenotype overlap are primary. Orphanet/HPO,
+                                        DECIPHER, MONDO, and OMIM are review references. PanelApp and
+                                        pathways remain badges.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                         <img
                             src="/images/context_summary_20260519.png"
                             alt="Clinical context, search subject, interpretation engine, and evidence outputs"
@@ -146,7 +196,6 @@
                         </ol>
                     </article>
                 </div>
-
             </section>
         </div>
 
@@ -174,76 +223,75 @@ export default {
             clinicalFocus: readClinicalFocus(),
             unsubscribeClinicalFocus: null,
             searchModes: [
-                { key: "cohort", label: "Search by ID", shortLabel: "Sample ID" },
-                { key: "phenotype", label: "Search by phenotype", shortLabel: "Phenotype" },
+                { key: "cohort", label: "Search by sample ID", shortLabel: "Sample ID" },
+                { key: "phenotype", label: "Search by phenotype profile", shortLabel: "Phenotype" },
                 { key: "variant", label: "Search by variant / gene", shortLabel: "Variant / gene" },
             ],
             fixtures: {
                 variant: {
                     destination: "/krVariant.html",
-                    placeholder:
-                        "chr15:22,000,220 G>C / UBE3A / 15q11-q13 microdeletion syndrome",
-                    fallback: "chr15:22,000,220 G>C",
+                    placeholder: "chr2:231222761:AT:A / ARMC9",
+                    fallback: "chr2:231222761:AT:A",
                     examples: [
-                        "chr15:22,000,220 G>C",
-                        "UBE3A",
-                        "15q11-q13 microdeletion syndrome",
+                        "chr2:231222761:AT:A",
+                        "ARMC9",
+                        "rare damaging carrier set",
                     ],
-                    hint: "Use this when you already have a variant, gene, or disease-related term.",
+                    hint: "Use this when you want exact-variant or same-gene carrier evidence. Counts should stay labeled by scope.",
                 },
                 phenotype: {
                     destination: "/krPhenotype.html",
                     placeholder:
-                        "cleft palate [HP:0000175], developmental delay [HP:0001263]",
-                    fallback: "cleft palate [HP:0000175]",
+                        "Abnormal oral morphology [HP:0031816], abnormal circulating purine concentration [HP:0004352]",
+                    fallback: "Abnormal oral morphology [HP:0031816]",
                     examples: [
-                        "cleft palate [HP:0000175]",
-                        "HP:0001248, HP:0000343",
-                        "hypotonia, developmental delay",
+                        "Abnormal oral morphology [HP:0031816]",
+                        "Abnormal circulating purine concentration [HP:0004352]",
+                        "oral morphology, immune phenotype",
                     ],
-                    hint: "For multiple HPO terms, separate terms with commas. The backend can treat them as a phenotype profile.",
+                    hint: "Use this for a phenotype profile. Runtime PheRS/GRS can remain not calculated until backend support exists.",
                 },
                 cohort: {
                     destination: "/krSample.html",
                     queryParam: "sample_id",
-                    placeholder:
-                        "BCH-12-34567-01",
-                    fallback: "BCH-12-34567-01",
+                    placeholder: "BCH-22-44945-01",
+                    fallback: "BCH-22-44945-01",
                     examples: [
-                        "BCH-12-34567-01",
+                        "BCH-22-44945-01",
+                        "BCH-19-86295-01",
                     ],
-                    hint: "Search one sample ID to open the sample-centered evidence hub.",
+                    hint: "Open the searched sample first, then inspect similar samples, profile references, and recurrent gene/variant evidence.",
                 },
             },
             workflows: [
                 {
                     key: "sample",
                     kicker: "Sample ID-first workflow",
-                    title: "Patient in context",
+                    title: "Searched sample hub",
                     steps: [
-                        "Search one BCH sample ID",
-                        "Find similar patients and cohort position",
-                        "Move to gene or variant evidence after context fit is clear",
+                        "Understand the sample phenotype and genotype profile",
+                        "Check similar samples or phenotype-defined groups",
+                        "Review disease profile references and recurrent gene or variant evidence",
                     ],
                 },
                 {
                     key: "phenotype",
                     kicker: "Phenotype-first workflow",
-                    title: "Phenotype signal",
+                    title: "Matched cohort signal",
                     steps: [
-                        "Search one or more HPO terms",
-                        "Check whether the pattern is context-specific",
-                        "Review matched samples and co-observed phenotypes",
+                        "Search an HPO profile without merging it with active context",
+                        "Inspect matched CRDC samples and co-observed phenotypes",
+                        "Overlay external disease or gene references after the cohort signal is visible",
                     ],
                 },
                 {
                     key: "variant",
                     kicker: "Variant-first workflow",
-                    title: "Variant in context",
+                    title: "Carrier profile in context",
                     steps: [
-                        "Search a rare variant or gene",
-                        "Inspect carrier recurrence and carrier phenotypes",
-                        "Separate context-supported signal from background noise",
+                        "Separate exact queried-variant, same-gene, and nearby-region evidence",
+                        "Inspect carrier HPO profile and carrier sample recurrence",
+                        "If context is active, compare context HPO terms to carrier HPO profiles",
                     ],
                 },
             ],
@@ -263,16 +311,16 @@ export default {
             return hasClinicalFocus(this.clinicalFocus);
         },
         contextStatusLabel() {
-            if (!this.hasActiveContext) return "Search will run in discovery mode";
+            if (!this.hasActiveContext) return "Search runs in CRDC discovery mode";
 
-            if (this.clinicalFocus.source === "orphanet") {
-                const orphaId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId;
-                const termCount = this.clinicalFocus.contextTermCount || this.clinicalFocus.hpoTerms.length;
-                const terms = `${termCount} HPO terms`;
-                return [this.clinicalFocus.label, orphaId, terms].filter(Boolean).join(" · ");
-            }
-
-            return `${this.clinicalFocus.label} · ${this.clinicalFocus.hpoTerms.length} HPO terms`;
+            const sourceId =
+                this.clinicalFocus.orphaId ||
+                this.clinicalFocus.mondoId ||
+                this.clinicalFocus.decipherId ||
+                this.clinicalFocus.sourceId;
+            const termCount = this.clinicalFocus.contextTermCount || this.clinicalFocus.hpoTerms.length;
+            const terms = `${termCount} HPO terms`;
+            return [this.clinicalFocus.label, sourceId, terms].filter(Boolean).join(" · ");
         },
     },
     mounted() {
@@ -289,7 +337,7 @@ export default {
             this.pendingMessage = "";
 
             if (!this.activeFixture.destination) {
-                this.pendingMessage = `Cohort filter search is planned for version 02. Example filter captured: ${value}`;
+                this.pendingMessage = `Search captured, but this workflow does not have a target page yet: ${value}`;
                 return;
             }
 
@@ -315,7 +363,7 @@ export default {
 
 .glens-hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.9fr) minmax(20rem, 0.72fr);
+    grid-template-columns: minmax(0, 1.55fr) minmax(21rem, 0.95fr);
     gap: 1rem;
     align-items: stretch;
 }
@@ -341,9 +389,9 @@ export default {
 }
 
 .glens-eyebrow,
-.glens-label,
 .glens-card-label,
-.glens-query-step {
+.glens-query-step,
+.glens-tier-label {
     margin: 0;
     color: #526276;
     font-size: 0.72rem;
@@ -353,9 +401,10 @@ export default {
 }
 
 .glens-title,
-.glens-context-question,
 .glens-principle-card strong,
-.glens-workflow-card h2 {
+.glens-workflow-card h2,
+.glens-entry-flow strong,
+.glens-reference-stack strong {
     margin: 0;
     color: #162033;
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -363,21 +412,17 @@ export default {
 }
 
 .glens-title {
-    max-width: 54rem;
+    max-width: 56rem;
     margin-top: 0.2rem;
-    font-size: clamp(1.85rem, 3.4vw, 2.85rem);
-    line-height: 1.02;
-    letter-spacing: -0.055em;
-}
-
-.glens-context-question {
-    margin-top: 0.7rem;
-    font-size: 1.05rem;
-    line-height: 1.24;
+    font-size: clamp(1.85rem, 3.2vw, 2.65rem);
+    line-height: 1.04;
+    letter-spacing: -0.045em;
 }
 
 .glens-subtitle,
-.glens-principle-card p {
+.glens-principle-card p,
+.glens-entry-flow p,
+.glens-reference-stack p {
     color: #526276;
     font-size: 0.9rem;
     line-height: 1.45;
@@ -386,6 +431,75 @@ export default {
 .glens-subtitle {
     max-width: 57rem;
     margin: 0.35rem 0 0;
+}
+
+.glens-entry-flow,
+.glens-reference-stack {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 1rem;
+    background: #fff;
+    overflow: hidden;
+}
+
+.glens-entry-flow > div,
+.glens-reference-stack > div {
+    padding: 0.82rem 0.9rem;
+    border-right: 1px solid #d8e2ef;
+}
+
+.glens-entry-flow > div:last-child,
+.glens-reference-stack > div:last-child {
+    border-right: 0;
+}
+
+.glens-entry-flow span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-bottom: 0.35rem;
+    border-radius: 50%;
+    background: #eef4ff;
+    color: #0055ff;
+    font-size: 0.76rem;
+    font-weight: 850;
+}
+
+.glens-entry-flow strong,
+.glens-reference-stack strong {
+    display: block;
+    font-size: 0.94rem;
+    line-height: 1.22;
+}
+
+.glens-entry-flow p,
+.glens-reference-stack p {
+    margin: 0.38rem 0 0;
+    font-size: 0.8rem;
+}
+
+.glens-reference-stack {
+    grid-template-columns: 1fr;
+    margin-top: 0.75rem;
+}
+
+.glens-reference-stack > div {
+    border-right: 0;
+    border-bottom: 1px solid #d8e2ef;
+}
+
+.glens-reference-stack > div:last-child {
+    border-bottom: 0;
+}
+
+.glens-tier-label {
+    display: block;
+    margin-bottom: 0.28rem;
+    font-size: 0.66rem;
 }
 
 .glens-badge {
@@ -408,8 +522,8 @@ export default {
 
 .glens-principle-card strong {
     display: block;
-    font-size: 1.12rem;
-    line-height: 1.16;
+    font-size: 1.08rem;
+    line-height: 1.18;
 }
 
 .glens-principle-card p {
@@ -496,6 +610,11 @@ export default {
     line-height: 1.25;
 }
 
+.glens-context-status p {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+}
+
 .glens-context-toggle {
     display: inline-flex;
     align-items: center;
@@ -541,11 +660,6 @@ export default {
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-}
-
-.glens-label {
-    display: block;
-    margin-top: 0.2rem;
 }
 
 .glens-search-shell {
@@ -603,14 +717,21 @@ export default {
     margin-top: 0.55rem;
 }
 
-.glens-example-row span {
+.glens-example-token {
     display: inline-flex;
+    border: 0;
     padding: 0.34rem 0.55rem;
     border-radius: 999px;
     background: #f1f5f9;
     color: #526276;
     font-size: 0.76rem;
     font-weight: 750;
+}
+
+.glens-example-token:hover,
+.glens-example-token:focus-visible {
+    background: #e6eef8;
+    color: #162033;
 }
 
 .glens-search-hint,
@@ -660,6 +781,74 @@ export default {
     padding: 0.35rem 0.6rem;
 }
 
+.glens-summary-modal-copy {
+    margin: 0.4rem 0 0.85rem;
+    padding-right: 3.2rem;
+}
+
+.glens-summary-modal-copy h2 {
+    margin: 0.25rem 0 0;
+    color: #162033;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 850;
+}
+
+.glens-summary-modal-copy > p:not(.glens-card-label) {
+    max-width: 62rem;
+    margin: 0.45rem 0 0;
+    color: #526276;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.glens-summary-step-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0.8rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.glens-summary-step-grid > div {
+    padding: 0.75rem 0.82rem;
+    border-right: 1px solid #d8e2ef;
+}
+
+.glens-summary-step-grid > div:last-child {
+    border-right: 0;
+}
+
+.glens-summary-step-grid span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-bottom: 0.32rem;
+    border-radius: 50%;
+    background: #eef4ff;
+    color: #0055ff;
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+.glens-summary-step-grid strong {
+    display: block;
+    color: #162033;
+    font-size: 0.92rem;
+    line-height: 1.22;
+}
+
+.glens-summary-step-grid p {
+    margin: 0.35rem 0 0;
+    color: #526276;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
 .glens-summary-modal-card img {
     display: block;
     width: 100%;
@@ -707,13 +896,19 @@ export default {
 
 @media (max-width: 991.98px) {
     .glens-hero-grid,
+    .glens-entry-flow,
     .glens-workflow-grid {
         grid-template-columns: 1fr;
     }
 
+    .glens-entry-flow > div,
     .glens-workflow-card + .glens-workflow-card {
         border-left: 0;
         border-top: 1px solid #d8e2ef;
+    }
+
+    .glens-entry-flow > div {
+        border-right: 0;
     }
 }
 
@@ -740,6 +935,19 @@ export default {
 
     .glens-button {
         width: 100%;
+    }
+
+    .glens-summary-step-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-summary-step-grid > div {
+        border-right: 0;
+        border-bottom: 1px solid #d8e2ef;
+    }
+
+    .glens-summary-step-grid > div:last-child {
+        border-bottom: 0;
     }
 }
 </style>

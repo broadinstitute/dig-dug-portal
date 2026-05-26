@@ -3,6 +3,8 @@ node_modules
 /dist
 /distPapers
 /portals
+/docs/
+/src/views/archive/
 
 # local env files
 .env.local
