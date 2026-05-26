@@ -13,7 +13,10 @@ db <- readRDS(portal_rds)
 sample <- as.data.table(db$sample)
 sample_page <- as.data.table(db$sample_page_summary)
 sample_hpo <- as.data.table(db$sample_hpo)
+hpo_edge <- as.data.table(db$hpo_edge)
+hpo_ancestor <- as.data.table(db$hpo_ancestor)
 hpo_term <- as.data.table(db$hpo_term)
+hpo_gene_annotation <- as.data.table(db$hpo_gene_annotation)
 sample_variant <- as.data.table(db$sample_variant)
 same_variant_recurrence <- as.data.table(db$same_variant_recurrence)
 same_gene_recurrence <- as.data.table(db$same_gene_recurrence)
@@ -487,6 +490,127 @@ make_phenotype_state <- function(query_ids) {
   query_ids <- setdiff(unique(query_ids[!is.na(query_ids) & query_ids != ""]), "HP:0000001")
   if (length(query_ids) == 0) query_ids <- setdiff(sample_hpo[sample_id == query_sample, unique(hpo_id)], "HP:0000001")[1:2]
   query_terms <- data.table(hpo_id = query_ids)
+
+  root_ids <- hpo_edge[parent_hpo_id == "HP:0000118", unique(hpo_id)]
+  root_names <- hpo_term[hpo_id %in% root_ids, .(root_hpo_id = hpo_id, root_name = hpo_name)]
+
+  term_root_table <- function(ids) {
+    ids <- setdiff(unique(ids[!is.na(ids) & ids != ""]), c("HP:0000001", "HP:0000118"))
+    if (!length(ids)) return(data.table(hpo_id = character(), root_hpo_id = character(), root_name = character()))
+    dt <- data.table(hpo_id = ids)
+    root_map <- hpo_ancestor[hpo_id %in% ids & ancestor_hpo_id %in% root_ids, .SD[which.min(distance)], by = hpo_id]
+    root_map <- root_map[, .(hpo_id, root_hpo_id = ancestor_hpo_id)]
+    dt <- merge(dt, root_map, by = "hpo_id", all.x = TRUE)
+    dt[is.na(root_hpo_id), root_hpo_id := "OTHER"]
+    dt <- merge(dt, root_names, by = "root_hpo_id", all.x = TRUE)
+    dt[is.na(root_name), root_name := "Other phenotype terms"]
+    dt
+  }
+
+  make_sample_phenotype_profile <- function(sid) {
+    ids <- setdiff(sample_hpo[sample_id == sid, unique(hpo_id)], c("HP:0000001", "HP:0000118"))
+    if (!length(ids)) return(list())
+    root_map <- term_root_table(ids)
+    labels <- data.table(hpo_id = ids)
+    labels <- merge(labels, hpo_term[, .(hpo_id, hpo_name)], by = "hpo_id", all.x = TRUE)
+    labels <- merge(labels, root_map, by = "hpo_id", all.x = TRUE)
+    labels[, label := paste0(ifelse(is.na(hpo_name), hpo_id, hpo_name), " [", hpo_id, "]")]
+    labels[, is_query := hpo_id %in% query_ids]
+    total <- uniqueN(labels$hpo_id)
+    grouped <- labels[, .(
+      n = uniqueN(hpo_id),
+      query_labels = paste(label[is_query], collapse = " · "),
+      term_labels = list(label[order(!is_query, hpo_name)])
+    ), by = .(root_name, root_hpo_id)][order(-n, root_name)]
+    lapply(seq_len(nrow(grouped)), function(i) {
+      list(
+        category = paste0(grouped$root_name[i], ifelse(grouped$root_hpo_id[i] == "OTHER", "", paste0(" [", grouped$root_hpo_id[i], "]"))),
+        terms = paste0(grouped$n[i], " / ", total, " terms"),
+        queryPhenotype = ifelse(grouped$query_labels[i] == "", "—", grouped$query_labels[i]),
+        phenotypeTerms = as.list(grouped$term_labels[[i]])
+      )
+    })
+  }
+
+  make_matched_age_bins <- function(ids) {
+    rows <- sample[sample_id %in% ids]
+    rows[, age_group := fifelse(!is.na(age_at_analysis) & age_at_analysis <= 4, "0-4",
+                         fifelse(!is.na(age_at_analysis) & age_at_analysis <= 12, "5-12",
+                         fifelse(!is.na(age_at_analysis) & age_at_analysis <= 18, "13-18",
+                         fifelse(!is.na(age_at_analysis) & age_at_analysis <= 30, "19-30",
+                         fifelse(!is.na(age_at_analysis), "30+", "Unknown")))))]
+    bins <- data.table(label = c("0-4", "5-12", "13-18", "19-30", "30+", "Unknown"))
+    counts <- rows[age_group %in% bins$label, .(
+      female = sum(tolower(fmt(gender, "")) == "female", na.rm = TRUE),
+      male = sum(tolower(fmt(gender, "")) == "male", na.rm = TRUE)
+    ), by = .(label = age_group)]
+    bins <- merge(bins, counts, by = "label", all.x = TRUE, sort = FALSE)
+    bins[is.na(female), female := 0L]
+    bins[is.na(male), male := 0L]
+    max_count <- max(c(bins$female, bins$male, 1), na.rm = TRUE)
+    lapply(seq_len(nrow(bins)), function(i) {
+      list(
+        label = bins$label[i],
+        female = as.integer(bins$female[i]),
+        male = as.integer(bins$male[i]),
+        femaleHeight = paste0(ifelse(bins$female[i] > 0, max(12, round(70 * bins$female[i] / max_count)), 0), "px"),
+        maleHeight = paste0(ifelse(bins$male[i] > 0, max(12, round(70 * bins$male[i] / max_count)), 0), "px")
+      )
+    })
+  }
+
+  make_matched_cohort_summary <- function(ids) {
+    rows <- sample[sample_id %in% ids]
+    female <- sum(tolower(fmt(rows$gender, "")) == "female", na.rm = TRUE)
+    male <- sum(tolower(fmt(rows$gender, "")) == "male", na.rm = TRUE)
+    known_sex <- female + male
+    proband <- sum(rows$proband_flag == TRUE, na.rm = TRUE)
+    non_proband <- sum(rows$proband_flag == FALSE, na.rm = TRUE)
+    known_proband <- proband + non_proband
+    total <- length(unique(ids))
+    sex_parts <- c()
+    if (female > 0) sex_parts <- c(sex_parts, paste(female, "female"))
+    if (male > 0) sex_parts <- c(sex_parts, paste(male, "male"))
+    if (total > known_sex) sex_parts <- c(sex_parts, paste(total - known_sex, "sex not available"))
+    proband_parts <- c()
+    if (proband > 0) proband_parts <- c(proband_parts, paste(proband, "proband"))
+    if (non_proband > 0) proband_parts <- c(proband_parts, paste(non_proband, "non-proband"))
+    if (total > known_proband) proband_parts <- c(proband_parts, paste(total - known_proband, "proband status not available"))
+    list(
+      sex = paste("Sex:", paste(sex_parts, collapse = " · ")),
+      proband = paste("Proband status:", paste(proband_parts, collapse = " · "))
+    )
+  }
+
+  make_gene_hpo_terms <- function(g_symbol) {
+    gene_terms <- unique(hpo_gene_annotation[gene_symbol == g_symbol, .(hpo_id, hpo_name, source_disease_id, evidence_source)])
+    if (!nrow(gene_terms)) return(list())
+    query_ancestors <- unique(hpo_ancestor[hpo_id %in% query_ids, ancestor_hpo_id])
+    gene_terms[, exact_match := hpo_id %in% query_ids]
+    gene_terms[, related_match := !exact_match & (
+      hpo_id %in% query_ancestors |
+        hpo_id %in% hpo_ancestor[ancestor_hpo_id %in% query_ids, unique(hpo_id)]
+    )]
+    gene_terms[, match_rank := fifelse(exact_match, 1L, fifelse(related_match, 2L, 3L))]
+    gene_terms <- gene_terms[order(match_rank, hpo_name, hpo_id)]
+    lapply(seq_len(nrow(gene_terms)), function(i) {
+      list(
+        hpoId = gene_terms$hpo_id[i],
+        hpoTerm = fmt(gene_terms$hpo_name[i], gene_terms$hpo_id[i]),
+        matched = isTRUE(gene_terms$exact_match[i]),
+        related = isTRUE(gene_terms$related_match[i]),
+        evidenceRole = if (isTRUE(gene_terms$exact_match[i])) {
+          "Exact query HPO term"
+        } else if (isTRUE(gene_terms$related_match[i])) {
+          "Related via HPO hierarchy"
+        } else {
+          "Gene phenotype annotation"
+        },
+        source = fmt(gene_terms$evidence_source[i], "HPO gene annotation"),
+        sourceDisease = fmt(gene_terms$source_disease_id[i], "-")
+      )
+    })
+  }
   matched <- sample_hpo[hpo_id %in% query_ids, .(
     matched_query_terms = uniqueN(hpo_id),
     matched_hpo_ids = paste(sort(unique(hpo_id)), collapse = ";")
@@ -525,7 +649,7 @@ make_phenotype_state <- function(query_ids) {
       percentile = "not calculated",
       equalOrHigher = paste0(i, " / ", nrow(matched)),
       signals = paste(sig, collapse = ", "),
-      phenotypeProfile = list()
+      phenotypeProfile = make_sample_phenotype_profile(sid)
     )
   })
 
@@ -557,12 +681,16 @@ make_phenotype_state <- function(query_ids) {
   })
 
   gene_candidates <- lapply(seq_len(nrow(gene_hits)), function(i) {
+    gene_terms <- make_gene_hpo_terms(gene_hits$gene_symbol[i])
+    exact_n <- sum(vapply(gene_terms, function(x) isTRUE(x$matched), logical(1)))
+    related_n <- sum(vapply(gene_terms, function(x) isTRUE(x$related), logical(1)))
     list(
       gene = gene_hits$gene_symbol[i],
-      profileMatch = paste(length(query_ids), "query HPO terms evaluated as a weighted profile"),
+      profileMatch = paste0(exact_n, " / ", length(query_ids), " exact query HPO terms", ifelse(related_n > 0, paste0(" · ", related_n, " related HPO terms"), "")),
       externalAnnotation = "external annotation shown when available",
       cohortCarrierEvidence = paste0(gene_hits$carrier_n[i], " / ", length(matched_ids), " phenotype-matched samples carry rare ", gene_hits$gene_symbol[i], " variants"),
-      whyMatched = "CRDC recurrence among phenotype-matched samples"
+      whyMatched = "CRDC recurrence among phenotype-matched samples",
+      hpoTerms = gene_terms
     )
   })
 
@@ -598,6 +726,8 @@ make_phenotype_state <- function(query_ids) {
         expanded = list(),
         downWeighted = list()
       ),
+      matchedCohortSummary = make_matched_cohort_summary(matched_ids),
+      ageBins = make_matched_age_bins(matched_ids),
       topSamples = top_samples,
       coObserved = co_observed,
       diseaseCandidates = disease_candidates,

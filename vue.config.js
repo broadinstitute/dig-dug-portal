@@ -52,13 +52,6 @@ let pages = {
         title: "KR Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "krPhenotype"],
     },
-    krPhenotypeNew: {
-        entry: "src/views/KrPhenotypeNew/main.js",
-        template: "public/index.html",
-        filename: "krPhenotype_new.html",
-        title: "KR Phenotype New",
-        chunks: ["chunk-vendors", "chunk-common", "krPhenotypeNew"],
-    },
     krVariant: {
         entry: "src/views/KrVariant/main_V3.js",
         template: "public/index.html",
