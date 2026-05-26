@@ -83,6 +83,7 @@ export default Vue.component("time-series-line-plot", {
         showConfidence: "some",
         allConfidence: [],
         staticAllDonorData: [],
+        lineGenerator: null,
       };
   },
   mounted(){
@@ -109,6 +110,15 @@ export default Vue.component("time-series-line-plot", {
       }
       return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
     },
+    highlightedDonorData(){
+      for (let i = 0; i < this.chartData.length; i++){
+        let c = this.chartData[i];
+        if (c[0].donor === this.highlightedDonor){
+          return c;
+        }
+      }
+      return null;
+    }
   },
   methods: {
     extractTimepoints(data, xScale, yScale){
@@ -309,40 +319,44 @@ export default Vue.component("time-series-line-plot", {
             d[this.yField] !== undefined
           );
       let linesOnly = this.showConfidence === "none";
-      let highlightedDonorData = null;
       let linesData = this.showConfidence === "all" 
         ? this.staticAllDonorData 
         : this.chartData;
       linesData.forEach(c => {
-        if (c[0].donor === this.highlightedDonor){
-          highlightedDonorData = c;
-        } else {
           this.svg.append("path")
           .datum(c)
-          .attr("class", "linegraph")
+          .attr("class", "line-path")
           .attr("fill", "none")
           .attr("stroke", this.highlightedDonor === null && linesOnly 
             ? this.lineColor : 
             "lightgray")
           .attr("stroke-width", 1)
-          .attr("class", "line-path")
           .attr("d", lineGenerator)
           .on("mouseover", c => this.showTooltip(c));
-        }
       });
       // Put highlighted line on top
-      if (highlightedDonorData !== null){
-        this.svg.append("path")
-          .datum(highlightedDonorData)
-          .attr("class", "linegraph")
-          .attr("fill", "none")
-          .attr("stroke", this.lineColor)
-          .attr("stroke-width", 2)
-          .attr("class", "line-path")
-          .attr("d", lineGenerator)
-          .on("mouseover", c => this.showTooltip(c))
-      }
+      //this.drawHighlightedDonor();
       this.drawIntervals();
+    },
+    drawHighlightedDonor(c){
+      this.svg.selectAll("path.highlighted-donor-line").remove();
+      if (c === null){
+        return;
+      }
+      const lineGenerator = d3.line()
+          .x(d => this.xScale(d[this.xField]))
+          .y(d => this.yScale(d[this.yField]))
+          .defined(d =>
+            d[this.xField] !== undefined &&
+            d[this.yField] !== undefined
+          );
+      this.svg.append("path")
+          .datum(c)
+          .attr("class", "line-path highlighted-donor-line")
+          .attr("fill", "none")
+          .attr("stroke", "black") // What color for this?
+          .attr("stroke-width", 2)
+          .attr("d", lineGenerator);
     },
     drawIntervals(){
       if (this.showConfidence === "none"){
@@ -410,7 +424,7 @@ export default Vue.component("time-series-line-plot", {
       //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
         this.highlightedDonor = donor;
-        this.drawLines();
+        this.drawHighlightedDonor(c);
       }
     }
   },
