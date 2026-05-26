@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRDC Rare Disease Portal New Preview</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5f6b7d;
+      --line: #d9e2ef;
+      --soft: #f4f7fb;
+      --blue: #0055ff;
+      --blue-soft: #e9f0ff;
+      --green: #17824a;
+      --green-soft: #e9f7ef;
+      --orange: #c96f22;
+      --orange-soft: #fff3e4;
+      --purple: #6f55d8;
+      --purple-soft: #f1edff;
+      --red: #b45767;
+      --red-soft: #fff0f3;
+      --shadow: 0 18px 40px rgba(31, 45, 68, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #e9eef5;
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .preview-page {
+      width: 1600px;
+      min-height: 1000px;
+      margin: 28px auto;
+      padding: 34px;
+      background: #f8fafc;
+      border: 1px solid #dbe3ee;
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .preview-page + .preview-page { margin-top: 46px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .workflow {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .workflow-label {
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .workflow-value {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .context-control {
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .context-control .link { color: var(--blue); }
+
+    .preview-note {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 10px 26px rgba(31, 45, 68, 0.05);
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .section-subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .metric-band {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fff;
+      overflow: hidden;
+      margin: 16px 0 22px;
+    }
+
+    .metric {
+      padding: 18px 20px;
+      border-right: 1px solid var(--line);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric small {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .source-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .source-row strong { color: var(--ink); }
+
+    .tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 0;
+      margin-top: 18px;
+    }
+
+    .tab {
+      padding: 16px 28px;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      background: #eaf0f7;
+      color: var(--muted);
+      font-weight: 800;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: var(--ink);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    th {
+      padding: 15px 16px;
+      background: #f5f7fb;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    td {
+      padding: 15px 16px;
+      border-bottom: 1px solid #ebf0f6;
+      color: #2d394d;
+      font-size: 17px;
+      font-weight: 400;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .link { color: var(--blue); font-weight: 700; }
+    .plain-source { color: #46546a; font-weight: 500; }
+    .muted { color: var(--muted); }
+    .na { color: #6f7784; font-style: italic; }
+
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #344054;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .tagline::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .search-modes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .mode-card {
+      min-height: 142px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .mode-card h3 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .mode-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .divider-card {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .divider-card > div {
+      padding: 20px;
+      border-right: 1px solid var(--line);
+    }
+
+    .divider-card > div:last-child { border-right: 0; }
+
+    .hpo-list {
+      display: grid;
+      gap: 7px;
+      margin: 14px 0 0;
+      color: #2f3c52;
+      font-size: 19px;
+      font-weight: 600;
+    }
+
+    .mini-title {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .callout {
+      border-left: 4px solid var(--green);
+      background: var(--green-soft);
+      border-radius: 16px;
+      padding: 16px 18px;
+      color: #264534;
+      font-size: 17px;
+    }
+
+    .warning {
+      border-left-color: var(--orange);
+      background: var(--orange-soft);
+      color: #5c3c18;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .mini-box {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .mini-box strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    .mini-box span {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .bars {
+      display: flex;
+      align-items: end;
+      gap: 18px;
+      height: 150px;
+      padding: 16px 6px 0;
+    }
+
+    .bar-group {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .bar-pair {
+      display: flex;
+      align-items: end;
+      gap: 5px;
+      height: 94px;
+    }
+
+    .bar {
+      width: 16px;
+      background: #3d638b;
+      border-radius: 5px 5px 0 0;
+    }
+
+    .bar.f { background: #c16476; }
+
+    .track {
+      height: 190px;
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(#fff, #f7f9fc);
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .track-line {
+      position: absolute;
+      left: 50px;
+      right: 50px;
+      top: 80px;
+      border-top: 2px solid #a9b7c9;
+    }
+
+    .variant-marker {
+      position: absolute;
+      left: 48%;
+      top: 54px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: var(--red);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .density {
+      position: absolute;
+      left: 55px;
+      right: 55px;
+      bottom: 34px;
+      display: flex;
+      align-items: end;
+      gap: 5px;
+      height: 70px;
+    }
+
+    .density span {
+      flex: 1;
+      background: #cdd8e8;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .density span.hot { background: #d16d2e; }
+
+    .section-footer {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .preview-page {
+        page-break-after: always;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    body.screen-front .preview-page:not(#front-preview),
+    body.screen-sample .preview-page:not(#sample-preview),
+    body.screen-phenotype .preview-page:not(#phenotype-preview),
+    body.screen-variant .preview-page:not(#variant-preview) {
+      display: none;
+    }
+
+    body[class*="screen-"] .preview-page {
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+  </style>
+  <script>
+    const screenName = new URLSearchParams(window.location.search).get("screen");
+    if (screenName) {
+      document.documentElement.classList.add(`screen-${screenName}`);
+      document.body?.classList.add(`screen-${screenName}`);
+      window.addEventListener("DOMContentLoaded", () => {
+        document.body.classList.add(`screen-${screenName}`);
+      });
+    }
+  </script>
+</head>
+<body>
+  <section id="front-preview" class="preview-page">
+    <div class="topbar">
+      <div class="workflow">
+        <span class="workflow-label">Current workflow</span>
+        <span class="workflow-value">Rare disease cohort search</span>
+      </div>
+      <div class="context-control">ⓘ No context <span class="muted">|</span> <span class="link">Set Context</span> <span class="muted">| ⋮</span></div>
+    </div>
+    <p class="preview-note">정적 preview입니다. 기본 포털의 카드형 시각 구조를 유지하고, reframe의 해석 계층만 흡수하는 방향입니다.</p>
+    <div class="grid-2">
+      <div class="panel">
+        <p class="mini-title">One cohort exploration workflow</p>
+        <h1 class="section-title">Sample, variant/gene, phenotype profile로 같은 CRDC evidence를 탐색합니다</h1>
+        <p class="section-subtitle">검색 시작점은 다르지만, 해석은 CRDC 내부 evidence를 먼저 보고 rare disease reference와 secondary annotation을 덧붙이는 구조입니다.</p>
+        <div class="divider-card">
+          <div>
+            <strong>1. Search subject</strong>
+            <p class="muted">Sample ID, variant/gene, HPO profile 중 하나로 시작합니다.</p>
+          </div>
+          <div>
+            <strong>2. Optional HPO context</strong>
+            <p class="muted">Context는 genotype similarity가 아니라 HPO phenotype context입니다.</p>
+          </div>
+          <div>
+            <strong>3. Evidence layers</strong>
+            <p class="muted">CRDC first → Orphanet/HPO → DECIPHER/MONDO/OMIM → secondary badges.</p>
+          </div>
+        </div>
+        <div class="search-modes">
+          <div class="mode-card">
+            <h3>Search by sample</h3>
+            <p>BCH-22-44945-01<br>sample phenotype/genotype hub</p>
+          </div>
+          <div class="mode-card">
+            <h3>Search by variant/gene</h3>
+            <p>chr2:231222761:AT:A<br>exact variant or same-gene carrier set</p>
+          </div>
+          <div class="mode-card">
+            <h3>Search by phenotype</h3>
+            <p>Abnormal oral morphology [HP:0031816]<br>weighted profile-ready query</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="mini-title">Our purpose</p>
+        <h2 class="section-title">CRDC 내부에서 먼저 찾고, reference annotation은 해석을 돕는 층으로 보여줍니다</h2>
+        <div class="metric-band" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="metric">
+            <small>Primary</small>
+            <strong>CRDC evidence</strong>
+            <span>sample/HPO/variant recurrence, carrier group, investigator pattern</span>
+          </div>
+          <div class="metric">
+            <small>Reference</small>
+            <strong>Orphanet · HPO</strong>
+            <span>core disease/gene/HPO profile support</span>
+          </div>
+          <div class="metric">
+            <small>Secondary</small>
+            <strong>DECIPHER · MONDO · OMIM · PanelApp · pathway</strong>
+            <span>separate annotation badges, not filters</span>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>Context rule:</strong> active context가 있으면 HPO pattern overlap을 봅니다. Variant page에서도 variant 자체가 아니라 carrier HPO profile과 context HPO를 비교합니다.
+        </div>
+        <div class="section-footer">Hidden goal: 사용자가 생각하지 못한 cohort/group/gene/variant insight를 찾을 수 있게 합니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sample-preview" class="preview-page">
+    <div class="topbar">
+      <div class="workflow">
+        <span class="workflow-label">Current workflow</span>
+        <span class="workflow-value">Sample search</span>
+      </div>
+      <div class="context-control">ⓘ Context active <span class="muted">|</span> <span class="link">Edit Context</span> <span class="muted">| ⋮</span></div>
+    </div>
+    <div class="panel">
+      <div class="topbar" style="margin-bottom: 0;">
+        <div>
+          <h1 class="section-title" style="font-size: 34px;">BCH-22-44945-01</h1>
+          <p class="section-subtitle">male | Age 12-17 | GenDx: Not loaded · 107 HPO terms | 17 genes with rare coding variants</p>
+        </div>
+        <div class="tagline">Interpretation summary band, not a new page design</div>
+      </div>
+      <div class="metric-band">
+        <div class="metric">
+          <small>CRDC sample profile</small>
+          <strong>107 HPO terms</strong>
+          <span>phenotype burden</span>
+        </div>
+        <div class="metric">
+          <small>Similar sample/group</small>
+          <strong>BCH-19-86295-01</strong>
+          <span>69% shared HPO overlap</span>
+        </div>
+        <div class="metric">
+          <small>Recurrent evidence</small>
+          <strong>ARMC9</strong>
+          <span>same-gene / carrier HPO evidence</span>
+        </div>
+        <div class="metric">
+          <small>Reference profile</small>
+          <strong>Chronic mucocutaneous candidiasis</strong>
+          <span>Orphanet first; DECIPHER/MONDO/OMIM secondary reference tier</span>
+        </div>
+        <div class="metric">
+          <small>Context match</small>
+          <strong>Pattern overlap</strong>
+          <span>HPO overlap + domain pattern, not genotype similarity</span>
+        </div>
+      </div>
+      <div class="source-row">
+        <span><strong>CRDC first:</strong> 내부 sample/variant recurrence를 먼저 표시</span>
+        <span><strong>PheRS/GRS:</strong> <span class="na">not calculated in this fixture</span> 슬롯은 유지</span>
+        <span><strong>Secondary:</strong> PanelApp/Reactome/WikiPathways는 badge만</span>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top: 22px;">
+      <div class="panel">
+        <h2 class="section-title">Sample phenotype / genotype overview</h2>
+        <p class="section-subtitle">sample 자체를 먼저 이해하고, context가 있으면 겹치는 HPO pattern을 강조합니다.</p>
+        <table>
+          <thead><tr><th>Item</th><th>Value</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>Proband</td><td>No</td><td>sample metadata</td></tr>
+            <tr><td>Affected</td><td>Yes</td><td>sample metadata</td></tr>
+            <tr><td>Dominant HPO area</td><td>Abnormal oral / immune-related morphology</td><td>sample_hpo aggregation</td></tr>
+            <tr><td>Top variant evidence</td><td><span class="link">chr2:231222761:AT:A</span> · ARMC9</td><td>sample_variant + recurrence</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="tabs">
+          <div class="tab active">Overview</div>
+          <div class="tab">Similar samples</div>
+          <div class="tab">Similar by genotype</div>
+          <div class="tab">Disease profile matches</div>
+          <div class="tab">Gene / variant evidence</div>
+        </div>
+        <table>
+          <thead><tr><th>Evidence area</th><th>What changes</th><th>Keep / remove</th></tr></thead>
+          <tbody>
+            <tr><td>Similar samples</td><td>Similarity to searched sample와 Match to active context를 분리</td><td>keep table/popovers</td></tr>
+            <tr><td>Similar by genotype</td><td>High/Moderate 대신 count: 12 / 47 shared HPO terms</td><td>remove qualitative labels</td></tr>
+            <tr><td>Disease profile</td><td>diagnosis가 아니라 public disease profile reference</td><td>remove hypothesis wording</td></tr>
+            <tr><td>Gene evidence</td><td>CRDC recurrent candidate와 reference-supported candidate를 따로 표시</td><td>keep uncurated candidates</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="phenotype-preview" class="preview-page">
+    <div class="topbar">
+      <div class="workflow">
+        <span class="workflow-label">Current workflow</span>
+        <span class="workflow-value">Phenotype search</span>
+      </div>
+      <div class="context-control">ⓘ No context <span class="muted">|</span> <span class="link">Set Context</span> <span class="muted">| ⋮</span></div>
+    </div>
+    <div class="panel">
+      <div class="grid-2">
+        <div>
+          <h1 class="section-title" style="font-size: 30px;">Query phenotype profile</h1>
+          <div class="hpo-list">
+            <span>Abnormal circulating purine concentration [HP:0004352]</span>
+            <span>Abnormal oral morphology [HP:0031816]</span>
+          </div>
+          <div style="margin-top: 22px;">
+            <p class="mini-title">Phenotype-similar samples ⓘ</p>
+            <strong style="font-size: 30px;">20 / 350</strong>
+            <p class="muted">HPO overlap fixture now; PheRS-ready slot remains <span class="na">NA</span>.</p>
+          </div>
+        </div>
+        <div>
+          <div class="mini-grid">
+            <div class="mini-box">
+              <strong>CRDC matched cohort</strong>
+              <span>20 matched samples in current test fixture</span>
+            </div>
+            <div class="mini-box">
+              <strong>Profile scoring</strong>
+              <span>PheRS residual: <span class="na">not calculated</span></span>
+            </div>
+          </div>
+          <div class="bars">
+            <div class="bar-group"><div class="bar-pair"><div class="bar f" style="height: 30px;"></div><div class="bar" style="height: 24px;"></div></div><span>0-4</span></div>
+            <div class="bar-group"><div class="bar-pair"><div class="bar f" style="height: 58px;"></div><div class="bar" style="height: 44px;"></div></div><span>5-12</span></div>
+            <div class="bar-group"><div class="bar-pair"><div class="bar f" style="height: 82px;"></div><div class="bar" style="height: 70px;"></div></div><span>13-18</span></div>
+            <div class="bar-group"><div class="bar-pair"><div class="bar f" style="height: 64px;"></div><div class="bar" style="height: 48px;"></div></div><span>19-30</span></div>
+            <div class="bar-group"><div class="bar-pair"><div class="bar f" style="height: 38px;"></div><div class="bar" style="height: 28px;"></div></div><span>30+</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="source-row">
+        <span><strong>Rule:</strong> query HPO profile과 active context HPO set은 절대 합치지 않습니다.</span>
+        <span><strong>Reference order:</strong> Orphanet/HPO → DECIPHER/MONDO/OMIM → secondary badges.</span>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top: 22px;">
+      <div class="panel">
+        <h2 class="section-title">Phenotype-derived candidates</h2>
+        <p class="section-subtitle">입력 HPO profile에서 나온 disease/gene 후보를 먼저 보여주고, CRDC variant evidence를 overlay합니다.</p>
+        <div class="tabs">
+          <div class="tab active">Disease candidates</div>
+          <div class="tab">Gene candidates</div>
+          <div class="tab">Cohort variant overlay</div>
+        </div>
+        <table>
+          <thead><tr><th>Disease candidate</th><th>Profile match</th><th>Reference tier</th><th>CRDC evidence</th></tr></thead>
+          <tbody>
+            <tr><td>Craniofacial / immune profile</td><td>2 exact + related HPO terms</td><td>Orphanet + HPO core</td><td>Matched cohort contains ARMC9/LUZP1 carriers</td></tr>
+            <tr><td>Unresolved oral morphology cluster</td><td>Profile score <span class="na">NA</span></td><td>DECIPHER/MONDO/OMIM review tier</td><td>CRDC recurrence preserved even if uncurated</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h2 class="section-title">CRDC cohort evidence</h2>
+        <p class="section-subtitle">입력 phenotype profile을 CRDC cohort에 적용했을 때 보이는 sample, phenotype, investigator pattern입니다.</p>
+        <div class="tabs">
+          <div class="tab active">Matched samples</div>
+          <div class="tab">Co-observed phenotypes</div>
+          <div class="tab">Investigator-level evidence</div>
+        </div>
+        <table>
+          <thead><tr><th>Rank</th><th>Sample</th><th>Query terms matched</th><th>Total HPO terms</th><th>Candidate signals</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><span class="link">BCH-22-44945-01</span></td><td>2 / 2 query terms</td><td>107</td><td>ARMC9 · LUZP1</td></tr>
+            <tr><td>2</td><td><span class="link">BCH-18-10273-01</span></td><td>2 / 2 query terms</td><td>208</td><td>ARMC9 · HLA-C</td></tr>
+            <tr><td>3</td><td><span class="link">BCH-21-99889-01</span></td><td>2 / 2 query terms</td><td>257</td><td>ARMC9 · LUZP1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="variant-preview" class="preview-page">
+    <div class="topbar">
+      <div class="workflow">
+        <span class="workflow-label">Current workflow</span>
+        <span class="workflow-value">Variant / gene search</span>
+      </div>
+      <div class="context-control">ⓘ Context active <span class="muted">|</span> <span class="link">Edit Context</span> <span class="muted">| ⋮</span></div>
+    </div>
+    <div class="panel">
+      <div class="topbar" style="margin-bottom: 0;">
+        <div>
+          <h1 class="section-title" style="font-size: 34px;">chr2:231222761:AT:A</h1>
+          <p class="section-subtitle">ARMC9 Variant | test DB | rare/damaging test subset</p>
+        </div>
+        <div class="tagline">Exact variant, same gene, nearby region counts stay separate</div>
+      </div>
+      <div class="metric-band">
+        <div class="metric">
+          <small>Exact queried variant</small>
+          <strong>259 carriers</strong>
+          <span>chr2:231222761:AT:A only</span>
+        </div>
+        <div class="metric">
+          <small>Same gene</small>
+          <strong>329 ARMC9 carriers</strong>
+          <span>same-gene carrier set</span>
+        </div>
+        <div class="metric">
+          <small>Carrier phenotype</small>
+          <strong>Carrier HPO profile</strong>
+          <span>frequent HPO categories among carriers</span>
+        </div>
+        <div class="metric">
+          <small>Reference</small>
+          <strong>Orpha 79320 · Orpha 391665</strong>
+          <span>gene-level rare disease reference</span>
+        </div>
+        <div class="metric">
+          <small>Context match</small>
+          <strong>Carrier HPO vs context HPO</strong>
+          <span>not context vs variant directly</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top: 22px;">
+      <div class="panel">
+        <h2 class="section-title">Queried variant window</h2>
+        <p class="section-subtitle">locus track은 유지하되, chr15/UBE3A 같은 stale static value는 generated value로 교체합니다.</p>
+        <div class="track">
+          <div class="track-line"></div>
+          <div class="variant-marker">AT:A</div>
+          <div class="density">
+            <span style="height: 12px;"></span><span style="height: 18px;"></span><span style="height: 24px;"></span><span class="hot" style="height: 44px;"></span><span class="hot" style="height: 66px;"></span><span class="hot" style="height: 54px;"></span><span style="height: 34px;"></span><span style="height: 20px;"></span><span style="height: 14px;"></span>
+          </div>
+        </div>
+        <div class="source-row">
+          <span>Disease track: reference annotation</span>
+          <span>Gene track: ARMC9</span>
+          <span>Per-position carrier count: nearby region only</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 class="section-title">Carrier phenotype profile</h2>
+        <p class="section-subtitle">carrier sample 또는 phenotype term을 선택하면 Edit context panel에서 확인 후 context를 적용합니다.</p>
+        <table>
+          <thead><tr><th>HPO root category</th><th>Carrier support</th><th>Context action</th></tr></thead>
+          <tbody>
+            <tr><td>Abnormality of the nervous system [HP:0000707]</td><td>67% of exact variant carriers</td><td><span class="link">select category or terms</span></td></tr>
+            <tr><td>Abnormality of head or neck [HP:0000152]</td><td>56% of exact variant carriers</td><td><span class="link">select category or terms</span></td></tr>
+            <tr><td>Growth abnormality [HP:0001507]</td><td>33% of exact variant carriers</td><td><span class="link">select category or terms</span></td></tr>
+          </tbody>
+        </table>
+        <div class="callout warning" style="margin-top: 16px;">
+          Context position in CRDC는 active context가 있을 때만 score처럼 보입니다. No context 상태에서는 “Set context to evaluate carrier HPO profile” 안내만 보여줍니다.
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

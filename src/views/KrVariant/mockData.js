@@ -1,5 +1,7 @@
+import { applyPortalVariantData } from "./portalVariantData.generated";
+
 export function createKrVariantState() {
-    return {
+    const state = {
             largeText: false,
             activeDensity: "all",
             activeInvestigator: "all-investigators",
@@ -428,4 +430,5 @@ export function createKrVariantState() {
                 ],
             },
         };
+    return applyPortalVariantData(state);
 }

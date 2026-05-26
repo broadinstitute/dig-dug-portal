@@ -845,18 +845,22 @@ export default {
             return [this.clinicalFocus.label, contextId].filter(Boolean).join(" · ");
         },
         topAnswers() {
+            const metricByLabel = (needle) => this.sample.positionMetrics.find((metric) => metric.label.toLowerCase().includes(needle));
+            const closest = metricByLabel("closest");
+            const group = metricByLabel("investigator");
+            const disease = metricByLabel("disease profile");
             return [
                 {
                     label: "Closest phenotype match",
-                    value: "BCH-12-34210-01 · 91%",
+                    value: closest ? closest.value : "-",
                 },
                 {
                     label: "Group affinity",
-                    value: "Investigator 2",
+                    value: group ? group.value : "-",
                 },
                 {
                     label: "Disease profile reference",
-                    value: "Kabuki syndrome profile",
+                    value: disease ? disease.value : "-",
                 },
             ];
         },
@@ -903,7 +907,7 @@ export default {
             return requestedSampleId;
         },
         displayAgeGroup() {
-            return String(this.sample.ageGroup || "").replace("-", "–");
+            return this.formatAgeBand(this.sample.ageGroup || this.sample.ageBand || this.sample.age || "Unknown / not available");
         },
     },
     mounted() {

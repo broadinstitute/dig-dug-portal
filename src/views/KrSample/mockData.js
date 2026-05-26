@@ -1,5 +1,7 @@
+import { applyPortalSampleData } from "./portalSampleData.generated";
+
 export function createKrSampleState() {
-    return {
+    const state = {
             largeText: false,
             activeTab: "overview",
             referenceSampleId: "BCH-12-34210-01",
@@ -481,4 +483,5 @@ export function createKrSampleState() {
                 ],
             },
         };
+    return applyPortalSampleData(state);
 }

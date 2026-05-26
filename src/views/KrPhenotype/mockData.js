@@ -1,5 +1,7 @@
+import { applyPortalPhenotypeData } from "./portalPhenotypeData.generated";
+
 export function createKrPhenotypeState() {
-    return {
+    const state = {
             largeText: false,
             activePhenotype: "",
             activeResidualGroup: "Investigator 2",
@@ -321,4 +323,5 @@ export function createKrPhenotypeState() {
                 ],
             },
         };
+    return applyPortalPhenotypeData(state);
 }

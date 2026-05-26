@@ -52,6 +52,7 @@
                     />
                     <button type="button" @click="resolveSourceProfile">Resolve to HPO profile</button>
                 </div>
+                <p v-if="sourceInputHelp">{{ sourceInputHelp }}</p>
             </div>
 
             <div v-if="hasEditableFocusSource" class="glens-clinical-focus-draft-head">
@@ -220,6 +221,8 @@ export default {
             if (profile.source === "orphanet") {
                 return profile.label;
             }
+            if (profile.source === "mondo") return `${query} HPO profile`;
+            if (profile.source === "decipher") return `${query} HPO profile`;
             if (profile.source === "sample") return `${query} sample HPO profile`;
             if (profile.source === "investigator") return `${query} phenotype signature`;
             return profile.label;
@@ -230,6 +233,12 @@ export default {
             }
             if (source === "orphanet") {
                 return "Orphanet disease labels are resolved to disease HPO annotations before comparison.";
+            }
+            if (source === "mondo") {
+                return "MONDO disease concepts are resolved through mapped disease references to an HPO profile before comparison.";
+            }
+            if (source === "decipher") {
+                return "DECIPHER syndrome or disorder profiles are resolved to HPO phenotype terms before comparison.";
             }
             if (source === "sample") {
                 return "The selected sample is resolved to that sample's observed HPO profile.";
