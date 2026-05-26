@@ -846,7 +846,7 @@ Main DB sources:
 | Sample overview | `sample_page_summary`, `sample_hpo_count` |
 | Phenotype profile | `sample_hpo`, `hpo_term`, `hpo_edge`, `hpo_ancestor` |
 | GenDx / diagnosed status | `sample.diagnosed_flag`, future GenDx-specific table if available |
-| Similar samples | `sample_hpo` overlap or future PheRS result table |
+| Similar by phenotype | `sample_hpo`, HPO term frequency weights, or future production PheRS result table |
 | Similar by genotype | `same_variant_recurrence`, `same_gene_recurrence`, `variant_carrier`, `gene_carrier` |
 | Disease profile matches | `sample_disease_profile_match_summary` |
 | Gene / variant evidence | `sample_gene_variant_evidence_summary`, `sample_variant` |
@@ -877,8 +877,10 @@ Main DB sources:
 
 Current mock/test behavior:
 
-- The current fixture uses exact HPO overlap for matched samples.
-- Runtime PheRS/profile scoring is not implemented in the frontend.
+- The sample-page `Similar by phenotype` tab uses a fixture-level PheRS-like weighted phenotype profile similarity scaled from 0 to 1.
+- Broad ontology roots such as `HP:0000001` and `HP:0000118` are excluded from the displayed denominator so that generic overlap does not dominate the ranking.
+- More specific shared HPO terms contribute more through inverse cohort-frequency weights.
+- Runtime production PheRS/profile scoring is not implemented in the frontend; the score is exported into the generated fixture.
 - If a production PheRS table is added, it should become the primary matched sample source.
 
 Recommended future PheRS output table:

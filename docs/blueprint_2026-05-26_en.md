@@ -191,7 +191,8 @@ Recommended sections:
    - diagnostic gene/variant if available
 
 4. Similar patients / groups
-   - phenotype-similar samples
+   - similar samples by phenotype
+   - 0-1 normalized phenotype profile similarity
    - phenotype-defined groups
    - investigator/cohort affinity
 

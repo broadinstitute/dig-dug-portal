@@ -141,20 +141,38 @@ make_sample_state <- function(query_sample) {
     })
   }
 
+  broad_hpo_ids <- c("HP:0000001", "HP:0000118")
+  query_profile_hpo_ids <- setdiff(query_hpo_ids, broad_hpo_ids)
+  if (length(query_profile_hpo_ids) == 0) query_profile_hpo_ids <- query_hpo_ids
+
+  hpo_cohort_frequency <- sample_hpo[
+    !hpo_id %in% broad_hpo_ids,
+    .(sample_n = uniqueN(sample_id)),
+    by = hpo_id
+  ]
+  hpo_cohort_frequency[, hpo_weight := log((uniqueN(sample$sample_id) + 1) / (sample_n + 1))]
+  hpo_cohort_frequency[hpo_weight < 0 | is.na(hpo_weight), hpo_weight := 0]
+  query_profile_weights <- hpo_cohort_frequency[hpo_id %in% query_profile_hpo_ids]
+  query_profile_denominator <- sum(query_profile_weights$hpo_weight, na.rm = TRUE)
+  if (query_profile_denominator <= 0) query_profile_denominator <- max(1, length(query_profile_hpo_ids))
+
   pair_hits <- merge(
-    data.table(hpo_id = query_hpo_ids),
+    data.table(hpo_id = query_profile_hpo_ids),
     sample_hpo[sample_id != query_sample, .(sample_id, hpo_id)],
     by = "hpo_id",
     allow.cartesian = TRUE
   )
+  pair_hits <- merge(pair_hits, hpo_cohort_frequency[, .(hpo_id, hpo_weight)], by = "hpo_id", all.x = TRUE)
+  pair_hits[is.na(hpo_weight), hpo_weight := 1]
   phenotype_neighbors <- pair_hits[, .(
     shared_hpo_count = uniqueN(hpo_id),
+    shared_weighted_score = sum(unique(.SD[, .(hpo_id, hpo_weight)])$hpo_weight, na.rm = TRUE),
     shared_hpo_ids = paste(head(sort(unique(hpo_id)), 20), collapse = ";")
   ), by = sample_id]
   phenotype_neighbors <- merge(phenotype_neighbors, sample_hpo_counts, by = "sample_id", all.x = TRUE)
   phenotype_neighbors <- merge(phenotype_neighbors, sample_page[, .(sample_id, gender, age_band, cohort_id, top_disease_name)], by = "sample_id", all.x = TRUE)
-  phenotype_neighbors[, similarity := shared_hpo_count / max(1, length(query_hpo_ids))]
-  phenotype_neighbors <- phenotype_neighbors[order(-shared_hpo_count, -similarity)][1:min(.N, 6)]
+  phenotype_neighbors[, profile_similarity_0_1 := pmin(1, shared_weighted_score / query_profile_denominator)]
+  phenotype_neighbors <- phenotype_neighbors[order(-profile_similarity_0_1, -shared_hpo_count)][1:min(.N, 6)]
 
   sample_gene_set <- sample_variant[, .(genes = list(sort(unique(gene_symbol)))), by = sample_id]
   phenotype_matches <- list()
@@ -169,8 +187,10 @@ make_sample_state <- function(query_sample) {
       if (length(top_variant) == 0 || is.na(top_variant)) top_variant <- sample_variant[sample_id == sid][1, variant_id]
       list(
         sampleId = sid,
-        similarityRank = paste0(i, " · ", round(100 * phenotype_neighbors$similarity[i]), "%"),
-        sharedPhenotypeCount = paste0(phenotype_neighbors$shared_hpo_count[i], " / ", length(query_hpo_ids)),
+        similarityRank = paste0("Rank ", i),
+        phenotypeProfileSimilarity = fmt_num(phenotype_neighbors$profile_similarity_0_1[i], 3),
+        phenotypeProfileSimilarityLabel = paste0(fmt_num(phenotype_neighbors$profile_similarity_0_1[i], 3), " (0-1)"),
+        sharedPhenotypeCount = paste0(phenotype_neighbors$shared_hpo_count[i], " / ", length(query_profile_hpo_ids)),
         sharedHpoTerms = list_or_empty(hpo_label(shared_ids)),
         bestDisease = clean_label(phenotype_neighbors$top_disease_name[i]),
         gene = ifelse(length(shared_genes) > 0, shared_genes[1], "-"),
@@ -180,7 +200,7 @@ make_sample_state <- function(query_sample) {
         investigator = fmt(phenotype_neighbors$cohort_id[i]),
         sex = fmt(phenotype_neighbors$gender[i]),
         ageBand = fmt(phenotype_neighbors$age_band[i]),
-        notes = "Top HPO-overlap neighbor in test DB"
+        notes = "Ranked by normalized phenotype profile similarity"
       )
     })
   }
@@ -343,7 +363,7 @@ make_sample_state <- function(query_sample) {
       interpretation = "This mockup is populated from the 350-sample test portal DB. GenDx-specific reported diagnosis fields are limited in this export."
     ),
     positionMetrics = list(
-      list(label = "Closest phenotype neighbor", value = ifelse(length(phenotype_matches) > 0, paste0(phenotype_matches[[1]]$sampleId, " · ", phenotype_matches[[1]]$similarityRank), "-"), text = "Computed from shared HPO terms in the 350-sample test DB."),
+      list(label = "Closest phenotype profile match", value = ifelse(length(phenotype_matches) > 0, paste0(phenotype_matches[[1]]$sampleId, " · profile similarity ", phenotype_matches[[1]]$phenotypeProfileSimilarityLabel), "-"), text = "Computed as a PheRS-like weighted phenotype profile similarity scaled from 0 to 1. More specific shared HPO terms contribute more than broad ontology terms."),
       list(label = "Investigator context", value = fmt(sp$top_affinity_cohort_id), text = "Computed from sample-to-investigator phenotype-signature overlap in the test DB."),
       list(label = "Public disease profile reference", value = top_disease_name, text = "Computed from sample HPO overlap with Orphapacket disease-HPO profiles.")
     ),

@@ -52,9 +52,9 @@ const portalSampleState = {
     },
     "positionMetrics": [
       {
-        "label": "Closest phenotype neighbor",
-        "value": "BCH-19-86295-01 · 1 · 69%",
-        "text": "Computed from shared HPO terms in the 350-sample test DB."
+        "label": "Closest phenotype profile match",
+        "value": "BCH-19-86295-01 · profile similarity 0.575 (0-1)",
+        "text": "Computed as a PheRS-like weighted phenotype profile similarity scaled from 0 to 1. More specific shared HPO terms contribute more than broad ontology terms."
       },
       {
         "label": "Investigator context",
@@ -260,13 +260,13 @@ const portalSampleState = {
     "phenotypeMatches": [
       {
         "sampleId": "BCH-19-86295-01",
-        "similarityRank": "1 · 69%",
-        "sharedPhenotypeCount": "74 / 107",
+        "similarityRank": "Rank 1",
+        "phenotypeProfileSimilarity": "0.575",
+        "phenotypeProfileSimilarityLabel": "0.575 (0-1)",
+        "sharedPhenotypeCount": "72 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
           "Abnormal male external genitalia morphology [HP:0000032]",
           "Abnormality of the genital system [HP:0000078]",
-          "Phenotypic abnormality [HP:0000118]",
           "Abnormality of the genitourinary system [HP:0000119]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the mouth [HP:0000153]",
@@ -282,7 +282,9 @@ const portalSampleState = {
           "Abnormality of the skin [HP:0000951]",
           "Skin rash [HP:0000988]",
           "Abnormality of the hand [HP:0001155]",
-          "Abnormal abdomen morphology [HP:0001438]"
+          "Abnormal abdomen morphology [HP:0001438]",
+          "Abnormality of the integument [HP:0001574]",
+          "Abnormality of the cardiovascular system [HP:0001626]"
         ],
         "bestDisease": "Granulomatosis with polyangiitis",
         "gene": "ARMC9",
@@ -300,16 +302,16 @@ const portalSampleState = {
         "investigator": "janet_chou",
         "sex": "male",
         "ageBand": "6-11",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "notes": "Ranked by normalized phenotype profile similarity"
       },
       {
         "sampleId": "BCH-19-00065-01",
-        "similarityRank": "2 · 68%",
-        "sharedPhenotypeCount": "73 / 107",
+        "similarityRank": "Rank 2",
+        "phenotypeProfileSimilarity": "0.574",
+        "phenotypeProfileSimilarityLabel": "0.574 (0-1)",
+        "sharedPhenotypeCount": "71 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
           "Abnormality of the genital system [HP:0000078]",
-          "Phenotypic abnormality [HP:0000118]",
           "Abnormality of the genitourinary system [HP:0000119]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the mouth [HP:0000153]",
@@ -326,7 +328,9 @@ const portalSampleState = {
           "Abnormality of the hand [HP:0001155]",
           "Abnormal abdomen morphology [HP:0001438]",
           "Growth abnormality [HP:0001507]",
-          "Abnormality of the integument [HP:0001574]"
+          "Abnormality of the integument [HP:0001574]",
+          "Abnormality of the cardiovascular system [HP:0001626]",
+          "Weight loss [HP:0001824]"
         ],
         "bestDisease": "Chronic mucocutaneous candidiasis",
         "gene": "ARMC9",
@@ -343,15 +347,15 @@ const portalSampleState = {
         "investigator": "scott_snapper",
         "sex": "female",
         "ageBand": "1-5",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "notes": "Ranked by normalized phenotype profile similarity"
       },
       {
         "sampleId": "BCH-21-49631-01",
-        "similarityRank": "3 · 65%",
-        "sharedPhenotypeCount": "70 / 107",
+        "similarityRank": "Rank 3",
+        "phenotypeProfileSimilarity": "0.543",
+        "phenotypeProfileSimilarityLabel": "0.543 (0-1)",
+        "sharedPhenotypeCount": "68 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
-          "Phenotypic abnormality [HP:0000118]",
           "Abnormality of the genitourinary system [HP:0000119]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the mouth [HP:0000153]",
@@ -369,7 +373,9 @@ const portalSampleState = {
           "Abnormality of the cardiovascular system [HP:0001626]",
           "Abnormality of blood and blood-forming tissues [HP:0001871]",
           "Abnormality of neutrophils [HP:0001874]",
-          "Decreased total neutrophil count [HP:0001875]"
+          "Decreased total neutrophil count [HP:0001875]",
+          "Abnormal leukocyte morphology [HP:0001881]",
+          "Abnormal granulocyte morphology [HP:0001911]"
         ],
         "bestDisease": "Granulomatosis with polyangiitis",
         "gene": "ARMC9",
@@ -386,15 +392,15 @@ const portalSampleState = {
         "investigator": "clinical_sequencing",
         "sex": "female",
         "ageBand": "12-17",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "notes": "Ranked by normalized phenotype profile similarity"
       },
       {
         "sampleId": "BCH-19-62355-01",
-        "similarityRank": "4 · 52%",
-        "sharedPhenotypeCount": "56 / 107",
+        "similarityRank": "Rank 4",
+        "phenotypeProfileSimilarity": "0.388",
+        "phenotypeProfileSimilarityLabel": "0.388 (0-1)",
+        "sharedPhenotypeCount": "54 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
-          "Phenotypic abnormality [HP:0000118]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the head [HP:0000234]",
           "Abnormality of the face [HP:0000271]",
@@ -412,7 +418,9 @@ const portalSampleState = {
           "Decreased total neutrophil count [HP:0001875]",
           "Abnormal leukocyte morphology [HP:0001881]",
           "Abnormal granulocyte morphology [HP:0001911]",
-          "Abnormality of metabolism/homeostasis [HP:0001939]"
+          "Abnormality of metabolism/homeostasis [HP:0001939]",
+          "Fever [HP:0001945]",
+          "Constipation [HP:0002019]"
         ],
         "bestDisease": "ALG3-CDG",
         "gene": "-",
@@ -422,18 +430,18 @@ const portalSampleState = {
         "investigator": "clinical_sequencing",
         "sex": "male",
         "ageBand": "1-5",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "notes": "Ranked by normalized phenotype profile similarity"
       },
       {
         "sampleId": "BCH-21-18725-01",
-        "similarityRank": "5 · 52%",
-        "sharedPhenotypeCount": "56 / 107",
+        "similarityRank": "Rank 5",
+        "phenotypeProfileSimilarity": "0.371",
+        "phenotypeProfileSimilarityLabel": "0.371 (0-1)",
+        "sharedPhenotypeCount": "54 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
           "Abnormal male external genitalia morphology [HP:0000032]",
           "Abnormal penis morphology [HP:0000036]",
           "Abnormality of the genital system [HP:0000078]",
-          "Phenotypic abnormality [HP:0000118]",
           "Abnormality of the genitourinary system [HP:0000119]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the mouth [HP:0000153]",
@@ -448,7 +456,9 @@ const portalSampleState = {
           "Abnormal thorax morphology [HP:0000765]",
           "Abnormality of the skin [HP:0000951]",
           "Abnormal abdomen morphology [HP:0001438]",
-          "Growth abnormality [HP:0001507]"
+          "Growth abnormality [HP:0001507]",
+          "Abnormality of the integument [HP:0001574]",
+          "Abnormality of the cardiovascular system [HP:0001626]"
         ],
         "bestDisease": "Smith-Magenis syndrome",
         "gene": "ARMC9",
@@ -465,22 +475,18 @@ const portalSampleState = {
         "investigator": "clinical_sequencing",
         "sex": "male",
         "ageBand": "1-5",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "notes": "Ranked by normalized phenotype profile similarity"
       },
       {
-        "sampleId": "BCH-22-65996-01",
-        "similarityRank": "6 · 50%",
-        "sharedPhenotypeCount": "53 / 107",
+        "sampleId": "BCH-20-05415-01",
+        "similarityRank": "Rank 6",
+        "phenotypeProfileSimilarity": "0.358",
+        "phenotypeProfileSimilarityLabel": "0.358 (0-1)",
+        "sharedPhenotypeCount": "50 / 105",
         "sharedHpoTerms": [
-          "All [HP:0000001]",
-          "Abnormality of the genital system [HP:0000078]",
-          "Phenotypic abnormality [HP:0000118]",
-          "Abnormality of the genitourinary system [HP:0000119]",
           "Abnormality of head or neck [HP:0000152]",
           "Abnormality of the head [HP:0000234]",
           "Abnormality of the face [HP:0000271]",
-          "Abnormality of the orbital region [HP:0000315]",
-          "Abnormality of the eye [HP:0000478]",
           "Abnormality of the nervous system [HP:0000707]",
           "Abnormal thorax morphology [HP:0000765]",
           "Abnormality of the skin [HP:0000951]",
@@ -489,26 +495,32 @@ const portalSampleState = {
           "Growth abnormality [HP:0001507]",
           "Abnormality of the integument [HP:0001574]",
           "Abnormality of the cardiovascular system [HP:0001626]",
+          "Weight loss [HP:0001824]",
           "Abnormality of blood and blood-forming tissues [HP:0001871]",
           "Abnormality of metabolism/homeostasis [HP:0001939]",
-          "Constipation [HP:0002019]"
+          "Fever [HP:0001945]",
+          "Abnormality of the respiratory system [HP:0002086]",
+          "Abnormal lung morphology [HP:0002088]",
+          "Abnormal intestine morphology [HP:0002242]",
+          "Abnormality of the vasculature [HP:0002597]",
+          "Neoplasm [HP:0002664]"
         ],
-        "bestDisease": "Williams syndrome",
+        "bestDisease": "Granulomatosis with polyangiitis",
         "gene": "ARMC9",
         "sharedGenes": [
           "ARMC9",
-          "CDH12",
-          "DDX43",
+          "HLA-B",
+          "HLA-C",
           "HLA-DRB5",
-          "LCA5",
-          "LUZP1"
+          "OR2T33",
+          "ZNF804A"
         ],
         "geneticClue": "same gene in test subset",
-        "topSignalVariantId": "chr6:73416152:A:T",
-        "investigator": "ryan_doan",
-        "sex": "female",
-        "ageBand": "18+",
-        "notes": "Top HPO-overlap neighbor in test DB"
+        "topSignalVariantId": "chr2:231222761:AT:A",
+        "investigator": "benjamin_raby",
+        "sex": "male",
+        "ageBand": "12-17",
+        "notes": "Ranked by normalized phenotype profile similarity"
       }
     ],
     "genotypeGroups": [

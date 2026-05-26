@@ -135,7 +135,8 @@ Current role:
 Current DB/fixture limitations:
 
 - The current generated phenotype fixture is based on available test DB overlap logic.
-- Full runtime PheRS and annotation-burden residual scoring are not implemented in the frontend.
+- Full runtime production PheRS and annotation-burden residual scoring are not implemented in the frontend.
+- The sample page uses an exported PheRS-like 0-1 phenotype profile similarity fixture for `Similar by phenotype`; it is not recalculated in the browser.
 - When a score is unavailable, the UI should say `not calculated` rather than imply a real score exists.
 
 Known UI semantics:
@@ -230,7 +231,7 @@ http://localhost:8090/krVariant.html
 |---|---|
 | Backend integration | Mockup still uses generated JS fixtures |
 | Runtime sample switching | Not fully dynamic unless fixture/API is expanded |
-| Runtime phenotype search | Full PheRS not implemented in frontend |
+| Runtime phenotype search | Full production PheRS not implemented in frontend; sample fixture includes exported 0-1 phenotype profile similarity |
 | GRS | Not implemented in frontend |
 | GenDx detail | Needs dedicated structured source table |
 | Context scoring | Mostly UI/session-level unless backend context comparison is added |

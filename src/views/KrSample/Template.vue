@@ -404,7 +404,7 @@
                         <div class="glens-section-head">
                             <div>
                                 <div class="glens-title-with-info" @click.stop>
-                                    <h2>Who looks most like this sample?</h2>
+                                    <h2>Phenotype-based similar samples</h2>
                                     <button
                                         class="glens-section-info-button"
                                         type="button"
@@ -423,7 +423,7 @@
                                             ×
                                         </button>
                                         <p>
-                                            The searched sample is not compared to itself here. Rows show other CRDC samples ranked by raw weighted phenotype similarity: query-term overlap, rare phenotype weight, and semantic/related-term consistency. Residual is not used for this nearest-patient ranking.
+                                            The searched sample is not compared to itself here. Rows show other CRDC samples ranked by a PheRS-like weighted phenotype profile similarity scaled from 0 to 1. More specific shared HPO terms contribute more than broad ontology terms. Residual is not used for this nearest-patient ranking.
                                         </p>
                                     </div>
                                 </div>
@@ -432,7 +432,7 @@
                         <div class="glens-similar-table">
                             <div class="glens-table-head glens-table-head--phenotype">
                                 <span>Sample</span>
-                                <span>Similarity rank</span>
+                                <span>Phenotype profile similarity (0-1)</span>
                                 <span>Shared phenotype counts</span>
                                 <span>Shared genes</span>
                                 <span>Investigator</span>
@@ -446,7 +446,7 @@
                                 class="glens-table-row glens-table-row--phenotype"
                             >
                                 <a class="glens-table-link" :href="sampleHref(row.sampleId)">{{ row.sampleId }}</a>
-                                <span class="glens-table-plain">{{ row.similarityRank }}</span>
+                                <span class="glens-table-plain">{{ row.phenotypeProfileSimilarityLabel || row.similarityRank }}</span>
                                 <span class="glens-shared-count-cell" @click.stop>
                                     <button
                                         class="glens-table-link glens-table-link-button"
@@ -818,7 +818,7 @@ export default {
         tabs() {
             return [
                 { id: "overview", label: "Overview" },
-                { id: "phenotype", label: "Similar samples" },
+                { id: "phenotype", label: "Similar by phenotype" },
                 { id: "genotype", label: "Similar by genotype" },
                 { id: "disease", label: "Disease profile matches" },
                 { id: "genes", label: "Gene / variant evidence" },
@@ -851,7 +851,7 @@ export default {
             const disease = metricByLabel("disease profile");
             return [
                 {
-                    label: "Closest phenotype match",
+                    label: "Closest phenotype profile match",
                     value: closest ? closest.value : "-",
                 },
                 {

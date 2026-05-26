@@ -92,7 +92,8 @@ Recommended reading order:
    - same-gene recurrence
    - carrier phenotype overlap
 4. Review similar patients/groups:
-   - phenotype-similar samples
+   - similar samples by phenotype
+   - 0-1 normalized phenotype profile similarity
    - investigator/cohort affinity
 5. Review disease profile references:
    - sample HPO vs disease HPO profile

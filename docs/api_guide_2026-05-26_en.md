@@ -223,12 +223,13 @@ Response rows:
   "shared_hpo_count": 42,
   "searched_sample_hpo_count": 107,
   "matched_sample_hpo_count": 208,
-  "similarity_to_searched_sample": 0.72,
+  "phenotype_profile_similarity_0_1": 0.72,
+  "method": "weighted_phenotype_profile_similarity",
   "matched_hpo_terms": []
 }
 ```
 
-The method must be explicit. If PheRS is not available, the API should say `method: exact_hpo_overlap`.
+The method must be explicit. For the current mock fixture, sample-to-sample phenotype matching is represented as a PheRS-like weighted phenotype profile similarity scaled from 0 to 1. More specific HPO terms should contribute more than broad ontology terms. If only exact overlap is available, the API should say `method: exact_hpo_overlap` and avoid presenting it as PheRS.
 
 ### 4.4 Sample Disease Profile Matches
 
