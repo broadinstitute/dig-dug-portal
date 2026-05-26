@@ -53,7 +53,7 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "krPhenotype"],
     },
     krVariant: {
-        entry: "src/views/KrVariant/main_V3.js",
+        entry: "src/views/KrVariant/main.js",
         template: "public/index.html",
         filename: "krVariant.html",
         title: "KR Variant",
@@ -65,6 +65,20 @@ let pages = {
         filename: "krSample.html",
         title: "KR Sample",
         chunks: ["chunk-vendors", "chunk-common", "krSample"],
+    },
+    krSampleGemini: {
+        entry: "src/views/KrSampleGemini/main.js",
+        template: "public/index.html",
+        filename: "krSample_gemini.html",
+        title: "KR Sample Gemini",
+        chunks: ["chunk-vendors", "chunk-common", "krSampleGemini"],
+    },
+    krPhenotypeGemini: {
+        entry: "src/views/KrPhenotypeGemini/main.js",
+        template: "public/index.html",
+        filename: "krPhenotype_gemini.html",
+        title: "KR Phenotype Gemini",
+        chunks: ["chunk-vendors", "chunk-common", "krPhenotypeGemini"],
     },
     krFrontReframe: {
         entry: "src/views/KrFrontReframe/main.js",

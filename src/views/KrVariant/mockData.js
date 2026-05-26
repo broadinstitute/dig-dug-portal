@@ -1,4 +1,5 @@
 import { applyPortalVariantData } from "./portalVariantData.generated";
+import { applyPortalVariantNewData } from "./portalVariantNewData.generated";
 
 export function createKrVariantState() {
     const state = {
@@ -430,5 +431,5 @@ export function createKrVariantState() {
                 ],
             },
         };
-    return applyPortalVariantData(state);
+    return applyPortalVariantNewData(applyPortalVariantData(state));
 }

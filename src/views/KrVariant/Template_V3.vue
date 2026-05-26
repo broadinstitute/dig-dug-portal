@@ -84,8 +84,13 @@
                         <div>
                             <div class="glens-title-row">
                                 <h1 class="glens-page-title">{{ variant.query.label }}</h1>
-                                <span class="glens-cytoband-chip">15q11.3</span>
-                                <span class="glens-pathogenicity-badge">{{ variant.query.pathogenicity }}</span>
+                                <span v-if="variant.query.cytoband" class="glens-cytoband-chip">{{ variant.query.cytoband }}</span>
+                                <span
+                                    class="glens-pathogenicity-badge"
+                                    :class="{ 'glens-pathogenicity-badge--unknown': variant.query.pathogenicity === 'Pathogenicity not available' }"
+                                >
+                                    {{ variant.query.pathogenicity }}
+                                </span>
                             </div>
                             <div class="glens-inline-meta">
                                 <span>{{ variant.query.window }}</span>
@@ -93,7 +98,7 @@
                                 <span>{{ variant.query.build }}</span>
                             </div>
                             <div class="glens-carrier-subline">
-                                18 queried-variant carriers · 12 probands · 17 affected
+                                {{ variantHeaderSubline }}
                             </div>
                         </div>
                         <div class="glens-demographic-panel glens-demographic-panel--header">
@@ -141,6 +146,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="glens-new-summary-band" aria-label="Variant interpretation summary">
+                        <div class="glens-new-summary-grid">
+                            <article
+                                v-for="item in variantNewSummary"
+                                :key="item.label"
+                                class="glens-new-summary-item"
+                            >
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.value }}</strong>
+                                <p>{{ item.note }}</p>
+                            </article>
+                        </div>
+                        <div
+                            class="glens-context-contrast"
+                            :class="{ 'glens-context-contrast--active': hasActiveContext }"
+                        >
+                            <div>
+                                <span>{{ variantContextPanel.label }}</span>
+                                <strong>{{ variantContextPanel.value }}</strong>
+                                <p>{{ variantContextPanel.note }}</p>
+                            </div>
+                            <ul v-if="hasActiveContext && carrierContextOverlapPreview.length">
+                                <li
+                                    v-for="term in carrierContextOverlapPreview"
+                                    :key="term"
+                                >
+                                    {{ term }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </section>
 
                 <section class="glens-panel-card">
@@ -149,7 +186,7 @@
                             <div class="glens-locus-header">
                                 <div>
                                     <p class="glens-section-label">Queried variant window</p>
-                                    <strong>chr15:22,000,195-22,000,245 (±25bp)</strong>
+                                    <strong>{{ queryWindowLabel }}</strong>
                                 </div>
                                 <div class="glens-checkbox-row glens-checkbox-row--tracks">
                                     <button
@@ -213,10 +250,10 @@
 
                             <div v-if="showGeneTrack" class="glens-track-row glens-track-row--optional">
                                 <div class="glens-track-label">Exon</div>
-                                <div class="glens-exon-context">
-                                    <div class="glens-exon-context-head">
-                                        <strong>UBE3A coding exon</strong>
-                                        <span>base-level window · codon containing queried base highlighted</span>
+                                    <div class="glens-exon-context">
+                                        <div class="glens-exon-context-head">
+                                        <strong>{{ queryGeneLabel }} coding context</strong>
+                                        <span>base-level window · queried base highlighted</span>
                                     </div>
                                     <div class="glens-base-strip" aria-label="Reference bases around queried variant">
                                         <span
@@ -280,10 +317,10 @@
                                     <div class="glens-density-title">
                                         Per-position carrier count
                                     </div>
-                                    <div class="glens-density-track" title="Hover each bar to see carrier count. Queried variant carrier count = 18.">
+                                    <div class="glens-density-track" :title="`Hover each bar to see carrier count. Queried variant carrier count = ${variant.summaryScopes.variant.all}.`">
                                         <div class="glens-density-y-axis">
-                                            <span>20</span>
-                                            <span>10</span>
+                                            <span>{{ densityYAxisLabels[0] }}</span>
+                                            <span>{{ densityYAxisLabels[1] }}</span>
                                             <span>0</span>
                                         </div>
                                         <div
@@ -585,6 +622,21 @@
                                                     <p>
                                                         {{ carrierReference.contextDescription }}
                                                     </p>
+                                                    <div class="glens-context-contrast glens-context-contrast--active glens-context-contrast--carrier">
+                                                        <div>
+                                                            <span>Active context comparison</span>
+                                                            <strong>{{ carrierContextMatchValue }}</strong>
+                                                            <p>Active HPO context is compared with the {{ carrierReference.levelLabel }} HPO profile, not directly with the variant.</p>
+                                                        </div>
+                                                        <ul v-if="carrierContextOverlapPreview.length">
+                                                            <li
+                                                                v-for="term in carrierContextOverlapPreview"
+                                                                :key="`carrier-context-${term}`"
+                                                            >
+                                                                {{ term }}
+                                                            </li>
+                                                        </ul>
+                                                    </div>
                                                     <div class="glens-context-position-summary">
                                                         <div>
                                                             <span>Active context</span>
@@ -796,6 +848,72 @@ export default {
             const contextId = this.clinicalFocus.orphaId || this.clinicalFocus.sourceId || "";
             return [this.clinicalFocus.label, contextId].filter(Boolean).join(" · ");
         },
+        normalizedContextHpoTerms() {
+            if (!this.hasActiveContext) return [];
+            return (this.clinicalFocus.hpoTerms || [])
+                .map((term) => {
+                    if (typeof term === "string") return this.termObjectFromLabel(term);
+                    const label = term.label || term.name || term.hpoName || "";
+                    const id = term.id || term.hpoId || this.hpoIdFromText(label);
+                    return {
+                        id,
+                        label: label.replace(/\s*\[HP:[0-9]+\]/, ""),
+                    };
+                })
+                .filter((term) => term.id || term.label);
+        },
+        carrierProfileTermObjects() {
+            return this.carrierPhenotypeCategories
+                .flatMap((category) => [
+                    this.termObjectFromLabel(category.category),
+                    ...(category.terms || []).map((term) => this.termObjectFromLabel(term)),
+                ])
+                .filter((term) => term.id || term.label);
+        },
+        carrierContextOverlapTerms() {
+            if (!this.hasActiveContext) return [];
+            const carrierById = new Map();
+            const carrierByLabel = new Map();
+            this.carrierProfileTermObjects.forEach((term) => {
+                if (term.id) carrierById.set(term.id, term);
+                if (term.label) carrierByLabel.set(term.label.toLowerCase(), term);
+            });
+            const seen = new Set();
+            return this.normalizedContextHpoTerms
+                .map((term) => carrierById.get(term.id) || carrierByLabel.get((term.label || "").toLowerCase()))
+                .filter((term) => {
+                    if (!term) return false;
+                    const key = term.id || term.label;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+        },
+        carrierContextMatchValue() {
+            if (!this.hasActiveContext) return "No active context";
+            const total = this.normalizedContextHpoTerms.length;
+            if (!total) return "Active context has no HPO terms";
+            return `${this.carrierContextOverlapTerms.length} / ${total} context HPO terms`;
+        },
+        carrierContextOverlapPreview() {
+            return this.carrierContextOverlapTerms
+                .slice(0, 4)
+                .map((term) => this.formatHpoTerm(term));
+        },
+        variantContextPanel() {
+            if (!this.hasActiveContext) {
+                return {
+                    label: "Context comparison",
+                    value: "No active HPO context",
+                    note: "Carrier samples and carrier HPO profile are shown as cohort-wide summaries only.",
+                };
+            }
+            return {
+                label: "Context comparison",
+                value: this.carrierContextMatchValue,
+                note: `Active context: ${this.compactContextLabel || "selected HPO context"}. This is HPO-profile overlap, not variant similarity.`,
+            };
+        },
         carrierContextSelectionType() {
             if (this.selectedCarrierSampleIds.length) return "samples";
             if (this.selectedCarrierPhenotypeLabels.length) return "phenotypes";
@@ -869,33 +987,49 @@ export default {
         summaryScope() {
             return this.variant.summaryScopes[this.activeSummaryLevel];
         },
+        variantHeaderSubline() {
+            const scope = this.variant.summaryScopes.variant;
+            const parts = [
+                `${scope.all} queried-variant carriers`,
+                `${scope.proband} probands`,
+                `${scope.affected} affected`,
+            ];
+            if (scope.diagnosed !== undefined) parts.push(`${scope.diagnosed} GenDx diagnosed`);
+            return parts.join(" · ");
+        },
+        queryWindowLabel() {
+            return this.variant.queryWindow || "Queried window not available";
+        },
+        queryGeneLabel() {
+            return this.variant.query.window.replace(/\s+Variant$/, "");
+        },
         carrierReference() {
             const references = {
                 variant: {
                     levelLabel: "queried-variant carrier",
-                    sampleCount: 18,
-                    hpoCount: 47,
+                    sampleCount: this.variant.summaryScopes.variant.all,
+                    hpoCount: this.variant.newFixtureStatus?.exactCarrierHpoCount || this.variant.carrierPhenotypesByCategory.reduce((sum, category) => sum + Number(category.count || 0), 0),
                     contextRank: "top 9.1%",
-                    description: "Variant level: inspect the 18 exact queried-variant carriers, then the 47-term carrier HPO profile, then context position in CRDC.",
-                    contextDescription: "The 47-term queried-variant carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.",
+                    description: `Variant level: inspect the ${this.variant.summaryScopes.variant.all} exact queried-variant carriers, then the carrier HPO profile, then context position in CRDC.`,
+                    contextDescription: `The ${this.variant.newFixtureStatus?.exactCarrierHpoCount || "carrier"}-term queried-variant carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.`,
                     contextPosition: {
                         activeContext: "Kabuki syndrome profile",
-                        carrierReference: "18 queried-variant carriers",
-                        contextMatch: "11 / 18 context HPO terms",
+                        carrierReference: `${this.variant.summaryScopes.variant.all} queried-variant carriers`,
+                        contextMatch: this.carrierContextMatchValue,
                         crdcPosition: "top 9.1%",
                     },
                 },
                 gene: {
-                    levelLabel: "UBE3A gene carrier",
-                    sampleCount: 132,
-                    hpoCount: 86,
+                    levelLabel: `${this.queryGeneLabel} gene carrier`,
+                    sampleCount: this.variant.summaryScopes.gene.all,
+                    hpoCount: this.variant.newFixtureStatus?.sameGeneCarrierHpoCount || this.variant.geneCarrierPhenotypesByCategory.reduce((sum, category) => sum + Number(category.count || 0), 0),
                     contextRank: "top 13.4%",
-                    description: "Gene level: inspect UBE3A carrier samples, then the gene-carrier HPO profile, then context position in CRDC.",
-                    contextDescription: "The UBE3A carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.",
+                    description: `Gene level: inspect ${this.queryGeneLabel} carrier samples, then the gene-carrier HPO profile, then context position in CRDC.`,
+                    contextDescription: "The gene carrier phenotype profile is compared with the active clinical context, then positioned against CRDC background profiles after total HPO-term correction.",
                     contextPosition: {
                         activeContext: "Kabuki syndrome profile",
-                        carrierReference: "132 UBE3A gene carriers",
-                        contextMatch: "13 / 18 context HPO terms",
+                        carrierReference: `${this.variant.summaryScopes.gene.all} ${this.queryGeneLabel} gene carriers`,
+                        contextMatch: this.carrierContextMatchValue,
                         crdcPosition: "top 13.4%",
                     },
                 },
@@ -961,9 +1095,9 @@ export default {
                     "investigator-3": 0.45,
                 }[this.activeInvestigator] || 1;
                 const queriedVariantCount = {
-                    all: 18,
-                    affected: 14,
-                    proband: 12,
+                    all: this.variant.summaryScopes.variant.all,
+                    affected: this.variant.summaryScopes.variant.affected || 0,
+                    proband: this.variant.summaryScopes.variant.proband,
                 }[key];
                 group[key][25] = Math.max(
                     1,
@@ -984,6 +1118,16 @@ export default {
                     active: this.activeDensity === mode.key,
                 }))
                 .sort((left, right) => Number(left.active) - Number(right.active));
+        },
+        densityMax() {
+            return Math.max(
+                20,
+                this.variant.summaryScopes.variant.all || 0,
+                this.variant.summaryScopes.gene.all || 0,
+            );
+        },
+        densityYAxisLabels() {
+            return [this.densityMax, Math.round(this.densityMax / 2)];
         },
         phenotypeRows() {
             return this.phenotypeRowsForInvestigator(this.activePhenotypeInvestigator);
@@ -1010,6 +1154,47 @@ export default {
         focusOverlayLeft() {
             const ratio = parseFloat(this.variant.query.focusLeft) / 100;
             return `calc(var(--locus-pad) + (100% - (var(--locus-pad) * 2)) * ${ratio})`;
+        },
+        variantNewSummary() {
+            const exactScope = this.variant.summaryScopes.variant;
+            const geneScope = this.variant.summaryScopes.gene;
+            const topCarrierDomains = this.carrierPhenotypeCategories
+                .slice(0, 3)
+                .map((category) => category.category)
+                .join(" · ");
+            const references = this.variant.relatedDiseases
+                .slice(0, 2)
+                .map((disease) => disease.name)
+                .join(" · ");
+            return [
+                {
+                    label: "Query mode",
+                    value: this.activeSummaryLevel === "variant" ? "Exact queried variant" : "Same-gene carrier set",
+                    note: `Exact queried variant: ${exactScope.all} carriers · same gene: ${geneScope.all} carriers`,
+                },
+                {
+                    label: "Primary CRDC evidence",
+                    value: `${exactScope.all} exact-variant carriers`,
+                    note: `${exactScope.proband} probands · ${exactScope.affected} affected · ${exactScope.diagnosed} GenDx diagnosed`,
+                },
+                {
+                    label: "Carrier phenotype group",
+                    value: topCarrierDomains || "Carrier HPO profile unavailable",
+                    note: "Shown from carrier HPO profiles, not from variant similarity.",
+                },
+                {
+                    label: "Rare disease reference",
+                    value: references || "No reference shown",
+                    note: "Core reference is shown separately from CRDC recurrence.",
+                },
+                {
+                    label: "Context use",
+                    value: this.hasActiveContext ? this.carrierContextMatchValue : "No active context",
+                    note: this.hasActiveContext
+                        ? "Carrier HPO profile compared with active HPO context."
+                        : "Set context to compare active HPO terms against carrier HPO profiles.",
+                },
+            ];
         },
     },
     mounted() {
@@ -1167,6 +1352,20 @@ export default {
                     label: term.replace(/\s*\[HP:[0-9]+\]/, ""),
                 }));
         },
+        hpoIdFromText(text) {
+            return (text || "").match(/HP:[0-9]+/)?.[0] || "";
+        },
+        termObjectFromLabel(text) {
+            const label = text || "";
+            return {
+                id: this.hpoIdFromText(label),
+                label: label.replace(/\s*\[HP:[0-9]+\]/, "").trim(),
+            };
+        },
+        formatHpoTerm(term) {
+            if (!term) return "";
+            return term.id ? `${term.label} [${term.id}]` : term.label;
+        },
         sampleHref(sampleId) {
             return `krSample.html?sample_id=${encodeURIComponent(sampleId)}`;
         },
@@ -1204,7 +1403,7 @@ export default {
             this.activePhenotypeCategory = label;
         },
         densityBarHeight(count) {
-            const max = 20;
+            const max = this.densityMax;
             return `${Math.max((count / max) * 100, count > 0 ? 8 : 0)}%`;
         },
         phenotypeCount(percent, denominator) {

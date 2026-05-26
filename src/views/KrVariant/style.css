@@ -119,7 +119,12 @@
     color: #8f4c77;
     font-size: 0.78rem;
     font-weight: 800;
-    text-transform: uppercase;
+}
+
+.glens-pathogenicity-badge--unknown {
+    background: #f1f5f9;
+    color: #526276;
+    font-weight: 700;
 }
 
 .glens-cytoband-chip {
@@ -1242,6 +1247,68 @@
     font-weight: 750;
 }
 
+.glens-context-contrast {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(12rem, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.8rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.85rem;
+    background: #f8fafc;
+}
+
+.glens-context-contrast--active {
+    border-color: #b9cce7;
+    background: #f5f9ff;
+}
+
+.glens-context-contrast--carrier {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.glens-context-contrast span {
+    display: block;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-context-contrast strong {
+    display: block;
+    margin-top: 0.18rem;
+    color: #162033;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.glens-context-contrast p {
+    margin: 0.24rem 0 0;
+    color: #526276;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.glens-context-contrast ul {
+    display: grid;
+    gap: 0.24rem;
+    align-content: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: #42526a;
+    font-size: 0.76rem;
+    line-height: 1.3;
+}
+
+.glens-context-contrast li::before {
+    color: #c7661f;
+    content: "▸ ";
+}
+
 .glens-carrier-sample-table {
     display: grid;
     gap: 0;
@@ -1938,4 +2005,126 @@
 
 .glens-variant.glens-large-text :where(p, span, small, button, a, label, input, select, b, .glens-section-label, .glens-carrier-table-head, .glens-carrier-table-row, .glens-hpo-category-head, .glens-hpo-category-row, .glens-base-cell small, .glens-codon-cell small, .glens-density-axis) {
     font-size: max(16px, 1em) !important;
+}
+
+.glens-new-candidate-label {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 0 0.75rem;
+    border-left: 3px solid #c66a1a;
+    padding-left: 0.55rem;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.glens-new-summary-band {
+    margin-top: 1rem;
+    border-top: 1px solid #e6edf5;
+    padding-top: 0.85rem;
+}
+
+.glens-new-summary-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #e6edf5;
+    padding-bottom: 0.65rem;
+}
+
+.glens-new-summary-head span,
+.glens-new-summary-item span {
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.glens-new-summary-head strong {
+    color: #42526a;
+    font-size: 0.86rem;
+    font-weight: 720;
+    text-align: right;
+}
+
+.glens-new-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding-top: 0.75rem;
+}
+
+.glens-new-summary-item {
+    min-width: 0;
+    border-left: 1px solid #e6edf5;
+    padding-left: 0.8rem;
+}
+
+.glens-new-summary-item:first-child {
+    border-left: 0;
+    padding-left: 0;
+}
+
+.glens-new-summary-item strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+    font-size: 0.98rem;
+    line-height: 1.25;
+}
+
+.glens-new-summary-item p {
+    margin: 0.3rem 0 0;
+    color: #526276;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 991.98px) {
+    .glens-new-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .glens-new-summary-item:first-child {
+        border-left: 1px solid #e6edf5;
+        padding-left: 0.8rem;
+    }
+
+    .glens-new-summary-item:nth-child(2n + 1) {
+        border-left: 0;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .glens-new-summary-head {
+        display: block;
+    }
+
+    .glens-new-summary-head strong {
+        display: block;
+        margin-top: 0.35rem;
+        text-align: left;
+    }
+
+    .glens-new-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-new-summary-item,
+    .glens-new-summary-item:nth-child(2n + 1),
+    .glens-new-summary-item:first-child {
+        border-left: 0;
+        border-top: 1px solid #e6edf5;
+        padding-top: 0.65rem;
+        padding-left: 0;
+    }
+
+    .glens-new-summary-item:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
 }
