@@ -110,15 +110,6 @@ export default Vue.component("time-series-line-plot", {
       }
       return this.$store.state.metadata.find(d => d.Accession === this.highlightedDonor);
     },
-    highlightedDonorData(){
-      for (let i = 0; i < this.chartData.length; i++){
-        let c = this.chartData[i];
-        if (c[0].donor === this.highlightedDonor){
-          return c;
-        }
-      }
-      return null;
-    }
   },
   methods: {
     extractTimepoints(data, xScale, yScale){
@@ -334,8 +325,6 @@ export default Vue.component("time-series-line-plot", {
           .attr("d", lineGenerator)
           .on("mouseover", c => this.showTooltip(c));
       });
-      // Put highlighted line on top
-      //this.drawHighlightedDonor();
       this.drawIntervals();
     },
     drawHighlightedDonor(c){
@@ -354,7 +343,7 @@ export default Vue.component("time-series-line-plot", {
           .datum(c)
           .attr("class", "line-path highlighted-donor-line")
           .attr("fill", "none")
-          .attr("stroke", "black") // What color for this?
+          .attr("stroke", this.lineColor) // What color for this?
           .attr("stroke-width", 2)
           .attr("d", lineGenerator);
     },
@@ -421,9 +410,11 @@ export default Vue.component("time-series-line-plot", {
 		},
     showTooltip(c){
       let donor = c[0].donor;
-      //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
         this.highlightedDonor = donor;
+        if (this.showConfidence === 'none'){
+          this.drawLines();
+        }
         this.drawHighlightedDonor(c);
       }
     }
