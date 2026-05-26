@@ -1,0 +1,14 @@
+source	file_path	file_exists
+HPO ontology	/Users/kyuryung/Documents/BCH/90_Ref/hp_260216.obo	TRUE
+Mondo ontology	/Users/kyuryung/Documents/BCH/90_Ref/mondo_240702.obo	TRUE
+HPOA disease phenotype	/Users/kyuryung/Documents/BCH/90_Ref/phenotype_260216.hpoa	TRUE
+HPO genes_to_phenotype	/Users/kyuryung/Documents/BCH/90_Ref/genes_to_phenotype_260216.txt	TRUE
+HPO genes_to_disease	/Users/kyuryung/Documents/BCH/90_Ref/genes_to_disease_260216.txt	TRUE
+Orphapacket disease HPO	/Users/kyuryung/Documents/BCH/90_Ref/Orphapacket/input_original/orphapacket_hpo_fq_original.txt	TRUE
+Orphapacket disease gene	/Users/kyuryung/Documents/BCH/90_Ref/orphapacket_gene_mapping.txt	TRUE
+Orphapacket disease name	/Users/kyuryung/Documents/BCH/90_Ref/Orphapacket/orpha_id.txt	TRUE
+DDG2P xlsx	/Users/kyuryung/Documents/BCH/90_Ref/DDG2P_13_11_2024.xlsx	TRUE
+DDG2P txt	/Users/kyuryung/Documents/BCH/90_Ref/decipher_241113.txt	TRUE
+PanelApp	/Users/kyuryung/Documents/Playground/panelapp/panelapp_rare_pediatric_gene_summary_260521.csv	TRUE
+Reactome	/Users/kyuryung/Documents/BCH/90_Ref/msigDB/c2.cp.reactome.v2026.1.Hs.symbols_20260521.gmt	TRUE
+WikiPathways	/Users/kyuryung/Documents/BCH/90_Ref/msigDB/c2.cp.wikipathways.v2026.1.Hs.symbols_20260521.gmt	TRUE

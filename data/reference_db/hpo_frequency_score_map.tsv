@@ -1,0 +1,7 @@
+frequency_code	frequency_label	midpoint_pct	alpha	beta	frequency_score
+A	Obligate (100%)	100	100.5	0.5	0.995
+B	Very frequent (99-80%)	89.5	90	11	0.891
+C	Frequent (79-30%)	54.5	55	46	0.545
+D	Occasional (29-5%)	17	17.5	83.5	0.173
+E	Very rare (<4-1%)	2.5	3	98	0.03
+F	Excluded (0%)	0	0.5	100.5	0.005

@@ -66,6 +66,13 @@ let pages = {
         title: "KR Sample",
         chunks: ["chunk-vendors", "chunk-common", "krSample"],
     },
+    krVariantNew: {
+        entry: "src/views/KrVariant/main.js",
+        template: "public/index.html",
+        filename: "krVariant_new.html",
+        title: "KR Variant",
+        chunks: ["chunk-vendors", "chunk-common", "krVariantNew"],
+    },
     krSampleGemini: {
         entry: "src/views/KrSampleGemini/main.js",
         template: "public/index.html",

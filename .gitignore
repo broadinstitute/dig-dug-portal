@@ -3,7 +3,7 @@ node_modules
 /dist
 /distPapers
 /portals
-/docs/
+/docs/not_share/
 /src/views/archive/
 
 # local env files
