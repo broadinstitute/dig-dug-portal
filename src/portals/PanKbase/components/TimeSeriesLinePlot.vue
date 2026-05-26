@@ -314,7 +314,7 @@ export default Vue.component("time-series-line-plot", {
         ? this.staticAllDonorData 
         : this.chartData;
       linesData.forEach(c => {
-        if (c[0].donor === this.highlightedDonor && linesOnly){
+        if (c[0].donor === this.highlightedDonor){
           highlightedDonorData = c;
         } else {
           this.svg.append("path")
@@ -331,7 +331,7 @@ export default Vue.component("time-series-line-plot", {
         }
       });
       // Put highlighted line on top
-      if (highlightedDonorData !== null && linesOnly){
+      if (highlightedDonorData !== null){
         this.svg.append("path")
           .datum(highlightedDonorData)
           .attr("class", "linegraph")
@@ -406,9 +406,6 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
 		},
     showTooltip(c){
-      if (this.showConfidence !== "none"){
-        return;
-      }
       let donor = c[0].donor;
       //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
