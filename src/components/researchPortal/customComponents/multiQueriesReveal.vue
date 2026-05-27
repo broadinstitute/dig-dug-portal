@@ -1424,9 +1424,9 @@
                                 <!--<span class="small text-muted">{{ display_mechanisms ? 'show less' : 'show more' }}</span>-->
                             </div>
                             <div :class="{ collapsed: !display_mechanisms }" class="criteria-detail">
-                                <div v-if="mechanisms_summary" class="mb-4">
+                                <div v-if="getReportSessionSummary() !== '—'" class="mb-4">
                                     <strong class="d-block mb-2" style="font-size: 1.1em;">Summary</strong>
-                                    <div class="text-muted">{{ mechanisms_summary }}</div>
+                                    <div class="text-muted">{{ getReportSessionSummary() }}</div>
                                 </div>
                                 <div class="d-flex flex-column gap-4" style="gap:40px;">
                                     <div
@@ -1471,6 +1471,25 @@
                                                     <div v-if="mechanism.cross_route_crosstalk_model" class="">
                                                         <div class="font-weight-bold small text-uppercase text-muted mb-1">Cross-route crosstalk model</div>
                                                         <div class="small">{{ mechanism.cross_route_crosstalk_model }}<span class="ai-gen">AI</span></div>
+                                                    </div>
+                                                    <div v-if="mechanism.cellular_assignment" class="">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Cellular assignment</div>
+                                                        <div class="small">{{ formatCellularAssignmentDisplay(mechanism.cellular_assignment) }}<span class="ai-gen">AI</span></div>
+                                                    </div>
+                                                    <div v-if="mechanism.depot_contrast" class="">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Depot contrast</div>
+                                                        <div class="small">{{ formatDepotContrastDisplay(mechanism.depot_contrast) }}<span class="ai-gen">AI</span></div>
+                                                    </div>
+                                                    <div v-if="mechanism.effect_direction_notes && mechanism.effect_direction_notes.length" class="">
+                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Effect direction notes</div>
+                                                        <ul class="small mb-0 pl-3">
+                                                            <li
+                                                                v-for="(note, nidx) in mechanism.effect_direction_notes"
+                                                                :key="'dir-' + idx + '-' + nidx + '-' + (note.gene || '')"
+                                                            >
+                                                                <strong>{{ note.gene }}</strong>: {{ note.direction || 'unknown' }}<span v-if="note.note"> — {{ note.note }}</span><span class="ai-gen">AI</span>
+                                                            </li>
+                                                        </ul>
                                                     </div>
                                                 </div>
                                                 <div
@@ -1562,6 +1581,7 @@
                                                                     { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
                                                                     { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
                                                                     { key: 'reason', label: 'Reason' },
+                                                                    { key: 'gene_sets', label: 'Gene sets (selected row)', thStyle: { width: '180px' } },
                                                                     { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' } },
                                                                     { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' } },
                                                                     { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' } }
@@ -1581,6 +1601,9 @@
                                                                 </template>
                                                                 <template #cell(gene)="row">
                                                                     <span class="small pill" :style="mechanismGeneGroupPillStyle(row.item.group)">{{ row.item.gene }}</span>
+                                                                </template>
+                                                                <template #cell(gene_sets)="row">
+                                                                    <span class="small">{{ (getGeneConnectionForMechanism(mechanism, row.item.gene).gene_sets || []).join(', ') || '—' }}</span>
                                                                 </template>
                                                                 <template #cell(group)="row">
                                                                     <span class="small">{{ row.item.group || "—" }}</span>
@@ -1624,7 +1647,7 @@
                                                             </div>
                                                         </div>
                                                         <div v-if="(mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Supplementary / Similar Clusters</div>
+                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Related data categories</div>
                                                             <div style="display:flex; flex-wrap: wrap; gap:3px">
                                                                 <div
                                                                     v-for="(pair, ridx) in mechanism.redundant_associated_pairs"
@@ -2781,9 +2804,27 @@ To help the user quickly understand the biological mechanism, distill your hypot
 
 ### Cross-route crosstalk / bridge model
 When compact multi-direction evidence bundles are provided, explicitly compare the route evidence.
+- If **three or more** route bundles are present, \`cross_route_crosstalk_model\` is **required** (non-null): compare how Genetics, Tissue Expression, and Perturbations (or equivalent route labels) support local vs remote/endocrine axes.
 - If the evidence suggests a tissue-to-tissue, ligand-receptor, circulating factor, or other bridge axis, populate \`cross_route_crosstalk_model\` with a cautious 1-3 sentence model.
 - Separate cross-route or remote-tissue bridge biology from local intrinsic tissue mechanisms.
-- If no bridge model is supported by the evidence, set \`cross_route_crosstalk_model\` to null rather than inventing one.
+- If fewer than three routes and no bridge model is supported, set \`cross_route_crosstalk_model\` to null rather than inventing one.
+
+### Cellular assignment (when tissue/cell context is in research context)
+Populate \`cellular_assignment\` with cautious cell-type roles supported by route evidence—not outside knowledge.
+- \`producer\`: primary secreted-factor or ligand source cell type (if supported).
+- \`matrix_builder\`: ECM/matrix execution cell type (if supported).
+- \`metabolic_target\`: adipocyte or metabolic execution cell type (if supported).
+- \`confidence\`: \`high\` | \`medium\` | \`low\` based on evidence density.
+- \`caveat\`: note when scRNA or cell-type data are absent.
+Use null for the whole object when research context lacks anatomical/cellular specificity.
+
+### Depot contrast (adipose / body-composition queries)
+When research context mentions adipose depots, WHR, or visceral vs subcutaneous fat, populate \`depot_contrast\`:
+- \`subcutaneous\`, \`visceral\`, \`comparison\`, \`evidence_basis\` (cite route labels or gene-set programs only).
+Null when depot biology is not in scope.
+
+### Effect direction notes
+For each named candidate gene in \`genes\`, add an entry in \`effect_direction_notes\` with \`gene\`, \`direction\` (\`increase\`, \`decrease\`, or \`unknown\`), and optional \`note\` tied to GWAS/functional scores in the CSV when inferable—otherwise \`unknown\`.
 
 ### Pathway shift rationale
 If user-requested target genes or the named pathway lack sufficient direct edge density in the retrieved subgraph but downstream effectors or alternative receptor nodes are supported, populate \`pathway_shift_rationale\` with a clear 1-2 sentence callout.
@@ -2823,6 +2864,7 @@ Provide 2 to 3 optimized follow-up queries that allow the user to dig deeper int
 Return ONLY valid JSON in the following structure:
 {
   "data_tracing_scratchpad": "Briefly list the CSV row IDs you use: \`associated_with\` (phenotype→gene set), \`contains_gene\` (phenotype→gene), and \`contributes_to_pathway\` (gene→gene set) for the hypothesis. Do not use outside knowledge.",
+  "overall_summary": "1-2 sentence session-level summary of findings for the Overview section.",
   "diagnostic_assessment": {
     "can_generate_hypothesis": true,
     "rejection_reason": "String or null. Populate if an absolute rejection in Case 1, 2, or 3 is triggered.",
@@ -2838,6 +2880,22 @@ Return ONLY valid JSON in the following structure:
       "novelty": "Contrast canonical vs non-canonical emphasis.",
       "pathway_shift_rationale": "String or null. Explain evidence-driven shift from requested genes/pathway to supported downstream or alternate graph nodes.",
       "cross_route_crosstalk_model": "String or null. Cautious bridge model when route evidence supports tissue-to-tissue, ligand-receptor, or endocrine crosstalk.",
+      "cellular_assignment": {
+        "producer": "String or null",
+        "matrix_builder": "String or null",
+        "metabolic_target": "String or null",
+        "confidence": "high | medium | low | null",
+        "caveat": "String or null"
+      },
+      "depot_contrast": {
+        "subcutaneous": "String or null",
+        "visceral": "String or null",
+        "comparison": "String or null",
+        "evidence_basis": "String or null"
+      },
+      "effect_direction_notes": [
+        { "gene": "SYMBOL", "direction": "increase | decrease | unknown", "note": "Optional evidence note or null" }
+      ],
       "hypothesis_in_kg": {
         "caption": "Short explanation of the biological flow.",
         "nodes": [
@@ -2890,7 +2948,9 @@ Return ONLY valid JSON in the following structure:
 - **Row referencing (phenotype → gene):** Include every \`contains_gene\` row for genes you name, for the phenotypes in scope.
 - **Row referencing (gene → gene set):** Include all \`contributes_to_pathway\` rows for those genes to the gene sets in your story; do not omit pathway rows.
 - **hypothesis_in_kg (mechanism map):** \`nodes\` and \`edges\` must form a consistent DAG: every \`from\` / \`to\` must match a node \`id\`. Use **3–6 nodes**. \`group\` classifies the entity (e.g. \`Gene\`, \`Process\`, \`Phenotype\`, \`Metabolite\`). Omit \`hypothesis_in_kg\` only if you cannot summarize the hypothesis as a simple causal map without fabricating biology.
-- **cross_route_crosstalk_model:** Use route evidence only. Distinguish remote/endocrine bridge mechanisms from local tissue mechanisms. Null is preferred when unsupported.
+- **cross_route_crosstalk_model:** Required (non-null) when three or more route evidence bundles are provided. Otherwise use route evidence only; distinguish remote/endocrine bridge mechanisms from local tissue mechanisms. Null is preferred when unsupported.
+- **cellular_assignment / depot_contrast / effect_direction_notes:** Populate when research context supports them; use null or empty arrays when not applicable. Do not invent cell types or signed effects absent from evidence.
+- **overall_summary:** One or two sentences summarizing the session for the report Overview (required when hypotheses are non-empty).
 - **candidate_inventory:** Use route provenance labels from the compact evidence bundles, not hardcoded repository names. Cap each role at 5 genes, dedupe real gene symbols across categories, and include sparse/missing notes where evidence is absent.
 - **next_steps:** Always provide exactly **3** items when \`hypotheses\` is non-empty, each with valid \`category\`, \`action\`, and \`reason\`.
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
@@ -4568,6 +4628,17 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const crosstalkSection = m.cross_route_crosstalk_model
                 ? `<div class="report-subsection"><strong>Cross-route crosstalk model</strong><p class="report-body-tight">${this.escapeHtml(m.cross_route_crosstalk_model)}</p></div>`
                 : "";
+            const cellularSection = m.cellular_assignment
+                ? `<div class="report-subsection"><strong>Cellular assignment</strong><p class="report-body-tight">${this.escapeHtml(this.formatCellularAssignmentDisplay(m.cellular_assignment))}</p></div>`
+                : "";
+            const depotSection = m.depot_contrast
+                ? `<div class="report-subsection"><strong>Depot contrast</strong><p class="report-body-tight">${this.escapeHtml(this.formatDepotContrastDisplay(m.depot_contrast))}</p></div>`
+                : "";
+            const directionNotes = Array.isArray(m.effect_direction_notes) ? m.effect_direction_notes : [];
+            const directionSection =
+                directionNotes.length > 0
+                    ? `<div class="report-subsection"><strong>Effect direction notes</strong>${this.buildReportList(directionNotes, (n) => `${n.gene}: ${n.direction || "unknown"}${n.note ? ` (${n.note})` : ""}`)}</div>`
+                    : "";
             const pathwayShiftSection = m.pathway_shift_rationale
                 ? `<div class="report-subsection report-shift-callout"><strong>Why the hypothesis shifted</strong><p class="report-body-tight">${this.escapeHtml(m.pathway_shift_rationale)}</p></div>`
                 : "";
@@ -4631,6 +4702,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         ${pathwayShiftSection}
                         <div class="report-subsection"><strong>Rationale</strong><p class="report-body-tight">${this.escapeHtml(m.novelty_explanation || m.novelty || "—")}</p></div>
                         ${crosstalkSection}
+                        ${cellularSection}
+                        ${depotSection}
+                        ${directionSection}
                         ${hypothesisMapSection}
                         ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${this.escapeHtml(m.relevance)}</p></div>` : ""}
                         ${inventorySection}
@@ -4667,7 +4741,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                             ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
                         </div>
                         <div class="report-subsection">
-                            <strong>Related trait-group clusters</strong>
+                            <strong>Related data categories</strong>
                             ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${this.getFactorClusterDisplayString(pair.factor)}`)}
                         </div>
                         <div class="report-subsection">
@@ -4803,7 +4877,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 generated_at: new Date().toISOString(),
                 your_question: this.userQuery || "",
                 research_context: researchContext || "",
-                session_mechanisms_summary: this.mechanisms_summary || "",
+                session_mechanisms_summary: this.getReportSessionSummary(),
                 extracted_terms: {
                     phenotype_terms: [...(this.lastPhenotypeTerms || [])],
                     mechanism_terms: [...(this.lastMechanismTerms || [])],
@@ -4840,10 +4914,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     related_phenotypes: Array.isArray(mechanism?.relevant_phenotypes)
                         ? mechanism.relevant_phenotypes.map((id) => this.getPhenotypeDisplay(id))
                         : [],
-                    related_trait_group_clusters: Array.isArray(mechanism?.redundant_associated_pairs)
+                    related_data_category_clusters: Array.isArray(mechanism?.redundant_associated_pairs)
                         ? mechanism.redundant_associated_pairs.map((pair) => ({
                             phenotype: this.getPhenotypeDisplay(pair.phenotype),
-                            trait_group: this.getFactorClusterDisplayString(pair.factor),
+                            data_category: this.getFactorClusterDisplayString(pair.factor),
                         }))
                         : [],
                     relevant_gene_sets: (
@@ -4909,7 +4983,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                             <tr><th>Phenotypes or diseases (extracted)</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
                             <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
                             ${this.reportGeneAnchorRows()}
-                            <tr><th>Summary of findings (session)</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
+                            <tr><th>Summary of findings (session)</th><td>${this.escapeHtml(this.getReportSessionSummary())}</td></tr>
                         </tbody>
                     </table>
                 </section>
@@ -5058,9 +5132,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                             <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
                             ${this.reportGeneAnchorRows()}
                             <tr><th>Alternative ways to ask</th><td>${altQueriesCell}</td></tr>
-                            <tr><th>Summary of findings</th><td>${this.escapeHtml(this.mechanisms_summary || "—")}</td></tr>
+                            <tr><th>Summary of findings</th><td>${this.escapeHtml(this.getReportSessionSummary())}</td></tr>
                             <tr><th>Phenotypes in your selection</th><td>${this.escapeHtml(this.phenotypeCount)}</td></tr>
-                            <tr><th>Trait-group (gene set) clusters in your selection</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
+                            <tr><th>Data categories (gene set clusters) in your selection</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
                             <tr><th>Mechanism cards in this report</th><td>${this.escapeHtml((this.mechanisms || []).length)}</td></tr>
                         </tbody>
                     </table>
@@ -5138,7 +5212,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         ${hybridMeta}
         ${mechanismDiag}
         ${mechanismHypothesesSection}
-        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Your selected phenotypes and trait groups")}
+        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Your selected phenotypes and data categories")}
         ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Clusters not yet covered by a hypothesis card")}
         ${extractedTerms}
         ${appendix}
@@ -5870,8 +5944,240 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         /** Comma-separated list of phenotype descriptions for on-screen report. */
         getRelevantPhenotypesDisplay(phenotypeIds) {
-            if (!Array.isArray(phenotypeIds) || !phenotypeIds.length) return "";
+            if (!Array.isArray(phenotypeIds) || !phenotypeIds.length) return [];
             return phenotypeIds.map((id) => this.getPhenotypeDisplay(id));
+        },
+        /** Query anchor tokens for report phenotype filtering (phenotype/mechanism terms + user question). */
+        buildReportQueryAnchorTokens() {
+            const tokens = new Set();
+            const addText = (text) => {
+                String(text || "")
+                    .toLowerCase()
+                    .split(/[^a-z0-9]+/)
+                    .forEach((t) => {
+                        if (t.length >= 3) tokens.add(t);
+                    });
+            };
+            (this.lastPhenotypeTerms || []).forEach(addText);
+            (this.lastMechanismTerms || []).forEach(addText);
+            addText(this.userQuery || "");
+            return tokens;
+        },
+        phenotypeMatchesQueryAnchors(phenotypeId, anchorTokens) {
+            const tokens =
+                anchorTokens instanceof Set ? anchorTokens : this.buildReportQueryAnchorTokens();
+            if (!tokens.size) return true;
+            const label = this.getPhenotypeDisplay(phenotypeId).toLowerCase();
+            const id = String(phenotypeId || "").trim().toLowerCase();
+            for (const t of tokens) {
+                if (label.includes(t) || id.includes(t)) return true;
+            }
+            return false;
+        },
+        /** Phenotype ids from the user's filtered Data tab selection. */
+        selectedTablePhenotypeIds() {
+            const ids = new Set();
+            (this.factorDataTableRowsFiltered || []).forEach((row) => {
+                const p = row && row.phenotype != null ? String(row.phenotype).trim() : "";
+                if (p) ids.add(p);
+            });
+            return ids;
+        },
+        /**
+         * Keep report/network phenotypes aligned with user selection and query anchors (Case 3 hub gravity).
+         * @param {string[]} rawPhenotypes - Phenotypes inferred from KG supporting rows.
+         * @param {Array<{phenotype?: string, factor?: string}>} associatedPairs - LLM associated_pairs.
+         */
+        filterMechanismReportPhenotypes(rawPhenotypes, associatedPairs) {
+            const selectedIds = this.selectedTablePhenotypeIds();
+            const fromPairs = new Set(
+                (associatedPairs || [])
+                    .map((p) => (p && p.phenotype != null ? String(p.phenotype).trim() : ""))
+                    .filter(Boolean)
+            );
+            const anchorTokens = this.buildReportQueryAnchorTokens();
+            const raw = (rawPhenotypes || []).map((p) => String(p).trim()).filter(Boolean);
+            let filtered = raw.filter((id) => selectedIds.has(id) || fromPairs.has(id));
+            if (!filtered.length && raw.length) {
+                filtered = raw.filter((id) => this.phenotypeMatchesQueryAnchors(id, anchorTokens));
+            }
+            if (!filtered.length && selectedIds.size) {
+                filtered = [...selectedIds];
+            }
+            filtered = filtered.filter(
+                (id) => selectedIds.has(id) || this.phenotypeMatchesQueryAnchors(id, anchorTokens)
+            );
+            return [...new Set(filtered)].sort();
+        },
+        /** Session overview text for Results tab and HTML reports. */
+        getReportSessionSummary() {
+            if (this.mechanisms_summary != null && String(this.mechanisms_summary).trim() !== "") {
+                return String(this.mechanisms_summary).trim();
+            }
+            const mechanisms = Array.isArray(this.mechanisms) ? this.mechanisms : [];
+            if (mechanisms.length) {
+                const names = mechanisms
+                    .map((m) => (m && m.group_name != null ? String(m.group_name).trim() : ""))
+                    .filter(Boolean);
+                if (names.length) {
+                    const n = mechanisms.length;
+                    return `Generated ${n} mechanistic hypothesis${n === 1 ? "" : "es"}: ${names.join("; ")}.`;
+                }
+            }
+            const d = this.mechanismDiagnosticAssessment;
+            if (d && d.warning_flag != null && String(d.warning_flag).trim() !== "") {
+                return String(d.warning_flag).trim();
+            }
+            if (d && d.rejection_reason != null && String(d.rejection_reason).trim() !== "") {
+                return String(d.rejection_reason).trim();
+            }
+            const phenos = (this.lastPhenotypeTerms || []).join(", ");
+            const genes = (this.lastGenesOfInterest || []).join(", ");
+            if (phenos || genes) {
+                const catN = this.factorCount || 0;
+                const catLabel = catN === 1 ? "data category" : "data categories";
+                return `Explored ${phenos || "selected phenotypes"}${genes ? ` with focus on ${genes}` : ""} across ${catN} ${catLabel}.`;
+            }
+            return "—";
+        },
+        geneAppearsInFactorRow(row, geneSymbol) {
+            if (!row) return false;
+            const g = String(geneSymbol || "").trim();
+            if (!g) return false;
+            const f = this.getFactorForPhenotypeRow(row.phenotype, row.factor, row.fetched_direction);
+            return !!(f && f.genes && Object.prototype.hasOwnProperty.call(f.genes, g));
+        },
+        geneSetsForGeneOnFactorRow(row, geneSymbol) {
+            if (!this.geneAppearsInFactorRow(row, geneSymbol)) return [];
+            const sets = this.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction);
+            const f = this.getFactorForPhenotypeRow(row.phenotype, row.factor, row.fetched_direction);
+            const rel = f && f.genes ? f.genes[geneSymbol] : null;
+            const explicitIds = rel && Array.isArray(rel.geneSetIds)
+                ? rel.geneSetIds.map((x) => String(x || "").trim()).filter(Boolean)
+                : [];
+            if (explicitIds.length) {
+                return sets.filter((s) => explicitIds.includes(s.geneset)).map((s) => s.geneset);
+            }
+            return sets.map((s) => s.geneset).filter(Boolean);
+        },
+        /**
+         * Per-gene gene-set links scoped to associated UI rows (phenotype × data category × direction).
+         * @param {Object} mechanism
+         * @param {Array<{gene?: string}>} candidateGenes
+         */
+        buildGeneConnectionsFromAssociatedRows(mechanism, candidateGenes) {
+            const assocRows = this.getMechanismAssociatedSelectionRows(mechanism);
+            const useRows = assocRows.length ? assocRows : (this.factorDataTableRowsFiltered || []);
+            const genes = (candidateGenes || [])
+                .map((g) => (g && g.gene != null ? String(g.gene).trim() : ""))
+                .filter(Boolean);
+            const out = {};
+            genes.forEach((gene) => {
+                const factors = new Set();
+                const gene_sets = new Set();
+                useRows.forEach((row) => {
+                    if (!this.geneAppearsInFactorRow(row, gene)) return;
+                    const label = this.getFactorClusterDisplay(row);
+                    if (label) factors.add(label);
+                    this.geneSetsForGeneOnFactorRow(row, gene).forEach((gs) => gene_sets.add(gs));
+                });
+                out[gene] = {
+                    factors: [...factors].sort(),
+                    gene_sets: [...gene_sets].sort(),
+                };
+            });
+            return out;
+        },
+        getGeneConnectionForMechanism(mechanism, geneName) {
+            const g = geneName != null ? String(geneName).trim() : "";
+            if (!g || !mechanism || !mechanism.gene_connections) return { factors: [], gene_sets: [] };
+            const conn = mechanism.gene_connections[g];
+            if (!conn) return { factors: [], gene_sets: [] };
+            return {
+                factors: Array.isArray(conn.factors) ? conn.factors : [],
+                gene_sets: Array.isArray(conn.gene_sets) ? conn.gene_sets : [],
+            };
+        },
+        buildCrossRouteCrosstalkFallback(routeBundles) {
+            const bundles = Array.isArray(routeBundles) ? routeBundles : [];
+            if (bundles.length < 2) return null;
+            const lines = bundles.map((b) => {
+                const cat =
+                    (b && (b.category || b.route_category || b.route_id)) != null
+                        ? String(b.category || b.route_category || b.route_id).trim()
+                        : "Route";
+                const hits = Array.isArray(b.top_hits)
+                    ? b.top_hits
+                          .slice(0, 5)
+                          .map((h) => (h && (h.gene || h.symbol)) != null ? String(h.gene || h.symbol).trim() : "")
+                          .filter(Boolean)
+                    : [];
+                return `${cat}: ${hits.length ? hits.join(", ") : "no top hits listed"}`;
+            });
+            return `Multi-direction retrieval compared ${bundles.length} routes (${lines.join(" | ")}). Treat as a provisional axis comparison—not confirmed causal crosstalk without independent validation.`;
+        },
+        normalizeCellularAssignment(raw) {
+            if (raw == null || typeof raw !== "object") return null;
+            const pick = (k) => (raw[k] != null && String(raw[k]).trim() !== "" ? String(raw[k]).trim() : null);
+            const out = {
+                producer: pick("producer"),
+                matrix_builder: pick("matrix_builder"),
+                metabolic_target: pick("metabolic_target"),
+                confidence: pick("confidence"),
+                caveat: pick("caveat"),
+            };
+            return Object.values(out).some(Boolean) ? out : null;
+        },
+        normalizeDepotContrast(raw) {
+            if (raw == null || typeof raw !== "object") return null;
+            const pick = (k) => (raw[k] != null && String(raw[k]).trim() !== "" ? String(raw[k]).trim() : null);
+            const out = {
+                subcutaneous: pick("subcutaneous"),
+                visceral: pick("visceral"),
+                comparison: pick("comparison"),
+                evidence_basis: pick("evidence_basis"),
+            };
+            return Object.values(out).some(Boolean) ? out : null;
+        },
+        normalizeEffectDirectionNotes(raw) {
+            if (!Array.isArray(raw)) return [];
+            return raw
+                .map((entry) => {
+                    if (entry == null || typeof entry !== "object") return null;
+                    const gene = entry.gene != null ? String(entry.gene).trim() : "";
+                    if (!gene) return null;
+                    const direction =
+                        entry.direction != null && String(entry.direction).trim() !== ""
+                            ? String(entry.direction).trim()
+                            : entry.effect != null && String(entry.effect).trim() !== ""
+                              ? String(entry.effect).trim()
+                              : "unknown";
+                    const note =
+                        entry.note != null && String(entry.note).trim() !== ""
+                            ? String(entry.note).trim()
+                            : null;
+                    return { gene, direction, note };
+                })
+                .filter(Boolean);
+        },
+        formatCellularAssignmentDisplay(ca) {
+            if (!ca || typeof ca !== "object") return "";
+            const parts = [];
+            if (ca.producer) parts.push(`Producer: ${ca.producer}`);
+            if (ca.matrix_builder) parts.push(`Matrix builder: ${ca.matrix_builder}`);
+            if (ca.metabolic_target) parts.push(`Metabolic target: ${ca.metabolic_target}`);
+            if (ca.confidence) parts.push(`Confidence: ${ca.confidence}`);
+            if (ca.caveat) parts.push(`Caveat: ${ca.caveat}`);
+            return parts.join(" · ");
+        },
+        formatDepotContrastDisplay(dc) {
+            if (!dc || typeof dc !== "object") return "";
+            const parts = [];
+            if (dc.subcutaneous) parts.push(`Subcutaneous: ${dc.subcutaneous}`);
+            if (dc.visceral) parts.push(`Visceral: ${dc.visceral}`);
+            if (dc.comparison) parts.push(`Comparison: ${dc.comparison}`);
+            if (dc.evidence_basis) parts.push(`Evidence: ${dc.evidence_basis}`);
+            return parts.join(" · ");
         },
         /** Format relevant gene sets for display: "id (description)" when description exists. */
         formatRelevantGeneSetsForDisplay(geneSetIds) {
@@ -8842,11 +9148,18 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const routeEvidenceBlock = routeEvidenceJson
                 ? `\n\n**Compact multi-direction evidence bundles (use these to compare retrieval directions; do not assume omitted raw rows are negative evidence):**\n\`\`\`json\n${routeEvidenceJson}\n\`\`\`\n`
                 : "";
+            const routeCount = Array.isArray(routeEvidenceBundles) ? routeEvidenceBundles.length : 0;
+            const multiRouteInstruction =
+                routeCount >= 3
+                    ? `\n\n**Multi-route requirement:** ${routeCount} route bundles are attached. You MUST populate a non-null \`cross_route_crosstalk_model\` on each hypothesis comparing the route axes. Also populate \`overall_summary\` at the top level.\n`
+                    : routeCount >= 2
+                      ? `\n\n**Multi-route note:** ${routeCount} route bundles are attached. Compare route axes in \`cross_route_crosstalk_model\` when supported.\n`
+                      : "";
             const modeLine =
                 this.hypothesisGenerationMode === "relaxed"
                     ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply the relaxed overrides in your system prompt; set diagnostic_assessment.exploratory_mode to true.\n"
                     : "";
-            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n${routeEvidenceBlock}\n${baseContextSuffix}\n${modeLine}\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
+            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n${routeEvidenceBlock}${multiRouteInstruction}${baseContextSuffix}\n${modeLine}\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment and overall_summary. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
             const maxAttempts = 3;
             const systemPromptForRun = this.mechanismHypothesisSystemPromptEffective;
 
@@ -8936,6 +9249,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         if (!this.mechanisms_summary && typeof diag.rejection_reason === "string" && diag.rejection_reason.trim()) {
                             this.mechanisms_summary = diag.rejection_reason.trim();
                         }
+                        if (!this.mechanisms_summary) {
+                            this.mechanisms_summary = this.getReportSessionSummary();
+                        }
                         this.setLoadStatus("Ready", true);
                         this.setStep(
                             {
@@ -8963,6 +9279,16 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 }
 
                 this.mechanisms = this.normalizeMechanismHypotheses(hypotheses);
+                if (this.multiQueryEvidenceBundles.length >= 2) {
+                    this.mechanisms = this.mechanisms.map((m) => {
+                        if (m.cross_route_crosstalk_model) return m;
+                        const fb = this.buildCrossRouteCrosstalkFallback(this.multiQueryEvidenceBundles);
+                        return fb ? { ...m, cross_route_crosstalk_model: fb } : m;
+                    });
+                }
+                if (!this.mechanisms_summary) {
+                    this.mechanisms_summary = this.getReportSessionSummary();
+                }
                 this.$nextTick(() => {
                     void this.autoMapAllMechanismsToBiolink();
                 });
@@ -9580,6 +9906,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     h.candidate_inventory != null && typeof h.candidate_inventory === "object"
                         ? this.normalizeCandidateInventory(h.candidate_inventory)
                         : null;
+                out.cellular_assignment = this.normalizeCellularAssignment(h.cellular_assignment);
+                out.depot_contrast = this.normalizeDepotContrast(h.depot_contrast);
+                out.effect_direction_notes = this.normalizeEffectDirectionNotes(h.effect_direction_notes);
                 if (h.network != null && out.supporting_network == null) out.supporting_network = h.network;
                 if (
                     (out.supporting_network == null || !out.supporting_network.nodes?.length) &&
@@ -9593,10 +9922,24 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     const fd = this.factorData || {};
                     const { relevant_phenotypes, relevant_factors, relevant_gene_sets } =
                         this.extractRelevantFactorsAndGeneSetsFromFlattened(flattened, h.supporting_row_ids, fd);
-                    out.relevant_phenotypes = relevant_phenotypes;
+                    out.relevant_phenotypes = this.filterMechanismReportPhenotypes(
+                        relevant_phenotypes,
+                        h.associated_pairs
+                    );
                     out.relevant_factors = relevant_factors;
                     out.relevant_gene_sets = relevant_gene_sets;
-                    out.gene_connections = this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids, fd);
+                    const rowAligned = this.buildGeneConnectionsFromAssociatedRows(
+                        { ...out, associated_pairs: h.associated_pairs },
+                        out.candidate_genes || h.genes
+                    );
+                    const hasRowAligned = Object.values(rowAligned).some(
+                        (c) =>
+                            (Array.isArray(c.gene_sets) && c.gene_sets.length) ||
+                            (Array.isArray(c.factors) && c.factors.length)
+                    );
+                    out.gene_connections = hasRowAligned
+                        ? rowAligned
+                        : this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids, fd);
                 }
                 const candForNet = out.candidate_genes || h.candidate_genes;
                 if (
