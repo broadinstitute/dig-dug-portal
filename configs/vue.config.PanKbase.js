@@ -42,7 +42,7 @@ let pages = {
         entry: "src/portals/PanKbase/views/MetadataDataStandards/main.js",
         template: "src/portals/PanKbase/index.html",
         filename: "metadata-data-standards.html",
-        title: "Standards",
+        title: "Data and Metadata Standards",
         chunks: ["chunk-vendors", "chunk-common", "metadata"],
     },
     tools: {
