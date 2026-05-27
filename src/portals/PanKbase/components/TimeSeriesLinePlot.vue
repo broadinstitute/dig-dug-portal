@@ -59,7 +59,7 @@ import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
+  props: ["plotData", "filter", "donors", "plotId", 
     "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
@@ -96,6 +96,18 @@ export default Vue.component("time-series-line-plot", {
   computed: {
     chartData(){
       return this.computeChartData(this.plotData, true);
+    },
+    maxTime(){
+      let times = this.plotData.map(d => d.time).filter(t => !isNaN(t));
+      let max = Number(times[0]);
+      times.forEach(t => max = Number(t) > max ? Number(t) : max);
+      return max;
+    },
+    maxScore(){
+      let scores = this.plotData.map(d => d.score).filter(t => !isNaN(t));
+      let max = Number(scores[0]);
+      scores.forEach(t => max = Number(t) > max ? Number(t) : max);
+      return max;
     },
     filteredConfidence(){
       let data = this.plotData.filter(d => this.donors.includes(d.donor));
@@ -189,6 +201,7 @@ export default Vue.component("time-series-line-plot", {
         return output;
     },
     drawChart(){
+
       let margin = {
         top: 80,
         right: 10,
