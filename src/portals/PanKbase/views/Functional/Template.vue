@@ -141,34 +141,42 @@
                                                     </option>
                                                 </select>
                                             </div>
-                                            <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
-                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
+                                            <div v-if="$parent.vlnConditions.length > 0">
+                                                <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
+                                            <div class="vlnPlots row">
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
-                                                    class="vlnPlot col-md-4">
+                                                    class="vlnPlot col-md-4"
+                                                    v-if="$parent.functionalTrait !== null">
                                                     <functional-violin-plot
                                                         v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
                                                         :index="index"
-                                                        :xField="$parent.violinTrait"
-                                                        :xLabel="$parent.violinTrait"
+                                                        :xField="$parent.functionalTrait"
+                                                        :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
-                                                <!-- <div v-for="(condition, index) in 
+                                            </div>
+                                            <strong>Glucagon secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
+                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
+                                                <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
-                                                    class="vlnPlot col-md-4">
-                                                    <functional-violin-plot 
+                                                    class="vlnPlot col-md-4"
+                                                    v-if="$parent.functionalTrait !== null">
+                                                    <functional-violin-plot
+                                                        v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
                                                         :index="index"
-                                                        :xField="$parent.violinTrait"
-                                                        :xLabel="$parent.violinTrait"
+                                                        :xField="$parent.functionalTrait"
+                                                        :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
                                                     >
                                                     </functional-violin-plot>
-                                                </div> -->
+                                                </div>
                                             </div>
+                                        </div>
                                         </div>
                                     </b-tab>
                                     <b-tab title="Functional trait associations"
