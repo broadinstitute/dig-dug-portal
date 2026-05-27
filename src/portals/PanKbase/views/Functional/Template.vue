@@ -84,6 +84,22 @@
                                             <button class="btn btn-secondary btn-sm" @click="$parent.copyResults()">
                                                 Copy link to results
                                             </button>
+                                            <div>
+                                                <label>
+                                                    <input type="radio"
+                                                        name="showContent"
+                                                        :value="false"
+                                                        v-model="$parent.showContent"/>
+                                                    View by IEQ
+                                                </label>
+                                                <label>
+                                                    <input type="radio"
+                                                        name="showContent"
+                                                        :value="true"
+                                                        v-model="$parent.showContent"/>
+                                                    View by content
+                                                </label>
+                                            </div>
                                             <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
