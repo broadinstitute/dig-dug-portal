@@ -191,9 +191,19 @@
                                                 </option>
                                             </select>
                                         </div>
-                                        <b-table v-if="$parent.functionalAssocTrait !== null"
-                                            :items="$parent.assocTraitData">
-                                        </b-table>
+                                        <div id="functional-assoc-table">
+                                            <b-table
+                                                small
+                                                :fields="$parent.functionalAssocFields"
+                                                :items="$parent.assocTraitData"
+                                                :sortable="true"
+                                            >
+                                                <template #cell(covariates)="r">
+                                                    Coming soon
+                                                </template>
+                                            </b-table>
+                                        </div>
+                                        
                                     </b-tab>
                                 </b-tabs>
                                 
@@ -346,5 +356,8 @@ div.line-plot {
 }
 .radio-labels label {
     margin-right: 10px;
-  }
+}
+#functional-assoc-table {
+    overflow-x: scroll;
+}
 </style>

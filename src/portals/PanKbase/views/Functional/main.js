@@ -358,6 +358,19 @@ new Vue({
                 return [];
             }
             return this.$store.state.assoc_data[this.functionalAssocTrait];
+        },
+        functionalAssocFields(){
+            if (this.assocTraitData.length === 0){
+                return [];
+            }
+            let fields = Object.keys(this.assocTraitData[0]);
+            return fields.map(f => {
+                let definition = {
+                    key: f,
+                    formatter: f => isNaN(f) ? f : Number(f).toPrecision(3)
+                }
+                return definition;
+            })
         }
     },
     methods: {
