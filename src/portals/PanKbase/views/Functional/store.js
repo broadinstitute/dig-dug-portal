@@ -49,6 +49,15 @@ export default new Vuex.Store({
             console.log(url);
             const response = await fetch(url);
             const fileText = await response.text();
+            if (fileLabel === 'insContent'){
+              let lines = fileText.split("\n");
+              let line0count = lines[0].split("\t").length;
+              let line1count = lines[1].split("\t").length;
+              let line2count = lines[2].split("\t").length;
+              console.log("Line 0:", line0count);
+              console.log("Line 1:", line1count);
+              console.log("Line 2:", line2count);
+            }
             let tsv = dataConvert.tsv2Json(fileText);
             context.state[fileLabel] = tsv;
         }

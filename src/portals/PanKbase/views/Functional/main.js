@@ -278,15 +278,15 @@ new Vue({
             return utils;
         },
         insData(){
-            let sourceData = this.showContent 
-                ? this.$store.state.insContent 
-                : this.$store.state.ins;
+            let sourceData = 
+                //this.showContent ? this.$store.state.insContent : 
+                this.$store.state.ins;
             return this.collateData(sourceData);
         },
         gcgData(){
-            let sourceData = this.showContent
-                ? this.$store.state.gcgContent
-                : this.$store.state.gcg;
+            let sourceData = 
+                //this.showContent ? this.$store.state.gcgContent : 
+                this.$store.state.gcg;
             return this.collateData(sourceData);
         },
         filteredAccession(){
