@@ -32,13 +32,13 @@ function buildMergedApiConfig(overrides = {}) {
 }
 
 function sortFactors(factorA, factorB) {
-    const importanceA = Number(factorA.importance);
-    const importanceB = Number(factorB.importance);
-    const normalizedImportanceA = Number.isFinite(importanceA) ? importanceA : Number.NEGATIVE_INFINITY;
-    const normalizedImportanceB = Number.isFinite(importanceB) ? importanceB : Number.NEGATIVE_INFINITY;
+    const valueA = Number(factorA.graphValue);
+    const valueB = Number(factorB.graphValue);
+    const normalizedValueA = Number.isFinite(valueA) ? valueA : Number.NEGATIVE_INFINITY;
+    const normalizedValueB = Number.isFinite(valueB) ? valueB : Number.NEGATIVE_INFINITY;
 
-    if (normalizedImportanceA !== normalizedImportanceB) {
-        return normalizedImportanceB - normalizedImportanceA;
+    if (normalizedValueA !== normalizedValueB) {
+        return normalizedValueB - normalizedValueA;
     }
 
     return factorA.label.localeCompare(factorB.label);
@@ -94,6 +94,14 @@ export default {
         },
         activeDatasetLabel() {
             return this.activeDatasetGroup?.displayLabel || "";
+        },
+        activeDatasetValueMax() {
+            const factors = this.activeDatasetGroup?.cellTypes?.flatMap((cellTypeGroup) => cellTypeGroup.factors) || [];
+            const values = factors
+                .map((factor) => Number(factor.graphValue))
+                .filter((value) => Number.isFinite(value) && value >= 0);
+
+            return values.length ? Math.max(...values) : 0;
         },
         resultCountLabel() {
             const count = this.searchPayload?.data?.length || 0;
@@ -342,27 +350,35 @@ export default {
                                     model: modelGroup.model
                                 });
                                 const summaryLookup = this.factorSummaries[factorContextKey] || {};
+                                const matchedLookup = (modelGroup.factors || []).reduce((lookup, factorRow) => {
+                                    lookup[factorRow.factor] = factorRow;
+                                    return lookup;
+                                }, {});
 
-                                return Object.values(summaryLookup).map((summary) => ({
-                                    key: [
-                                        datasetGroup.dataset,
-                                        cellTypeGroup.cellType,
-                                        modelGroup.model,
-                                        summary.factor
-                                    ].join("::"),
-                                    dataset: datasetGroup.dataset,
-                                    cellType: cellTypeGroup.cellType,
-                                    model: modelGroup.model,
-                                    factor: summary.factor,
-                                    label: summary.label || summary.factor,
-                                    importance: summary.importance ?? null,
-                                    score: summary.score ?? summary.pValue ?? summary.p_value ?? null,
-                                    topGenes: summary.top_genes_list || [],
-                                    topTraits: summary.top_traits_list || [],
-                                    topGeneSets: summary.top_gene_sets_list || [],
-                                    topCells: summary.top_cells_list || [],
-                                    usesMultipleModels
-                                }));
+                                return Object.values(summaryLookup).map((summary) => {
+                                    const matchedFactor = matchedLookup[summary.factor] || null;
+
+                                    return {
+                                        key: [
+                                            datasetGroup.dataset,
+                                            cellTypeGroup.cellType,
+                                            modelGroup.model,
+                                            summary.factor
+                                        ].join("::"),
+                                        dataset: datasetGroup.dataset,
+                                        cellType: cellTypeGroup.cellType,
+                                        model: modelGroup.model,
+                                        factor: summary.factor,
+                                        label: summary.label || summary.factor,
+                                        graphValue: matchedFactor?.score ?? null,
+                                        graphValueField: matchedFactor?.scoreField || null,
+                                        topGenes: summary.top_genes_list || [],
+                                        topTraits: summary.top_traits_list || [],
+                                        topGeneSets: summary.top_gene_sets_list || [],
+                                        topCells: summary.top_cells_list || [],
+                                        usesMultipleModels
+                                    };
+                                });
                             })
                             .sort(sortFactors);
 
@@ -396,6 +412,31 @@ export default {
             }
 
             return numericScore.toFixed(3);
+        },
+        formatGraphValue(value) {
+            const numericValue = Number(value);
+
+            if (!Number.isFinite(numericValue)) {
+                return "n/a";
+            }
+
+            return numericValue.toFixed(2);
+        },
+        getFactorHeatmapStyle(factor) {
+            const value = Number(factor.graphValue);
+            const maxValue = Number(this.activeDatasetValueMax);
+
+            if (!Number.isFinite(value) || !Number.isFinite(maxValue) || maxValue <= 0) {
+                return {};
+            }
+
+            const ratio = Math.max(0, Math.min(1, value / maxValue));
+            const backgroundAlpha = 0.08 + (ratio * 0.52);
+
+            return {
+                backgroundColor: `rgba(var(--liger2-color-heatmap-rgb), ${backgroundAlpha.toFixed(3)})`,
+                borderColor: ratio > 0.55 ? "var(--liger2-color-accent)" : "var(--liger2-color-border)"
+            };
         },
         setResultMode(nextMode) {
             if (nextMode !== "genePrograms") {
@@ -559,23 +600,44 @@ export default {
 
                 <div class="liger2-grid-controls">
                     <div class="liger2-results-label">Cell Types</div>
-                    <div class="liger2-view-toggle">
-                        <button
-                            class="liger2-toggle-button"
-                            :class="{ 'is-active': resultMode === 'genePrograms' }"
-                            type="button"
-                            @click="setResultMode('genePrograms')"
-                        >
-                            Gene Programs
-                        </button>
-                        <button
-                            class="liger2-toggle-button"
-                            :class="{ 'is-active': resultMode === 'cellStates' }"
-                            type="button"
-                            disabled
-                        >
-                            Cell States
-                        </button>
+                    <div class="liger2-grid-toolbar">
+                        <div class="liger2-view-toggle">
+                            <button
+                                class="liger2-toggle-button"
+                                :class="{ 'is-active': resultMode === 'genePrograms' }"
+                                type="button"
+                                @click="setResultMode('genePrograms')"
+                            >
+                                Gene Programs
+                            </button>
+                            <button
+                                class="liger2-toggle-button"
+                                :class="{ 'is-active': resultMode === 'cellStates' }"
+                                type="button"
+                                disabled
+                            >
+                                Cell States
+                            </button>
+                        </div>
+
+                        <div class="liger2-legend">
+                            <div class="liger2-legend-copy">
+                                <span class="liger2-legend-title">Program value</span>
+                                <div class="liger2-legend-help-wrap">
+                                    <button class="liger2-legend-help" type="button">
+                                        ?
+                                    </button>
+                                    <div class="liger2-legend-tooltip">
+                                        Placeholder: explain what the graph-edge factor_value represents here.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="liger2-legend-scale">
+                                <span>0</span>
+                                <div class="liger2-legend-gradient"></div>
+                                <span>{{ formatGraphValue(activeDatasetValueMax) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -599,21 +661,15 @@ export default {
                                     :key="factor.key"
                                     class="liger2-factor-card"
                                     :class="{ 'is-active': selectedFactorKey === factor.key }"
+                                    :style="getFactorHeatmapStyle(factor)"
                                     type="button"
                                     @click="selectFactor(factor.key)"
                                 >
                                     <div class="liger2-factor-card-top">
                                         <span class="liger2-factor-name">{{ factor.label }}</span>
-                                        <span v-if="factor.usesMultipleModels" class="liger2-model-chip">{{ factor.model }}</span>
                                     </div>
-                                    <div class="liger2-factor-meta">
-                                        <span v-if="Number.isFinite(Number(factor.importance))">Importance: {{ formatScore(factor.importance) }}</span>
-                                        <span v-else>Importance unavailable</span>
-                                    </div>
-                                    <div class="liger2-factor-meta">
-                                        <span v-if="factor.topGenes.length">Top genes: {{ factor.topGenes.slice(0, 3).join(", ") }}</span>
-                                        <span v-else-if="factor.topTraits.length">Top traits: {{ factor.topTraits.slice(0, 2).join(", ") }}</span>
-                                        <span v-else>Program summary unavailable</span>
+                                    <div v-if="Number.isFinite(Number(factor.graphValue))" class="liger2-factor-value-pill">
+                                        {{ formatGraphValue(factor.graphValue) }}
                                     </div>
                                 </button>
                             </div>
@@ -632,8 +688,8 @@ export default {
                             <span v-if="selectedFactor.usesMultipleModels"> • {{ selectedFactor.model }}</span>
                         </p>
                     </div>
-                    <div v-if="Number.isFinite(Number(selectedFactor.importance))" class="liger2-detail-score">
-                        Importance: {{ formatScore(selectedFactor.importance) }}
+                    <div v-if="Number.isFinite(Number(selectedFactor.graphValue))" class="liger2-detail-score">
+                        {{ selectedFactor.graphValueField || "factor_value" }}: {{ formatGraphValue(selectedFactor.graphValue) }}
                     </div>
                 </div>
 
@@ -705,9 +761,10 @@ export default {
 .liger2-page {
     --liger2-color-bg: #ffffff;
     --liger2-color-panel: #fafafa;
-    --liger2-color-panel-alt: #f2f7f3;
+    --liger2-color-panel-alt: #eef7f7;
     --liger2-color-accent: var(--pkb-primary-green);
     --liger2-color-accent-soft: var(--pkb-secondary-green);
+    --liger2-color-heatmap-rgb: 60, 219, 158;
     --liger2-color-border: #dddddd;
     --liger2-color-text: var(--pkb-black);
     --liger2-color-muted: #5d6668;
@@ -798,10 +855,99 @@ export default {
     gap: 8px;
 }
 
+.liger2-grid-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
 .liger2-view-toggle {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.liger2-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.liger2-legend-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.liger2-legend-help-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.liger2-legend-title {
+    color: var(--liger2-color-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.liger2-legend-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid var(--liger2-color-border);
+    background: var(--liger2-color-bg);
+    color: var(--liger2-color-accent);
+    font: inherit;
+    font-weight: 700;
+    cursor: help;
+}
+
+.liger2-legend-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 2;
+    width: 220px;
+    padding: 8px 10px;
+    border: 1px solid var(--liger2-color-border);
+    background: var(--liger2-color-bg);
+    color: var(--liger2-color-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 80ms ease;
+}
+
+.liger2-legend-help-wrap:hover .liger2-legend-tooltip,
+.liger2-legend-help-wrap:focus-within .liger2-legend-tooltip {
+    opacity: 1;
+}
+
+.liger2-legend-scale {
+    display: grid;
+    grid-template-columns: auto minmax(120px, 180px) auto;
+    align-items: center;
+    gap: 8px;
+    color: var(--liger2-color-muted);
+    font-size: 12px;
+}
+
+.liger2-legend-gradient {
+    height: 12px;
+    border: 1px solid var(--liger2-color-border);
+    background: linear-gradient(
+        90deg,
+        rgba(var(--liger2-color-heatmap-rgb), 0.08) 0%,
+        rgba(var(--liger2-color-heatmap-rgb), 0.6) 100%
+    );
 }
 
 .liger2-toggle-button,
@@ -929,35 +1075,48 @@ export default {
 .liger2-grid {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(240px, 280px);
-    gap: 10px;
+    grid-auto-columns: minmax(220px, 250px);
+    gap: 8px;
     align-items: start;
 }
 
 .liger2-cell-column {
     display: flex;
     flex-direction: column;
-    min-height: 520px;
+    min-height: 460px;
     border: 1px solid var(--liger2-color-border);
     background: var(--liger2-color-panel);
 }
 
 .liger2-cell-header {
-    padding: 12px;
+    padding: 10px;
     border-bottom: 1px solid var(--liger2-color-border);
+}
+
+.liger2-cell-header h4 {
+    font-size: 18px;
+    line-height: 1.15;
+}
+
+.liger2-cell-header p {
+    font-size: 12px;
+    line-height: 1.3;
 }
 
 .liger2-factor-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: 440px;
-    padding: 12px;
+    gap: 6px;
+    max-height: 390px;
+    padding: 10px;
     overflow-y: auto;
 }
 
 .liger2-factor-card {
-    padding: 10px;
+    gap: 4px;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 8px;
     border: 1px solid var(--liger2-color-border);
     background: var(--liger2-color-bg);
     color: var(--liger2-color-text);
@@ -972,33 +1131,48 @@ export default {
     background: var(--liger2-color-panel-alt);
 }
 
+.liger2-factor-card.is-active {
+    border-color: var(--liger2-color-text);
+    box-shadow:
+        inset 0 0 0 2px var(--liger2-color-text),
+        0 0 0 2px rgba(var(--liger2-color-heatmap-rgb), 0.35);
+}
+
 .liger2-factor-card-top,
 .liger2-factor-meta,
 .liger2-detail-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 8px;
+    gap: 6px;
 }
 
 .liger2-factor-name {
     font-weight: 700;
-}
-
-.liger2-factor-meta {
-    color: var(--liger2-color-muted);
     font-size: 13px;
+    line-height: 1.25;
 }
 
 .liger2-model-chip,
 .liger2-detail-score {
-    padding: 4px 8px;
+    padding: 3px 6px;
     border: 1px solid var(--liger2-color-border);
     background: var(--liger2-color-panel);
     color: var(--liger2-color-accent);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
+}
+
+.liger2-factor-value-pill {
+    align-self: flex-end;
+    padding: 2px 6px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--liger2-color-text);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 .liger2-detail-panel {
@@ -1080,12 +1254,17 @@ export default {
     }
 
     .liger2-results-header,
-    .liger2-detail-header {
+    .liger2-detail-header,
+    .liger2-grid-toolbar {
         flex-direction: column;
     }
 
     .liger2-dataset-picker {
         justify-content: flex-start;
+    }
+
+    .liger2-legend {
+        align-items: flex-start;
     }
 
     .liger2-grid {
