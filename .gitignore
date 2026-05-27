@@ -4,7 +4,9 @@ node_modules
 /distPapers
 /portals
 /docs/not_share/
-/src/views/archive/
+/src/views/archive/*
+!/src/views/archive/dev_only_20260527/
+!/src/views/archive/dev_only_20260527/**
 
 # local env files
 .env.local
@@ -34,3 +36,7 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+
+# meta-harness
+.agents/
+.codex/

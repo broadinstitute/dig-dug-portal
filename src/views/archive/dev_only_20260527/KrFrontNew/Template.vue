@@ -204,9 +204,9 @@
 </template>
 
 <script>
-import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
-import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
-import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
+import ClinicalFocusBar from "../../../KrClinicalFocus/ClinicalFocusBar.vue";
+import { onClinicalFocusChange, readClinicalFocus } from "../../../KrClinicalFocus/focusStore";
+import { hasClinicalFocus } from "../../../KrClinicalFocus/focusComparison";
 
 export default {
     name: "KrFrontNewTemplate",

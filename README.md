@@ -8,6 +8,13 @@ This is the shared code base of the front-end-only resources for the new knowled
 > different portals. You can choose to work on them as separate
 > branches, forked repos, etc ...
 
+## Clinical Rare Disease Browser Docs
+
+The current CRDC rare disease browser mockup is organized around four promoted pages: `krFront.html`, `krSample.html`, `krPhenotype.html`, and `krVariant.html`. UI rendering stays in each page's `Template.vue`, while page-specific search, filtering, sorting, routing, and clinical-context derivations live in `pageModel.js`.
+
+- [Architect Guide](docs/ARCHITECT_GUIDE.md): current four-page workflow, `pageModel.js` convention, fixture flow, archive policy, and backend API direction for UI architects.
+- [Clinical DB Guide](docs/DB_portal.md): source clinical database/reference DB guide. The reference database directory is `data/reference_db/`.
+
 ## Getting Started
 
 ### Installing npm

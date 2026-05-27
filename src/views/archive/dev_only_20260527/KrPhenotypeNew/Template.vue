@@ -997,11 +997,11 @@
 </template>
 
 <script>
-import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
-import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
-import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
-import { createKrPhenotypeState } from "../KrPhenotype/mockData";
-import "../KrPhenotype/style.css";
+import ClinicalFocusBar from "../../../KrClinicalFocus/ClinicalFocusBar.vue";
+import { hasClinicalFocus } from "../../../KrClinicalFocus/focusComparison";
+import { clearClinicalFocus, onClinicalFocusChange, readClinicalFocus } from "../../../KrClinicalFocus/focusStore";
+import { createKrPhenotypeState } from "../../../KrPhenotype/mockData";
+import "../../../KrPhenotype/style.css";
 
 export default {
     name: "KrPhenotypeNewTemplate",

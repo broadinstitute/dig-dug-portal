@@ -1,5 +1,4 @@
-import { applyPortalVariantData } from "./portalVariantData.generated";
-import { applyPortalVariantNewData } from "./portalVariantNewData.generated";
+import { applyKrVariantFixturePipeline } from "./fixturePipeline";
 
 export function createKrVariantState() {
     const state = {
@@ -431,5 +430,5 @@ export function createKrVariantState() {
                 ],
             },
         };
-    return applyPortalVariantNewData(applyPortalVariantData(state));
+    return applyKrVariantFixturePipeline(state);
 }

@@ -66,27 +66,6 @@ let pages = {
         title: "KR Sample",
         chunks: ["chunk-vendors", "chunk-common", "krSample"],
     },
-    krVariantNew: {
-        entry: "src/views/KrVariant/main.js",
-        template: "public/index.html",
-        filename: "krVariant_new.html",
-        title: "KR Variant",
-        chunks: ["chunk-vendors", "chunk-common", "krVariantNew"],
-    },
-    krSampleGemini: {
-        entry: "src/views/KrSampleGemini/main.js",
-        template: "public/index.html",
-        filename: "krSample_gemini.html",
-        title: "KR Sample Gemini",
-        chunks: ["chunk-vendors", "chunk-common", "krSampleGemini"],
-    },
-    krPhenotypeGemini: {
-        entry: "src/views/KrPhenotypeGemini/main.js",
-        template: "public/index.html",
-        filename: "krPhenotype_gemini.html",
-        title: "KR Phenotype Gemini",
-        chunks: ["chunk-vendors", "chunk-common", "krPhenotypeGemini"],
-    },
     krFrontReframe: {
         entry: "src/views/KrFrontReframe/main.js",
         template: "public/index.html",
@@ -114,27 +93,6 @@ let pages = {
         filename: "krPhenotype_reframe.html",
         title: "KR Phenotype Reframe",
         chunks: ["chunk-vendors", "chunk-common", "krPhenotypeReframe"],
-    },
-    krFront_v01: {
-        entry: "src/views/archive/version_01/KrFront/main.js",
-        template: "public/index.html",
-        filename: "krFront_v01.html",
-        title: "KR Front V01",
-        chunks: ["chunk-vendors", "chunk-common", "krFront_v01"],
-    },
-    krPhenotype_v01: {
-        entry: "src/views/archive/version_01/KrPhenotype/main.js",
-        template: "public/index.html",
-        filename: "krPhenotype_v01.html",
-        title: "KR Phenotype V01",
-        chunks: ["chunk-vendors", "chunk-common", "krPhenotype_v01"],
-    },
-    krVariant_v01: {
-        entry: "src/views/archive/version_01/KrVariant/main_V3.js",
-        template: "public/index.html",
-        filename: "krVariant_v01.html",
-        title: "KR Variant V01",
-        chunks: ["chunk-vendors", "chunk-common", "krVariant_v01"],
     },
     gene: {
         entry: "src/views/Gene/main.js",
@@ -411,6 +369,58 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
     },
 };
+
+let devOnlyPages = {
+    krVariantNew: {
+        entry: "src/views/KrVariant/main.js",
+        template: "public/index.html",
+        filename: "krVariant_new.html",
+        title: "KR Variant",
+        chunks: ["chunk-vendors", "chunk-common", "krVariantNew"],
+    },
+    krSampleGemini: {
+        entry: "src/views/archive/dev_only_20260527/KrSampleGemini/main.js",
+        template: "public/index.html",
+        filename: "krSample_gemini.html",
+        title: "KR Sample Gemini",
+        chunks: ["chunk-vendors", "chunk-common", "krSampleGemini"],
+    },
+    krPhenotypeGemini: {
+        entry: "src/views/archive/dev_only_20260527/KrPhenotypeGemini/main.js",
+        template: "public/index.html",
+        filename: "krPhenotype_gemini.html",
+        title: "KR Phenotype Gemini",
+        chunks: ["chunk-vendors", "chunk-common", "krPhenotypeGemini"],
+    },
+    krFront_v01: {
+        entry: "src/views/archive/version_01/KrFront/main.js",
+        template: "public/index.html",
+        filename: "krFront_v01.html",
+        title: "KR Front V01",
+        chunks: ["chunk-vendors", "chunk-common", "krFront_v01"],
+    },
+    krPhenotype_v01: {
+        entry: "src/views/archive/version_01/KrPhenotype/main.js",
+        template: "public/index.html",
+        filename: "krPhenotype_v01.html",
+        title: "KR Phenotype V01",
+        chunks: ["chunk-vendors", "chunk-common", "krPhenotype_v01"],
+    },
+    krVariant_v01: {
+        entry: "src/views/archive/version_01/KrVariant/main_V3.js",
+        template: "public/index.html",
+        filename: "krVariant_v01.html",
+        title: "KR Variant V01",
+        chunks: ["chunk-vendors", "chunk-common", "krVariant_v01"],
+    },
+};
+
+if (process.env.PORTAL_DEV_PAGES === "true" && process.env.NODE_ENV !== "production") {
+    pages = {
+        ...pages,
+        ...devOnlyPages,
+    };
+}
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {

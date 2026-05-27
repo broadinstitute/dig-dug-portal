@@ -1,5 +1,5 @@
 import Vue from "vue";
-import Template from "./Template_V3.vue";
+import Template from "./Template.vue";
 import store from "./store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 

@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "../KrFront/store.js";
+import store from "../../../KrPhenotype/store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 
 Vue.config.productionTip = false;
@@ -15,4 +15,3 @@ new Vue({
         return createElement(Template);
     },
 }).$mount("#app");
-
