@@ -133,7 +133,8 @@ import { truncate } from 'lodash';
                 .selectAll("text")
 				.style("font-size", this.fontSize)
                 .style("text-anchor", "end")
-                .attr("transform", "rotate(-35) translate(-5, 0)");
+                .attr("transform", "rotate(-35) translate(-5, 0)")
+                .text(t => t === "-" ? "N/A" : t);
             
             let histogram = d3.histogram()
                 .domain(y.domain())
@@ -186,12 +187,6 @@ import { truncate } from 'lodash';
 				.attr("id", "axisLabelsGroup")
 				.attr("transform", "translate(0,0)")
                 .style("text-anchor", "middle");
-
-			/* this.svg.select("#axisLabelsGroup")
-				.append("text")
-				.attr("x", ((width / 2)))
-				.attr("y", (height + this.margin.bottom - 10))
-				.text(this.xLabel); */
 
             this.svg.select("#axisLabelsGroup")
 				.append("text")
