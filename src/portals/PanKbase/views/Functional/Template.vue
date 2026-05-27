@@ -181,6 +181,7 @@
                                     <b-tab title="Functional trait associations"
                                         @click="$parent.populateAssoc()"
                                     >
+                                        Based on {{ $parent.filteredAccession.length }} donors
                                         <div class="functional-select">
                                             <select 
                                                 v-model="$parent.functionalAssocTrait">
@@ -198,9 +199,18 @@
                                                 :items="$parent.assocTraitData"
                                                 :sortable="true"
                                             >
-                                                <template #cell(covariates)="r">
-                                                    Coming soon
-                                                </template>
+                                            <template #cell(covariates)="r">
+                                                <button class="btn btn-sm btn-secondary"
+                                                    @click="r.toggleDetails()">
+                                                    {{ r.detailsShowing ? "Hide" : "Show"}}
+                                                </button>
+                                            </template>
+                                            <template #row-details="r">
+                                                <div 
+                                                    style="background-color: #efefef;text-align: right;">
+                                                    {{ r.item.covariates.replaceAll(";", ", ") }}
+                                                </div>
+                                            </template>
                                             </b-table>
                                         </div>
                                         
