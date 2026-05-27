@@ -231,7 +231,7 @@
                         <b-table
                             small
                             :items="$parent.filteredDonors"
-                            :fields="Object.values($parent.fieldsObject)"
+                            :fields="$parent.tableFields"
                             :sortable="true"
                             :per-page="$parent.perPage"
                             :current-page="$parent.currentPage"

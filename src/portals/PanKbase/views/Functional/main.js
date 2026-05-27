@@ -27,6 +27,9 @@ const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pank
 const timepointsFile = "/data/pankbase/HIPP_gcg_ieq.timepoints.txt";
 const gcgTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_gcg_ieq.timepoints.txt`;
 const insTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_ins_ieq.timepoints.txt`;
+const dashFormatter = function(item){
+    return item === '-' ? "N/A" : item;
+};
 
 new Vue({
     store,
@@ -333,6 +336,13 @@ new Vue({
             // If the pasted-in donor list is applied, use that
             let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
             return results;
+        },
+        tableFields(){
+            let fields = structuredClone(Object.values(this.fieldsObject));
+            fields.forEach(f =>
+                f.formatter = dashFormatter
+            );
+            return fields;
         },
         presets(){
             return this.linkedFilters === null ? [] : this.linkedFilters;
