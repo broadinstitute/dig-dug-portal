@@ -82,13 +82,11 @@ export default Vue.component("time-series-line-plot", {
         highlightedDonor: null,
         showConfidence: "some",
         allConfidence: [],
-        staticAllDonorData: [],
         lineGenerator: null,
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
-    this.staticAllDonorData = this.computeChartData(this.plotData, false);
     this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
@@ -96,6 +94,9 @@ export default Vue.component("time-series-line-plot", {
   computed: {
     chartData(){
       return this.computeChartData(this.plotData, true);
+    },
+    allDonorData(){
+      return this.computeChartData(this.plotData, false);
     },
     maxTime(){
       let times = this.plotData.map(d => d.time).filter(t => !isNaN(t));
@@ -324,7 +325,7 @@ export default Vue.component("time-series-line-plot", {
           );
       let linesOnly = this.showConfidence === "none";
       let linesData = this.showConfidence === "all" 
-        ? this.staticAllDonorData 
+        ? this.allDonorData 
         : this.chartData;
       linesData.forEach(c => {
           this.svg.append("path")
