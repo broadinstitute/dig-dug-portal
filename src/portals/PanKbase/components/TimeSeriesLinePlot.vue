@@ -18,7 +18,7 @@
       </div>
         <div class="download-images-setting">
           <div>
-            <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
+            <span>Mouse over the plot to highlight an individual donor.</span>
           </div>
           <div>
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">

@@ -78,13 +78,13 @@
                             </div>
                             <div class="col-md-9">
                                 <b-tabs>
-                                    <b-tab title="Perifusion traces">
+                                    <b-tab title="Perifusion traces" class="line-plot-tab">
                                         <div class="line-plots">
                                             {{ $parent.filteredAccession.length }} donors meeting filter criteria
                                             <button class="btn btn-secondary btn-sm" @click="$parent.copyResults()">
                                                 Copy link to results
                                             </button>
-                                            <div>
+                                            <div class="radio-labels">
                                                 <label>
                                                     <input type="radio"
                                                         name="showContent"
@@ -299,8 +299,15 @@
     margin-top: 20px;
     margin-left: 20px;
 }
-div.line-plot:first-child {
+.line-plot-tab {
+    background-color:  #efefef;
+}
+div.line-plot {
+    margin: 10px;
     margin-top: 20px;
+    padding: 5px;
+    background-color: white;
+
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
@@ -313,4 +320,7 @@ div.line-plot:first-child {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+.radio-labels label {
+    margin-right: 10px;
+  }
 </style>
