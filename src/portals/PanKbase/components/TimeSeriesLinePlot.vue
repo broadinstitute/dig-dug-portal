@@ -75,10 +75,8 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        axesDrawn: false,
         highlightedDonor: null,
         showConfidence: "some",
-        lineGenerator: null,
       };
   },
   mounted(){
@@ -295,8 +293,6 @@ export default Vue.component("time-series-line-plot", {
         .call(d3.axisBottom(this.xScale))
           .selectAll("text")
           .style("font-size", "13px");
-      
-      this.axesDrawn = true;
       // add Y-axis
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
