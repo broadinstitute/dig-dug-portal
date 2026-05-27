@@ -121,7 +121,9 @@ import { truncate } from 'lodash';
                 .selectAll("text")
                 .style("font-size", this.fontSize);
 
-            let categories = Array.from(new Set(this.data.map(d => d[xField])));
+            let empty = "-";
+            let categories = Array.from(new Set(
+                this.data.map(d => d[xField]).filter(d => d !== empty)));
 
             let x = d3.scaleBand()
                 .range([0,width])
