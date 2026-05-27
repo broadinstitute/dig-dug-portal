@@ -54,6 +54,26 @@ new Vue({
                 gcgContent: "HIPP_gcg_content.pankbase.txt",
                 insContent: "HIPP_ins_content.pankbase.txt"
             },
+            assoc_filenames: [
+                "HIPP_Age_skipped.csv",
+                "HIPP_Age.csv",
+                "HIPP_BMI_skipped.csv",
+                "HIPP_BMI.csv",
+                "HIPP_Derived-Diabetes-Status_skipped.csv",
+                "HIPP_Derived-Diabetes-Status.csv",
+                "HIPP_Diabetes-status_skipped.csv",
+                "HIPP_Diabetes-status.csv",
+                "HIPP_Ethnicities_skipped.csv",
+                "HIPP_Ethnicities.csv",
+                "HIPP_Gender_skipped.csv",
+                "HIPP_Gender.csv",
+                "HIPP_Genetic-sex_skipped.csv",
+                "HIPP_Genetic-sex.csv",
+                "HIPP_HbA1c_skipped.csv",
+                "HIPP_HbA1c.csv",
+                "HIPP_T1D-stage_skipped.csv",
+                "HIPP_T1D-stage.csv"
+            ],
             donorsWithData: [],
             filteredDonors: [],
             filteredMetadata: [],
@@ -255,6 +275,7 @@ new Vue({
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
+        await this.$store.dispatch("populateAssocData", this.assoc_filenames);
         let aucData = this.$store.state.allTraits;
         let violinConditions = Object.keys(aucData[0])
             .filter(c => c !== "Pankbase_ID" && c !== "Donor ID");
@@ -337,7 +358,7 @@ new Vue({
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters)
                 .filter(e => e.length > 0);
-            let donorIdFinder = /[\w]+/
+            let donorIdFinder = /[\w]+/;
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
         },
