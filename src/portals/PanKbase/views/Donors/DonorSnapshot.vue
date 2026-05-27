@@ -60,7 +60,9 @@
                         Compare the full donor cohort with the subset that has assay data available in PanKbase.
                     </div>
                 </div>
+                <!--
                 <a class="snapshot-overview-link" href="/donors.html">See full donor summary</a>
+                -->
             </div>
 
             <div class="snapshot-scroll">
@@ -82,6 +84,10 @@
 
                             <div v-if="row.coverageBadge" class="snapshot-coverage-badge">
                                 {{ row.coverageBadge }}
+                            </div>
+
+                            <div v-if="row.key === 'assay'" class="snapshot-card-link">
+                                <a class="snapshot-overview-link" href="/donors.html">See full assay summary</a>
                             </div>
 
                         </article>
@@ -293,22 +299,22 @@ export default Vue.component("DonorSnapshot", {
         comparisonRows() {
             return [
                 {
-                    key: "all",
-                    kicker: "Cohort",
-                    label: "All donors",
-                    overviewLabel: "",
-                    count: this.allDonorRecords.length,
-                    cardClass: "snapshot-card-all",
-                    metaLines: [],
-                    coverageBadge: null,
-                },
-                {
                     key: "assay",
                     kicker: "Subset",
                     label: "Donors with assays",
                     overviewLabel: "",
                     count: this.assayDonorRecords.length,
                     cardClass: "snapshot-card-assay",
+                    metaLines: [],
+                    coverageBadge: null,
+                },
+                {
+                    key: "all",
+                    kicker: "Cohort",
+                    label: "All donors",
+                    overviewLabel: "",
+                    count: this.allDonorRecords.length,
+                    cardClass: "snapshot-card-all",
                     metaLines: [],
                     coverageBadge: null,
                 },
@@ -1119,13 +1125,18 @@ function formatPercentValue(value) {
     padding: 7px 10px;
     border: 1px solid #b8d7ce;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    color: #1d5f56;
+    background: var(--pkb-primary-green);
+    color: white !important;
     font-size: 11px;
     font-weight: 700;
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
+}
+
+.snapshot-card-link {
+    align-self: flex-start;
+    margin-top: auto;
 }
 
 .snapshot-card-heading {
