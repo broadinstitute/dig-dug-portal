@@ -60,12 +60,10 @@ export default new Vuex.Store({
     async populateAssocData(context, filenames){
       let rawFilesLocation = `${PANKBASE_BIOINDEX}/api/raw/file/functional_data/${
         context.state.dataset}/assoc_csv/`;
-      let filenameLabeler = /HIPP_([\w]+).csv/;
-      let donorIdFinder = /[\w]+/
-            entries = entries.map(e => e.match(donorIdFinder)[0]);
+      let filenameLabeler = /HIPP_([-\w]+).csv/;
       for (let i = 0; i < filenames.length; i++){
         let filename = filenames[i];
-        let fileLabel = filename.match(filenameLabeler[1]);
+        let fileLabel = filename.match(filenameLabeler)[1];
         console.log(fileLabel);
         let url = rawFilesLocation.concat(filename);
         const response = await fetch(url);
