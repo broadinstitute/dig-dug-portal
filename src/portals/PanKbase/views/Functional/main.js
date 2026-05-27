@@ -27,6 +27,9 @@ const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pank
 const timepointsFile = "/data/pankbase/HIPP_gcg_ieq.timepoints.txt";
 const gcgTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_gcg_ieq.timepoints.txt`;
 const insTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_ins_ieq.timepoints.txt`;
+const dashFormatter = function(item){
+    return item === '-' ? "N/A" : item;
+};
 
 new Vue({
     store,
@@ -46,6 +49,8 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
+            pageId: "pankbase_functionalbrowser",
+            about: "",
             files: {
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
@@ -54,6 +59,26 @@ new Vue({
                 gcgContent: "HIPP_gcg_content.pankbase.txt",
                 insContent: "HIPP_ins_content.pankbase.txt"
             },
+            assoc_filenames: [
+                "HIPP_Age_skipped.csv",
+                "HIPP_Age.csv",
+                "HIPP_BMI_skipped.csv",
+                "HIPP_BMI.csv",
+                "HIPP_Derived-Diabetes-Status_skipped.csv",
+                "HIPP_Derived-Diabetes-Status.csv",
+                "HIPP_Diabetes-status_skipped.csv",
+                "HIPP_Diabetes-status.csv",
+                "HIPP_Ethnicities_skipped.csv",
+                "HIPP_Ethnicities.csv",
+                "HIPP_Gender_skipped.csv",
+                "HIPP_Gender.csv",
+                "HIPP_Genetic-sex_skipped.csv",
+                "HIPP_Genetic-sex.csv",
+                "HIPP_HbA1c_skipped.csv",
+                "HIPP_HbA1c.csv",
+                "HIPP_T1D-stage_skipped.csv",
+                "HIPP_T1D-stage.csv"
+            ],
             donorsWithData: [],
             filteredDonors: [],
             filteredMetadata: [],
@@ -248,12 +273,15 @@ new Vue({
             linkedFilters: null,
             showAdvanced: false,
             functionalTrait: null,
+            functionalAssocTrait: null,
             vlnConditions: [],
             showContent: false,
+            assocTraits: []
         };
     },
     async created() {
-        // TODO Use an invisible b-table to do the filtering 
+        let content = await getPankbaseContent(this.pageId, true);
+        this.about = content;
         await this.$store.dispatch("populateData", this.files);
         let aucData = this.$store.state.allTraits;
         let violinConditions = Object.keys(aucData[0])
@@ -309,6 +337,13 @@ new Vue({
             let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
             return results;
         },
+        tableFields(){
+            let fields = structuredClone(Object.values(this.fieldsObject));
+            fields.forEach(f =>
+                f.formatter = dashFormatter
+            );
+            return fields;
+        },
         presets(){
             return this.linkedFilters === null ? [] : this.linkedFilters;
         },
@@ -328,8 +363,37 @@ new Vue({
             // Needs to be computed for the plot to update in real time
             return this.functionalTrait;
         },
+        assocTraitData(){
+            if (this.functionalAssocTrait === null){
+                return [];
+            }
+            return this.$store.state.assoc_data[this.functionalAssocTrait];
+        },
+        functionalAssocFields(){
+            if (this.assocTraitData.length === 0){
+                return [];
+            }
+            let fields = Object.keys(this.assocTraitData[0]);
+            let lastField = "covariates";
+            if (fields.includes(lastField)){
+                fields = fields.filter(f => f !== lastField);
+                fields.push(lastField);
+            }
+            return fields.map(f => {
+                let definition = {
+                    key: f,
+                    formatter: f => isNaN(f) ? f : Number(f).toPrecision(3)
+                }
+                return definition;
+            })
+        }
     },
     methods: {
+        async populateAssoc(){
+            await this.$store.dispatch("populateAssocData", this.assoc_filenames);
+            this.assocTraits = Object.keys(this.$store.state.assoc_data)
+                .filter(t => !t.includes("skipped"));
+        },
         useSelectedDonors(useSelected){
             this.useSelected = useSelected;
         },
@@ -337,7 +401,7 @@ new Vue({
             let delimiters = /[,\s]/;
             let entries = this.selectedDonors.split(delimiters)
                 .filter(e => e.length > 0);
-            let donorIdFinder = /[\w]+/
+            let donorIdFinder = /[\w]+/;
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
         },

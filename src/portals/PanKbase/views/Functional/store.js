@@ -28,8 +28,8 @@ export default new Vuex.Store({
     ins: null,
     metadata: null,
     gcgContent: null,
-    insConent: null
-
+    insContent: null,
+    assoc_data: {},
   },
 
   mutations: {
@@ -46,7 +46,6 @@ export default new Vuex.Store({
             let fileLabel = files[i];
             let suffix = fileLocations[fileLabel];
             let url = rawFilesLocation.concat(suffix);
-            console.log(url);
             const response = await fetch(url);
             let fileText = await response.text();
             if (fileLabel.includes("Content")){
@@ -57,6 +56,20 @@ export default new Vuex.Store({
             let tsv = dataConvert.tsv2Json(fileText);
             context.state[fileLabel] = tsv;
         }
+    },
+    async populateAssocData(context, filenames){
+      let rawFilesLocation = `${PANKBASE_BIOINDEX}/api/raw/file/functional_data/${
+        context.state.dataset}/assoc_csv/`;
+      let filenameLabeler = /HIPP_([-\w]+).csv/;
+      for (let i = 0; i < filenames.length; i++){
+        let filename = filenames[i];
+        let fileLabel = filename.match(filenameLabeler)[1];
+        let url = rawFilesLocation.concat(filename);
+        const response = await fetch(url);
+        const fileText = await response.text();
+        let csv = dataConvert.csv2Json(fileText);
+        context.state.assoc_data[fileLabel] = csv;
+      }
     }
   },
 });

@@ -10,6 +10,7 @@
                         <span id="stats-header">Data Explorer</span>
                         <span v-if="$parent.filteredMetadata.length > 0">
                             ({{ $parent.donorsWithData.length }} donors with available functional data)</span>
+                        <div v-html="$parent.about"></div>
                     </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
                         <div class="row">
@@ -141,35 +142,78 @@
                                                     </option>
                                                 </select>
                                             </div>
-                                            <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
-                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
+                                            <div v-if="$parent.vlnConditions.length > 0">
+                                                <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
+                                            <div class="vlnPlots row">
                                                 <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('INS'))"
-                                                    class="vlnPlot col-md-4">
+                                                    class="vlnPlot col-md-4"
+                                                    v-if="$parent.functionalTrait !== null">
                                                     <functional-violin-plot
                                                         v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
-                                                        :index="index"
-                                                        :xField="$parent.violinTrait"
-                                                        :xLabel="$parent.violinTrait"
+                                                        :xField="$parent.functionalTrait"
+                                                        :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
-                                                <!-- <div v-for="(condition, index) in 
+                                            </div>
+                                            <strong>Glucagon secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
+                                            <div class="vlnPlots row" v-if="$parent.vlnConditions.length > 0">
+                                                <div v-for="(condition, index) in 
                                                     $parent.vlnConditions.filter(c => c.startsWith('GCG'))"
-                                                    class="vlnPlot col-md-4">
-                                                    <functional-violin-plot 
+                                                    class="vlnPlot col-md-4"
+                                                    v-if="$parent.functionalTrait !== null">
+                                                    <functional-violin-plot
+                                                        v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
-                                                        :index="index"
-                                                        :xField="$parent.violinTrait"
-                                                        :xLabel="$parent.violinTrait"
+                                                        :xField="$parent.functionalTrait"
+                                                        :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
                                                     >
                                                     </functional-violin-plot>
-                                                </div> -->
+                                                </div>
                                             </div>
                                         </div>
+                                        </div>
+                                    </b-tab>
+                                    <b-tab title="Functional trait associations"
+                                        @click="$parent.populateAssoc()"
+                                    >
+                                        Based on {{ $parent.filteredAccession.length }} donors
+                                        <div class="functional-select">
+                                            <select 
+                                                v-model="$parent.functionalAssocTrait">
+                                                <option :value="null">Select a trait</option>
+                                                <option v-for="trait in $parent.assocTraits"
+                                                    :value="trait">
+                                                    {{ trait }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div id="functional-assoc-table">
+                                            <b-table
+                                                small
+                                                :fields="$parent.functionalAssocFields"
+                                                :items="$parent.assocTraitData"
+                                                :sortable="true"
+                                            >
+                                            <template #cell(covariates)="r">
+                                                <button class="btn btn-sm btn-secondary"
+                                                    @click="r.toggleDetails()">
+                                                    {{ r.detailsShowing ? "Hide" : "Show"}}
+                                                </button>
+                                            </template>
+                                            <template #row-details="r">
+                                                <div 
+                                                    style="background-color: #efefef;text-align: right;">
+                                                    {{ r.item.covariates.replaceAll(";", ", ") }}
+                                                </div>
+                                            </template>
+                                            </b-table>
+                                        </div>
+                                        
                                     </b-tab>
                                 </b-tabs>
                                 
@@ -187,7 +231,7 @@
                         <b-table
                             small
                             :items="$parent.filteredDonors"
-                            :fields="Object.values($parent.fieldsObject)"
+                            :fields="$parent.tableFields"
                             :sortable="true"
                             :per-page="$parent.perPage"
                             :current-page="$parent.currentPage"
@@ -313,7 +357,7 @@ div.line-plot {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
 }
-.vln-plot {
+.vln-plot, .vlnPlots {
     background-color:  #efefef !important;
 }
 .functional-select {
@@ -322,5 +366,8 @@ div.line-plot {
 }
 .radio-labels label {
     margin-right: 10px;
-  }
+}
+#functional-assoc-table {
+    overflow-x: scroll;
+}
 </style>
