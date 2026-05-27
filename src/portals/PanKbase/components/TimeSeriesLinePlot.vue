@@ -52,15 +52,12 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "@/components/DownloadChart.vue";
-import plotUtils from "@/utils/plotUtils";
-import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "donors", "plotId", 
-    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
+  props: ["plotData", "donors", "plotId", 
+    "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
@@ -156,9 +153,6 @@ export default Vue.component("time-series-line-plot", {
     },
     computeChartData(inputData, filterDonors){
       let data = structuredClone(inputData);
-      if (this.filter){
-        data = data.filter(this.filter);
-      }
       let output = [];
       let donors = filterDonors 
         ? this.donors 
