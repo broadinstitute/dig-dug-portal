@@ -12,80 +12,82 @@
                         {{ $parent.datasetError }}
                     </div>
                     <div v-else-if="hasRows" class="dataset-layout">
-                        <aside class="filters-panel">
-                            <div class="filters-panel-header-row">
-                                <div class="filters-panel-header">Filters</div>
-                                <button
-                                    v-if="activeFilterPills.length"
-                                    class="filters-clear-button"
-                                    type="button"
-                                    @click="clearAllFilters"
-                                >
-                                    Clear filters
-                                </button>
-                            </div>
-
-                            <div v-if="hasAvailableFilters" class="filters-panel-controls">
-                                <input
-                                    v-model.trim="filterSearch"
-                                    class="filters-search-input"
-                                    type="search"
-                                    placeholder="Search filters"
-                                >
-                                <select v-model="filterType" class="filters-type-select">
-                                    <option value="all">All filters</option>
-                                    <option value="numeric">Numerical filters</option>
-                                    <option value="categorical">Categorical filters</option>
-                                </select>
-                            </div>
-
-                            <div v-if="activeFilterPills.length" class="active-filter-pills active-filter-pills-sidebar">
-                                <button
-                                    v-for="pill in activeFilterPills"
-                                    :key="pill.key"
-                                    class="active-filter-pill"
-                                    type="button"
-                                    @click="scrollToFilter(pill)"
-                                >
-                                    <span class="active-filter-pill-label">{{ pill.label }}</span>
-                                    <span
-                                        class="active-filter-pill-close"
-                                        @click.stop="removeFilter(pill)"
+                        <div class="filters">
+                            <aside class="filters-panel">
+                                <div class="filters-panel-header-row">
+                                    <div class="filters-panel-header">Filters</div>
+                                    <button
+                                        v-if="activeFilterPills.length"
+                                        class="filters-clear-button"
+                                        type="button"
+                                        @click="clearAllFilters"
                                     >
-                                        x
-                                    </span>
-                                </button>
-                            </div>
-
-                            <div v-if="hasVisibleFilters" class="filters-panel-body">
-                                <numeric-range-filter
-                                    v-for="column in visibleNumericFilterColumns"
-                                    :key="`numeric-${column.name}`"
-                                    :ref="getNumericFilterRef(column.name)"
-                                    v-model="numericFilters[column.name]"
-                                    :column-name="column.name"
-                                    :display-label="getColumnLabel(column.name)"
-                                    :values="numericFilterData[column.name] ? numericFilterData[column.name].values : []"
-                                    :total-row-count="totalRows"
-                                ></numeric-range-filter>
-                                <categorical-filter
-                                    v-for="column in visibleCategoricalFilterColumns"
-                                    :key="`categorical-${column.name}`"
-                                    :ref="getCategoricalFilterRef(column.name)"
-                                    v-model="categoricalFilters[column.name]"
-                                    :column-name="column.name"
-                                    :display-label="getColumnLabel(column.name)"
-                                    :options="categoricalFilterData[column.name] ? categoricalFilterData[column.name].options : []"
-                                    :total-row-count="totalRows"
-                                ></categorical-filter>
-                            </div>
-                            <div v-else-if="hasAvailableFilters" class="dataset-status">
-                                No matching filters.
-                            </div>
-                            <div v-else class="dataset-status">
-                                No filters available.
-                            </div>
-                        </aside>
+                                        Clear filters
+                                    </button>
+                                </div>
+    
+                                <div v-if="hasAvailableFilters" class="filters-panel-controls">
+                                    <input
+                                        v-model.trim="filterSearch"
+                                        class="filters-search-input"
+                                        type="search"
+                                        placeholder="Search filters"
+                                    >
+                                    <select v-model="filterType" class="filters-type-select">
+                                        <option value="all">All filters</option>
+                                        <option value="numeric">Numerical filters</option>
+                                        <option value="categorical">Categorical filters</option>
+                                    </select>
+                                </div>
+    
+                                <div v-if="activeFilterPills.length" class="active-filter-pills active-filter-pills-sidebar">
+                                    <button
+                                        v-for="pill in activeFilterPills"
+                                        :key="pill.key"
+                                        class="active-filter-pill"
+                                        type="button"
+                                        @click="scrollToFilter(pill)"
+                                    >
+                                        <span class="active-filter-pill-label">{{ pill.label }}</span>
+                                        <span
+                                            class="active-filter-pill-close"
+                                            @click.stop="removeFilter(pill)"
+                                        >
+                                            x
+                                        </span>
+                                    </button>
+                                </div>
+    
+                                <div v-if="hasVisibleFilters" class="filters-panel-body">
+                                    <numeric-range-filter
+                                        v-for="column in visibleNumericFilterColumns"
+                                        :key="`numeric-${column.name}`"
+                                        :ref="getNumericFilterRef(column.name)"
+                                        v-model="numericFilters[column.name]"
+                                        :column-name="column.name"
+                                        :display-label="getColumnLabel(column.name)"
+                                        :values="numericFilterData[column.name] ? numericFilterData[column.name].values : []"
+                                        :total-row-count="totalRows"
+                                    ></numeric-range-filter>
+                                    <categorical-filter
+                                        v-for="column in visibleCategoricalFilterColumns"
+                                        :key="`categorical-${column.name}`"
+                                        :ref="getCategoricalFilterRef(column.name)"
+                                        v-model="categoricalFilters[column.name]"
+                                        :column-name="column.name"
+                                        :display-label="getColumnLabel(column.name)"
+                                        :options="categoricalFilterData[column.name] ? categoricalFilterData[column.name].options : []"
+                                        :total-row-count="totalRows"
+                                    ></categorical-filter>
+                                </div>
+                                <div v-else-if="hasAvailableFilters" class="dataset-status">
+                                    No matching filters.
+                                </div>
+                                <div v-else class="dataset-status">
+                                    No filters available.
+                                </div>
+                            </aside>
+                        </div>
 
                         <div class="dataset-table-wrap">
                             <div class="dataset-content-tabs">
@@ -2030,7 +2032,6 @@ export default {
 
 .dataset-panel {
     margin-top: 24px;
-    padding: 16px;
 }
 
 .dataset-layout {
@@ -2041,18 +2042,22 @@ export default {
     min-height: 0;
 }
 
+.filters {
+    position: relative;
+    min-height: 0;
+    overflow-y: scroll;
+    height: 100%;
+}
+
 .filters-panel {
-    position: sticky;
-    top: 16px;
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-self: start;
-    height: fit-content;
-    max-height: calc(100vh - 32px);
     padding: 10px;
     border-right: 1px solid #ccc;
-    overflow: hidden;
-    background: #eee;
+    background: #f6f4f4;
 }
 
 .filters-panel-header {
@@ -2256,7 +2261,7 @@ export default {
 }
 
 .availability-plot-card {
-    padding: 5px;
+    padding: 0px;
 }
 
 .availability-plot-summary {
@@ -2264,7 +2269,7 @@ export default {
     padding: 12px 14px;
     border: 1px solid #d8e6e1;
     border-radius: 10px;
-    background: #f7fbfa;
+    background: #f6f4f4;
     display:flex;
     justify-content: space-between;
     align-items: baseline;
