@@ -18,7 +18,7 @@
       </div>
         <div class="download-images-setting">
           <div>
-            <span v-if="showConfidence === 'none'">Mouse over the plot to highlight an individual donor.</span>
+            <span>Mouse over the plot to highlight an individual donor.</span>
           </div>
           <div>
             <button class="btn btn-secondary btn-sm" @click="downloadImage(plotId, `ins_ieq_time_series`, 'svg')">
@@ -52,15 +52,12 @@
 <script>
 import Vue from "vue";
 import * as d3 from "d3";
-import DownloadChart from "@/components/DownloadChart.vue";
-import plotUtils from "@/utils/plotUtils";
-import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("time-series-line-plot", {
   components: {
   },
-  props: ["plotData", "filter", "maxTime", "maxScore", "donors", "plotId", 
-    "utils", "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
+  props: ["plotData", "donors", "plotId", 
+    "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
@@ -78,23 +75,36 @@ export default Vue.component("time-series-line-plot", {
         xField: "time",
         yField: "score",
         xAxisLabel: "time (min)",
-        axesDrawn: false,
         highlightedDonor: null,
         showConfidence: "some",
-        allConfidence: [],
-        staticAllDonorData: [],
       };
   },
   mounted(){
     this.chart = document.getElementById(this.plotId);
-    this.staticAllDonorData = this.computeChartData(this.plotData, false);
-    this.allConfidence = this.confidenceIntervals(this.plotData);
     window.addEventListener("resize", this.drawChart);
     this.drawChart();
   },
   computed: {
     chartData(){
       return this.computeChartData(this.plotData, true);
+    },
+    allDonorData(){
+      return this.computeChartData(this.plotData, false);
+    },
+    allConfidence(){
+      return this.confidenceIntervals(this.plotData);
+    },
+    maxTime(){
+      let times = this.plotData.map(d => d.time).filter(t => !isNaN(t));
+      let max = Number(times[0]);
+      times.forEach(t => max = Number(t) > max ? Number(t) : max);
+      return max;
+    },
+    maxScore(){
+      let scores = this.plotData.map(d => d.score).filter(t => !isNaN(t));
+      let max = Number(scores[0]);
+      scores.forEach(t => max = Number(t) > max ? Number(t) : max);
+      return max;
     },
     filteredConfidence(){
       let data = this.plotData.filter(d => this.donors.includes(d.donor));
@@ -141,9 +151,6 @@ export default Vue.component("time-series-line-plot", {
     },
     computeChartData(inputData, filterDonors){
       let data = structuredClone(inputData);
-      if (this.filter){
-        data = data.filter(this.filter);
-      }
       let output = [];
       let donors = filterDonors 
         ? this.donors 
@@ -188,6 +195,7 @@ export default Vue.component("time-series-line-plot", {
         return output;
     },
     drawChart(){
+
       let margin = {
         top: 80,
         right: 10,
@@ -285,8 +293,6 @@ export default Vue.component("time-series-line-plot", {
         .call(d3.axisBottom(this.xScale))
           .selectAll("text")
           .style("font-size", "13px");
-      
-      this.axesDrawn = true;
       // add Y-axis
       this.svg.append("g")
         .call(d3.axisLeft(this.yScale))
@@ -309,40 +315,42 @@ export default Vue.component("time-series-line-plot", {
             d[this.yField] !== undefined
           );
       let linesOnly = this.showConfidence === "none";
-      let highlightedDonorData = null;
       let linesData = this.showConfidence === "all" 
-        ? this.staticAllDonorData 
+        ? this.allDonorData 
         : this.chartData;
       linesData.forEach(c => {
-        if (c[0].donor === this.highlightedDonor && linesOnly){
-          highlightedDonorData = c;
-        } else {
           this.svg.append("path")
           .datum(c)
-          .attr("class", "linegraph")
+          .attr("class", "line-path")
           .attr("fill", "none")
           .attr("stroke", this.highlightedDonor === null && linesOnly 
             ? this.lineColor : 
             "lightgray")
           .attr("stroke-width", 1)
-          .attr("class", "line-path")
           .attr("d", lineGenerator)
           .on("mouseover", c => this.showTooltip(c));
-        }
       });
-      // Put highlighted line on top
-      if (highlightedDonorData !== null && linesOnly){
-        this.svg.append("path")
-          .datum(highlightedDonorData)
-          .attr("class", "linegraph")
-          .attr("fill", "none")
-          .attr("stroke", this.lineColor)
-          .attr("stroke-width", 2)
-          .attr("class", "line-path")
-          .attr("d", lineGenerator)
-          .on("mouseover", c => this.showTooltip(c))
-      }
       this.drawIntervals();
+    },
+    drawHighlightedDonor(c){
+      this.svg.selectAll("path.highlighted-donor-line").remove();
+      if (c === null){
+        return;
+      }
+      const lineGenerator = d3.line()
+          .x(d => this.xScale(d[this.xField]))
+          .y(d => this.yScale(d[this.yField]))
+          .defined(d =>
+            d[this.xField] !== undefined &&
+            d[this.yField] !== undefined
+          );
+      this.svg.append("path")
+          .datum(c)
+          .attr("class", "line-path highlighted-donor-line")
+          .attr("fill", "none")
+          .attr("stroke", this.lineColor) // What color for this?
+          .attr("stroke-width", 2)
+          .attr("d", lineGenerator);
     },
     drawIntervals(){
       if (this.showConfidence === "none"){
@@ -406,14 +414,13 @@ export default Vue.component("time-series-line-plot", {
       this.drawChart();
 		},
     showTooltip(c){
-      if (this.showConfidence !== "none"){
-        return;
-      }
       let donor = c[0].donor;
-      //this.hoverLine(donor);
       if (this.highlightedDonor !== donor){
         this.highlightedDonor = donor;
-        this.drawLines();
+        if (this.showConfidence === 'none'){
+          this.drawLines();
+        }
+        this.drawHighlightedDonor(c);
       }
     }
   },

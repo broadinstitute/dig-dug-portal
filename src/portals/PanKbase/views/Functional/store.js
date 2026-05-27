@@ -26,7 +26,9 @@ export default new Vuex.Store({
     allTraits: null,
     gcg: null,
     ins: null,
-    metadata: null
+    metadata: null,
+    gcgContent: null,
+    insConent: null
 
   },
 
@@ -44,8 +46,14 @@ export default new Vuex.Store({
             let fileLabel = files[i];
             let suffix = fileLocations[fileLabel];
             let url = rawFilesLocation.concat(suffix);
+            console.log(url);
             const response = await fetch(url);
-            const fileText = await response.text();
+            let fileText = await response.text();
+            if (fileLabel.includes("Content")){
+              // Content raw files are missing first 2 headers. Need to resupply them.
+              let timeHeaders = "timepoint\ttime\t";
+              fileText = timeHeaders.concat(fileText);
+            }
             let tsv = dataConvert.tsv2Json(fileText);
             context.state[fileLabel] = tsv;
         }

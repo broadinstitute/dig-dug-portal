@@ -50,7 +50,9 @@ new Vue({
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
                 ins: "HIPP_ins_ieq.pankbase.txt",
-                metadata: "meta-data.merged.pankbase.txt"
+                metadata: "meta-data.merged.pankbase.combined.final.txt",
+                gcgContent: "HIPP_gcg_content.pankbase.txt",
+                insContent: "HIPP_ins_content.pankbase.txt"
             },
             donorsWithData: [],
             filteredDonors: [],
@@ -247,6 +249,7 @@ new Vue({
             showAdvanced: false,
             functionalTrait: null,
             vlnConditions: [],
+            showContent: false,
         };
     },
     async created() {
@@ -275,10 +278,16 @@ new Vue({
             return utils;
         },
         insData(){
-            return this.collateData(this.$store.state.ins);
+            let sourceData = 
+                this.showContent ? this.$store.state.insContent : 
+                this.$store.state.ins;
+            return this.collateData(sourceData);
         },
         gcgData(){
-            return this.collateData(this.$store.state.gcg);
+            let sourceData = 
+                this.showContent ? this.$store.state.gcgContent : 
+                this.$store.state.gcg;
+            return this.collateData(sourceData);
         },
         filteredAccession(){
             let results = this.tableItems.map(d => d.Accession);

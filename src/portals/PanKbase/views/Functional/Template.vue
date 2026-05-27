@@ -78,36 +78,52 @@
                             </div>
                             <div class="col-md-9">
                                 <b-tabs>
-                                    <b-tab title="Perifusion traces">
+                                    <b-tab title="Perifusion traces" class="line-plot-tab">
                                         <div class="line-plots">
                                             {{ $parent.filteredAccession.length }} donors meeting filter criteria
                                             <button class="btn btn-secondary btn-sm" @click="$parent.copyResults()">
                                                 Copy link to results
                                             </button>
+                                            <div class="radio-labels">
+                                                <label>
+                                                    <input type="radio"
+                                                        name="showContent"
+                                                        :value="false"
+                                                        v-model="$parent.showContent"/>
+                                                    View by IEQ
+                                                </label>
+                                                <label>
+                                                    <input type="radio"
+                                                        name="showContent"
+                                                        :value="true"
+                                                        v-model="$parent.showContent"/>
+                                                    View by content
+                                                </label>
+                                            </div>
                                             <div class="insulin-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.insTimepoints.length > 0"
                                                     :plotData="$parent.resultsIns"
                                                     plotTitle="Islet Insulin Secretion"
-                                                    :maxTime="$parent.maxTimeIns"
-                                                    :maxScore="$parent.maxScoreIns"
                                                     :donors="$parent.filteredAccession"
                                                     :plotId="`insulin_ieq`"
                                                     :timepoints="$parent.insTimepoints"
                                                     :lineColor="$parent.insColor"
-                                                    yAxisLabel="ng/100IEQ/min">
+                                                    :yAxisLabel=" $parent.showContent
+                                                        ? '% content min'
+                                                        : 'ng/100IEQ/min'">
                                                 </time-series-line-plot>
                                             </div>
                                             <div class="glucagon-plot line-plot">
                                                 <time-series-line-plot v-if="$parent.gcgTimepoints.length > 0"
                                                     :plotData="$parent.resultsGcg"
                                                     plotTitle="Islet Glucagon Secretion"
-                                                    :maxTime="$parent.maxTimeGcg"
-                                                    :maxScore="$parent.maxScoreGcg"
                                                     :donors="$parent.filteredAccession"
                                                     :plotId="`glucagon_ieq`"
                                                     :timepoints="$parent.gcgTimepoints"
                                                     :lineColor="$parent.gcgColor"
-                                                    yAxisLabel="pg/100IEQ/min">
+                                                    :yAxisLabel="$parent.showContent 
+                                                        ? '% content min' 
+                                                        : 'pg/100IEQ/min'">
                                                 </time-series-line-plot>
                                             </div>
                                         </div>
@@ -283,8 +299,15 @@
     margin-top: 20px;
     margin-left: 20px;
 }
-div.line-plot:first-child {
+.line-plot-tab {
+    background-color:  #efefef;
+}
+div.line-plot {
+    margin: 10px;
     margin-top: 20px;
+    padding: 5px;
+    background-color: white;
+
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
@@ -297,4 +320,7 @@ div.line-plot:first-child {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+.radio-labels label {
+    margin-right: 10px;
+  }
 </style>
