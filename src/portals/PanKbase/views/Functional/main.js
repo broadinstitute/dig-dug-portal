@@ -50,7 +50,9 @@ new Vue({
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
                 ins: "HIPP_ins_ieq.pankbase.txt",
-                metadata: "meta-data.merged.pankbase.txt"
+                metadata: "meta-data.merged.pankbase.combined.final.txt",
+                gcgContent: "HIPP_gcg_content.pankbase.txt",
+                insContent: "HIPP_ins_content.pankbase.txt"
             },
             donorsWithData: [],
             filteredDonors: [],

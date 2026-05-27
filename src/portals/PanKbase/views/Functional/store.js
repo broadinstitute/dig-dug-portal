@@ -26,7 +26,9 @@ export default new Vuex.Store({
     allTraits: null,
     gcg: null,
     ins: null,
-    metadata: null
+    metadata: null,
+    gcgContent: null,
+    insConent: null
 
   },
 
@@ -44,6 +46,7 @@ export default new Vuex.Store({
             let fileLabel = files[i];
             let suffix = fileLocations[fileLabel];
             let url = rawFilesLocation.concat(suffix);
+            console.log(url);
             const response = await fetch(url);
             const fileText = await response.text();
             let tsv = dataConvert.tsv2Json(fileText);
