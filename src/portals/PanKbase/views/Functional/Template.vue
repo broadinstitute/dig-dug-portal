@@ -10,6 +10,7 @@
                         <span id="stats-header">Data Explorer</span>
                         <span v-if="$parent.filteredMetadata.length > 0">
                             ({{ $parent.donorsWithData.length }} donors with available functional data)</span>
+                        <div v-html="$parent.about"></div>
                     </div>
                     <div v-if="$parent.filteredMetadata.length > 0">
                         <div class="row">

@@ -46,6 +46,8 @@ new Vue({
     mixins: [pankbaseMixin],
     data() {
         return {
+            pageId: "pankbase_functionalbrowser",
+            about: "",
             files: {
                 allTraits: "HIPP_all_traits.pankbase.txt",
                 gcg: "HIPP_gcg_ieq.pankbase.txt",
@@ -275,7 +277,8 @@ new Vue({
         };
     },
     async created() {
-        // TODO Use an invisible b-table to do the filtering 
+        let content = await getPankbaseContent(this.pageId, true);
+        this.about = content;
         await this.$store.dispatch("populateData", this.files);
         let aucData = this.$store.state.allTraits;
         let violinConditions = Object.keys(aucData[0])
