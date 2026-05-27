@@ -1,12 +1,8 @@
 <template>
     <div>
-<!--         <download-chart
-            :filename="`Functional_data_by_${safeField}`"
-            :chartId="`violinChart_${index}_svg`"
-            >
-        </download-chart> -->
         <div class="label">{{ yField }}</div>
-        <div class="plot" :id="`violinChart_${index}`">
+        <div class="plot" v-if="plotId !== null"
+            :id="plotId">
         </div>
     </div>
 </template>
@@ -34,14 +30,10 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
-      index: {
-        type: Number,
-        required: true
-      }
     },
     data() {
         return {
-            plotId: "",
+            plotId: `violinChart_${Math.round(Math.random() * 10e9)}`,
             safeField: this.xField.replaceAll(" ", "_"),
             chart: null,
             chartWidth: 0,
@@ -69,7 +61,6 @@ import { truncate } from 'lodash';
         }
     },
     mounted() {
-        this.plotId = `violinChart_${this.index}`;
         if(this.data){
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
@@ -150,6 +141,9 @@ import { truncate } from 'lodash';
                 .value(d => d);
 
             let statData = structuredClone(this.data);
+            if (this.yField.startsWith('GCG')){
+                console.log(JSON.stringify(statData.map(d => d[this.yField])));
+            }
             let sumstat = d3.nest()
                 .key(d => d[xField])
                 .rollup(function(d){

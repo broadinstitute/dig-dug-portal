@@ -151,7 +151,6 @@
                                                     <functional-violin-plot
                                                         v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
-                                                        :index="index"
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
@@ -168,7 +167,6 @@
                                                     <functional-violin-plot
                                                         v-if="$parent.filteredAucData.length > 0"
                                                         :data="$parent.filteredAucData"
-                                                        :index="index"
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
