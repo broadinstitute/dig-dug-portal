@@ -28,8 +28,8 @@ export default new Vuex.Store({
     ins: null,
     metadata: null,
     gcgContent: null,
-    insConent: null
-
+    insContent: null,
+    assoc_data: {},
   },
 
   mutations: {
@@ -64,13 +64,11 @@ export default new Vuex.Store({
       for (let i = 0; i < filenames.length; i++){
         let filename = filenames[i];
         let fileLabel = filename.match(filenameLabeler)[1];
-        console.log(fileLabel);
         let url = rawFilesLocation.concat(filename);
         const response = await fetch(url);
         const fileText = await response.text();
         let csv = dataConvert.csv2Json(fileText);
-        context.state[fileLabel] = csv;
-        console.log(JSON.stringify(csv[0]));
+        context.state.assoc_data[fileLabel] = csv;
       }
     }
   },

@@ -268,14 +268,15 @@ new Vue({
             linkedFilters: null,
             showAdvanced: false,
             functionalTrait: null,
+            functionalAssocTrait: null,
             vlnConditions: [],
             showContent: false,
+            assocTraits: []
         };
     },
     async created() {
         // TODO Use an invisible b-table to do the filtering 
         await this.$store.dispatch("populateData", this.files);
-        await this.$store.dispatch("populateAssocData", this.assoc_filenames);
         let aucData = this.$store.state.allTraits;
         let violinConditions = Object.keys(aucData[0])
             .filter(c => c !== "Pankbase_ID" && c !== "Donor ID");
@@ -349,8 +350,19 @@ new Vue({
             // Needs to be computed for the plot to update in real time
             return this.functionalTrait;
         },
+        assocTraitData(){
+            if (this.functionalAssocTrait === null){
+                return [];
+            }
+            return this.$store.state.assoc_data[this.functionalAssocTrait];
+        }
     },
     methods: {
+        async populateAssoc(){
+            await this.$store.dispatch("populateAssocData", this.assoc_filenames);
+            this.assocTraits = Object.keys(this.$store.state.assoc_data)
+                .filter(t => !t.includes("skipped"));
+        },
         useSelectedDonors(useSelected){
             this.useSelected = useSelected;
         },

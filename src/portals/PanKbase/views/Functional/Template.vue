@@ -171,6 +171,23 @@
                                             </div>
                                         </div>
                                     </b-tab>
+                                    <b-tab title="Functional trait associations"
+                                        @click="$parent.populateAssoc()"
+                                    >
+                                        <div class="functional-select">
+                                            <select 
+                                                v-model="$parent.functionalAssocTrait">
+                                                <option :value="null">Select a trait</option>
+                                                <option v-for="trait in $parent.assocTraits"
+                                                    :value="trait">
+                                                    {{ trait }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <b-table v-if="$parent.functionalAssocTrait !== null"
+                                            :items="$parent.assocTraitData">
+                                        </b-table>
+                                    </b-tab>
                                 </b-tabs>
                                 
                             </div>
