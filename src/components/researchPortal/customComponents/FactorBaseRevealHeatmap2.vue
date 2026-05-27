@@ -3,16 +3,32 @@
     <div v-if="error" class="error-alert">
       {{ error }}
     </div>
-    <div v-if="useFactorBaseRevealData && traitGroupOptions.length" class="mb-2 d-flex align-items-center gap-2">
-      <label for="fbr-heatmap-trait-group-select" class="mb-0 font-weight-bold small text-secondary">Trait group:</label>
-      <b-form-select
-        id="fbr-heatmap-trait-group-select"
-        v-model="selectedTraitGroup"
-        :options="traitGroupOptions"
-        size="sm"
-        class="form-control form-control-sm"
-        style="max-width: 420px;"
-      />
+    <div v-if="useFactorBaseRevealData && heatmapPairCount" class="mb-2 d-flex flex-nowrap align-items-center overflow-auto fbr-heatmap-toolbar">
+      <div class="fbr-heatmap-control-group">
+        <label for="fbr-heatmap-group-mode-select" class="mb-0 font-weight-bold small text-secondary fbr-heatmap-toolbar-label">Group by:</label>
+        <b-form-select
+          id="fbr-heatmap-group-mode-select"
+          v-model="heatmapGroupMode"
+          :options="heatmapGroupModeOptions"
+          size="sm"
+          class="form-control form-control-sm"
+          style="max-width: 200px;"
+        />
+      </div>
+      <div
+        v-if="heatmapGroupMode !== 'all' && heatmapGroupOptions.length"
+        class="fbr-heatmap-control-group fbr-heatmap-group-by-subcontrols"
+      >
+        <label for="fbr-heatmap-group-select" class="mb-0 font-weight-bold small text-secondary fbr-heatmap-toolbar-label">{{ heatmapGroupSelectLabel }}:</label>
+        <b-form-select
+          id="fbr-heatmap-group-select"
+          v-model="selectedHeatmapGroup"
+          :options="heatmapGroupOptions"
+          size="sm"
+          class="form-control form-control-sm"
+          style="max-width: 420px;"
+        />
+      </div>
     </div>
     <div class="viz-legend" v-if="!loading && (useFactorBaseRevealData ? (heatmapDataFromFactorData && heatmapDataFromFactorData.ready) : (heatmapData && heatmapData.genes && heatmapData.genes.length > 0))">
       <div class="legend-content">
@@ -35,11 +51,6 @@
             <span class="legend-color-text">Not Significant (&lt; 1)</span>
           </span>
         </div>
-        <div class="legend-item">
-          <span class="legend-label">Trait group (gene–gene-set cluster) relevance:</span>
-          <span class="legend-color factor-relevance"></span>
-          <span class="legend-text">Darker = more relevant</span>
-        </div>
       </div>
       <div class="legend-actions">
         <button
@@ -57,9 +68,9 @@
         v-if="useFactorBaseRevealData && (!heatmapDataFromFactorData || !heatmapDataFromFactorData.ready)"
         class="text-center p-3 text-muted"
       >
-        <template v-if="!traitGroupOptions.length">No trait groups available to plot.</template>
-        <template v-else-if="!selectedTraitGroup">Select a trait group.</template>
-        <template v-else>No matrix data for this trait group.</template>
+        <template v-if="!heatmapPairCount">No phenotypes or data categories available to plot.</template>
+        <template v-else-if="heatmapGroupMode !== 'all' && !selectedHeatmapGroup">Select a {{ heatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.</template>
+        <template v-else>No matrix data for this selection.</template>
       </div>
       <div v-else-if="!useFactorBaseRevealData && (!heatmapData || !heatmapData.genes || heatmapData.genes.length === 0)" class="text-center p-3 text-muted">
         Loading heatmap data...
@@ -119,8 +130,10 @@ export default Vue.component("pigean-factors-viz", {
     return {
       loading: false,
       error: null,
-      /** Resolved trait group label (gene set cluster display); heatmap shows only this group’s phenotype rows. */
-      selectedTraitGroup: "",
+      /** phenotype | direction | all — controls heatmap row grouping. */
+      heatmapGroupMode: "phenotype",
+      /** Selected phenotype id or data category label for the active group mode (unused when Group by is Show all). */
+      selectedHeatmapGroup: "",
     };
   },
   computed: {
@@ -130,34 +143,49 @@ export default Vue.component("pigean-factors-viz", {
       const hasFactorData = this.factorData && typeof this.factorData === "object" && Object.keys(this.factorData).length > 0;
       return hasRows || hasFactorData;
     },
-    /** Sorted unique trait groups for the dropdown (same resolution as matrix rows). */
-    traitGroupOptions() {
-      const factorData = this.factorData || {};
-      const phenotypeIds = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
-      const seen = new Set();
-      const labels = [];
-      phenotypeIds.forEach((phenotype) => {
-        (factorData[phenotype].factors || []).forEach((f) => {
-          const clusterKey =
-            f.label != null && String(f.label).trim() !== ""
-              ? String(f.label).trim()
-              : f.factor != null
-                ? String(f.factor)
-                : "";
-          const traitGroupLabel = resolveCfdeFactorClusterDisplayLabel(clusterKey);
-          if (traitGroupLabel && !seen.has(traitGroupLabel)) {
-            seen.add(traitGroupLabel);
-            labels.push(traitGroupLabel);
+    heatmapPairCount() {
+      return this.buildHeatmapPairs().length;
+    },
+    heatmapGroupModeOptions() {
+      return [
+        { value: "phenotype", text: "Phenotype" },
+        { value: "direction", text: "Data category" },
+        { value: "all", text: "Show all" },
+      ];
+    },
+    heatmapGroupSelectLabel() {
+      if (this.heatmapGroupMode === "direction") return "Data category";
+      return "Phenotype";
+    },
+    /** Sorted selector options for the active group-by mode. */
+    heatmapGroupOptions() {
+      const pairs = this.buildHeatmapPairs();
+      if (!pairs.length) return [];
+      if (this.heatmapGroupMode === "all") return [];
+      if (this.heatmapGroupMode === "direction") {
+        const seen = new Set();
+        const dirs = [];
+        pairs.forEach((p) => {
+          const d = p.fetchedDirection || "(unknown direction)";
+          if (!seen.has(d)) {
+            seen.add(d);
+            dirs.push(d);
           }
         });
+        dirs.sort((a, b) => String(a).localeCompare(String(b)));
+        return dirs.map((text) => ({ value: text, text }));
+      }
+      const byPheno = new Map();
+      pairs.forEach((p) => {
+        if (!byPheno.has(p.phenotype)) byPheno.set(p.phenotype, p.phenotypeDisplay);
       });
-      labels.sort((a, b) => String(a).localeCompare(String(b)));
-      return labels.map((text) => ({ value: text, text }));
+      return Array.from(byPheno.entries())
+        .sort((a, b) => String(a[1]).localeCompare(String(b[1])))
+        .map(([value, text]) => ({ value, text }));
     },
     /**
-     * CFDE-REVEAL heatmap for the selected trait group: one row per phenotype in that group.
-     * Columns = gene sets then genes (unions within this trait group’s rows / phenotypes).
-     * Three header rows = gene scores (max across phenotypes in view when multiple).
+     * CFDE-REVEAL heatmap for the selected phenotype, data category, or all rows.
+     * Columns = gene sets then genes for the visible rows only.
      */
     heatmapDataFromFactorData() {
       const out = {
@@ -169,47 +197,37 @@ export default Vue.component("pigean-factors-viz", {
         geneScoresForHeader: [],
         specialRowLabels: ["Combined score", "GWAS support", "Gene set support"]
       };
-      const factorData = this.factorData || {};
-      const phenotypeIds = Object.keys(factorData).filter((k) => factorData[k] && (factorData[k].factors || []).length > 0);
-      if (!phenotypeIds.length) return out;
-
-      const descById = this.phenotypeDescriptionById || {};
-      const phenoDisplay = (pid) => {
-        const fromSearch = descById[pid] != null && String(descById[pid]).trim() !== "" ? String(descById[pid]).trim() : "";
-        const fromCfde = resolveCfdePhenotypeLabel(pid);
-        return fromSearch || fromCfde || pid;
-      };
-
-      const pairs = [];
-      phenotypeIds.forEach((phenotype) => {
-        const factors = factorData[phenotype].factors || [];
-        factors.forEach((f) => {
-          const clusterKey =
-            f.label != null && String(f.label).trim() !== ""
-              ? String(f.label).trim()
-              : f.factor != null
-                ? String(f.factor)
-                : "";
-          const traitGroupLabel = resolveCfdeFactorClusterDisplayLabel(clusterKey);
-          pairs.push({ phenotype, traitGroupLabel, factorObj: f });
-        });
-      });
+      const pairs = this.buildHeatmapPairs();
       if (!pairs.length) return out;
 
-      const byGroup = new Map();
-      pairs.forEach((p) => {
-        if (!byGroup.has(p.traitGroupLabel)) byGroup.set(p.traitGroupLabel, []);
-        byGroup.get(p.traitGroupLabel).push(p);
+      let itemsInView;
+      if (this.heatmapGroupMode === "all") {
+        itemsInView = pairs.slice();
+      } else {
+        const selected = String(this.selectedHeatmapGroup || "").trim();
+        if (!selected) return out;
+        itemsInView =
+          this.heatmapGroupMode === "direction"
+            ? pairs.filter((p) => (p.fetchedDirection || "(unknown direction)") === selected)
+            : pairs.filter((p) => p.phenotype === selected);
+      }
+      if (!itemsInView.length) return out;
+
+      const orderedPairs = [...itemsInView].sort((a, b) => {
+        if (this.heatmapGroupMode === "all") {
+          const pCmp = a.phenotypeDisplay.localeCompare(b.phenotypeDisplay);
+          if (pCmp !== 0) return pCmp;
+          return String(a.fetchedDirection || "").localeCompare(String(b.fetchedDirection || ""));
+        }
+        if (this.heatmapGroupMode === "direction") {
+          return a.phenotypeDisplay.localeCompare(b.phenotypeDisplay);
+        }
+        const dirCmp = String(a.fetchedDirection || "").localeCompare(String(b.fetchedDirection || ""));
+        if (dirCmp !== 0) return dirCmp;
+        return a.phenotypeDisplay.localeCompare(b.phenotypeDisplay);
       });
 
-      const selected = String(this.selectedTraitGroup || "").trim();
-      if (!selected || !byGroup.has(selected)) return out;
-
-      const itemsInGroup = byGroup.get(selected);
-      const orderedPairs = [...itemsInGroup].sort((a, b) =>
-        phenoDisplay(a.phenotype).localeCompare(phenoDisplay(b.phenotype))
-      );
-
+      const factorData = this.factorData || {};
       const phenotypeIdsForView = [];
       const phenoSeen = new Set();
       orderedPairs.forEach((p) => {
@@ -234,8 +252,8 @@ export default Vue.component("pigean-factors-viz", {
       });
 
       const geneSeen = new Set();
-      phenotypeIdsForView.forEach((pid) => {
-        const genes = factorData[pid].genes || {};
+      orderedPairs.forEach(({ factorObj }) => {
+        const genes = factorObj.genes || {};
         Object.keys(genes).forEach((g) => geneSeen.add(g));
       });
       const geneOrder = Array.from(geneSeen).sort();
@@ -269,8 +287,9 @@ export default Vue.component("pigean-factors-viz", {
 
       const factorRows = orderedPairs.map((p) => ({
         phenotype: p.phenotype,
-        phenotypeDisplay: phenoDisplay(p.phenotype),
-        traitGroupLabel: p.traitGroupLabel,
+        phenotypeDisplay: p.phenotypeDisplay,
+        fetchedDirection: p.fetchedDirection,
+        factorClusterLabel: p.factorClusterLabel,
         factor: p.factorObj.factor,
         factorObj: p.factorObj
       }));
@@ -382,20 +401,45 @@ export default Vue.component("pigean-factors-viz", {
       deep: true,
       immediate: true
     },
-    traitGroupOptions: {
+    heatmapGroupOptions: {
       handler(opts) {
-        if (!opts || !opts.length) {
-          this.selectedTraitGroup = "";
+        if (this.heatmapGroupMode === "all") {
+          this.selectedHeatmapGroup = "";
           return;
         }
-        const valid = opts.some((o) => o.value === this.selectedTraitGroup);
-        if (!this.selectedTraitGroup || !valid) {
-          this.selectedTraitGroup = opts[0].value;
+        if (!opts || !opts.length) {
+          this.selectedHeatmapGroup = "";
+          return;
+        }
+        const valid = opts.some((o) => o.value === this.selectedHeatmapGroup);
+        if (!this.selectedHeatmapGroup || !valid) {
+          this.selectedHeatmapGroup = opts[0].value;
         }
       },
       immediate: true
     },
-    selectedTraitGroup() {
+    heatmapGroupMode() {
+      this.$nextTick(() => {
+        if (this.heatmapGroupMode === "all") {
+          this.selectedHeatmapGroup = "";
+        } else {
+          const opts = this.heatmapGroupOptions;
+          if (opts && opts.length) {
+            this.selectedHeatmapGroup = opts[0].value;
+          } else {
+            this.selectedHeatmapGroup = "";
+          }
+        }
+        if (!this.useFactorBaseRevealData) return;
+        this.cleanupTooltips();
+        setTimeout(() => {
+          if (this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
+            this.renderFactorBaseRevealHeatmap();
+          }
+        }, 100);
+      });
+    },
+    selectedHeatmapGroup() {
       if (!this.useFactorBaseRevealData) return;
       this.cleanupTooltips();
       this.$nextTick(() => {
@@ -452,6 +496,75 @@ export default Vue.component("pigean-factors-viz", {
     this.cleanupTooltips();
   },
   methods: {
+    phenoDisplay(pid) {
+      const descById = this.phenotypeDescriptionById || {};
+      const fromSearch = descById[pid] != null && String(descById[pid]).trim() !== "" ? String(descById[pid]).trim() : "";
+      const fromCfde = resolveCfdePhenotypeLabel(pid);
+      return fromSearch || fromCfde || pid;
+    },
+    resolveFactorObjFromTableRow(row) {
+      const phenotype = row && row.phenotype;
+      const factorId = row && row.factor != null ? String(row.factor) : "";
+      const direction =
+        row && (row.fetched_direction || row.fetchDirection || row.route_category)
+          ? String(row.fetched_direction || row.fetchDirection || row.route_category).trim()
+          : "";
+      const data = (this.factorData || {})[phenotype];
+      if (!data || !factorId) return null;
+      const factors = data.factors || data.allFactors || [];
+      const exact = factors.find((f) => {
+        const fDir =
+          f.fetched_direction != null && String(f.fetched_direction).trim() !== ""
+            ? String(f.fetched_direction).trim()
+            : (f.route_category != null ? String(f.route_category).trim() : "");
+        const fId = f.factor != null ? String(f.factor) : "";
+        return fId === factorId && (!direction || fDir === direction);
+      });
+      if (exact) return exact;
+      return factors.find((f) => (f.factor != null ? String(f.factor) : "") === factorId) || null;
+    },
+    buildHeatmapPairs() {
+      const factorData = this.factorData || {};
+      const tableRows = Array.isArray(this.factorDataTableRows) ? this.factorDataTableRows : [];
+      const pairs = [];
+      const pushPair = (phenotype, factorObj) => {
+        if (!phenotype || !factorObj) return;
+        const clusterKey =
+          factorObj.label != null && String(factorObj.label).trim() !== ""
+            ? String(factorObj.label).trim()
+            : factorObj.factor != null
+              ? String(factorObj.factor)
+              : "";
+        const fetchedDirection =
+          factorObj.fetched_direction != null && String(factorObj.fetched_direction).trim() !== ""
+            ? String(factorObj.fetched_direction).trim()
+            : (factorObj.route_category != null && String(factorObj.route_category).trim() !== ""
+                ? String(factorObj.route_category).trim()
+                : "");
+        pairs.push({
+          phenotype,
+          phenotypeDisplay: this.phenoDisplay(phenotype),
+          factorClusterLabel: resolveCfdeFactorClusterDisplayLabel(clusterKey),
+          factorObj,
+          fetchedDirection,
+        });
+      };
+
+      if (tableRows.length) {
+        tableRows.forEach((row) => {
+          const factorObj = this.resolveFactorObjFromTableRow(row);
+          pushPair(row.phenotype, factorObj);
+        });
+        return pairs.filter((p) => p.factorObj);
+      }
+
+      Object.keys(factorData)
+        .filter((k) => factorData[k] && (factorData[k].factors || []).length > 0)
+        .forEach((phenotype) => {
+          (factorData[phenotype].factors || []).forEach((f) => pushPair(phenotype, f));
+        });
+      return pairs;
+    },
     cleanupTooltips() {
       // Remove any orphaned tooltips from the DOM
       const existingTooltips = document.querySelectorAll('.heatmap-tooltip');
@@ -466,8 +579,8 @@ export default Vue.component("pigean-factors-viz", {
       });
     },
     /**
-     * Renders CFDE-REVEAL heatmap: phenotype row labels only (trait group is chosen in the dropdown above);
-     * columns = gene sets then genes; 3 score rows; body = gene set membership / gene–trait relevance.
+     * Renders CFDE-REVEAL heatmap: row labels from phenotype and/or data category;
+     * columns = gene sets then genes; score rows + body crossings / gene relevance.
      */
     renderFactorBaseRevealHeatmap() {
       const h = this.heatmapDataFromFactorData;
@@ -502,7 +615,7 @@ export default Vue.component("pigean-factors-viz", {
       const getBinaryColor = (value) => (value === 1 ? "rgb(156, 39, 176)" : "#f0f0f0");
 
       const labelsSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      const labelWidthNoRelevance = 280;
+      const labelWidthNoRelevance = 360;
       labelsSvg.setAttribute("width", labelWidthNoRelevance);
       labelsSvg.setAttribute("height", height);
       labelsSvg.setAttribute("class", "heatmap-labels-svg");
@@ -534,8 +647,16 @@ export default Vue.component("pigean-factors-viz", {
         phen.setAttribute("font-size", "10pt");
         phen.setAttribute("font-family", "Arial");
         const pFull = rowMeta.phenotypeDisplay;
-        phen.textContent = this.truncateLabel(pFull, 40);
-        phen.setAttribute("title", `${rowMeta.traitGroupLabel} — ${pFull}`);
+        const showDirPrefix =
+          (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
+        const directionTag = showDirPrefix ? `[${rowMeta.fetchedDirection}] ` : "";
+        const fullLabel = `${directionTag}${pFull}`;
+        phen.textContent = this.truncateLabel(fullLabel, 52);
+        const tooltipParts = [];
+        if (rowMeta.fetchedDirection) tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
+        if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
+        tooltipParts.push(`Phenotype: ${pFull}`);
+        phen.setAttribute("title", tooltipParts.join(" · "));
         labelsG.appendChild(phen);
       });
       labelsSvg.appendChild(labelsG);
@@ -642,7 +763,10 @@ export default Vue.component("pigean-factors-viz", {
           rect.setAttribute("stroke", "#fff");
           rect.setAttribute("stroke-width", "1");
           const rowMeta = factorRows[r];
-          const rowLine = `${rowMeta.traitGroupLabel} / ${rowMeta.phenotypeDisplay}`;
+          const showDirInRowLine =
+            (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
+          const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
+          const rowLine = `${directionTag}${rowMeta.phenotypeDisplay}`;
           const colLabel = columnLabels[c];
           const showTooltip = (event) => {
             this.cleanupTooltips();
@@ -2068,6 +2192,32 @@ export default Vue.component("pigean-factors-viz", {
   /*border: 1px solid #ddd;
   border-radius: 4px;*/
   overflow: hidden;
+}
+
+.fbr-heatmap-toolbar {
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.fbr-heatmap-toolbar-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fbr-heatmap-control-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.fbr-heatmap-group-by-subcontrols {
+  margin-left: 0;
+  padding-left: 0.75rem;
+  border-left: 1px solid #dee2e6;
 }
 
 .heatmap-tabs {

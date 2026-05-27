@@ -599,7 +599,7 @@
                                 >
                                     <div
                                         v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
-                                        class="reveal-gate-box mt-2 mb-2"
+                                        class="reveal-gate-box reveal-gate-box-tight mt-2 mb-1"
                                     >
                                         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
                                             <div class="small reveal-gate-text" style="line-height: 1.35;">
@@ -615,9 +615,108 @@
                                         </div>
                                     </div>
                                     <div
-                                        v-if="searchCriteriaEditRows.length && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
+                                        v-if="(searchCriteriaEditRows.length || multiQueryRouteEditRows.length) && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
                                     >
+                                        <div class="query-guidelines-panel mb-2">
+                                            <div class="text-right">
+                                                <button
+                                                    type="button"
+                                                    class="query-guidelines-toggle btn btn-link d-inline-flex align-items-center text-decoration-none text-right"
+                                                    :aria-expanded="searchTermsExtractionExpanded ? 'true' : 'false'"
+                                                    aria-controls="search-terms-extraction-method-content"
+                                                    id="search-terms-extraction-method-label"
+                                                    @click="searchTermsExtractionExpanded = !searchTermsExtractionExpanded"
+                                                >
+                                                    <span>How search terms are extracted</span>
+                                                </button>
+                                            </div>
+                                            <div
+                                                v-show="searchTermsExtractionExpanded"
+                                                id="search-terms-extraction-method-content"
+                                                role="region"
+                                                aria-labelledby="search-terms-extraction-method-label"
+                                                class="query-guidelines-content px-3 pb-3 small text-secondary border-top"
+                                            >
+                                                <h5 class="text-dark font-weight-bold mt-3 mb-3">How REVEAL prepared this search</h5>
+                                                <p class="mb-3">
+                                                    The LLM first reads your query as a biological intent statement, then extracts structured terms that can drive retrieval:
+                                                    phenotypes or traits, mechanism terms, gene anchors, and a short research context.
+                                                </p>
+                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">1. Separate user anchors from route expansion</h6>
+                                                <p class="mb-2">
+                                                    Genes directly named or aliased by you are tracked separately from additional genes introduced by routing.
+                                                    This helps the workflow preserve your original targets while allowing the search to include downstream or related pathway members.
+                                                </p>
+                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">2. Create multiple biological retrieval directions</h6>
+                                                <p class="mb-2">
+                                                    The extractor first expands your single query into 10 candidate biological query variations.
+                                                    It then selects the 3 most complementary directions, such as tissue expression, perturbation response, and genetic association.
+                                                    Each selected direction gets its own biological query variation and route-specific terms.
+                                                </p>
+                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">3. Keep embedding text biological, not repository-specific</h6>
+                                                <p class="mb-2">
+                                                    Retrieval directions avoid literal repository names in the text sent for semantic matching.
+                                                    Instead, they describe modalities such as transcript co-expression, perturbation signatures, or variant-to-trait evidence.
+                                                    Program or modality preferences are handled separately as structured routing hints when supported.
+                                                </p>
+                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">4. Preserve user genes during compact evidence building</h6>
+                                                <p class="mb-0">
+                                                    During data fetch, each route keeps top-scoring genes and also pins matching genes of interest when they appear in the returned data.
+                                                    Pinned genes are still judged by their scores and graph support, but they remain visible to the final synthesis step.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <template v-if="usePerRouteSearchTermsEditor">
+                                            <div
+                                                v-for="routeRow in multiQueryRouteEditRows"
+                                                :key="'route-terms-' + routeRow.route_id"
+                                                class="mb-3 p-2"
+                                                style="border-left: 3px solid #ff6600;"
+                                            >
+                                                <div class="font-weight-bold mb-1">{{ routeRow.category }}</div>
+                                                <div v-if="routeRow.biological_query_variation" class="small text-muted mb-2">
+                                                    {{ routeRow.biological_query_variation }}
+                                                </div>
+                                                <b-table
+                                                    :items="routeRowEditFields()"
+                                                    :fields="[
+                                                        { key: 'type', label: 'Type', thStyle: { width: '34%' } },
+                                                        { key: 'term', label: 'Term' }
+                                                    ]"
+                                                    small
+                                                    striped
+                                                    responsive="sm"
+                                                    head-variant="light"
+                                                    class="mb-0"
+                                                >
+                                                    <template #cell(type)="row">
+                                                        <span>{{ row.item.type }}</span>
+                                                    </template>
+                                                    <template #cell(term)="row">
+                                                        <input
+                                                            type="text"
+                                                            class="form-control form-control-sm"
+                                                            v-model="routeRow[row.item.key]"
+                                                            placeholder="Comma-separated terms"
+                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                        />
+                                                    </template>
+                                                </b-table>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="small font-weight-bold text-muted mb-1 d-block">Shared research context</label>
+                                                <textarea
+                                                    class="form-control form-control-sm"
+                                                    v-model="sharedResearchContextTerm"
+                                                    rows="4"
+                                                    style="min-height: 6.5em; resize: vertical;"
+                                                    placeholder="Enter research context"
+                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                ></textarea>
+                                            </div>
+                                        </template>
                                         <b-table
+                                            v-else
                                             :items="searchCriteriaEditRows"
                                             :fields="[
                                                 { key: 'type', label: 'Type', thStyle: { width: '34%' } },
@@ -652,26 +751,75 @@
                                                 />
                                             </template>
                                         </b-table>
-                                        <div v-if="multiQueryRoutes.length" class="mt-3">
-                                            <div class="font-weight-bold small text-muted mb-2">Selected retrieval directions</div>
-                                            <div class="d-flex flex-column" style="gap: 8px;">
-                                                <div
-                                                    v-for="route in multiQueryRoutes"
-                                                    :key="'multi-route-' + route.route_id"
-                                                    class="border rounded p-2 bg-white"
-                                                >
-                                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                                        <strong>{{ route.category }}</strong>
-                                                        <span class="small text-muted">{{ route.status || 'pending' }}</span>
-                                                    </div>
-                                                    <div class="small mb-1">{{ route.biological_query_variation }}</div>
-                                                    <div class="small text-muted">
-                                                        <strong>Embedding text:</strong> {{ route.sanitized_query }}
-                                                    </div>
-                                                    <div v-if="route.rationale" class="small text-muted mt-1">
-                                                        <strong>Rationale:</strong> {{ route.rationale }}
+                                        <div
+                                            v-if="multiQueryRoutes.length || lastAlternativeQueries.length"
+                                            class="mt-3 d-flex flex-column flex-lg-row align-items-start"
+                                            style="gap: 16px;"
+                                        >
+                                            <div
+                                                v-if="multiQueryRoutes.length"
+                                                style="flex: 1 1 70%; width: 100%;"
+                                            >
+                                                <div class="font-weight-bold small text-muted mb-2">Data retrieval directions</div>
+                                                <div class="d-flex flex-column" style="gap: 8px;">
+                                                    <div
+                                                        v-for="route in multiQueryRoutes"
+                                                        :key="'multi-route-' + route.route_id"
+                                                        class="p-2"
+                                                    >
+                                                        <div class="mb-1">
+                                                            <strong>{{ route.category }}</strong>
+                                                        </div>
+                                                        <div class="small mb-1">{{ route.biological_query_variation }}</div>
+                                                        <div
+                                                            v-if="route.extracted_terms && route.extracted_terms.phenotype_terms && route.extracted_terms.phenotype_terms.length"
+                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
+                                                        >
+                                                            <strong>Phenotypes:</strong>
+                                                            <span
+                                                                v-for="term in route.extracted_terms.phenotype_terms"
+                                                                :key="route.route_id + '-phen-' + term"
+                                                                class="pill"
+                                                            >{{ term }}</span>
+                                                        </div>
+                                                        <div
+                                                            v-if="route.extracted_terms && route.extracted_terms.mechanism_terms && route.extracted_terms.mechanism_terms.length"
+                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
+                                                        >
+                                                            <strong>Mechanisms:</strong>
+                                                            <span
+                                                                v-for="term in route.extracted_terms.mechanism_terms"
+                                                                :key="route.route_id + '-mech-' + term"
+                                                                class="pill"
+                                                            >{{ term }}</span>
+                                                        </div>
+                                                        <div class="small text-muted">
+                                                            <strong>Embedding text:</strong> {{ route.sanitized_query }}
+                                                        </div>
+                                                        <div v-if="route.rationale" class="small text-muted mt-1">
+                                                            <strong>Rationale:</strong> {{ route.rationale }}
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div
+                                                v-if="lastAlternativeQueries.length"
+                                                class="reveal-alt-queries-block mb-0"
+                                                style="flex: 1 1 30%; width: 100%;"
+                                            >
+                                                <div class="font-weight-bold small text-muted mb-1">Suggested pro-anchor paths</div>
+                                                <ul class="reveal-alt-query-links mb-0">
+                                                    <li
+                                                        v-for="(opt, idx) in lastAlternativeQueries"
+                                                        :key="'alt-below-' + idx + '-' + opt"
+                                                    >
+                                                        <a
+                                                            href="#"
+                                                            class="reveal-alt-query-link"
+                                                            @click.prevent="onAlternativeQuerySelected(opt)"
+                                                        >{{ opt }}</a>
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </div>
                                         <div
@@ -705,24 +853,6 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div
-                                            v-if="lastAlternativeQueries.length"
-                                            class="reveal-alt-queries-block mt-2 mb-0"
-                                        >
-                                            <div class="font-weight-bold small text-muted mb-1">Suggested pro-anchor paths</div>
-                                            <ul class="reveal-alt-query-links mb-0">
-                                                <li
-                                                    v-for="(opt, idx) in lastAlternativeQueries"
-                                                    :key="'alt-below-' + idx + '-' + opt"
-                                                >
-                                                    <a
-                                                        href="#"
-                                                        class="reveal-alt-query-link"
-                                                        @click.prevent="onAlternativeQuerySelected(opt)"
-                                                    >{{ opt }}</a>
-                                                </li>
-                                            </ul>
-                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -732,16 +862,56 @@
                             v-if="showTab === 'data'"
                             style="display:flex; flex-direction: column; gap: 12px; color: #555;"
                         >
+                            <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
+                                <div
+                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
+                                    class="reveal-gate-box mb-3"
+                                >
+                                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
+                                        <div class="small reveal-gate-text" style="line-height: 1.35;">
+                                            Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
+                                            Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
+                                            REVEAL will generate mechanistic hypotheses using the data.
+                                        </div>
+                                        <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
+                                            Continue
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-1">
+                                    <div class="flex-grow-1">
+                                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
+                                            Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
+                                        </div>
+                                        <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-2 pl-3 text-secondary small">
+                                            <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                             <div v-for="step in revealDataSteps" :key="'reveal-data-' + step.id" class="status">
                                 <div style="display:flex; gap: 5px; align-items: center;">
                                     <b-spinner v-if="dataStepShowsSpinner(step)" small></b-spinner>
                                     <span v-else-if="dataStepShowsGatePause(step)">▶</span>
-                                    <span v-else-if="step.substeps && step.substeps.length">▼</span>
+                                    <span v-else-if="step.substeps && step.substeps.length">{{ dataFetchDirectionsExpanded ? '▼' : '▶' }}</span>
                                     <span v-else>♦</span>
-                                    <span style="font-weight:bold">{{ step.title }}</span>
+                                    <button
+                                        type="button"
+                                        class="btn btn-link p-0 text-left font-weight-bold"
+                                        :aria-expanded="dataFetchDirectionsExpanded ? 'true' : 'false'"
+                                        aria-controls="data-fetch-directions-content"
+                                        @click="dataFetchDirectionsExpanded = !dataFetchDirectionsExpanded"
+                                    >
+                                        {{ step.title }}
+                                    </button>
                                     <span>{{ formatTime(step.time) || currStepTime(step) }}</span>
                                 </div>
-                                <div class="sub-status mt-1" style="display:flex; flex-direction: column; padding-left: 18px;">
+                                <div
+                                    v-if="dataFetchDirectionsExpanded"
+                                    id="data-fetch-directions-content"
+                                    class="sub-status mt-1"
+                                    style="display:flex; flex-direction: column; padding-left: 18px;"
+                                >
                                     <div
                                         v-for="(substep, ii) in (step.substeps || [])"
                                         :key="'ds-' + step.id + '-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
@@ -755,39 +925,13 @@
                                             <div v-if="substep.result.title" v-html="substep.result.title"></div>
                                             <pre
                                                 v-if="substep.id !== '2.h2' && substep.result.result != null"
-                                                style="background: #eee; padding: 10px; max-height: 160px; resize:vertical; overflow: auto;"
+                                                class="reveal-data-step-pre"
                                             >{{ substep.result.result }}</pre>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
-                            <div
-                                v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
-                                class="reveal-gate-box mb-3"
-                            >
-                                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
-                                    <div class="small reveal-gate-text" style="line-height: 1.35;">
-                                        Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
-                                        Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
-                                        REVEAL will generate mechanistic hypotheses using the data.
-                                    </div>
-                                    <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
-                                        Continue
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="flex-grow-1">
-                                    <div class="font-weight-bold mb-3" style="color: #FF6600; font-size: 1.2em;">
-                                        Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
-                                    </div>
-                                    <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-2 pl-3 text-secondary small">
-                                        <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
-                                    </ul>
-                                    <div v-else class="small text-muted mb-2 font-italic">No hybrid diagnostics available.</div>
-                                </div>
-                            </div>
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
                                 <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
@@ -840,7 +984,9 @@
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
                                                     <th style="width: auto;">Phenotype</th>
-                                                    <th style="width: auto;">Trait group</th>
+                                                    <th style="width: auto;">Fetch direction</th>
+                                                    <th style="width: 120px;">Number of gene sets</th>
+                                                    <th style="width: 110px;">Number of genes</th>
                                                     <!--<th style="width: auto;">Top gene sets</th>-->
                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                 </tr>
@@ -859,7 +1005,9 @@
                                                         </div>
                                                     </td>
                                                     <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                                    <td>{{ getFactorClusterDisplay(row) }}</td>
+                                                    <td>{{ getFetchDirectionDisplay(row) }}</td>
+                                                    <td class="text-center">{{ getGeneSetCountForRow(row) }}</td>
+                                                    <td class="text-center">{{ getGeneCountForRow(row) }}</td>
                                                     <!--
                                                     <td>
                                                         <div style="display:flex; flex-direction: column; gap: 3px">
@@ -881,7 +1029,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr v-if="isFactorRowExpanded(row)">
-                                                    <td colspan="4" class="p-0 border-0">
+                                                    <td colspan="6" class="p-0 border-0">
                                                         <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
                                                             <div class="px-3 pt-2 pb-0 w-100">
                                                                 <factor-base-reveal-network
@@ -894,7 +1042,7 @@
                                                                     @open-popup="openFactorConnectivityPopup(row)"
                                                                 />
                                                             </div>
-                                                            <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
+                                                            <div v-if="getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                                 <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                                 <!--
                                                                 <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
@@ -909,7 +1057,7 @@
                                                                     small
                                                                     responsive="sm"
                                                                     head-variant="light"
-                                                                    :items="getGenesetForFactor(row.phenotype, row.factor)"
+                                                                    :items="getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)"
                                                                     :fields="[
                                                                         { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
                                                                         { key: 'program', label: 'Program', thClass: 'text-nowrap'},
@@ -976,7 +1124,7 @@
                                                                     small
                                                                     responsive="sm"
                                                                     head-variant="light"
-                                                                    :items="getGenesForFactor(row.phenotype, row.factor)"
+                                                                    :items="getGenesForFactor(row.phenotype, row.factor, row.fetched_direction)"
                                                                     :fields="[
                                                                         { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
                                                                         { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
@@ -987,10 +1135,10 @@
                                                                     :current-page="getSubtableCurrentPage(row)"
                                                                 />
                                                                 <b-pagination
-                                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor).length > subtablePerPage"
+                                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length > subtablePerPage"
                                                                     v-model="subtableCurrentPages[getRowKey(row)]"
                                                                     class="pagination-sm justify-content-center mt-2"
-                                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor).length"
+                                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length"
                                                                     :per-page="subtablePerPage"
                                                                 />
                                                             </div>
@@ -1007,7 +1155,9 @@
                                             :fields="[
                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
+                                                { key: 'fetchDirection', label: 'Fetch direction', thStyle: { width: '180px' } },
+                                                { key: 'geneSetCount', label: 'Number of gene sets', thStyle: { width: '120px' }, tdClass: 'text-center' },
+                                                { key: 'geneCount', label: 'Number of genes', thStyle: { width: '110px' }, tdClass: 'text-center' },
                                                 //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
@@ -1031,8 +1181,14 @@
                                             <template #cell(phenotype)="row">
                                                 {{ getPhenotypeDisplay(row.item.phenotype) }}
                                             </template>
-                                            <template #cell(factorLabel)="row">
-                                                {{ getFactorClusterDisplay(row.item) }}
+                                            <template #cell(fetchDirection)="row">
+                                                {{ getFetchDirectionDisplay(row.item) }}
+                                            </template>
+                                            <template #cell(geneSetCount)="row">
+                                                {{ getGeneSetCountForRow(row.item) }}
+                                            </template>
+                                            <template #cell(geneCount)="row">
+                                                {{ getGeneCountForRow(row.item) }}
                                             </template>
                                             <template #cell(top_gene_sets)="row">
                                                 <span class="small">{{ row.item.top_gene_sets }}</span>
@@ -1062,7 +1218,7 @@
                                                             @open-popup="openFactorConnectivityPopup(row.item)"
                                                         />
                                                     </div>
-                                                    <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
+                                                    <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
                                                         <div class="small text-muted mb-2">Gene sets in cluster</div>
                                                         <!--
                                                         <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
@@ -1077,7 +1233,7 @@
                                                             small
                                                             responsive="sm"
                                                             head-variant="light"
-                                                            :items="getGenesetForFactor(row.item.phenotype, row.item.factor)"
+                                                            :items="getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
                                                             :fields="[
                                                                 { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
                                                                 { key: 'program', label: 'Program', thClass: 'text-nowrap'},
@@ -1142,7 +1298,7 @@
                                                             small
                                                             responsive="sm"
                                                             head-variant="light"
-                                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
+                                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
                                                             :fields="[
                                                                 { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
                                                                 { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
@@ -1153,10 +1309,10 @@
                                                             :current-page="getSubtableCurrentPage(row.item)"
                                                         />
                                                         <b-pagination
-                                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor).length > subtablePerPage"
+                                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length > subtablePerPage"
                                                             v-model="subtableCurrentPages[getRowKey(row.item)]"
                                                             class="pagination-sm justify-content-center mt-2"
-                                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor).length"
+                                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length"
                                                             :per-page="subtablePerPage"
                                                         />
                                                     </div>
@@ -2119,6 +2275,10 @@ export default Vue.component("factor-base-reveal", {
             suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesExpanded: false,
+            /** Collapsed by default; explains how extracted terms and data directions were generated. */
+            searchTermsExtractionExpanded: false,
+            /** Collapsed by default; shows verbose retrieval direction payloads in the Data tab. */
+            dataFetchDirectionsExpanded: false,
             /** Toggle to show the Query helper link (temporarily off for release). */
             queryHelperLinkVisible: true,
             queryHelperOpen: false,
@@ -2161,10 +2321,14 @@ export default Vue.component("factor-base-reveal", {
             multiQueryRouteResults: [],
             multiQueryEvidenceBundles: [],
             multiQueryRouteErrors: [],
+            /** Editable per-route term rows (synced to multiQueryRoutes before retrieval). */
+            multiQueryRouteEditRows: [],
+            multiQueryRouteEditRowsDefault: [],
             multiQueryEvidenceLimits: {
                 maxRoutes: 3,
                 maxPairsPerRoute: 5,
                 maxGenesPerFactor: 5,
+                maxGenesOfInterestPerFactor: 5,
                 maxGeneSetsPerFactor: 3,
             },
             /** Official symbols explicitly named or directly aliased by the user, separate from routing expansion. */
@@ -2628,6 +2792,7 @@ If no material shift occurred, set \`pathway_shift_rationale\` to null.
 
 ### Evidence-derived candidate inventory
 For each hypothesis, populate \`candidate_inventory\` using ONLY genes explicitly present in the compact multi-direction evidence bundles and/or the KG CSV. Do not extrapolate.
+Genes marked \`included_because: "explicit_user_gene"\` or \`included_because: "gene_of_interest"\` were preserved as user/request anchors even when they were not top-scoring; treat them as alignment-critical but still evaluate their scores and graph support honestly.
 Group candidates into these five capped roles. Each list must contain at most 5 items:
 1. \`core_pathway_anchors\`: foundational pathway components found in evidence.
 2. \`route_specific_support_genes\`: genes surfaced strongly in one route/modality.
@@ -2882,7 +3047,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     const isIncluded = !filteredSet || filteredSet.size === 0
                         ? true
                         : (filteredSet.has(String(f.factor)) || (f.label != null && filteredSet.has(String(f.label).trim())));
-                    const rowKey = `${phenotype}|${f.factor}`;
+                    const fetchedDirection = f.fetched_direction != null && String(f.fetched_direction).trim() !== ""
+                        ? String(f.fetched_direction).trim()
+                        : (f.route_category != null ? String(f.route_category).trim() : "");
+                    const rowKey = `${phenotype}|${f.factor}|${fetchedDirection}`;
                     const hardConstraintLabel =
                         this.lastRunUsedHardConstraint &&
                         this.lastHardConstraintFactorLabelByPair &&
@@ -2902,6 +3070,17 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                                 : null,
                         top_gene_sets: topGeneSets,
                         top_gene_set_programs: topGeneSetPrograms,
+                        fetched_direction: fetchedDirection,
+                        fetched_direction_id: f.fetched_direction_id != null ? String(f.fetched_direction_id).trim() : "",
+                        route_category: f.route_category != null ? String(f.route_category).trim() : "",
+                        route_categories: Array.isArray(f.route_categories) ? f.route_categories : [],
+                        route_query: f.route_query != null ? String(f.route_query).trim() : "",
+                        route_queries: Array.isArray(f.route_queries) ? f.route_queries : [],
+                        route_support_score:
+                            f.route_support_score != null && !isNaN(Number(f.route_support_score))
+                                ? Number(f.route_support_score)
+                                : null,
+                        fetchDirection: fetchedDirection,
                         rationale,
                         isFiltered: isIncluded,
                         included,
@@ -3029,6 +3208,27 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         revealDataTabEnabled() {
             if (this.searchCriteriaExtractionGateDone) return true;
             return this.revealDataSteps.length > 0;
+        },
+        usePerRouteSearchTermsEditor() {
+            return Array.isArray(this.multiQueryRouteEditRows) && this.multiQueryRouteEditRows.length > 0;
+        },
+        sharedResearchContextTerm: {
+            get() {
+                if (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null) {
+                    const v = String(this.searchCriteria[1].values);
+                    return v === "(none extracted)" ? "" : v;
+                }
+                const ctxRow = (this.searchCriteriaEditRows || []).find((r) => r && r.type === "Research context");
+                return ctxRow ? String(ctxRow.term || "") : "";
+            },
+            set(val) {
+                const text = String(val || "").trim();
+                if (this.searchCriteria && this.searchCriteria[1]) {
+                    this.$set(this.searchCriteria[1], "values", text || "(none extracted)");
+                }
+                const ctxRow = (this.searchCriteriaEditRows || []).find((r) => r && r.type === "Research context");
+                if (ctxRow) ctxRow.term = text;
+            },
         },
         revealResultsTabEnabled() {
             if (this.revealResultsTabUnlocked) return true;
@@ -3790,6 +3990,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.multiQueryRouteResults = [];
             this.multiQueryEvidenceBundles = [];
             this.multiQueryRouteErrors = [];
+            this.multiQueryRouteEditRows = [];
+            this.multiQueryRouteEditRowsDefault = [];
             this.lastExplicitUserGenes = [];
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
@@ -3797,6 +3999,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.searchCriteriaEditRows = [];
             this.searchCriteriaEditRowsDefault = [];
             this.searchCriteriaExtractionGateDone = false;
+            this.dataFetchDirectionsExpanded = false;
             this.pairSelectionOverrides = {};
             this.llmFilteredPairKeysBaseline = [];
             this.expandedFactorRowKeys = {};
@@ -5167,18 +5370,130 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
                     ? String(this.searchCriteria[1].values)
                     : "";
-            this.searchCriteriaEditRows = [
-                { type: "Phenotype terms", term: phen.join(", ") },
-                { type: "Mechanism terms", term: mech.join(", ") },
-                { type: "Genes of interest", term: goi.join(", ") },
-                { type: "Research context", term: researchContext },
-            ];
+            const normalizedContext = researchContext === "(none extracted)" ? "" : researchContext;
+            if (Array.isArray(this.multiQueryRoutes) && this.multiQueryRoutes.length) {
+                this.multiQueryRouteEditRows = this.multiQueryRoutes.map((route) => {
+                    const extracted = route && route.extracted_terms && typeof route.extracted_terms === "object"
+                        ? route.extracted_terms
+                        : {};
+                    return {
+                        route_id: route.route_id || "",
+                        category: route.category || "",
+                        biological_query_variation: route.biological_query_variation || "",
+                        phenotype_term: this.normalizeLlmTermList(extracted.phenotype_terms).join(", "),
+                        mechanism_term: this.normalizeLlmTermList(extracted.mechanism_terms).join(", "),
+                        genes_of_interest: this.normalizeLlmTermList(extracted.genes_of_interest).join(", "),
+                        tissues: this.normalizeLlmTermList(extracted.tissues).join(", "),
+                        cell_types: this.normalizeLlmTermList(extracted.cell_types).join(", "),
+                    };
+                });
+                this.searchCriteriaEditRows = normalizedContext
+                    ? [{ type: "Research context", term: normalizedContext }]
+                    : [];
+            } else {
+                this.multiQueryRouteEditRows = [];
+                this.searchCriteriaEditRows = [
+                    { type: "Phenotype terms", term: phen.join(", ") },
+                    { type: "Mechanism terms", term: mech.join(", ") },
+                    { type: "Genes of interest", term: goi.join(", ") },
+                    { type: "Research context", term: normalizedContext },
+                ];
+            }
             this.searchCriteriaEditRowsDefault = JSON.parse(JSON.stringify(this.searchCriteriaEditRows));
+            this.multiQueryRouteEditRowsDefault = JSON.parse(JSON.stringify(this.multiQueryRouteEditRows || []));
+        },
+        routeRowEditFields() {
+            return [
+                { type: "Phenotype terms", key: "phenotype_term" },
+                { type: "Mechanism terms", key: "mechanism_term" },
+                { type: "Genes of interest", key: "genes_of_interest" },
+                { type: "Tissues", key: "tissues" },
+                { type: "Cell types", key: "cell_types" },
+            ];
+        },
+        parseCommaSeparatedTerms(raw) {
+            return String(raw || "")
+                .split(/[,;\n]/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+        },
+        applyRouteEditRowsToMultiQueryRoutes() {
+            const rows = Array.isArray(this.multiQueryRouteEditRows) ? this.multiQueryRouteEditRows : [];
+            rows.forEach((row, idx) => {
+                if (!row) return;
+                const routeIdx = (this.multiQueryRoutes || []).findIndex((r) => r && r.route_id === row.route_id);
+                const i = routeIdx >= 0 ? routeIdx : idx;
+                if (!(this.multiQueryRoutes || [])[i]) return;
+                const extracted_terms = {
+                    phenotype_terms: this.parseCommaSeparatedTerms(row.phenotype_term),
+                    mechanism_terms: this.parseCommaSeparatedTerms(row.mechanism_term),
+                    genes_of_interest: this.parseCommaSeparatedTerms(row.genes_of_interest),
+                    tissues: this.parseCommaSeparatedTerms(row.tissues),
+                    cell_types: this.parseCommaSeparatedTerms(row.cell_types),
+                };
+                this.$set(this.multiQueryRoutes, i, {
+                    ...this.multiQueryRoutes[i],
+                    extracted_terms,
+                });
+            });
+        },
+        syncUnionTermsFromMultiQueryRoutes() {
+            const routes = Array.isArray(this.multiQueryRoutes) ? this.multiQueryRoutes : [];
+            const phen = [];
+            const mech = [];
+            const goi = [];
+            routes.forEach((route) => {
+                const extracted = route && route.extracted_terms ? route.extracted_terms : {};
+                this.normalizeLlmTermList(extracted.phenotype_terms).forEach((t) => {
+                    if (!phen.includes(t)) phen.push(t);
+                });
+                this.normalizeLlmTermList(extracted.mechanism_terms).forEach((t) => {
+                    if (!mech.includes(t)) mech.push(t);
+                });
+                this.normalizeLlmTermList(extracted.genes_of_interest).forEach((t) => {
+                    if (!goi.includes(t)) goi.push(t);
+                });
+            });
+            this.lastPhenotypeTerms = phen;
+            this.lastMechanismTerms = mech;
+            this.lastGenesOfInterest = goi;
+            const searchTerms = [...phen, ...mech];
+            this.searchTerm = searchTerms.join(", ");
+            if (this.searchCriteria && this.searchCriteria[0]) {
+                this.$set(
+                    this.searchCriteria[0],
+                    "values",
+                    searchTerms.length ? searchTerms : ["(none extracted)"]
+                );
+            }
         },
         resetSearchCriteriaGateEdits() {
             this.searchCriteriaEditRows = JSON.parse(JSON.stringify(this.searchCriteriaEditRowsDefault || []));
+            this.multiQueryRouteEditRows = JSON.parse(JSON.stringify(this.multiQueryRouteEditRowsDefault || []));
         },
         applySearchCriteriaGateEdits() {
+            if (this.usePerRouteSearchTermsEditor) {
+                const researchContext = String(this.sharedResearchContextTerm || "").trim();
+                this.searchCriteria = [
+                    {
+                        search_criteria: "Search Terms",
+                        values: ["(per direction — see below)"],
+                        why: "Each retrieval direction uses its own extracted terms.",
+                        purpose:
+                            "Route-specific terms drive hybrid search for tissue expression, perturbations, and genetics.",
+                    },
+                    {
+                        search_criteria: "Research Context",
+                        values: researchContext || "(none extracted)",
+                        why: "We inferred this from your search query.",
+                        purpose:
+                            "This context will be used to tailor mechanistic hypotheses to your research.",
+                    },
+                ];
+                this.applyRouteEditRowsToMultiQueryRoutes();
+                this.syncUnionTermsFromMultiQueryRoutes();
+                return;
+            }
             const rows = Array.isArray(this.searchCriteriaEditRows) ? this.searchCriteriaEditRows : [];
             const phenotypeRow = rows.find((r) => r && r.type === "Phenotype terms");
             const mechanismRow = rows.find((r) => r && r.type === "Mechanism terms");
@@ -5534,6 +5849,20 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                       ? String(row.factor).trim()
                       : "";
             return resolveCfdeFactorClusterDisplayLabel(key);
+        },
+        getFetchDirectionDisplay(row) {
+            if (!row) return "Primary search";
+            const direction = row.fetched_direction || row.fetchDirection || row.route_category;
+            const normalized = String(direction == null ? "" : direction).trim();
+            return normalized || "Primary search";
+        },
+        getGeneSetCountForRow(row) {
+            if (!row) return 0;
+            return this.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction).length;
+        },
+        getGeneCountForRow(row) {
+            if (!row) return 0;
+            return this.getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length;
         },
         /** Pills / KG strings: same resolution as table (Orphanet_*, gcat_*, etc.). */
         getFactorClusterDisplayString(raw) {
@@ -6657,7 +6986,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         getRowKey(item) {
             if (!item || item.phenotype == null || item.factor == null) return "";
-            return `${item.phenotype}|${item.factor}`;
+            const direction = item.fetched_direction || item.fetchDirection || item.route_category || "";
+            return `${item.phenotype}|${item.factor}|${direction}`;
         },
         getSubtableCurrentPage(item) {
             const key = this.getRowKey(item);
@@ -6677,7 +7007,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (willExpand && row.item && !this.factorConnectivityNetworks[key]) {
                 this.$set(this.factorConnectivityNetworks, key, this.buildFactorConnectivityNetwork(row.item));
             }
-            if (willExpand && this.getGenesForFactor(row.item.phenotype, row.item.factor).length === 0) {
+            if (willExpand && this.getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length === 0) {
                 this.loadGenesForOneFactor(row.item.phenotype, row.item.factor, row.item);
             }
         },
@@ -6841,14 +7171,25 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         isFactorRowExpanded(item) {
             return !!this.expandedFactorRowKeys[this.getRowKey(item)];
         },
-        getGenesetForFactor(phenotype, factor){
+        getFactorForPhenotypeRow(phenotype, factor, fetchedDirection = null) {
             const data = this.factorData || {};
             const pData = data[phenotype];
-            if (!pData) return [];
+            if (!pData) return null;
             const factors = pData.factors || [];
             const allFactors = pData.allFactors || [];
-            const f = factors.find((x) => x.factor === factor || String(x.factor) === String(factor))
-                || allFactors.find((x) => x.factor === factor || String(x.factor) === String(factor));
+            const direction = fetchedDirection != null && String(fetchedDirection).trim() !== ""
+                ? String(fetchedDirection).trim()
+                : "";
+            const matches = (x) => {
+                if (!(x.factor === factor || String(x.factor) === String(factor))) return false;
+                if (!direction) return true;
+                const rowDirection = x.fetched_direction || x.route_category || "";
+                return String(rowDirection).trim() === direction;
+            };
+            return factors.find(matches) || allFactors.find(matches) || null;
+        },
+        getGenesetForFactor(phenotype, factor, fetchedDirection = null){
+            const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
             if (!f) return [];
             const topGeneSetsStr = f.top_gene_sets;
             const topGeneSetProgramsStr = f.gene_set_program;
@@ -6864,14 +7205,11 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }));
             return result;
         },
-        getGenesForFactor(phenotype, factor) {
+        getGenesForFactor(phenotype, factor, fetchedDirection = null) {
             const data = this.factorData || {};
             const pData = data[phenotype];
             if (!pData) return [];
-            const factors = pData.factors || [];
-            const allFactors = pData.allFactors || [];
-            const f = factors.find((x) => x.factor === factor || String(x.factor) === String(factor))
-                || allFactors.find((x) => x.factor === factor || String(x.factor) === String(factor));
+            const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
             if (!f || !f.genes) return [];
             const globalGenes = pData.genes || {};
             const rows = Object.keys(f.genes).map((geneName) => {
@@ -7127,14 +7465,20 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             );
 
             const researchContext = typeof json.research_context === "string" ? json.research_context : "";
-            
+            const hasMultiRoutes = selectedRoutes.length > 0;
+
             this.searchCriteria = [
                 {
                     search_criteria: "Search Terms",
-                    values: searchTerms.length ? searchTerms : ["(none extracted)"],
-                    why: "We extracted this from your search query.",
-                    purpose:
-                        "These terms will be used to search for related phenotype↔signature associations via semantic search.",
+                    values: hasMultiRoutes
+                        ? ["(per direction — see below)"]
+                        : (searchTerms.length ? searchTerms : ["(none extracted)"]),
+                    why: hasMultiRoutes
+                        ? "Each retrieval direction uses its own extracted terms."
+                        : "We extracted this from your search query.",
+                    purpose: hasMultiRoutes
+                        ? "Route-specific terms drive hybrid search for tissue expression, perturbations, and genetics."
+                        : "These terms will be used to search for related phenotype↔signature associations via semantic search.",
                 },
                 {
                     search_criteria: "Research Context",
@@ -7145,7 +7489,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 },
             ];
 
-            this.searchTerm = searchTerms.join(", ");
+            this.searchTerm = hasMultiRoutes
+                ? selectedRoutes.map((r) => r.category).filter(Boolean).join(", ")
+                : searchTerms.join(", ");
 
             this.lastPhenotypeTerms = phenotypeTerms;
             this.lastMechanismTerms = mechanismTerms;
@@ -7160,6 +7506,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.multiQueryRouteResults = [];
             this.multiQueryEvidenceBundles = [];
             this.multiQueryRouteErrors = [];
+            if (hasMultiRoutes) {
+                this.syncUnionTermsFromMultiQueryRoutes();
+                if (!this.lastPhenotypeTerms.length && phenotypeTerms.length) {
+                    this.lastPhenotypeTerms = phenotypeTerms;
+                }
+            }
 
             this.setStep({
                 id: "1",
@@ -7405,6 +7757,42 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const q = String(this.userQuery || "").trim();
             if (q) return [q.slice(0, 256)];
             return [];
+        },
+        /**
+         * Multi-route retrieval: use route-specific phenotype terms only; optional top-level union fallback.
+         * Does not substitute mechanism terms or the raw user query as phenotype hard filters.
+         */
+        resolveMultiRouteHybridPhenotypeFilterTerms(route, topLevelPhenotypeTerms = []) {
+            const terms = route && route.extracted_terms && typeof route.extracted_terms === "object"
+                ? route.extracted_terms
+                : {};
+            const routePhenos = this.normalizeLlmTermList(terms.phenotype_terms);
+            if (routePhenos.length) return routePhenos;
+            const topP = this.normalizeLlmTermList(topLevelPhenotypeTerms);
+            if (topP.length) return topP;
+            return [];
+        },
+        routeGenesOfInterestForFetch(route) {
+            const terms = route && route.extracted_terms ? route.extracted_terms : {};
+            const routeGenes = this.normalizeLlmTermList(terms.genes_of_interest);
+            const explicit = this.normalizeLlmTermList(this.lastExplicitUserGenes);
+            const merged = [...routeGenes];
+            explicit.forEach((gene) => {
+                if (!merged.some((g) => String(g).toUpperCase() === String(gene).toUpperCase())) {
+                    merged.push(gene);
+                }
+            });
+            return merged;
+        },
+        routeResearchContextForFetch(route, sharedResearchContext = "") {
+            const routeText = route && (route.sanitized_query || route.biological_query_variation)
+                ? String(route.sanitized_query || route.biological_query_variation).trim()
+                : "";
+            const shared = sharedResearchContext != null ? String(sharedResearchContext).trim() : "";
+            const NONE = "(none extracted)";
+            const sharedClean = shared === NONE ? "" : shared;
+            const parts = [routeText, sharedClean].filter(Boolean);
+            return this.sanitizeEmbeddingText(parts.join("\n"));
         },
         /**
          * Server rule: need query_embedding OR non-empty mechanism_terms OR non-whitespace research_context
@@ -7779,6 +8167,86 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 status,
             });
         },
+        routeFactorSupportScore(factor = {}, phenotypeData = {}) {
+            const genes = factor && factor.genes && typeof factor.genes === "object" ? factor.genes : {};
+            const globalGenes = phenotypeData && phenotypeData.genes && typeof phenotypeData.genes === "object"
+                ? phenotypeData.genes
+                : {};
+            let best = null;
+            Object.keys(genes).forEach((gene) => {
+                const local = genes[gene] || {};
+                const global = globalGenes[gene] || {};
+                const raw =
+                    global.combined != null
+                        ? global.combined
+                        : (local.factorRelevance != null ? local.factorRelevance : local.factor_value);
+                const score = Number(raw);
+                if (!Number.isFinite(score)) return;
+                if (best == null || score > best) best = score;
+            });
+            return best;
+        },
+        factorMatchesEvidenceHit(factor = {}, hit = {}) {
+            const factorId = factor.factor != null ? String(factor.factor).trim() : "";
+            const factorLabel = factor.label != null ? String(factor.label).trim() : "";
+            const hitFactorId = hit.factor_id != null ? String(hit.factor_id).trim() : "";
+            const hitFactor = hit.factor != null ? String(hit.factor).trim() : "";
+            return (
+                (hitFactorId && hitFactorId === factorId) ||
+                (hitFactor && (hitFactor === factorLabel || hitFactor === factorId))
+            );
+        },
+        filterRouteFactorDataToEvidenceHits(routeResult = {}) {
+            const factorData = routeResult.factorData || {};
+            const hits = routeResult.evidenceBundle && Array.isArray(routeResult.evidenceBundle.top_hits)
+                ? routeResult.evidenceBundle.top_hits
+                : [];
+            if (!hits.length) return factorData;
+
+            const filtered = {};
+            Object.keys(factorData).forEach((phenotype) => {
+                const pData = factorData[phenotype] || {};
+                const phenotypeHits = hits.filter((hit) => String(hit.phenotype || "") === String(phenotype));
+                if (!phenotypeHits.length) return;
+                const factors = (pData.factors || []).filter((factor) =>
+                    phenotypeHits.some((hit) => this.factorMatchesEvidenceHit(factor, hit))
+                );
+                if (!factors.length) return;
+                filtered[phenotype] = {
+                    ...pData,
+                    factors,
+                    allFactors: factors,
+                };
+            });
+            return filtered;
+        },
+        annotateFactorDataWithFetchedDirection(factorData = {}, route = {}) {
+            const fetchedDirection = route && route.category != null ? String(route.category).trim() : "";
+            const fetchedDirectionId = route && route.route_id != null ? String(route.route_id).trim() : "";
+            const fetchedQuery = route && (route.sanitized_query || route.biological_query_variation)
+                ? String(route.sanitized_query || route.biological_query_variation).trim()
+                : "";
+            const annotated = {};
+            Object.keys(factorData || {}).forEach((phenotype) => {
+                const src = factorData[phenotype] || {};
+                const annotateFactor = (factor) => ({
+                    ...factor,
+                    fetched_direction: fetchedDirection,
+                    fetched_direction_id: fetchedDirectionId,
+                    fetched_query: fetchedQuery,
+                    route_category: fetchedDirection,
+                    route_query: fetchedQuery,
+                    route_categories: fetchedDirection ? [fetchedDirection] : [],
+                    route_queries: fetchedQuery ? [fetchedQuery] : [],
+                });
+                annotated[phenotype] = {
+                    ...src,
+                    factors: (src.factors || []).map(annotateFactor),
+                    allFactors: (src.allFactors || src.factors || []).map(annotateFactor),
+                };
+            });
+            return annotated;
+        },
         mergeRouteFactorData(routeResults) {
             const merged = {};
             (routeResults || []).forEach((result) => {
@@ -7798,17 +8266,63 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         ...(merged[phenotype].genes || {}),
                         ...(src.genes || {}),
                     };
-                    const seenFactors = new Set(
-                        (merged[phenotype].factors || []).map((f) => `${String(f.factor)}||${String(f.label || "")}`)
-                    );
+                    const factorMergeKey = (factor) => {
+                        const direction = factor.fetched_direction || factor.route_category || "";
+                        return `${String(factor.factor)}||${String(factor.label || "")}||${String(direction)}`;
+                    };
+                    const seenFactors = new Set((merged[phenotype].factors || []).map(factorMergeKey));
                     (src.factors || []).forEach((factor) => {
-                        const key = `${String(factor.factor)}||${String(factor.label || "")}`;
-                        if (seenFactors.has(key)) return;
+                        const key = factorMergeKey(factor);
+                        const routeCategory = factor.fetched_direction || route.category || "";
+                        const routeId = factor.fetched_direction_id || route.route_id || "";
+                        const routeQuery = factor.fetched_query || route.sanitized_query || route.biological_query_variation || "";
+                        const routeScore = this.routeFactorSupportScore(factor, src);
+                        if (seenFactors.has(key)) {
+                            const existing = (merged[phenotype].factors || []).find(
+                                (f) => factorMergeKey(f) === key
+                            );
+                            if (existing) {
+                                const categories = Array.isArray(existing.route_categories)
+                                    ? existing.route_categories.slice()
+                                    : [];
+                                if (routeCategory && !categories.includes(routeCategory)) categories.push(routeCategory);
+                                existing.route_categories = categories;
+                                const queries = Array.isArray(existing.route_queries)
+                                    ? existing.route_queries.slice()
+                                    : [];
+                                if (routeQuery && !queries.includes(routeQuery)) queries.push(routeQuery);
+                                existing.route_queries = queries;
+                                const existingScore =
+                                    existing.route_support_score != null && Number.isFinite(Number(existing.route_support_score))
+                                        ? Number(existing.route_support_score)
+                                        : null;
+                                if (routeScore != null && (existingScore == null || routeScore > existingScore)) {
+                                    Object.assign(existing, {
+                                        ...factor,
+                                        fetched_direction: routeCategory,
+                                        fetched_direction_id: routeId,
+                                        fetched_query: routeQuery,
+                                        route_category: routeCategory,
+                                        route_query: routeQuery,
+                                        route_categories: categories,
+                                        route_queries: queries,
+                                        route_support_score: routeScore,
+                                    });
+                                }
+                            }
+                            return;
+                        }
                         seenFactors.add(key);
                         merged[phenotype].factors.push({
                             ...factor,
-                            route_category: route.category || "",
-                            route_query: route.sanitized_query || route.biological_query_variation || "",
+                            fetched_direction: routeCategory,
+                            fetched_direction_id: routeId,
+                            fetched_query: routeQuery,
+                            route_category: routeCategory,
+                            route_categories: routeCategory ? [routeCategory] : [],
+                            route_query: routeQuery,
+                            route_queries: routeQuery ? [routeQuery] : [],
+                            route_support_score: routeScore,
                         });
                     });
                     merged[phenotype].allFactors = merged[phenotype].factors;
@@ -7820,15 +8334,27 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const limits = this.multiQueryEvidenceLimits || {};
             const maxPairs = Math.max(1, Number(limits.maxPairsPerRoute) || 5);
             const maxGenes = Math.max(1, Number(limits.maxGenesPerFactor) || 5);
+            const maxGenesOfInterest = Math.max(0, Number(limits.maxGenesOfInterestPerFactor ?? 5) || 0);
             const maxGeneSets = Math.max(1, Number(limits.maxGeneSetsPerFactor) || 3);
+            const routeGenesOfInterest = this.normalizeLlmTermList(
+                route && route.extracted_terms ? route.extracted_terms.genes_of_interest : []
+            );
+            const genesOfInterestSet = new Set(
+                this.normalizeLlmTermList([
+                    ...routeGenesOfInterest,
+                    ...(this.lastExplicitUserGenes || []),
+                ]).map((g) => String(g).toUpperCase())
+            );
+            const explicitUserGeneSet = new Set((this.lastExplicitUserGenes || []).map((g) => String(g).toUpperCase()));
             const hits = [];
             Object.keys(factorData || {}).forEach((phenotype) => {
                 const pData = factorData[phenotype] || {};
                 (pData.factors || []).forEach((factor) => {
-                    const geneRows = Object.keys(factor.genes || {})
+                    const allGeneRows = Object.keys(factor.genes || {})
                         .map((gene) => {
                             const local = factor.genes[gene] || {};
                             const global = (pData.genes && pData.genes[gene]) || {};
+                            const geneKey = String(gene).toUpperCase();
                             const score = Number(
                                 global.combined != null
                                     ? global.combined
@@ -7839,10 +8365,23 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                                 score: Number.isFinite(score) ? score : null,
                                 gwas_support: global.gwasSupport != null ? global.gwasSupport : null,
                                 functional_support: global.geneSetSupport != null ? global.geneSetSupport : null,
+                                included_because: "top_score",
+                                explicit_user_gene: explicitUserGeneSet.has(geneKey),
+                                gene_of_interest: genesOfInterestSet.has(geneKey),
                             };
                         })
-                        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
-                        .slice(0, maxGenes);
+                        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+                    const topGeneRows = allGeneRows.slice(0, maxGenes);
+                    const topGeneKeys = new Set(topGeneRows.map((g) => String(g.gene).toUpperCase()));
+                    const pinnedGeneRows = allGeneRows
+                        .filter((g) => genesOfInterestSet.has(String(g.gene).toUpperCase()))
+                        .filter((g) => !topGeneKeys.has(String(g.gene).toUpperCase()))
+                        .slice(0, maxGenesOfInterest)
+                        .map((g) => ({
+                            ...g,
+                            included_because: g.explicit_user_gene ? "explicit_user_gene" : "gene_of_interest",
+                        }));
+                    const geneRows = [...topGeneRows, ...pinnedGeneRows];
                     const geneSets = typeof factor.top_gene_sets === "string"
                         ? factor.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean).slice(0, maxGeneSets)
                         : [];
@@ -7875,18 +8414,26 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const terms = route.extracted_terms || {};
             const phenotypeTerms = this.normalizeLlmTermList(terms.phenotype_terms);
             const mechanismTerms = this.normalizeLlmTermList(terms.mechanism_terms);
-            const genesOfInterest = this.normalizeLlmTermList(terms.genes_of_interest);
-            const ctx = this.sanitizeEmbeddingText(route.sanitized_query || route.biological_query_variation || this.userQuery);
-            const phenos = this.resolveHybridPhenotypeFilterTerms(phenotypeTerms, mechanismTerms, ctx);
+            const tissueTerms = this.normalizeLlmTermList(terms.tissues);
+            const cellTypeTerms = this.normalizeLlmTermList(terms.cell_types);
+            const sharedResearchContext =
+                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
+                    ? String(this.searchCriteria[1].values)
+                    : "";
+            const ctx = this.routeResearchContextForFetch(route, sharedResearchContext);
+            const phenos = this.resolveMultiRouteHybridPhenotypeFilterTerms(route, this.lastPhenotypeTerms);
             if (!phenos.length) {
-                throw new Error(`No retrieval terms available for ${route.category || routeId}.`);
+                throw new Error(
+                    `No phenotype terms for ${route.category || routeId}. Add route-specific phenotype terms before retrieval.`
+                );
             }
+            const genesOfInterest = this.routeGenesOfInterestForFetch(route);
 
             let queryEmbedding = null;
             if (this.hybridSearchUseClientEmbedding) {
                 let queryText = this.buildHybridQueryText({
                     phenotypeTerms: phenos,
-                    mechanismTerms,
+                    mechanismTerms: [...mechanismTerms, ...tissueTerms, ...cellTypeTerms],
                     researchContext: ctx,
                 });
                 queryText = this.sanitizeEmbeddingText(queryText || ctx);
@@ -7895,13 +8442,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 
             let constraintUsed = route.constraint_spec || null;
             let hybridJson;
+            const mechanismForFetch = [...mechanismTerms, ...tissueTerms, ...cellTypeTerms];
             try {
                 hybridJson = await this.callHybridRevealSearch({
                     queryEmbedding,
                     phenotypeTerms: phenos,
-                    mechanismTerms,
+                    mechanismTerms: mechanismForFetch,
                     researchContext: ctx,
-                    genesOfInterest: genesOfInterest.length ? genesOfInterest : this.normalizeLlmTermList(this.lastGenesOfInterest),
+                    genesOfInterest,
                     constraintSpec: constraintUsed,
                 });
             } catch (err) {
@@ -7910,18 +8458,21 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 hybridJson = await this.callHybridRevealSearch({
                     queryEmbedding,
                     phenotypeTerms: phenos,
-                    mechanismTerms,
+                    mechanismTerms: mechanismForFetch,
                     researchContext: ctx,
-                    genesOfInterest: genesOfInterest.length ? genesOfInterest : this.normalizeLlmTermList(this.lastGenesOfInterest),
+                    genesOfInterest,
                     constraintSpec: null,
                 });
             }
-            const factorData = this.normalizeHybridFactorsToFactorData(hybridJson, phenos);
+            const routeForEvidence = { ...route, constraint_spec: constraintUsed };
+            const factorData = this.annotateFactorDataWithFetchedDirection(
+                this.normalizeHybridFactorsToFactorData(hybridJson, phenos),
+                routeForEvidence
+            );
             const phenotypes = Object.keys(factorData).filter((p) => (factorData[p].factors || []).length > 0);
             if (!phenotypes.length) {
                 throw new Error(`No phenotype-factor results for ${route.category || routeId}.`);
             }
-            const routeForEvidence = { ...route, constraint_spec: constraintUsed };
             const evidenceBundle = this.buildCompactRouteEvidence({ route: routeForEvidence, factorData, hybridJson });
             this.setMultiQueryRouteStatus(routeId, "complete", {
                 phenotype_count: phenotypes.length,
@@ -7931,10 +8482,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 id: "2",
                 substep: {
                     id: `2.${routeId}`,
-                    title: `${route.category || routeId}: retrieved ${evidenceBundle.top_hits.length} compact evidence hit${evidenceBundle.top_hits.length !== 1 ? "s" : ""}`,
+                    title: `${route.category || routeId}: retrieved ${evidenceBundle.top_hits.length} evidence hit${evidenceBundle.top_hits.length !== 1 ? "s" : ""}`,
                     result: {
                         result: {
                             query: route.sanitized_query,
+                            phenotype_terms: phenos,
+                            mechanism_terms: mechanismForFetch,
+                            genes_of_interest: genesOfInterest,
+                            research_context: ctx,
                             phenotype_count: phenotypes.length,
                             factor_count: phenotypes.reduce((acc, p) => acc + ((factorData[p].factors || []).length), 0),
                             constraint_mode: constraintUsed && constraintUsed.constraint_mode,
@@ -7946,24 +8501,28 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return { route: routeForEvidence, factorData, hybridJson, evidenceBundle };
         },
         async runMultiQueryRetrievalWorkflow(routes = []) {
-            const routeList = (Array.isArray(routes) ? routes : []).slice(0, this.multiQueryEvidenceLimits.maxRoutes || 3);
+            if (this.usePerRouteSearchTermsEditor) {
+                this.applyRouteEditRowsToMultiQueryRoutes();
+            }
+            const routeList = (Array.isArray(this.multiQueryRoutes) && this.multiQueryRoutes.length
+                ? this.multiQueryRoutes
+                : routes
+            ).slice(0, this.multiQueryEvidenceLimits.maxRoutes || 3);
             if (!routeList.length) return false;
             this.setStep({
                 id: "2",
                 title: "Retrieving data across selected directions",
             });
             this.setLoadStatus("Hybrid retrieval: searching selected biological directions…");
-            const settled = await Promise.allSettled(
-                routeList.map((route, idx) => this.fetchMultiQueryRouteEvidence(route, idx))
-            );
             const successes = [];
             const errors = [];
-            settled.forEach((res, idx) => {
+            for (let idx = 0; idx < routeList.length; idx += 1) {
                 const route = routeList[idx] || {};
-                if (res.status === "fulfilled") {
-                    successes.push(res.value);
-                } else {
-                    const message = res.reason && res.reason.message ? res.reason.message : "Route retrieval failed.";
+                try {
+                    const result = await this.fetchMultiQueryRouteEvidence(route, idx);
+                    successes.push(result);
+                } catch (err) {
+                    const message = err && err.message ? err.message : "Route retrieval failed.";
                     errors.push({ route_id: route.route_id, category: route.category, message });
                     this.setMultiQueryRouteStatus(route.route_id, "error", { error: message });
                     this.setStep({
@@ -7974,7 +8533,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         },
                     });
                 }
-            });
+            }
             this.multiQueryRouteResults = successes;
             this.multiQueryRouteErrors = errors;
             this.multiQueryEvidenceBundles = successes.map((r) => r.evidenceBundle);
@@ -9533,6 +10092,15 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 .query-guidelines-content {
     overflow: visible;
 }
+.reveal-data-step-pre {
+    background: #eee;
+    max-height: 160px;
+    overflow: auto;
+    overflow-wrap: anywhere;
+    padding: 10px;
+    resize: vertical;
+    white-space: pre-wrap;
+}
 .query-guidelines-example {
     border-left: 3px solid #f16822;
     margin: 0;
@@ -9647,6 +10215,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
     border-radius: 4px;
     padding: 8px 12px;
     margin-bottom: 25px !important;
+}
+.reveal-gate-box-tight {
+    margin-bottom: 6px !important;
 }
 .reveal-gate-text {
     color: #fff;
