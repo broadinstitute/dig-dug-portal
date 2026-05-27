@@ -357,7 +357,7 @@ div.line-plot {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
 }
-.vln-plot {
+.vln-plot, .vlnPlots {
     background-color:  #efefef !important;
 }
 .functional-select {
