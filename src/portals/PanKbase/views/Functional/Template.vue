@@ -110,7 +110,9 @@
                                                     :plotId="`insulin_ieq`"
                                                     :timepoints="$parent.insTimepoints"
                                                     :lineColor="$parent.insColor"
-                                                    yAxisLabel="ng/100IEQ/min">
+                                                    :yAxisLabel=" $parent.showContent
+                                                        ? '% content min'
+                                                        : 'ng/100IEQ/min'">
                                                 </time-series-line-plot>
                                             </div>
                                             <div class="glucagon-plot line-plot">
@@ -123,7 +125,9 @@
                                                     :plotId="`glucagon_ieq`"
                                                     :timepoints="$parent.gcgTimepoints"
                                                     :lineColor="$parent.gcgColor"
-                                                    yAxisLabel="pg/100IEQ/min">
+                                                    :yAxisLabel="$parent.showContent 
+                                                        ? '% content min' 
+                                                        : 'pg/100IEQ/min'">
                                                 </time-series-line-plot>
                                             </div>
                                         </div>
