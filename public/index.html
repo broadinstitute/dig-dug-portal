@@ -23,12 +23,19 @@
         />
 
         <script type="application/javascript" src="/js/mdkp.js" defer></script>
+        <!-- tabix-reader: disabled 2026-05-28. Loaded globally for LocusZoom tabix data sources,
+             but no source in src/ declares a tabix type (lz-helpers.js / LzPlot.vue are unimported dead code).
+             To re-enable when a TabixUrlSource / TabixAssociationLZ data source is added:
+               1. Add `"tabix-reader": "^1.0.1"` back to dependencies in package.json (then `npm install`).
+               2. Uncomment the <script> tag below.
         <script
             type="application/javascript"
             src="https://cdn.jsdelivr.net/npm/tabix-reader@~1.0.0"
             crossorigin="anonymous"
             defer
         ></script>
+        -->
+
         <title>
             <%= htmlWebpackPlugin.options.title %> | Common Metabolic Diseases
             Knowledge Portal
