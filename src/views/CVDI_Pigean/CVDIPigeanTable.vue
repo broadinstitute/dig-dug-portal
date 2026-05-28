@@ -218,13 +218,11 @@ export default Vue.component("cvdi-pigean-table", {
         },
         describePhenotypes(data) {
             let inputData = structuredClone(data);
-            console.log("I'm the maaaaaap",JSON.stringify(this.phenotypeMap));
             for (let i = 0; i < inputData.length; i++) {
                 if (!inputData[i].phenotype) {
                     continue;
                 }
                 let desc = this.phenotypeMap[inputData[i].phenotype];
-                console.log(JSON.stringify(desc));
                 if (desc === undefined) {
                     desc = { phenotype_name: inputData[i].phenotype };
                 }

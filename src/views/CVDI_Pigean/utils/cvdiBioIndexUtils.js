@@ -83,7 +83,6 @@ export async function getPhecodeMap(){
         j.phenotype_name = j.description;
         phecodeMap[phecodeKey] = j;
     });
-    console.log("here we are", JSON.stringify(phecodeMap));
     return phecodeMap;
 }
 

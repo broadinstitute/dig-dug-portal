@@ -53,7 +53,6 @@ new Vue({
             tableConfig: {
                 fields: [
                     { key: "phenotypeDesc", label: "Phenotype", sortable: true },
-                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "combined",
                         label: "Combined genetic support",
@@ -76,7 +75,6 @@ new Vue({
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
-                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
@@ -197,7 +195,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
         this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
-        console.log(JSON.stringify(this.pigeanPhenotypeMap));
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
