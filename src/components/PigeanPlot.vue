@@ -57,7 +57,7 @@ export default Vue.component("pigean-plot", {
   },
   computed: {
     chartData(){
-      let data = this.pigeanData;
+      let data = structuredClone(this.pigeanData);
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -149,7 +149,7 @@ export default Vue.component("pigean-plot", {
         .data(this.chartData)
         .enter()
         .append("circle")
-          .attr("class", d => `dot_${d[this.config.dotKey]}`)
+          .attr("class", d => `dot_${d[this.config.dotKey].replaceAll(".", "point")}`)
           .attr("cx", d => 
             d[this.config.xField] === undefined
               ? this.xScale(0) 

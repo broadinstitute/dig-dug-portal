@@ -196,8 +196,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = 
-            pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
+        this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
+        console.log(JSON.stringify(this.pigeanPhenotypeMap));
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,

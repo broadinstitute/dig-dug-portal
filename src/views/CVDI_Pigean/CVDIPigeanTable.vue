@@ -226,7 +226,7 @@ export default Vue.component("cvdi-pigean-table", {
                 if (desc === undefined) {
                     desc = { phenotype_name: inputData[i].phenotype };
                 }
-                let phenotypeDesc = desc.phenotype_name.trim();
+                let phenotypeDesc = desc.description.trim();
                 inputData[i]["phenotypeDesc"] = phenotypeDesc;
             }
             return inputData;
@@ -282,7 +282,7 @@ export default Vue.component("cvdi-pigean-table", {
                 <template #cell(phenotypeDesc)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
-                        :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
+                        :href="`/cvdi_pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
                         {{ r.item.phenotypeDesc }}
                     </a>

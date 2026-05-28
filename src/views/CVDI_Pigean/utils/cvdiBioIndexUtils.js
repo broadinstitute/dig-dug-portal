@@ -5,6 +5,7 @@
 
 import querystring from "query-string";
 import cookie from "cookie";
+import dataConvert from "@/utils/dataConvert";
 
 // set cookie for authenticated requests
 let session_cookie = undefined;
@@ -68,6 +69,22 @@ export async function match(index, q, opts = {}) {
 
     // perform the fetch, make sure it succeeds
     return await processRequest(req, onResolve, onError, onLoad);
+}
+
+export async function getPhecodeMap(){
+    const phecodeMapUrl = "https://hugeampkpncms.org/sites/default/files/phenotypes_with_labels.csv";
+    let phecodeText = await fetch(phecodeMapUrl)
+        .then(response => response.text());
+    let phecodeJson = dataConvert.csv2Json(phecodeText);
+    let phecodeMap = {};
+    phecodeJson.forEach(j => {
+        let phecodeKey = `phecode_${j.phenotype}`;
+        j.phenotype = phecodeKey;
+        j.phenotype_name = j.description;
+        phecodeMap[phecodeKey] = j;
+    });
+    console.log("here we are", JSON.stringify(phecodeMap));
+    return phecodeMap;
 }
 
 /* Alters the json to filter results and stop continuing.
@@ -152,6 +169,7 @@ export default {
     apiUrl,
     request,
     rawUrl,
+    getPhecodeMap,
     BIO_INDEX_HOST,
     BIO_INDEX_HOST_PRIVATE,
     DEFAULT_SIGMA,
