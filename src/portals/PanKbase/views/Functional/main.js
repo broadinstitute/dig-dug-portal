@@ -125,6 +125,7 @@ new Vue({
                 },
                 diabetes: {
                     key: "Derived diabetes status",
+                    label: "Hba1c-derived diabetes status",
                     sortable: true
                 },
                 hba1c: {

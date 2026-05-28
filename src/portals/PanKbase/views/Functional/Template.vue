@@ -30,6 +30,7 @@
                                             <filter-radio v-for="oField in Object.values($parent.fieldsObject)
                                                 .filter(f => !f.isNumeric && !f.noSidebar)"
                                                 :field="oField.key"
+                                                :label="oField.label"
                                                 :options="$parent.filteredMetadata.map(m => m[oField.key])"
                                                 :presets="$parent.presets">
                                             </filter-radio>
@@ -138,7 +139,7 @@
                                                     <option v-for="oField in Object.values($parent.fieldsObject)
                                                     .filter(f => !f.isNumeric && !f.noSidebar)"
                                                     :value="oField.key">
-                                                        {{ oField.key }}
+                                                        {{ oField.label || oField.key }}
                                                     </option>
                                                 </select>
                                             </div>
@@ -187,7 +188,10 @@
                                                 <option :value="null">Select a trait</option>
                                                 <option v-for="trait in $parent.assocTraits"
                                                     :value="trait">
-                                                    {{ trait }}
+                                                    {{ trait.replaceAll("-", " ")
+                                                        .replaceAll("Gender", "Reported gender")
+                                                        .replaceAll("Derived", "HbA1c-derived")
+                                                         }}
                                                 </option>
                                             </select>
                                         </div>
