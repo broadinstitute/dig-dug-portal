@@ -2,6 +2,26 @@ import dataConvert from "@/utils/dataConvert";
 import * as d3 from 'd3';
 import {llog} from "./llog.js";
 
+const MISSING_METADATA_LABELS = new Set([
+    "",
+    "na",
+    "n/a",
+    "n.a.",
+    "n\\a",
+    "missing",
+    "null",
+    "none",
+    "-",
+    "--",
+    ".",
+    "..",
+]);
+
+export function isMissingMetadataValue(value) {
+    if (value === null || value === undefined) return true;
+    return MISSING_METADATA_LABELS.has(String(value).trim().toLowerCase());
+}
+
 /* fetch utils */
 export async function fetchMetadata(url) {
     llog('getting metadata', url);
@@ -118,6 +138,7 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
     if (!subsetKey) {
         // calculate counts by primary key only
         primaryLabels.forEach((label, index) => {
+            if (isMissingMetadataValue(label)) return;
             const indices = [];
                 for (let i = 0; i < primaryValues.length; i++) {
                     if (primaryValues[i] === index) indices.push(i);
@@ -135,12 +156,14 @@ export function calcCellCounts(fields, labelColors, primaryKey, subsetKey){
         const subsetLabels = keys[subsetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
+            if (isMissingMetadataValue(primaryLabel)) return;
             const primaryIndices = [];
                 for (let i = 0; i < primaryValues.length; i++) {
                     if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
                 }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
+                if (isMissingMetadataValue(subsetLabel)) return;
                 const subsetIndices = primaryIndices.filter(
                     i => subsetValues[i] === subsetIndex
                 );
@@ -170,6 +193,7 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
     if (!facetKey && !subsetKey) {
         // calculate counts by primary key only
         primaryLabels.forEach((label, index) => {
+            if (isMissingMetadataValue(label)) return;
             const indices = [];
                 for (let i = 0; i < primaryValues.length; i++) {
                     if (primaryValues[i] === index) indices.push(i);
@@ -187,12 +211,14 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         const subsetLabels = keys[subsetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
+            if (isMissingMetadataValue(primaryLabel)) return;
             const primaryIndices = [];
                 for (let i = 0; i < primaryValues.length; i++) {
                     if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
                 }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
+                if (isMissingMetadataValue(subsetLabel)) return;
                 const subsetIndices = primaryIndices.filter(
                     i => subsetValues[i] === subsetIndex
                 );
@@ -213,17 +239,20 @@ export function calcCellCounts2(fields, labelColors, primaryKey, subsetKey, face
         const facetLabels = keys[facetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
+            if (isMissingMetadataValue(primaryLabel)) return;
             const primaryIndices = [];
             for (let i = 0; i < primaryValues.length; i++) {
                 if (primaryValues[i] === primaryIndex) primaryIndices.push(i);
             }
 
             facetLabels.forEach((facetLabel, facetIndex) => {
+                if (isMissingMetadataValue(facetLabel)) return;
                 const facetFiltered = primaryIndices.filter(
                     i => facetValues[i] === facetIndex
                 );
 
                 subsetLabels.forEach((subsetLabel, subsetIndex) => {
+                    if (isMissingMetadataValue(subsetLabel)) return;
                     const subsetFiltered = facetFiltered.filter(
                         i => subsetValues[i] === subsetIndex
                     );
@@ -415,6 +444,8 @@ export function parseCellCountScatterData(
     let age = contLabels[contIndices[i]];
 
     if (
+      isMissingMetadataValue(group) ||
+      isMissingMetadataValue(donor) ||
       donor === null || donor === undefined ||
       age === null || age === undefined || isNaN(Number(age))
     ) continue;
@@ -473,6 +504,10 @@ export function preprocessBoxPlotData(metadata, metadataLabels, groupKey, contKe
     const group = groupLabels[groupIndices[i]] ?? "unknown";
      //let cont = contValues[i];
      let cont = contLabels[contIndices[i]] ?? null;
+
+        if (isMissingMetadataValue(group)) {
+            continue;
+        }
 
         if (typeof cont === "string") cont = cont.trim().toLowerCase();
 
@@ -564,6 +599,8 @@ export function parseFacetedScatterData(
     const aggregate = aggregateKey ? aggregateLabels[aggregateIndices[i]] : null;
 
     if (
+      isMissingMetadataValue(group) ||
+      (aggregateKey && isMissingMetadataValue(aggregate)) ||
       expr === null || expr === undefined || isNaN(expr) ||
       cont === null || cont === undefined || isNaN(cont)
     ) {
@@ -629,6 +666,7 @@ export function parseFacetedScatterDataA(metadata, metadataLabels, groupKey, con
     const group = groupLabels[groupIndices[i]];
 
     if (
+      isMissingMetadataValue(group) ||
       expr === null || expr === undefined || isNaN(expr) ||
       cont === null || cont === undefined || isNaN(cont)
     ) {
@@ -674,6 +712,7 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
     if (!subsetKey) {
         // calculate stats grouped by primary key only
         primaryLabels.forEach((label, index) => {
+            if (isMissingMetadataValue(label)) return;
             const indices = [];
             for (let i = 0; i < primaryValues.length; i++) {
                 if (primaryValues[i] === index) indices.push(i);
@@ -693,6 +732,7 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
         const subsetLabels = keys[subsetKey];
 
         primaryLabels.forEach((primaryLabel, primaryIndex) => {
+            if (isMissingMetadataValue(primaryLabel)) return;
 
             const primaryIndices = [];
             for (let i = 0; i < primaryValues.length; i++) {
@@ -700,6 +740,7 @@ export function calcExpressionStats(fields, labelColors, expression, gene, prima
             }
 
             subsetLabels.forEach((subsetLabel, subsetIndex) => {
+                if (isMissingMetadataValue(subsetLabel)) return;
                 const subsetIndices = primaryIndices.filter(
                     i => subsetValues[i] === subsetIndex
                 );
@@ -789,9 +830,8 @@ export function groupByKey(arr, key){
 
 export function inferDataType(values) {
     const maxSampleSize = 5000;
-    const ignore = new Set(["NA", "na", "N/A", "n/a", "", null, undefined]);
     const sampleValues = sampleArray(values, maxSampleSize);
-    const cleaned = sampleValues.filter(v => !ignore.has(v));
+    const cleaned = sampleValues.filter(v => !isMissingMetadataValue(v));
 
     if (cleaned.length === 0) return 'cat';
 
