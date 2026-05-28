@@ -291,11 +291,12 @@
                                         :data="cellCompositionVars.segmentByCounts2"
                                         :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
                                         :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
-                                        :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
-                                        :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                        :xAxisLabel="useVerticalCellProportionPlot ? `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}` : (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel))"
+                                        :yAxisLabel="useVerticalCellProportionPlot ? (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)) : `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
                                         :highlightKey="cellCompositionVars.highlightLabel"
                                         :normalize="isNormalized"
                                         :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                        :verticalCategoryLayout="useVerticalCellProportionPlot"
                                     />
                                     <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                     <research-single-cell-selector 
@@ -815,11 +816,12 @@
                                     :data="cellCompositionVars.segmentByCounts2"
                                     :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
                                     :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
-                                    :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
-                                    :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                    :xAxisLabel="useVerticalCellProportionPlot ? `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}` : (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel))"
+                                    :yAxisLabel="useVerticalCellProportionPlot ? (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)) : `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
                                     :highlightKey="cellCompositionVars.highlightLabel"
                                     :normalize="isNormalized"
                                     :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                    :verticalCategoryLayout="useVerticalCellProportionPlot"
                                 />
                                 <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                 <research-single-cell-selector 
@@ -1366,6 +1368,19 @@
             },
             countDownloadDisabled() {
                 return false;
+            },
+            useVerticalCellProportionPlot() {
+                const stratifyField = this.cellCompositionVars.segmentByLabel;
+                if (!stratifyField || !this.displayFields || this.displayFields[stratifyField]?.dataType !== 'cat') {
+                    return false;
+                }
+
+                const stratifyValues =
+                    this.fields?.metadata_labels_sorted?.[stratifyField] ||
+                    this.fields?.metadata_labels?.[stratifyField] ||
+                    [];
+
+                return stratifyValues.length > 40;
             },
             markerDotPlotTitle() {
                 return `Top Marker Genes for ${this.dotPlotCellType || 'All'} (${this.markerFile?.markerKeyLabel || 'Cell Types'})`;
