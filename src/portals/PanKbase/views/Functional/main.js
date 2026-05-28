@@ -125,6 +125,7 @@ new Vue({
                 },
                 diabetes: {
                     key: "Derived diabetes status",
+                    label: "Hba1c-derived diabetes status",
                     sortable: true
                 },
                 hba1c: {
@@ -502,6 +503,10 @@ new Vue({
         copyResults(){
             window.navigator.clipboard.writeText(window.location);
             console.log(window.location);
+        },
+        replaceFieldNames(names){
+            return names.replaceAll("Gender", "Reported gender")
+                .replaceAll("Derived", "HbA1c-derived");
         }
     },
     watch: {

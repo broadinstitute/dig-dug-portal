@@ -3,7 +3,7 @@
         <categorical-filter
             v-model="catFilter[field]"
             :columnName="field"
-            :displayLabel="field === 'Gender' ? 'Reported gender' : field"
+            :displayLabel="label || field"
             :options="processedOptions"
             :totalRowCount="options.length"
             @input="e => updateFilter(e)">
