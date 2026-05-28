@@ -22,7 +22,7 @@ const DATA_TYPE_DETAILS = {
         ],
         libraryButton: {
             label: "Data Library",
-            disabled: true,
+            href: "https://data.pankbase.org/search/?type=AnalysisSet&assay_titles=an+analyte+assay+that+measures+the+abundance+of+a+hormone"
         },
     },
     "bulk_RNA-seq": {
