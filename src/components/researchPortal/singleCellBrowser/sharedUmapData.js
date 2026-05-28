@@ -9,13 +9,16 @@ class SharedUmapData {
     initPoints(group, points) {
         if(!this.groups.has(group)){
             const numPoints = points.length;
+            const pointIndexMap = new Map();
         
-            // positions = [x1, y1, x2, y2, x3, y3, ...]
-            const positions = new Float32Array(points.length * 2);
+            // positions = [x1, y1, z1, x2, y2, z2, ...]
+            const positions = new Float32Array(points.length * 3);
             let idx = 0;
             for (let i = 0; i < points.length; i++) {
+                pointIndexMap.set(points[i], i);
                 positions[idx++] = points[i].X;
                 positions[idx++] = points[i].Y;
+                positions[idx++] = points[i].Z ?? 0;
             }
 
             // build quadtree
@@ -24,11 +27,13 @@ class SharedUmapData {
                 .y(d => d.Y)
                 .addAll(points);
 
-            const instances = 0;
+            const instances = 1;
 
             this.groups.set(group, {
                 numPoints,
                 positions,
+                points,
+                pointIndexMap,
                 quadtree,
                 instances
             })
@@ -42,9 +47,19 @@ class SharedUmapData {
         return data ? data.positions : null;
     }
 
+    getPoints(group) {
+        const data = this.groups.get(group);
+        return data ? data.points : null;
+    }
+
     getQuadtree(group) {
         const data = this.groups.get(group);
         return data ? data.quadtree : null;
+    }
+
+    getPointIndex(group, point) {
+        const data = this.groups.get(group);
+        return data ? data.pointIndexMap.get(point) : null;
     }
 
     getNumPoints(group) {

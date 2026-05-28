@@ -35,7 +35,8 @@ export default Vue.component('research-scatter-plot', {
       chartW: 0,
       chartH: 0,
       resizeTimeout: null,
-      computedWidth: 0
+      computedWidth: 0,
+      resizeObserver: null
     };
   },
   watch: {
@@ -46,11 +47,28 @@ export default Vue.component('research-scatter-plot', {
   mounted() {
     this.initPlot();
     window.addEventListener('resize', this.handleResize);
+    this.initResizeObserver();
   },
   beforeDestroy(){
     window.removeEventListener('resize', this.handleResize);
+    this.teardownResizeObserver();
   },
   methods: {
+    initResizeObserver(){
+      if (typeof ResizeObserver === 'undefined') return;
+      const target = this.$refs.chartWrapper?.parentElement || this.$refs.chartWrapper;
+      if (!target) return;
+      this.resizeObserver = new ResizeObserver(() => {
+        this.handleResize();
+      });
+      this.resizeObserver.observe(target);
+    },
+    teardownResizeObserver(){
+      if(this.resizeObserver){
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+    },
     handleResize(){
         clearTimeout(this.resizeTimeout);
         this.resizeTimeout = setTimeout(() => {
@@ -285,9 +303,14 @@ export default Vue.component('research-scatter-plot', {
 
       svg.append("g")
         .attr("transform", `translate(0,${this.chartH})`)
-        .call(d3.axisBottom(this.xScale).ticks(xTicks));
+        .call(d3.axisBottom(this.xScale).ticks(xTicks))
+        .selectAll("text")
+        .attr("font-family", "Arial");
 
-      svg.append("g").call(d3.axisLeft(this.yScale).ticks(yTicks));
+      svg.append("g")
+        .call(d3.axisLeft(this.yScale).ticks(yTicks))
+        .selectAll("text")
+        .attr("font-family", "Arial");
 
       if (this.xLabel) {
         svg.append("text")
@@ -295,6 +318,7 @@ export default Vue.component('research-scatter-plot', {
           .attr("y", this.chartH + 35)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
+          .attr("font-family", "Arial")
           .attr("fill", "rgba(0,0,0,0.5)")
           .text(this.xLabel);
       }
@@ -306,6 +330,7 @@ export default Vue.component('research-scatter-plot', {
           .attr("y", -40)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
+          .attr("font-family", "Arial")
           .attr("fill", "rgba(0,0,0,0.5)")
           .text(this.yLabel);
       }
@@ -379,6 +404,3 @@ export default Vue.component('research-scatter-plot', {
   }
 });
 </script>
-
-
-

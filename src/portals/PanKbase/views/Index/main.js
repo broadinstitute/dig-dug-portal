@@ -178,7 +178,7 @@ new Vue({
                     {
                         title: "Pancreatic islet all donor single cell map",
                         linkLabel: "Explore",
-                        linkUrl: "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA_v3-3",
+                        linkUrl: "/single-cell.html?PKBdatasetId=islet_of_Langerhans_scRNA_v3-4",
                     },
                     {
                         title: "Identify quantitative trait loci for a gene",

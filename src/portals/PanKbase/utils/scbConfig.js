@@ -4,7 +4,7 @@ export const SCB_CONFIG =
         "label": "Single Cell Browser",
         "presets": {
             "layout": 1,
-            "datasetId": "islet_of_Langerhans_scRNA_v3-3",
+            "datasetId": "islet_of_Langerhans_scRNA_v3-4",
             "showDatasetSelect": false
         },
 
