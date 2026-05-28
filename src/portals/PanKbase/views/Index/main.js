@@ -126,6 +126,15 @@ new Vue({
                             type: "medium",
                             comingSoon: false,
                         },
+                        {
+                            title: "Functional Browser",
+                            body: "Explore interactive visualizations of dynamic perfusion assays, which show how islets from human donors secrete insulin and glucagon over time upon exposure to a sequence of stimulatory and inhibitory conditions.",
+                            linkLabel: "Learn More",
+                            linkUrl: "/functional.html",
+                            bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-functional.png",
+                            type: "medium",
+                            comingSoon: false,
+                        },
                     ]
                 ],
             },
