@@ -188,10 +188,7 @@
                                                 <option :value="null">Select a trait</option>
                                                 <option v-for="trait in $parent.assocTraits"
                                                     :value="trait">
-                                                    {{ trait.replaceAll("-", " ")
-                                                        .replaceAll("Gender", "Reported gender")
-                                                        .replaceAll("Derived", "HbA1c-derived")
-                                                         }}
+                                                    {{ $parent.replaceFieldNames(trait.replaceAll("-", " "))}}
                                                 </option>
                                             </select>
                                         </div>
@@ -202,6 +199,12 @@
                                                 :items="$parent.assocTraitData"
                                                 :sortable="true"
                                             >
+                                            <template #cell(predictor)=r>
+                                                {{ $parent.replaceFieldNames(r.item.predictor) }}
+                                            </template>
+                                            <template #cell(term)=r>
+                                                {{ $parent.replaceFieldNames(r.item.term) }}
+                                            </template>
                                             <template #cell(covariates)="r">
                                                 <button class="btn btn-sm btn-secondary"
                                                     @click="r.toggleDetails()">
@@ -211,7 +214,8 @@
                                             <template #row-details="r">
                                                 <div 
                                                     style="background-color: #efefef;text-align: right;">
-                                                    {{ r.item.covariates.replaceAll(";", ", ") }}
+                                                    {{ $parent.replaceFieldNames(
+                                                        r.item.covariates.replaceAll(";", ", ")) }}
                                                 </div>
                                             </template>
                                             </b-table>

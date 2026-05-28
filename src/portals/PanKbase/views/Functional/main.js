@@ -503,6 +503,10 @@ new Vue({
         copyResults(){
             window.navigator.clipboard.writeText(window.location);
             console.log(window.location);
+        },
+        replaceFieldNames(names){
+            return names.replaceAll("Gender", "Reported gender")
+                .replaceAll("Derived", "HbA1c-derived");
         }
     },
     watch: {
