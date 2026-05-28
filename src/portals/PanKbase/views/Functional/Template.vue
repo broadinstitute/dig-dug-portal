@@ -7,7 +7,7 @@
             <div class="card mdkp-card">
                 <div class="card-body functional-page">
                     <div id="stats">
-                        <span id="stats-header">Data Explorer</span>
+                        <span id="stats-header">Islet perifusion data explorer</span>
                         <span v-if="$parent.filteredMetadata.length > 0">
                             ({{ $parent.donorsWithData.length }} donors with available functional data)</span>
                         <div v-html="$parent.about"></div>
@@ -181,7 +181,6 @@
                                     <b-tab title="Functional trait associations"
                                         @click="$parent.populateAssoc()"
                                     >
-                                        Based on {{ $parent.filteredAccession.length }} donors
                                         <div class="functional-select">
                                             <select 
                                                 v-model="$parent.functionalAssocTrait">
