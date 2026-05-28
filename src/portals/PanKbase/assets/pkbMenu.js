@@ -24,6 +24,7 @@ export const pkbMenu = {
                 { label: "Genome Browser", path: "/atacseq.html" },
                 { label: "Differential Gene Expression Browser", path: "/diff-exp.html" },
                 { label: "Gene Browser", path: "/gene.html" },
+                { label: "Functional Browser", path: "/functional.html" },
                 { label: "PCA Explorer", path: "/pca-explorer.html" },
                 { label: "Analytical Library", path: "/analytical-library.html" },
                 { label: "Data and Metadata Standards", path: "/metadata-data-standards.html" },
