@@ -42,7 +42,7 @@ import { truncate } from 'lodash';
             margin: {
                 top: 10,
                 right: 10,
-                bottom: 110,
+                bottom: 80,
                 left: 70
             },
             svg: null,
