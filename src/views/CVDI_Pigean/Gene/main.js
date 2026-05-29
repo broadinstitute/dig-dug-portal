@@ -97,7 +97,7 @@ new Vue({
                 type: "phewas plot",
                 "render by": "phenotype",
                 "group by": "group",
-                "phenotype map": "null",
+                "phenotype map": "kp phenotype map",
                 "y axis field": "combined",
                 "convert y -log10": "false",
                 "y axis label": "Combined genetic support",
@@ -150,7 +150,7 @@ new Vue({
         plotReady() {
             return (
                 this.pigeanFilteredData.length > 0
-                //&& Object.keys(this.pigeanPhenotypeMap).length > 0
+                && Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
         traitGroups() {
@@ -190,11 +190,12 @@ new Vue({
     },
 
     async created() {
+        this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         await this.$store.dispatch("getPigeanPhenotypes");
-        this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
+        
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
