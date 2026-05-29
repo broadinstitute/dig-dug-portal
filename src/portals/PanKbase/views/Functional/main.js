@@ -394,15 +394,12 @@ new Vue({
                 this.filteredAucData.map(d => d[xField]).filter(d => d !== empty)));
             
             // Map colors
-            let index = 0;
             let colorMap = {};
-            categories.forEach(c => {
-                colorMap[c] = colors[index];
-                index = index + 1;
-                if (index = colors.length){
-                    index = 0;
-                }
-            });
+            for (let i = 0; i < categories.length; i++){
+                let category = categories[i];
+                let color = colors[i] || colors[colors.length % i];
+                colorMap[category] = color;
+            }
             return colorMap;
         }
     },
