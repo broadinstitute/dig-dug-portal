@@ -1,6 +1,6 @@
 <script>
 import Vue from "vue";
-import { query, DEFAULT_SIGMA, DEFAULT_MODEL } from "./utils/cvdiBioIndexUtils";
+import { query, DEFAULT_TRAIT_GROUP, DEFAULT_MODEL } from "./utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
@@ -78,7 +78,7 @@ export default Vue.component("cvdi-pigean-table", {
             return data;
         },
         traitGroup() {
-            return keyParams.traitGroup;
+            return keyParams.traitGroup || DEFAULT_TRAIT_GROUP;
         },
         suffix() {
             return `&traitGroup=${this.traitGroup}`;
