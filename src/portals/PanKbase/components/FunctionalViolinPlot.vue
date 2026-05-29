@@ -8,7 +8,8 @@
 </template>
   
 <script>
-  import * as d3 from 'd3';
+import * as d3 from 'd3';
+import colors from "@/utils/colors";
 import { truncate } from 'lodash';
   import Vue from 'vue';
   
@@ -41,12 +42,12 @@ import { truncate } from 'lodash';
             margin: {
                 top: 10,
                 right: 10,
-                bottom: 110,
+                bottom: 80,
                 left: 70
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 250
+            plotHeight: 250,
         }
     },
     watch: {
@@ -124,6 +125,7 @@ import { truncate } from 'lodash';
             let empty = "-";
             let categories = Array.from(new Set(
                 this.data.map(d => d[xField]).filter(d => d !== empty)));
+            
 
             let x = d3.scaleBand()
                 .range([0,width])
@@ -136,17 +138,15 @@ import { truncate } from 'lodash';
 				.style("font-size", this.fontSize)
                 .style("text-anchor", "end")
                 .attr("transform", "rotate(-35) translate(-5, 0)")
-                .text(t => t === "-" ? "N/A" : t);
+                .text(t => this.textLabel(t));
             
             let histogram = d3.histogram()
                 .domain(y.domain())
                 .thresholds(y.ticks(20))
                 .value(d => d);
 
-            let statData = structuredClone(this.data);
-            if (this.yField.startsWith('GCG')){
-                console.log(JSON.stringify(statData.map(d => d[this.yField])));
-            }
+            let statData = structuredClone(this.data).filter(d => d[xField] !== empty);
+            
             let sumstat = d3.nest()
                 .key(d => d[xField])
                 .rollup(function(d){
@@ -174,15 +174,17 @@ import { truncate } from 'lodash';
                 .data(sumstat)
                 .enter()
                 .append("g")
-                    .attr("transform", d => `translate(${x(d.key)} ,0)`)
+                    .attr("transform", d => {
+                        return `translate(${x(d.key)} ,0)`;})
                 .append("path")
                     .datum(d => d.value)
                     .style("stroke", "none")
-                    .style("fill", "#69b3a2")
+                    .style("fill", (d,i) => colors[i] || colors[colors.length % i])
                     .attr("d", d3.area()
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
                         .y(d => y(d.x0))
+                        .defined(d => d[xField] !== empty)
                         .curve(d3.curveCatmullRom));
 
             this.svg.append("g")
@@ -202,7 +204,29 @@ import { truncate } from 'lodash';
                 return label.replaceAll(" ", "");
             }
             return label.length < 8 ? label : `${label.slice(0,7)}.`;
-        } 
+        },
+        textLabel(t){
+            let parenthetical = /\((\w+)\)/;
+            let selfAbbreviation = t.match(parenthetical);
+            if (selfAbbreviation !== null){
+                return selfAbbreviation[1];
+            }
+            if (this.xField === 'Isolation_center'){
+                let delimiters = /[-]? /
+                let shortForm = t.split(delimiters);
+                return shortForm[0];
+            }
+            let diabetesType = /(type [\d])/;
+            let getDiabetesType = t.match(diabetesType);
+            if (getDiabetesType !== null){
+                return getDiabetesType[1];
+            }
+            if (t.startsWith("control")){
+                return "control";
+            }
+            return t;
+
+        }
     },
   });
   </script>
