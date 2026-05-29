@@ -138,7 +138,7 @@ import { truncate } from 'lodash';
 				.style("font-size", this.fontSize)
                 .style("text-anchor", "end")
                 .attr("transform", "rotate(-35) translate(-5, 0)")
-                .text(t => t === "-" ? "N/A" : t);
+                .text(t => this.textLabel(t));
             
             let histogram = d3.histogram()
                 .domain(y.domain())
@@ -204,7 +204,21 @@ import { truncate } from 'lodash';
                 return label.replaceAll(" ", "");
             }
             return label.length < 8 ? label : `${label.slice(0,7)}.`;
-        } 
+        },
+        textLabel(t){
+            let parenthetical = /\((\w+)\)/;
+            let selfAbbreviation = t.match(parenthetical);
+            if (selfAbbreviation !== null){
+                return selfAbbreviation[1];
+            }
+            if (this.xField === 'Isolation_center'){
+                let delimiters = /[-]? /
+                let shortForm = t.split(delimiters);
+                return shortForm[0];
+            }
+            return t;
+
+        }
     },
   });
   </script>
