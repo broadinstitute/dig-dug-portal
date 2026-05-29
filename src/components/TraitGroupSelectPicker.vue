@@ -1,8 +1,8 @@
 <template>
     <select v-model="traitGroup" class="form-control">
         <option value="all">All</option>
-        <option value="all_but_hpo">All but HPO</option>
-        <option value="all_complex">Complex traits</option>
+        <option v-if="!cvdi" value="all_but_hpo">All but HPO</option>
+        <option v-if="!cvdi" value="all_complex">Complex traits</option>
         <option v-for="group in groups" :value="group[0]">
             {{ group[1] }}
         </option>
@@ -14,13 +14,19 @@ import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
 import bioIndexUtils from "@/utils/bioIndexUtils";
+import cvdiBioIndexUtils from "@/views/CVDI_Pigean/utils/cvdiBioIndexUtils";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 export default Vue.component("trait-group-selectpicker", {
-    props: [],
+    props: {
+        cvdi: {
+            type: Boolean,
+            default: false,
+        },
+    },
     data() {
         return {
             traitGroup: keyParams.traitGroup,
@@ -31,9 +37,11 @@ export default Vue.component("trait-group-selectpicker", {
             return keyParams.traitGroup;
         },
         groups(){
-            let bioindexGroups = bioIndexUtils.TRAIT_GROUPS;
-            return Object.keys(bioIndexUtils.TRAIT_GROUPS).map(
+            let bioindexGroups = !this.cvdi ? bioIndexUtils.TRAIT_GROUPS : cvdiBioIndexUtils.TRAIT_GROUPS;
+            let output = Object.keys(bioindexGroups).map(
                 g => [g, bioindexGroups[g]]);
+            console.log(JSON.stringify(output));
+            return output;
         }
     },
     watch: {

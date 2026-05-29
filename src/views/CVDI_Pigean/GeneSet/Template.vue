@@ -17,7 +17,7 @@
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Trait group</div>
-                    <trait-group-selectpicker></trait-group-selectpicker>
+                    <trait-group-selectpicker :cvdi="true"></trait-group-selectpicker>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Search</div>
