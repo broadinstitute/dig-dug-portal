@@ -247,6 +247,7 @@ export default Vue.component("ResearchPhewasPlot", {
                     phenotypesData.reverse();
                 }
 
+                console.log("phenotypesdata", JSON.stringify(phenotypesData));
                 phenotypesData.map((d) => {
                     if (
                         this.renderConfig["convert y -log10"] == true ||
@@ -269,7 +270,6 @@ export default Vue.component("ResearchPhewasPlot", {
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
-
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
@@ -581,7 +581,6 @@ export default Vue.component("ResearchPhewasPlot", {
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
                 this.pheWasPosData = {};
-
                 let renderData = this.groupData(this.renderData);
 
                 let groups = {};

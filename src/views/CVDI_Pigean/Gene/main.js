@@ -91,11 +91,31 @@ new Vue({
             },
             plotColors: plotUtils.plotColors(),
             pigeanColors: null,
-            renderConfig: {
+            dotsToPhewas: "",
+            dotsToPigean: ""
+        };
+    },
+    computed: {
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+        renderConfig(){
+            let phenotypeMapConfig = this.$store.state.traitGroup === 
+                    cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP
+                ? "kp phenotype map"
+                : "null";
+            return {
                 type: "phewas plot",
                 "render by": "phenotype",
                 "group by": "group",
-                "phenotype map": "kp phenotype map",
+                "phenotype map": phenotypeMapConfig,
                 "y axis field": "combined",
                 "convert y -log10": "false",
                 "y axis label": "Combined genetic support",
@@ -111,21 +131,7 @@ new Vue({
                     top: 250,
                     bottom: 300,
                 },
-            },
-            dotsToPhewas: "",
-            dotsToPigean: ""
-        };
-    },
-    computed: {
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
             }
-            return contents[0];
         },
         region() {
             return this.$store.getters.region;
