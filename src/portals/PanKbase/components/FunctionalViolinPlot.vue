@@ -9,6 +9,7 @@
   
 <script>
 import * as d3 from 'd3';
+import colors from "@/utils/colors";
 import { truncate } from 'lodash';
   import Vue from 'vue';
   
@@ -148,7 +149,7 @@ import { truncate } from 'lodash';
                 .thresholds(y.ticks(20))
                 .value(d => d);
 
-            let statData = structuredClone(this.data);
+            let statData = structuredClone(this.data).filter(d => d[xField] !== empty);
             
             let sumstat = d3.nest()
                 .key(d => d[xField])
@@ -173,23 +174,21 @@ import { truncate } from 'lodash';
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
             
-            console.log(JSON.stringify(this.colorMap));
-            let color = null;
             this.svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
                 .append("g")
                     .attr("transform", d => {
-                        color = this.colorMap[d.key];
                         return `translate(${x(d.key)} ,0)`;})
                 .append("path")
                     .datum(d => d.value)
                     .style("stroke", "none")
-                    .style("fill", color || "lightgray")
+                    .style("fill", (d,i) => colors[i] || colors[colors.length % i])
                     .attr("d", d3.area()
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))
                         .y(d => y(d.x0))
+                        .defined(d => d[xField] !== empty)
                         .curve(d3.curveCatmullRom));
 
             this.svg.append("g")
