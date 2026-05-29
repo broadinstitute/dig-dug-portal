@@ -115,7 +115,7 @@ new Vue({
                 type: "phewas plot",
                 "render by": "phenotype",
                 "group by": "group",
-                "phenotype map": phenotypeMapConfig,
+                "phenotype map": "kp phenotype map",
                 "y axis field": "combined",
                 "convert y -log10": "false",
                 "y axis label": "Combined genetic support",
@@ -172,6 +172,13 @@ new Vue({
         pigeanFilteredData(){
             let rawData = structuredClone(this.phewasAllData);
             let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
+            filteredData.forEach(p => {
+                let delimiter = "___";
+                // Harmonize this formatting
+                if (p.phenotype.includes(delimiter)){
+                    p.phenotype = p.phenotype.split(delimiter)[0];
+                }
+            });
             return filteredData;
         },
         pigeanMap(){
