@@ -142,7 +142,15 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            return this.$store.state.phewasData;
+            let data = structuredClone(this.$store.state.phewasData);
+            data.forEach(p => {
+                let delimiter = "___";
+                // Harmonize this formatting
+                if (p.phenotype.includes(delimiter)){
+                    p.phenotype = p.phenotype.split(delimiter)[0];
+                }
+            });
+            return data;
         }
     },
     methods: {

@@ -107,10 +107,6 @@ new Vue({
             return contents[0];
         },
         renderConfig(){
-            let phenotypeMapConfig = this.$store.state.traitGroup === 
-                    cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP
-                ? "kp phenotype map"
-                : "null";
             return {
                 type: "phewas plot",
                 "render by": "phenotype",
