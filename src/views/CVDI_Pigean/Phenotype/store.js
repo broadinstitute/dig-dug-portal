@@ -18,7 +18,7 @@ export default new Vuex.Store({
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
-        phenotype: null,
+        phenotype: keyParams.phenotype,
         newPhenotype: null,
         phenotypesInSession: null,
         diseaseInSession: null,
@@ -42,7 +42,7 @@ export default new Vuex.Store({
         },
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
-            keyParams.set({ phenotype: PHENOTYPE.name });
+            //keyParams.set({ phenotype: PHENOTYPE.name });
             state.traitGroupToQuery = PHENOTYPE.trait_group;
             keyParams.set({ traitGroup: PHENOTYPE.trait_group});
         },
@@ -61,18 +61,19 @@ export default new Vuex.Store({
     actions: {
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.name });
+            //keyParams.set({ phenotype: phenotype.name });
         },
 
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
-            let name = context.state.phenotype.name;
+            let name = keyParams.phenotype;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
             
-            let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
+            let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`, limit: 1000 };
+            console.log(query.q);
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
         },

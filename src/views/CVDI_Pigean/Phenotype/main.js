@@ -324,21 +324,29 @@ new Vue({
             let colors = {};
             colors[this.$store.state.phenotype.group] = plotUtils.plotColors()[0];
             return colors;
+        },
+        pigeanPhenotypeData(){
+            return this.$store.state.pigeanPhenotype.data;
         }
 
     },
 
     watch: {
         "$store.state.phenotype": function (phenotype) {
-            keyParams.set({ phenotype: phenotype.name });
+            console.log("Is this the problem?");
+            //keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        pigeanPhenotypeData(newData){
+            console.log("Received new BI data", JSON.stringify(newData));
+        }
     },
 
     async created() {
+        this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -377,7 +385,7 @@ new Vue({
             let phenotype = this.pigeanPhenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                keyParams.set({ phenotype: phenotype.name });
+                //keyParams.set({ phenotype: phenotype.name });
                 this.$store.state.traitGroupToQuery = phenotype.trait_group;
                 keyParams.set({ traitGroup: phenotype.trait_group });
             }
