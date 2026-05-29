@@ -75,8 +75,6 @@ export default new Vuex.Store({
             let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_SIGMA},${genesetSize}`, limit: 1000 };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
-            context.dispatch("pigeanFactor/query", query);
-            context.dispatch("pigeanTopPhewas/query", query);
         },
         phenotypesInSession(context, PHENOTYPES) {
             context.commit("setPhenotypesInSession", PHENOTYPES);

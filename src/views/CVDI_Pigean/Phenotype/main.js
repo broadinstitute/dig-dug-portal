@@ -305,9 +305,6 @@ new Vue({
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        heatmapData() {
-            return this.filterHeatmapData(this.heatmapMaxP);
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
@@ -319,19 +316,6 @@ new Vue({
                 plotUtils: plotUtils,
             };
             return utils;
-        },
-        mechanismMap() {
-            let data = this.$store.state.pigeanFactor.data;
-            let mechanisms = {};
-            data.forEach((item) => {
-                if (!mechanisms[item.factor]) {
-                    mechanisms[item.factor] = {
-                        label: item.label,
-                        score: item.gene_set_score,
-                    };
-                }
-            });
-            return mechanisms;
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;
@@ -387,34 +371,6 @@ new Vue({
         },
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
-        },
-        filterHeatmapData(p) {
-            let phewasData = this.namesAndMechanisms(
-                this.$store.state.pigeanTopPhewas.data
-            );
-            if (p === "" || Number.isNaN(p)) {
-                return phewasData;
-            }
-            let significantEntries = phewasData.filter(
-                (item) => item.pValue <= p
-            );
-            let significantPhenotypes = significantEntries.map(
-                (item) => item.other_phenotype
-            );
-            return phewasData.filter((item) =>
-                significantPhenotypes.includes(item.other_phenotype)
-            );
-        },
-        namesAndMechanisms(originalData) {
-            let data = structuredClone(originalData);
-            let mechanisms = this.mechanismMap;
-            data.forEach((item) => {
-                const mechanism = mechanisms[item.factor] || {};
-                item.mechanism = `${mechanism.score || ""}___${
-                    mechanism.label || ""
-                }`;
-            });
-            return data;
         },
         lookupInPigeanMap(){
             let name = keyParams.phenotype;
