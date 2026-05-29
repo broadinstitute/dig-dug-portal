@@ -20,7 +20,7 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
-import { BIO_INDEX_HOST } from "../utils/cvdiBioIndexUtils";
+import { BIO_INDEX_HOST, getPhecodeMap } from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
@@ -38,6 +38,7 @@ new Vue({
     mixins: [pageMixin],
 
     data: {
+        pigeanPhenotypeMap: {},
         selected: "",
         searches: [
             { id: "gene", name: "gene" },
@@ -182,11 +183,9 @@ new Vue({
             }
         },
         phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
+            let allPhenotypes = Object.values(this.pigeanPhenotypeMap);
+            allPhenotypes.forEach(p => p.name = p.phenotype);
+            return allPhenotypes;
         },
         matchingGenes() {
             return this.$store.state.matchingGenes;
@@ -409,6 +408,7 @@ new Vue({
     },
 
     async created() {
+        this.pigeanPhenotypeMap = await getPhecodeMap();
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

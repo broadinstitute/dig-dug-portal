@@ -208,6 +208,9 @@ export default Vue.component("research-single-search", {
 				})
 			}
 		},
+		phenotypes(newData){
+			console.log(JSON.stringify(newData));
+		}
 	},
 	methods: {
 		...alertUtils,
