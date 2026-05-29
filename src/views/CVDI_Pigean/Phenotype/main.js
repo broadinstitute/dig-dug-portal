@@ -87,7 +87,6 @@ new Vue({
                     },
                     { key: "n", label: "Number of gene sets", sortable: true },
                     { key: "expand", label: "Gene sets" },
-                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
@@ -112,7 +111,6 @@ new Vue({
             genesetTableConfig: {
                 fields: [
                     { key: "gene_set", label: "Gene set", sortable: true },
-                    { key: "label", label: "Mechanism", sortable: true },
                     { key: "beta", label: "Effect (joint)", sortable: true },
                     {
                         key: "beta_uncorrected",
@@ -153,56 +151,6 @@ new Vue({
                 dotKey: "gene_set",
                 hoverBoxPosition: "both",
             },
-            factorTableConfig: {
-                fields: [
-                    { key: "label", label: "Mechanism", sortable: true },
-                    {
-                        key: "gene_set_score",
-                        label: "Relevance to trait",
-                        sortable: true,
-                    },
-                    { key: "phewasPlot", label: "PheWAS" },
-                    { key: "expand1", label: "Top gene loadings" },
-                    { key: "expand2", label: "Top gene set loadings" },
-                ],
-                queryParam: "cluster",
-                sortBy: "gene_set_score",
-                subtableEndpoint: "pigean-gene-factor",
-                subtable2Endpoint: "pigean-gene-set-factor",
-                subtableFields: [
-                    { key: "gene", label: "Gene", sortable: true },
-                    {
-                        key: "combined",
-                        label: "Combined genetic support",
-                        sortable: true,
-                    },
-                    {
-                        key: "factor_value",
-                        label: "Mechanism value",
-                        sortable: true,
-                    },
-                    {
-                        key: "log_bf",
-                        label: "Direct support (w/ gene sets)",
-                        sortable: true,
-                    },
-                    { key: "prior", label: "Indirect support", sortable: true },
-                ],
-                subtable2Fields: [
-                    { key: "gene_set", label: "Gene set", sortable: true },
-                    {
-                        key: "factor_value",
-                        label: "Mechanism value",
-                        sortable: true,
-                    },
-                    { key: "beta", label: "Effect (joint)", sortable: true },
-                    {
-                        key: "beta_uncorrected",
-                        label: "Effect (marginal)",
-                        sortable: true,
-                    },
-                ],
-            },
             renderConfig: {
                 type: "phewas plot",
                 "render by": "other_phenotype",
@@ -230,56 +178,6 @@ new Vue({
                     bottom: 300,
                 },
             },
-            mechanismTooltip:
-                "Genes with genetic support for this trait " +
-                "and gene sets with strong effects on genetic support " +
-                "for the trait are compiled into a membership matrix. " +
-                "Bayesian non-negative matrix factorization with " +
-                "automatic relevance determination is then applied " +
-                "to the membership matrix to determine latent factors, " +
-                "each of which is characterized by loadings of both " +
-                "genes and gene sets within the factor. The relevance " +
-                "of each factor to this trait is calculated as the sum " +
-                "of gene set effects within the factor. The gene factors " +
-                "are finally included in a joint regression model to " +
-                "independently predict genetic support for each trait " +
-                "in the portal, producing a PheWAS that independently " +
-                "determines additional traits affected by the mechanism. " +
-                "Associations with other traits are used only to " +
-                "construct the PheWAS and not to determine the factor weights.",
-            heatmapConfig: {
-                type: "heat map",
-                label: "Mechanisms PheWAS",
-                main: {
-                    field: "Z",
-                    label: "Z-score",
-                    type: "scale",
-                    direction: "positive",
-                    low: -3.0,
-                    middle: 0,
-                    high: 5.0,
-                },
-                sub: {
-                    field: "pValue",
-                    label: "P-value",
-                    type: "steps",
-                    direction: "negative",
-                    valueRange: [0.00001, 0.001],
-                    "value range": [0.00001, 0.001],
-                },
-                columnField: "other_phenotype",
-                columnLabel: "Other phenotype",
-                rowField: "mechanism",
-                rowLabel: "Mechanism",
-                fontSize: 12,
-                legend: "Legend",
-                sortPhenotypeColumns: true,
-                colorByPhenotype: true,
-                truncateColumns: true,
-                sortRowsDescending: true,
-                rowScorePrefixes: true,
-            },
-            heatmapMaxP: 0.001,
         };
     },
 
