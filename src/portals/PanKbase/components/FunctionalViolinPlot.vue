@@ -8,7 +8,7 @@
 </template>
   
 <script>
-  import * as d3 from 'd3';
+import * as d3 from 'd3';
 import { truncate } from 'lodash';
   import Vue from 'vue';
   
@@ -30,6 +30,10 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
+      colorMap: {
+        type: (Object, null),
+        required: true
+      }
     },
     data() {
         return {
@@ -46,7 +50,7 @@ import { truncate } from 'lodash';
             },
             svg: null,
             fontSize: "13px",
-            plotHeight: 250
+            plotHeight: 250,
         }
     },
     watch: {
@@ -124,6 +128,7 @@ import { truncate } from 'lodash';
             let empty = "-";
             let categories = Array.from(new Set(
                 this.data.map(d => d[xField]).filter(d => d !== empty)));
+            
 
             let x = d3.scaleBand()
                 .range([0,width])
@@ -144,9 +149,7 @@ import { truncate } from 'lodash';
                 .value(d => d);
 
             let statData = structuredClone(this.data);
-            if (this.yField.startsWith('GCG')){
-                console.log(JSON.stringify(statData.map(d => d[this.yField])));
-            }
+            
             let sumstat = d3.nest()
                 .key(d => d[xField])
                 .rollup(function(d){
@@ -170,15 +173,19 @@ import { truncate } from 'lodash';
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
             
+            console.log(JSON.stringify(this.colorMap));
+            let color = null;
             this.svg.selectAll("myViolin")
                 .data(sumstat)
                 .enter()
                 .append("g")
-                    .attr("transform", d => `translate(${x(d.key)} ,0)`)
+                    .attr("transform", d => {
+                        color = this.colorMap[d.key];
+                        return `translate(${x(d.key)} ,0)`;})
                 .append("path")
                     .datum(d => d.value)
                     .style("stroke", "none")
-                    .style("fill", "#69b3a2")
+                    .style("fill", color || "lightgray")
                     .attr("d", d3.area()
                         .x0(d => xNum(-d.length))
                         .x1(d => xNum(d.length))

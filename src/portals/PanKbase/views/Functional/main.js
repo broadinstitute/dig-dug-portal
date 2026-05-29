@@ -23,6 +23,7 @@ import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
+import colors from "@/utils/colors";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
 const timepointsFile = "/data/pankbase/HIPP_gcg_ieq.timepoints.txt";
 const gcgTimepointsFile = `${PANKBASE_BIOINDEX}/api/raw/file/single_cell_time_series/HIPP/HIPP_gcg_ieq.timepoints.txt`;
@@ -385,6 +386,24 @@ new Vue({
                 }
                 return definition;
             })
+        },
+        functionalColorMap(){
+            let xField = this.functionalTrait;
+            let empty = "-";
+            let categories = Array.from(new Set(
+                this.filteredAucData.map(d => d[xField]).filter(d => d !== empty)));
+            
+            // Map colors
+            let index = 0;
+            let colorMap = {};
+            categories.forEach(c => {
+                colorMap[c] = colors[index];
+                index = index + 1;
+                if (index = colors.length){
+                    index = 0;
+                }
+            });
+            return colorMap;
         }
     },
     methods: {

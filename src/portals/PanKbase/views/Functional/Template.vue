@@ -154,6 +154,7 @@
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
+                                                        :colorMap="$parent.functionalColorMap"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
@@ -170,6 +171,7 @@
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
+                                                        :colorMap="$parent.functionalColorMap"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
