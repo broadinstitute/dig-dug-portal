@@ -11,6 +11,7 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+const MODEL = "mouse_msigdb";
 export default Vue.component("cvdi-pigean-table", {
     components: {
         DataDownload,
@@ -172,9 +173,7 @@ export default Vue.component("cvdi-pigean-table", {
             if (this.config.queryParam === "cluster") {
                 return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
-            return `${item.phenotype},${
-                item[this.config.queryParam]
-            },${DEFAULT_SIGMA},${this.genesetSize}`;
+            return `${item.phenotype},${item[this.config.queryParam]},${MODEL}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
