@@ -21,9 +21,7 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
-        genesetSize: keyParams.genesetSize || cvdiBioIndexUtils.DEFAULT_GENESET_SIZE,
         geneToQuery: "",
-        genesetSizeToQuery: null,
         aliasName: null,
         traitGroup: keyParams.traitGroup || cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP,
         traitGroupToQuery: null,
@@ -34,10 +32,6 @@ export default new Vuex.Store({
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
-        },
-        setGenesetSize(state, genesetSize){
-            state.genesetSize = genesetSize || state.genesetSize;
-            keyParams.set({ genesetSize: state.genesetSize });
         },
         setTraitGroup(state, traitGroup){
             state.traitGroup = traitGroup || state.traitGroup;
@@ -82,10 +76,8 @@ export default new Vuex.Store({
         async queryGeneName(context, symbol) {
             await context.commit("setPhewasData", []);
             let name = context.state.geneToQuery || context.state.geneName;
-            let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setGeneName", name);
-            context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
             let param3 = cvdiBioIndexUtils.DEFAULT_MODEL;
             if (!!name) {

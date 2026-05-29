@@ -341,13 +341,6 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_phenotype"],
     },
-    cvdi_network_graph: {
-        entry: "src/views/CVDI_Pigean/NetworkGraph/main.js",
-        template: "public/index.html",
-        filename: "cvdi_pigean/network_graph.html",
-        title: "Network Graph",
-        chunks: ["chunk-vendors", "chunk-common", "cvdi_network_graph"],
-    },
 };
 
 // remove the debug page in production

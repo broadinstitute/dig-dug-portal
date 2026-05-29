@@ -15,7 +15,6 @@ import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
-import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import CVDIPigeanTable from "../CVDIPigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import Heatmap from "@/components/Heatmap.vue";
@@ -31,7 +30,6 @@ new Vue({
     store,
     components: {
         SearchHeaderWrapper,
-        GenesetSizeSelectPicker,
         ResearchMPlot,
         RawImage,
         CVDIPigeanTable,

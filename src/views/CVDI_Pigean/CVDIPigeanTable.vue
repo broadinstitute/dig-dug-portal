@@ -5,7 +5,6 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import CVDIPigeanTable from "./CVDIPigeanTable.vue";
-import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import uiUtils from "@/utils/uiUtils";
 import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -22,7 +21,6 @@ export default Vue.component("cvdi-pigean-table", {
         "config",
         "isSubtable",
         "filter",
-        "phewasRenderConfig",
     ],
     data() {
         return {
@@ -30,7 +28,6 @@ export default Vue.component("cvdi-pigean-table", {
             currentPage: 1,
             subtableData: {},
             subtable2Data: {},
-            phewasData: {},
             plotColors: plotUtils.plotColors(),
         };
     },
@@ -71,24 +68,20 @@ export default Vue.component("cvdi-pigean-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive and phewasActive to each row
+            //add subtableActive to each row
             data.forEach((row) => {
                 row.subtableActive = 0;
-                row.phewasActive = false;
             });
             if (this.filter) {
                 data = data.filter(this.filter);
             }
             return data;
         },
-        genesetSize() {
-            return keyParams.genesetSize;
-        },
         traitGroup() {
             return keyParams.traitGroup;
         },
         suffix() {
-            return `&genesetSize=${this.genesetSize}&traitGroup=${this.traitGroup}`;
+            return `&traitGroup=${this.traitGroup}`;
         },
     },
     methods: {
@@ -99,10 +92,6 @@ export default Vue.component("cvdi-pigean-table", {
         annotationFormatter: Formatters.annotationFormatter,
         tissueFormatter: Formatters.tissueFormatter,
         tpmFormatter: Formatters.tpmFormatter,
-        phewasPlotShow(row) {
-            this.getPhewas(row);
-            this.toggleTable(row, "phewas");
-        },
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
@@ -121,37 +110,23 @@ export default Vue.component("cvdi-pigean-table", {
                 Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
-        async getPhewas(row) {
-            let queryKey = this.phewasKey(row.item);
-            if (!this.phewasData[queryKey]) {
-                let data = await query("pigean-phewas", queryKey);
-                Vue.set(this.phewasData, queryKey, data);
-            }
-        },
         showDetails(row, tableNum) {
             this.toggleTable(row, tableNum);
             this.getSubtable(row, tableNum);
         },
         toggleTable(row, subtable) {
             let show = false;
-            if (subtable === "phewas") {
-                show = !row.item.phewasActive;
-            } else if (subtable === row.item.subtableActive) {
+            if (subtable === row.item.subtableActive) {
                 show = false;
             } else {
                 show = true;
             }
             // Toggle active table
-            if (subtable === "phewas") {
-                row.item.phewasActive = !row.item.phewasActive;
-            } else {
-                row.item.subtableActive = !show ? 0 : subtable;
-            }
+            row.item.subtableActive = !show ? 0 : subtable;
             // Hide details if it's currently showing and no tables should be active
             if (
                 !show &&
                 row.detailsShowing &&
-                !row.item.phewasActive &&
                 row.item.subtableActive === 0
             ) {
                 row.toggleDetails();
@@ -160,18 +135,12 @@ export default Vue.component("cvdi-pigean-table", {
             if (
                 show &&
                 !row.detailsShowing &&
-                (row.item.phewasActive || row.item.subtableActive !== 0)
+                row.item.subtableActive !== 0
             ) {
                 row.toggleDetails();
             }
         },
-        phewasKey(item) {
-            return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
-        },
         subtableKey(item) {
-            if (this.config.queryParam === "cluster") {
-                return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
-            }
             return `${item.phenotype},${item[this.config.queryParam]},${DEFAULT_MODEL}`;
         },
         generateId(label) {
@@ -309,15 +278,6 @@ export default Vue.component("cvdi-pigean-table", {
                         <span v-else>-</span>
                     </div>
                 </template>
-                <template #cell(phewasPlot)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        @click="phewasPlotShow(row)"
-                    >
-                        {{ row.item.phewasActive ? "Hide" : "Show" }}
-                    </b-button>
-                </template>
                 <template #cell(expand)="row">
                     <b-button
                         variant="outline-primary"
@@ -400,30 +360,6 @@ export default Vue.component("cvdi-pigean-table", {
                     </b-button>
                 </template>
                 <template #row-details="row">
-                    <research-phewas-plot
-                        v-if="
-                            row.item.phewasActive &&
-                            phewasData[phewasKey(row.item)] &&
-                            phewasData[phewasKey(row.item)].length > 0
-                        "
-                        style="width: 100%"
-                        :canvas-id="`pigean_${row.item.phenotype}_${generateId(
-                            row.item.label
-                        )}`"
-                        :plot-name="`PIGEAN_${row.item.phenotype}`"
-                        :phenotypes-data="phewasData[phewasKey(row.item)]"
-                        :phenotype-map="
-                            phenotypeMap || $store.state.bioPortal.phenotypeMap
-                        "
-                        :linkPhenotypes="true"
-                        :isPigean="true"
-                        :colors="plotColors"
-                        :render-config="phewasRenderConfig"
-                        :utils="utilsBox"
-                        :native-dl-btn="false"
-                        :top1500="true"
-                    >
-                    </research-phewas-plot>
                     <cvdi-pigean-table
                         v-if="
                             row.item.subtableActive === 2 &&

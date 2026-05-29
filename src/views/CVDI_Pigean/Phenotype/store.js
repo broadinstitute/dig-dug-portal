@@ -24,16 +24,10 @@ export default new Vuex.Store({
         diseaseInSession: null,
         selectedPhenotype: null,
         manhattanPlotAvailable: false,
-        genesetSize: keyParams.genesetSize || cvdiBioIndexUtils.DEFAULT_GENESET_SIZE,
-        genesetSizeToQuery: null,
         traitGroup: keyParams.traitGroup,
         traitGroupToQuery: null,
     },
     mutations: {
-        setGenesetSize(state, genesetSize){
-            state.genesetSize = genesetSize || state.genesetSize;
-            keyParams.set({ genesetSize: state.genesetSize });
-        },
         setPhenotypesInSession(state, PHENOTYPES) {
             state.phenotypesInSession = PHENOTYPES;
         },
@@ -67,9 +61,7 @@ export default new Vuex.Store({
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
             let name = keyParams.phenotype;
-            let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
             let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
-            context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
             
             let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`, limit: 1000 };
