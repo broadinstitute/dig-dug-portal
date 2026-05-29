@@ -35,7 +35,6 @@ import GenePageCombinedEvidenceTable from "@/components/GenePageCombinedEvidence
 import PigeanGene from "@/components/PigeanGene.vue";
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
-import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue";
 
 import sessionUtils from "@/utils/sessionUtils";
 import HugeCalScoreSection from "@/components/HugeCalScoreSection.vue";
@@ -78,7 +77,6 @@ new Vue({
         ResearchExpressionDisplay,
         ResearchDataTable,
         SearchHeaderWrapper,
-        ResultsDashboard,
         NCATSPredicateTable,
         VariantSearch,
         ColorBarPlot,
@@ -704,8 +702,9 @@ new Vue({
             let r = this.region;
 
             if (r) {
-                window.location.href = `./region.html?chr=${r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         },
 

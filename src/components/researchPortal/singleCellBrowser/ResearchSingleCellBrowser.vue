@@ -291,15 +291,16 @@
                                         :data="cellCompositionVars.segmentByCounts2"
                                         :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
                                         :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
-                                        :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
-                                        :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                        :xAxisLabel="useVerticalCellProportionPlot ? `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}` : (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel))"
+                                        :yAxisLabel="useVerticalCellProportionPlot ? (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)) : `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
                                         :highlightKey="cellCompositionVars.highlightLabel"
                                         :normalize="isNormalized"
                                         :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                        :verticalCategoryLayout="useVerticalCellProportionPlot"
                                     />
                                     <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                     <research-single-cell-selector 
-                                        :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
+                                        :data="plotMetadataLabels"
                                         layout="list"
                                         listDirection="horizontal"
                                         listAlignment="start"
@@ -443,7 +444,7 @@
                                         />
                                         <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                         <research-single-cell-selector
-                                            :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
+                                            :data="plotMetadataLabels"
                                             layout="list"
                                             listDirection="horizontal"
                                             listAlignment="start"
@@ -486,7 +487,7 @@
                                         />
                                         <div id="sc_violin_plot_group" v-else>
                                             <div style="font-size:12px; opacity:0.5">{{ displayLabel(cellCompositionVars.segmentByLabel) }}</div>
-                                            <div v-for="value in (fields['metadata_labels_sorted'] || fields['metadata_labels'])[cellCompositionVars.segmentByLabel]">
+                                            <div v-for="value in getPlotMetadataLabels(cellCompositionVars.segmentByLabel)" :key="value">
                                                 <div style="display:flex; gap:3px; align-items: baseline;">
                                                     <div style="font-weight: bold;">{{ value }}</div>
                                                 </div>
@@ -815,15 +816,16 @@
                                     :data="cellCompositionVars.segmentByCounts2"
                                     :primaryKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.segmentByLabel : cellCompositionVars.displayByLabel"
                                     :subsetKey="cellCompositionVars.segmentByLabel ? cellCompositionVars.displayByLabel : cellCompositionVars.segmentByLabel"
-                                    :xAxisLabel="cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)"
-                                    :yAxisLabel="`${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
+                                    :xAxisLabel="useVerticalCellProportionPlot ? `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}` : (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel))"
+                                    :yAxisLabel="useVerticalCellProportionPlot ? (cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.segmentByLabel) : displayLabel(cellCompositionVars.displayByLabel)) : `${isNormalized?('Percent of ' + (isATACseq ? 'Nuclei' :'Cells')):('Number of ' + (isATACseq ? 'Nuclei' : 'Cells'))}`"
                                     :highlightKey="cellCompositionVars.highlightLabel"
                                     :normalize="isNormalized"
                                     :stack="cellCompositionVars.segmentByLabel ? true : false"
+                                    :verticalCategoryLayout="useVerticalCellProportionPlot"
                                 />
                                 <div style="font-size:12px; opacity:0.5">{{ cellCompositionVars.segmentByLabel ? displayLabel(cellCompositionVars.displayByLabel) : displayLabel(cellCompositionVars.segmentByLabel) }}</div>
                                 <research-single-cell-selector 
-                                    :data="fields['metadata_labels_sorted'] || fields['metadata_labels']"
+                                    :data="plotMetadataLabels"
                                     layout="list"
                                     listDirection="horizontal"
                                     listAlignment="start"
@@ -1366,6 +1368,23 @@
             },
             countDownloadDisabled() {
                 return false;
+            },
+            plotMetadataLabels() {
+                if (!this.fields) return {};
+                return Object.keys(this.fields.metadata_labels).reduce((acc, key) => {
+                    acc[key] = this.getPlotMetadataLabels(key);
+                    return acc;
+                }, {});
+            },
+            useVerticalCellProportionPlot() {
+                const stratifyField = this.cellCompositionVars.segmentByLabel;
+                if (!stratifyField || !this.displayFields || this.displayFields[stratifyField]?.dataType !== 'cat') {
+                    return false;
+                }
+
+                const stratifyValues = this.getPlotMetadataLabels(stratifyField);
+
+                return stratifyValues.length > 40;
             },
             markerDotPlotTitle() {
                 return `Top Marker Genes for ${this.dotPlotCellType || 'All'} (${this.markerFile?.markerKeyLabel || 'Cell Types'})`;
@@ -2026,14 +2045,21 @@
                 //llog(gene, this.expressionData);
                 return d3.max(this.expressionData[gene])
             },
+            getPlotMetadataLabels(field) {
+                if (!field || !this.fields) return [];
+                const labels =
+                    this.fields['metadata_labels_sorted']?.[field] ||
+                    this.fields['metadata_labels']?.[field] ||
+                    [];
+
+                return labels.filter(label => !scUtils.isMissingMetadataValue(label));
+            },
             getStatsByPropValue(data, property, value){
                 return data.filter(item => item[property] === value);
             },
             getAllStats(){
                 const data = [];
-                const displayLabels =
-                    this.fields['metadata_labels_sorted']?.[this.cellCompositionVars.segmentByLabel] ||
-                    this.fields['metadata_labels'][this.cellCompositionVars.segmentByLabel];
+                const displayLabels = this.getPlotMetadataLabels(this.cellCompositionVars.segmentByLabel);
                 for(const value of displayLabels){
                     const row = this.getStatsByPropValue(this.geneExpressionVars.expressionStats, this.cellCompositionVars.segmentByLabel, value);
                     data.push(...row);

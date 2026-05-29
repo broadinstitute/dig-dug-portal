@@ -240,7 +240,7 @@
             });
         },
         renderPlot() {
-            d3.select(this.$refs.plot).style('position', 'relative');
+            d3.select(this.$refs.plot).style('position', 'relative').style('overflow-x', 'auto');
             llog('---DotPlot')
             llog('   data', this.data);
             llog('   keys', {x:this.xKey, y:this.yKey, fill:this.fillKey, size:this.sizeKey});
