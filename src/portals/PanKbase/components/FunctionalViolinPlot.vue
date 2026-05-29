@@ -216,6 +216,14 @@ import { truncate } from 'lodash';
                 let shortForm = t.split(delimiters);
                 return shortForm[0];
             }
+            let diabetesType = /(type [\d])/;
+            let getDiabetesType = t.match(diabetesType);
+            if (getDiabetesType !== null){
+                return getDiabetesType[1];
+            }
+            if (t.startsWith("control")){
+                return "control";
+            }
             return t;
 
         }
