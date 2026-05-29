@@ -65,7 +65,6 @@ export default new Vuex.Store({
             context.commit("setTraitGroup", traitGroup);
             
             let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`, limit: 1000 };
-            console.log(query.q);
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
         },

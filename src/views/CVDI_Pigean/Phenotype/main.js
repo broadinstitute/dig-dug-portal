@@ -229,7 +229,6 @@ new Vue({
 
     watch: {
         "$store.state.phenotype": function (phenotype) {
-            console.log("Is this the problem?");
             //keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },

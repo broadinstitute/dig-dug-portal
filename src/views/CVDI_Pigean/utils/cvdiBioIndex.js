@@ -10,7 +10,6 @@ import { merge } from "lodash";
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
 export default function (index, extend) {
-    console.log("Is this thing on?");
     let module = {
         namespaced: true,
         limit: null,
