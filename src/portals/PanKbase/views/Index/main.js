@@ -45,16 +45,16 @@ new Vue({
                             linkLabel: "Learn More",
                             linkUrl: "/single-cell.html",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-umap3.png",
-                            type: "large",
+                            type: "medium",
                             comingSoon: false,
                         },
                         {
                             title: "PanKgraph",
-                            body: "Identifying quantitative trait loci (QTLs) for genes in pancreatic and islet tissues",
+                            body: "Transforms multimodal pancreas and type 1 diabetes data into structured, evidence-backed knowledge linking genes, variants, chromatin, pathways, donors, and samples.",
                             linkLabel: "Learn More",
                             linkUrl: "https://pankgraph.org/",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-pankgraph-ctfr.png",
-                            type: "large",
+                            type: "medium",
                             comingSoon: false,
                         },
                         {
@@ -63,7 +63,7 @@ new Vue({
                             linkLabel: "Learn More",
                             linkUrl: "https://data.pankbase.org/",
                             bgImage: "https://hugeampkpncms.org/sites/default/files/images/pankbase/pkb-landing-datalibrary.png",
-                            type: "large",
+                            type: "medium",
                             comingSoon: false,
                         }
                     ],[
@@ -202,7 +202,7 @@ new Vue({
                     {
                         title: "Interactive maps of harmonized multi-program metadata",
                         linkLabel: "Explore",
-                        linkUrl: "https://pankbase.org/donors.html",
+                        linkUrl: "https://data.pankbase.org/analysis-sets/PKBDS5236MJJT/",
                     },
                     {
                         title: "Differential expression analyses from human pancreatic islets",

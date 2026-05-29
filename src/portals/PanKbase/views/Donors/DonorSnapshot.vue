@@ -89,6 +89,9 @@
                             <div v-if="row.key === 'assay'" class="snapshot-card-link">
                                 <a class="snapshot-overview-link" href="/donors.html">See full assay summary</a>
                             </div>
+                            <div v-if="row.key === 'all'" class="snapshot-card-link">
+                                <a class="snapshot-overview-link alt" href="https://data.pankbase.org/search/?type=HumanDonor&from=3700">See full donor metadata</a>
+                            </div>
 
                         </article>
 
@@ -311,7 +314,7 @@ export default Vue.component("DonorSnapshot", {
                 {
                     key: "all",
                     kicker: "Cohort",
-                    label: "All donors",
+                    label: "Donors with metadata",
                     overviewLabel: "",
                     count: this.allDonorRecords.length,
                     cardClass: "snapshot-card-all",
@@ -424,7 +427,7 @@ export default Vue.component("DonorSnapshot", {
         },
         comparisonGridStyle() {
             return {
-                gridTemplateColumns: `repeat(${this.comparisonColumnCount}, minmax(180px, 1fr))`,
+                gridTemplateColumns: `205px repeat(${this.comparisonColumnCount-1}, minmax(170px, 1fr))`,
             };
         },
         skeletonGridStyle() {
@@ -1123,7 +1126,7 @@ function formatPercentValue(value) {
     align-items: center;
     justify-content: center;
     padding: 7px 10px;
-    border: 1px solid #b8d7ce;
+    border: 1px solid var(--pkb-primary-green);
     border-radius: 999px;
     background: var(--pkb-primary-green);
     color: white !important;
@@ -1132,6 +1135,12 @@ function formatPercentValue(value) {
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
+}
+.snapshot-overview-link.alt{
+    color: var(--pkb-primary-green) !important;
+    background: white ;
+    border: 1px solid var(--pkb-primary-green);
+
 }
 
 .snapshot-card-link {
