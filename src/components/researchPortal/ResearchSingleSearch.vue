@@ -1,6 +1,6 @@
 <template>
 	<div class="byor-single-search-wrapper">
-		<input class="form-control byor-single-search" type="text" id="byor_single_search" v-model="singleSearchParam"
+		<input class="form-control byor-single-search" type="text" autocomplete="off" id="byor_single_search" v-model="singleSearchParam"
 			:placeholder="!!singleSearchConfig && !!singleSearchConfig['search instruction'] ? singleSearchConfig['search instruction']
 				: 'Search gene, variant, region, phenotype, or tissue'" @keyup.enter="onSearch" />
 		<span v-if="!!singleSearchParam" class="btn btn-default reset-search" @click="resetSearch()"><b-icon

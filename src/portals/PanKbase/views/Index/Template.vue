@@ -21,6 +21,7 @@
                 :phenotypes="[]"
                 :utils="$parent.utilsBox"
             ></research-single-search>
+            <div class="pkb-search-suggest">Try<a href="/gene.html?gene=CFTR">CFTR</a><a href="/gene.html?gene=PDX1">PDX1</a><a href="/gene.html?gene=INS">INS</a></div>
         </div>
 
         <div class="pkb-body">
@@ -219,6 +220,15 @@
     font-size: 22px;
     font-weight: bold;
     line-height: 22px;
+}
+.pkb-search{
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.pkb-search-suggest{
+    display:flex;
+    gap:10px;
 }
 
 .pkb-body {
