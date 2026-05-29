@@ -76,8 +76,8 @@ new Vue({
                 "HIPP_Genetic-sex.csv",
                 "HIPP_HbA1c_skipped.csv",
                 "HIPP_HbA1c.csv",
-                "HIPP_T1D-stage_skipped.csv",
-                "HIPP_T1D-stage.csv"
+                // "HIPP_T1D-stage_skipped.csv",
+                // "HIPP_T1D-stage.csv" Not using this for now
             ],
             donorsWithData: [],
             filteredDonors: [],
