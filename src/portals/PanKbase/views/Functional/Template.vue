@@ -141,6 +141,12 @@
                                                     </option>
                                                 </select>
                                             </div>
+                                            <div v-if="!!$parent.functionalTrait">
+                                                <div v-for="item in Object.keys($parent.functionalColorMap)">
+                                                    <div class="color-legend-block" :style="`background-color: ${$parent.functionalColorMap[item]};`"></div>
+                                                    {{ item }}
+                                                </div>
+                                            </div>
                                             <div v-if="$parent.vlnConditions.length > 0">
                                                 <strong>Insulin secretion traits ({{ $parent.filteredAccession.length }} / {{ $parent.filteredMetadata.length }} donors)</strong>
                                             <div class="vlnPlots row">
@@ -154,7 +160,6 @@
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
-                                                        :colorMap="$parent.functionalColorMap"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
@@ -171,7 +176,6 @@
                                                         :xField="$parent.functionalTrait"
                                                         :xLabel="$parent.functionalTrait"
                                                         :yField="condition"
-                                                        :colorMap="$parent.functionalColorMap"
                                                     >
                                                     </functional-violin-plot>
                                                 </div>
@@ -376,5 +380,9 @@ div.line-plot {
 }
 #functional-assoc-table {
     overflow-x: scroll;
+}
+.color-legend-block {
+    width: 10px;
+    height: 10px;;
 }
 </style>

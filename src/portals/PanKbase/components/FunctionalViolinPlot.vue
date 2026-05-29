@@ -31,10 +31,6 @@ import { truncate } from 'lodash';
         type: (String, null),
         required: true
       },
-      colorMap: {
-        type: (Object, null),
-        required: true
-      }
     },
     data() {
         return {
