@@ -141,7 +141,7 @@
                                                     </option>
                                                 </select>
                                             </div>
-                                            <div v-if="!!$parent.functionalTrait">
+                                            <div v-if="!!$parent.functionalTrait" class="color-legend">
                                                 <div v-for="item in Object.keys($parent.functionalColorMap)">
                                                     <div class="color-legend-block" :style="`background-color: ${$parent.functionalColorMap[item]};`"></div>
                                                     {{ item }}
@@ -381,8 +381,15 @@ div.line-plot {
 #functional-assoc-table {
     overflow-x: scroll;
 }
+.color-legend {
+    background-color: #efefef;
+    padding: 10px;
+    width: fit-content;
+    border-radius: 5px;
+}
 .color-legend-block {
     width: 10px;
-    height: 10px;;
+    height: 10px;
+    display: inline-block;
 }
 </style>
