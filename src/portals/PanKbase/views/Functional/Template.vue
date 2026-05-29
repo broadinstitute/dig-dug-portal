@@ -109,7 +109,6 @@
                                                     :donors="$parent.filteredAccession"
                                                     :plotId="`insulin_ieq`"
                                                     :timepoints="$parent.insTimepoints"
-                                                    :lineColor="$parent.insColor"
                                                     :yAxisLabel=" $parent.showContent
                                                         ? '% content min'
                                                         : 'ng/100IEQ/min'">
@@ -122,7 +121,6 @@
                                                     :donors="$parent.filteredAccession"
                                                     :plotId="`glucagon_ieq`"
                                                     :timepoints="$parent.gcgTimepoints"
-                                                    :lineColor="$parent.gcgColor"
                                                     :yAxisLabel="$parent.showContent 
                                                         ? '% content min' 
                                                         : 'pg/100IEQ/min'">

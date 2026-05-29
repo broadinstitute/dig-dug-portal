@@ -90,8 +90,6 @@ new Vue({
             resultsGcg: null,
             gcgTimepoints: [],
             insTimepoints: [],
-            gcgColor: "#2F67B1", // colorblind safe blue from UCSB
-			insColor: "#BF2C23", // colorblind safe red from UCSB,
             fieldsObject: {
                 accession: {
                     key: "Accession",

@@ -53,11 +53,15 @@
 import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
+
+const SAFE_BLUE = "#2F67B1"; // colorblind safe blue from UCSB
+const SAFE_RED = "#BF2C23"; // colorblind safe red from UCSB,
+
 export default Vue.component("time-series-line-plot", {
   components: {
   },
   props: ["plotData", "donors", "plotId", 
-    "timepoints", "lineColor", "yAxisLabel", "plotTitle"],
+    "timepoints", "yAxisLabel", "plotTitle"],
   data() {
       return {
         chart: null,
@@ -69,8 +73,6 @@ export default Vue.component("time-series-line-plot", {
         xMedian: 0,
         tooltip: null,
         tooltipElement: null,
-        hoverBoxPosition: "left",
-        dotOutlineColor: "#00000075",
         dotKey: "donor",
         xField: "time",
         yField: "score",
@@ -324,7 +326,7 @@ export default Vue.component("time-series-line-plot", {
           .attr("class", "line-path")
           .attr("fill", "none")
           .attr("stroke", this.highlightedDonor === null && linesOnly 
-            ? this.lineColor : 
+            ? SAFE_BLUE : 
             "lightgray")
           .attr("stroke-width", 1)
           .attr("d", lineGenerator)
@@ -348,7 +350,7 @@ export default Vue.component("time-series-line-plot", {
           .datum(c)
           .attr("class", "line-path highlighted-donor-line")
           .attr("fill", "none")
-          .attr("stroke", this.lineColor) // What color for this?
+          .attr("stroke", SAFE_BLUE) // What color for this?
           .attr("stroke-width", 2)
           .attr("d", lineGenerator);
     },
@@ -359,7 +361,7 @@ export default Vue.component("time-series-line-plot", {
       let intervals = this.showConfidence === "all" ? this.allConfidence : this.filteredConfidence;
       this.svg.append("path")
         .datum(intervals)
-        .attr("fill", `${this.lineColor}99`)
+        .attr("fill", `${SAFE_RED}99`)
         .attr("stroke", "none")
         .attr("class", "line-path")
         .attr("d", d3.area()
@@ -370,7 +372,7 @@ export default Vue.component("time-series-line-plot", {
       this.svg.append("path")
         .datum(intervals)
         .attr("fill", "none")
-        .attr("stroke", this.lineColor)
+        .attr("stroke", SAFE_RED)
         .attr("class", "line-path")
         .attr("d", d3.line()
           .x(d => this.xScale(d.time))
