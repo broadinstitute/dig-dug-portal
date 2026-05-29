@@ -57,7 +57,7 @@ export default new Vuex.Store({
             context.commit("setGeneset", name);
             context.commit("setGenesetSize", genesetSize);
             context.commit("setTraitGroup", traitGroup);
-            let param3 = "mouse_msigdb";
+            let param3 = cvdiBioIndexUtils.DEFAULT_MODEL;
             if (!traitGroup.startsWith('all')){
                 await context.dispatch("pigeanGeneset/query", { q: 
                     `${traitGroup},${name},${param3}`});

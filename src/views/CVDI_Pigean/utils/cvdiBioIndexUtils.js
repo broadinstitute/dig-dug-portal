@@ -16,7 +16,7 @@ if (!!document.cookie) {
 }
 
 // updated at compile-time to the dev or production BioIndex server
-const BIO_INDEX_HOST = "https://cvdi.hugeampkpnbi.org";
+export const BIO_INDEX_HOST = "https://cvdi.hugeampkpnbi.org";
 export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
 /* Returns the path for any BioIndex API end-point.
@@ -153,6 +153,7 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     }
     return data;
 }
+export const DEFAULT_MODEL = "mouse_msigdb";
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
 export const DEFAULT_TRAIT_GROUP = "jurgens_exomes";
@@ -171,6 +172,7 @@ export default {
     getPhecodeMap,
     BIO_INDEX_HOST,
     BIO_INDEX_HOST_PRIVATE,
+    DEFAULT_MODEL,
     DEFAULT_SIGMA,
     DEFAULT_GENESET_SIZE,
     DEFAULT_TRAIT_GROUP,

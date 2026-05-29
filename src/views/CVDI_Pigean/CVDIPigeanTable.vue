@@ -1,6 +1,6 @@
 <script>
 import Vue from "vue";
-import { query, DEFAULT_SIGMA } from "./utils/cvdiBioIndexUtils";
+import { query, DEFAULT_SIGMA, DEFAULT_MODEL } from "./utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
@@ -11,7 +11,6 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-const MODEL = "mouse_msigdb";
 export default Vue.component("cvdi-pigean-table", {
     components: {
         DataDownload,
@@ -173,7 +172,7 @@ export default Vue.component("cvdi-pigean-table", {
             if (this.config.queryParam === "cluster") {
                 return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
-            return `${item.phenotype},${item[this.config.queryParam]},${MODEL}`;
+            return `${item.phenotype},${item[this.config.queryParam]},${DEFAULT_MODEL}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
@@ -274,7 +273,7 @@ export default Vue.component("cvdi-pigean-table", {
                     </span>
                 </template>
                 <template #cell(gene)="r">
-                    <a :href="`/pigean/gene.html?gene=${r.item.gene}${suffix}`">
+                    <a :href="`/cvdi_pigean/gene.html?gene=${r.item.gene}${suffix}`">
                         {{ r.item.gene }}
                     </a>
                 </template>
@@ -289,7 +288,7 @@ export default Vue.component("cvdi-pigean-table", {
                 </template>
                 <template #cell(gene_set)="r">
                     <a
-                        :href="`/pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`"
+                        :href="`/cvdi_pigean/geneset.html?geneset=${r.item.gene_set}${suffix}`"
                     >
                         {{ r.item.gene_set }}
                     </a>
@@ -351,7 +350,7 @@ export default Vue.component("cvdi-pigean-table", {
                         <b-dropdown-item
                             v-for="gene in row.item.top_genes.split(';')"
                             :key="gene"
-                            :href="`/pigean/gene.html?gene=${gene}${suffix}`"
+                            :href="`/cvdi_pigean/gene.html?gene=${gene}${suffix}`"
                         >
                             {{ gene }}
                         </b-dropdown-item>
@@ -376,7 +375,7 @@ export default Vue.component("cvdi-pigean-table", {
                         <b-dropdown-item
                             v-for="geneSet in row.item.top_gene_sets.split(';')"
                             :key="geneSet"
-                            :href="`/pigean/geneset.html?geneset=${geneSet}${suffix}`"
+                            :href="`/cvdi_pigean/geneset.html?geneset=${geneSet}${suffix}`"
                         >
                             {{
                                 geneSet.length > 40

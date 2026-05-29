@@ -109,7 +109,6 @@
                             <div class="row pigean-plots">
                                 <div class="col-md-8">
                                     <research-phewas-plot
-                                        v-if="$parent.plotReady"
                                         canvas-id="pigeanGeneSet"
                                         :plot-name="`PIGEAN_${$store.state.geneset}`"
                                         :phenotypes-data="
@@ -129,7 +128,6 @@
                                 </div>
                                 <div class="col-md-4">
                                     <pigean-plot
-                                        v-if="$parent.plotReady"
                                         :pigeanColors="$parent.pigeanColors"
                                         :pigean-data="$parent.phewasAllData"
                                         :config="$parent.pigeanPlotConfig"
@@ -140,7 +138,6 @@
                                 </div>
                                 <div class="card-body pigean-table">
                                     <cvdi-pigean-table
-                                        v-if="$parent.plotReady"
                                         :pigean-data="$parent.phewasAllData"
                                         :phenotype-map="$parent.pigeanMap"
                                         :config="$parent.tableConfig"
