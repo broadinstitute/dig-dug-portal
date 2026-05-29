@@ -72,7 +72,6 @@ export default Vue.component("time-series-line-plot", {
         yScale: null,
         xMedian: 0,
         tooltip: null,
-        tooltipElement: null,
         dotKey: "donor",
         xField: "time",
         yField: "score",
@@ -283,7 +282,6 @@ export default Vue.component("time-series-line-plot", {
       
 
       // Access the tooltip as an HTML element
-      this.tooltipElement = this.chart.getElementsByClassName("tooltip")[0];
       this.drawLines();
       this.drawAxes();
     },
@@ -378,20 +376,6 @@ export default Vue.component("time-series-line-plot", {
           .x(d => this.xScale(d.time))
           .y(d => this.yScale(d.mean))
       );
-    },
-    hoverLine(donor) {
-
-      let xcoord = d3.event.layerX;
-      let ycoord = d3.event.layerY;
-
-      // Tooltip content
-      this.tooltip
-        .style("opacity", 1)
-        .html(donor);
-      
-      this.tooltip
-        .style("left", `${xcoord}px`)
-        .style("top", `${ycoord + 30}px`);
     },
     resetTooltip(){
       this.highlightedDonor = null;
