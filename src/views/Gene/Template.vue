@@ -676,6 +676,18 @@
                 </div>
             </div>
 
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Cell state expression for
+                        {{ $store.state.geneName }}
+                    </h4>
+                    <liger-table
+                        :gene-name="$store.state.geneName"
+                    ></liger-table>
+                </div>
+            </div>
+
             <div
                 v-if="
                     $parent.deployment !== 'production' &&

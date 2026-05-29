@@ -23,6 +23,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import ColocusTable from "@/components/ColocusTable.vue";
+import LigerTable from "@/components/LigerTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -87,6 +88,7 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
+        LigerTable,
         PigeanGene,
     },
     mixins: [pageMixin],
