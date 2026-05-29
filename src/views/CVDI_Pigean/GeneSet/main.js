@@ -19,6 +19,7 @@ import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import alertUtils from "@/utils/alertUtils";
 import pigeanUtils from "@/utils/pigeanUtils.js";
+import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import { pageMixin } from "@/mixins/pageMixin.js";
@@ -158,6 +159,7 @@ new Vue({
         },
     },
     async created() {
+        this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

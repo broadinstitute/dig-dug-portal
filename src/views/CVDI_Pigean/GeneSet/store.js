@@ -50,6 +50,7 @@ export default new Vuex.Store({
 
     actions: {
         async queryGeneset(context, symbol) {
+            console.log("Querying geneset");
             await context.commit("setPhewasData", []);
             let name = context.state.genesetToQuery || context.state.geneset;
             let genesetSize = context.state.genesetSizeToQuery || context.state.genesetSize;
@@ -59,6 +60,7 @@ export default new Vuex.Store({
             context.commit("setTraitGroup", traitGroup);
             let param3 = cvdiBioIndexUtils.DEFAULT_MODEL;
             if (!traitGroup.startsWith('all')){
+                console.log("Are we here?");
                 await context.dispatch("pigeanGeneset/query", { q: 
                     `${traitGroup},${name},${param3}`});
                 context.commit("setPhewasData", context.state.pigeanGeneset.data);
