@@ -289,6 +289,7 @@ export function createKrSampleState() {
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: none",
                                 phenotypeOverlap: "-",
+                                phenotypeProfileSimilarityLabel: "-",
                                 keyPhenotypes: "-",
                             },
                         ],
@@ -304,6 +305,7 @@ export function createKrSampleState() {
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: LoF",
                                 phenotypeOverlap: "12 / 47 shared HPO terms",
+                                phenotypeProfileSimilarityLabel: "0.41 (0-1)",
                                 keyPhenotypes: "Cleft palate; Speech delay; Short stature",
                             },
                             {
@@ -313,6 +315,7 @@ export function createKrSampleState() {
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: missense",
                                 phenotypeOverlap: "10 / 47 shared HPO terms",
+                                phenotypeProfileSimilarityLabel: "0.34 (0-1)",
                                 keyPhenotypes: "Cleft palate; Hypotonia",
                             },
                             {
@@ -322,6 +325,7 @@ export function createKrSampleState() {
                                 queryVariantEvidence: "Queried sample: chr12:49,431,208 C>T · missense",
                                 matchedVariantEvidence: "Matched sample: splice-region",
                                 phenotypeOverlap: "6 / 47 shared HPO terms",
+                                phenotypeProfileSimilarityLabel: "0.18 (0-1)",
                                 keyPhenotypes: "Short stature; Characteristic facial features",
                             },
                         ],

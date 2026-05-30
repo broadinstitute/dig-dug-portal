@@ -24,17 +24,17 @@
 }
 
 .glens-page-mode-label span {
-    font-size: 13px;
-    font-weight: 850;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-page-mode-label strong {
     color: #162033;
-    font-size: clamp(1.45rem, 2.4vw, 2.35rem);
-    font-weight: 950;
-    line-height: 1.05;
+    font-size: clamp(1.55rem, 2.1vw, 2rem);
+    font-weight: 600;
+    line-height: 1.12;
 }
 
 .glens-text-toggle {
@@ -47,7 +47,7 @@
     color: #162033;
     padding: 0.45rem 0.65rem;
     font-size: 13px;
-    font-weight: 850;
+    font-weight: 500;
 }
 
 .glens-text-toggle input {
@@ -57,7 +57,7 @@
 }
 
 .glens-phenotype :where(p, span, small, button, a, label, input, select) {
-    font-size: max(13px, 1em);
+    font-size: max(14px, 1em);
 }
 
 .glens-phenotype.glens-large-text {
@@ -71,9 +71,10 @@
 .glens-hero,
 .glens-card,
 .glens-step-card {
-    border-radius: 1.3rem;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 18px 40px rgba(22, 32, 51, 0.08);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
 }
 
 .glens-hero {
@@ -86,18 +87,18 @@
 .glens-query-label {
     margin: 0.5rem 0 0.35rem;
     color: #162033;
-    font-size: 0.76rem;
-    font-weight: 780;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.86rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-query-plain {
     display: grid;
-    gap: 0.38rem;
+    gap: 0.24rem;
     color: #42526a;
-    font-size: 1.45rem;
-    font-weight: 700;
+    font-size: 1rem;
+    font-weight: 500;
     line-height: 1.2;
 }
 
@@ -114,9 +115,9 @@
 
 .glens-query-plain span {
     color: #42526a;
-    font-size: 1.12rem;
-    font-weight: 600;
-    line-height: 1.35;
+    font-size: 0.88rem;
+    font-weight: 400;
+    line-height: 1.28;
     white-space: normal;
     overflow-wrap: anywhere;
 }
@@ -133,16 +134,16 @@
     align-items: center;
     gap: 0.35rem;
     color: #526276;
-    font-size: 0.82rem;
-    font-weight: 820;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-query-match-summary strong {
     color: #162033;
-    font-size: 1.35rem;
-    font-weight: 900;
+    font-size: 1.2rem;
+    font-weight: 600;
     line-height: 1;
 }
 
@@ -365,10 +366,10 @@
 .glens-section-label {
     margin: 0 0 0.35rem;
     color: #526276;
-    font-size: 0.72rem;
-    font-weight: 850;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-size: 0.86rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-answer-grid {
@@ -425,10 +426,10 @@
 
 .glens-summary-cell span {
     color: #526276;
-    font-size: 0.72rem;
-    font-weight: 750;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.86rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-summary-cell strong {
@@ -436,12 +437,12 @@
     margin: 0.22rem 0 0.1rem;
     color: #162033;
     font-size: 0.94rem;
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .glens-summary-cell small {
     color: #526276;
-    font-weight: 750;
+    font-weight: 500;
 }
 
 .glens-candidate-source-list {
@@ -473,7 +474,13 @@
 .glens-hero-cohort-copy strong {
     color: #162033;
     font-size: 1rem;
-    font-weight: 900;
+    font-weight: 600;
+}
+
+.glens-hero-cohort-copy {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
 }
 
 .glens-hero-cohort-copy span {
@@ -483,16 +490,23 @@
     line-height: 1.45;
 }
 
+.glens-hero-cohort-copy__check {
+    margin-top: 0.55rem;
+}
+
 .glens-summary-cell--chart {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.8fr) minmax(24rem, 1.2fr);
+    gap: 1.15rem;
+    align-items: start;
 }
 
 .glens-hero-age-block {
     display: grid;
     gap: 0.34rem;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .glens-hero-age-heading {
@@ -523,14 +537,20 @@
 .glens-hero-age-histogram {
     display: flex;
     align-items: flex-end;
-    gap: 0.55rem;
-    justify-content: flex-end;
-    min-width: 19rem;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    min-height: 6.6rem;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.85rem;
+    scrollbar-gutter: stable;
 }
 
 .glens-hero-age-col {
     display: flex;
-    flex: 1;
+    flex: 0 0 2.7rem;
     flex-direction: column;
     align-items: center;
     gap: 0.2rem;
@@ -540,7 +560,8 @@
 .glens-hero-age-col small {
     color: #526276;
     font-size: 0.68rem;
-    font-weight: 850;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .glens-answer-card {
@@ -555,13 +576,13 @@
 .glens-answer-card small {
     display: block;
     color: #526276;
-    font-weight: 750;
+    font-weight: 500;
 }
 
 .glens-answer-card span {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-size: 0.86rem;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .glens-answer-card strong {
@@ -569,7 +590,7 @@
     margin: 0.22rem 0 0.1rem;
     color: #162033;
     font-size: 0.94rem;
-    font-weight: 900;
+    font-weight: 600;
 }
 
 .glens-hero-decision {
@@ -1079,6 +1100,7 @@
 
 .glens-dot--female { background: #c45f73; }
 .glens-dot--male { background: #355f83; }
+.glens-dot--neutral { background: #64748b; }
 
 .glens-age-mini {
     display: flex;
@@ -1099,7 +1121,8 @@
 .glens-age-pair {
     display: flex;
     align-items: flex-end;
-    gap: 0.22rem;
+    gap: 0.18rem;
+    height: 4.45rem;
 }
 
 .glens-age-pair span {
@@ -1109,20 +1132,74 @@
     gap: 0.16rem;
 }
 
+.glens-age-sex-col {
+    width: 0.58rem;
+}
+
+.glens-age-sex-count,
 .glens-age-pair b {
     color: #162033;
     font-size: 0.66rem;
-    font-weight: 900;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.glens-age-bin-total {
+    min-height: 0.85rem;
+    color: #526276;
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.glens-age-range-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
+    margin: 0.3rem 0 0.2rem;
+}
+
+.glens-age-range-toggle button {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: #526276;
+    padding: 0.16rem 0.42rem;
+    font-size: 0.64rem;
+    font-weight: 500;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.glens-age-range-toggle button:hover,
+.glens-age-range-button--active {
+    border-color: #bfd2e8 !important;
+    background: #eef4fb !important;
+    color: #174a7c !important;
 }
 
 .glens-age-bar {
     display: block;
-    width: 0.78rem;
+    width: 100%;
+    min-height: 2px;
     border-radius: 0.3rem 0.3rem 0 0;
 }
 
 .glens-age-bar--female { background: #c45f73; }
 .glens-age-bar--male { background: #355f83; }
+.glens-age-bar--all { background: #64748b; }
+
+.glens-age-summary-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    margin-top: 0.25rem;
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 500;
+}
 
 .glens-score-plot {
     position: relative;
@@ -1350,6 +1427,12 @@
 .glens-score-kv a {
     justify-self: start;
     text-align: left;
+}
+
+.glens-selected-sample .glens-score-kv,
+.glens-selected-sample .glens-score-kv strong,
+.glens-selected-sample .glens-score-kv a {
+    font-weight: 400;
 }
 
 .glens-diagnosis-panel {
@@ -2112,14 +2195,14 @@
 
 .glens-candidate-table--disease .glens-candidate-head,
 .glens-candidate-table--disease .glens-candidate-row {
-    grid-template-columns: minmax(11rem, 1fr) minmax(11rem, 1fr) minmax(13rem, 1.2fr) minmax(13rem, 1.2fr) minmax(15rem, 1.35fr);
-    min-width: 72rem;
+    grid-template-columns: minmax(12rem, 1fr) minmax(14rem, 1fr) minmax(14rem, 1fr) minmax(16rem, 1.2fr);
+    min-width: 64rem;
 }
 
 .glens-candidate-table--gene .glens-candidate-head,
 .glens-candidate-table--gene .glens-candidate-row {
-    grid-template-columns: minmax(7rem, 0.6fr) minmax(11rem, 1fr) minmax(13rem, 1.15fr) minmax(15rem, 1.35fr) minmax(15rem, 1.35fr);
-    min-width: 68rem;
+    grid-template-columns: minmax(7rem, 0.55fr) minmax(13rem, 1fr) minmax(16rem, 1.2fr) minmax(16rem, 1.2fr);
+    min-width: 58rem;
 }
 
 .glens-candidate-table--variant .glens-candidate-head,
@@ -2137,21 +2220,50 @@
     text-transform: uppercase;
 }
 
+.glens-candidate-head-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    min-width: 0;
+}
+
+.glens-disease-overlap-info-popover {
+    left: 0;
+    width: 24rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+    color: #42526a;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+}
+
+.glens-disease-overlap-info-popover span {
+    color: #42526a;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-align: left;
+    text-transform: none;
+}
+
 .glens-candidate-row {
     border-top: 1px solid #eef2f7;
     color: #526276;
     font-size: 0.82rem;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .glens-candidate-row strong {
     color: #162033;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .glens-candidate-row a {
     color: #0d4d91;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -2326,5 +2438,20 @@
 }
 
 .glens-phenotype.glens-large-text :where(p, span, small, button, a, label, input, select, b, .glens-sample-head, .glens-sample-row, .glens-contribution-head, .glens-contribution-row, .glens-axis-x, .glens-axis-y, .glens-small-heading, .glens-eyebrow, .glens-query-label) {
-    font-size: max(16px, 1em) !important;
+    font-size: max(15px, 1em) !important;
+}
+
+.glens-phenotype :where(strong, b, h1, h2, h3, button) {
+    font-weight: 500 !important;
+}
+
+.glens-phenotype :where(.glens-page-mode-label span, .glens-eyebrow, .glens-section-label, .glens-query-label, .glens-summary-cell span, .glens-answer-card span, .glens-sample-head, .glens-contribution-head, .glens-candidate-head, .glens-small-heading, .glens-axis-x, .glens-axis-y) {
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+.glens-phenotype :where(.glens-hero, .glens-card, .glens-step-card, .glens-answer-card, .glens-gene-card, .glens-insight-tabs-card) {
+    border-radius: 0.5rem;
+    box-shadow: none !important;
 }

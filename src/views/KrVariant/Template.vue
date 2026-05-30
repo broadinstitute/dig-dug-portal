@@ -10,7 +10,7 @@
                 <div class="glens-access-toolbar" aria-label="Display options">
                     <div class="glens-page-mode-label" aria-label="Current workflow">
                         <span>Current workflow</span>
-                        <strong>Variant / gene search</strong>
+                        <strong>Variant / gene search <em>GRCh38</em></strong>
                     </div>
                     <div class="glens-result-tools">
                         <span
@@ -99,50 +99,6 @@
                             </div>
                             <div class="glens-carrier-subline">
                                 {{ variantHeaderSubline }}
-                            </div>
-                        </div>
-                        <div class="glens-demographic-panel glens-demographic-panel--header">
-                            <div class="glens-section-head">
-                                <p class="glens-section-label">Demographic Summary</p>
-                                <div class="glens-level-toggle">
-                                    <button
-                                        v-for="level in summaryLevels"
-                                        :key="`header-demo-${level.key}`"
-                                        class="glens-level-button"
-                                        :class="{ 'glens-level-button--active': activeDemographicLevel === level.key }"
-                                        type="button"
-                                        @click="activeDemographicLevel = level.key"
-                                    >
-                                        {{ level.label }}
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="glens-age-card glens-age-card--compact">
-                                <div class="glens-age-bars">
-                                    <div
-                                        v-for="bin in demographicPanelAgeBins"
-                                        :key="`header-panel-${bin.label}`"
-                                        class="glens-age-col"
-                                    >
-                                        <div class="glens-age-pair">
-                                            <div class="glens-age-sex-col">
-                                                <div class="glens-age-sex-count">{{ bin.female }}</div>
-                                                <div class="glens-age-female" :style="{ height: bin.femaleHeight }"></div>
-                                            </div>
-                                            <div class="glens-age-sex-col">
-                                                <div class="glens-age-sex-count">{{ bin.male }}</div>
-                                                <div class="glens-age-male" :style="{ height: bin.maleHeight }"></div>
-                                            </div>
-                                        </div>
-                                        <div class="glens-age-bin-label">{{ bin.label }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="glens-demography-line">
-                                <span><i class="glens-dot glens-dot--female"></i>Female {{ demographicPanelScope.female }}</span>
-                                <span><i class="glens-dot glens-dot--male"></i>Male {{ demographicPanelScope.male }}</span>
-                                <span>All {{ demographicPanelScope.all }}</span>
-                                <span>Proband {{ demographicPanelScope.proband }} ({{ demographicPanelScope.probandPercent }}%)</span>
                             </div>
                         </div>
                     </div>
@@ -242,7 +198,16 @@
                                         :key="signal.label"
                                         class="glens-window-signal-row"
                                     >
-                                        <strong>{{ signal.label }}</strong>
+                                        <a
+                                            v-if="diseaseReferenceHref(signal)"
+                                            class="glens-table-link"
+                                            :href="diseaseReferenceHref(signal)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ diseaseReferenceDisplay(signal) }}
+                                        </a>
+                                        <strong v-else>{{ diseaseReferenceDisplay(signal) }}</strong>
                                         <span>{{ signal.scope }}</span>
                                     </div>
                                 </div>
@@ -316,12 +281,11 @@
                                 <div>
                                     <div class="glens-density-title">
                                         Per-position carrier count
+                                        <span class="glens-density-query-count">{{ queriedVariantCarrierCountLabel }}</span>
                                     </div>
-                                    <div class="glens-density-track" :title="`Hover each bar to see carrier count. Queried variant carrier count = ${variant.summaryScopes.variant.all}.`">
+                                    <div class="glens-density-track" :title="`Hover each bar to see carrier count. ${queriedVariantCarrierCountLabel}.`">
                                         <div class="glens-density-y-axis">
-                                            <span>{{ densityYAxisLabels[0] }}</span>
-                                            <span>{{ densityYAxisLabels[1] }}</span>
-                                            <span>0</span>
+                                            <span v-for="label in densityYAxisLabels" :key="label">{{ label }}</span>
                                         </div>
                                         <div
                                             v-for="series in renderedDensitySeries"
@@ -336,6 +300,9 @@
                                                 v-for="(height, index) in series.bins"
                                                 :key="`${series.key}-${index}`"
                                                 class="glens-density-bar"
+                                                :class="{
+                                                    'glens-density-bar--query': series.active && index === queryDensityIndex
+                                                }"
                                                 :data-count="height"
                                                 :style="{ height: densityBarHeight(height) }"
                                             ></span>
@@ -355,6 +322,38 @@
                                             ></span>
                                             {{ mode.label }}
                                         </button>
+                                        <div class="glens-density-sex-filter" aria-label="Sex filter">
+                                            <span>Sex</span>
+                                            <button
+                                                v-for="sex in densitySexOptions"
+                                                :key="sex.key"
+                                                type="button"
+                                                class="glens-check-option glens-check-option--density"
+                                                @click="activeDensitySex = sex.key"
+                                            >
+                                                <span
+                                                    class="glens-check-box"
+                                                    :class="{ 'glens-check-box--checked': activeDensitySex === sex.key }"
+                                                ></span>
+                                                {{ sex.label }}
+                                            </button>
+                                        </div>
+                                        <label class="glens-select-label glens-select-label--inline" for="carrier-age">
+                                            Age at enrollment
+                                            <select
+                                                id="carrier-age"
+                                                v-model="activeCarrierAge"
+                                                class="glens-select glens-select--compact"
+                                            >
+                                                <option
+                                                    v-for="age in carrierAgeOptions"
+                                                    :key="age.key"
+                                                    :value="age.key"
+                                                >
+                                                    {{ age.label }}
+                                                </option>
+                                            </select>
+                                        </label>
                                         <label class="glens-select-label glens-select-label--inline" for="density-investigator">
                                             Investigator
                                             <select
@@ -371,22 +370,6 @@
                                                 </option>
                                             </select>
                                         </label>
-                                        <label class="glens-select-label glens-select-label--inline" for="carrier-age">
-                                            Age
-                                            <select
-                                                id="carrier-age"
-                                                v-model="activeCarrierAge"
-                                                class="glens-select glens-select--compact"
-                                            >
-                                                <option
-                                                    v-for="age in carrierAgeOptions"
-                                                    :key="age.key"
-                                                    :value="age.key"
-                                                >
-                                                    {{ age.label }}
-                                                </option>
-                                            </select>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -398,7 +381,16 @@
                                 <div class="glens-kv-grid">
                                     <div v-for="item in variant.variantEvidence" :key="item.label" class="glens-kv-row">
                                         <span>{{ item.label }}</span>
-                                        <strong>{{ item.value }}</strong>
+                                        <a
+                                            v-if="variantEvidenceHref(item)"
+                                            class="glens-external-evidence-link"
+                                            :href="variantEvidenceHref(item)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ item.value }}
+                                        </a>
+                                        <strong v-else>{{ item.value }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -425,7 +417,16 @@
                                         :key="disease.name"
                                         class="glens-disease-item"
                                     >
-                                        <strong>{{ disease.name }}</strong>
+                                        <a
+                                            v-if="diseaseReferenceHref(disease)"
+                                            class="glens-table-link"
+                                            :href="diseaseReferenceHref(disease)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ diseaseReferenceDisplay(disease) }}
+                                        </a>
+                                        <strong v-else>{{ diseaseReferenceDisplay(disease) }}</strong>
                                         <span>{{ disease.domain }} | {{ disease.signal }}</span>
                                     </div>
                                 </div>
@@ -439,7 +440,7 @@
                         <div id="phenotype-details" class="glens-card">
                             <div class="glens-shared-level-row">
                                 <div>
-                                    <p class="glens-section-label">Carrier phenotype profile</p>
+                                    <p class="glens-section-label">Carrier profile</p>
                                     <span class="glens-small-meta">{{ carrierReference.levelLabel }} reference set</span>
                                 </div>
                                 <div class="glens-carrier-context-actions">
@@ -455,351 +456,499 @@
                                             {{ level.label }}
                                         </button>
                                     </div>
-                                    <button
-                                        class="glens-main-context-button"
-                                        type="button"
-                                        :disabled="!hasCarrierContextSelection"
-                                        @click="openCarrierContextDraft"
-                                    >
-                                        Set as context
-                                    </button>
                                 </div>
                             </div>
-                            <div v-if="carrierContextDraftOpen" class="glens-context-draft-panel">
-                                <div class="glens-context-draft-head">
-                                    <div>
-                                        <strong>Edit context</strong>
-                                        <span>{{ carrierContextDraftType === 'samples' ? 'Carrier samples selected as context source' : 'Phenotype items selected as context source' }}</span>
-                                    </div>
-                                    <button type="button" aria-label="Close edit context panel" @click="closeCarrierContextDraft">×</button>
-                                </div>
-                                <div class="glens-context-draft-list">
-                                    <span v-for="item in carrierContextDraftItems" :key="item" class="glens-context-draft-item">
-                                        {{ item }}
-                                        <button type="button" :aria-label="`Remove ${item}`" @click="removeCarrierContextDraftItem(item)">×</button>
-                                    </span>
-                                </div>
-                                <div class="glens-context-draft-add">
-                                    <select v-model="carrierContextDraftAddValue" class="glens-select">
-                                        <option value="">Add another {{ carrierContextDraftType === 'samples' ? 'carrier sample' : 'phenotype item' }}</option>
+                            <div class="glens-carrier-filter-row" aria-label="Carrier profile filters">
+                                <label class="glens-select-label glens-select-label--inline" for="carrier-subset-filter">
+                                    Carrier subset
+                                    <select
+                                        id="carrier-subset-filter"
+                                        v-model="carrierSubsetFilter"
+                                        class="glens-select"
+                                        @change="resetCarrierSampleLimit"
+                                    >
                                         <option
-                                            v-for="option in carrierContextDraftAddOptions"
-                                            :key="option.value"
-                                            :value="option.value"
+                                            v-for="option in carrierSubsetOptions"
+                                            :key="option.key"
+                                            :value="option.key"
                                         >
                                             {{ option.label }}
                                         </option>
                                     </select>
-                                    <button type="button" :disabled="!carrierContextDraftAddValue" @click="addCarrierContextDraftItem">Add</button>
+                                </label>
+                                <label class="glens-select-label glens-select-label--inline" for="carrier-sex-filter">
+                                    Sex
+                                    <select
+                                        id="carrier-sex-filter"
+                                        v-model="activeCarrierSexFilter"
+                                        class="glens-select"
+                                        @change="resetCarrierSampleLimit"
+                                    >
+                                        <option
+                                            v-for="sex in densitySexOptions"
+                                            :key="`carrier-sex-${sex.key}`"
+                                            :value="sex.key"
+                                        >
+                                            {{ sex.label }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <label class="glens-select-label glens-select-label--inline" for="carrier-gene-filter">
+                                    Gene
+                                    <select
+                                        id="carrier-gene-filter"
+                                        v-model="carrierGeneFilter"
+                                        class="glens-select"
+                                        @change="resetCarrierSampleLimit"
+                                    >
+                                        <option
+                                            v-for="option in carrierGeneFilterOptions"
+                                            :key="option.key"
+                                            :value="option.key"
+                                        >
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <label class="glens-select-label glens-select-label--inline" for="carrier-age-filter">
+                                    Age at enrollment
+                                    <select
+                                        id="carrier-age-filter"
+                                        v-model="activeCarrierAge"
+                                        class="glens-select"
+                                        @change="resetCarrierSampleLimit"
+                                    >
+                                        <option
+                                            v-for="age in carrierAgeOptions"
+                                            :key="age.key"
+                                            :value="age.key"
+                                        >
+                                            {{ age.label }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <label class="glens-select-label glens-select-label--inline" for="carrier-investigator-filter">
+                                    Investigator
+                                    <select
+                                        id="carrier-investigator-filter"
+                                        v-model="carrierInvestigatorFilter"
+                                        class="glens-select"
+                                        @change="resetCarrierSampleLimit"
+                                    >
+                                        <option
+                                            v-for="option in carrierInvestigatorFilterOptions"
+                                            :key="option.key"
+                                            :value="option.key"
+                                        >
+                                            {{ option.label }}
+                                        </option>
+                                    </select>
+                                </label>
+                                <span class="glens-carrier-filter-summary">{{ filteredCarrierSamples.length }} / {{ activeCarrierSamples.length }} carrier samples in current view</span>
+                                <button
+                                    type="button"
+                                    class="glens-filter-reset-button"
+                                    :disabled="!isCarrierFilterActive"
+                                    @click="resetCarrierFilters"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                            <section class="glens-carrier-sample-overview" aria-label="Carrier sample overview">
+                                <div
+                                    class="glens-carrier-sample-table glens-carrier-sample-table--overview"
+                                    :class="{ 'glens-carrier-sample-table--gene': activeSummaryLevel === 'gene' }"
+                                >
+                                    <div class="glens-carrier-sample-overview-head">
+                                        <div>
+                                            <p class="glens-section-label">Carrier samples</p>
+                                            <span>{{ filteredCarrierSamples.length }} / {{ activeCarrierSamples.length }} current subset</span>
+                                        </div>
+                                    </div>
+                                    <div class="glens-carrier-table-head">
+                                        <button type="button" @click="setCarrierSampleSort('id')">
+                                            Sample {{ sortIndicator('sample', 'id') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('age')">
+                                            Age at enrollment {{ sortIndicator('sample', 'age') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('sex')">
+                                            Sex {{ sortIndicator('sample', 'sex') }}
+                                        </button>
+                                        <button
+                                            v-if="activeSummaryLevel === 'variant'"
+                                            type="button"
+                                            @click="setCarrierSampleSort('genotype')"
+                                        >
+                                            GT {{ sortIndicator('sample', 'genotype') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('hpoCount')">
+                                            HPO terms {{ sortIndicator('sample', 'hpoCount') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('geneCount')">
+                                            Carrier genes {{ sortIndicator('sample', 'geneCount') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('group')">
+                                            Investigator {{ sortIndicator('sample', 'group') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('proband')">
+                                            Proband {{ sortIndicator('sample', 'proband') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('affected')">
+                                            Affected {{ sortIndicator('sample', 'affected') }}
+                                        </button>
+                                        <button type="button" @click="setCarrierSampleSort('diagnosed')">
+                                            GenDx {{ sortIndicator('sample', 'diagnosed') }}
+                                        </button>
+                                    </div>
+                                    <div
+                                        v-for="sample in visibleCarrierSamples"
+                                        :key="sample.id"
+                                        class="glens-carrier-table-row"
+                                    >
+                                        <a class="glens-sample-link" :href="sampleHref(sample.id)">
+                                            {{ sample.id }}
+                                        </a>
+                                        <span>{{ ageAtEnrollmentLabel(sample) }}</span>
+                                        <span>{{ carrierSexLabel(sample) }}</span>
+                                        <span v-if="activeSummaryLevel === 'variant'">{{ sample.genotype || "-" }}</span>
+                                        <span>{{ carrierSampleHpoCount(sample) }}</span>
+                                        <span>{{ carrierSampleGeneCount(sample) }}</span>
+                                        <span>{{ sample.group }}</span>
+                                        <span>{{ sample.proband }}</span>
+                                        <span>{{ sample.affected }}</span>
+                                        <span>{{ sample.diagnosed }}</span>
+                                    </div>
                                 </div>
-                                <div class="glens-context-draft-actions">
-                                    <button type="button" :disabled="!carrierContextDraftItems.length" @click="clearCarrierContextDraftItems">Clear all</button>
-                                    <div>
-                                        <button type="button" @click="closeCarrierContextDraft">Cancel</button>
-                                        <button type="button" :disabled="!carrierContextDraftItems.length" @click="confirmCarrierContextDraft">
-                                            Confirm context
+                                <div class="glens-carrier-sample-actions">
+                                    <span>Showing {{ visibleCarrierSamples.length }} of {{ sortedCarrierSamples.length }} filtered carrier samples</span>
+                                    <button
+                                        v-if="hasMoreCarrierSamples"
+                                        type="button"
+                                        @click="showMoreCarrierSamples"
+                                    >
+                                        Show {{ nextCarrierSampleCount }} more
+                                    </button>
+                                    <button
+                                        v-if="carrierSampleVisibleCount > 5"
+                                        type="button"
+                                        @click="resetCarrierSampleLimit"
+                                    >
+                                        Show top 5
+                                    </button>
+                                </div>
+                                <div class="glens-carrier-summary-panel glens-carrier-summary-panel--sample" aria-label="Carrier sample summary">
+                                    <div class="glens-carrier-summary-head">
+                                        <span>Carrier sample summary</span>
+                                        <span>{{ filteredCarrierSamples.length }} / {{ activeCarrierSamples.length }} current subset</span>
+                                    </div>
+                                    <div class="glens-carrier-summary-section">
+                                        <span>Sex distribution</span>
+                                        <div class="glens-summary-chip-row">
+                                            <button
+                                                v-for="item in carrierSexSummaryItems"
+                                                :key="item.key"
+                                                type="button"
+                                                class="glens-summary-chip"
+                                                :class="[
+                                                    `glens-summary-chip--${item.key}`,
+                                                    {
+                                                        'glens-summary-chip--active': activeCarrierSummarySex === item.key,
+                                                        'glens-summary-chip--muted': carrierSummarySexFilterActive && activeCarrierSummarySex !== item.key
+                                                    }
+                                                ]"
+                                                @click="setCarrierSummarySex(item.key)"
+                                            >
+                                                {{ item.label }} {{ item.count }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="glens-carrier-summary-section">
+                                        <span>Age at enrollment</span>
+                                        <div class="glens-summary-age-bars">
+                                            <div
+                                                v-for="bin in carrierAgeSummaryBins"
+                                                :key="bin.label"
+                                                class="glens-summary-age-bin"
+                                            >
+                                                <small>{{ bin.count }}</small>
+                                                <div class="glens-summary-age-stack" :class="{ 'glens-summary-age-stack--split': activeCarrierSummarySex === 'all' }">
+                                                    <span
+                                                        v-for="segment in bin.segments"
+                                                        :key="segment.key"
+                                                        class="glens-summary-age-segment-wrap"
+                                                        :title="`${segment.key === 'unknown' ? 'n/a' : segment.key}: ${segment.count}`"
+                                                    >
+                                                        <em v-if="activeCarrierSummarySex === 'all' && segment.count">{{ segment.count }}</em>
+                                                        <i
+                                                            :class="`glens-summary-age-segment--${segment.key}`"
+                                                            :style="{ height: segment.height }"
+                                                        ></i>
+                                                    </span>
+                                                </div>
+                                                <span>{{ bin.label }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="glens-carrier-summary-section">
+                                        <span>Investigator distribution</span>
+                                        <div class="glens-investigator-summary">
+                                            <div
+                                                v-for="row in visibleCarrierInvestigatorSummaryRows"
+                                                :key="row.label"
+                                            >
+                                                <span>{{ row.label }}</span>
+                                                <span>{{ row.count }} ({{ row.percent }}%)</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            v-if="carrierInvestigatorSummaryRows.length > 5"
+                                            type="button"
+                                            class="glens-summary-more-button"
+                                            @click="toggleCarrierInvestigatorSummary"
+                                        >
+                                            {{ carrierInvestigatorSummaryExpanded ? "Show top 5" : `Show ${hiddenCarrierInvestigatorSummaryCount} more` }}
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="glens-carrier-profile-card">
-                                        <p>
-                                            {{ carrierReference.description }}
-                                        </p>
-                                        <div class="glens-carrier-tabs" role="tablist" aria-label="Carrier phenotype signal views">
-                                            <button
-                                                class="glens-carrier-tab"
-                                                :class="{ 'glens-carrier-tab--active': activeCarrierDetail === 'samples' }"
-                                                type="button"
-                                                @click="toggleCarrierDetail('samples')"
-                                            >
-                                                <span>{{ activeCarrierDetail === 'samples' ? '▾' : '▸' }}</span>
-                                                <strong>{{ carrierReference.sampleCount }}</strong>
-                                                <span>carrier samples</span>
-                                            </button>
-                                            <button
-                                                class="glens-carrier-tab"
-                                                :class="{ 'glens-carrier-tab--active': activeCarrierDetail === 'phenotypes' }"
-                                                type="button"
-                                                @click="toggleCarrierDetail('phenotypes')"
-                                            >
-                                                <span>{{ activeCarrierDetail === 'phenotypes' ? '▾' : '▸' }}</span>
-                                                <strong>{{ carrierReference.hpoCount }}</strong>
-                                                <span>carrier HPO profile</span>
-                                            </button>
-                                            <button
-                                                class="glens-carrier-tab glens-carrier-tab--residual"
-                                                :class="{ 'glens-carrier-tab--active': activeCarrierDetail === 'residual' }"
-                                                type="button"
-                                                @click="toggleCarrierDetail('residual')"
-                                            >
-                                                <span>{{ activeCarrierDetail === 'residual' ? '▾' : '▸' }}</span>
-                                                <strong>{{ hasActiveContext ? carrierReference.contextRank : "Set context" }}</strong>
-                                                <span>Context position in CRDC</span>
-                                            </button>
-                                        </div>
-                                        <div v-if="activeCarrierDetail" class="glens-carrier-detail-panel">
-                                            <div v-if="activeCarrierDetail === 'samples'" class="glens-carrier-sample-table">
-                                                <div class="glens-carrier-table-head">
-                                                    <span>Context</span>
-                                                    <button type="button" @click="setCarrierSampleSort('id')">
-                                                        Sample {{ sortIndicator('sample', 'id') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierSampleSort('age')">
-                                                        Age {{ sortIndicator('sample', 'age') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierSampleSort('group')">
-                                                        Group {{ sortIndicator('sample', 'group') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierSampleSort('proband')">
-                                                        Proband {{ sortIndicator('sample', 'proband') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierSampleSort('affected')">
-                                                        Affected {{ sortIndicator('sample', 'affected') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierSampleSort('diagnosed')">
-                                                        GenDx {{ sortIndicator('sample', 'diagnosed') }}
-                                                    </button>
-                                                </div>
-                                                <div
-                                                    v-for="sample in sortedCarrierSamples"
-                                                    :key="sample.id"
-                                                    class="glens-carrier-table-row"
-                                                >
-                                                    <label class="glens-context-checkbox" @click.stop>
-                                                        <input
-                                                            type="checkbox"
-                                                            :checked="selectedCarrierSampleIds.includes(sample.id)"
-                                                            :disabled="isCarrierSampleContextDisabled(sample.id)"
-                                                            @change="toggleCarrierSampleContext(sample.id)"
-                                                        >
-                                                    </label>
-                                                    <a class="glens-sample-link" :href="sampleHref(sample.id)">
-                                                        {{ sample.id }}
-                                                    </a>
-                                                    <span>{{ sample.age }}</span>
-                                                    <span>{{ sample.group }}</span>
-                                                    <span>{{ sample.proband }}</span>
-                                                    <span>{{ sample.affected }}</span>
-                                                    <span>{{ sample.diagnosed }}</span>
-                                                </div>
-                                            </div>
-                                            <div v-else-if="activeCarrierDetail === 'phenotypes'" class="glens-hpo-category-grid">
-                                                <div class="glens-hpo-category-head">
-                                                    <button type="button" @click="setCarrierHpoSort('category')">
-                                                        HPO root category {{ sortIndicator('hpo', 'category') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierHpoSort('count')">
-                                                        Terms {{ sortIndicator('hpo', 'count') }}
-                                                    </button>
-                                                    <button type="button" @click="setCarrierHpoSort('topTerms')">
-                                                        Representative terms {{ sortIndicator('hpo', 'topTerms') }}
-                                                    </button>
-                                                </div>
-                                                <button
-                                                    v-for="category in sortedCarrierPhenotypeCategories"
-                                                    :key="category.category"
-                                                    class="glens-hpo-category"
-                                                    :class="{ 'glens-hpo-category--active': activePhenotypeCategory === category.category }"
-                                                    type="button"
-                                                    @click="selectPhenotypeCategory(category.category)"
-                                                >
-                                                    <strong>{{ category.category }}</strong>
-                                                    <span>{{ category.count }} terms</span>
-                                                    <span>{{ category.topTerms.join(' · ') }}</span>
-                                                </button>
-                                            </div>
-                                            <div v-else class="glens-residual-accordion">
-                                                <div v-if="!hasActiveContext" class="glens-context-guide">
-                                                    <p>
-                                                        No active context. Carrier samples and carrier HPO profile are shown as cohort-wide summaries only. Set a clinical context to score this carrier profile against a disease, sample, investigator cohort, or HPO profile.
-                                                    </p>
-                                                    <span>Set context to evaluate whether this carrier HPO profile is unusual for your clinical question.</span>
-                                                </div>
-                                                <template v-else>
-                                                    <p>
-                                                        {{ carrierReference.contextDescription }}
-                                                    </p>
-                                                    <div class="glens-context-contrast glens-context-contrast--active glens-context-contrast--carrier">
-                                                        <div>
-                                                            <span>Active context comparison</span>
-                                                            <strong>{{ carrierContextMatchValue }}</strong>
-                                                            <p>Active HPO context is compared with the {{ carrierReference.levelLabel }} HPO profile, not directly with the variant.</p>
-                                                        </div>
-                                                        <ul v-if="carrierContextOverlapPreview.length">
-                                                            <li
-                                                                v-for="term in carrierContextOverlapPreview"
-                                                                :key="`carrier-context-${term}`"
-                                                            >
-                                                                {{ term }}
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                    <div class="glens-context-position-summary">
-                                                        <div>
-                                                            <span>Active context</span>
-                                                            <strong>{{ compactContextLabel || carrierReference.contextPosition.activeContext }}</strong>
-                                                        </div>
-                                                        <div>
-                                                            <span>Carrier reference</span>
-                                                            <strong>{{ carrierReference.contextPosition.carrierReference }}</strong>
-                                                        </div>
-                                                        <div>
-                                                            <span>Match to context</span>
-                                                            <strong>{{ carrierReference.contextPosition.contextMatch }}</strong>
-                                                        </div>
-                                                        <div>
-                                                            <span>Position vs CRDC</span>
-                                                            <strong>{{ carrierReference.contextPosition.crdcPosition }}</strong>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <label v-if="hasActiveContext" class="glens-residual-select-label" for="carrier-context-investigator">
-                                                    Inspect group
-                                                    <select
-                                                        id="carrier-context-investigator"
-                                                        v-model="activeResidualGroupName"
-                                                        class="glens-select"
-                                                        @change="syncPhenotypeSummaryToResidualGroup"
-                                                    >
-                                                        <option
-                                                            v-for="group in activeResidualGroups"
-                                                            :key="`residual-option-${group.name}`"
-                                                            :value="group.name"
-                                                        >
-                                                            {{ group.name }}
-                                                        </option>
-                                                    </select>
-                                                </label>
-                                                <div v-if="hasActiveContext" class="glens-residual-mini">
-                                                    <button
-                                                        v-for="group in activeResidualGroups"
-                                                        :key="group.name"
-                                                        type="button"
-                                                        class="glens-residual-row"
-                                                        :class="{ 'glens-residual-row--active': activeResidualGroupName === group.name }"
-                                                        @click="setResidualGroup(group.name)"
-                                                    >
-                                                        <span>{{ group.name }}</span>
-                                                        <div class="glens-residual-boxplot" aria-label="Residual boxplot">
-                                                            <span class="glens-boxplot-whisker"></span>
-                                                            <i :style="{ left: group.low, width: group.width }"></i>
-                                                            <b :style="{ left: group.median }"></b>
-                                                            <em :style="{ left: group.selected }"></em>
-                                                        </div>
-                                                        <strong>{{ residualGroupLabel(group) }}</strong>
-                                                    </button>
-                                                </div>
-                                                <div v-if="hasActiveContext" class="glens-residual-sample-panel">
-                                                    <div class="glens-residual-sample-head">
-                                                        <strong>{{ activeResidualGroupName }}</strong>
-                                                        <span>{{ residualCarrierSamples.length }} carrier samples shown</span>
-                                                    </div>
-                                                    <div class="glens-residual-sample-list">
-                                                        <a
-                                                            v-for="sample in residualCarrierSamples"
-                                                            :key="`residual-${sample.id}`"
-                                                            class="glens-sample-link"
-                                                            :href="sampleHref(sample.id)"
-                                                        >
-                                                            {{ sample.id }}
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            </section>
+                            <div class="glens-carrier-profile-tabs glens-carrier-profile-tabs--labels" aria-label="Carrier profile sections">
+                                <div class="glens-carrier-profile-tab">
+                                    <span>Carrier phenotype profile</span>
                                 </div>
-
+                                <div class="glens-carrier-profile-tab">
+                                    <span>Carrier Genotype profile</span>
+                                </div>
+                            </div>
+                            <div class="row glens-carrier-inspection-row">
                                 <div class="col-lg-6">
                                     <div class="glens-section-head">
                                         <div class="glens-section-title-group">
-                                            <p class="glens-section-label">Phenotype Summary</p>
-                                            <span
-                                                v-if="activeCarrierDetail === 'phenotypes'"
-                                                class="glens-inline-context"
-                                            >
-                                                {{ carrierReference.hpoCount }} HPO carrier profile selected
+                                            <p class="glens-section-label">Carrier phenotype profile</p>
+                                            <span class="glens-inline-context">
+                                                {{ carrierSampleCountDisplay }} carriers · {{ carrierHpoCountDisplay }} HPO terms
                                             </span>
                                         </div>
-                                        <label class="glens-select-label" for="phenotype-investigator">
-                                            Investigator
-                                            <select
-                                                id="phenotype-investigator"
-                                                v-model="activePhenotypeInvestigator"
-                                                class="glens-select"
-                                            >
-                                                <option
-                                                    v-for="investigator in investigatorOptions"
-                                                    :key="`phenotype-${investigator.key}`"
-                                                    :value="investigator.key"
-                                                >
-                                                    {{ investigator.label }}
-                                                </option>
-                                            </select>
-                                        </label>
+                                        <div
+                                            class="glens-filter-scope-summary"
+                                            aria-label="Phenotype summary carrier subset"
+                                        >
+                                            <span>Current subset:</span>
+                                            <span>{{ carrierPhenotypeSummaryScopeLabel }}</span>
+                                        </div>
                                     </div>
                                     <div class="glens-legend">
                                         <span><i class="glens-dot glens-dot--blue"></i>All</span>
-                                        <span><i class="glens-dot glens-dot--orange"></i>Proband</span>
+                                        <span v-if="isCarrierFilterActive"><i class="glens-dot glens-dot--orange"></i>Subset</span>
                                     </div>
-                                    <div
-                                        v-for="phenotype in phenotypeRows"
-                                        :key="phenotype.label"
-                                        class="glens-bar-group"
-                                        :class="{ 'glens-bar-group--active': activePhenotypeCategory === phenotype.label }"
-                                        @click="togglePhenotypeCategory(phenotype.label)"
-                                    >
-                                        <div class="glens-bar-header">
-                                            <label class="glens-phenotype-context-check" @click.stop>
-                                                <input
-                                                    type="checkbox"
-                                                    :checked="selectedCarrierPhenotypeLabels.includes(phenotype.label)"
-                                                    :disabled="isCarrierPhenotypeContextDisabled(phenotype.label)"
-                                                    @change="toggleCarrierPhenotypeContext(phenotype.label)"
-                                                >
-                                                <span>{{ phenotype.label }}</span>
-                                            </label>
-                                            <span>
-                                                All {{ phenotype.all }}% ({{ phenotypeCount(phenotype.all, summaryScope.all) }} / {{ summaryScope.all }})
-                                                |
-                                                Proband {{ phenotype.proband }}% ({{ phenotypeCount(phenotype.proband, summaryScope.proband) }} / {{ summaryScope.proband }})
-                                            </span>
-                                        </div>
-                                        <div class="glens-bar-shell">
-                                            <div class="glens-bar glens-bar--blue" :style="{ width: phenotype.all + '%' }"></div>
-                                        </div>
-                                        <div class="glens-bar-shell glens-bar-shell--sub">
-                                            <div class="glens-bar glens-bar--orange" :style="{ width: phenotype.proband + '%' }"></div>
-                                        </div>
+                                    <template v-if="phenotypeRows.length">
                                         <div
-                                            v-if="activePhenotypeCategory === phenotype.label"
-                                            class="glens-phenotype-detail"
+                                            v-for="phenotype in phenotypeRows"
+                                            :key="phenotype.label"
+                                            class="glens-bar-group"
+                                            :class="{ 'glens-bar-group--active': activePhenotypeCategory === phenotype.label }"
+                                            @click="togglePhenotypeCategory(phenotype.label)"
                                         >
-                                            <div class="glens-detail-head">
-                                                <strong>{{ activePhenotypeCategory }}</strong>
-                                                <span>all terms sorted by frequency</span>
+                                            <div class="glens-bar-header">
+                                                <span>{{ phenotype.label }}</span>
+                                                <span>
+                                                    All {{ phenotype.all }}% ({{ phenotype.allCount }} / {{ phenotype.allDenominator }})
+                                                    <template v-if="isCarrierFilterActive">
+                                                        | Subset {{ phenotype.subset }}% ({{ phenotype.subsetCount }} / {{ phenotype.subsetDenominator }})
+                                                    </template>
+                                                </span>
+                                            </div>
+                                            <div class="glens-bar-shell">
+                                                <div class="glens-bar glens-bar--blue" :style="{ width: phenotype.all + '%' }"></div>
+                                            </div>
+                                            <div v-if="isCarrierFilterActive" class="glens-bar-shell glens-bar-shell--sub">
+                                                <div class="glens-bar glens-bar--orange" :style="{ width: phenotype.subset + '%' }"></div>
                                             </div>
                                             <div
-                                                v-for="item in activePhenotypeDetails"
-                                                :key="item.label"
-                                                class="glens-detail-row"
+                                                v-if="activePhenotypeCategory === phenotype.label"
+                                                class="glens-phenotype-detail"
                                             >
-                                                <label class="glens-phenotype-term-check" @click.stop>
-                                                    <input
-                                                        type="checkbox"
-                                                        :checked="selectedCarrierPhenotypeLabels.includes(item.label)"
-                                                        :disabled="isCarrierPhenotypeContextDisabled(item.label)"
-                                                        @change="toggleCarrierPhenotypeContext(item.label)"
-                                                    >
+                                                <div class="glens-detail-head">
+                                                    <span>Shared</span>
+                                                    <span>HPO term</span>
+                                                    <span>Subset samples</span>
+                                                </div>
+                                                <div
+                                                    v-for="item in activePhenotypeDetails"
+                                                    :key="item.label"
+                                                    class="glens-detail-row"
+                                                >
+                                                    <span>{{ item.shared ? "✓" : "" }}</span>
                                                     <span>{{ item.label }}</span>
-                                                </label>
-                                                <strong>{{ item.value }}%</strong>
+                                                    <span class="glens-detail-sample-cell">
+                                                        <button
+                                                            v-if="item.sampleIds && item.sampleIds.length"
+                                                            type="button"
+                                                            class="glens-detail-sample-button"
+                                                            @click.stop="togglePhenotypeDetailSamples(item.label)"
+                                                        >
+                                                            {{ item.supportLabel }}
+                                                        </button>
+                                                        <template v-else>
+                                                            {{ item.supportLabel || (item.value !== undefined && item.value !== "" ? `${item.value}%` : "-") }}
+                                                        </template>
+                                                        <div
+                                                            v-if="activePhenotypeDetailLabel === item.label"
+                                                            class="glens-detail-sample-popover"
+                                                        >
+                                                            <a
+                                                                v-for="sampleId in item.samplePreview"
+                                                                :key="sampleId"
+                                                                :href="sampleHref(sampleId)"
+                                                            >
+                                                                {{ sampleId }}
+                                                            </a>
+                                                            <span v-if="item.hiddenSampleCount">+{{ item.hiddenSampleCount }} more</span>
+                                                        </div>
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <div v-if="hasMoreCarrierPhenotypes" class="glens-carrier-table-actions glens-phenotype-actions">
+                                            <span>Showing {{ phenotypeRows.length }} carrier phenotype groups</span>
+                                            <button type="button" @click="showMoreCarrierPhenotypes">
+                                                Show {{ nextCarrierPhenotypeCount }} more
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <div v-else class="glens-empty-state glens-empty-state--summary">
+                                        Carrier HPO profile unavailable for this reference set.
+                                        The filtered carrier sample set has no informative HPO terms beyond broad ontology roots in the current test fixture.
                                     </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <section class="glens-carrier-genotype-section glens-carrier-genotype-section--inline" aria-label="Carrier genotype profile">
+                                        <div class="glens-carrier-genotype-head">
+                                            <div>
+                                                <p class="glens-section-label">Carrier Genotype profile</p>
+                                                <span>
+                                                    {{ carrierSampleCountDisplay }} carriers · {{ coCarrierGeneRows.length }} co-carrier genes
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="glens-co-carrier-table">
+                                            <div class="glens-co-carrier-head">
+                                                <button type="button" @click="setCoCarrierGeneSort('gene')">
+                                                    Co-carrier gene {{ sortIndicator('coGene', 'gene') }}
+                                                </button>
+                                                <button type="button" @click="setCoCarrierGeneSort('count')">
+                                                    Current subset {{ sortIndicator('coGene', 'count') }}
+                                                </button>
+                                                <button type="button" @click="setCoCarrierGeneSort('diseaseReference')">
+                                                    Gene-disease overlap {{ sortIndicator('coGene', 'diseaseReference') }}
+                                                </button>
+                                                <button type="button" @click="setCoCarrierGeneSort('secondaryAnnotation')">
+                                                    Secondary annotation {{ sortIndicator('coGene', 'secondaryAnnotation') }}
+                                                </button>
+                                            </div>
+                                            <template v-for="row in visibleCoCarrierGeneRows">
+                                                <div
+                                                    :key="`${row.gene}-row`"
+                                                    class="glens-co-carrier-row"
+                                                >
+                                                    <a class="glens-table-link" :href="variantHref(row.gene)">{{ row.gene }}</a>
+                                                    <button
+                                                        type="button"
+                                                        class="glens-co-carrier-count-button"
+                                                        @click="toggleCoCarrierGeneSamples(row.gene)"
+                                                    >
+                                                        {{ row.count }} / {{ row.denominator }} ({{ row.percent }}%)
+                                                    </button>
+                                                    <a
+                                                        v-if="row.diseaseReferenceHref"
+                                                        class="glens-table-link"
+                                                        :href="row.diseaseReferenceHref"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {{ row.diseaseReference }}
+                                                    </a>
+                                                    <span v-else>{{ row.diseaseReference }}</span>
+                                                    <span>{{ row.secondaryAnnotation }}</span>
+                                                </div>
+                                                <div
+                                                    v-if="activeCoCarrierGene === row.gene"
+                                                    :key="`${row.gene}-samples`"
+                                                    class="glens-co-carrier-sample-accordion"
+                                                >
+                                                    <div class="glens-co-carrier-sample-head">
+                                                        <span>{{ row.gene }} shared carrier samples</span>
+                                                        <span>{{ activeCoCarrierGeneSamples.length }} / {{ filteredCarrierSamples.length }} current subset</span>
+                                                    </div>
+                                                    <div
+                                                        class="glens-carrier-sample-table glens-carrier-sample-table--nested"
+                                                        :class="{ 'glens-carrier-sample-table--gene': activeSummaryLevel === 'gene' }"
+                                                    >
+                                                        <div class="glens-carrier-table-head">
+                                                            <span>Sample</span>
+                                                            <span>Age at enrollment</span>
+                                                            <span>Sex</span>
+                                                            <span v-if="activeSummaryLevel === 'variant'">GT</span>
+                                                            <span>HPO terms</span>
+                                                            <span>Carrier genes</span>
+                                                            <span>Investigator</span>
+                                                            <span>Proband</span>
+                                                            <span>Affected</span>
+                                                            <span>GenDx</span>
+                                                        </div>
+                                                        <div
+                                                            v-for="sample in visibleActiveCoCarrierGeneSamples"
+                                                            :key="`${row.gene}-${sample.id}`"
+                                                            class="glens-carrier-table-row"
+                                                        >
+                                                            <a class="glens-sample-link" :href="sampleHref(sample.id)">
+                                                                {{ sample.id }}
+                                                            </a>
+                                                            <span>{{ ageAtEnrollmentLabel(sample) }}</span>
+                                                            <span>{{ carrierSexLabel(sample) }}</span>
+                                                            <span v-if="activeSummaryLevel === 'variant'">{{ sample.genotype || "-" }}</span>
+                                                            <span>{{ carrierSampleHpoCount(sample) }}</span>
+                                                            <span>{{ carrierSampleGeneCount(sample) }}</span>
+                                                            <span>{{ sample.group }}</span>
+                                                            <span>{{ sample.proband }}</span>
+                                                            <span>{{ sample.affected }}</span>
+                                                            <span>{{ sample.diagnosed }}</span>
+                                                        </div>
+                                                        <div class="glens-carrier-table-actions">
+                                                            <span>Showing {{ visibleActiveCoCarrierGeneSamples.length }} of {{ activeCoCarrierGeneSamples.length }} shared carrier samples</span>
+                                                            <button
+                                                                v-if="hasMoreActiveCoCarrierGeneSamples"
+                                                                type="button"
+                                                                @click="showMoreCoCarrierGeneSamples"
+                                                            >
+                                                                Show {{ nextCoCarrierSampleCount }} more
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <div v-if="!coCarrierGeneRows.length" class="glens-empty-state">
+                                                No additional variant-gene summary is available for the current carrier subset.
+                                            </div>
+                                            <div class="glens-carrier-table-actions glens-co-carrier-actions">
+                                                <span>Showing {{ visibleCoCarrierGeneRows.length }} of {{ sortedCoCarrierGeneRows.length }} co-carrier genes</span>
+                                                <button
+                                                    v-if="hasMoreCoCarrierGeneRows"
+                                                    type="button"
+                                                    @click="showMoreCoCarrierGeneRows"
+                                                >
+                                                    Show {{ nextCoCarrierGeneCount }} more
+                                                </button>
+                                                <button
+                                                    v-if="coCarrierGeneVisibleCount > 5"
+                                                    type="button"
+                                                    @click="resetCoCarrierGeneLimit"
+                                                >
+                                                    Show top 5
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </section>
                                 </div>
                             </div>
                         </div>
@@ -836,6 +985,20 @@ export default {
             carrierContextDraftType: "",
             carrierContextDraftItems: [],
             carrierContextDraftAddValue: "",
+            carrierSubsetFilter: "all",
+            carrierInvestigatorFilter: "all",
+            carrierGeneFilter: "all",
+            activeDensitySex: "all",
+            activeCarrierSexFilter: "all",
+            activeCarrierSummarySex: "all",
+            carrierSampleVisibleCount: 5,
+            carrierPhenotypeVisibleCount: 5,
+            carrierInvestigatorSummaryExpanded: false,
+            coCarrierGeneSort: { key: "count", direction: "desc" },
+            coCarrierGeneVisibleCount: 5,
+            activeCoCarrierGene: "",
+            coCarrierSampleVisibleCount: 5,
+            activePhenotypeDetailLabel: "",
             unsubscribeClinicalFocus: null,
         };
     },

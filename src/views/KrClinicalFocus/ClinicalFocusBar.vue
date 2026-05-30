@@ -3,7 +3,7 @@
         <div v-if="!hideSummary" class="glens-clinical-focus-main">
             <div>
                 <span v-if="!hideKicker" class="glens-clinical-focus-kicker">Clinical context</span>
-                <strong v-if="hasFocus">{{ focus.label }} · {{ focus.hpoTerms.length }} HPO terms</strong>
+                <strong v-if="hasFocus">{{ focus.label }} · {{ focusTermCount }} HPO terms</strong>
                 <strong v-else>No context set</strong>
                 <p v-if="!hasFocus && showNoFocusNote">
                     You can start without a context. The portal will suggest possible contexts from the result.
@@ -47,16 +47,28 @@
                         id="clinical-focus-query"
                         v-model.trim="sourceQuery"
                         type="text"
+                        :list="diseaseReferenceDatalistId"
                         :placeholder="sourceInputPlaceholder"
+                        @input="loadDiseaseReferenceSuggestions"
                         @keyup.enter="resolveSourceProfile"
                     />
                     <button type="button" @click="resolveSourceProfile">Resolve to HPO profile</button>
                 </div>
+                <datalist v-if="diseaseReferenceDatalistId" :id="diseaseReferenceDatalistId">
+                    <option
+                        v-for="reference in diseaseReferenceSuggestions"
+                        :key="`${reference.source}:${reference.sourceId}`"
+                        :value="reference.label"
+                    />
+                </datalist>
                 <p v-if="sourceInputHelp">{{ sourceInputHelp }}</p>
             </div>
 
             <div v-if="hasEditableFocusSource" class="glens-clinical-focus-draft-head">
-                <span>Total {{ draft.hpoTerms.length }} HPO terms</span>
+                <span>
+                    Total {{ draftTermCount }} HPO terms
+                    <small v-if="draftPreviewCount < draftTermCount"> · showing {{ draftPreviewCount }} preview terms</small>
+                </span>
             </div>
             <div v-if="hasEditableFocusSource" class="glens-clinical-focus-term-list">
                 <div class="glens-clinical-focus-term-head">
@@ -138,11 +150,17 @@ export default {
             draft: focus || this.cloneProfile(profile),
             newTerm: "",
             unsubscribeFocus: null,
+            diseaseReferenceModule: null,
+            diseaseReferenceSuggestionsCache: [],
         };
     },
     computed: {
         hasFocus() {
             return hasClinicalFocus(this.focus);
+        },
+        focusTermCount() {
+            if (!this.focus) return 0;
+            return this.focus.contextTermCount || this.focus.hpoTerms.length;
         },
         sourceOptions() {
             return focusSourceOptions;
@@ -165,6 +183,18 @@ export default {
         sourceInputHelp() {
             return this.activeSourceProfile.sourceInputHelp;
         },
+        draftTermCount() {
+            return this.draft.contextTermCount || this.draft.hpoTerms.length;
+        },
+        draftPreviewCount() {
+            return this.draft.hpoTerms.length;
+        },
+        diseaseReferenceDatalistId() {
+            return this.isDiseaseReferenceSource(this.selectedSource) ? `clinical-focus-${this.selectedSource}-references` : "";
+        },
+        diseaseReferenceSuggestions() {
+            return this.diseaseReferenceSuggestionsCache;
+        },
     },
     mounted() {
         this.unsubscribeFocus = onClinicalFocusChange((focus) => {
@@ -181,6 +211,9 @@ export default {
                 hpoTerms: profile.hpoTerms.map((term) => ({ ...term })),
             };
         },
+        isDiseaseReferenceSource(source) {
+            return ["orphanet", "omim", "mondo", "decipher"].includes(source);
+        },
         toggleEditor() {
             if (this.editorOpen) {
                 this.editorOpen = false;
@@ -191,13 +224,15 @@ export default {
             this.draft = this.focus ? this.cloneProfile(this.focus) : this.cloneProfile(profile);
             this.sourceQuery = this.focus ? this.focus.sourceQuery || profile.queryExample : profile.queryExample;
             this.editorOpen = true;
+            this.loadDiseaseReferenceSuggestions();
         },
         loadSourceProfile() {
             const profile = this.activeSourceProfile;
             this.sourceQuery = profile.queryExample;
             this.draft = this.cloneProfile(profile);
+            this.loadDiseaseReferenceSuggestions();
         },
-        resolveSourceProfile() {
+        async resolveSourceProfile() {
             if (!this.hasEditableFocusSource) {
                 this.draft = this.cloneProfile(mockFocusProfiles.none);
                 return;
@@ -206,6 +241,18 @@ export default {
             const profile = this.cloneProfile(this.activeSourceProfile);
             const query = this.sourceQuery || profile.queryExample;
             const cleanQuery = query.replace(/\s+/g, " ").trim();
+            let reference = null;
+            if (this.isDiseaseReferenceSource(profile.source)) {
+                const diseaseReference = await this.loadDiseaseReferenceModule();
+                reference = diseaseReference.findPortalDiseaseReference(cleanQuery, profile.source);
+            }
+
+            if (reference) {
+                this.sourceQuery = reference.label;
+                this.draft = this.profileFromDiseaseReference(profile, reference);
+                return;
+            }
+
             const resolvedLabel = this.resolvedFocusLabel(profile, cleanQuery);
 
             this.draft = {
@@ -213,6 +260,24 @@ export default {
                 label: resolvedLabel,
                 sourceQuery: cleanQuery,
                 sourceDetail: this.resolvedSourceDetail(profile.source),
+            };
+        },
+        profileFromDiseaseReference(profile, reference) {
+            const sourceQuery = reference.label || [reference.sourceId, reference.name].filter(Boolean).join(" · ");
+            return {
+                ...profile,
+                label: sourceQuery,
+                sourceId: reference.sourceId,
+                rawId: reference.rawId,
+                orphaId: reference.source === "orphanet" ? reference.sourceId : undefined,
+                mondoId: reference.source === "mondo" ? reference.sourceId : undefined,
+                decipherId: reference.source === "decipher" ? reference.sourceId : undefined,
+                sourceQuery,
+                contextTermCount: reference.hpoTermCount,
+                linkedGeneCount: reference.linkedGeneCount,
+                hpoTerms: (reference.hpoTerms || []).map((term) => ({ ...term })),
+                sourceDetail:
+                    "Resolved from the generated compact disease-reference index. The full disease profile count is preserved; the editable list shows preview HPO terms for the mock UI.",
             };
         },
         resolvedFocusLabel(profile, query) {
@@ -247,6 +312,23 @@ export default {
                 return "The investigator group is resolved to an enriched HPO phenotype signature.";
             }
             return "Manual context uses the editable HPO terms below.";
+        },
+        async loadDiseaseReferenceModule() {
+            if (this.diseaseReferenceModule) return this.diseaseReferenceModule;
+            this.diseaseReferenceModule = await import("./portalDiseaseReferenceData.generated");
+            return this.diseaseReferenceModule;
+        },
+        async loadDiseaseReferenceSuggestions() {
+            if (!this.isDiseaseReferenceSource(this.selectedSource)) {
+                this.diseaseReferenceSuggestionsCache = [];
+                return;
+            }
+            const diseaseReference = await this.loadDiseaseReferenceModule();
+            this.diseaseReferenceSuggestionsCache = diseaseReference.portalDiseaseReferenceSuggestions(
+                this.selectedSource,
+                200,
+                this.sourceQuery
+            );
         },
         removeTerm(termId) {
             this.draft.hpoTerms = this.draft.hpoTerms.filter((term) => term.id !== termId);

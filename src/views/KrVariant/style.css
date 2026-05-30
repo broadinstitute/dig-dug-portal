@@ -1,5 +1,5 @@
 .glens-page {
-    padding: 1.75rem 1rem 2.25rem;
+    padding: 1.25rem 1rem 2.25rem;
     background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 50%, #f7f9fc 100%);
 }
 
@@ -24,17 +24,27 @@
 }
 
 .glens-page-mode-label span {
-    font-size: 13px;
-    font-weight: 850;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-page-mode-label strong {
     color: #162033;
-    font-size: clamp(1.45rem, 2.4vw, 2.35rem);
-    font-weight: 950;
-    line-height: 1.05;
+    font-size: clamp(1.55rem, 2.1vw, 2rem);
+    font-weight: 600;
+    line-height: 1.12;
+}
+
+.glens-page-mode-label strong em {
+    margin-left: 0.35rem;
+    color: #52657f;
+    font-size: 0.5em;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0;
+    vertical-align: middle;
 }
 
 .glens-text-toggle {
@@ -47,7 +57,7 @@
     color: #162033;
     padding: 0.45rem 0.65rem;
     font-size: 13px;
-    font-weight: 850;
+    font-weight: 500;
 }
 
 .glens-text-toggle input {
@@ -57,7 +67,7 @@
 }
 
 .glens-variant :where(p, span, small, button, a, label, input, select) {
-    font-size: max(13px, 1em);
+    font-size: max(14px, 1em);
 }
 
 .glens-variant.glens-large-text {
@@ -71,13 +81,17 @@
 .glens-header-card,
 .glens-panel-card,
 .glens-card {
-    border-radius: 1.5rem;
-    background: rgba(255, 255, 255, 0.76);
-    box-shadow: 0 18px 40px rgba(22, 32, 51, 0.08);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: none;
 }
 
 .glens-header-card {
-    padding: 1.2rem 1.5rem;
+    padding: 1rem 0 1.05rem;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: transparent;
 }
 
 .glens-header-row,
@@ -89,18 +103,19 @@
 }
 
 .glens-header-row {
-    align-items: flex-start;
+    display: block;
 }
 
 .glens-page-title,
 .glens-section-label {
     margin: 0;
     color: #162033;
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .glens-page-title {
-    font-size: 2rem;
+    font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+    line-height: 1.1;
 }
 
 .glens-title-row {
@@ -118,13 +133,13 @@
     background: #f4e6f0;
     color: #8f4c77;
     font-size: 0.78rem;
-    font-weight: 800;
+    font-weight: 500;
 }
 
 .glens-pathogenicity-badge--unknown {
     background: #f1f5f9;
     color: #526276;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .glens-cytoband-chip {
@@ -135,7 +150,7 @@
     background: #f1f5f9;
     color: #526276;
     font-size: 0.78rem;
-    font-weight: 850;
+    font-weight: 500;
 }
 
 .glens-inline-meta,
@@ -164,8 +179,8 @@
 .glens-carrier-subline {
     margin-top: 0.28rem;
     color: #526276;
-    font-size: 0.86rem;
-    font-weight: 800;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .glens-meta-summary {
@@ -187,10 +202,10 @@
 
 .glens-meta-summary-label {
     color: #2f5ea8;
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-panel-card,
@@ -211,7 +226,7 @@
     background: #f1f5f9;
     color: #526276;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .glens-pill--amber { background: #fff4db; color: #a78333; }
@@ -401,9 +416,9 @@
 .glens-section-label {
     color: #526276;
     font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-track-label {
@@ -467,7 +482,7 @@
     background: transparent;
     color: #526276;
     font-size: 0.7rem;
-    font-weight: 750;
+    font-weight: 500;
 }
 
 .glens-window-signal-row:last-child {
@@ -477,6 +492,7 @@
 .glens-window-signal-row strong {
     color: #162033;
     font-size: 0.74rem;
+    font-weight: 650;
 }
 
 .glens-region,
@@ -745,7 +761,7 @@
     position: relative;
     z-index: 4;
     width: fit-content;
-    margin-bottom: -0.15rem;
+    margin-bottom: 0.45rem;
     padding: 0.2rem 0.45rem;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.88);
@@ -764,6 +780,13 @@
     text-transform: none;
 }
 
+.glens-density-title .glens-density-query-count {
+    color: #162033;
+    font-size: 0.82rem;
+    font-weight: 650;
+    letter-spacing: 0.02em;
+}
+
 .glens-density-head {
     display: flex;
     align-items: center;
@@ -773,12 +796,12 @@
 
 .glens-density-track {
     position: relative;
-    height: 4.25rem;
+    height: 9.5rem;
     margin-top: 0.35rem;
-    padding: 0.35rem 0.35rem 0.35rem 1.45rem;
+    padding: 1.2rem 0.35rem 0.55rem 1.45rem;
     border: 0;
     border-radius: 0;
-    overflow: hidden;
+    overflow: visible;
     background: transparent;
 }
 
@@ -791,15 +814,15 @@
 }
 
 .glens-density-track::before {
-    top: 0.35rem;
-    bottom: 0.35rem;
+    top: 1.2rem;
+    bottom: 0.55rem;
     left: 1.2rem;
     width: 1px;
 }
 
 .glens-density-track::after {
-    right: 0.35rem;
-    bottom: 0.35rem;
+    right: 1.45rem;
+    bottom: 0.55rem;
     left: 1.2rem;
     height: 1px;
 }
@@ -807,24 +830,24 @@
 .glens-density-y-axis {
     position: absolute;
     z-index: 4;
-    top: 0.35rem;
-    bottom: 0.35rem;
+    top: 1.2rem;
+    bottom: 0.55rem;
     left: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     color: #64748b;
     font-size: 0.52rem;
-    font-weight: 800;
+    font-weight: 400;
     line-height: 1;
     pointer-events: none;
 }
 
 .glens-density-series {
     position: absolute;
-    inset: 0.35rem 0.35rem 0.35rem 1.45rem;
+    inset: 1.2rem 1.45rem 0.55rem;
     display: grid;
-    grid-template-columns: repeat(50, minmax(0, 1fr));
+    grid-template-columns: repeat(51, minmax(0, 1fr));
     gap: 2px;
     align-items: end;
     opacity: 0.22;
@@ -870,6 +893,11 @@
     transform: translateX(-50%) translateY(0);
 }
 
+.glens-density-bar--query::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
 .glens-density-series--all {
     color: #2f5ea8;
 }
@@ -890,6 +918,21 @@
     align-items: center;
     gap: 0.8rem;
     margin-top: 0.25rem;
+}
+
+.glens-density-sex-filter,
+.glens-carrier-sex-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.glens-density-sex-filter > span,
+.glens-carrier-sex-filter > span {
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 500;
 }
 
 .glens-density-filters .glens-select-label {
@@ -916,12 +959,13 @@
 }
 
 .glens-demographic-panel--header {
-    flex: 0 1 34rem;
+    flex: 0 1 36rem;
     min-width: 28rem;
 }
 
 .glens-demographic-panel--header .glens-section-head {
     gap: 0.7rem;
+    align-items: flex-start;
 }
 
 .glens-demographic-panel--header .glens-section-label {
@@ -942,20 +986,56 @@
     padding: 0.2rem 0;
 }
 
+.glens-age-range-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
+    margin-bottom: 0.35rem;
+}
+
+.glens-age-range-toggle button {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: #526276;
+    padding: 0.18rem 0.45rem;
+    font-size: 0.66rem;
+    font-weight: 500;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.glens-age-range-toggle button:hover,
+.glens-age-range-button--active {
+    border-color: #bfd2e8 !important;
+    background: #eef4fb !important;
+    color: #174a7c !important;
+}
+
 .glens-age-card--compact .glens-age-bars {
-    height: 5.8rem;
+    height: 6.6rem;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.85rem;
+    scrollbar-gutter: stable;
+}
+
+.glens-age-card--compact .glens-age-col {
+    flex: 0 0 2.7rem;
 }
 
 .glens-age-card--compact .glens-age-sex-col {
-    width: 0.75rem;
+    width: 0.58rem;
 }
 
 .glens-demographic-panel--header .glens-age-card--compact {
-    margin-top: 0.35rem;
+    margin-top: 1rem;
 }
 
 .glens-demographic-panel--header .glens-age-card--compact .glens-age-bars {
-    height: 4.9rem;
+    height: 6.6rem;
 }
 
 .glens-demographic-panel--header .glens-demography-line {
@@ -963,15 +1043,190 @@
     margin-top: 0.35rem;
     color: #526276;
     font-size: 0.76rem;
-    font-weight: 650;
+    font-weight: 500;
 }
 
 .glens-carrier-profile-card {
+    min-width: 0;
     margin-top: 0.8rem;
     padding: 1rem;
     border: 1px solid #dbe5ef;
     border-radius: 1.1rem;
     background: rgba(255, 255, 255, 0.78);
+}
+
+.glens-carrier-filter-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(9rem, 1fr)) auto;
+    align-items: end;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.8rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.9rem;
+    background: #f8fafc;
+}
+
+.glens-carrier-filter-row .glens-select-label {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.32rem;
+    margin-left: 0;
+    font-size: 0.76rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.glens-carrier-filter-row .glens-select {
+    width: 100%;
+    max-width: none;
+    border-radius: 0.45rem;
+    font-weight: 400;
+}
+
+.glens-carrier-filter-summary {
+    grid-column: 1 / span 3;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.glens-filter-reset-button {
+    justify-self: start;
+    border: 1px solid #cbd8e8;
+    border-radius: 0.45rem;
+    background: #fff;
+    color: #2f5ea8;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.glens-filter-reset-button:disabled {
+    color: #94a3b8;
+    cursor: default;
+    opacity: 0.72;
+}
+
+.glens-carrier-profile-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    margin: 0.8rem 0 0.9rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.glens-carrier-profile-tab {
+    display: grid;
+    align-content: center;
+    gap: 0.18rem;
+    min-height: 3rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-right: 1px solid #dbe5ef;
+    background: #fff;
+    color: #526276;
+    text-align: left;
+}
+
+.glens-carrier-profile-tab:last-child {
+    border-right: 0;
+}
+
+.glens-carrier-profile-tab--active {
+    background: #eef6fc;
+    color: #162033;
+    box-shadow: inset 0 -3px 0 #2f5ea8;
+}
+
+.glens-carrier-profile-tab span,
+.glens-carrier-profile-tab small {
+    display: block;
+    font-weight: 400;
+}
+
+.glens-carrier-profile-tab small {
+    color: #64748b;
+}
+
+.glens-carrier-profile-tabs--labels .glens-carrier-profile-tab {
+    cursor: default;
+}
+
+.glens-carrier-sample-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+    gap: 1rem;
+    align-items: start;
+    margin-top: 0.8rem;
+    margin-bottom: 0.9rem;
+}
+
+.glens-carrier-sample-overview-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    color: #526276;
+}
+
+.glens-carrier-sample-overview-head p {
+    margin: 0;
+}
+
+.glens-carrier-sample-overview-head span {
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.glens-carrier-sample-overview .glens-carrier-summary-panel--sample {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+}
+
+.glens-carrier-sample-actions {
+    grid-column: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid #eef2f7;
+    color: #526276;
+    font-size: 0.76rem;
+}
+
+.glens-carrier-sample-actions span {
+    font-weight: 500;
+}
+
+.glens-carrier-sample-actions button {
+    border: 0;
+    background: transparent;
+    color: #0055ff;
+    padding: 0;
+    font-size: 0.76rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.glens-carrier-inspection-row {
+    align-items: flex-start;
+}
+
+.glens-carrier-inspection-row > [class*="col-"] {
+    min-width: 0;
+}
+
+.glens-carrier-inspection-row > [class*="col-"] + [class*="col-"] {
+    border-left: 1px solid #dbe5ef;
 }
 
 .glens-shared-level-row {
@@ -1110,25 +1365,34 @@
 }
 
 .glens-carrier-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.7rem;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 0.55rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.75rem;
+    overflow: hidden;
 }
 
 .glens-carrier-tab {
     position: relative;
     width: 100%;
-    padding: 0.72rem 0.75rem;
-    border: 1px solid #eef2f7;
-    border-radius: 0.9rem;
-    background: #fff;
+    min-height: 3rem;
+    padding: 0.42rem 0.55rem;
+    border: 0;
+    border-right: 1px solid #e2e8f0;
+    border-radius: 0;
+    background: transparent;
     text-align: left;
     cursor: pointer;
 }
 
+.glens-carrier-tab:last-child {
+    border-right: 0;
+}
+
 .glens-carrier-tab--active {
-    border-color: #0072b2;
-    background: #e8f2f8;
+    background: #eef6fc;
 }
 
 .glens-carrier-tab > span:first-child {
@@ -1137,22 +1401,21 @@
     font-weight: 950;
 }
 
-.glens-carrier-tab strong,
 .glens-carrier-tab span {
     display: block;
 }
 
-.glens-carrier-tab strong {
+.glens-carrier-tab-value {
     color: #162033;
-    font-size: 1.25rem;
-    font-weight: 950;
+    font-size: 0.78rem;
+    font-weight: 400;
 }
 
 .glens-carrier-tab span,
 .glens-carrier-profile-card p {
     color: #526276;
-    font-size: 0.78rem;
-    font-weight: 750;
+    font-size: 0.72rem;
+    font-weight: 500;
 }
 
 .glens-carrier-profile-card p {
@@ -1160,6 +1423,7 @@
 }
 
 .glens-carrier-detail-panel {
+    min-width: 0;
     margin-top: 0.85rem;
     padding: 0.85rem;
     border: 1px solid #dbe5ef;
@@ -1241,10 +1505,10 @@
     text-transform: uppercase;
 }
 
-.glens-context-position-summary strong {
+.glens-context-value {
     color: #162033;
     font-size: 0.82rem;
-    font-weight: 750;
+    font-weight: 400;
 }
 
 .glens-context-contrast {
@@ -1277,12 +1541,12 @@
     text-transform: uppercase;
 }
 
-.glens-context-contrast strong {
+.glens-context-contrast .glens-context-value {
     display: block;
     margin-top: 0.18rem;
     color: #162033;
     font-size: 0.92rem;
-    font-weight: 800;
+    font-weight: 400;
 }
 
 .glens-context-contrast p {
@@ -1312,6 +1576,12 @@
 .glens-carrier-sample-table {
     display: grid;
     gap: 0;
+    margin-top: 0.65rem;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
 }
 
 .glens-hpo-category-grid {
@@ -1322,10 +1592,17 @@
 .glens-carrier-table-head,
 .glens-carrier-table-row {
     display: grid;
-    grid-template-columns: 3.5rem 1.35fr 0.62fr 1.1fr 0.82fr 0.75fr 0.58fr;
+    grid-template-columns: minmax(8.5rem, 1.15fr) minmax(5.4rem, 0.7fr) minmax(4.6rem, 0.5fr) 3.8rem minmax(4.8rem, 0.55fr) minmax(5.4rem, 0.62fr) minmax(9rem, 1fr) minmax(5.2rem, 0.62fr) minmax(4rem, 0.55fr) minmax(4rem, 0.52fr);
     gap: 0.45rem;
     align-items: center;
+    min-width: 82rem;
     font-size: 0.72rem;
+}
+
+.glens-carrier-sample-table--gene .glens-carrier-table-head,
+.glens-carrier-sample-table--gene .glens-carrier-table-row {
+    grid-template-columns: minmax(8.5rem, 1.15fr) minmax(5.4rem, 0.72fr) minmax(4.6rem, 0.52fr) minmax(4.8rem, 0.58fr) minmax(5.4rem, 0.64fr) minmax(9rem, 1.05fr) minmax(5.2rem, 0.64fr) minmax(4rem, 0.58fr) minmax(4rem, 0.54fr);
+    min-width: 76rem;
 }
 
 .glens-carrier-table-head {
@@ -1355,37 +1632,184 @@
     padding: 0.35rem 0;
     border-top: 1px solid rgba(226, 232, 240, 0.9);
     color: #42526a;
-    font-weight: 700;
+    font-weight: 400;
 }
 
-.glens-context-checkbox,
-.glens-phenotype-context-check,
-.glens-phenotype-term-check {
-    display: inline-flex;
+.glens-carrier-table-row span,
+.glens-carrier-table-row a {
+    min-width: 0;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+.glens-carrier-table-actions {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.35rem;
-    margin: 0;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eef2f7;
+    min-width: 82rem;
 }
 
-.glens-context-checkbox input,
-.glens-phenotype-context-check input,
-.glens-phenotype-term-check input {
-    width: 0.92rem;
-    height: 0.92rem;
-    accent-color: #0055ff;
+.glens-carrier-sample-table--gene .glens-carrier-table-actions {
+    min-width: 76rem;
 }
 
-.glens-context-checkbox input:disabled,
-.glens-phenotype-context-check input:disabled,
-.glens-phenotype-term-check input:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
+.glens-carrier-table-actions span {
+    color: #526276;
+    font-size: 0.76rem;
+    font-weight: 500;
+}
+
+.glens-carrier-table-actions button {
+    border: 0;
+    background: transparent;
+    color: #0055ff;
+    font-size: 0.76rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.glens-co-carrier-table {
+    display: grid;
+    gap: 0;
+    margin-top: 0;
+    overflow-x: auto;
+    min-width: 0;
+}
+
+.glens-co-carrier-head,
+.glens-co-carrier-row {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.65fr) minmax(7rem, 0.65fr) minmax(10rem, 1.15fr) minmax(10rem, 1.15fr);
+    gap: 0.55rem;
+    align-items: center;
+    min-width: 0;
+}
+
+.glens-co-carrier-head {
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.glens-co-carrier-row {
+    padding: 0.48rem 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.72);
+    color: #42526a;
+    font-size: 0.76rem;
+    font-weight: 400;
+}
+
+.glens-co-carrier-row :where(a, span),
+.glens-co-carrier-head span {
+    font-weight: 400;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.glens-co-carrier-head button,
+.glens-co-carrier-count-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.glens-co-carrier-head button:hover,
+.glens-co-carrier-count-button:hover {
+    color: #0b66c3;
+}
+
+.glens-co-carrier-count-button {
+    color: #42526a;
+    font-weight: 400;
+}
+
+.glens-co-carrier-sample-accordion {
+    margin: 0.35rem 0 0.8rem;
+    padding: 0.65rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.5rem;
+    background: #fbfdff;
+}
+
+.glens-co-carrier-sample-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
+    color: #526276;
+    font-size: 0.76rem;
+}
+
+.glens-carrier-sample-table--nested {
+    margin-top: 0;
+}
+
+.glens-co-carrier-actions {
+    min-width: 0;
+}
+
+.glens-phenotype-actions {
+    min-width: 0;
+    margin-top: 0.85rem;
+}
+
+.glens-carrier-genotype-section {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.85rem 0 1rem;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.glens-carrier-genotype-section--inline {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.glens-carrier-genotype-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.glens-carrier-genotype-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.glens-carrier-genotype-head span,
+.glens-carrier-genotype-head strong {
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 400;
 }
 
 .glens-sample-link {
     color: #0b66c3;
-    font-weight: 850;
+    font-weight: 600;
     text-decoration: none;
+}
+
+.glens-carrier-sample-table .glens-sample-link {
+    font-weight: 400;
 }
 
 .glens-sample-link:hover {
@@ -1425,15 +1849,16 @@
     box-shadow: inset 3px 0 0 #2f5ea8;
 }
 
-.glens-hpo-category strong {
+.glens-hpo-category-name {
     color: #162033;
     font-size: 0.76rem;
+    font-weight: 400;
 }
 
 .glens-hpo-category span {
     color: #526276;
     font-size: 0.72rem;
-    font-weight: 750;
+    font-weight: 400;
 }
 
 .glens-hpo-pill {
@@ -1474,7 +1899,7 @@
     background: transparent;
     color: #526276;
     font-size: 0.78rem;
-    font-weight: 800;
+    font-weight: 400;
     text-align: left;
     cursor: pointer;
 }
@@ -1494,23 +1919,6 @@
     font-weight: 900;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-}
-
-.glens-phenotype-context-check > span {
-    color: #162033;
-    font-size: 0.78rem;
-    font-weight: 750;
-}
-
-.glens-phenotype-term-check {
-    min-width: 0;
-    color: #526276;
-    font-weight: 650;
-}
-
-.glens-phenotype-term-check > span {
-    min-width: 0;
-    overflow-wrap: anywhere;
 }
 
 .glens-residual-boxplot {
@@ -1569,7 +1977,7 @@
     gap: 0.75rem;
     color: #526276;
     font-size: 0.76rem;
-    font-weight: 800;
+    font-weight: 400;
 }
 
 .glens-residual-sample-list {
@@ -1591,6 +1999,16 @@
 }
 
 .glens-kv-row:last-child { border-bottom: 0; }
+
+.glens-external-evidence-link {
+    color: #0055ff;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.glens-external-evidence-link:hover {
+    text-decoration: underline;
+}
 
 .glens-kv-row--button {
     border-top: 0;
@@ -1648,6 +2066,199 @@
     gap: 0.85rem;
 }
 
+.glens-carrier-summary-panel {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.75rem;
+    background: #fbfcfe;
+}
+
+.glens-carrier-summary-panel--sample {
+    margin-top: 0.9rem;
+    margin-bottom: 0;
+}
+
+.glens-carrier-summary-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: #526276;
+    font-size: 0.8rem;
+}
+
+.glens-carrier-summary-head span,
+.glens-carrier-summary-section > span {
+    color: #526276;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.glens-carrier-summary-head strong {
+    color: #162033;
+    font-weight: 400;
+}
+
+.glens-carrier-summary-section {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.glens-summary-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.glens-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 0.22rem 0.45rem;
+    background: #fff;
+    color: #42526a;
+    font-size: 0.76rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: filter 0.14s ease, opacity 0.14s ease, background-color 0.14s ease;
+}
+
+.glens-summary-chip--female {
+    border-color: #f0b8ca;
+    color: #c2416b;
+}
+
+.glens-summary-chip--all {
+    border-color: #cbd8e8;
+    color: #42526a;
+}
+
+.glens-summary-chip--male {
+    border-color: #b7cde8;
+    color: #2f5f91;
+}
+
+.glens-summary-chip--unknown {
+    border-color: #addfc7;
+    color: #28724d;
+}
+
+.glens-summary-chip--active {
+    background: #fff;
+}
+
+.glens-summary-chip--muted {
+    filter: grayscale(1) sepia(0.35);
+    opacity: 0.36;
+}
+
+.glens-summary-age-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    min-height: 5.2rem;
+    overflow-x: auto;
+}
+
+.glens-summary-age-bin {
+    display: grid;
+    justify-items: center;
+    gap: 0.18rem;
+    min-width: 3rem;
+    color: #526276;
+    font-size: 0.68rem;
+}
+
+.glens-summary-age-stack {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.16rem;
+    min-height: 4.3rem;
+}
+
+.glens-summary-age-segment-wrap {
+    display: grid;
+    align-items: end;
+    justify-items: center;
+    gap: 0.12rem;
+    min-width: 0.72rem;
+}
+
+.glens-summary-age-segment-wrap em {
+    color: #526276;
+    font-size: 0.58rem;
+    font-style: normal;
+    line-height: 1;
+}
+
+.glens-summary-age-segment-wrap i {
+    display: block;
+    width: 0.72rem;
+    min-height: 0;
+    border-radius: 0;
+}
+
+.glens-summary-age-stack:not(.glens-summary-age-stack--split) .glens-summary-age-segment-wrap {
+    min-width: 0.84rem;
+}
+
+.glens-summary-age-stack:not(.glens-summary-age-stack--split) .glens-summary-age-segment-wrap i {
+    width: 0.84rem;
+}
+
+.glens-summary-age-segment--female {
+    background: #c2416b;
+}
+
+.glens-summary-age-segment--male {
+    background: #2f5f91;
+}
+
+.glens-summary-age-segment--unknown {
+    background: #28724d;
+}
+
+.glens-summary-age-bin small {
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.glens-investigator-summary {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.glens-investigator-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 0.25rem;
+    color: #42526a;
+    font-size: 0.76rem;
+}
+
+.glens-investigator-summary strong {
+    font-weight: 400;
+}
+
+.glens-summary-more-button {
+    width: fit-content;
+    border: 0;
+    background: transparent;
+    color: #0d4d91;
+    padding: 0.1rem 0;
+    font-size: 0.76rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
 .glens-section-title-group {
     display: flex;
     flex-wrap: wrap;
@@ -1692,7 +2303,32 @@
     background: #eef4fb;
     color: #526276;
     font-size: 0.66rem;
-    font-weight: 800;
+    font-weight: 400;
+}
+
+.glens-filter-scope-summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    max-width: 20rem;
+    color: #526276;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    text-align: right;
+}
+
+.glens-filter-scope-summary span {
+    color: #6a788c;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.glens-filter-scope-summary span:last-child {
+    color: #162033;
+    font-weight: 400;
 }
 
 .glens-bar-group { margin-top: 0.9rem; }
@@ -1715,7 +2351,22 @@
     margin-bottom: 0.35rem;
     color: #162033;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 400;
+}
+
+.glens-empty-state {
+    padding: 0.85rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 0.75rem;
+    color: #526276;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.45;
+    background: #f8fafc;
+}
+
+.glens-empty-state--summary {
+    margin-top: 0.75rem;
 }
 
 .glens-bar-shell {
@@ -1743,6 +2394,7 @@
 .glens-dot--female { background: #d65f5f; }
 .glens-dot--orange { background: #de7b41; }
 .glens-dot--male { background: #355f83; }
+.glens-dot--neutral { background: #64748b; }
 
 .glens-age-card {
     margin-top: 0.8rem;
@@ -1761,7 +2413,7 @@
 
 .glens-age-col {
     display: flex;
-    flex: 1 1 0;
+    flex: 1 0 1.55rem;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
@@ -1772,21 +2424,53 @@
     margin-top: 0.25rem;
     color: #526276;
     font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.glens-age-bin-total {
+    min-height: 0.85rem;
+    color: #526276;
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1;
 }
 
 .glens-age-sex-count {
     color: #526276;
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: 500;
     line-height: 1;
+}
+
+.glens-age-total-bin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.22rem;
+}
+
+.glens-age-total-count {
+    min-height: 0.75rem;
+    color: #526276;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.glens-age-total-bar {
+    width: 0.75rem;
+    min-height: 2px;
+    border-radius: 0.35rem 0.35rem 0 0;
+    background: #64748b;
 }
 
 .glens-age-pair {
     display: flex;
     align-items: flex-end;
-    gap: 0.25rem;
+    gap: 0.18rem;
+    height: 4.45rem;
 }
 
 .glens-age-sex-col {
@@ -1799,13 +2483,20 @@
 }
 
 .glens-age-female,
-.glens-age-male {
+.glens-age-male,
+.glens-age-neutral {
     width: 100%;
+    min-height: 2px;
     border-radius: 0.35rem 0.35rem 0 0;
 }
 
 .glens-age-female { background: #d65f5f; }
 .glens-age-male { background: #355f83; }
+.glens-age-neutral { background: #64748b; }
+
+.glens-age-sex-col--combined {
+    width: 0.95rem;
+}
 
 .glens-age-labels {
     margin-top: 0.6rem;
@@ -1875,9 +2566,9 @@
 
 .glens-detail-head,
 .glens-detail-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) 7rem;
     align-items: center;
-    justify-content: space-between;
     gap: 0.75rem;
 }
 
@@ -1886,20 +2577,56 @@
     font-size: 0.78rem;
 }
 
-.glens-detail-head strong {
+.glens-detail-head span:first-child {
     color: #162033;
+    font-weight: 400;
 }
 
 .glens-detail-row {
     margin-top: 0.6rem;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
     color: #526276;
     font-size: 0.8rem;
 }
 
-.glens-detail-row strong {
+.glens-detail-row span:last-child {
     color: #162033;
+    font-weight: 400;
+}
+
+.glens-detail-sample-cell {
+    position: relative;
+}
+
+.glens-detail-sample-button {
+    border: 0;
+    background: transparent;
+    color: #0b66c3;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+.glens-detail-sample-popover {
+    position: absolute;
+    z-index: 12;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    display: grid;
+    gap: 0.18rem;
+    min-width: 11rem;
+    padding: 0.5rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(22, 32, 51, 0.14);
+}
+
+.glens-detail-sample-popover a,
+.glens-detail-sample-popover span {
+    color: #42526a;
+    font-size: 0.72rem;
+    font-weight: 400;
+    white-space: nowrap;
 }
 
 .glens-filter {
@@ -1964,6 +2691,25 @@
     .glens-primary-grid {
         grid-template-columns: 1fr;
     }
+
+    .glens-carrier-sample-overview,
+    .glens-carrier-genotype-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-carrier-sample-overview .glens-carrier-summary-panel--sample,
+    .glens-carrier-sample-actions {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .glens-carrier-inspection-row > [class*="col-"] + [class*="col-"] {
+        border-left: 0;
+        border-top: 1px solid #dbe5ef;
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+
 }
 
 @media (max-width: 767.98px) {
@@ -1989,8 +2735,12 @@
         overflow-x: auto;
     }
 
-    .glens-density-series {
+    .glens-density-track {
         min-width: 46rem;
+    }
+
+    .glens-density-series {
+        min-width: 0;
     }
 
     .glens-carrier-tabs,
@@ -2000,11 +2750,35 @@
 }
 
 .glens-variant :where(p, span, small, button, a, label, input, select, b, .glens-section-label, .glens-carrier-table-head, .glens-carrier-table-row, .glens-hpo-category-head, .glens-hpo-category-row, .glens-base-cell small, .glens-codon-cell small, .glens-density-axis) {
-    font-size: max(13px, 1em) !important;
+    font-size: max(14px, 1em) !important;
 }
 
 .glens-variant.glens-large-text :where(p, span, small, button, a, label, input, select, b, .glens-section-label, .glens-carrier-table-head, .glens-carrier-table-row, .glens-hpo-category-head, .glens-hpo-category-row, .glens-base-cell small, .glens-codon-cell small, .glens-density-axis) {
     font-size: max(16px, 1em) !important;
+}
+
+.glens-variant :where(strong, b, h1, h2, h3, .glens-page-title) {
+    font-weight: 500 !important;
+}
+
+.glens-variant :where(.glens-page-mode-label span, .glens-section-label, .glens-track-label, .glens-select-label, .glens-carrier-table-head, .glens-hpo-category-head, .glens-new-candidate-label, .glens-density-axis, .glens-age-labels) {
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+
+.glens-variant :where(.glens-header-card, .glens-panel-card, .glens-card, .glens-evidence-panel, .glens-carrier-profile-card) {
+    border-radius: 0.5rem;
+    box-shadow: none !important;
+}
+
+.glens-variant .glens-density-y-axis span {
+    font-size: 0.68rem !important;
+    font-weight: 400 !important;
+}
+
+.glens-variant :where(.glens-co-carrier-row, .glens-hpo-category, .glens-bar-header, .glens-detail-row, .glens-investigator-summary, .glens-summary-chip) :where(span, a) {
+    font-weight: 400 !important;
 }
 
 .glens-new-candidate-label {
@@ -2015,9 +2789,9 @@
     padding-left: 0.55rem;
     color: #526276;
     font-size: 0.78rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-new-summary-band {
@@ -2037,16 +2811,16 @@
 .glens-new-summary-head span,
 .glens-new-summary-item span {
     color: #526276;
-    font-size: 0.68rem;
-    font-weight: 850;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-new-summary-head strong {
     color: #42526a;
     font-size: 0.86rem;
-    font-weight: 720;
+    font-weight: 500;
     text-align: right;
 }
 
@@ -2073,6 +2847,7 @@
     margin-top: 0.25rem;
     color: #162033;
     font-size: 0.98rem;
+    font-weight: 600;
     line-height: 1.25;
 }
 

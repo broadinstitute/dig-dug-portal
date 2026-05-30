@@ -9,24 +9,24 @@ const searchModes = [
 const fixtures = {
     variant: {
         destination: "/krVariant.html",
-        placeholder: "chr2:231222761:AT:A / ARMC9",
-        fallback: "chr2:231222761:AT:A",
+        placeholder: "chr5:150203773:T:A / SLC6A7",
+        fallback: "chr5:150203773:T:A",
         examples: [
-            "chr2:231222761:AT:A",
-            "ARMC9",
-            "rare damaging carrier set",
+            "chr5:150203773:T:A",
+            "SLC6A7",
+            "exact variant carrier set",
         ],
         hint: "Use this when you want exact-variant or same-gene carrier evidence. Counts should stay labeled by scope.",
     },
     phenotype: {
         destination: "/krPhenotype.html",
         placeholder:
-            "Abnormal oral morphology [HP:0031816], abnormal circulating purine concentration [HP:0004352]",
-        fallback: "Abnormal oral morphology [HP:0031816]",
+            "Progressive muscle weakness [HP:0003323], Tremor [HP:0001337], Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
+        fallback: "Progressive muscle weakness [HP:0003323], Tremor [HP:0001337], Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
         examples: [
-            "Abnormal oral morphology [HP:0031816]",
-            "Abnormal circulating purine concentration [HP:0004352]",
-            "oral morphology, immune phenotype",
+            "Progressive muscle weakness [HP:0003323]",
+            "Tremor [HP:0001337]",
+            "Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
         ],
         hint: "Use this for a phenotype profile. Runtime PheRS/GRS can remain not calculated until backend support exists.",
     },

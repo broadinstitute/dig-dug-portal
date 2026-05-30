@@ -82,7 +82,7 @@
                 <section class="glens-hero">
                     <div class="glens-query">
                         <div class="glens-query-plain">
-                            <strong>Query phenotype profile</strong>
+                            <strong>Query phenotype term check</strong>
                             <span v-for="term in phenotype.queryTerms.exact" :key="term.id">
                                 {{ term.label }} [{{ term.id }}]
                             </span>
@@ -110,39 +110,14 @@
                     </div>
                     <div class="glens-hero-results">
                         <div class="glens-summary-group glens-summary-group--cohort">
-                            <div class="glens-summary-cell glens-summary-cell--chart">
+                            <div class="glens-summary-cell">
                                 <div class="glens-hero-cohort-copy">
                                     <strong>{{ cohortSummary.primary }}</strong>
                                     <span>{{ cohortSummary.eligible }}</span>
                                     <span>{{ cohortSummary.sex }}</span>
                                     <span>{{ cohortSummary.proband }}</span>
-                                    <span>{{ annotationBurdenSummary.label }}: {{ annotationBurdenSummary.value }}</span>
+                                    <span class="glens-hero-cohort-copy__check">{{ annotationBurdenSummary.label }}: {{ annotationBurdenSummary.value }}</span>
                                     <span>{{ annotationBurdenSummary.detail }}</span>
-                                </div>
-                                <div class="glens-hero-age-block">
-                                    <div class="glens-hero-age-heading">
-                                        <strong>Age distribution</strong>
-                                        <span>{{ cohortSummary.ageLabel }}</span>
-                                    </div>
-                                    <div class="glens-hero-age-histogram">
-                                        <div
-                                            v-for="bin in cohortAgeBins"
-                                            :key="bin.label"
-                                            class="glens-hero-age-col"
-                                        >
-                                            <div class="glens-age-pair">
-                                                <span>
-                                                    <b>{{ bin.female }}</b>
-                                                    <i class="glens-age-bar glens-age-bar--female" :style="{ height: bin.femaleHeight }"></i>
-                                                </span>
-                                                <span>
-                                                    <b>{{ bin.male }}</b>
-                                                    <i class="glens-age-bar glens-age-bar--male" :style="{ height: bin.maleHeight }"></i>
-                                                </span>
-                                            </div>
-                                            <small>{{ bin.label }}</small>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -315,16 +290,52 @@
                             <div class="glens-candidate-table glens-candidate-table--disease">
                                 <div class="glens-candidate-head">
                                     <span>Disease profile</span>
-                                    <span>Matched disease HPO terms</span>
+                                    <span class="glens-candidate-head-info">
+                                        Disease-profile overlap
+                                        <span class="glens-query-info-wrap">
+                                            <button
+                                                class="glens-query-info"
+                                                type="button"
+                                                aria-label="Disease-profile overlap explanation"
+                                                @click.stop="diseaseOverlapInfoOpen = !diseaseOverlapInfoOpen"
+                                            >
+                                                i
+                                            </button>
+                                            <span
+                                                v-if="diseaseOverlapInfoOpen"
+                                                class="glens-query-info-popover glens-query-info-popover--wide glens-query-info-popover--open glens-disease-overlap-info-popover"
+                                            >
+                                                <button
+                                                    class="glens-query-info-close"
+                                                    type="button"
+                                                    aria-label="Close disease-profile overlap explanation"
+                                                    @click.stop="diseaseOverlapInfoOpen = false"
+                                                >
+                                                    ×
+                                                </button>
+                                                <span>Disease-profile overlap</span>
+                                                <span>This is not the count of original query terms. The searched profile has {{ phenotype.queryTerms.exact.length }} user-entered HPO terms.</span>
+                                                <span>For example, 11 / 74 means 11 HPO terms from the external disease profile are represented in the currently exported matched-CRDC-sample overlap summary; 74 is the size of that disease-HPO reference profile.</span>
+                                                <span>Use the CRDC overlay column separately to see how many phenotype-matched CRDC samples carry this disease-profile overlap signal.</span>
+                                            </span>
+                                        </span>
+                                    </span>
                                     <span>CRDC overlay</span>
-                                    <span>Core rare disease reference</span>
+                                    <span>Source</span>
                                 </div>
                                 <template v-for="row in phenotype.diseaseCandidates">
                                     <div
                                         :key="`${row.disease}-row`"
                                         class="glens-candidate-row"
                                     >
-                                        <strong>{{ row.disease }}</strong>
+                                        <a
+                                            class="glens-table-link"
+                                            :href="diseaseReferenceHref(row)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ diseaseReferenceLabel(row) }}
+                                        </a>
                                         <span>
                                             <button
                                                 class="glens-inline-link glens-inline-link--button"
@@ -343,7 +354,7 @@
                                                 {{ row.crdcEvidence }}
                                             </button>
                                         </span>
-                                        <span>{{ normalizedExternalAnnotation(row.externalAnnotation) }}</span>
+                                        <span>{{ diseaseReferenceSource(row) }}</span>
                                     </div>
                                     <div
                                         v-if="activeReferenceDetailRow(row.disease)"
@@ -390,8 +401,8 @@
                                                 <span>Root category</span>
                                             </div>
                                             <div
-                                                v-for="term in referenceDiseaseTermRows(row)"
-                                                :key="`${row.disease}-accordion-${term.id}-${term.name}`"
+                                                v-for="(term, termIndex) in referenceDiseaseTermRows(row)"
+                                                :key="`${row.disease}-accordion-${term.id}-${term.name}-${termIndex}`"
                                             >
                                                 <span>{{ term.matched ? "✓" : "" }}</span>
                                                 <span>{{ term.name }}</span>
@@ -491,8 +502,8 @@
                                                 <span>Evidence role</span>
                                             </div>
                                         <div
-                                            v-for="term in referenceGeneTermRows(row)"
-                                            :key="`${row.gene}-accordion-${term.id}-${term.name}`"
+                                            v-for="(term, termIndex) in referenceGeneTermRows(row)"
+                                            :key="`${row.gene}-accordion-${term.id}-${term.name}-${termIndex}`"
                                         >
                                                 <span>{{ term.matched ? "✓" : "" }}</span>
                                                 <span>{{ term.name }}</span>
@@ -677,7 +688,7 @@
                                         <span>Proband</span><strong>{{ selectedSampleData.proband }}</strong>
                                         <span>Affected</span><strong>{{ selectedSampleData.affected }}</strong>
                                         <span>Sex</span><strong>{{ selectedSampleData.sex }}</strong>
-                                        <span>Age</span><strong>{{ selectedSampleData.ageBand }}</strong>
+                                        <span>Age at enrollment</span><strong>{{ ageAtEnrollmentLabel(selectedSampleData) }}</strong>
                                         <span>GenDx diagnosed</span><strong>{{ selectedSampleData.diagnosed }}</strong>
                                         <span>Variant</span>
                                         <a
@@ -762,45 +773,6 @@
                                 </div>
                             </div>
 
-                            <div class="glens-support-panel mt-space">
-                                <div class="glens-panel-title">
-                                <span>Annotation-burden check</span>
-                                    <small>Does annotation burden inflate the phenotype match?</small>
-                                </div>
-                                <p class="glens-source-note">
-                                    This plot compares weighted phenotype similarity against total HPO annotation burden, so users can see whether highly ranked samples are matched because of the query profile or simply because they have many HPO terms.
-                                </p>
-                                <div
-                                    class="glens-score-plot"
-                                    :class="'glens-score-plot--' + scatterMode"
-                                >
-                                    <span class="glens-axis-y glens-axis-y--top">Y-axis: weighted phenotype similarity</span>
-                                    <span class="glens-axis-y glens-axis-y--bottom">0</span>
-                                    <span class="glens-axis-x">X-axis: total HPO terms</span>
-                                    <div class="glens-trend-line"></div>
-                                    <div class="glens-residual-line"></div>
-                                    <button
-                                        v-for="point in phenotype.scorePoints"
-                                        :key="`individual-qc-${point.id}`"
-                                        class="glens-score-point"
-                                        :class="[
-                                            'glens-score-point--' + point.group,
-                                            {
-                                                'glens-score-point--selected': point.id === activeOutlierSample,
-                                                'glens-score-point--outlier': point.outlier
-                                            }
-                                        ]"
-                                        :style="{ left: point.x, bottom: point.y }"
-                                        type="button"
-                                        :title="point.id + ' · residual ' + point.residual"
-                                        @click="selectSample(point.id)"
-                                    ></button>
-                                    <div class="glens-selected-label" :style="selectedLabelStyle">
-                                        {{ selectedSampleData.id }}<br>
-                                        residual {{ selectedSampleData.residual }}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <div v-else-if="activeEvidenceTab === 'coobserved'" class="glens-cohort-tab-panel glens-step-card glens-step-card--tabbed">
@@ -978,32 +950,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="glens-residual-panel glens-residual-panel--group mt-space">
-                                <div class="glens-panel-title">
-                                    <span>Investigator-level scatter plot</span>
-                                    <small>Group-average burden-corrected scores by phenotype signature.</small>
-                                </div>
-                                <div class="glens-score-plot glens-score-plot--group-average">
-                                    <span class="glens-axis-y glens-axis-y--top">Y-axis: group-average burden-corrected score</span>
-                                    <span class="glens-axis-y glens-axis-y--bottom">0</span>
-                                    <span class="glens-axis-x">X-axis: group phenotype complexity</span>
-                                    <div class="glens-trend-line glens-trend-line--group"></div>
-                                    <button
-                                        v-for="group in phenotype.residualGroups"
-                                        :key="`group-point-${group.name}`"
-                                        class="glens-score-point glens-score-point--group-average"
-                                        :class="{ 'glens-score-point--selected': activeResidualGroup === group.name }"
-                                        :style="{ left: group.x, bottom: group.y }"
-                                        type="button"
-                                        :title="group.name + ' · median burden-corrected score ' + group.medianValue"
-                                        @click="activeResidualGroup = group.name"
-                                    ></button>
-                                    <div class="glens-selected-label glens-selected-label--group" :style="groupLabelStyle">
-                                        {{ activeResidualGroupData.name }}<br>
-                                        median burden-corrected score {{ activeResidualGroupData.medianValue }}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </section>
                 </section>
@@ -1035,6 +981,7 @@ export default {
             optionsPopoverOpen: false,
             candidateInfoOpen: false,
             referenceInfoOpen: false,
+            diseaseOverlapInfoOpen: false,
             cohortInfoOpen: false,
             activeReferenceDetail: "",
             activeQueryMatchSampleId: "",
@@ -1072,10 +1019,10 @@ export default {
 
 .glens-new-context-compare span {
     color: #526276;
-    font-size: 0.72rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.86rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-new-context-compare strong {
@@ -1102,7 +1049,7 @@ export default {
 .glens-query-term-mark {
     display: block;
     color: #162033;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .glens-profile-row .glens-query-term-mark {
@@ -1252,6 +1199,10 @@ export default {
     text-transform: none;
 }
 
+.glens-hero .glens-hero-cohort-copy__check {
+    margin-top: 0.55rem;
+}
+
 .glens-hero .glens-hero-cohort-copy strong {
     letter-spacing: 0;
     text-transform: none;
@@ -1327,15 +1278,15 @@ export default {
     border-top: 0;
     background: #f8fafc;
     color: #526276;
-    font-size: 0.62rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .glens-accordion-table > div:first-child span {
     color: #526276;
-    font-weight: 850;
+    font-weight: 500;
 }
 
 .glens-accordion-table span {

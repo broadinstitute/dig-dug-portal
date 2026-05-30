@@ -8,6 +8,7 @@ export function createKrPhenotypeState() {
             activeOutlierSample: "BCH-12-34567-01",
             activeEvidenceTab: "individual",
             activeInsightTab: "disease",
+            activePhenotypeAgeRange: "0-17-plus",
             candidateInfoOpen: false,
             activeExactCategory: "Abnormality of the nervous system",
             activeSampleProfileCategory: "Abnormality of the nervous system",

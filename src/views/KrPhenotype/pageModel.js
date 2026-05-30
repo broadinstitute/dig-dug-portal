@@ -56,53 +56,53 @@ export const phenotypeComputed = {
                 proband: dbSummary.proband || `${summaryUsesAllMatched ? "Proband status" : "Proband status in displayed rows"}: ${probandParts.join(" · ") || "not available"}`,
                 matchedCount: Number.isFinite(matched) ? matched : samples.length,
                 ageLabel: Number.isFinite(matched)
-                    ? `Among ${matched} phenotype-matched samples`
-                    : "Among phenotype-matched samples",
+                    ? `Age at enrollment among ${matched} phenotype-matched samples`
+                    : "Age at enrollment among phenotype-matched samples",
             };
         },
         cohortAgeBins() {
-            const target = this.cohortSummary.matchedCount || 0;
-            const bins = this.phenotype.ageBins || [];
-            if (bins.length && bins.every((bin) => bin.femaleHeight && bin.maleHeight)) {
-                return bins;
-            }
-            const total = bins.reduce((sum, bin) => sum + Number(bin.female || 0) + Number(bin.male || 0), 0);
-            if (!target || !total) return bins;
-            const rawParts = [];
-            bins.forEach((bin, binIndex) => {
-                ["female", "male"].forEach((key) => {
-                    const original = Number(bin[key] || 0);
-                    const scaled = (original / total) * target;
-                    rawParts.push({
-                        binIndex,
-                        key,
-                        value: Math.floor(scaled),
-                        remainder: scaled - Math.floor(scaled),
-                    });
-                });
-            });
-            let assigned = rawParts.reduce((sum, part) => sum + part.value, 0);
-            rawParts
-                .sort((a, b) => b.remainder - a.remainder)
-                .slice(0, Math.max(target - assigned, 0))
-                .forEach((part) => {
-                    part.value += 1;
-                    assigned += 1;
-                });
-            const scaledBins = bins.map((bin) => ({
-                label: bin.label,
-                female: 0,
-                male: 0,
-            }));
-            rawParts.forEach((part) => {
-                scaledBins[part.binIndex][part.key] = part.value;
-            });
-            const maxCount = Math.max(...scaledBins.map((bin) => bin.female), ...scaledBins.map((bin) => bin.male), 1);
-            return scaledBins.map((bin) => ({
-                ...bin,
-                femaleHeight: `${Math.max((bin.female / maxCount) * 70, bin.female ? 12 : 0)}px`,
-                maleHeight: `${Math.max((bin.male / maxCount) * 70, bin.male ? 12 : 0)}px`,
-            }));
+            const samples = this.phenotype.topSamples || [];
+            const matchedCount = Number(this.cohortSummary.matchedCount) || samples.length;
+            const missingRows = Math.max(0, matchedCount - samples.length);
+            const rowsForHistogram = missingRows
+                ? [
+                    ...samples,
+                    ...Array.from({ length: missingRows }, () => ({
+                        ageAtEnrollment: null,
+                        ageAtEnrollmentLabel: "-",
+                        sex: "",
+                    })),
+                ]
+                : samples;
+            return this.ageAtEnrollmentHistogram(rowsForHistogram, this.activePhenotypeAgeRange);
+        },
+        cohortAgeUnknown() {
+            const unknownBin = this.cohortAgeBins.find((bin) => bin.key === "unknown");
+            return Number(unknownBin?.total || 0);
+        },
+        cohortHistogramScope() {
+            const samples = this.phenotype.topSamples || [];
+            const sexCounts = this.countByNormalized(samples, "sex");
+            const sexSummary = String(this.phenotype.matchedCohortSummary?.sex || "");
+            const summaryFemale = Number.parseInt(sexSummary.match(/(\d+)\s+female/i)?.[1], 10);
+            const summaryMale = Number.parseInt(sexSummary.match(/(\d+)\s+male/i)?.[1], 10);
+            const female = Number.isFinite(summaryFemale) ? summaryFemale : Number(sexCounts.female || 0);
+            const male = Number.isFinite(summaryMale) ? summaryMale : Number(sexCounts.male || 0);
+            const all = Number(this.cohortSummary.matchedCount) || samples.length;
+            return {
+                female,
+                male,
+                unknownSex: Math.max(0, all - female - male),
+                all,
+            };
+        },
+        phenotypeAgeRangeOptions() {
+            return [
+                { key: "0-9", label: "0-9" },
+                { key: "10-17", label: "10-17" },
+                { key: "0-17-plus", label: "0-17, 18+" },
+                { key: "all", label: "All ages" },
+            ];
         },
         annotationBurdenSummary() {
             const sample = this.phenotype.topSamples[0] || {};
@@ -155,6 +155,8 @@ export const phenotypeComputed = {
                 affected: "Yes",
                 sex: "Female",
                 ageBand: "13-18",
+                ageAtEnrollment: null,
+                ageAtEnrollmentLabel: "-",
                 sexAge: "Female · 13-18",
                 diagnosed: "Yes",
                 diagnosedVariant: "KMT2D chr12:49,431,208 C>T | LP",
@@ -261,6 +263,7 @@ export const phenotypeMethods = {
             this.optionsPopoverOpen = false;
             this.candidateInfoOpen = false;
             this.referenceInfoOpen = false;
+            this.diseaseOverlapInfoOpen = false;
             this.cohortInfoOpen = false;
             this.activeReferenceDetail = "";
         },
@@ -305,6 +308,64 @@ export const phenotypeMethods = {
                 return "No Orphanet / HPO / OMIM annotation available in current fixture";
             }
             return value;
+        },
+        diseaseReferenceLabel(row) {
+            const disease = String(row?.disease || "").trim();
+            const id = this.normalizedDiseaseReferenceId(row);
+            return id ? `${id} · ${disease}` : disease;
+        },
+        diseaseReferenceSource(row) {
+            const source = String(row?.source || "").trim();
+            if (source) return source;
+            const parts = String(row?.externalAnnotation || "").split("·").map((part) => part.trim()).filter(Boolean);
+            return parts.length > 1 ? parts.slice(1).join(" · ") : "Reference profile";
+        },
+        normalizedDiseaseReferenceId(row) {
+            const raw = [
+                row?.diseaseId,
+                row?.sourceDisease,
+                row?.externalAnnotation,
+                row?.disease,
+            ].filter(Boolean).join(" ");
+            const orpha = raw.match(/(?:ORPHA:|Orpha[_\s]?)([0-9]+)/i);
+            if (orpha) return `ORPHA:${orpha[1]}`;
+            const omim = raw.match(/(?:OMIM:|OMIM[_\s]?)([0-9]+)/i);
+            if (omim) return `OMIM:${omim[1]}`;
+            const mondo = raw.match(/MONDO[:_ ]([0-9]+)/i);
+            if (mondo) return `MONDO:${mondo[1]}`;
+            const decipher = raw.match(/DECIPHER[:_ ]([A-Za-z0-9.-]+)/i);
+            if (decipher) return `DECIPHER:${decipher[1]}`;
+            return "";
+        },
+        diseaseReferenceHref(row) {
+            const id = this.normalizedDiseaseReferenceId(row);
+            const source = this.diseaseReferenceSource(row);
+            const disease = String(row?.disease || "").trim();
+            if (id.startsWith("ORPHA:")) {
+                return `https://www.orpha.net/en/disease/detail/${encodeURIComponent(id.replace("ORPHA:", ""))}`;
+            }
+            if (id.startsWith("OMIM:")) {
+                return `https://www.omim.org/entry/${encodeURIComponent(id.replace("OMIM:", ""))}`;
+            }
+            if (id.startsWith("MONDO:")) {
+                return `https://monarchinitiative.org/${encodeURIComponent(id)}`;
+            }
+            if (id.startsWith("DECIPHER:")) {
+                return `https://www.deciphergenomics.org/search?q=${encodeURIComponent(id.replace("DECIPHER:", ""))}`;
+            }
+            if (/orpha|orphanet|orphapacket/i.test(source)) {
+                return `https://www.orpha.net/en/disease/search?name=${encodeURIComponent(disease)}`;
+            }
+            if (/omim/i.test(source)) {
+                return `https://www.omim.org/search?index=entry&search=${encodeURIComponent(disease)}`;
+            }
+            if (/mondo/i.test(source)) {
+                return `https://monarchinitiative.org/search/${encodeURIComponent(disease)}`;
+            }
+            if (/decipher/i.test(source)) {
+                return `https://www.deciphergenomics.org/search?q=${encodeURIComponent(disease)}`;
+            }
+            return `https://www.google.com/search?q=${encodeURIComponent(`${disease} rare disease reference`)}`;
         },
         termName(value) {
             return String(value || "").replace(/\s*\[HP:\d+\]\s*$/, "");
@@ -485,6 +546,103 @@ export const phenotypeMethods = {
             const status = String(sample.status || "").toLowerCase();
             if (status.includes("affected") || status.includes("proband")) return "Yes";
             return "Not available";
+        },
+        ageAtEnrollmentValue(row) {
+            const rawValue = row?.ageAtEnrollment;
+            if (rawValue === null || rawValue === undefined || rawValue === "" || rawValue === "-") return null;
+            const value = Number(rawValue);
+            return Number.isFinite(value) ? value : null;
+        },
+        ageAtEnrollmentLabel(row) {
+            const value = this.ageAtEnrollmentValue(row);
+            if (value !== null) return String(value);
+            const label = String(row?.ageAtEnrollmentLabel || "").trim();
+            if (label && label !== "-") return label.replace(/\s*years?$/i, "");
+            return "Not available";
+        },
+        ageAtEnrollmentBucket(row) {
+            const value = this.ageAtEnrollmentValue(row);
+            if (value === null) return "unknown";
+            if (value <= 4) return "0-4";
+            if (value <= 9) return "5-9";
+            if (value <= 17) return "10-17";
+            return "18-plus";
+        },
+        ageAtEnrollmentHistogram(samples, range = "0-17-plus") {
+            const values = (samples || [])
+                .map((sample) => this.ageAtEnrollmentValue(sample))
+                .filter((value) => value !== null && value >= 0);
+            const integerAge = (value) => Math.floor(value);
+            const makeAgeBins = (start, end) => Array.from({ length: end - start + 1 }, (_, index) => {
+                const age = start + index;
+                return { key: String(age), label: String(age), min: age, max: age };
+            });
+            let binDefinitions;
+            if (range === "0-9") {
+                binDefinitions = makeAgeBins(0, 9);
+            } else if (range === "10-17") {
+                binDefinitions = makeAgeBins(10, 17);
+            } else if (range === "all") {
+                const maxAge = values.length ? Math.max(...values.map(integerAge)) : 17;
+                binDefinitions = makeAgeBins(0, Math.max(17, maxAge));
+            } else {
+                binDefinitions = [
+                    ...makeAgeBins(0, 17),
+                    { key: "18-plus", label: "18+", min: 18, max: Number.POSITIVE_INFINITY },
+                ];
+            }
+            binDefinitions = [
+                ...binDefinitions,
+                { key: "unknown", label: "Unknown", unknown: true },
+            ];
+            const bins = binDefinitions.map((bin) => ({ ...bin, female: 0, male: 0, unknownSex: 0 }));
+            const byKey = new Map(bins.map((bin) => [bin.key, bin]));
+            (samples || []).forEach((sample) => {
+                const value = this.ageAtEnrollmentValue(sample);
+                let bin;
+                if (value === null) {
+                    bin = byKey.get("unknown");
+                } else {
+                    const age = integerAge(value);
+                    bin = bins.find((candidate) => !candidate.unknown && age >= candidate.min && age <= candidate.max);
+                }
+                if (!bin) return;
+                const sex = String(sample.sex || "").trim().toLowerCase();
+                if (sex === "female" || sex === "f") {
+                    bin.female += 1;
+                } else if (sex === "male" || sex === "m") {
+                    bin.male += 1;
+                } else {
+                    bin.unknownSex += 1;
+                }
+            });
+            const populatedBins = bins.filter((bin) => {
+                if (bin.key !== "unknown") return true;
+                return bin.female + bin.male + bin.unknownSex > 0;
+            });
+            return this.withAgeBinHeights(populatedBins);
+        },
+        withAgeBinHeights(bins) {
+            const binsWithTotals = (bins || []).map((bin) => {
+                const female = Number(bin.female || 0);
+                const male = Number(bin.male || 0);
+                const unknownSex = Number(bin.unknownSex || 0);
+                return {
+                    ...bin,
+                    female,
+                    male,
+                    unknownSex,
+                    total: female + male + unknownSex,
+                };
+            });
+            const maxCount = Math.max(1, ...binsWithTotals.map((bin) => bin.total));
+            return binsWithTotals.map((bin) => ({
+                ...bin,
+                femaleHeight: `${Math.max((bin.female / maxCount) * 70, bin.female ? 12 : 2)}px`,
+                maleHeight: `${Math.max((bin.male / maxCount) * 70, bin.male ? 12 : 2)}px`,
+                unknownHeight: `${Math.max((bin.unknownSex / maxCount) * 70, bin.unknownSex ? 12 : 2)}px`,
+                totalHeight: `${Math.max((bin.total / maxCount) * 70, bin.total ? 12 : 2)}px`,
+            }));
         },
         investigatorPhenotypeSignature(group) {
             const terms = this.specificCoObservedTerms.slice(0, 3).map((term) => this.termName(term.label));

@@ -140,7 +140,7 @@
                     <div class="glens-identity">
                         <h1>{{ displaySampleId }}</h1>
                         <div class="glens-sample-header-meta" aria-label="Sample metadata summary">
-                            <span>{{ sample.sex }} | Age {{ displayAgeGroup }} | GenDx: {{ sample.gendx.shortStatus }}</span>
+                            <span>{{ sample.sex }} | Age at enrollment {{ displayAgeAtEnrollment }} | GenDx: {{ sample.gendx.shortStatus }}</span>
                             <span>{{ sample.hpoTotal }} HPO terms | {{ sample.rareCodingGenes }} genes with rare coding variants</span>
                         </div>
                     </div>
@@ -207,13 +207,32 @@
                                 </div>
 
                                 <div class="glens-position-list">
-                                    <div v-for="position in sample.positionMetrics" :key="position.label" class="glens-position-row">
-                                        <button type="button" class="glens-position-summary" @click="toggleMetric(position.label)">
-                                            <i>{{ openMetrics[position.label] ? "▾" : "▸" }}</i>
-                                            <strong>{{ position.label }}</strong>
+                                    <div v-for="position in sample.positionMetrics" :key="position.label" class="glens-position-row" @click.stop>
+                                        <div class="glens-position-summary glens-position-summary--plain">
+                                            <span class="glens-position-label">
+                                                <strong>{{ position.label }}</strong>
+                                                <button
+                                                    type="button"
+                                                    class="glens-inline-info-button"
+                                                    :aria-label="`${position.label} explanation`"
+                                                    @click="toggleMetricInfo(position.label)"
+                                                >
+                                                    i
+                                                </button>
+                                            </span>
                                             <span>{{ position.value }}</span>
-                                        </button>
-                                        <p v-if="openMetrics[position.label]" class="glens-position-explain">{{ position.text }}</p>
+                                        </div>
+                                        <div v-if="activeMetricInfoLabel === position.label" class="glens-metric-info-popover">
+                                            <button
+                                                type="button"
+                                                class="glens-section-info-close"
+                                                :aria-label="`Close ${position.label} explanation`"
+                                                @click="activeMetricInfoLabel = null"
+                                            >
+                                                ×
+                                            </button>
+                                            <p>{{ position.text }}</p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -228,7 +247,7 @@
                                         </div>
                                         <em>Top 3 shown</em>
                                     </div>
-                                    <p v-if="affinityMethodOpen" class="glens-source-note">
+                                    <p v-if="affinityMethodOpen" class="glens-source-note glens-source-note--affinity">
                                         Each investigator group is converted into a phenotype signature from HPO terms enriched in that group. {{ sample.sampleId }} is scored against every group signature, corrected for HPO annotation burden, and standardized against all CRDC samples for that signature. z = 0 means average similarity to that group signature; higher z means the sample is more group-like.
                                     </p>
                                     <div class="glens-affinity-columns">
@@ -431,17 +450,17 @@
                         </div>
                         <div class="glens-similar-table">
                             <div class="glens-table-head glens-table-head--phenotype">
-                                <span>Sample</span>
-                                <span>Phenotype profile similarity (0-1)</span>
-                                <span>Shared phenotype counts</span>
-                                <span>Shared genes</span>
-                                <span>Investigator</span>
-                                <span>Sex</span>
-                                <span>Age band</span>
-                                <span>Note</span>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'sampleId')">Sample {{ tableSortIndicator('phenotype', 'sampleId') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'similarity')">Phenotype profile similarity (0-1) {{ tableSortIndicator('phenotype', 'similarity') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'sharedCount')">Shared phenotype counts {{ tableSortIndicator('phenotype', 'sharedCount') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'sharedGenes')">Shared genes {{ tableSortIndicator('phenotype', 'sharedGenes') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'investigator')">Investigator {{ tableSortIndicator('phenotype', 'investigator') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'sex')">Sex {{ tableSortIndicator('phenotype', 'sex') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'age')">Age at enrollment {{ tableSortIndicator('phenotype', 'age') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('phenotype', 'notes')">Note {{ tableSortIndicator('phenotype', 'notes') }}</button>
                             </div>
                             <div
-                                v-for="row in sample.phenotypeMatches"
+                                v-for="row in sortedPhenotypeMatches"
                                 :key="row.sampleId"
                                 class="glens-table-row glens-table-row--phenotype"
                             >
@@ -476,7 +495,14 @@
                                     </div>
                                 </span>
                                 <span class="glens-shared-gene-cell" @click.stop>
-                                    <a class="glens-table-link" :href="variantHref(row.topSignalVariantId)">{{ sharedGenesLabel(row) }}</a>
+                                    <a
+                                        v-for="gene in visibleSharedGeneItems(row)"
+                                        :key="`${row.sampleId}-${gene.gene}`"
+                                        class="glens-table-link glens-gene-chip-link"
+                                        :href="variantHref(gene.gene)"
+                                    >
+                                        {{ gene.gene }}
+                                    </a>
                                     <button
                                         v-if="sharedGeneMoreCount(row) > 0"
                                         class="glens-inline-more-button"
@@ -496,13 +522,15 @@
                                         </button>
                                         <strong>Shared genes</strong>
                                         <ul>
-                                            <li v-for="gene in row.sharedGenes" :key="gene">{{ gene }}</li>
+                                            <li v-for="gene in sharedGeneItems(row)" :key="gene.gene">
+                                                <a class="glens-table-link" :href="variantHref(gene.gene)">{{ gene.gene }}</a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </span>
                                 <span>{{ row.investigator }}</span>
                                 <span>{{ row.sex }}</span>
-                                <span>{{ formatAgeBand(row.ageBand) }}</span>
+                                <span>{{ ageAtEnrollmentLabel(row) || formatAgeBand(row.ageBand) }}</span>
                                 <span>{{ row.notes }}</span>
                             </div>
                         </div>
@@ -540,44 +568,165 @@
                             </div>
                         </div>
 
-                        <div class="glens-genotype-query-variant" aria-label="Searched sample reference variant">
-                            <span>Reference variant for searched sample</span>
-                            <a class="glens-table-link" :href="variantHref(sample.gendx.variantId)">{{ sample.gendx.variantId }}</a>
-                            <strong>{{ sample.gendx.gene }}</strong>
-                            <em>{{ sample.gendx.consequence }} · {{ sample.gendx.pathogenicity }}</em>
+                        <div class="glens-genotype-query-builder" aria-label="Searched sample variant query builder">
+                            <div class="glens-genotype-builder-head">
+                                <div>
+                                    <span>Variant query builder for searched sample</span>
+                                    <p>Choose one or more sample variants to find other samples sharing the selected genetic mechanism.</p>
+                                </div>
+                                <button class="glens-add-query-row" type="button" @click="addVariantQueryRow">+ Add query</button>
+                            </div>
+                            <div class="glens-genotype-query-row glens-genotype-query-row--head">
+                                <span>Source</span>
+                                <span>Gene</span>
+                                <span>Variant</span>
+                                <span>Consequence</span>
+                                <span></span>
+                            </div>
+                            <div
+                                v-for="row in variantQueryRows"
+                                :key="row.id"
+                                class="glens-genotype-query-row"
+                            >
+                                <span class="glens-query-source">
+                                    {{ row.sourceLabel }}<span v-if="row.isGendx" aria-label="GenDx-confirmed variant">*</span>
+                                </span>
+                                <select
+                                    :value="row.gene"
+                                    @change="setVariantQueryGene(row.id, $event.target.value)"
+                                >
+                                    <option v-for="gene in sampleVariantGeneOptions" :key="gene" :value="gene">{{ gene }}</option>
+                                </select>
+                                <select
+                                    :value="row.variantId"
+                                    @change="setVariantQueryVariant(row.id, $event.target.value)"
+                                >
+                                    <option
+                                        v-for="variant in variantOptionsForGene(row.gene)"
+                                        :key="variant.variantId"
+                                        :value="variant.variantId"
+                                    >
+                                        {{ variantQueryOptionLabel(variant) }}
+                                    </option>
+                                </select>
+                                <select
+                                    :value="row.consequence"
+                                    @change="setVariantQueryConsequence(row.id, $event.target.value)"
+                                >
+                                    <option
+                                        v-for="consequence in consequenceOptionsForGeneVariant(row.gene, row.variantId)"
+                                        :key="consequence"
+                                        :value="consequence"
+                                    >
+                                        {{ consequence }}
+                                    </option>
+                                </select>
+                                <button
+                                    class="glens-remove-query-row"
+                                    type="button"
+                                    :disabled="variantQueryRows.length === 1"
+                                    @click="removeVariantQueryRow(row.id)"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                            <p class="glens-genotype-builder-note">
+                                GenDx-confirmed variants are placed first when available<span v-if="hasGenDxVariantQuery"> and marked with *</span>. Current genotype tables below use the selected variant/gene mechanisms as the mock search context.
+                            </p>
                         </div>
 
                         <div class="glens-genotype-groups">
-                            <article v-for="group in sample.genotypeGroups" :key="group.label" class="glens-genotype-card">
+                            <article v-for="group in genotypeGroupsForDisplay" :key="group.label" class="glens-genotype-card">
                                 <button class="glens-genotype-head" type="button" @click="toggleGenotypeGroup(group.label)">
                                     <span>{{ openGenotypeGroups[group.label] ? "▾" : "▸" }}</span>
                                     <strong>{{ group.label }}</strong>
                                     <small>{{ group.summary }}</small>
                                 </button>
                                 <div v-if="openGenotypeGroups[group.label]" class="glens-similar-table glens-similar-table--compact">
-                                    <div class="glens-table-head glens-table-head--genotype">
-                                        <span>Sample</span>
-                                        <span>Genetic similarity</span>
-                                        <span>Shared gene</span>
-                                        <span>Variant evidence</span>
-                                        <span>Phenotype overlap</span>
-                                        <span>Key HPO terms</span>
+                                    <div
+                                        class="glens-table-head glens-table-head--genotype"
+                                        :class="{ 'glens-table-head--genotype-no-variant': !groupHasVariantEvidence(group) }"
+                                    >
+                                        <button type="button" class="glens-sort-header" @click="setGenotypeSort(group.label, 'sampleId')">
+                                            Sample {{ genotypeSortIndicator(group.label, 'sampleId') }}
+                                        </button>
+                                        <button type="button" class="glens-sort-header" @click="setGenotypeSort(group.label, 'age')">
+                                            Age at enrollment {{ genotypeSortIndicator(group.label, 'age') }}
+                                        </button>
+                                        <button type="button" class="glens-sort-header" @click="setGenotypeSort(group.label, 'sharedGene')">
+                                            Shared gene {{ genotypeSortIndicator(group.label, 'sharedGene') }}
+                                        </button>
+                                        <span v-if="groupHasVariantEvidence(group)">Variant evidence</span>
+                                        <button
+                                            type="button"
+                                            class="glens-sort-header"
+                                            @click="setGenotypeSort(group.label, 'phenotypeOverlap')"
+                                        >
+                                            Phenotype overlap {{ genotypeSortIndicator(group.label, 'phenotypeOverlap') }}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="glens-sort-header"
+                                            @click="setGenotypeSort(group.label, 'profileSimilarity')"
+                                        >
+                                            Phenotype profile similarity (0-1) {{ genotypeSortIndicator(group.label, 'profileSimilarity') }}
+                                        </button>
+                                        <button type="button" class="glens-sort-header" @click="setGenotypeSort(group.label, 'keyPhenotypes')">
+                                            Key HPO terms {{ genotypeSortIndicator(group.label, 'keyPhenotypes') }}
+                                        </button>
                                     </div>
                                     <div
-                                        v-for="row in group.rows"
-                                        :key="row.sampleId"
+                                        v-for="row in sortedGenotypeRows(group)"
+                                        :key="`${group.label}-${row.sampleId}-${row.sharedGene || 'none'}`"
                                         class="glens-table-row glens-table-row--genotype"
+                                        :class="{ 'glens-table-row--genotype-no-variant': !groupHasVariantEvidence(group) }"
                                     >
                                         <a v-if="row.sampleId !== 'none'" class="glens-table-link" :href="sampleHref(row.sampleId)">{{ row.sampleId }}</a>
                                         <span v-else class="glens-table-plain">{{ row.sampleLabel }}</span>
-                                        <span class="glens-table-plain">{{ row.similarity }}</span>
+                                        <span class="glens-table-plain">{{ genotypeAgeLabel(row) }}</span>
                                         <a v-if="row.sharedGene" class="glens-table-link" :href="variantHref(row.sharedGene)">{{ row.sharedGene }}</a>
                                         <span v-else class="glens-table-plain">-</span>
-                                        <span class="glens-genotype-variant-evidence">
-                                            <span>{{ row.queryVariantEvidence }}</span>
-                                            <span>{{ row.matchedVariantEvidence }}</span>
+                                        <span v-if="groupHasVariantEvidence(group)" class="glens-genotype-variant-evidence">
+                                            <a
+                                                v-if="variantEvidenceLabel(row) !== '-'"
+                                                class="glens-table-link"
+                                                :href="variantHref(variantEvidenceLabel(row))"
+                                            >
+                                                {{ variantEvidenceLabel(row) }}
+                                            </a>
+                                            <span v-else>-</span>
                                         </span>
-                                        <span>{{ row.phenotypeOverlap }}</span>
+                                        <span class="glens-shared-count-cell" @click.stop>
+                                            <button
+                                                class="glens-table-link glens-table-link-button"
+                                                type="button"
+                                                @click="toggleGenotypeSharedHpo(group.label, row)"
+                                            >
+                                                {{ row.phenotypeOverlap }}
+                                            </button>
+                                            <div v-if="activeGenotypeHpoKey === genotypeSharedHpoKey(group.label, row)" class="glens-shared-hpo-popover">
+                                                <button
+                                                    class="glens-section-info-close"
+                                                    type="button"
+                                                    aria-label="Close genotype shared HPO terms"
+                                                    @click="activeGenotypeHpoKey = null"
+                                                >
+                                                    ×
+                                                </button>
+                                                <strong>Shared HPO terms: {{ row.phenotypeOverlap }}</strong>
+                                                <p class="glens-popover-note">{{ genotypeHpoPopoverNote(row) }}</p>
+                                                <ul>
+                                                    <li v-for="term in visibleGenotypeSharedHpoTerms(group.label, row)" :key="term">{{ term }}</li>
+                                                    <li v-if="!genotypeSharedHpoTerms(row).length">No non-broad shared HPO terms in the current fixture.</li>
+                                                    <li v-if="genotypeSharedHpoMoreCount(row) > 0">
+                                                        <button class="glens-inline-more-button" type="button" @click="toggleGenotypeSharedHpoExpanded(group.label, row)">
+                                                            {{ isGenotypeSharedHpoExpanded(group.label, row) ? "Show less" : `+${genotypeSharedHpoMoreCount(row)} more` }}
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </span>
+                                        <span>{{ row.phenotypeProfileSimilarityLabel || "-" }}</span>
                                         <span>{{ row.keyPhenotypes }}</span>
                                     </div>
                                 </div>
@@ -598,20 +747,34 @@
 
                         <div class="glens-disease-table">
                             <div class="glens-table-head glens-table-head--disease">
-                                <span>Disease profile</span>
-                                <span>Source</span>
-                                <span>Matched HPO terms</span>
-                                <span>Total disease HPO terms</span>
-                                <span>Overlap</span>
-                                <span>Notes</span>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'name')">Disease profile {{ tableSortIndicator('disease', 'name') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'source')">Source {{ tableSortIndicator('disease', 'source') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'matched')">Matched HPO terms {{ tableSortIndicator('disease', 'matched') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'total')">Total disease HPO terms {{ tableSortIndicator('disease', 'total') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'overlap')">Overlap {{ tableSortIndicator('disease', 'overlap') }}</button>
+                                <button type="button" class="glens-sort-header" @click="setTableSort('disease', 'notes')">Notes {{ tableSortIndicator('disease', 'notes') }}</button>
                             </div>
                             <div
-                                v-for="disease in sample.diseaseMatches"
+                                v-for="disease in sortedDiseaseMatches"
                                 :key="disease.name"
                                 class="glens-table-row glens-table-row--disease"
                             >
-                                <strong>{{ disease.name }}</strong>
-                                <span>{{ disease.source }}</span>
+                                <a
+                                    class="glens-table-link"
+                                    :href="diseaseReferenceHref(disease)"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {{ disease.name }}
+                                </a>
+                                <a
+                                    class="glens-table-link glens-table-link--subtle"
+                                    :href="diseaseReferenceHref(disease)"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {{ disease.source }}
+                                </a>
                                 <span class="glens-disease-overlap-cell" @click.stop>
                                     <button
                                         class="glens-table-link glens-table-link-button"
@@ -676,7 +839,7 @@
                         </p>
 
                         <div class="glens-gene-list">
-                            <article v-for="gene in sample.candidateGenes" :key="gene.gene" class="glens-gene-card">
+                            <article v-for="gene in candidateGenesForDisplay" :key="gene.gene" class="glens-gene-card">
                                 <button class="glens-gene-summary" type="button" @click="toggleGene(gene.gene)">
                                     <span>{{ expandedGenes[gene.gene] ? "▾" : "▸" }}</span>
                                     <strong>{{ gene.gene }}</strong>
@@ -693,7 +856,14 @@
                                     </div>
                                     <div class="glens-gene-check-row">
                                         <span>Disease link</span>
-                                        <a class="glens-table-link" :href="diseaseProfileHref(gene.diseaseLink)">{{ gene.diseaseLink }}</a>
+                                        <a
+                                            class="glens-table-link"
+                                            :href="diseaseReferenceHref(gene.diseaseLink)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ gene.diseaseLink }}
+                                        </a>
                                     </div>
                                     <div class="glens-gene-check-row glens-gene-check-row--popover" @click.stop>
                                         <span>Phenotype fit</span>
@@ -726,31 +896,57 @@
                                     </div>
                                     <div class="glens-gene-check-row">
                                         <span>GenDx</span>
-                                        <strong>{{ gene.gendxSupport }}</strong>
+                                        <strong>{{ gene.gendxDisplay }}</strong>
                                     </div>
                                     <div class="glens-gene-check-row">
                                         <span>Priority reason</span>
                                         <strong>{{ gene.priorityReason }}</strong>
                                     </div>
                                 </div>
+                                <div class="glens-additional-annotation">
+                                    <div class="glens-additional-annotation-head">
+                                        <span>Additional annotation</span>
+                                        <small>Secondary references only</small>
+                                    </div>
+                                    <div
+                                        v-for="annotation in gene.additionalAnnotations"
+                                        :key="`${gene.gene}-${annotation.source}-${annotation.value}`"
+                                        class="glens-additional-annotation-row"
+                                    >
+                                        <span>{{ annotation.source }}</span>
+                                        <strong>{{ annotation.value }}</strong>
+                                        <button
+                                            v-if="annotation.info"
+                                            class="glens-annotation-info"
+                                            type="button"
+                                            aria-label="PanelApp Green annotation explanation"
+                                        >
+                                            i
+                                            <span class="glens-annotation-info-popover">{{ annotation.info }}</span>
+                                        </button>
+                                    </div>
+                                    <p v-if="!gene.additionalAnnotations.length">
+                                        No PanelApp, Reactome, WikiPathways, MONDO, or DECIPHER secondary annotation in the current display fixture.
+                                    </p>
+                                </div>
 
                                 <div v-if="expandedGenes[gene.gene]" class="glens-variant-table">
                                     <div class="glens-table-head glens-table-head--variant">
-                                        <span>Variant</span>
-                                        <span>Consequence</span>
-                                        <span>Transcript</span>
-                                        <span>gnomAD AF</span>
-                                        <span>DP</span>
-                                        <span>REVEL</span>
-                                        <span>AlphaMissense</span>
-                                        <span>LoF</span>
-                                        <span>ClinVar</span>
-                                        <span>Tier</span>
-                                        <span>Carriers</span>
-                                        <span>Phenotype consistency</span>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'variantId')">Variant {{ variantSortIndicator(gene.gene, 'variantId') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'consequence')">Consequence {{ variantSortIndicator(gene.gene, 'consequence') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'transcript')">Transcript {{ variantSortIndicator(gene.gene, 'transcript') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'gnomad')">gnomAD AF {{ variantSortIndicator(gene.gene, 'gnomad') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'dp')">DP {{ variantSortIndicator(gene.gene, 'dp') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'revel')">REVEL {{ variantSortIndicator(gene.gene, 'revel') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'alphaMissense')">AlphaMissense {{ variantSortIndicator(gene.gene, 'alphaMissense') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'lof')">LoF {{ variantSortIndicator(gene.gene, 'lof') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'clinvar')">ClinVar {{ variantSortIndicator(gene.gene, 'clinvar') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'tier')">Tier {{ variantSortIndicator(gene.gene, 'tier') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'carriers')">Carriers {{ variantSortIndicator(gene.gene, 'carriers') }}</button>
+                                        <button type="button" class="glens-sort-header" @click="setVariantSort(gene.gene, 'consistency')">Phenotype consistency {{ variantSortIndicator(gene.gene, 'consistency') }}</button>
                                     </div>
                                     <div
-                                        v-for="variant in gene.variants"
+                                        v-for="variant in sortedGeneVariants(gene)"
                                         :key="variant.variantId"
                                         class="glens-table-row glens-table-row--variant"
                                     >
@@ -762,7 +958,16 @@
                                         <span>{{ variant.revel }}</span>
                                         <span>{{ variant.alphaMissense }}</span>
                                         <span>{{ variant.lof }}</span>
-                                        <span>{{ variant.clinvar }}</span>
+                                        <a
+                                            v-if="variant.clinvar && variant.clinvar !== '-'"
+                                            class="glens-table-link"
+                                            :href="clinVarHref(variant.variantId)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ variant.clinvar }}
+                                        </a>
+                                        <span v-else>{{ variant.clinvar }}</span>
                                         <span>{{ variant.tier }}</span>
                                         <span>{{ variant.carriers }}</span>
                                         <span>{{ variant.consistency }}</span>
@@ -802,6 +1007,7 @@ export default {
             sampleInfoOpen: false,
             gendxInfoOpen: false,
             overviewInfoOpen: false,
+            activeMetricInfoLabel: null,
             activeOverviewCardTab: "summary",
             phenotypeInfoOpen: false,
             genotypeInfoOpen: false,
@@ -809,8 +1015,21 @@ export default {
             activeSharedGeneSampleId: null,
             activeDiseaseMatchName: null,
             activeGenePhenotypeFit: null,
+            activeGenotypeHpoKey: null,
             expandedSharedHpoSampleIds: {},
+            expandedGenotypeHpoKeys: {},
             expandedDomainTerms: {},
+            variantQueryRows: [],
+            variantQueryNextId: 1,
+            tableSorts: {
+                phenotype: { key: "similarity", direction: "desc" },
+                disease: { key: "matched", direction: "desc" },
+            },
+            variantSorts: {},
+            genotypeSorts: {
+                "Same variant": { key: "profileSimilarity", direction: "desc" },
+                "Same gene": { key: "profileSimilarity", direction: "desc" },
+            },
             unsubscribeClinicalFocus: null,
         };
     },
@@ -819,6 +1038,7 @@ export default {
         this.unsubscribeClinicalFocus = onClinicalFocusChange((focus) => {
             this.clinicalFocus = focus;
         });
+        this.initializeVariantQueryRows();
         document.addEventListener("click", this.closeToolPopovers);
     },
     beforeDestroy() {
