@@ -207,7 +207,7 @@
                         <!-- Trait select -->
                         <div style="display: flex; flex-direction: row; padding:20px; background: white; gap:20px;">
 
-                            <div v-if="displayGroups?.cellType?.length>1" 
+                            <div v-if="displayGroups && displayGroups.cellType && displayGroups.cellType.length>1"
                                 style="display: flex; flex-direction: column; gap:5px; width:300px;">
                                 <div style="display: flex; gap:5px; align-items: center;">
                                     <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Group By</div> 
