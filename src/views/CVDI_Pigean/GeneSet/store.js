@@ -2,7 +2,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import cvdiBioIndex from "../utils/cvdiBioIndex";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
@@ -14,7 +13,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        pigeanGeneset: cvdiBioIndex("pigean-gene-set"),
+        pigeanGeneset: bioIndex("pigean-gene-set", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
     },
     state: {
         geneset: keyParams.geneset,

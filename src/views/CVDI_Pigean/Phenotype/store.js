@@ -3,7 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
-import cvdiBioIndex from "../utils/cvdiBioIndex";
+import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 
@@ -13,8 +13,8 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        pigeanPhenotype: cvdiBioIndex("pigean-gene-phenotype"),
-        genesetPhenotype: cvdiBioIndex("pigean-gene-set-phenotype"),
+        pigeanPhenotype: bioIndex("pigean-gene-phenotype", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
+        genesetPhenotype: bioIndex("pigean-gene-set-phenotype", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!

@@ -5,7 +5,6 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 
-import cvdiBioIndex from "../utils/cvdiBioIndex";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 
 Vue.use(Vuex);
@@ -15,7 +14,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         gene: bioIndex("gene"),
-        pigeanGene: cvdiBioIndex("pigean-gene"),
+        pigeanGene: bioIndex("pigean-gene", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
         // Is there a CVDI specific bioindex for this? For now use the regular pigean phenotype map
         pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },

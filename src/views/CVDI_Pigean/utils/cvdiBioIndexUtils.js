@@ -1,72 +1,41 @@
-/* BioIndex Utilities
-   - Data and methods useful for BioIndex that aren't worth keeping within a Vuex store
-   - Includes constants like hostname (which can still be set via an environmental variable)
+/* CVDI BioIndex adapter
+   - Reuses the shared BioIndex transport (src/utils/bioIndexUtils) but points
+     all requests at the CVDI BioIndex host.
+   - Only the CVDI-specific host, config constants, and getPhecodeMap live here;
+     the transport logic is NOT duplicated.
 */
 
-import querystring from "query-string";
-import cookie from "cookie";
+import {
+    query as biQuery,
+    match as biMatch,
+    apiUrl as biApiUrl,
+    rawUrl as biRawUrl,
+    request as biRequest,
+} from "@/utils/bioIndexUtils";
 import dataConvert from "@/utils/dataConvert";
 
-// set cookie for authenticated requests
-let session_cookie = undefined;
-
-// lookup the one in the document
-if (!!document.cookie) {
-    session_cookie = cookie.parse(document.cookie).session;
-}
-
-// updated at compile-time to the dev or production BioIndex server
+// CVDI-specific BioIndex server
 export const BIO_INDEX_HOST = "https://cvdi.hugeampkpnbi.org";
-export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
-/* Returns the path for any BioIndex API end-point.
- */
-export function apiUrl(path, query_private = false) {
-    if (path.startsWith("/")) {
-        path = path.substr(1);
-    }
-
-    if (query_private) {
-        return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
-    } else {
-        return `${BIO_INDEX_HOST}/${path}`;
-    }
+// Thin wrappers that bind the shared transport to the CVDI host.
+export function apiUrl(path) {
+    return biApiUrl(path, false, BIO_INDEX_HOST);
 }
 
-/* Useful for /api/raw end-points with query parameters.
- */
 export function rawUrl(path, query_params) {
-    let qs = querystring.stringify(query_params, { skipNull: true });
-
-    return `${apiUrl(path)}${qs ? "?" + qs : ""}`;
+    return biRawUrl(path, query_params, BIO_INDEX_HOST);
 }
 
-/* Build a generic request to a BioIndex end-point.
- */
-export async function request(path, query_params) {
-    return fetch(rawUrl(path, query_params), {
-        headers: {
-            "x-bioindex-access-token": session_cookie,
-        },
-    });
+export function request(path, query_params) {
+    return biRequest(path, query_params, BIO_INDEX_HOST);
 }
 
-/* Perform a BioIndex query.
- */
-export async function query(index, q, opts = {}) {
-    let { limit, onResolve, onError, onLoad, limitWhile } = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit });
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile);
+export function query(index, q, opts = {}) {
+    return biQuery(index, q, { ...opts, host: BIO_INDEX_HOST });
 }
 
-/* Perform a BioIndex match.
- */
-export async function match(index, q, opts = {}) {
-    let { limit, onLoad, onResolve, onError } = opts;
-    let req = request(`/api/bio/match/${index}`, { q, limit });
-
-    // perform the fetch, make sure it succeeds
-    return await processRequest(req, onResolve, onError, onLoad);
+export function match(index, q, opts = {}) {
+    return biMatch(index, q, { ...opts, host: BIO_INDEX_HOST });
 }
 
 export async function getPhecodeMap(){
@@ -84,73 +53,6 @@ export async function getPhecodeMap(){
     return phecodeMap;
 }
 
-/* Alters the json to filter results and stop continuing.
- */
-function limitRecordsWhile(json, limitWhile) {
-    let data = json.data;
-
-    if (!!limitWhile) {
-        data = json.data.filter(limitWhile);
-
-        // no continuations if less data
-        if (data.length < json.count) {
-            json.continuation = null;
-        }
-    }
-
-    return data;
-}
-
-/* Follow continuations and continue reading all data.
- */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
-    let resp = await req;
-    let json = await resp.json();
-    let data = [];
-
-    // The `limitWhile` parameter assumes that the results of the
-    // query are ordered in some way (e.g. by pValue), so that
-    // when the test fails, we know that no more records will meet
-    // the criteria either.
-
-    // resolve or error
-    if (resp.status === 200) {
-        data = limitRecordsWhile(json, limitWhile);
-
-        if (!!onResolve) {
-            onResolve(json);
-        }
-
-        // this will also fail if resp.status !== 200
-        while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation });
-
-            // follow the continuation
-            resp = await req;
-            json = await resp.json();
-
-            if (resp.status === 200) {
-                data = data.concat(limitRecordsWhile(json, limitWhile));
-
-                if (!!onResolve) {
-                    onResolve(json);
-                }
-            }
-        }
-
-        // done
-        if (!!onLoad) {
-            onLoad(json);
-        }
-    }
-
-    if (resp.status !== 200) {
-        if (!!onError) {
-            onError(json);
-        }
-    }
-    return data;
-}
 export const DEFAULT_MODEL = "mouse_msigdb";
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
@@ -169,7 +71,6 @@ export default {
     rawUrl,
     getPhecodeMap,
     BIO_INDEX_HOST,
-    BIO_INDEX_HOST_PRIVATE,
     DEFAULT_MODEL,
     DEFAULT_SIGMA,
     DEFAULT_GENESET_SIZE,
