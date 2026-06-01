@@ -101,6 +101,7 @@ new Vue({
                 dotKey: "gene",
                 hoverBoxPosition: "both",
                 hoverFields: ["combined"],
+                linkRoot: "/cvdi_pigean",
             },
             genesetFilterFields: [
                 { key: "beta", label: "Effect (joint)" },
@@ -148,6 +149,7 @@ new Vue({
                 yAxisLabel: "Effect (joint)",
                 dotKey: "gene_set",
                 hoverBoxPosition: "both",
+                linkRoot: "/cvdi_pigean",
             },
             renderConfig: {
                 type: "phewas plot",
@@ -218,7 +220,9 @@ new Vue({
         },
         pigeanColors(){
             let colors = {};
-            colors[this.$store.state.phenotype.group] = plotUtils.plotColors()[0];
+            let phenotype = this.$store.state.phenotype;
+            let group = phenotype && phenotype.group;
+            if (group) { colors[group] = plotUtils.plotColors()[0]; }
             return colors;
         },
         pigeanPhenotypeData(){

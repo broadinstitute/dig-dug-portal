@@ -207,9 +207,6 @@ export default Vue.component("research-single-search", {
 					this.singleSearchResult[P] = [];
 				})
 			}
-		},
-		phenotypes(newData){
-			console.log(JSON.stringify(newData));
 		}
 	},
 	methods: {

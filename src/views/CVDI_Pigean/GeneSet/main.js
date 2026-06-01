@@ -84,6 +84,7 @@ new Vue({
                 yField: "beta",
                 yAxisLabel: "Effect (joint)",
                 dotKey: "phenotype",
+                linkRoot: "/cvdi_pigean",
             },
             plotColors: plotUtils.plotColors(),
             pigeanColors: null,

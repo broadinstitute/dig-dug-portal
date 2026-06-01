@@ -40,7 +40,6 @@ export default Vue.component("trait-group-selectpicker", {
             let bioindexGroups = !this.cvdi ? bioIndexUtils.TRAIT_GROUPS : cvdiBioIndexUtils.TRAIT_GROUPS;
             let output = Object.keys(bioindexGroups).map(
                 g => [g, bioindexGroups[g]]);
-            console.log(JSON.stringify(output));
             return output;
         }
     },

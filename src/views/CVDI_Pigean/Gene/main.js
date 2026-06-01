@@ -88,6 +88,7 @@ new Vue({
                 yAxisLabel: "Direct support (w/ gene sets)",
                 dotKey: "phenotype",
                 hoverFields: ["gene", "combined"],
+                linkRoot: "/cvdi_pigean",
             },
             plotColors: plotUtils.plotColors(),
             pigeanColors: null,
@@ -157,18 +158,20 @@ new Vue({
             return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phewasAdjustedData() {
-            let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy
-            for (let i = 0; i < adjustedData.length; i++) {
-                if (adjustedData[i].combined < 0) {
-                    adjustedData[i].combined = 0;
+            // Spread each row into a fresh object so mutating .combined below
+            // doesn't affect the rows shared with phewasAllData/pigeanFilteredData.
+            return this.pigeanFilteredData.map(item => {
+                let row = { ...item };
+                if (row.combined < 0) {
+                    row.combined = 0;
                 }
-            }
-            return adjustedData;
+                return row;
+            });
         },
         pigeanFilteredData(){
-            let rawData = structuredClone(this.phewasAllData);
-            let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
-            return filteredData;
+            // phewasAllData is already deep-cloned at the source; filter()
+            // returns a new array, so no additional clone is needed here.
+            return this.phewasAllData.filter(item => item.log_bf > 0 || item.prior > 0);
         },
         pigeanMap(){
             return this.pigeanPhenotypeMap;

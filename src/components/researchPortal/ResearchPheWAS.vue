@@ -247,7 +247,6 @@ export default Vue.component("ResearchPhewasPlot", {
                     phenotypesData.reverse();
                 }
 
-                console.log("phenotypesdata", JSON.stringify(phenotypesData));
                 phenotypesData.map((d) => {
                     if (
                         this.renderConfig["convert y -log10"] == true ||

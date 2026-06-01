@@ -88,6 +88,7 @@ export default new Vuex.Store({
                     context.commit("setPhewasData", context.state.pigeanGene.data);
                 } else {
                     let traits = Object.keys(cvdiBioIndexUtils.TRAIT_GROUPS)
+                    let traitsData = [];
                     for (let i = 0; i < traits.length; i++){
                         let group = traits[i];
                         let traitQuery = `${group},${name},${param3},`;

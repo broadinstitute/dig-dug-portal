@@ -183,9 +183,7 @@ new Vue({
             }
         },
         phenotypesInSession() {
-            let allPhenotypes = Object.values(this.pigeanPhenotypeMap);
-            allPhenotypes.forEach(p => p.name = p.phenotype);
-            return allPhenotypes;
+            return Object.values(this.pigeanPhenotypeMap).map(p => ({ ...p, name: p.phenotype }));
         },
         matchingGenes() {
             return this.$store.state.matchingGenes;
