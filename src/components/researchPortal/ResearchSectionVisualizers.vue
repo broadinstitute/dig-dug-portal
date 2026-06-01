@@ -180,6 +180,16 @@
 				
 			></multi-genes-track>
 
+			<!-- simple scatter plot -->
+			<research-simple-scatter-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'simple scatter plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:plotMargin="plotMargin"
+				:colors="colors"
+				:sectionId="sectionId"
+				:utils="utils"
+			></research-simple-scatter-plot>
 			<!-- scatter plot -->
 			<research-scatter-plot
 				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
@@ -231,6 +241,7 @@ import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
+import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
@@ -248,6 +259,7 @@ export default Vue.component("research-section-visualizers", {
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
+		ResearchSimpleScatterPlot,
 		ResearchMPlotBitmap,
 		ResearchMQQPlot,
 		ResearchRegionPlot,

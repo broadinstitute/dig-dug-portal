@@ -191,6 +191,7 @@
 
 <script>
 import Vue from "vue";
+import { isEqual } from "lodash";
 import DataDownload from "@/components/DataDownload.vue";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -267,19 +268,16 @@ export default Vue.component("LigerTable", {
                 },
             },
             scatterPlotConfig: {
-                type: "scatter plot",
+                type: "simple scatter plot",
                 width: 500,
                 height: 200,
-                "render type": "single plot",
                 "render by": "cell_state_label",
                 "x axis field": "log10_cpk",
                 "y axis field": "neg_log10_p",
-                "x axis fields": ["log10_cpk"],
-                "y axis fields": ["neg_log10_p"],
                 "x axis label": "Log10 CPK",
                 "y axis label": "-Log10(p-value)",
-                "color by": ["tissue"],
-                "hover content": ["", "P-Value", "Log2 FC"],
+                "color by": "tissue",
+                "on hover": ["", "P-Value", "Log2 FC"],
             },
             fields: [
                 {
@@ -380,11 +378,16 @@ export default Vue.component("LigerTable", {
             const validCellTypes = new Set(
                 rows.map((row) => row.cell_type).filter(Boolean)
             );
-            this.criterionFilterList = filters.filter(
+            const pruned = filters.filter(
                 (f) =>
                     f.field !== "cell_type" ||
                     validCellTypes.has(f.threshold)
             );
+            const nextFilters =
+                pruned.length !== filters.length ? pruned : filters;
+            if (!isEqual(nextFilters, this.criterionFilterList)) {
+                this.criterionFilterList = nextFilters;
+            }
         },
         filteredItems(criterionFilter) {
             let data = this.items || [];
