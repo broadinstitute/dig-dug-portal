@@ -23,6 +23,7 @@ import cfdeExplore from "@/components/researchPortal/customComponents/cfdeExplor
 import FactorBaseReveal from "@/components/researchPortal/customComponents/FactorBaseReveal.vue";
 import hybridSearchReveal from "@/components/researchPortal/customComponents/hybridSearchReveal.vue";
 import multiQueriesReveal from "@/components/researchPortal/customComponents/multiQueriesReveal.vue";
+import revealKgWorkspace from "@/components/researchPortal/customComponents/revealKgWorkspace.vue";
 
 export default Vue.component("research-section-components", {
 	props: ["component", "phenotypesInUse", "utilsBox", "sectionConfigs"],
@@ -35,7 +36,8 @@ export default Vue.component("research-section-components", {
 		cfdeExplore,
 		FactorBaseReveal,
 		hybridSearchReveal,
-		multiQueriesReveal
+		multiQueriesReveal,
+		revealKgWorkspace
 	},
 	data() {
 		return {
@@ -79,6 +81,9 @@ console.log('this.component', this.component);
 				break;
 			case 'multiQueriesReveal':
 				this.currentComponent = multiQueriesReveal;
+				break;
+			case 'revealKgWorkspace':
+				this.currentComponent = revealKgWorkspace;
 				break;
 		}
 	},
