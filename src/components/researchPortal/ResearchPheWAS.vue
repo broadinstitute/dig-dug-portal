@@ -269,7 +269,6 @@ export default Vue.component("ResearchPhewasPlot", {
             if (this.filter) {
                 content.data = content.data.filter(this.filter);
             }
-
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
@@ -304,9 +303,6 @@ export default Vue.component("ResearchPhewasPlot", {
     watch: {
         renderData(content) {
             this.renderPheWas();
-        },
-        matchingHoverDots(newDots) {
-            console.log("received by phewas", newDots);
         },
     },
     created: function () {
@@ -584,7 +580,6 @@ export default Vue.component("ResearchPhewasPlot", {
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
                 this.pheWasPosData = {};
-
                 let renderData = this.groupData(this.renderData);
 
                 let groups = {};

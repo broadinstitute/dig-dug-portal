@@ -57,7 +57,7 @@ export default Vue.component("pigean-plot", {
   },
   computed: {
     chartData(){
-      let data = this.pigeanData;
+      let data = structuredClone(this.pigeanData);
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -71,6 +71,9 @@ export default Vue.component("pigean-plot", {
     }
   },
   methods: {
+    dotClassId(value){
+      return `dot_${String(value ?? "").replaceAll(".", "point")}`;
+    },
     drawChart(){
       this.tooltipPinned = false;
       let margin = {
@@ -149,7 +152,7 @@ export default Vue.component("pigean-plot", {
         .data(this.chartData)
         .enter()
         .append("circle")
-          .attr("class", d => `dot_${d[this.config.dotKey]}`)
+          .attr("class", d => this.dotClassId(d[this.config.dotKey]))
           .attr("cx", d => 
             d[this.config.xField] === undefined
               ? this.xScale(0) 
@@ -227,7 +230,8 @@ export default Vue.component("pigean-plot", {
       let dKey = this.config.dotKey;
       let dKeyContent = dot[dKey]; // Get raw content before formatting
       dot.phenotype = this.phDesc(dot.phenotype);
-      let linkAddress = `/pigean/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
+      let linkRoot = this.config.linkRoot || "/pigean";
+      let linkAddress = `${linkRoot}/${dKey}.html?${dKey}=${dKeyContent}${this.linkSuffix}`;
       let tooltipText = '<p class="close-tooltip"><a>';
       tooltipText = tooltipText.concat('x</a><p>')
       tooltipText=tooltipText.concat(`${
@@ -286,7 +290,7 @@ export default Vue.component("pigean-plot", {
       return fields;
     },
     highlightDot(phenotype){
-      let dot = this.svg.select(`circle.dot_${phenotype}`);
+      let dot = this.svg.select(`circle.${this.dotClassId(phenotype)}`);
       dot.attr("r", 7)
           .attr("stroke", "black")
     },

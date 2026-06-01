@@ -312,6 +312,35 @@ let pages = {
         title: "Mouse Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
     },
+    // CVDI Pigean
+    cvdi_pigean_index: {
+        entry: "src/views/CVDI_Pigean/Index/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/index.html",
+        title: "PIGEAN Home",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_index"],
+    },
+    cvdi_pigean_gene: {
+        entry: "src/views/CVDI_Pigean/Gene/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/gene.html",
+        title: "PIGEAN Gene Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_gene"],
+    },
+    cvdi_pigean_geneset: {
+        entry: "src/views/CVDI_Pigean/GeneSet/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/geneset.html",
+        title: "PIGEAN Gene Set Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_geneset"],
+    },
+    cvdi_pigean_phenotype: {
+        entry: "src/views/CVDI_Pigean/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/phenotype.html",
+        title: "PIGEAN Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_phenotype"],
+    },
 };
 
 // remove the debug page in production
