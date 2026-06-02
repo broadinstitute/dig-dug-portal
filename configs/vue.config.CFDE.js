@@ -26,11 +26,23 @@ let pages = {
     },
 };
 
+const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
+
 module.exports = {
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         headers: {
             "Access-Control-Allow-Origin": "*",
+        },
+        proxy: {
+            "/api/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
+            "/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
         },
     },
     configureWebpack: (config) => {

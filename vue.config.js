@@ -307,6 +307,8 @@ let pages = {
     },
 };
 
+const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
+
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
     delete pages.debug;
@@ -318,6 +320,16 @@ module.exports = {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         headers: {
             "Access-Control-Allow-Origin": "*",
+        },
+        proxy: {
+            "/api/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
+            "/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
         },
     },
     configureWebpack: (config) => {

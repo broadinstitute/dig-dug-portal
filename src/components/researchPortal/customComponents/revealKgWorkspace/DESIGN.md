@@ -101,15 +101,16 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, S
 | `src/utils/revealKgApi.js` | Interactive API client |
 | `src/utils/userUtils.js` | Saved graph CRUD + library I/O |
 
-Import API via `revealKgApi` (or injected `utilsBox.revealKgApi` for tests).
+Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server proxies to EC2). Do not set `VUE_APP_REVEAL_KG_API_BASE_URL` to EC2 in local dev — that causes CORS.
 
 ---
 
 ## API conventions (anchors & search)
 
 - Workspace graph operations use **`/api/interactive/*`** only (not legacy RAG `/query/*`).
-- **Catalog typeahead:** `searchInteractiveCatalog(entityType, query)` — `entity_type`: `gene`, `trait`, `factor` (UI label: mechanisms).
-- **Gene set search:** dedicated endpoint in progress; use `searchInteractiveGeneSets` in `revealKgApi.js` (configurable path; catalog fallback until backend ships).
+- **Search & select columns (order):** Genes, Gene sets, Mechanisms, Traits.
+- **Catalog typeahead:** `searchInteractiveCatalog(entityType, query)` — `gene`, `trait`, `factor` (UI: mechanisms).
+- **Gene set search:** `POST /api/interactive/gene-set/search` with `{ query, limit }` via `searchInteractiveGeneSets` (catalog `gene_set` fallback on 404/405).
 - **Free-text anchors:** `parseInteractiveAnchor({ query, context })`.
 - **Graph bootstrap from anchors:** `getInteractiveAnchorLinks`, then expansion/connection APIs as needed.
 

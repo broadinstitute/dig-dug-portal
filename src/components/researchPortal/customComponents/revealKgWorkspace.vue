@@ -31,6 +31,24 @@
             :open="docsOpen"
             @close="closeDocumentation"
         />
+        <WorkspaceWelcomeModal
+            :open="welcomeOpen"
+            :has-saved-graphs="savedGraphs.length > 0"
+            @create="onWelcomeCreate"
+            @load-library="onWelcomeLoadLibrary"
+        />
+        <WorkspaceInitialGraphModal
+            :open="initialGraphOpen"
+            :buckets="starterBuckets"
+            :context="starterContext"
+            :api-client="apiClient"
+            :llm-available="llmAvailable"
+            @update:buckets="starterBuckets = $event"
+            @update:context="starterContext = $event"
+            @reset="resetStarterBuilder"
+            @close="closeInitialGraph"
+            @continue="onInitialGraphContinue"
+        />
 
         <transition name="rkw-fade">
             <div v-if="lastActionLabel" class="rkw-action-status">
@@ -54,6 +72,14 @@ import WorkspaceCanvas from "./revealKgWorkspace/WorkspaceCanvas.vue";
 import WorkspaceInspector from "./revealKgWorkspace/WorkspaceInspector.vue";
 import WorkspaceLibraryModal from "./revealKgWorkspace/WorkspaceLibraryModal.vue";
 import WorkspaceDocumentationModal from "./revealKgWorkspace/WorkspaceDocumentationModal.vue";
+import WorkspaceWelcomeModal from "./revealKgWorkspace/WorkspaceWelcomeModal.vue";
+import WorkspaceInitialGraphModal from "./revealKgWorkspace/WorkspaceInitialGraphModal.vue";
+import {
+    emptyStarterBuckets,
+    formatStarterCountSummary,
+    starterItemsFromBuckets,
+    totalStarterCount,
+} from "./revealKgWorkspace/revealKgEntityUtils.js";
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -65,6 +91,8 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceInspector,
         WorkspaceLibraryModal,
         WorkspaceDocumentationModal,
+        WorkspaceWelcomeModal,
+        WorkspaceInitialGraphModal,
     },
     props: {
         phenotypesInUse: {
@@ -90,6 +118,11 @@ export default Vue.component("reveal-kg-workspace", {
             loadedSavedGraphId: null,
             lastActionLabel: "",
             lastActionTimer: null,
+            welcomeOpen: true,
+            initialGraphOpen: false,
+            starterBuckets: emptyStarterBuckets(),
+            starterContext: "",
+            llmAvailable: false,
         };
     },
     computed: {
@@ -119,8 +152,7 @@ export default Vue.component("reveal-kg-workspace", {
         },
     },
     created() {
-        // Keep a light readiness probe in place so anchor search can
-        // reuse the bound client and surface backend availability quickly.
+        this.refreshSavedGraphs();
         this.bootstrapInteractiveApi();
     },
     beforeDestroy() {
@@ -134,11 +166,62 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             try {
-                await this.apiClient.getInteractiveHealth();
+                const health = await this.apiClient.getInteractiveHealth();
+                this.llmAvailable = Boolean(health?.llm_available);
             } catch (error) {
-                // Do not block workspace rendering on backend readiness.
+                this.llmAvailable = false;
                 this.showStatus("Interactive API not reachable yet.", 3200);
             }
+        },
+        onWelcomeCreate() {
+            this.openInitialGraphSetup({ reset: true });
+        },
+        openInitialGraphSetup({ reset = false } = {}) {
+            this.welcomeOpen = false;
+            this.libraryOpen = false;
+            this.docsOpen = false;
+            this.initialGraphOpen = true;
+            if (reset) {
+                this.resetStarterBuilder();
+                this.activeSession = null;
+                this.loadedSavedGraphId = null;
+            }
+        },
+        onWelcomeLoadLibrary() {
+            if (!this.savedGraphs.length) {
+                return;
+            }
+            this.welcomeOpen = false;
+            this.openLibrary();
+        },
+        closeInitialGraph() {
+            this.initialGraphOpen = false;
+            if (!this.activeSession && totalStarterCount(this.starterBuckets) === 0) {
+                this.welcomeOpen = true;
+            }
+        },
+        resetStarterBuilder() {
+            this.starterBuckets = emptyStarterBuckets();
+            this.starterContext = "";
+        },
+        onInitialGraphContinue({ buckets, context }) {
+            this.starterBuckets = buckets;
+            this.starterContext = context;
+            this.initialGraphOpen = false;
+            const items = starterItemsFromBuckets(buckets);
+            const parts = formatStarterCountSummary(buckets);
+            this.activeSession = {
+                label: "New graph",
+                graphNodes: items,
+                graphEdges: [],
+                context: context || "",
+                starterBuckets: buckets,
+            };
+            this.loadedSavedGraphId = null;
+            this.showStatus(
+                `Starting graph with ${parts.join(", ")}`,
+                3200
+            );
         },
         refreshSavedGraphs() {
             this.savedGraphs = this.graphStore.listGraphs();
@@ -174,6 +257,10 @@ export default Vue.component("reveal-kg-workspace", {
                 this.openDocumentation();
                 return;
             }
+            if (payload.menu === "save" && payload.action === "newGraph") {
+                this.openInitialGraphSetup({ reset: true });
+                return;
+            }
             this.showStatus(`Triggered: ${payload.label}`);
         },
         onLibraryLoad(record) {
@@ -184,6 +271,8 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.activeSession = session;
             this.loadedSavedGraphId = record.id;
+            this.welcomeOpen = false;
+            this.initialGraphOpen = false;
             this.closeLibrary();
             this.showStatus(`Loaded "${record.label}"`);
         },
@@ -291,7 +380,7 @@ export default Vue.component("reveal-kg-workspace", {
     transform: translateX(-50%);
     background: rgba(42, 42, 42, 0.92);
     color: #fff;
-    font-size: 0.82rem;
+    font-size: 13px;
     padding: 7px 14px;
     border-radius: 999px;
     z-index: 8;

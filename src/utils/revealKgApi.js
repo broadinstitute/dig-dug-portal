@@ -1,9 +1,9 @@
 /**
  * REVEAL KG Workspace — API client for cfde-reveal interactive routes.
  *
- * All workspace graph operations use `/api/interactive/*` (same-origin in production
- * when the portal and backend are co-hosted). Set `VUE_APP_REVEAL_KG_API_BASE_URL`
- * at build time only when the API lives on a different host (requires CORS).
+ * All workspace graph operations use `/api/interactive/*` on the same origin as the
+ * portal (dig-dug-server proxies to cfde-reveal in local dev). Override with
+ * `VUE_APP_REVEAL_KG_API_BASE_URL` only when the API must be called cross-origin.
  *
  * See KgWorkspaceApis.rtf for full backend catalog.
  */
@@ -13,17 +13,22 @@ const INTERACTIVE_API_PREFIX = "/api/interactive";
 /** Default request timeout (ms). */
 export const REQUEST_TIMEOUT_MS = 2 * 60 * 1000;
 
-/**
- * Dedicated gene-set search path (backend in progress).
- * Update this constant or set VUE_APP_REVEAL_KG_GENE_SET_SEARCH_PATH when the
- * engineer's endpoint is finalized (method, query params, response shape).
- */
-const DEFAULT_GENE_SET_SEARCH_PATH = `${INTERACTIVE_API_PREFIX}/gene-sets/search`;
+/** cfde-reveal host used by dig-dug-server proxy and webpack devServer (not browser). */
+export const DEFAULT_REVEAL_KG_API_BASE_URL =
+    "http://ec2-3-210-5-42.compute-1.amazonaws.com";
 
-let apiBaseUrl = normalizeApiBase(process.env.VUE_APP_REVEAL_KG_API_BASE_URL || "");
+/** POST /api/interactive/gene-set/search — body: { query, limit } */
+const DEFAULT_GENE_SET_SEARCH_PATH = `${INTERACTIVE_API_PREFIX}/gene-set/search`;
+
+let apiBaseUrl = normalizeApiBase(
+    process.env.VUE_APP_REVEAL_KG_API_BASE_URL || ""
+);
 
 function normalizeApiBase(value) {
-    return String(value || "").replace(/\/+$/, "");
+    return String(value || "")
+        .trim()
+        .replace(/~+$/, "")
+        .replace(/\/+$/, "");
 }
 
 export function setRevealKgApiBaseUrl(url) {
@@ -180,25 +185,55 @@ export function searchInteractiveCatalog(entityType, query, limit = 10) {
     return requestJson(`${INTERACTIVE_API_PREFIX}/catalog?${params.toString()}`);
 }
 
+function normalizeGeneSetSearchResponse(payload) {
+    const raw =
+        payload?.items ??
+        payload?.results ??
+        payload?.matches ??
+        payload?.gene_sets ??
+        [];
+    const list = Array.isArray(raw) ? raw : [];
+    const items = list
+        .map((row) => {
+            if (!row || typeof row !== "object") {
+                return null;
+            }
+            const nodeId = row.node_id ?? row.id ?? row.gene_set_id;
+            if (!nodeId) {
+                return null;
+            }
+            const nodeType = String(row.node_type || row.type || "gene_set").toLowerCase();
+            return {
+                ...row,
+                node_id: nodeId,
+                node_type: nodeType,
+                type: nodeType,
+                label: String(row.label ?? row.name ?? nodeId).replace(/_/g, " "),
+                subtitle: row.subtitle ?? "",
+            };
+        })
+        .filter(Boolean);
+    return { items };
+}
+
 /**
- * Search gene sets by name (Add nodes typeahead).
+ * Search gene sets by name (Search & select → Gene sets).
  *
- * Primary: engineer's dedicated endpoint (path configurable via env).
- * Fallback: catalog with entity_type=gene_set if the backend adds that there
- * before the dedicated route ships.
+ * POST /api/interactive/gene-set/search with { query, limit }.
+ * Override path via VUE_APP_REVEAL_KG_GENE_SET_SEARCH_PATH if needed.
  */
 export async function searchInteractiveGeneSets(query, limit = 10) {
     const q = String(query || "").trim();
     if (!q) {
         return { items: [] };
     }
-    const params = new URLSearchParams({
-        q,
-        limit: String(limit),
-    });
     const searchPath = getGeneSetSearchPath();
     try {
-        return await requestJson(`${searchPath}?${params.toString()}`);
+        const payload = await requestJson(searchPath, {
+            method: "POST",
+            body: JSON.stringify({ query: q, limit }),
+        });
+        return normalizeGeneSetSearchResponse(payload);
     } catch (primaryError) {
         const message = String(primaryError?.message || primaryError);
         if (!message.includes("404") && !message.includes("Method Not Allowed")) {
@@ -438,6 +473,7 @@ export function getInteractiveLocusZoomAssociations({ traitId, chromosome, start
 export default {
     REQUEST_TIMEOUT_MS,
     INTERACTIVE_API_PREFIX,
+    DEFAULT_REVEAL_KG_API_BASE_URL,
     setRevealKgApiBaseUrl,
     getRevealKgApiBaseUrl,
     getInteractiveHealth,
