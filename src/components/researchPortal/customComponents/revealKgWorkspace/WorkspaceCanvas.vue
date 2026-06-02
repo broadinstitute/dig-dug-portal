@@ -1,11 +1,24 @@
 <template>
     <div class="wkb-canvas">
-        <div class="wkb-canvas-placeholder">
+        <div v-if="loadedGraph" class="wkb-canvas-loaded">
+            <div class="wkb-canvas-placeholder-mark">KG</div>
+            <p class="wkb-canvas-placeholder-title">{{ loadedGraph.label }}</p>
+            <p class="wkb-canvas-placeholder-sub">
+                {{ loadedGraph.summary }}
+                <span v-if="loadedGraph.savedAt">
+                    · Saved {{ loadedGraph.savedAt }}
+                </span>
+            </p>
+            <p class="wkb-canvas-loaded-note">
+                Graph visualization will render here. The session is loaded from your Library.
+            </p>
+        </div>
+        <div v-else class="wkb-canvas-placeholder">
             <div class="wkb-canvas-placeholder-mark">KG</div>
             <p class="wkb-canvas-placeholder-title">Knowledge graph canvas</p>
             <p class="wkb-canvas-placeholder-sub">
                 Your graph will appear here. Start by adding nodes from the
-                <strong>Change</strong> menu.
+                <strong>Change</strong> menu, or open <strong>Library</strong> to load a saved graph.
             </p>
         </div>
     </div>
@@ -14,6 +27,12 @@
 <script>
 export default {
     name: "WorkspaceCanvas",
+    props: {
+        loadedGraph: {
+            type: Object,
+            default: null,
+        },
+    },
 };
 </script>
 
@@ -29,13 +48,6 @@ export default {
     background-size: 22px 22px;
     background-color: var(--cfde-bg, #f6f5f2);
     overflow: hidden;
-}
-
-.wkb-canvas-placeholder {
-    text-align: center;
-    max-width: 360px;
-    padding: 24px;
-    color: #6b6b6b;
 }
 
 .wkb-canvas-placeholder-mark {
@@ -64,5 +76,20 @@ export default {
     font-size: 0.9rem;
     line-height: 1.5;
     margin: 0;
+}
+
+.wkb-canvas-loaded,
+.wkb-canvas-placeholder {
+    text-align: center;
+    max-width: 420px;
+    padding: 24px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-canvas-loaded-note {
+    margin: 14px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--cfde-blue, #2c5c97);
 }
 </style>

@@ -9,16 +9,32 @@
         </header>
 
         <div class="rkw-stage">
-            <WorkspaceCanvas />
+            <WorkspaceCanvas :loaded-graph="canvasLoadedGraph" />
             <WorkspaceInspector
                 :open="inspectorOpen"
                 @toggle="inspectorOpen = !inspectorOpen"
             />
         </div>
 
+        <WorkspaceLibraryModal
+            :open="libraryOpen"
+            :records="savedGraphs"
+            :graph-store="graphStore"
+            @close="closeLibrary"
+            @load="onLibraryLoad"
+            @duplicate="onLibraryDuplicate"
+            @delete="onLibraryDelete"
+            @exported="onLibraryExported"
+            @imported="onLibraryImported"
+        />
+        <WorkspaceDocumentationModal
+            :open="docsOpen"
+            @close="closeDocumentation"
+        />
+
         <transition name="rkw-fade">
             <div v-if="lastActionLabel" class="rkw-action-status">
-                Triggered: <strong>{{ lastActionLabel }}</strong>
+                {{ lastActionLabel }}
             </div>
         </transition>
     </div>
@@ -31,9 +47,13 @@ import BootstrapVue from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+import userUtils from "@/utils/userUtils.js";
+import revealKgApi from "@/utils/revealKgApi.js";
 import WorkspaceMenuBar from "./revealKgWorkspace/WorkspaceMenuBar.vue";
 import WorkspaceCanvas from "./revealKgWorkspace/WorkspaceCanvas.vue";
 import WorkspaceInspector from "./revealKgWorkspace/WorkspaceInspector.vue";
+import WorkspaceLibraryModal from "./revealKgWorkspace/WorkspaceLibraryModal.vue";
+import WorkspaceDocumentationModal from "./revealKgWorkspace/WorkspaceDocumentationModal.vue";
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -43,6 +63,8 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceMenuBar,
         WorkspaceCanvas,
         WorkspaceInspector,
+        WorkspaceLibraryModal,
+        WorkspaceDocumentationModal,
     },
     props: {
         phenotypesInUse: {
@@ -61,10 +83,45 @@ export default Vue.component("reveal-kg-workspace", {
     data() {
         return {
             inspectorOpen: false,
-            // Transient feedback so menu wiring is observable before real handlers land.
+            libraryOpen: false,
+            docsOpen: false,
+            savedGraphs: [],
+            activeSession: null,
+            loadedSavedGraphId: null,
             lastActionLabel: "",
             lastActionTimer: null,
         };
+    },
+    computed: {
+        graphStore() {
+            return this.utilsBox?.userUtils || userUtils;
+        },
+        apiClient() {
+            return this.utilsBox?.revealKgApi || revealKgApi;
+        },
+        canvasLoadedGraph() {
+            if (!this.activeSession) {
+                return null;
+            }
+            const record = {
+                label: this.activeSession.label,
+                nodes: this.activeSession.graphNodes,
+                edges: this.activeSession.graphEdges,
+                savedAt: this.activeSession.savedAt,
+            };
+            return {
+                label: record.label || "Loaded graph",
+                summary: this.graphStore.formatGraphCounts(record),
+                savedAt: record.savedAt
+                    ? this.graphStore.formatGraphWhen(record.savedAt)
+                    : "",
+            };
+        },
+    },
+    created() {
+        // Keep a light readiness probe in place so anchor search can
+        // reuse the bound client and surface backend availability quickly.
+        this.bootstrapInteractiveApi();
     },
     beforeDestroy() {
         if (this.lastActionTimer) {
@@ -72,14 +129,98 @@ export default Vue.component("reveal-kg-workspace", {
         }
     },
     methods: {
-        onMenuAction(payload) {
-            this.lastActionLabel = payload.label;
+        async bootstrapInteractiveApi() {
+            if (!this.apiClient?.getInteractiveHealth) {
+                return;
+            }
+            try {
+                await this.apiClient.getInteractiveHealth();
+            } catch (error) {
+                // Do not block workspace rendering on backend readiness.
+                this.showStatus("Interactive API not reachable yet.", 3200);
+            }
+        },
+        refreshSavedGraphs() {
+            this.savedGraphs = this.graphStore.listGraphs();
+        },
+        openLibrary() {
+            this.refreshSavedGraphs();
+            this.libraryOpen = true;
+        },
+        closeLibrary() {
+            this.libraryOpen = false;
+        },
+        openDocumentation() {
+            this.docsOpen = true;
+        },
+        closeDocumentation() {
+            this.docsOpen = false;
+        },
+        showStatus(message, durationMs = 2800) {
+            this.lastActionLabel = message;
             if (this.lastActionTimer) {
                 clearTimeout(this.lastActionTimer);
             }
             this.lastActionTimer = setTimeout(() => {
                 this.lastActionLabel = "";
-            }, 2200);
+            }, durationMs);
+        },
+        onMenuAction(payload) {
+            if (payload.menu === "library" && payload.action === "open") {
+                this.openLibrary();
+                return;
+            }
+            if (payload.menu === "documentation" && payload.action === "open") {
+                this.openDocumentation();
+                return;
+            }
+            this.showStatus(`Triggered: ${payload.label}`);
+        },
+        onLibraryLoad(record) {
+            const session = this.graphStore.sessionFromGraph(record);
+            if (!session) {
+                this.showStatus("Could not load that graph.");
+                return;
+            }
+            this.activeSession = session;
+            this.loadedSavedGraphId = record.id;
+            this.closeLibrary();
+            this.showStatus(`Loaded "${record.label}"`);
+        },
+        onLibraryDuplicate(record) {
+            const copy = this.graphStore.duplicateGraph(record.id);
+            if (!copy) {
+                this.showStatus("Could not duplicate that graph.");
+                return;
+            }
+            this.refreshSavedGraphs();
+            this.showStatus(`Duplicated as "${copy.label}"`);
+        },
+        onLibraryDelete(record) {
+            this.graphStore.deleteGraph(record.id);
+            if (this.loadedSavedGraphId === record.id) {
+                this.activeSession = null;
+                this.loadedSavedGraphId = null;
+            }
+            this.refreshSavedGraphs();
+            this.showStatus(`Deleted "${record.label}"`);
+        },
+        onLibraryExported(result) {
+            if (result?.ok) {
+                this.showStatus(
+                    `Exported ${result.graphCount} graph${result.graphCount === 1 ? "" : "s"}`,
+                    3200
+                );
+            }
+        },
+        onLibraryImported(result) {
+            this.refreshSavedGraphs();
+            if (result?.ok) {
+                this.showStatus(
+                    `Imported ${result.imported} graph${result.imported === 1 ? "" : "s"} into Library`,
+                    3200
+                );
+            }
         },
     },
 });
@@ -87,7 +228,6 @@ export default Vue.component("reveal-kg-workspace", {
 
 <style>
 .reveal-kg-workspace {
-    /* CFDE Knowledge Center palette (cfdeknowledge.org). */
     --cfde-orange: #e07b39;
     --cfde-orange-dark: #c2662b;
     --cfde-orange-soft: #fbeee3;

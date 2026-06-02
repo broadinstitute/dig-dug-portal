@@ -83,7 +83,7 @@ export default {
 .wkb-inspector-tab-label {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-size: 0.78rem;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.04em;
 }
@@ -139,7 +139,7 @@ export default {
 }
 
 .wkb-inspector-section-label {
-    font-size: 0.72rem;
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;

@@ -1,23 +1,44 @@
 <template>
     <div class="wkb-menubar">
-        <b-dropdown
-            v-for="menu in menus"
-            :key="menu.id"
-            :text="menu.label"
-            variant="outline-secondary"
-            size="sm"
-            class="wkb-menu"
-            menu-class="wkb-menu-list"
-            toggle-class="wkb-menu-toggle"
-        >
-            <b-dropdown-item
-                v-for="item in menu.items"
-                :key="item.id"
-                @click="onSelect(menu, item)"
+        <div class="wkb-menu-group wkb-menu-group-left">
+            <b-dropdown
+                v-for="menu in menus"
+                :key="menu.id"
+                :text="menu.label"
+                variant="outline-secondary"
+                size="sm"
+                class="wkb-menu"
+                menu-class="wkb-menu-list"
+                toggle-class="wkb-menu-toggle"
             >
-                {{ item.label }}
-            </b-dropdown-item>
-        </b-dropdown>
+                <b-dropdown-item
+                    v-for="item in menu.items"
+                    :key="item.id"
+                    @click="onSelect(menu, item)"
+                >
+                    {{ item.label }}
+                </b-dropdown-item>
+            </b-dropdown>
+        </div>
+
+        <div class="wkb-menu-group wkb-menu-group-right">
+            <b-button
+                variant="outline-secondary"
+                size="sm"
+                class="wkb-library-button"
+                @click="onLibrary"
+            >
+                {{ libraryMenu.label }}
+            </b-button>
+            <b-button
+                variant="outline-secondary"
+                size="sm"
+                class="wkb-library-button"
+                @click="onDocumentation"
+            >
+                Documentation
+            </b-button>
+        </div>
     </div>
 </template>
 
@@ -56,6 +77,12 @@ export default {
                     ],
                 },
             ],
+            // Right-aligned: opens the browser to find and load saved graphs
+            // (a "node set" is just a graph with only its seed nodes).
+            libraryMenu: {
+                id: "library",
+                label: "Library",
+            },
         };
     },
     methods: {
@@ -64,6 +91,20 @@ export default {
                 menu: menu.id,
                 action: item.id,
                 label: item.label,
+            });
+        },
+        onLibrary() {
+            this.$emit("action", {
+                menu: "library",
+                action: "open",
+                label: "Library",
+            });
+        },
+        onDocumentation() {
+            this.$emit("action", {
+                menu: "documentation",
+                action: "open",
+                label: "Documentation",
             });
         },
     },
@@ -75,9 +116,21 @@ export default {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex: 1;
 }
 
-.wkb-menu >>> .wkb-menu-toggle {
+.wkb-menu-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wkb-menu-group-right {
+    margin-left: auto;
+}
+
+.wkb-menu >>> .wkb-menu-toggle,
+.wkb-library-button {
     font-weight: 600;
     letter-spacing: 0.01em;
     border-radius: 6px;
@@ -87,7 +140,10 @@ export default {
 }
 
 .wkb-menu >>> .wkb-menu-toggle:hover,
-.wkb-menu >>> .show > .wkb-menu-toggle {
+.wkb-menu >>> .show > .wkb-menu-toggle,
+.wkb-library-button:hover,
+.wkb-library-button:focus,
+.wkb-library-button:active {
     color: #ffffff;
     background: var(--cfde-blue, #2c5c97);
     border-color: var(--cfde-blue, #2c5c97);
