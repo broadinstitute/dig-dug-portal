@@ -373,7 +373,7 @@ export default Vue.component("time-series-line-plot", {
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)");
 
-            yAxisLabelLines.forEach((line, i) => {
+            labelLines.forEach((line, i) => {
                 yAxisLabel
                     .append("tspan")
                     .attr("x", -height / 2)

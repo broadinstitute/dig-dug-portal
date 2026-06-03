@@ -215,6 +215,11 @@
                                                 <time-series-line-plot
                                                     v-if="
                                                         $parent.insTimepoints
+                                                            .length > 0 &&
+                                                        Array.isArray(
+                                                            $parent.resultsIns
+                                                        ) &&
+                                                        $parent.resultsIns
                                                             .length > 0
                                                     "
                                                     :plotData="
@@ -235,6 +240,19 @@
                                                     "
                                                 >
                                                 </time-series-line-plot>
+                                                <div
+                                                    v-else
+                                                    class="line-plot-loading"
+                                                >
+                                                    <b-spinner
+                                                        small
+                                                        variant="secondary"
+                                                    ></b-spinner>
+                                                    <span
+                                                        >Loading insulin
+                                                        secretion data...</span
+                                                    >
+                                                </div>
                                             </div>
                                             <div
                                                 class="glucagon-plot line-plot"
@@ -242,6 +260,11 @@
                                                 <time-series-line-plot
                                                     v-if="
                                                         $parent.gcgTimepoints
+                                                            .length > 0 &&
+                                                        Array.isArray(
+                                                            $parent.resultsGcg
+                                                        ) &&
+                                                        $parent.resultsGcg
                                                             .length > 0
                                                     "
                                                     :plotData="
@@ -262,6 +285,19 @@
                                                     "
                                                 >
                                                 </time-series-line-plot>
+                                                <div
+                                                    v-else
+                                                    class="line-plot-loading"
+                                                >
+                                                    <b-spinner
+                                                        small
+                                                        variant="secondary"
+                                                    ></b-spinner>
+                                                    <span
+                                                        >Loading glucagon
+                                                        secretion data...</span
+                                                    >
+                                                </div>
                                             </div>
                                         </div>
                                     </b-tab>
@@ -650,6 +686,15 @@ div.line-plot {
     margin-top: 20px;
     padding: 5px;
     background-color: white;
+}
+.line-plot-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 300px;
+    color: #555;
+    font-style: italic;
 }
 .side-panel-filters {
     border-right: 3px solid lightgray;
