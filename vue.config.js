@@ -341,6 +341,13 @@ let pages = {
         title: "PIGEAN Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_phenotype"],
     },
+    liger: {
+        entry: "src/views/LIGER/main.js",
+        template: "public/index.html",
+        filename: "liger.html",
+        title: "LIGER",
+        chunks: ["chunk-vendors", "chunk-common", "liger"],
+    },
 };
 
 // remove the debug page in production
