@@ -44,7 +44,8 @@ export default Vue.component('LigerBrowser', {
             selectedTissue: null,
             cellTypeExpressionRows: [],
             selectedCellType: null,
-            viewInfo: false,
+            viewStateInfo: false,
+            viewProgramInfo: false,
             cellStateExpressionRows: [],
             programExpressionRows: [],
             cellStateMetadataRows: [],
@@ -53,6 +54,17 @@ export default Vue.component('LigerBrowser', {
             traitHeatmapRows: [],
             traitHeatmapColumns: [],
             phenotypeTraitRows: [],
+            stateTraitRowsCache: {},
+            programTraitRowsCache: {},
+            programGeneRowsCache: {},
+            drawerOpen: false,
+            drawerLoading: false,
+            drawerKind: "Details",
+            drawerTitle: "Select a state or program",
+            drawerBadges: [],
+            drawerContent: null,
+            drawerTargetId: "",
+            isHydratingFromQuery: false,
             isLoadingGeneSuggestions: false,
             isLoadingGeneData: false,
             isLoadingCellTypes: false,
@@ -249,8 +261,8 @@ export default Vue.component('LigerBrowser', {
                     metric,
                     programCount: 0,
                     stateCount: 0,
-                    stateHeaders: [],
-                    programRows: [],
+                    programHeaders: [],
+                    stateRows: [],
                 };
             }
 
@@ -293,20 +305,28 @@ export default Vue.component('LigerBrowser', {
                 };
             });
 
-            let programRows = programKeys.map((programKey) => {
+            let programHeaders = programKeys.map((programKey) => {
                 let infoRow = this.geneProgramInfoById[programKey] || { program_id: programKey };
                 return {
                     key: programKey,
                     label: this.programLabel(infoRow),
-                    cells: stateKeys.map((stateKey) => {
+                };
+            });
+
+            let stateRows = stateKeys.map((stateKey) => {
+                let metadataRow = this.stateMetadataById[stateKey] || { state_id: stateKey };
+                return {
+                    key: stateKey,
+                    label: this.stateLabel(metadataRow),
+                    cells: programKeys.map((programKey) => {
                         let row = cellMap.get(`${programKey}||${stateKey}`);
                         let value = row ? row.__metric_value : null;
-                        let stateHeader = stateHeaders.find((item) => item.key === stateKey);
+                        let programHeader = programHeaders.find((item) => item.key === programKey);
 
                         return {
-                            key: `${programKey}-${stateKey}`,
+                            key: `${stateKey}-${programKey}`,
                             value,
-                            title: `${this.programLabel(infoRow)} x ${stateHeader ? stateHeader.label : stateKey}`,
+                            title: `${metadataRow ? this.stateLabel(metadataRow) : stateKey} x ${programHeader ? programHeader.label : programKey}`,
                             color: Number.isFinite(value)
                                 ? this.relationshipCellColor(value, diverging, maxAbsolute, maxPositive)
                                 : "#f8fafc",
@@ -319,8 +339,8 @@ export default Vue.component('LigerBrowser', {
                 metric,
                 programCount: programKeys.length,
                 stateCount: stateKeys.length,
-                stateHeaders,
-                programRows,
+                programHeaders,
+                stateRows,
             };
         },
         relationshipHeatmapMeta() {
@@ -379,7 +399,7 @@ export default Vue.component('LigerBrowser', {
 
             rows.forEach((row) => {
                 let value = this.traitMetricValue(row, metric);
-                let trait = this.traitName(row);
+                let trait = this.traitKey(row);
 
                 if (!trait || !Number.isFinite(value)) {
                     return;
@@ -416,7 +436,7 @@ export default Vue.component('LigerBrowser', {
             let values = [];
 
             rows.forEach((row) => {
-                let trait = this.traitName(row);
+                let trait = this.traitKey(row);
                 let value = this.traitMetricValue(row, metric);
 
                 if (!trait || !Number.isFinite(value) || !selectedTraits.has(trait)) {
@@ -456,6 +476,7 @@ export default Vue.component('LigerBrowser', {
                 group,
                 traits: groupedTraits[group].sort(this.naturalSort).map((trait) => ({
                     trait,
+                    displayTrait: this.traitDisplayName(trait),
                     cells: columns.map((column) => {
                         let record = valueMap.get(`${trait}||${column.id}`);
                         let value = record ? record.value : null;
@@ -463,7 +484,7 @@ export default Vue.component('LigerBrowser', {
                         return {
                             key: `${trait}-${column.id}`,
                             value,
-                            title: `${column.label} | ${trait}`,
+                            title: `${column.label} | ${this.traitDisplayName(trait)}`,
                             color: Number.isFinite(value)
                                 ? this.relationshipCellColor(value, true, scaleMax, scaleMax)
                                 : "#f8fafc",
@@ -491,6 +512,17 @@ export default Vue.component('LigerBrowser', {
             }
 
             return `${traitCount} traits in ${groupCount} groups x ${columnCount} state/program columns | ${this.selectedTraitMetric === "beta" ? "joint beta" : "marginal beta"}`;
+        },
+        traitColumnHeaderLabel() {
+            if (this.selectedTraitColumnFilter === "program") {
+                return "Gene Program";
+            }
+
+            if (this.selectedTraitColumnFilter === "state") {
+                return "Cell State";
+            }
+
+            return "State & Program";
         }
     },
 
@@ -526,10 +558,7 @@ export default Vue.component('LigerBrowser', {
     },
 
     async created() {
-        if (this.config && this.config.gene) {
-            this.searchedGene = String(this.config.gene).toUpperCase();
-            await this.submitGeneSearch(this.searchedGene);
-        }
+        await this.initializeFromQuery();
     },
 
     beforeDestroy() {
@@ -547,6 +576,104 @@ export default Vue.component('LigerBrowser', {
             }
 
             return await response.json();
+        },
+        currentQueryParams() {
+            let params = new URLSearchParams(window.location.search || "");
+
+            return {
+                gene: params.get("gene") || "",
+                tissue: params.get("tissue") || "",
+                cell_type: params.get("cell_type") || "",
+                cell_state: params.get("cell_state") || "",
+                gene_program: params.get("gene_program") || "",
+            };
+        },
+        setQueryParams(paramMap = {}, { replace = false } = {}) {
+            let url = new URL(window.location.href);
+            let searchParams = new URLSearchParams(url.search || "");
+
+            Object.keys(paramMap).forEach((key) => {
+                let value = paramMap[key];
+                if (value === null || value === undefined || value === "") {
+                    searchParams.delete(key);
+                } else {
+                    searchParams.set(key, value);
+                }
+            });
+
+            let nextSearch = searchParams.toString();
+            let nextUrl = `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash || ""}`;
+
+            if (replace) {
+                window.history.replaceState({ path: nextUrl }, "", nextUrl);
+                return;
+            }
+
+            window.history.pushState({ path: nextUrl }, "", nextUrl);
+        },
+        syncQueryParams(paramMap = {}, options = {}) {
+            this.setQueryParams(paramMap, {
+                replace: this.isHydratingFromQuery || options.replace,
+            });
+        },
+        async initializeFromQuery() {
+            let query = this.currentQueryParams();
+            let initialGene = query.gene || (this.config && this.config.gene ? String(this.config.gene) : "");
+
+            if (!initialGene) {
+                return;
+            }
+
+            this.isHydratingFromQuery = true;
+
+            try {
+                this.skipGeneSuggestionLookup = true;
+                this.geneSuggestions = [];
+                this.noGeneSuggestions = false;
+                this.isLoadingGeneSuggestions = false;
+                if (this.geneSuggestionTimer) {
+                    clearTimeout(this.geneSuggestionTimer);
+                    this.geneSuggestionTimer = null;
+                }
+                this.searchedGene = String(initialGene).toUpperCase();
+                await this.submitGeneSearch(this.searchedGene);
+
+                if (query.tissue) {
+                    let requestedTissue = LIGER_TISSUE_CONFIG[query.tissue]
+                        ? LIGER_TISSUE_CONFIG[query.tissue].label
+                        : this.availableTissues.find((tissue) => this.tissueKeyFromLabel(tissue) === this.normalizeKey(query.tissue) || this.normalizeKey(tissue) === this.normalizeKey(query.tissue));
+
+                    if (requestedTissue) {
+                        await this.selectTissue(requestedTissue);
+                    }
+                }
+
+                if (query.cell_type && this.selectedTissue) {
+                    let requestedCellType = this.availableCellTypes.find((cellType) => {
+                        return this.normalizeKey(cellType.key) === this.normalizeKey(query.cell_type) ||
+                            this.normalizeKey(cellType.label) === this.normalizeKey(query.cell_type);
+                    });
+
+                    if (requestedCellType) {
+                        await this.selectCellType(requestedCellType);
+                    }
+                }
+
+                if (query.cell_state && this.selectedCellType) {
+                    await this.openStateDrawer(query.cell_state, this.stateMetadataById[query.cell_state] || this.cellStateExpressionRows.find((row) => this.stateKey(row) === query.cell_state));
+                } else if (query.gene_program && this.selectedCellType) {
+                    await this.openProgramDrawer(query.gene_program, this.geneProgramInfoById[query.gene_program] || this.programExpressionRows.find((row) => this.programKey(row) === query.gene_program));
+                }
+            } finally {
+                this.syncQueryParams({
+                    gene: this.selectedGene || "",
+                    tissue: this.selectedTissue ? this.tissueKeyFromLabel(this.selectedTissue) : "",
+                    cell_type: this.selectedCellType ? this.selectedCellType.key : "",
+                    cell_state: this.drawerOpen && this.drawerContent && this.drawerContent.type === "state" ? this.drawerTargetId : "",
+                    gene_program: this.drawerOpen && this.drawerContent && this.drawerContent.type === "program" ? this.drawerTargetId : "",
+                }, { replace: true });
+                this.isHydratingFromQuery = false;
+            }
         },
         buildMatchUrl(queryValue) {
             return `${LIGER_API_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
@@ -571,6 +698,9 @@ export default Vue.component('LigerBrowser', {
         },
         buildGeneProgramInfoUrl(datasetId, cellType) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
+        },
+        buildProgramGeneInfoUrl(datasetId, cellType, programId) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         buildRelationshipHeatmapUrl(tissue, cellType) {
             return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
@@ -1003,6 +1133,653 @@ export default Vue.component('LigerBrowser', {
 
             return this.relationshipMetricIds[0] || "combined_match_score";
         },
+        nestedValue(value, path = []) {
+            return path.reduce((current, key) => {
+                if (!current || typeof current !== "object") {
+                    return null;
+                }
+
+                return current[key];
+            }, value);
+        },
+        firstNonEmpty(values = []) {
+            for (let i = 0; i < values.length; i++) {
+                let value = values[i];
+                if (value !== null && value !== undefined && value !== "") {
+                    return value;
+                }
+            }
+
+            return null;
+        },
+        prettyToken(value) {
+            let tokenMap = {
+                curated_biological_state: "Curated biological state",
+                exploratory_biological: "Exploratory biological",
+                high_confidence_biological: "High confidence biological",
+                continuous_gradient: "Continuous gradient",
+                reviewed: "Reviewed",
+                low: "Low QC sensitivity",
+                medium: "Medium QC sensitivity",
+                high: "High QC sensitivity",
+            };
+            let normalized = this.normalizeKey(value);
+
+            if (tokenMap[normalized]) {
+                return tokenMap[normalized];
+            }
+
+            return this.formatDisplayLabel(String(value || ""));
+        },
+        drawerBadgeTone(value) {
+            let normalized = String(value || "").toLowerCase();
+
+            if (/suppress|artifact|hard|contamination|qc high|fail/.test(normalized)) {
+                return "bad";
+            }
+
+            if (/flag|required|review|caveat|emerging|exploratory|medium|low/.test(normalized)) {
+                return "warn";
+            }
+
+            if (/canonical|established|default|reviewed|high confidence|pass|strong/.test(normalized)) {
+                return "good";
+            }
+
+            return "blue";
+        },
+        buildDrawerBadges(values = []) {
+            let seen = new Set();
+
+            return values
+                .filter((value) => value !== null && value !== undefined && value !== "")
+                .map((value) => this.prettyToken(value))
+                .filter((value) => {
+                    if (!value || seen.has(value)) {
+                        return false;
+                    }
+
+                    seen.add(value);
+                    return true;
+                })
+                .map((value) => ({
+                    text: value,
+                    tone: this.drawerBadgeTone(value),
+                }));
+        },
+        programApiFactor(programId) {
+            let match = String(programId || "").match(/program_factor_(\d+)$/i) || String(programId || "").match(/^factor[_\s-]*(\d+)$/i);
+            return match ? `Factor${Number(match[1])}` : String(programId || "");
+        },
+        shortStateLabel(stateId) {
+            let metadataRow = this.stateMetadataById[stateId] || { state_id: stateId };
+            return this.stateLabel(metadataRow).replace(/^Pancreas Beta Cell /i, "");
+        },
+        gseaPValue(row) {
+            return this.numericField(row, ["gsea_p", "loading_mwu_p", "p_value"]);
+        },
+        gseaQValue(row) {
+            return this.numericField(row, ["gsea_q", "loading_mwu_q", "q_value"]);
+        },
+        gseaNegLogQValue(row) {
+            let qValue = this.gseaQValue(row);
+            return qValue && qValue > 0 ? -Math.log10(qValue) : 0;
+        },
+        rowMatchScore(row) {
+            let directScore = this.numericField(row, ["combined_match_score", "metric_value", "score"]);
+            if (directScore !== null) {
+                return directScore;
+            }
+
+            let correlation = this.numericField(row, ["correlation", "cell_spearman_r_gradient", "cell_spearman_r"]);
+            if (correlation !== null) {
+                return correlation;
+            }
+
+            return this.gseaNegLogQValue(row);
+        },
+        resolveStateDetail(stateId, fallbackRow) {
+            let resolvedId = stateId || this.stateKey(fallbackRow || {}) || "";
+            return {
+                stateId: resolvedId,
+                detail: this.stateMetadataById[resolvedId] || null,
+                fallback: fallbackRow || this.cellStateExpressionRows.find((row) => this.stateKey(row) === resolvedId) || null,
+                source: this.stateMetadataById[resolvedId] ? "api" : "fallback",
+            };
+        },
+        resolvedStateLabel(resolution) {
+            if (resolution.detail) {
+                return this.firstNonEmpty([
+                    this.nestedValue(resolution.detail, ["summary", "recommended_portal_label"]),
+                    resolution.detail.display_name,
+                    this.nestedValue(resolution.detail, ["state", "label"]),
+                ]) || this.shortStateLabel(resolution.stateId);
+            }
+
+            return this.stateLabel(resolution.fallback || { state_id: resolution.stateId }) || this.shortStateLabel(resolution.stateId);
+        },
+        resolvedStateDescription(resolution) {
+            if (resolution.detail) {
+                return this.firstNonEmpty([
+                    this.nestedValue(resolution.detail, ["summary", "portal_user_summary"]),
+                    this.nestedValue(resolution.detail, ["summary", "gene_expression_interpretation"]),
+                    this.nestedValue(resolution.detail, ["summary", "biological_description"]),
+                    this.nestedValue(resolution.detail, ["summary", "recommended_portal_summary"]),
+                    this.nestedValue(resolution.detail, ["summary", "short_description"]),
+                    this.nestedValue(resolution.detail, ["summary", "curation_notes"]),
+                ]);
+            }
+
+            return this.stateDescription(resolution.fallback);
+        },
+        stateDrawerBadges(resolution) {
+            if (resolution.detail) {
+                let detail = resolution.detail;
+                let values = [
+                    this.nestedValue(detail, ["summary", "portal_display_establishment"]),
+                    ...((this.nestedValue(detail, ["summary", "portal_primary_badges"]) || [])),
+                ];
+
+                if (!values.filter(Boolean).length) {
+                    values = values.concat([
+                        this.nestedValue(detail, ["summary", "state_establishment_level"]),
+                        this.nestedValue(detail, ["state", "class"]),
+                        this.nestedValue(detail, ["state", "interpretation_status"]),
+                        this.nestedValue(detail, ["state", "release_class"]),
+                        this.nestedValue(detail, ["state", "qc_sensitivity"]),
+                        ...((this.nestedValue(detail, ["quality", "quality_badges"]) || [])),
+                    ]);
+                }
+
+                values.push("API metadata");
+                return this.buildDrawerBadges(values);
+            }
+
+            return this.buildDrawerBadges([
+                this.field(resolution.fallback, ["state_class"]),
+                this.field(resolution.fallback, ["interpretation_status"]),
+                this.field(resolution.fallback, ["release_class"]),
+                this.field(resolution.fallback, ["manual_review_status"]),
+                this.field(resolution.fallback, ["qc_sensitivity"]),
+                "Expression metadata",
+            ]);
+        },
+        stateInterpretationRows(resolution) {
+            let rows;
+
+            if (resolution.detail) {
+                rows = [
+                    ["If your gene is enriched here", this.nestedValue(resolution.detail, ["summary", "gene_expression_interpretation"]) || this.nestedValue(resolution.detail, ["summary", "recommended_portal_summary"])],
+                    ["Caveat", this.nestedValue(resolution.detail, ["summary", "gene_expression_caveat"]) || this.nestedValue(resolution.detail, ["summary", "interpretation_caveat"])],
+                    ["What to check next", this.nestedValue(resolution.detail, ["summary", "gene_expression_followup"])],
+                    ["Do not conclude", this.nestedValue(resolution.detail, ["summary", "gene_expression_overinterpretation_warning"]) || this.nestedValue(resolution.detail, ["summary", "do_not_overinterpret_as"])],
+                ];
+            } else {
+                rows = [
+                    ["If your gene is enriched here", this.field(resolution.fallback, ["gene_expression_interpretation", "recommended_portal_summary", "interpretation_status"])],
+                    ["Caveat", this.field(resolution.fallback, ["gene_expression_caveat", "interpretation_caveat"])],
+                    ["What to check next", this.field(resolution.fallback, ["gene_expression_followup"])],
+                    ["Do not conclude", this.field(resolution.fallback, ["gene_expression_overinterpretation_warning", "do_not_overinterpret_as"])],
+                ];
+            }
+
+            return rows
+                .filter((row) => row[1] !== null && row[1] !== undefined && row[1] !== "")
+                .map((row) => ({ label: row[0], value: row[1] }));
+        },
+        markerCitationLabel(citation) {
+            return this.firstNonEmpty([
+                citation && citation.citation_label,
+                citation && citation.title,
+                citation && citation.raw_citation_text,
+                citation && citation.url,
+                citation && citation.pmid,
+                citation && citation.doi,
+            ]);
+        },
+        markerCitationsText(marker) {
+            let citations = Array.isArray(marker && marker.citations) ? marker.citations : [];
+            return citations
+                .map((citation) => this.markerCitationLabel(citation))
+                .filter((value) => !!value)
+                .join("; ");
+        },
+        stateMarkerDetail(resolution) {
+            if (resolution.detail) {
+                let markers = this.nestedValue(resolution.detail, ["marker_set", "markers"]) || [];
+
+                return {
+                    markers: markers.map((marker) => marker.gene || marker.marker || "").filter((value) => !!value),
+                    provenance: markers.map((marker) => ({
+                        gene: marker.gene || "",
+                        role: marker.role || "",
+                        evidence: marker.evidence_level || "",
+                        notes: marker.marker_notes || "",
+                        sourceType: marker.source_type || "",
+                        citations: this.markerCitationsText(marker),
+                    })),
+                };
+            }
+
+            return {
+                markers: this.extractMarkerGenes(resolution.fallback),
+                provenance: [],
+            };
+        },
+        stateReferenceDetail(resolution) {
+            if (!resolution.detail) {
+                return {
+                    curationRows: [],
+                    references: [],
+                };
+            }
+
+            let references = Array.isArray(resolution.detail.state_level_citations)
+                ? resolution.detail.state_level_citations.slice()
+                : [];
+
+            if (!references.length) {
+                let seen = new Set();
+                let markers = this.nestedValue(resolution.detail, ["marker_set", "markers"]) || [];
+                markers.forEach((marker) => {
+                    (marker.citations || []).forEach((citation) => {
+                        let key = citation.citation_id || this.markerCitationLabel(citation);
+                        if (!key || seen.has(key)) {
+                            return;
+                        }
+
+                        seen.add(key);
+                        references.push(citation);
+                    });
+                });
+            }
+
+            return {
+                curationRows: [
+                    { label: "Manual review", value: this.nestedValue(resolution.detail, ["curation", "manual_review_status"]) },
+                    { label: "Curation version", value: this.nestedValue(resolution.detail, ["curation", "curation_version"]) },
+                ].filter((row) => row.value),
+                references: references.map((citation) => {
+                    let label = this.markerCitationLabel(citation) || "Citation";
+                    let url = citation.url || (citation.doi ? `https://doi.org/${citation.doi}` : "");
+                    let suffix = [
+                        citation.pmid ? `PMID ${citation.pmid}` : "",
+                        citation.doi ? `DOI ${citation.doi}` : "",
+                    ].filter((value) => !!value).join("; ");
+
+                    return {
+                        label,
+                        url,
+                        suffix,
+                    };
+                }),
+            };
+        },
+        stateMethodsDetail(resolution) {
+            let text;
+            let rows;
+
+            if (resolution.detail) {
+                text = this.nestedValue(resolution.detail, ["summary", "portal_methods_details"]);
+                rows = [
+                    { label: "Score scope", value: this.nestedValue(resolution.detail, ["state", "score_scope"]) },
+                    { label: "Hard-call policy", value: this.nestedValue(resolution.detail, ["state", "hard_call_notes"]) || this.nestedValue(resolution.detail, ["scoring", "hard_call_policy"]) },
+                    { label: "QC sensitivity", value: this.nestedValue(resolution.detail, ["state", "qc_sensitivity"]) },
+                    { label: "Supporting evidence for assignment", value: this.nestedValue(resolution.detail, ["summary", "required_supporting_evidence"]) },
+                    { label: "Assignment overinterpretation warning", value: this.nestedValue(resolution.detail, ["summary", "do_not_overinterpret_as"]) },
+                ];
+            } else {
+                text = this.field(resolution.fallback, ["portal_methods_details"]);
+                rows = [
+                    { label: "Score scope", value: this.field(resolution.fallback, ["score_scope"]) },
+                    { label: "Hard-call policy", value: this.field(resolution.fallback, ["hard_call_notes", "hard_call_policy"]) },
+                    { label: "QC sensitivity", value: this.field(resolution.fallback, ["qc_sensitivity"]) },
+                    { label: "Supporting evidence for assignment", value: this.field(resolution.fallback, ["required_supporting_evidence"]) },
+                    { label: "Assignment overinterpretation warning", value: this.field(resolution.fallback, ["do_not_overinterpret_as"]) },
+                ];
+            }
+
+            return {
+                text,
+                rows: rows.filter((row) => row.value),
+            };
+        },
+        relatedProgramCoactivity(row) {
+            return this.numericField(row, ["correlation", "cell_spearman_r_gradient", "cell_spearman_r", "donor_spearman_r_gradient", "donor_spearman_r"]);
+        },
+        relatedProgramsForState(stateId) {
+            return this.relationshipHeatmapRows
+                .filter((row) => this.stateKey(row) === stateId && this.gseaPValue(row) !== null && this.gseaPValue(row) < 0.05)
+                .sort((a, b) => (this.gseaPValue(a) || Number.POSITIVE_INFINITY) - (this.gseaPValue(b) || Number.POSITIVE_INFINITY))
+                .slice(0, 12)
+                .map((row) => ({
+                    programId: this.programKey(row),
+                    programLabel: this.programLabel(row),
+                    gseaP: this.gseaPValue(row),
+                    gseaQ: this.gseaQValue(row),
+                    coactivity: this.relatedProgramCoactivity(row),
+                    matchScore: this.rowMatchScore(row),
+                    row,
+                }));
+        },
+        inferredProgramQuality(programId) {
+            let rows = this.relationshipHeatmapRows.filter((row) => this.programKey(row) === programId);
+            let hasBadMatch = rows.some((row) => /qc|suppress|artifact/i.test(String(this.field(row, ["match_class", "qc_recommendation", "qc_caveat"]) || "")));
+
+            if (hasBadMatch) {
+                return "review";
+            }
+
+            let hasStrongMatch = rows.some((row) => /strong|gene_only/i.test(String(this.field(row, ["match_class"]) || "")));
+            return hasStrongMatch ? "high_confidence_biological" : "exploratory_biological";
+        },
+        inferredProgramLabel(programId) {
+            let rows = this.relationshipHeatmapRows
+                .filter((row) => this.programKey(row) === programId && this.field(row, ["state_type"]) !== "qc_state")
+                .sort((a, b) => (this.gseaQValue(a) || Number.POSITIVE_INFINITY) - (this.gseaQValue(b) || Number.POSITIVE_INFINITY));
+
+            return rows[0] ? `${this.shortStateLabel(this.stateKey(rows[0]))}-like program` : "unmatched data-driven program";
+        },
+        programSummaryText(programId, curatedMatches, quality) {
+            if (/qc|artifact|suppress/i.test(String(quality || ""))) {
+                return "This program has stronger QC/artifact evidence than biological state evidence and should be hidden or reviewed before interpretation.";
+            }
+
+            if (curatedMatches[0]) {
+                return `This program is most consistent with ${curatedMatches[0].stateLabel}. Use the state match and QC bubbles to decide whether it is suitable for biological interpretation.`;
+            }
+
+            return "This program does not yet have a strong curated-state match and should be treated as exploratory.";
+        },
+        programQcBubbleClass(row) {
+            let qValue = this.gseaQValue(row);
+            let pValue = this.gseaPValue(row);
+
+            if (qValue !== null && qValue < 0.05) {
+                return "bad";
+            }
+
+            if (pValue !== null && pValue < 0.05) {
+                return "warn";
+            }
+
+            return "good";
+        },
+        programQcBubbleLabel(row) {
+            let baseLabel = this.shortStateLabel(this.stateKey(row)) || this.field(row, ["qc_caveat", "match_class", "state_name", "state_id"]);
+            let qValue = this.gseaQValue(row);
+            let pValue = this.gseaPValue(row);
+            let suffix = qValue !== null ? ` q=${this.formatPValue(qValue)}` : (pValue !== null ? ` p=${this.formatPValue(pValue)}` : "");
+
+            return `${baseLabel}${suffix}`;
+        },
+        formatPValue(value) {
+            if (!Number.isFinite(value)) {
+                return "";
+            }
+
+            if (value === 0) {
+                return "0";
+            }
+
+            if (Math.abs(value) < 0.001) {
+                return value.toExponential(2);
+            }
+
+            return value.toFixed(3);
+        },
+        programDrawerBadges(programId, quality, qcMatches) {
+            let badges = [
+                { text: this.prettyToken(quality), tone: this.drawerBadgeTone(quality) },
+            ];
+
+            if (qcMatches[0]) {
+                let text = this.field(qcMatches[0].row, ["qc_caveat", "match_class"]) || "QC reviewed";
+                badges.push({
+                    text: this.prettyToken(text),
+                    tone: this.drawerBadgeTone(text),
+                });
+            }
+
+            return badges;
+        },
+        curatedStateMatchesForProgram(programId) {
+            return this.relationshipHeatmapRows
+                .filter((row) => this.programKey(row) === programId && this.field(row, ["state_type"]) !== "qc_state")
+                .sort((a, b) => (this.gseaQValue(a) || Number.POSITIVE_INFINITY) - (this.gseaQValue(b) || Number.POSITIVE_INFINITY))
+                .filter((row) => this.gseaPValue(row) !== null && this.gseaPValue(row) < 0.05)
+                .map((row) => ({
+                    stateId: this.stateKey(row),
+                    stateLabel: this.shortStateLabel(this.stateKey(row)),
+                    gseaP: this.gseaPValue(row),
+                    gseaQ: this.gseaQValue(row),
+                    negLogQ: this.gseaNegLogQValue(row),
+                    correlation: this.numericField(row, ["correlation", "cell_spearman_r_gradient", "cell_spearman_r"]),
+                    matchScore: this.rowMatchScore(row),
+                    row,
+                }));
+        },
+        qcMatchesForProgram(programId) {
+            return this.relationshipHeatmapRows
+                .filter((row) => this.programKey(row) === programId && this.field(row, ["state_type"]) === "qc_state")
+                .sort((a, b) => this.rowMatchScore(b) - this.rowMatchScore(a))
+                .slice(0, 8)
+                .map((row) => ({
+                    stateId: this.stateKey(row),
+                    stateLabel: this.shortStateLabel(this.stateKey(row)),
+                    gseaP: this.gseaPValue(row),
+                    gseaQ: this.gseaQValue(row),
+                    negLogQ: this.gseaNegLogQValue(row),
+                    correlation: this.numericField(row, ["correlation", "cell_spearman_r_gradient", "cell_spearman_r"]),
+                    row,
+                }));
+        },
+        async getStateTraitRows(stateId) {
+            if (this.stateTraitRowsCache[stateId]) {
+                return this.stateTraitRowsCache[stateId];
+            }
+
+            let cachedRows = this.traitHeatmapRows.filter((row) => row.__column_type === "state" && row.__column_id === stateId);
+            if (cachedRows.length) {
+                this.$set(this.stateTraitRowsCache, stateId, cachedRows);
+                return cachedRows;
+            }
+
+            let tissueKey = this.tissueKeyFromLabel(this.selectedTissue);
+            if (!tissueKey || !this.selectedCellType) {
+                return [];
+            }
+
+            try {
+                let payload = await this.fetchJson(this.buildCellStateTraitUrl(tissueKey, this.selectedCellType.key, stateId));
+                let rows = this.rowsFromResponse(payload);
+                this.$set(this.stateTraitRowsCache, stateId, rows);
+                return rows;
+            } catch (error) {
+                return [];
+            }
+        },
+        async getProgramTraitRows(programId) {
+            if (this.programTraitRowsCache[programId]) {
+                return this.programTraitRowsCache[programId];
+            }
+
+            let cachedRows = this.traitHeatmapRows.filter((row) => row.__column_type === "program" && row.__column_id === programId);
+            if (cachedRows.length) {
+                this.$set(this.programTraitRowsCache, programId, cachedRows);
+                return cachedRows;
+            }
+
+            let datasetId = this.tissueDatasetId(this.selectedTissue);
+            if (!datasetId || !this.selectedCellType) {
+                return [];
+            }
+
+            try {
+                let payload = await this.fetchJson(this.buildProgramTraitUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
+                let rows = this.rowsFromResponse(payload);
+                this.$set(this.programTraitRowsCache, programId, rows);
+                return rows;
+            } catch (error) {
+                return [];
+            }
+        },
+        async getProgramGeneRows(programId) {
+            if (this.programGeneRowsCache[programId]) {
+                return this.programGeneRowsCache[programId];
+            }
+
+            let datasetId = this.tissueDatasetId(this.selectedTissue);
+            if (!datasetId || !this.selectedCellType) {
+                return [];
+            }
+
+            try {
+                let payload = await this.fetchJson(this.buildProgramGeneInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
+                let rows = this.rowsFromResponse(payload);
+                this.$set(this.programGeneRowsCache, programId, rows);
+                return rows;
+            } catch (error) {
+                return [];
+            }
+        },
+        buildTopGeneRows(rows, meta) {
+            let loadingRows = rows
+                .filter((row) => (this.numericField(row, ["loading", "weight", "score", "value"]) || 0) > 0)
+                .sort((a, b) => (this.numericField(b, ["loading", "weight", "score", "value"]) || 0) - (this.numericField(a, ["loading", "weight", "score", "value"]) || 0))
+                .slice(0, 30)
+                .map((row) => ({
+                    gene: this.field(row, ["gene", "gene_symbol", "marker", "name"]),
+                    loading: this.numericField(row, ["loading", "weight", "score", "value"]),
+                }));
+
+            if (loadingRows.length) {
+                return {
+                    mode: "loading",
+                    rows: loadingRows,
+                };
+            }
+
+            let topGenes = this.extractGenes(meta, ["top_genes", "genes", "marker_genes"]).slice(0, 30);
+            return {
+                mode: "rank",
+                rows: topGenes.map((gene, index) => ({
+                    rank: index + 1,
+                    gene,
+                    rankScore: topGenes.length - index,
+                })),
+            };
+        },
+        topTraitRows(rows = []) {
+            return rows
+                .filter((row) => this.traitKey(row) && (this.numericField(row, ["beta"]) !== null || this.numericField(row, ["beta_uncorrected"]) !== null))
+                .sort((a, b) => {
+                    let aScore = Math.max(Math.abs(this.numericField(a, ["beta"]) || 0), Math.abs(this.numericField(a, ["beta_uncorrected"]) || 0));
+                    let bScore = Math.max(Math.abs(this.numericField(b, ["beta"]) || 0), Math.abs(this.numericField(b, ["beta_uncorrected"]) || 0));
+                    return bScore - aScore;
+                })
+                .slice(0, 20)
+                .map((row) => ({
+                    trait: this.traitDisplayName(row),
+                    beta: this.numericField(row, ["beta"]),
+                    betaUncorrected: this.numericField(row, ["beta_uncorrected"]),
+                    method: this.field(row, ["signature_method", "method", "gene_set"]),
+                }));
+        },
+        openDrawerShell(kind, title, badges = []) {
+            this.drawerKind = kind;
+            this.drawerTitle = title;
+            this.drawerBadges = badges;
+            this.drawerContent = null;
+            this.drawerLoading = true;
+            this.drawerOpen = true;
+        },
+        closeDrawer() {
+            this.drawerOpen = false;
+            this.drawerTargetId = "";
+            this.syncQueryParams({
+                cell_state: "",
+                gene_program: "",
+            });
+        },
+        async openStateDrawer(stateId, fallbackRow) {
+            let resolution = this.resolveStateDetail(stateId, fallbackRow);
+            let label = this.resolvedStateLabel(resolution);
+
+            this.openDrawerShell("Curated state", label, this.stateDrawerBadges(resolution));
+            this.drawerTargetId = resolution.stateId;
+
+            let stateTraitRows = await this.getStateTraitRows(resolution.stateId);
+            let markerDetail = this.stateMarkerDetail(resolution);
+            let referenceDetail = this.stateReferenceDetail(resolution);
+            let methodsDetail = this.stateMethodsDetail(resolution);
+
+            this.drawerContent = {
+                type: "state",
+                summaryDescription: this.resolvedStateDescription(resolution) || "A curated marker-defined cell state. Use expression and program overlap to assess whether a gene or factor maps to this state.",
+                summaryFields: [
+                    { label: "State ID", value: resolution.stateId },
+                    { label: "Tissue", value: this.nestedValue(resolution.detail, ["tissue", "label"]) || this.field(resolution.fallback, ["tissue_label", "tissue"]) || this.selectedTissue },
+                    { label: "Cell type", value: this.nestedValue(resolution.detail, ["cell_type", "label"]) || this.field(resolution.fallback, ["cell_type_label", "cell_type", "annotated_cell_type"]) || (this.selectedCellType && this.selectedCellType.label) },
+                ].filter((row) => row.value),
+                interpretationRows: this.stateInterpretationRows(resolution),
+                markerDetail,
+                referenceDetail,
+                methodsDetail,
+                relatedPrograms: this.relatedProgramsForState(resolution.stateId),
+                traitRows: this.topTraitRows(stateTraitRows),
+            };
+
+            this.syncQueryParams({
+                cell_state: resolution.stateId,
+                gene_program: "",
+            });
+            this.drawerLoading = false;
+        },
+        async openProgramDrawer(programId, fallbackRow) {
+            let meta = Object.assign({}, fallbackRow || {}, this.geneProgramInfoById[programId] || {});
+            let quality = this.field(meta, ["suggested_program_quality_class", "quality_class", "release_recommendation", "qc_recommendation"]) || this.inferredProgramQuality(programId);
+            let label = this.field(meta, ["suggested_program_label", "program_label", "label"]) || this.inferredProgramLabel(programId);
+            let curatedMatches = this.curatedStateMatchesForProgram(programId);
+            let qcMatches = this.qcMatchesForProgram(programId);
+
+            this.openDrawerShell("Inferred program", `${this.programApiFactor(programId)} - ${label}`, this.programDrawerBadges(programId, quality, qcMatches));
+            this.drawerTargetId = programId;
+
+            let [programGeneRows, programTraitRows] = await Promise.all([
+                this.getProgramGeneRows(programId),
+                this.getProgramTraitRows(programId),
+            ]);
+
+            this.drawerContent = {
+                type: "program",
+                summaryText: this.programSummaryText(programId, curatedMatches, quality),
+                summaryFields: [
+                    { label: "Program ID", value: this.programApiFactor(programId) },
+                    { label: "Suggested label", value: label },
+                    { label: "Quality", value: this.prettyToken(quality) },
+                    { label: "Collection", value: LIGER_PROGRAM_MODEL },
+                ],
+                qcBadges: qcMatches.length
+                    ? qcMatches.map((row) => ({
+                        text: this.programQcBubbleLabel(row.row),
+                        tone: this.programQcBubbleClass(row.row),
+                    }))
+                    : this.buildDrawerBadges(this.extractGenes(meta, ["qc_cell_states", "qc_caveat", "qc_recommendation"])).length
+                        ? this.buildDrawerBadges(this.extractGenes(meta, ["qc_cell_states", "qc_caveat", "qc_recommendation"]))
+                        : [{ text: "QC pass", tone: "good" }],
+                curatedMatches,
+                qcMatches,
+                topGenes: this.buildTopGeneRows(programGeneRows, meta),
+                traitRows: this.topTraitRows(programTraitRows).slice(0, 12),
+            };
+
+            this.syncQueryParams({
+                cell_state: "",
+                gene_program: programId,
+            });
+            this.drawerLoading = false;
+        },
         quantile(values = [], q = 0.5) {
             let sortedValues = values
                 .filter((value) => Number.isFinite(value))
@@ -1022,8 +1799,16 @@ export default Vue.component('LigerBrowser', {
 
             return sortedValues[lower] + (sortedValues[upper] - sortedValues[lower]) * (position - lower);
         },
-        traitName(row) {
+        traitKey(row) {
             return this.field(row, ["trait", "trait_label", "trait_internal", "phenotype"]);
+        },
+        traitDisplayName(valueOrRow) {
+            let traitKey = typeof valueOrRow === "string" ? valueOrRow : this.traitKey(valueOrRow);
+            let phenotype = this.traitPhenotypeLookup[this.normalizeKey(traitKey)];
+            return (phenotype && phenotype.description) || traitKey;
+        },
+        traitName(row) {
+            return this.traitDisplayName(row);
         },
         traitMetricValue(row, metric) {
             return this.numericField(row, [metric]);
@@ -1091,7 +1876,8 @@ export default Vue.component('LigerBrowser', {
             this.selectedTissue = null;
             this.cellTypeExpressionRows = [];
             this.selectedCellType = null;
-            this.viewInfo = false;
+            this.viewStateInfo = false;
+            this.viewProgramInfo = false;
             this.cellStateExpressionRows = [];
             this.programExpressionRows = [];
             this.cellStateMetadataRows = [];
@@ -1099,6 +1885,9 @@ export default Vue.component('LigerBrowser', {
             this.relationshipHeatmapRows = [];
             this.traitHeatmapRows = [];
             this.traitHeatmapColumns = [];
+            this.stateTraitRowsCache = {};
+            this.programTraitRowsCache = {};
+            this.programGeneRowsCache = {};
             this.isLoadingCellTypes = false;
             this.isLoadingCellStateSection = false;
             this.isLoadingGeneProgramSection = false;
@@ -1112,11 +1901,13 @@ export default Vue.component('LigerBrowser', {
             this.selectedRelationshipMetric = "correlation";
             this.selectedTraitMetric = "beta";
             this.selectedTraitColumnFilter = "all";
+            this.closeDrawer();
         },
         resetCellTypeResults() {
             this.cellTypeExpressionRows = [];
             this.selectedCellType = null;
-            this.viewInfo = false;
+            this.viewStateInfo = false;
+            this.viewProgramInfo = false;
             this.isLoadingCellTypes = false;
             this.cellStateExpressionRows = [];
             this.programExpressionRows = [];
@@ -1125,6 +1916,9 @@ export default Vue.component('LigerBrowser', {
             this.relationshipHeatmapRows = [];
             this.traitHeatmapRows = [];
             this.traitHeatmapColumns = [];
+            this.stateTraitRowsCache = {};
+            this.programTraitRowsCache = {};
+            this.programGeneRowsCache = {};
             this.isLoadingCellStateSection = false;
             this.isLoadingGeneProgramSection = false;
             this.isLoadingRelationshipHeatmap = false;
@@ -1137,6 +1931,7 @@ export default Vue.component('LigerBrowser', {
             this.selectedRelationshipMetric = "correlation";
             this.selectedTraitMetric = "beta";
             this.selectedTraitColumnFilter = "all";
+            this.closeDrawer();
         },
         collectTissues(rows = []) {
             return rows
@@ -1192,11 +1987,25 @@ export default Vue.component('LigerBrowser', {
 
             if (!normalizedGene) {
                 this.selectedGene = null;
+                this.syncQueryParams({
+                    gene: "",
+                    tissue: "",
+                    cell_type: "",
+                    cell_state: "",
+                    gene_program: "",
+                });
                 return;
             }
 
             this.isLoadingGeneData = true;
             this.selectedGene = normalizedGene;
+            this.syncQueryParams({
+                gene: normalizedGene,
+                tissue: "",
+                cell_type: "",
+                cell_state: "",
+                gene_program: "",
+            });
 
             try {
                 let [cellStatePayload, programPayload] = await Promise.all([
@@ -1230,6 +2039,12 @@ export default Vue.component('LigerBrowser', {
         },
         async selectTissue(tissue) {
             this.selectedTissue = tissue;
+            this.syncQueryParams({
+                tissue: this.tissueKeyFromLabel(tissue) || "",
+                cell_type: "",
+                cell_state: "",
+                gene_program: "",
+            });
             await this.loadCellTypeExpression(tissue);
         },
         async loadCellTypeExpression(tissue) {
@@ -1258,6 +2073,11 @@ export default Vue.component('LigerBrowser', {
         },
         async selectCellType(cellType) {
             this.selectedCellType = cellType;
+            this.syncQueryParams({
+                cell_type: cellType.key,
+                cell_state: "",
+                gene_program: "",
+            });
             await Promise.all([
                 this.loadCellStateSection(cellType),
                 this.loadGeneProgramSection(cellType),
@@ -1442,8 +2262,16 @@ export default Vue.component('LigerBrowser', {
 <template>
     <div id="liger" class="f-col g-40">
         <div class="f-row g-40">
-            <div class="f-col align-v-bottom flex1" style="padding:0 0 7px;">
-                <h4 class="bold">Search gene</h4>
+            <div class="f-col g-10 flex1">
+                <h3 class="bold">Cell State & Program Explorer</h3>
+                <h5 class="headline">
+                    Compare gene expression across cell types, curated cell states and 
+                    computationally inferred gene programs with genetically supported links 
+                    to human traits, revealing both established and potentially novel biology.
+                </h5>
+            </div>
+            <div class="f-col align-v-bottom flex1 g-5">
+                <h5 class="bold">Search gene</h5>
                 <div class="search f-row g-5 relative">
                     <div class="search-input-wrap flex1 relative">
                         <input
@@ -1484,15 +2312,10 @@ export default Vue.component('LigerBrowser', {
                 <div v-if="geneSearchError" class="search-feedback error">{{ geneSearchError }}</div>
                 <div v-else-if="isLoadingGeneData" class="search-feedback">Loading gene data...</div>
             </div>
-            <h4 class="headline f-col flex1">
-                Compare gene expression across cell types, curated cell states and 
-                computationally inferred gene programs with genetically supported links 
-                to human traits, revealing both established and potentially novel biology.
-            </h4>
         </div>
         <div v-if="selectedGene" id="liger-body" class="f-col g-40">
             <div class="flex1">
-                <h3 class="bold">Where is <span class="pill">{{ selectedGene }}</span> expressed?</h3>
+                <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span> expressed?</h4>
                 <div class="subtitle">See gene expression per tissue by cell type, cell states, and gene programs.</div>
             </div>
             <div class="f-col g-40">
@@ -1532,7 +2355,7 @@ export default Vue.component('LigerBrowser', {
                             <div v-if="!selectedTissue && !isLoadingCellTypes"
                                 class="card-overlay"
                             >
-                                <div><strong>Select a Tissue</strong> to see expression by Cell Type</div>
+                                <div><span class="shout">Select a Tissue</span> to see expression by Cell Type</div>
                             </div>
                             <div v-if="isLoadingCellTypes" class="card-overlay">
                                 <div>Loading cell types...</div>
@@ -1575,19 +2398,6 @@ export default Vue.component('LigerBrowser', {
                     </div>
                 </div>
                 <div class="f-col g-20">
-                    <!--
-                    <div class="section-header">
-                        <div class="f-row spread-out">
-                            <h3 class="bold">Cell states and gene programs <span v-if="selectedCellType">for {{ selectedCellType.label }} in {{ selectedTissue }}</span><span v-else>within a cell type</span></h3>
-                            <button v-if="selectedCellType"
-                                @click="viewInfo=!viewInfo"
-                            >
-                                Show {{ viewInfo ? 'Expression': 'Info'}}
-                            </button>
-                        </div>
-                        <div class="subtitle">Cell states are curated, marker-defined biology. Gene programs are data-driven, computationally inferred latent factors.</div>
-                    </div>
-                    -->
                     <div class="f-row g-20">
                         <div class="f-col g-10 flex1">
                             <div class="f-col">
@@ -1597,9 +2407,9 @@ export default Vue.component('LigerBrowser', {
                                         <span class="count">({{ cellStateCount }})</span>
                                     </div>
                                     <button v-if="selectedCellType"
-                                        @click="viewInfo=!viewInfo"
+                                        @click="viewStateInfo=!viewStateInfo"
                                     >
-                                        Show {{ viewInfo ? 'Expression': 'Info'}}
+                                        Show {{ viewStateInfo ? 'Expression': 'Info'}}
                                     </button>
                                 </div>
                                 <div>Cell states are curated, marker-defined biology.</div>
@@ -1608,12 +2418,12 @@ export default Vue.component('LigerBrowser', {
                                 <div v-if="!selectedCellType && !isLoadingCellStateSection"
                                     class="card-overlay"
                                 >
-                                    <div><strong>Select a Cell Type</strong> to see expression by Curated Cell State</div>
+                                    <div><span class="shout">Select a Cell Type</span> to see expression by Curated Cell State</div>
                                 </div>
                                 <div v-if="isLoadingCellStateSection" class="card-overlay">
                                     <div>Loading cell states...</div>
                                 </div>
-                                <div v-if="selectedCellType && !viewInfo" class="expression f-col flex1">
+                                <div v-if="selectedCellType && !viewStateInfo" class="expression f-col flex1">
                                     <div class="bar-grid-header">
                                         <div class="bold">Cell State</div>
                                         <div class="bold">Expression</div>
@@ -1628,6 +2438,7 @@ export default Vue.component('LigerBrowser', {
                                             v-for="cellState in cellStateExpressionList"
                                             :key="cellState.key"
                                             class="bar-grid-item grid-item"
+                                            @click="openStateDrawer(cellState.key, cellState.row)"
                                         >
                                             <div class="bar-label">{{cellState.label}}</div>
                                             <div class="bar-cell">
@@ -1658,10 +2469,11 @@ export default Vue.component('LigerBrowser', {
                                             v-for="cellState in cellStateInfoList"
                                             :key="cellState.key"
                                             class="info-grid grid-item"
+                                            @click="openStateDrawer(cellState.key, stateMetadataById[cellState.key])"
                                         >
                                             <div>{{cellState.label}}</div>
-                                            <div>{{cellState.description}}</div>
-                                            <div>{{cellState.genes}}</div>
+                                            <div class="info-description">{{cellState.description}}</div>
+                                            <div class="info-genes"><span class="info-gene" v-for="gene in cellState.genes.split(',')">{{gene.trim()}}</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1670,9 +2482,16 @@ export default Vue.component('LigerBrowser', {
 
                         <div class="f-col g-10 flex1">
                             <div class="f-col">
-                                <div class="f-row g-5">
-                                    <h5 class="bold">Gene Programs</h5>
+                                <div class="f-row spread-out">
+                                    <div class="f-row g-5">
+                                        <h5 class="bold">Gene Programs</h5>
                                     <span class="count">({{ geneProgramCount }})</span>
+                                    </div>
+                                    <button v-if="selectedCellType"
+                                        @click="viewProgramInfo=!viewProgramInfo"
+                                    >
+                                        Show {{ viewProgramInfo ? 'Expression': 'Info'}}
+                                    </button>
                                 </div>
                                 <div>Gene programs are data-driven, computationally inferred latent factors.</div>
                             </div>
@@ -1680,12 +2499,12 @@ export default Vue.component('LigerBrowser', {
                                 <div v-if="!selectedCellType && !isLoadingGeneProgramSection"
                                     class="card-overlay"
                                 >
-                                    <div><strong>Select a Cell Type</strong> to see expression by Inferred Gene Program</div>
+                                    <div><span class="shout">Select a Cell Type</span> to see expression by Inferred Gene Program</div>
                                 </div>
                                 <div v-if="isLoadingGeneProgramSection" class="card-overlay">
                                     <div>Loading gene programs...</div>
                                 </div>
-                                <div v-if="selectedCellType && !viewInfo" class="expression f-col flex1">
+                                <div v-if="selectedCellType && !viewProgramInfo" class="expression f-col flex1">
                                     <div class="bar-grid-header">
                                         <div class="bold">Gene Program</div>
                                         <div class="bold">Expression</div>
@@ -1700,6 +2519,7 @@ export default Vue.component('LigerBrowser', {
                                             v-for="program in geneProgramExpressionList"
                                             :key="program.key"
                                             class="bar-grid-item grid-item"
+                                            @click="openProgramDrawer(program.key, program.row)"
                                         >
                                             <div class="bar-label">{{program.label}}</div>
                                             <div class="bar-cell">
@@ -1729,10 +2549,11 @@ export default Vue.component('LigerBrowser', {
                                             v-for="program in geneProgramInfoList"
                                             :key="program.key"
                                             class="info-grid grid-item"
+                                            @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
                                         >
                                             <div>{{program.label}}</div>
-                                            <div>{{program.description}}</div>
-                                            <div>{{program.genes}}</div>
+                                            <div class="info-description">{{program.description}}</div>
+                                            <div class="info-genes"><span class="info-gene" v-for="gene in program.genes.split(',')">{{gene.trim()}}</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1742,14 +2563,14 @@ export default Vue.component('LigerBrowser', {
                 </div>
                 <div class="f-col g-20">
                     <div>
-                        <h3 class="bold">Relationships between states and programs</h3>
+                        <h4 class="bold">Relationships between states and programs</h4>
                         <div class="subtitle">Explore genetic correlations between known cell states and inferred gene programs for potentially novel connections.</div>
                     </div>
                     <div class="section-card f-col g-10 relative">
                         <div v-if="!selectedCellType && !isLoadingRelationshipHeatmap"
                             class="card-overlay"
                         >
-                            <div><strong>Select a Cell Type</strong> to see relationships</div>
+                            <div><span class="shout">Select a Cell Type</span> to see relationships</div>
                         </div>
                         <div v-if="isLoadingRelationshipHeatmap" class="card-overlay">
                             <div>Loading relationships...</div>
@@ -1779,32 +2600,36 @@ export default Vue.component('LigerBrowser', {
                         <div v-if="relationshipHeatmapError" class="empty-state">
                             {{ relationshipHeatmapError }}
                         </div>
-                        <div v-else-if="selectedCellType && !relationshipHeatmapDisplay.programRows.length" class="empty-state">
+                        <div v-else-if="selectedCellType && !relationshipHeatmapDisplay.stateRows.length" class="empty-state">
                             No relationship heatmap rows returned.
                         </div>
-                        <div v-else-if="relationshipHeatmapDisplay.programRows.length" class="heatmap-wrap">
+                        <div v-else-if="relationshipHeatmapDisplay.stateRows.length" class="heatmap-wrap">
                             <table class="heatmap-table">
                                 <thead>
                                     <tr>
-                                        <th class="heatmap-row-head">Program</th>
+                                        <th class="heatmap-row-head">
+                                            <div class="heatmap-row-head-label">Cell State</div>
+                                            <div class="heatmap-column-head-label">Gene Program</div>
+                                        </th>
                                         <th
-                                            v-for="state in relationshipHeatmapDisplay.stateHeaders"
-                                            :key="state.key"
+                                            v-for="program in relationshipHeatmapDisplay.programHeaders"
+                                            :key="program.key"
                                             class="heatmap-column-head"
-                                            :title="state.label"
+                                            :title="program.label"
+                                            @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
                                         >
-                                            <div class="heatmap-column-label">{{ state.label }}</div>
+                                            <div class="heatmap-column-label">{{ program.label }}</div>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr
-                                        v-for="program in relationshipHeatmapDisplay.programRows"
-                                        :key="program.key"
+                                        v-for="state in relationshipHeatmapDisplay.stateRows"
+                                        :key="state.key"
                                     >
-                                        <td class="heatmap-row-head" :title="program.label">{{ program.label }}</td>
+                                        <td class="heatmap-row-head clickable-cell" :title="state.label" @click="openStateDrawer(state.key, stateMetadataById[state.key])">{{ state.label }}</td>
                                         <td
-                                            v-for="cell in program.cells"
+                                            v-for="cell in state.cells"
                                             :key="cell.key"
                                             class="heatmap-cell"
                                             :style="{ background: cell.color }"
@@ -1823,14 +2648,14 @@ export default Vue.component('LigerBrowser', {
                 </div>
                 <div class="f-col g-20">
                     <div>
-                        <h3 class="bold">Genetically supported links of states and programs to human traits</h3>
-                        <div class="subtitle">See which curated states and inferred programs connect to grouped human traits, using the portal phenotype catalog to organize traits by phenotype group.</div>
+                        <h4 class="bold">Genetically supported links of states and programs to human traits</h4>
+                        <div class="subtitle">See which curated states and inferred programs connect to grouped human traits.</div>
                     </div>
                     <div class="section-card f-col g-10 relative">
                         <div v-if="!selectedCellType && !isLoadingTraitHeatmap"
                             class="card-overlay"
                         >
-                            <div><strong>Select a Cell Type</strong> to see trait links</div>
+                            <div><span class="shout">Select a Cell Type</span> to see trait links</div>
                         </div>
                         <div v-if="isLoadingTraitHeatmap" class="card-overlay">
                             <div>Loading trait links...</div>
@@ -1842,9 +2667,9 @@ export default Vue.component('LigerBrowser', {
                                     <option value="beta_uncorrected">Marginal beta</option>
                                 </select>
                                 <select v-model="selectedTraitColumnFilter">
-                                    <option value="all">Traits: states + factors</option>
-                                    <option value="program">Traits: factors only</option>
-                                    <option value="state">Traits: states only</option>
+                                    <option value="all">states + factors</option>
+                                    <option value="program">factors only</option>
+                                    <option value="state">states only</option>
                                 </select>
                                 <span class="heatmap-meta">{{ traitHeatmapMeta }}</span>
                             </div>
@@ -1864,12 +2689,16 @@ export default Vue.component('LigerBrowser', {
                             <table class="heatmap-table">
                                 <thead>
                                     <tr>
-                                        <th class="heatmap-row-head">Trait</th>
+                                        <th class="heatmap-row-head">
+                                            <div class="heatmap-row-head-label">Trait</div>
+                                            <div class="heatmap-column-head-label">{{ traitColumnHeaderLabel }}</div>
+                                        </th>
                                         <th
                                             v-for="column in availableTraitColumns"
                                             :key="column.id"
                                             class="heatmap-column-head"
                                             :title="`${column.type}: ${column.label}`"
+                                            @click="column.type === 'state' ? openStateDrawer(column.id, stateMetadataById[column.id]) : openProgramDrawer(column.id, geneProgramInfoById[column.id])"
                                         >
                                             <div class="heatmap-column-label">{{ column.label }}</div>
                                         </th>
@@ -1886,7 +2715,7 @@ export default Vue.component('LigerBrowser', {
                                             v-for="trait in group.traits"
                                             :key="`${group.group}-${trait.trait}`"
                                         >
-                                            <td class="heatmap-row-head" :title="trait.trait">{{ trait.trait }}</td>
+                                            <td class="heatmap-row-head" :title="trait.displayTrait">{{ trait.displayTrait }}</td>
                                             <td
                                                 v-for="cell in trait.cells"
                                                 :key="cell.key"
@@ -1908,8 +2737,313 @@ export default Vue.component('LigerBrowser', {
                 </div>
             </div>
         </div>
+
+        <div
+            v-if="drawerOpen"
+            class="drawer-backdrop"
+            @click="closeDrawer"
+        ></div>
+        <aside class="drawer" :class="{ open: drawerOpen }">
+            <div class="drawer-header">
+                <button class="drawer-close" @click="closeDrawer">Close</button>
+                <div class="drawer-eyebrow">{{ drawerKind }}</div>
+                <h2 class="drawer-title">{{ drawerTitle }}</h2>
+                <div class="drawer-badge-row">
+                    <span
+                        v-for="badge in drawerBadges"
+                        :key="badge.text"
+                        class="drawer-badge"
+                        :class="badge.tone"
+                    >
+                        {{ badge.text }}
+                    </span>
+                </div>
+            </div>
+            <div class="drawer-body">
+                <div v-if="drawerLoading" class="empty-state">Loading details...</div>
+
+                <template v-else-if="drawerContent && drawerContent.type === 'state'">
+                    <div class="drawer-panel">
+                        <h3>What this state represents</h3>
+                        <p>{{ drawerContent.summaryDescription }}</p>
+                        <dl class="drawer-field-grid">
+                            <template v-for="field in drawerContent.summaryFields">
+                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
+                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                            </template>
+                        </dl>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>What this means for your gene</h3>
+                        <dl v-if="drawerContent.interpretationRows.length" class="drawer-field-grid">
+                            <template v-for="field in drawerContent.interpretationRows">
+                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
+                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                            </template>
+                        </dl>
+                        <div v-else class="empty-state">No interpretation metadata available.</div>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Marker genes</h3>
+                        <div v-if="drawerContent.markerDetail.markers.length" class="drawer-marker-list">
+                            <span
+                                v-for="gene in drawerContent.markerDetail.markers"
+                                :key="gene"
+                                class="drawer-marker"
+                            >
+                                {{ gene }}
+                            </span>
+                        </div>
+                        <div v-else class="empty-state">No marker genes returned.</div>
+                        <details v-if="drawerContent.markerDetail.provenance.length" class="drawer-details">
+                            <summary>Show marker provenance</summary>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Gene</th>
+                                            <th>Role</th>
+                                            <th>Evidence</th>
+                                            <th>Marker notes</th>
+                                            <th>Source type</th>
+                                            <th>Citations</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="row in drawerContent.markerDetail.provenance" :key="`${row.gene}-${row.role}`">
+                                            <td>{{ row.gene }}</td>
+                                            <td>{{ row.role }}</td>
+                                            <td>{{ row.evidence }}</td>
+                                            <td>{{ row.notes }}</td>
+                                            <td>{{ row.sourceType }}</td>
+                                            <td>{{ row.citations }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Curation and references</h3>
+                        <dl v-if="drawerContent.referenceDetail.curationRows.length" class="drawer-field-grid">
+                            <template v-for="field in drawerContent.referenceDetail.curationRows">
+                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
+                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                            </template>
+                        </dl>
+                        <ul v-if="drawerContent.referenceDetail.references.length" class="drawer-reference-list">
+                            <li v-for="reference in drawerContent.referenceDetail.references" :key="reference.label">
+                                <a v-if="reference.url" :href="reference.url" target="_blank" rel="noreferrer">{{ reference.label }}</a>
+                                <span v-else>{{ reference.label }}</span>
+                                <span v-if="reference.suffix" class="drawer-reference-suffix">({{ reference.suffix }})</span>
+                            </li>
+                        </ul>
+                        <div v-else class="empty-state">No state-level citations available.</div>
+                    </div>
+
+                    <div v-if="drawerContent.relatedPrograms.length" class="drawer-panel">
+                        <h3>Related programs with GSEA P &lt; 0.05</h3>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Program</th>
+                                        <th>GSEA P</th>
+                                        <th>GSEA Q</th>
+                                        <th>Cell coactivity</th>
+                                        <th>Match score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="row in drawerContent.relatedPrograms"
+                                        :key="row.programId"
+                                        class="clickable-cell"
+                                        @click="openProgramDrawer(row.programId, row.row)"
+                                    >
+                                        <td>{{ row.programLabel }}</td>
+                                        <td>{{ formatPValue(row.gseaP) }}</td>
+                                        <td>{{ formatPValue(row.gseaQ) }}</td>
+                                        <td>{{ formatMetric(row.coactivity) }}</td>
+                                        <td>{{ formatMetric(row.matchScore) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <details class="drawer-details">
+                            <summary><strong>Advanced / methods details</strong></summary>
+                            <div class="drawer-details-body">
+                                <p v-if="drawerContent.methodsDetail.text">{{ drawerContent.methodsDetail.text }}</p>
+                                <dl v-if="drawerContent.methodsDetail.rows.length" class="drawer-field-grid">
+                                    <template v-for="field in drawerContent.methodsDetail.rows">
+                                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
+                                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                                    </template>
+                                </dl>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Human genetic trait anchors</h3>
+                        <div v-if="drawerContent.traitRows.length" class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Trait</th>
+                                        <th>Joint beta</th>
+                                        <th>Marginal beta</th>
+                                        <th>Method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in drawerContent.traitRows" :key="row.trait">
+                                        <td>{{ row.trait }}</td>
+                                        <td>{{ formatMetric(row.beta) }}</td>
+                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
+                                        <td>{{ row.method }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="empty-state">No state-level PIGEAN rows returned for this state in the current API.</div>
+                    </div>
+                </template>
+
+                <template v-else-if="drawerContent && drawerContent.type === 'program'">
+                    <div class="drawer-panel">
+                        <h3>Program summary</h3>
+                        <p>{{ drawerContent.summaryText }}</p>
+                        <dl class="drawer-field-grid">
+                            <template v-for="field in drawerContent.summaryFields">
+                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
+                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                            </template>
+                        </dl>
+                        <div class="drawer-badge-row drawer-qc-row">
+                            <span
+                                v-for="badge in drawerContent.qcBadges"
+                                :key="badge.text"
+                                class="drawer-badge"
+                                :class="badge.tone"
+                            >
+                                {{ badge.text }}
+                            </span>
+                        </div>
+                        <div class="drawer-mini">QC bubble colors: green = QC GSEA P &gt;= 0.05, yellow = QC GSEA P &lt; 0.05, red = QC GSEA q &lt; 0.05</div>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Best curated state matches</h3>
+                        <div v-if="drawerContent.curatedMatches.length" class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>State</th>
+                                        <th>GSEA P</th>
+                                        <th>GSEA q</th>
+                                        <th>-log10(q)</th>
+                                        <th>Correlation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="row in drawerContent.curatedMatches"
+                                        :key="`${row.stateId}-${row.programId || ''}`"
+                                        class="clickable-cell"
+                                        @click="openStateDrawer(row.stateId, row.row)"
+                                    >
+                                        <td>{{ row.stateLabel }}</td>
+                                        <td>{{ formatPValue(row.gseaP) }}</td>
+                                        <td>{{ formatPValue(row.gseaQ) }}</td>
+                                        <td>{{ formatMetric(row.negLogQ) }}</td>
+                                        <td>{{ formatMetric(row.correlation) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="empty-state">No curated state matches with GSEA P &lt; 0.05.</div>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Top gene loadings</h3>
+                        <div v-if="drawerContent.topGenes.rows.length" class="table-wrap">
+                            <table v-if="drawerContent.topGenes.mode === 'loading'">
+                                <thead>
+                                    <tr>
+                                        <th>Gene</th>
+                                        <th>Loading</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in drawerContent.topGenes.rows" :key="row.gene">
+                                        <td>{{ row.gene }}</td>
+                                        <td>{{ formatMetric(row.loading) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table v-else>
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Gene</th>
+                                        <th>Rank score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in drawerContent.topGenes.rows" :key="`${row.gene}-${row.rank}`">
+                                        <td>{{ row.rank }}</td>
+                                        <td>{{ row.gene }}</td>
+                                        <td>{{ row.rankScore }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="empty-state">No positive program gene loadings returned.</div>
+                    </div>
+
+                    <div class="drawer-panel">
+                        <h3>Top anchor traits</h3>
+                        <div v-if="drawerContent.traitRows.length" class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Trait</th>
+                                        <th>Joint beta</th>
+                                        <th>Marginal beta</th>
+                                        <th>Method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in drawerContent.traitRows" :key="row.trait">
+                                        <td>{{ row.trait }}</td>
+                                        <td>{{ formatMetric(row.beta) }}</td>
+                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
+                                        <td>{{ row.method }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="empty-state">No program trait anchors returned.</div>
+                    </div>
+                </template>
+            </div>
+        </aside>
     </div>
 </template>
+
+<style>
+:root{
+    --lite-green: #c7dd04;
+    --lite-blue: #afe6fd;
+}
+</style>
 
 <style scoped>
 @import url("/css/layout.css");
@@ -1927,7 +3061,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     padding: 20px;
 }
 .headline{
-    line-height: 2rem;
+    line-height: 1.6rem;
 }
 #liger .search{
     font-size: 1.5em;
@@ -1944,7 +3078,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-size: 14px;
 }
 #liger button.primary{
-    background: #219197;
+    background: var(--blue);
     color: white;
 }
 .search-input-wrap{
@@ -1997,6 +3131,12 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     padding: 5px 10px;
 }
 
+.shout {
+    font-weight: bold;
+    color: #219198;
+    font-size: 1.2em;
+}
+
 .expression-grid{
     display:grid;
     grid-template-columns: 200px auto 50px 50px;
@@ -2026,7 +3166,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .bar-fill{
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #94c95e, #219197);
+    background: linear-gradient(90deg, var(--lite-blue), var(--lite-green));
 }
 .bar-number{
     min-width: 42px;
@@ -2041,50 +3181,41 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     display:grid;
     grid-template-columns: 200px auto 200px;
     padding: 5px 10px;
-    font-size: 1.1em;
+    font-size: 1em;
+    gap: 10px;
+}
+.info-description {
+    font-size: .9em;
+}
+.info-genes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    font-size: .9em;
+}
+.info-gene {
+    padding: 0 5px;
+    background: #eee;
 }
 .grid-item{
     text-align: left;
     cursor: pointer;
 }
 .grid-item:hover{
-    background: #94c95e;
+    background: #ddd;
 }
 .grid-item.selected {
-    background: #219197;
+    background: var(--blue);
     color: white;
 }
 
-.tabs {
-    display: flex;
-    font-size: 1.2em;
-    gap: 5px;
-    border-bottom: 1px solid rgba(0, 0, 0, .25);
-}
-.tab {
-    padding: 5px 10px;
-    border: 1px solid rgba(0, 0, 0, .25);
-    border-bottom: 1px solid white;
-    cursor: pointer;
-}
-.tab.active {
-    margin-bottom: -.5px;
-    color: #219197;
-    font-weight: bold;
-    border-color: #219197;
-    border-bottom-color: white;
-}
-.tab-section {
-    border: 1px solid rgba(0, 0, 0, .25);
-    border-top: none;
-    padding: 15px 10px;
-}
+
 
 .options > div {
     padding: 5px 10px;  
 }
 .options .selected {
-    background: #219197;
+    background: var(--blue);
     color: white;
 }
 
@@ -2177,6 +3308,20 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     text-align: left;
     font-weight: 700;
 }
+.heatmap-row-head-label {
+    position: absolute;
+    bottom: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
+.heatmap-column-head-label {
+    position: absolute;
+    transform: rotate(-90deg) translateX(-50%);
+    right: -20px;
+    top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+}
 .heatmap-table thead .heatmap-row-head{
     z-index: 3;
 }
@@ -2189,11 +3334,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .heatmap-column-label{
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    white-space: nowrap;
     margin: 0 auto;
     max-height: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 14px;
 }
 .heatmap-cell{
     min-width: 62px;
@@ -2215,6 +3358,171 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: #1f2937;
     font-weight: 700;
     text-align: left;
+}
+.clickable-cell{
+    cursor: pointer;
+}
+.drawer-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 24, 40, 0.28);
+    z-index: 20;
+}
+.drawer{
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(760px, 96vw);
+    height: 100vh;
+    background: #fff;
+    box-shadow: -22px 0 55px rgba(16, 24, 40, 0.18);
+    z-index: 21;
+    transform: translateX(105%);
+    transition: transform 0.2s ease;
+    overflow: auto;
+    overscroll-behavior: none;
+}
+.drawer.open{
+    transform: translateX(0);
+}
+.drawer-header{
+    padding: 22px 24px;
+    border-bottom: 1px solid #edf0f7;
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.96);
+    z-index: 2;
+    backdrop-filter: blur(8px);
+}
+.drawer-close{
+    position: absolute;
+    right: 20px;
+    padding: 5px 10px !important;
+}
+.drawer-eyebrow{
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #4e4e4e;
+    margin-bottom: 6px;
+}
+.drawer-title{
+    margin-bottom: 10px !important;
+}
+.drawer-body{
+    padding: 22px 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.drawer-panel{
+    border: 1px solid #edf0f7;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+}
+.drawer-panel h3{
+    margin-bottom: 10px !important;
+}
+.drawer-field-grid{
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 10px 14px;
+    margin: 0;
+}
+.drawer-field-grid dt{
+    font-weight: 700;
+    color: #1f2937;
+}
+.drawer-field-grid dd{
+    margin: 0;
+    color: #374151;
+}
+.drawer-badge-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.drawer-badge{
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.drawer-badge.good{
+    background: #e7f7ed;
+    color: #0f7b39;
+}
+.drawer-badge.warn{
+    background: #fff4d6;
+    color: #9a6700;
+}
+.drawer-badge.bad{
+    background: #fde7e9;
+    color: #b42318;
+}
+.drawer-badge.blue{
+    background: #e8f1fb;
+    color: #175cd3;
+}
+.drawer-marker-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.drawer-marker{
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-size: 12px;
+    font-weight: 700;
+}
+.drawer-reference-list{
+    margin: 0;
+    padding-left: 18px;
+}
+.drawer-reference-suffix{
+    color: #6b7280;
+    font-size: 12px;
+}
+.drawer-details{
+    margin-top: 12px;
+}
+.drawer-details-body{
+    margin-top: 12px;
+}
+.drawer-mini{
+    margin-top: 10px;
+    font-size: 12px;
+    color: #4e4e4e;
+}
+.drawer-qc-row{
+    margin-top: 12px;
+}
+
+.table-wrap table {
+    width: 100%;
+}
+.table-wrap table tr th {
+    white-space: nowrap;
+}
+.table-wrap table tr th, .table-wrap table tr td {
+    padding: 0 5px;
+}
+.table-wrap table tr td:first-child {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@media (max-width: 900px) {
+    .drawer-field-grid{
+        grid-template-columns: 1fr;
+    }
 }
 
 .section-card {

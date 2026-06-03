@@ -87,6 +87,47 @@ These power:
 
 Program labels should prefer metadata labels and avoid exposing raw factor IDs when a readable label exists.
 
+### State/program relationship heatmap
+
+- `/api/bio/query/gene-program-heatmap?q=<tissue>,<cellType>`
+
+This powers:
+
+- the metric-switchable state/program relationships heatmap
+- curated-state match context for gene-program drawer details
+- QC-state match context for gene-program drawer details
+
+Current UI orientation:
+
+- cell states on the left
+- gene programs across the top
+
+### Trait links heatmap
+
+- `/api/bio/query/gene-program-cell-state-trait-factor?q=<tissue>,<cellType>,<stateId>`
+- `/api/bio/query/gene-program-trait-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+- `/api/portal/phenotypes?q=md`
+
+These power:
+
+- grouped trait heatmap rows
+- state drawer trait tables
+- program drawer trait tables
+
+Important behavior:
+
+- trait identity should stay keyed by raw API trait values internally
+- displayed trait labels should prefer phenotype `description` from `/api/portal/phenotypes?q=md`
+- trait group labels should come from phenotype `group`
+
+### Program gene loadings
+
+- `/api/bio/query/gene-program-gene-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+
+This powers:
+
+- gene-program drawer top-gene-loading table
+
 ## Current UI Behavior
 
 ### Search
@@ -116,6 +157,75 @@ Program labels should prefer metadata labels and avoid exposing raw factor IDs w
 - Expression and info ordering should match.
 - Expression-card labels should truncate with ellipsis.
 - Info-card labels can wrap normally.
+
+### Relationships heatmap
+
+- Loads only after cell-type selection.
+- Has its own loading and error state.
+- Supports metric switching based on the available heatmap payload fields.
+- Uses sticky headers / row labels and click-through into drawer details.
+- Cell states are row headers.
+- Gene programs are column headers.
+
+### Trait links heatmap
+
+- Loads only after cell-type selection.
+- Has its own loading and error state.
+- Supports:
+  - `joint beta`
+  - `marginal beta`
+  - `states + factors`
+  - `factors only`
+  - `states only`
+- Trait rows are selected from the union of each visible column's top absolute beta values.
+- Trait rows are grouped by phenotype `group` from `/api/portal/phenotypes?q=md`.
+- Trait labels should show phenotype `description` when available.
+
+### Side drawer
+
+- Clicking a cell state or gene program from cards or heatmaps can open a right-side drawer.
+- If a `cell_state` query param is present on load, open the cell-state drawer automatically.
+- If a `gene_program` query param is present on load, open the gene-program drawer automatically.
+
+Current drawer coverage should match the prototype:
+
+- Curated state drawer:
+  - what this state represents
+  - gene interpretation / caveats / follow-up / overinterpretation guidance
+  - marker genes
+  - marker provenance
+  - curation + references
+  - related programs with significant matches
+  - advanced / methods details
+  - human genetic trait anchors
+- Inferred program drawer:
+  - summary
+  - quality / QC badges
+  - curated-state matches
+  - top gene loadings
+  - top anchor traits
+
+### Query-string state
+
+The page now syncs primary interaction state into the query string.
+
+Currently supported params:
+
+- `gene`
+- `tissue`
+- `cell_type`
+- `cell_state`
+- `gene_program`
+
+Example:
+
+- `?gene=PCSK9&tissue=artery&cell_type=fibroblast&cell_state=artery_fibroblast_adipogenic_preadipocyte_like_fibroblast`
+
+Expected behavior:
+
+- clicking/searching should update the URL progressively
+- loading the page with these params should restore the same selection path
+- `cell_state` and `gene_program` are mutually exclusive in the URL and should clear each other when drawer target changes
 
 ## Value Definitions
 
@@ -160,16 +270,19 @@ Currently this applies to:
 - cell type expression
 - cell state section
 - gene program section
+- relationship heatmap
+- trait heatmap
+- drawer detail fetches
 
 If new sections are added, add explicit section-level loading and error states too.
 
 ## Known Rough Edges / Follow-ups
 
-- Internal card scrolling was deferred and is not finalized.
-- Some layout behavior is intentionally left simple for now.
-- Program descriptions are still relatively naive and may need better metadata-derived text later.
-- More metadata-backed label cleanup may still be needed depending on API payloads.
-- Heatmap / relationship / trait-link sections are still placeholder UI and not yet fully integrated.
+- Internal card scrolling is still relatively simple.
+- Some layout behavior is intentionally lightweight and may still need polish.
+- Program descriptions / summaries still rely on a mix of inferred labels and available metadata.
+- Trait-to-phenotype matching depends on API naming consistency between trait rows and `/api/portal/phenotypes?q=md`.
+- Deep-link restoration should be browser-checked after any major interaction-flow changes.
 
 ## Resume Checklist
 
@@ -183,4 +296,13 @@ If starting cold, do this first:
    - select tissue
    - select cell type
    - toggle expression/info
-5. Keep labels human-readable and avoid leaking raw IDs unless absolutely necessary.
+   - load relationships heatmap
+   - load grouped trait heatmap
+   - open both drawer types
+5. Verify deep-link behavior:
+   - `gene`
+   - `tissue`
+   - `cell_type`
+   - `cell_state`
+   - `gene_program`
+6. Keep labels human-readable and avoid leaking raw IDs unless absolutely necessary.
