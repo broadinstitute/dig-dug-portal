@@ -11,6 +11,13 @@
             <div class="wkb-canvas-toolbar">
                 <div class="wkb-canvas-legend" aria-label="Tree view legend">
                     <span class="wkb-canvas-legend-item">
+                        <span
+                            class="wkb-canvas-swatch wkb-canvas-swatch--highlighted"
+                            aria-hidden="true"
+                        />
+                        Highlighted node
+                    </span>
+                    <span class="wkb-canvas-legend-item">
                         <span class="wkb-canvas-swatch wkb-canvas-swatch--anchor" aria-hidden="true" />
                         Starting node
                     </span>
@@ -44,13 +51,15 @@
                     :graph-edges="graphEdges"
                     :contextual-edges="contextualEdges"
                     :selected-node-id="selectedNodeId"
+                    :highlighted-node-ids="highlightedNodeIds"
                     :zoom-level="zoomLevel"
                     :hide-contextual-edges="hideContextualEdges"
                     :hide-jumping-edges="hideJumpingEdges"
-                    @node-click="$emit('node-click', $event)"
+                    @node-menu-open="$emit('node-menu-open', $event)"
                 />
                 <WorkspaceInspector
                     :open="inspectorOpen"
+                    :selected-node="selectedNodeDetail"
                     @toggle="$emit('toggle-inspector')"
                 />
             </div>
@@ -113,6 +122,14 @@ export default {
         },
         selectedNodeId: {
             type: String,
+            default: null,
+        },
+        highlightedNodeIds: {
+            type: Array,
+            default: () => [],
+        },
+        selectedNodeDetail: {
+            type: Object,
             default: null,
         },
         inspectorOpen: {
@@ -215,10 +232,14 @@ export default {
     border-radius: 50%;
 }
 
+.wkb-canvas-swatch--highlighted {
+    background: #488bf7;
+}
+
 .wkb-canvas-swatch--anchor {
     width: calc(var(--wkb-toolbar-symbol) * 0.92);
     height: calc(var(--wkb-toolbar-symbol) * 0.92);
-    background: #488bf7;
+    background: #888888;
     transform: rotate(45deg);
     border-radius: 2px;
 }

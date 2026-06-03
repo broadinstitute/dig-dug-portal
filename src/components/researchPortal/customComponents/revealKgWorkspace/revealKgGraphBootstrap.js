@@ -259,6 +259,246 @@ export async function buildInitialGraphFromAnchors({
         graphEdges,
         retrievalLedger,
         context: context || "",
+        highlighted: highlightedNodeIdsForGraphNodes(graphNodes),
+    };
+}
+
+export function graphNodeToAnchorItem(node) {
+    if (!node?.id && !node?.node_id) {
+        return null;
+    }
+    const nodeId = node.id || node.node_id;
+    return {
+        node_id: nodeId,
+        label: node.label || nodeId,
+        subtitle: node.subtitle || "",
+        node_type: node.node_type || node.type,
+    };
+}
+
+function graphNodeIds(node) {
+    return [node?.id, node?.node_id].filter(Boolean);
+}
+
+export function isStartingGraphNode(node) {
+    return Boolean(node?.is_anchor);
+}
+
+/** Keep only highlighted ids that still exist on the graph. */
+export function normalizeHighlightedNodeIds(session) {
+    const nodeIds = new Set();
+    for (const node of session?.graphNodes || []) {
+        if (node?.id) {
+            nodeIds.add(node.id);
+        }
+        if (node?.node_id) {
+            nodeIds.add(node.node_id);
+        }
+    }
+    return Array.from(new Set((session?.highlighted || []).filter((id) => nodeIds.has(id))));
+}
+
+export function highlightedNodeIdsForGraphNodes(graphNodes) {
+    return (graphNodes || [])
+        .filter((node) => isStartingGraphNode(node))
+        .map((node) => node.id || node.node_id)
+        .filter(Boolean);
+}
+
+export function findGraphNode(session, nodeId) {
+    if (!session || !nodeId) {
+        return null;
+    }
+    return (session.graphNodes || []).find(
+        (entry) => entry.id === nodeId || entry.node_id === nodeId
+    );
+}
+
+export function isNodeOfInterest(session, nodeId) {
+    if (!nodeId) {
+        return false;
+    }
+    return (session?.highlighted || []).includes(nodeId);
+}
+
+export function withNormalizedHighlighted(session) {
+    if (!session) {
+        return session;
+    }
+    return {
+        ...session,
+        highlighted: normalizeHighlightedNodeIds(session),
+    };
+}
+
+export function toggleNodeOfInterest(session, nodeId) {
+    if (!session || !nodeId) {
+        return { session, changed: false };
+    }
+    const node = findGraphNode(session, nodeId);
+    if (!node) {
+        return { session, changed: false };
+    }
+    const highlighted = new Set(session.highlighted || []);
+    const clearing = highlighted.has(nodeId);
+    if (clearing) {
+        highlighted.delete(nodeId);
+    } else {
+        highlighted.add(nodeId);
+    }
+    return {
+        session: {
+            ...session,
+            highlighted: Array.from(highlighted),
+        },
+        changed: true,
+        added: !clearing,
+    };
+}
+
+export function canRemoveGraphNode(session, nodeId) {
+    if (!session || !nodeId) {
+        return false;
+    }
+    const node = (session.graphNodes || []).find(
+        (entry) => entry.id === nodeId || entry.node_id === nodeId
+    );
+    return Boolean(node && !isStartingGraphNode(node));
+}
+
+export function countConnectedEdgesForNode(session, nodeId) {
+    if (!session || !nodeId) {
+        return 0;
+    }
+    const seen = new Set();
+    let count = 0;
+    for (const edge of [...(session.graphEdges || []), ...(session.contextualEdges || [])]) {
+        if (edge.source !== nodeId && edge.target !== nodeId) {
+            continue;
+        }
+        const key = edge.id || `${edge.source}->${edge.target}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        count += 1;
+    }
+    return count;
+}
+
+export function removeNodesFromWorkspaceGraph(session, nodeIds) {
+    const removalSet = new Set((nodeIds || []).filter(Boolean));
+    if (!removalSet.size || !session) {
+        return session;
+    }
+    const graphNodes = (session.graphNodes || []).filter(
+        (node) => !graphNodeIds(node).some((id) => removalSet.has(id))
+    );
+    const graphEdges = (session.graphEdges || []).filter(
+        (edge) => !removalSet.has(edge.source) && !removalSet.has(edge.target)
+    );
+    const contextualEdges = (session.contextualEdges || []).filter(
+        (edge) => !removalSet.has(edge.source) && !removalSet.has(edge.target)
+    );
+    const retrievalLedger = mergeRetrievalLedger(
+        { retrievalLedger: session.retrievalLedger || {} },
+        [],
+        {
+            reasonByNodeId: Object.fromEntries(
+                [...removalSet].map((nodeId) => [nodeId, "hidden"])
+            ),
+        }
+    );
+    return {
+        ...session,
+        graphNodes,
+        graphEdges,
+        contextualEdges,
+        retrievalLedger,
+        contextualEdgeSignature: "",
+        highlighted: (session.highlighted || []).filter((id) => !removalSet.has(id)),
+    };
+}
+
+/**
+ * Add neighboring nodes using one graph node as the expansion seed (Change → Expand).
+ */
+export async function expandGraphFromNode(
+    apiClient,
+    session,
+    nodeId,
+    { neighborLimit = 20 } = {}
+) {
+    if (!apiClient?.getInteractiveConnections) {
+        throw new Error("Interactive API client is not configured.");
+    }
+    const node = (session.graphNodes || []).find((entry) => entry.id === nodeId);
+    if (!node) {
+        throw new Error("Node not found on the graph.");
+    }
+    const anchorItem = graphNodeToAnchorItem(node);
+    if (!anchorItem) {
+        throw new Error("Could not use that node for expansion.");
+    }
+
+    let { graphNodes, graphEdges } = {
+        graphNodes: [...(session.graphNodes || [])],
+        graphEdges: [...(session.graphEdges || [])],
+    };
+    let retrievalLedger = { ...(session.retrievalLedger || {}) };
+    const excludeNodeIds = graphNodes.map((entry) => entry.id);
+    const allConnectionCandidates = [];
+    const candidateLanes = {};
+    const targetTypes = getAvailableConnectionTargetTypes([anchorItem], "direct");
+
+    for (const targetType of targetTypes) {
+        const payload = await apiClient.getInteractiveConnections({
+            anchor_items: [anchorItem],
+            context: (session.context || "").trim(),
+            target_type: targetType,
+            reducer: "mean",
+            connection_scope: "direct",
+            limit: 100,
+            exclude_node_ids: excludeNodeIds,
+        });
+        const lane = payload.candidates || [];
+        candidateLanes[targetType] = lane;
+        allConnectionCandidates.push(...lane);
+    }
+
+    retrievalLedger = mergeRetrievalLedger(
+        { retrievalLedger },
+        allConnectionCandidates,
+        {}
+    );
+
+    const candidates = interleaveCandidateLanes(candidateLanes, neighborLimit);
+    for (const item of candidates) {
+        const candidate = item.candidate;
+        if (!candidate?.node_id) {
+            continue;
+        }
+        ({ graphNodes, graphEdges } = mergeGraphPayload(
+            graphNodes,
+            graphEdges,
+            [{ ...candidate, is_anchor: false }],
+            item.edges || [],
+            "top"
+        ));
+    }
+
+    for (const graphNode of graphNodes) {
+        if (!retrievalLedger[graphNode.id]) {
+            retrievalLedger[graphNode.id] = ledgerEntryFromGraphNode(graphNode, "yes");
+        }
+    }
+    retrievalLedger = markGraphNodesShownInLedger(retrievalLedger, graphNodes);
+
+    return {
+        ...session,
+        graphNodes,
+        graphEdges,
+        retrievalLedger,
     };
 }
 

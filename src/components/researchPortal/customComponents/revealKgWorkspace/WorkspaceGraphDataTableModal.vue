@@ -27,6 +27,15 @@
                     Retrieved nodes from graph build and expansion, including options not yet on
                     the canvas.
                 </p>
+                <p class="wkb-graph-table-legend" aria-label="Row highlighting legend">
+                    <span class="wkb-graph-table-legend-item">
+                        <span
+                            class="wkb-graph-table-legend-swatch"
+                            aria-hidden="true"
+                        />
+                        Starting node
+                    </span>
+                </p>
             </header>
 
             <div class="wkb-graph-table-body">
@@ -355,6 +364,31 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
+.wkb-graph-table-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-top: 8px;
+}
+
+.wkb-graph-table-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-graph-table-legend-swatch {
+    flex-shrink: 0;
+    width: 28px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(72, 139, 247, 0.35);
+    background: rgba(72, 139, 247, 0.12);
+}
+
 .wkb-graph-table-body {
     overflow: auto;
     padding: 0 24px 24px;
@@ -455,6 +489,8 @@ export default {
 }
 
 .wkb-graph-table-wrap {
+    display: flex;
+    justify-content: center;
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
@@ -463,6 +499,7 @@ export default {
 .wkb-graph-table {
     width: auto;
     max-width: 100%;
+    flex-shrink: 0;
     border-collapse: collapse;
     font-size: 13px;
     background: #fff;
@@ -502,8 +539,8 @@ export default {
     vertical-align: top;
 }
 
-.wkb-graph-table tbody tr.is-anchor-row .wkb-graph-table-label {
-    background: rgba(72, 139, 247, 0.1);
+.wkb-graph-table tbody tr.is-anchor-row td {
+    background: rgba(72, 139, 247, 0.12);
 }
 
 .wkb-graph-table-shown-note {

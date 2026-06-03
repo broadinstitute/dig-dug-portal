@@ -14,7 +14,14 @@
         >
             <header class="wkb-save-head">
                 <h2 id="wkb-save-title">Save graph</h2>
-                <p>
+                <div
+                    v-if="completionMessage"
+                    class="wkb-subheader-callout"
+                    role="status"
+                >
+                    {{ completionMessage }}
+                </div>
+                <p v-else class="wkb-save-intro">
                     Store this graph in your browser Library so you can reload it without
                     rebuilding from scratch.
                 </p>
@@ -70,6 +77,10 @@ export default {
         isUpdate: {
             type: Boolean,
             default: false,
+        },
+        completionMessage: {
+            type: String,
+            default: "",
         },
     },
     data() {
@@ -156,7 +167,8 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
-.wkb-save-head p {
+.wkb-save-head p,
+.wkb-save-intro {
     margin: 0 0 18px;
     font-size: 13px;
     line-height: 1.5;

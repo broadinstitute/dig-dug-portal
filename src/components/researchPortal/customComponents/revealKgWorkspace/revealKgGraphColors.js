@@ -2,7 +2,10 @@
 
 export const ACTIVE_SET_NODE_COLOR = "#ff6600";
 export const TREE_VIEW_DEFAULT_NODE_COLOR = "#777777";
-export const TREE_VIEW_ANCHOR_NODE_COLOR = "#488bf7";
+/** Starting nodes — gray diamond when not highlighted. */
+export const TREE_VIEW_ANCHOR_NODE_COLOR = "#888888";
+/** User-marked nodes of interest — blue circle or blue diamond. */
+export const TREE_VIEW_HIGHLIGHTED_NODE_COLOR = "#488bf7";
 export const TREE_VIEW_EDGE_COLOR = "#b0a890";
 
 export const HIERARCHY_LAYERS = [

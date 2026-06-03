@@ -146,6 +146,48 @@ export function emptyStarterBuckets() {
     return { gene: [], gene_set: [], factor: [], trait: [] };
 }
 
+/** Clone starter bucket lists for duplicate / restore flows. */
+export function cloneStarterBuckets(buckets) {
+    const base = emptyStarterBuckets();
+    if (!buckets || typeof buckets !== "object") {
+        return base;
+    }
+    for (const entityType of STARTER_ENTITY_ORDER) {
+        base[entityType] = (buckets[entityType] || []).map((item) => ({ ...item }));
+    }
+    return base;
+}
+
+/**
+ * Build initial-graph picker buckets from saved graph nodes (starting nodes first).
+ */
+export function starterBucketsFromGraphNodes(nodes) {
+    const buckets = emptyStarterBuckets();
+    const list = Array.isArray(nodes) ? nodes : [];
+    const anchorNodes = list.filter((node) => node?.is_anchor);
+    const seeds = anchorNodes.length ? anchorNodes : list;
+
+    for (const node of seeds) {
+        const entityType = String(node.node_type || node.type || "").toLowerCase();
+        if (!STARTER_ENTITY_ORDER.includes(entityType)) {
+            continue;
+        }
+        const item = normalizeStarterItem(entityType, node);
+        if (!item) {
+            continue;
+        }
+        buckets[entityType] = mergeUniqueItems(buckets[entityType], [item]);
+    }
+    return buckets;
+}
+
+export function starterBucketsFromSession(session) {
+    if (session?.starterBuckets && totalStarterCount(session.starterBuckets) > 0) {
+        return cloneStarterBuckets(session.starterBuckets);
+    }
+    return starterBucketsFromGraphNodes(session?.graphNodes || session?.nodes || []);
+}
+
 export function starterItemsFromBuckets(buckets) {
     return STARTER_ENTITY_ORDER.flatMap((entityType) => buckets[entityType] || []);
 }

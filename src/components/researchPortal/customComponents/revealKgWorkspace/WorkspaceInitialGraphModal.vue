@@ -22,11 +22,8 @@
             </button>
 
             <header class="wkb-initial-head">
-                <h2 id="wkb-initial-title">Build your initial graph</h2>
-                <p>
-                    Choose starting genes, gene sets, mechanisms, and traits. REVEAL
-                    will use them to place nodes and find connections on the canvas.
-                </p>
+                <h2 id="wkb-initial-title">{{ modalTitle }}</h2>
+                <p>{{ modalDescription }}</p>
             </header>
 
             <div class="wkb-initial-tabrow">
@@ -180,6 +177,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        duplicateSourceLabel: {
+            type: String,
+            default: "",
+        },
     },
     data() {
         return {
@@ -193,6 +194,25 @@ export default {
         },
         starterCount() {
             return totalStarterCount(this.buckets);
+        },
+        isDuplicateFlow() {
+            return Boolean(String(this.duplicateSourceLabel || "").trim());
+        },
+        modalTitle() {
+            return this.isDuplicateFlow ? "Duplicate graph" : "Build your initial graph";
+        },
+        modalDescription() {
+            if (this.isDuplicateFlow) {
+                const name = String(this.duplicateSourceLabel).trim();
+                return (
+                    `Starting nodes from “${name}” are pre-selected below. Add or remove ` +
+                    "entities, then build a new graph on the canvas."
+                );
+            }
+            return (
+                "Choose starting genes, gene sets, mechanisms, and traits. REVEAL " +
+                "will use them to place nodes and find connections on the canvas."
+            );
         },
     },
     watch: {

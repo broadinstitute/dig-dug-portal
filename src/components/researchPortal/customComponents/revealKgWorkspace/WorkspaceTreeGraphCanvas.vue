@@ -15,6 +15,7 @@ import {
     TREE_VIEW_ANCHOR_NODE_COLOR,
     TREE_VIEW_DEFAULT_NODE_COLOR,
     TREE_VIEW_EDGE_COLOR,
+    TREE_VIEW_HIGHLIGHTED_NODE_COLOR,
 } from "./revealKgGraphColors.js";
 import {
     buildRowLayout,
@@ -32,6 +33,7 @@ const FIXED_NODE_HORIZONTAL_GAP = 50;
 const TREE_LAYOUT_MARGIN_LEFT = 168;
 const ROW_HEADER_MIN_GAP_BEFORE_NODES = 32;
 const ROW_HEADER_LABEL_WIDTH = 120;
+const ROW_HEADER_SHIFT_LEFT = 100;
 const TREE_VIEW_SCALE = 0.88;
 const NODE_RADIUS_SCALE = 0.75;
 const TREE_VIEW_NODE_RADIUS = 12 * NODE_RADIUS_SCALE;
@@ -146,7 +148,10 @@ function computeContentBounds(positions, visibleRowLayers, populatedLayerIndices
     };
 
     const headerEndX = rowHeaderEndX ?? TREE_LAYOUT_MARGIN_LEFT - ROW_HEADER_MIN_GAP_BEFORE_NODES;
-    xs.push(headerEndX - ROW_HEADER_LABEL_WIDTH, headerEndX);
+    xs.push(
+        headerEndX - ROW_HEADER_LABEL_WIDTH - ROW_HEADER_SHIFT_LEFT,
+        headerEndX
+    );
     for (const row of visibleRowLayers || []) {
         const layer = row.layer ?? HIERARCHY_LAYERS.findIndex((entry) => entry.key === row.key);
         ys.push(treeRowY(layer, MARGIN_ROW.top, ROW_GAP_DEFAULT, populatedLayerIndices, ROW_GAPS));
@@ -261,6 +266,20 @@ function hierarchyEdgeTooltip(entry, nodeMetaById) {
     return `${sourceLabel} → ${targetLabel}`;
 }
 
+function highlightedNodeIdSet(ids) {
+    return new Set((ids || []).filter(Boolean));
+}
+
+function nodeFillColor(entry, highlightedIds) {
+    if (highlightedIds.has(entry.id)) {
+        return TREE_VIEW_HIGHLIGHTED_NODE_COLOR;
+    }
+    if (entry.meta?.isAnchor) {
+        return TREE_VIEW_ANCHOR_NODE_COLOR;
+    }
+    return TREE_VIEW_DEFAULT_NODE_COLOR;
+}
+
 export default {
     name: "WorkspaceTreeGraphCanvas",
     props: {
@@ -279,6 +298,10 @@ export default {
         selectedNodeId: {
             type: String,
             default: null,
+        },
+        highlightedNodeIds: {
+            type: Array,
+            default: () => [],
         },
         zoomLevel: {
             type: Number,
@@ -326,7 +349,10 @@ export default {
             this.scheduleRender();
         },
         selectedNodeId() {
-            this._graphInteraction?.updateSelectionStyles?.();
+            this._graphInteraction?.updateNodeChromeStyles?.();
+        },
+        highlightedNodeIds() {
+            this._graphInteraction?.updateNodeFillStyles?.();
         },
         zoomLevel() {
             this.applyViewportTransform();
@@ -360,11 +386,18 @@ export default {
         this._graphInteraction = null;
     },
     methods: {
+        getGraphHighlight() {
+            if (this._highlight.nodeId || this._highlight.edgeKey) {
+                return this._highlight;
+            }
+            return null;
+        },
         isEdgeShown(entry) {
+            const highlight = this.getGraphHighlight();
             return isHierarchyEdgeShown(entry, {
                 hideJumpingEdges: this.hideJumpingEdges,
                 hideContextualEdges: this.hideContextualEdges,
-                highlight: this._highlight,
+                highlight,
                 hoveredNodeId: this._hoveredNodeId,
             });
         },
@@ -652,7 +685,7 @@ export default {
                 .join("text")
                 .attr("class", "wkb-tree-graph-row-header")
                 .text((row) => row.label)
-                .attr("x", rowHeaderEndX)
+                .attr("x", rowHeaderEndX - ROW_HEADER_SHIFT_LEFT)
                 .attr("y", (row) => {
                     const layer = row.layer ?? HIERARCHY_LAYERS.findIndex((entry) => entry.key === row.key);
                     return treeRowY(layer, MARGIN_ROW.top, ROW_GAP_DEFAULT, populatedLayerIndices, ROW_GAPS);
@@ -756,8 +789,9 @@ export default {
 
             function updateHighlightVisuals() {
                 applyEdgeVisibility();
+                const highlightState = vm.getGraphHighlight();
                 const { activeNodes, activeEdges, hasHighlight } = buildHighlightSets(
-                    vm._highlight.nodeId || vm._highlight.edgeKey ? vm._highlight : null,
+                    highlightState,
                     hierarchyEdges.filter((entry) => vm.isEdgeShown(entry))
                 );
                 g.selectAll("g.wkb-tree-graph-edge").attr("opacity", (entry) => {
@@ -782,12 +816,13 @@ export default {
                 });
             }
 
-            function updateSelectionStyles() {
+            function updateNodeChromeStyles() {
                 g.selectAll("g.wkb-tree-graph-node")
                     .classed("is-selected", (entry) => entry.id === vm.selectedNodeId)
-                    .each(function updateSelectionRing(entry) {
+                    .each(function updateNodeRings(entry) {
                         const group = select(this);
                         group.selectAll(".wkb-tree-graph-node-selection-ring").remove();
+
                         if (entry.id !== vm.selectedNodeId) {
                             return;
                         }
@@ -795,15 +830,24 @@ export default {
                         const radius = nodeRadius(layer);
                         const anchorRadius = nodeShapeRadius(layer, true);
                         const isAnchor = entry.meta?.isAnchor;
+                        const shapeRadius = isAnchor ? anchorRadius : radius;
                         group
                             .append("circle")
                             .attr("class", "wkb-tree-graph-node-selection-ring")
-                            .attr("r", (isAnchor ? anchorRadius : radius) + 4)
+                            .attr("r", shapeRadius + 4)
                             .attr("fill", "none")
                             .attr("stroke", "#ff6600")
                             .attr("stroke-width", 2)
                             .style("pointer-events", "none");
                     });
+            }
+
+            function updateNodeFillStyles() {
+                const highlightedIds = highlightedNodeIdSet(vm.highlightedNodeIds);
+                g.selectAll("g.wkb-tree-graph-node .wkb-tree-graph-node-shape").attr(
+                    "fill",
+                    (entry) => nodeFillColor(entry, highlightedIds)
+                );
             }
 
             function handleNodePointerEnter(event, entry) {
@@ -827,13 +871,18 @@ export default {
                 const layer = entry.meta?.layer ?? 0;
                 const radius = nodeRadius(layer);
                 const anchorRadius = nodeShapeRadius(layer, true);
-                const fill = entry.meta?.isAnchor
-                    ? TREE_VIEW_ANCHOR_NODE_COLOR
-                    : TREE_VIEW_DEFAULT_NODE_COLOR;
+                const highlightedIds = highlightedNodeIdSet(vm.highlightedNodeIds);
+                const fill = nodeFillColor(entry, highlightedIds);
 
                 const onClick = (event) => {
                     event.stopPropagation();
-                    vm.$emit("node-click", entry.id);
+                    vm.$emit("node-menu-open", {
+                        nodeId: entry.id,
+                        label: entry.meta?.label || entry.id,
+                        isAnchor: Boolean(entry.meta?.isAnchor),
+                        left: event.clientX + 10,
+                        top: event.clientY + 10,
+                    });
                 };
 
                 if (entry.meta?.isAnchor) {
@@ -882,12 +931,14 @@ export default {
             this._graphInteraction = {
                 applyEdgeVisibility,
                 updateHighlightVisuals,
-                updateSelectionStyles,
+                updateNodeChromeStyles,
+                updateNodeFillStyles,
             };
 
             applyEdgeVisibility();
-            updateSelectionStyles();
-            if (this._highlight.nodeId || this._highlight.edgeKey) {
+            updateNodeChromeStyles();
+            updateNodeFillStyles();
+            if (this.getGraphHighlight()) {
                 updateHighlightVisuals();
             }
         },

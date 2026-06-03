@@ -121,15 +121,26 @@ function graphEdgesFromRecord(record) {
     return [];
 }
 
+function graphNodeIdSet(nodes) {
+    const ids = new Set();
+    for (const node of nodes || []) {
+        if (node?.id) {
+            ids.add(node.id);
+        }
+        if (node?.node_id) {
+            ids.add(node.node_id);
+        }
+    }
+    return ids;
+}
+
 function highlightedFromRecord(record, nodes) {
     const raw =
         record?.highlighted ||
         record?.highlightedNodeIds ||
         record?.reanchorSelection ||
         [];
-    const nodeIds = new Set(
-        (nodes || []).map((node) => node?.id || node?.node_id).filter(Boolean)
-    );
+    const nodeIds = graphNodeIdSet(nodes);
     return Array.from(new Set((raw || []).filter((id) => nodeIds.has(id))));
 }
 
@@ -266,18 +277,29 @@ function graphPayloadFromSession(session, { label } = {}) {
     if (!session) {
         return null;
     }
+    const nodes = session.graphNodes || session.nodes || [];
+    const highlighted = highlightedFromRecord(
+        {
+            highlighted: session.highlighted || session.reanchorSelection || [],
+        },
+        nodes
+    );
     return {
         label: label !== undefined ? label : session.label,
         context: session.context || "",
-        nodes: session.graphNodes || session.nodes || [],
+        nodes,
         edges: session.graphEdges || session.edges || [],
-        highlighted: session.highlighted || session.reanchorSelection || [],
+        highlighted,
+        highlightedNodeIds: highlighted,
         controls: session.controls || {},
         visibilityFilters: session.visibilityFilters || {},
         appliedGraphFilter: session.appliedGraphFilter || null,
         retrievalLedger: session.retrievalLedger || {},
         contextualEdges: session.contextualEdges || [],
         contextualEdgeSignature: session.contextualEdgeSignature || "",
+        starterBuckets: session.starterBuckets || null,
+        addNeighboringNodes:
+            session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
         hypotheses: session.hypotheses || session.sigChainRuns || [],
         dataProvenanceRuns: session.dataProvenanceRuns || session.datasetRuns || [],
     };
@@ -323,6 +345,9 @@ function sessionFromGraph(record) {
         retrievalLedger: cloneJson(graph.retrievalLedger, {}),
         contextualEdges: cloneJson(graph.contextualEdges, []),
         contextualEdgeSignature: graph.contextualEdgeSignature,
+        starterBuckets: cloneJson(graph.starterBuckets, null),
+        addNeighboringNodes:
+            graph.addNeighboringNodes !== undefined ? graph.addNeighboringNodes : true,
         hypotheses: cloneJson(graph.hypotheses, []),
         sigChainRuns: cloneJson(graph.hypotheses, []),
         dataProvenanceRuns: cloneJson(graph.dataProvenanceRuns, []),

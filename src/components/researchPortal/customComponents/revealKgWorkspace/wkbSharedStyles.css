@@ -1,0 +1,29 @@
+/**
+ * Shared workspace UI patterns. Import from revealKgWorkspace.vue (unscoped).
+ * See revealKgWorkspace/DESIGN.md — Sub-header callouts.
+ */
+
+.wkb-subheader-callout {
+    margin: 0 0 18px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--cfde-orange, #e07b39);
+    border: 1px solid var(--cfde-orange, #e07b39);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: left;
+}
+
+.wkb-subheader-callout a {
+    color: #ffffff;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.wkb-subheader-callout a:hover,
+.wkb-subheader-callout a:focus {
+    color: #ffffff;
+    opacity: 0.92;
+}

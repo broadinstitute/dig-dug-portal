@@ -22,7 +22,28 @@
             </header>
             <div class="wkb-inspector-body">
                 <div class="wkb-inspector-section-label">Evidence</div>
-                <p class="wkb-inspector-empty">
+                <template v-if="selectedNode">
+                    <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
+                    <dl class="wkb-inspector-meta">
+                        <div v-if="selectedNode.nodeType">
+                            <dt>Type</dt>
+                            <dd>{{ selectedNode.nodeType }}</dd>
+                        </div>
+                        <div v-if="selectedNode.isStartingNode">
+                            <dt>Role</dt>
+                            <dd>Starting node</dd>
+                        </div>
+                        <div v-if="selectedNode.subtitle">
+                            <dt>Subtitle</dt>
+                            <dd>{{ selectedNode.subtitle }}</dd>
+                        </div>
+                        <div v-if="selectedNode.rationale">
+                            <dt>Rationale</dt>
+                            <dd>{{ selectedNode.rationale }}</dd>
+                        </div>
+                    </dl>
+                </template>
+                <p v-else class="wkb-inspector-empty">
                     Select a node or edge in the graph to see the associations
                     behind it.
                 </p>
@@ -38,6 +59,10 @@ export default {
         open: {
             type: Boolean,
             default: false,
+        },
+        selectedNode: {
+            type: Object,
+            default: null,
         },
     },
 };
@@ -148,8 +173,43 @@ export default {
     margin-bottom: 8px;
 }
 
+.wkb-inspector-node-name {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-inspector-meta {
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.wkb-inspector-meta div {
+    display: grid;
+    gap: 2px;
+}
+
+.wkb-inspector-meta dt {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-inspector-meta dd {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
 .wkb-inspector-empty {
-    font-size: 0.88rem;
+    font-size: 13px;
     line-height: 1.5;
     color: #6b6b6b;
     margin: 0;

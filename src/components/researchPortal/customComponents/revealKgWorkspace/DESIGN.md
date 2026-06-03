@@ -32,6 +32,19 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 - Right-edge drawer; **evidence only** (node/edge provenance).
 - CFDE dataset discovery lives under **Analyze → Data provenance**, not in the Inspector.
 
+### Node action menu (canvas)
+
+Click a node to open a pointer menu (Playground parity). Default actions:
+
+| Label | Behavior |
+|-------|----------|
+| **Inspect node** | Select node and open Inspector |
+| **Remove node** | Remove non–starting nodes from the session graph |
+| **Expand graph from node** | Fetch neighbors via connections API seeded on that node |
+| **Highlight node** / **Clear highlight** | Mark or unmark any node as a node of interest (blue fill). Starting nodes use a diamond shape; neighbors use a circle. New graphs start with starting nodes highlighted. Saved with the graph in `highlighted`. |
+
+Click the same node again to dismiss the menu. Starting nodes cannot be removed.
+
 ---
 
 ## Visual design
@@ -67,6 +80,16 @@ Define and consume tokens on `.reveal-kg-workspace` so child components inherit:
 | `--cfde-muted` | `#6b6b6b` | Secondary text |
 
 Font stack: `"Inter", "Segoe UI", system-ui, -apple-system, sans-serif`.
+
+### Sub-header callouts (important warnings)
+
+Use for **action-required or high-salience messages** directly under a modal or section title (sub-header position)—not for routine help text.
+
+- **Class:** `wkb-subheader-callout` (defined in `wkbSharedStyles.css`, imported on `.reveal-kg-workspace`).
+- **Markup:** `<div class="wkb-subheader-callout" role="status">…</div>` (or `<p>` if no block children). Optional links inside use white underlined text (styled in the shared sheet).
+- **Look:** Solid `--cfde-orange` background (same as primary action buttons), white `13px` copy, `line-height: 1.35`, `padding: 8px 14px`, `border-radius: 999px` (pill, matching Save / primary buttons), left-aligned.
+- **When:** Duplication save prompt, approval gates, “you must do X before continuing”.
+- **When not:** Default modal descriptions, documentation, or neutral intros (use muted body text instead).
 
 ### Modals
 
