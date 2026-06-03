@@ -27,7 +27,7 @@
 			v-if="!!renderConfig"
 			:id="'simpleScatterPlot' + sectionId"
 			class="scatter-plot"
-			@mouseleave="hidePanel"
+			@mouseleave="onCanvasMouseLeave"
 			@mousemove="checkPosition"
 			:width="renderConfig.width * 2 + 240"
 			:height="renderConfig.height * 2 + 240"
@@ -76,11 +76,22 @@ import defaultColors from "@/utils/colors";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("research-simple-scatter-plot", {
-	props: ["plotData", "renderConfig", "utils", "sectionId", "colors"],
+	props: [
+		"plotData",
+		"renderConfig",
+		"utils",
+		"sectionId",
+		"colors",
+		"rowKeyField",
+		"linkedHoverKey",
+	],
 	data() {
 		return {
 			posData: {},
+			rowKeyToCanvasPos: {},
 			hoveredLegendValue: null,
+			localHoverActive: false,
+			highlightedRowKey: null,
 		};
 	},
 	computed: {
@@ -164,6 +175,9 @@ export default Vue.component("research-simple-scatter-plot", {
 				this.renderConfig["on hover"]?.forEach((item) => {
 					tempObj[item] = r[item];
 				});
+				if (this.rowKeyField) {
+					tempObj[this.rowKeyField] = r[this.rowKeyField];
+				}
 				massagedData.push(tempObj);
 			});
 
@@ -172,12 +186,26 @@ export default Vue.component("research-simple-scatter-plot", {
 	},
 	watch: {
 		renderData() {
+			this.highlightedRowKey = null;
 			this.clearPlot();
 			this.renderPlot();
 		},
 		hoveredLegendValue() {
+			this.highlightedRowKey = null;
 			this.clearPlot();
 			this.renderPlot();
+		},
+		linkedHoverKey(rowKey) {
+			if (this.localHoverActive) {
+				return;
+			}
+			if (rowKey && this.rowKeyToCanvasPos[rowKey]) {
+				this.setHighlightedRowKey(rowKey);
+				this.showTooltipForRowKey(rowKey, false);
+			} else if (!this.localHoverActive) {
+				this.setHighlightedRowKey(null);
+				this.hidePanel();
+			}
 		},
 	},
 	mounted() {
@@ -189,6 +217,99 @@ export default Vue.component("research-simple-scatter-plot", {
 		},
 		hidePanel() {
 			this.utils.uiUtils.hideElement("clicked_dot_value" + this.sectionId);
+			const canvas = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (canvas) {
+				canvas.classList.remove("hover");
+			}
+		},
+		onCanvasMouseLeave() {
+			this.localHoverActive = false;
+			this.setHighlightedRowKey(null);
+			this.hidePanel();
+			if (this.rowKeyField) {
+				this.$emit("hover-key-change", null);
+			}
+		},
+		setHighlightedRowKey(rowKey) {
+			const nextKey = rowKey || null;
+			if (nextKey === this.highlightedRowKey) {
+				return;
+			}
+			this.highlightedRowKey = nextKey;
+			this.renderPlot();
+		},
+		drawHighlightRing(ctx, xPos, yPos, dotRadius) {
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(xPos, yPos, dotRadius + 6, 0, 2 * Math.PI);
+			ctx.strokeStyle = "#ffffff";
+			ctx.lineWidth = 5;
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(xPos, yPos, dotRadius + 6, 0, 2 * Math.PI);
+			ctx.strokeStyle = "#e07b39";
+			ctx.lineWidth = 3;
+			ctx.stroke();
+			ctx.restore();
+		},
+		rowKeyForDatum(datum) {
+			if (!this.rowKeyField || !datum) {
+				return null;
+			}
+			const key = datum[this.rowKeyField];
+			return key == null || key === "" ? null : String(key);
+		},
+		buildHoverHtml(datum) {
+			if (!datum) {
+				return "";
+			}
+			let clickedDotValue = "";
+			if (this.renderConfig["on hover"]) {
+				this.renderConfig["on hover"].forEach((item, i) => {
+					const hoverLabel = item;
+					const labelHtml = hoverLabel ? `<b>${hoverLabel}:</b> ` : "";
+					clickedDotValue += `<span class="gene-on-clicked-dot-scatter">
+					${labelHtml}
+					${datum[item] ?? ""}
+					</span><br>`;
+					if (i < this.renderConfig["on hover"].length - 1) {
+						clickedDotValue += "<hr>";
+					}
+				});
+			} else {
+				clickedDotValue = `<span class="gene-on-clicked-dot-scatter">${
+					datum[this.renderConfig["render by"]] ?? ""
+				}</span>`;
+			}
+			return clickedDotValue;
+		},
+		showTooltipForRowKey(rowKey, emitChange = true) {
+			const entry = this.rowKeyToCanvasPos[rowKey];
+			if (!entry) {
+				return;
+			}
+			const wrapper = document.getElementById(
+				"clicked_dot_value" + this.sectionId
+			);
+			const canvas = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (!wrapper || !canvas) {
+				return;
+			}
+			wrapper.classList.remove("hidden");
+			const rect = canvas.getBoundingClientRect();
+			const displayX = (entry.x * 2 * rect.width) / canvas.width;
+			const displayY = (entry.y * 2 * rect.height) / canvas.height;
+			wrapper.style.top = displayY + canvas.offsetTop + "px";
+			wrapper.style.left = displayX + canvas.offsetLeft + 15 + "px";
+			wrapper.innerHTML = this.buildHoverHtml(entry.row);
+			canvas.classList.add("hover");
+			if (emitChange && this.rowKeyField) {
+				this.$emit("hover-key-change", rowKey);
+			}
 		},
 		checkPosition(event) {
 			let wrapper = document.getElementById(
@@ -200,15 +321,18 @@ export default Vue.component("research-simple-scatter-plot", {
 			var rect = document
 				.getElementById("simpleScatterPlot" + this.sectionId)
 				.getBoundingClientRect();
-			var x = Math.floor(e.clientX - rect.left);
-			var y = Math.floor(e.clientY - rect.top);
-
 			let canvas = document.getElementById(
 				"simpleScatterPlot" + this.sectionId
 			);
+			const scaleX = canvas ? canvas.width / rect.width : 1;
+			const scaleY = canvas ? canvas.height / rect.height : 1;
+			var x = Math.floor((e.clientX - rect.left) * scaleX / 2);
+			var y = Math.floor((e.clientY - rect.top) * scaleY / 2);
 
-			wrapper.style.top = y + canvas.offsetTop + "px";
-			wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+			wrapper.style.top =
+				(e.clientY - rect.top) + canvas.offsetTop + "px";
+			wrapper.style.left =
+				e.clientX - rect.left + canvas.offsetLeft + 15 + "px";
 
 			let clickedDotValue = "";
 
@@ -242,13 +366,38 @@ export default Vue.component("research-simple-scatter-plot", {
 				document
 					.getElementById("simpleScatterPlot" + this.sectionId)
 					.classList.add("hover");
+				this.localHoverActive = true;
+				if (this.rowKeyField) {
+					const hoveredRowKey = this.findRowKeyNearCanvasPoint(x, y);
+					this.setHighlightedRowKey(hoveredRowKey);
+					this.$emit("hover-key-change", hoveredRowKey);
+				}
 			} else {
 				wrapper.innerHTML = clickedDotValue;
 				wrapper.classList.add("hidden");
 				document
 					.getElementById("simpleScatterPlot" + this.sectionId)
 					.classList.remove("hover");
+				this.localHoverActive = false;
+				this.setHighlightedRowKey(null);
+				if (this.rowKeyField) {
+					this.$emit("hover-key-change", null);
+				}
 			}
+		},
+		findRowKeyNearCanvasPoint(x, y) {
+			let closestKey = null;
+			let closestDistance = Infinity;
+			for (const [rowKey, entry] of Object.entries(
+				this.rowKeyToCanvasPos
+			)) {
+				const distance = Math.hypot(entry.x - x, entry.y - y);
+				if (distance <= 8 && distance < closestDistance) {
+					closestDistance = distance;
+					closestKey = rowKey;
+				}
+			}
+			return closestKey;
 		},
 		clearPlot() {
 			var c = document.getElementById(
@@ -265,6 +414,7 @@ export default Vue.component("research-simple-scatter-plot", {
 				this.renderConfig.height * 2 + 240
 			);
 			this.posData = {};
+			this.rowKeyToCanvasPos = {};
 		},
 		dotFillStyle(row) {
 			const defaultColor =
@@ -450,22 +600,34 @@ export default Vue.component("research-simple-scatter-plot", {
 							yAxisTicks.lo) /
 							(yPosMax - yAxisTicks.lo));
 
-				if (!this.posData[Math.round(xPos / 2)]) {
-					this.posData[Math.round(xPos / 2)] = {};
+				const canvasX = Math.round(xPos / 2);
+				const canvasY = Math.round(yPos / 2);
+				const rowKey = this.rowKeyForDatum(d);
+
+				if (rowKey) {
+					this.rowKeyToCanvasPos[rowKey] = {
+						x: canvasX,
+						y: canvasY,
+						xPos,
+						yPos,
+						row: d,
+					};
 				}
 
-				this.posData[Math.round(xPos / 2)][Math.round(yPos / 2)] = [];
+				if (!this.posData[canvasX]) {
+					this.posData[canvasX] = {};
+				}
+
+				this.posData[canvasX][canvasY] = [];
 
 				if (this.renderConfig["on hover"]) {
 					this.renderConfig["on hover"].forEach((item) => {
-						this.posData[Math.round(xPos / 2)][
-							Math.round(yPos / 2)
-						].push(d[item]);
+						this.posData[canvasX][canvasY].push(d[item]);
 					});
 				} else {
-					this.posData[Math.round(xPos / 2)][
-						Math.round(yPos / 2)
-					].push(d[this.renderConfig["render by"]]);
+					this.posData[canvasX][canvasY].push(
+						d[this.renderConfig["render by"]]
+					);
 				}
 
 				ctx.fillStyle = this.dotFillStyle(d);
@@ -485,6 +647,20 @@ export default Vue.component("research-simple-scatter-plot", {
 					);
 				}
 			});
+
+			if (
+				this.highlightedRowKey &&
+				this.rowKeyToCanvasPos[this.highlightedRowKey]
+			) {
+				const highlight =
+					this.rowKeyToCanvasPos[this.highlightedRowKey];
+				this.drawHighlightRing(
+					ctx,
+					highlight.xPos,
+					highlight.yPos,
+					dotSizeMin
+				);
+			}
 		},
 	},
 });

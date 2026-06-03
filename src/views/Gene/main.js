@@ -1,6 +1,10 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import {
+    CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+    CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
+} from "./cellStateExpressionDocumentation";
 import _ from "lodash";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
@@ -96,6 +100,10 @@ new Vue({
     data() {
         return {
             counter: 0,
+            cellStateExpressionTooltipDefault:
+                CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+            cellStateExpressionSubheaderDefault:
+                CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
             activeTab: "hugeScorePheWASPlot",
