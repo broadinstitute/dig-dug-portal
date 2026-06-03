@@ -42,6 +42,7 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 - Prefer spacing, typography (section titles, weight), and background tints only when hierarchy truly needs it.
 - Use borders only when required for affordance or structure (e.g. modal shell vs backdrop, input fields, clickable cards that must read as discrete controls).
+- Do **not** add borders to layout wrappers or panels (e.g. `.wkb-graph-table-panel`, section containers) unless the user explicitly asks for them.
 - Do **not** wrap documentation sections, feature lists, or What/Why/How-style groupings in bordered boxes.
 
 ### Typography
@@ -94,10 +95,12 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, S
 |------|---------|
 | `revealKgWorkspace.vue` | Shell: header, stage, modals, session state |
 | `revealKgWorkspace/WorkspaceMenuBar.vue` | Menus + Library / Documentation buttons |
-| `revealKgWorkspace/WorkspaceCanvas.vue` | Graph canvas (viz TBD) |
+| `revealKgWorkspace/WorkspaceCanvas.vue` | Main graph canvas (D3 layered tree) |
 | `revealKgWorkspace/WorkspaceInspector.vue` | Evidence drawer |
 | `revealKgWorkspace/WorkspaceLibraryModal.vue` | Saved graphs + import/export |
 | `revealKgWorkspace/WorkspaceDocumentationModal.vue` | User guide |
+| `revealKgWorkspace/WorkspaceGraphDataTableModal.vue` | Tabbed graph data table popup |
+| `revealKgWorkspace/revealKgGraphTableData.js` | Table rows, CSV export, edge-derived scores |
 | `src/utils/revealKgApi.js` | Interactive API client |
 | `src/utils/userUtils.js` | Saved graph CRUD + library I/O |
 
@@ -113,6 +116,23 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 - **Gene set search:** `POST /api/interactive/gene-set/search` with `{ query, limit }` via `searchInteractiveGeneSets` (catalog `gene_set` fallback on 404/405).
 - **Free-text anchors:** `parseInteractiveAnchor({ query, context })`.
 - **Graph bootstrap from anchors:** `getInteractiveAnchorLinks`, then expansion/connection APIs as needed.
+
+---
+
+## Graph visualization
+
+**Use the right library per surface — do not mix approaches on the main canvas.**
+
+| Surface | Library | Reference |
+|---------|---------|-----------|
+| **Main workspace graph** (`WorkspaceCanvas`) | **D3** (SVG, layered tree) | Playground `HierarchyGraphCanvas.jsx`, `hierarchyGraphData.js`, `graphNodeColors.js` — Genes → Gene sets → Mechanisms → Traits |
+| **Smaller / auxiliary networks** (hypothesis maps, sig chains, compact supporting graphs in Analyze flows) | **vis-network** (`vis.js`) | `FactorBaseRevealNetwork2.vue` in dig-dug-portal |
+
+- Main graph: deterministic hierarchy, jumping-edge rules, contextual edges on hover — port/adapt Playground tree view, not force layout.
+- **Legend labels (toolbar):** Starting node (anchor diamond); **Active edges** (solid)—links in the saved/working graph; **Contextual edges** (dashed)—API-suggested links not yet in the graph. Do not use the label “Graph edges.”
+- Document active vs contextual edges in `WorkspaceDocumentationModal.vue` whenever edge behavior changes.
+- Smaller graphs: existing vis-network patterns (physics stabilize then disable; mechanism flow maps with edge labels).
+- **Cytoscape** is Playground’s secondary “Canvas view” only; not planned for workspace v1 unless we add an explicit exploratory toggle later.
 
 ---
 
@@ -132,3 +152,8 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 | Date | Note |
 |------|------|
 | 2026-06-02 | Initial rules: borders, 13px minimum, documentation tone, palette, product model |
+| 2026-06-02 | Graph viz: D3 for main canvas; vis-network for smaller auxiliary networks |
+| 2026-06-02 | Initial build: neighboring-nodes checkbox; anchor-links + connections bootstrap; D3 tree canvas |
+| 2026-06-03 | Legend: drop Default; rename graph links to Active edges; document edge types in Documentation modal |
+| 2026-06-03 | Tree layout: no even-row 25px stagger; rows centered; nodes ordered center-out by edge degree |
+| 2026-06-03 | Toolbar table icon opens tabbed graph data modal (Playground ledger columns) |

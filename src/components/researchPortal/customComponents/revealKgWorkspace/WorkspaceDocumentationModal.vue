@@ -96,6 +96,61 @@
                 </section>
 
                 <section class="wkb-docs-section">
+                    <h3>Tree view: nodes and edges</h3>
+                    <p class="wkb-docs-lead">
+                        The canvas uses a fixed four-row layout (genes, gene sets,
+                        mechanisms, traits). Symbols in the toolbar legend match what
+                        you see on the graph.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Starting node</strong>
+                            <p>
+                                Blue diamonds mark anchors—the genes, traits, or other
+                                entities you chose when building or expanding the graph.
+                                They show where exploration started, not every node on
+                                the canvas.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Active edges</strong>
+                            <p>
+                                Solid lines are links that belong to your working graph:
+                                connections returned when you built, loaded, or expanded
+                                the graph. They are part of what Save KG stores. Some
+                                active links skip one or more rows (“jumping” edges); use
+                                <em>Hide jumping edges</em> in graph options to keep the
+                                view quiet, then hover a node to see jumping links tied to
+                                that node.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Contextual edges</strong>
+                            <p>
+                                Dashed lines are extra associations between nodes already
+                                on the canvas, fetched from REVEAL but not added as
+                                active graph links. They help you spot plausible
+                                connections you might expand into the graph later. By
+                                default they stay hidden until you hover a node (or turn
+                                off <em>Hide contextual edges</em> to show non-jumping
+                                dashed links at once). When contextual edges are hidden,
+                                every dashed link stays off—including dashed links that
+                                skip a row. When contextual edges are shown, dashed links
+                                that skip a row still follow <em>Hide jumping edges</em>.
+                            </p>
+                        </li>
+                    </ul>
+                    <p>
+                        Graph options (eye icon) combine as follows when nothing is
+                        hovered: both hides on — only adjacent active (solid) links;
+                        hide contextual only — jumping active links plus adjacent active;
+                        hide jumping only — adjacent active plus non-jumping dashed
+                        contextual; both off — every link. Hover always reveals edges
+                        tied to the node under the pointer, even when a hide option is on.
+                    </p>
+                </section>
+
+                <section class="wkb-docs-section">
                     <h3>Inspector drawer</h3>
                     <p>
                         The Inspector sits on the right edge of the canvas and shows

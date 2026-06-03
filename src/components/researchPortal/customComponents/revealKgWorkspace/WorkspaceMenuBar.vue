@@ -47,17 +47,8 @@ export default {
     name: "WorkspaceMenuBar",
     data() {
         return {
-            // Disjoint taxonomy: Change = mutate, Analyze = interpret, Save = persist.
+            // Disjoint taxonomy: Analyze = interpret, Save = persist.
             menus: [
-                {
-                    id: "change",
-                    label: "Change",
-                    items: [
-                        { id: "expand", label: "Expand KG" },
-                        { id: "filter", label: "Filter KG" },
-                        { id: "addNodes", label: "Add nodes" },
-                    ],
-                },
                 {
                     id: "analyze",
                     label: "Analyze",

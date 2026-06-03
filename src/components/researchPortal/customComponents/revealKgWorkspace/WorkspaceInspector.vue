@@ -46,21 +46,22 @@ export default {
 <style scoped>
 .wkb-inspector {
     position: absolute;
-    top: 0;
+    top: 50%;
     right: 0;
-    bottom: 0;
+    transform: translateY(-50%);
     display: flex;
     align-items: stretch;
     pointer-events: none;
     z-index: 6;
 }
 
-/* Always-visible handle that sits just to the left of the panel edge. */
+/* Handle centered on the right edge of the graph viewport. */
 .wkb-inspector-tab {
     pointer-events: auto;
     position: absolute;
-    top: 18px;
+    top: 50%;
     right: 100%;
+    transform: translateY(-50%);
     height: 116px;
     width: 30px;
     border: 1px solid var(--cfde-border, #e6e1d6);
@@ -92,7 +93,7 @@ export default {
     pointer-events: auto;
     width: 0;
     overflow: hidden;
-    height: 100%;
+    max-height: min(72vh, 520px);
     background: #ffffff;
     border-left: 1px solid var(--cfde-border, #e6e1d6);
     box-shadow: -8px 0 24px rgba(20, 22, 30, 0.08);

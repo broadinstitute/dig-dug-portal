@@ -85,6 +85,18 @@
                             @input="$emit('update:context', $event.target.value)"
                         />
                     </div>
+                    <div class="wkb-initial-neighbor-wrap">
+                        <label class="wkb-initial-neighbor-option">
+                            <input
+                                type="checkbox"
+                                :checked="addNeighboringNodes"
+                                @change="$emit('update:addNeighboringNodes', $event.target.checked)"
+                            />
+                            <span>
+                                Add neighboring nodes (otherwise only directly connecting nodes will be added)
+                            </span>
+                        </label>
+                    </div>
                     <p v-if="columnError" class="wkb-initial-error">{{ columnError }}</p>
                 </div>
 
@@ -155,6 +167,10 @@ export default {
         context: {
             type: String,
             default: "",
+        },
+        addNeighboringNodes: {
+            type: Boolean,
+            default: true,
         },
         apiClient: {
             type: Object,
@@ -238,6 +254,7 @@ export default {
             this.$emit("continue", {
                 buckets: this.buckets,
                 context: this.context,
+                addNeighboringNodes: this.addNeighboringNodes,
             });
         },
     },
@@ -390,6 +407,29 @@ export default {
     font-size: 13px;
     line-height: 1.5;
     resize: vertical;
+}
+
+.wkb-initial-neighbor-wrap {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.wkb-initial-neighbor-option {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 560px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
+    cursor: pointer;
+    text-align: left;
+}
+
+.wkb-initial-neighbor-option input {
+    margin-top: 3px;
+    flex-shrink: 0;
 }
 
 .wkb-initial-error {

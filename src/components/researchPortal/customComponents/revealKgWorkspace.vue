@@ -9,10 +9,20 @@
         </header>
 
         <div class="rkw-stage">
-            <WorkspaceCanvas :loaded-graph="canvasLoadedGraph" />
-            <WorkspaceInspector
-                :open="inspectorOpen"
-                @toggle="inspectorOpen = !inspectorOpen"
+            <WorkspaceCanvas
+                :graph-nodes="canvasGraphNodes"
+                :graph-edges="canvasGraphEdges"
+                :contextual-edges="canvasContextualEdges"
+                :graph-loading="graphLoading"
+                :graph-error="graphError"
+                :selected-node-id="selectedNodeId"
+                :inspector-open="inspectorOpen"
+                :retrieval-ledger="canvasRetrievalLedger"
+                :table-add-busy="tableAddBusy"
+                @node-click="onCanvasNodeClick"
+                @toggle-inspector="inspectorOpen = !inspectorOpen"
+                @graph-action="onGraphAction"
+                @add-table-node="onAddTableNode"
             />
         </div>
 
@@ -41,13 +51,23 @@
             :open="initialGraphOpen"
             :buckets="starterBuckets"
             :context="starterContext"
+            :add-neighboring-nodes="addNeighboringNodes"
             :api-client="apiClient"
             :llm-available="llmAvailable"
             @update:buckets="starterBuckets = $event"
             @update:context="starterContext = $event"
+            @update:addNeighboringNodes="addNeighboringNodes = $event"
             @reset="resetStarterBuilder"
             @close="closeInitialGraph"
             @continue="onInitialGraphContinue"
+        />
+        <WorkspaceSaveGraphModal
+            :open="saveGraphOpen"
+            :label="saveGraphLabel"
+            :summary="graphSummary"
+            :is-update="Boolean(loadedSavedGraphId)"
+            @close="closeSaveGraph"
+            @save="onSaveGraphConfirm"
         />
 
         <transition name="rkw-fade">
@@ -69,15 +89,21 @@ import userUtils from "@/utils/userUtils.js";
 import revealKgApi from "@/utils/revealKgApi.js";
 import WorkspaceMenuBar from "./revealKgWorkspace/WorkspaceMenuBar.vue";
 import WorkspaceCanvas from "./revealKgWorkspace/WorkspaceCanvas.vue";
-import WorkspaceInspector from "./revealKgWorkspace/WorkspaceInspector.vue";
 import WorkspaceLibraryModal from "./revealKgWorkspace/WorkspaceLibraryModal.vue";
 import WorkspaceDocumentationModal from "./revealKgWorkspace/WorkspaceDocumentationModal.vue";
 import WorkspaceWelcomeModal from "./revealKgWorkspace/WorkspaceWelcomeModal.vue";
 import WorkspaceInitialGraphModal from "./revealKgWorkspace/WorkspaceInitialGraphModal.vue";
+import WorkspaceSaveGraphModal from "./revealKgWorkspace/WorkspaceSaveGraphModal.vue";
+import {
+    addNodesToWorkspaceGraph,
+    anchorItemsFromBuckets,
+    buildInitialGraphFromAnchors,
+    fetchContextualEdgesForGraph,
+    normalizeWorkspaceGraph,
+} from "./revealKgWorkspace/revealKgGraphBootstrap.js";
 import {
     emptyStarterBuckets,
     formatStarterCountSummary,
-    starterItemsFromBuckets,
     totalStarterCount,
 } from "./revealKgWorkspace/revealKgEntityUtils.js";
 
@@ -88,11 +114,11 @@ export default Vue.component("reveal-kg-workspace", {
     components: {
         WorkspaceMenuBar,
         WorkspaceCanvas,
-        WorkspaceInspector,
         WorkspaceLibraryModal,
         WorkspaceDocumentationModal,
         WorkspaceWelcomeModal,
         WorkspaceInitialGraphModal,
+        WorkspaceSaveGraphModal,
     },
     props: {
         phenotypesInUse: {
@@ -122,33 +148,78 @@ export default Vue.component("reveal-kg-workspace", {
             initialGraphOpen: false,
             starterBuckets: emptyStarterBuckets(),
             starterContext: "",
+            addNeighboringNodes: true,
             llmAvailable: false,
+            graphLoading: false,
+            graphError: "",
+            selectedNodeId: null,
+            contextualFetchTimer: null,
+            contextualFetchSignature: "",
+            tableAddBusy: false,
+            saveGraphOpen: false,
         };
     },
     computed: {
+        saveGraphLabel() {
+            return this.activeSession?.label || "Untitled graph";
+        },
         graphStore() {
             return this.utilsBox?.userUtils || userUtils;
         },
         apiClient() {
             return this.utilsBox?.revealKgApi || revealKgApi;
         },
-        canvasLoadedGraph() {
-            if (!this.activeSession) {
-                return null;
+        graphSummary() {
+            if (!this.activeSession?.graphNodes?.length) {
+                return "";
             }
-            const record = {
-                label: this.activeSession.label,
-                nodes: this.activeSession.graphNodes,
-                edges: this.activeSession.graphEdges,
-                savedAt: this.activeSession.savedAt,
-            };
-            return {
-                label: record.label || "Loaded graph",
-                summary: this.graphStore.formatGraphCounts(record),
-                savedAt: record.savedAt
-                    ? this.graphStore.formatGraphWhen(record.savedAt)
-                    : "",
-            };
+            const nodeCount = this.activeSession.graphNodes.length;
+            const edgeCount = (this.activeSession.graphEdges || []).length;
+            const contextualCount = (this.activeSession.contextualEdges || []).length;
+            const anchorCount = this.activeSession.graphNodes.filter((node) => node.is_anchor).length;
+            const neighborCount = Math.max(0, nodeCount - anchorCount);
+            const parts = [
+                `${nodeCount} node${nodeCount === 1 ? "" : "s"}`,
+                `${edgeCount} edge${edgeCount === 1 ? "" : "s"}`,
+            ];
+            if (contextualCount) {
+                parts.push(`${contextualCount} contextual`);
+            }
+            if (anchorCount) {
+                parts.push(`${anchorCount} starting`);
+            }
+            if (neighborCount) {
+                parts.push(`${neighborCount} neighbor${neighborCount === 1 ? "" : "s"}`);
+            }
+            return parts.join(" · ");
+        },
+        canvasGraphNodes() {
+            return this.activeSession?.graphNodes || [];
+        },
+        canvasGraphEdges() {
+            return this.activeSession?.graphEdges || [];
+        },
+        canvasContextualEdges() {
+            return this.activeSession?.contextualEdges || [];
+        },
+        canvasRetrievalLedger() {
+            return this.activeSession?.retrievalLedger || {};
+        },
+        contextualGraphSignature() {
+            const nodes = (this.activeSession?.graphNodes || [])
+                .map((node) => node.id)
+                .sort()
+                .join("|");
+            const edges = (this.activeSession?.graphEdges || [])
+                .map((edge) => edge.id)
+                .sort()
+                .join("|");
+            return `${nodes}::${edges}`;
+        },
+    },
+    watch: {
+        contextualGraphSignature() {
+            this.scheduleContextualEdgesFetch();
         },
     },
     created() {
@@ -158,6 +229,9 @@ export default Vue.component("reveal-kg-workspace", {
     beforeDestroy() {
         if (this.lastActionTimer) {
             clearTimeout(this.lastActionTimer);
+        }
+        if (this.contextualFetchTimer) {
+            clearTimeout(this.contextualFetchTimer);
         }
     },
     methods: {
@@ -181,6 +255,7 @@ export default Vue.component("reveal-kg-workspace", {
             this.libraryOpen = false;
             this.docsOpen = false;
             this.initialGraphOpen = true;
+            this.graphError = "";
             if (reset) {
                 this.resetStarterBuilder();
                 this.activeSession = null;
@@ -203,25 +278,146 @@ export default Vue.component("reveal-kg-workspace", {
         resetStarterBuilder() {
             this.starterBuckets = emptyStarterBuckets();
             this.starterContext = "";
+            this.addNeighboringNodes = true;
         },
-        onInitialGraphContinue({ buckets, context }) {
+        async onInitialGraphContinue({ buckets, context, addNeighboringNodes }) {
             this.starterBuckets = buckets;
             this.starterContext = context;
+            this.addNeighboringNodes = addNeighboringNodes !== false;
             this.initialGraphOpen = false;
-            const items = starterItemsFromBuckets(buckets);
+            this.graphError = "";
+            this.selectedNodeId = null;
+
+            const anchorItems = anchorItemsFromBuckets(buckets);
             const parts = formatStarterCountSummary(buckets);
+            this.graphLoading = true;
             this.activeSession = {
                 label: "New graph",
-                graphNodes: items,
+                graphNodes: [],
                 graphEdges: [],
+                contextualEdges: [],
+                retrievalLedger: {},
                 context: context || "",
                 starterBuckets: buckets,
+                anchorItems,
+                addNeighboringNodes: this.addNeighboringNodes,
             };
             this.loadedSavedGraphId = null;
-            this.showStatus(
-                `Starting graph with ${parts.join(", ")}`,
-                3200
-            );
+
+            try {
+                const built = await buildInitialGraphFromAnchors({
+                    apiClient: this.apiClient,
+                    anchorItems,
+                    context: context || "",
+                    addNeighboringNodes: this.addNeighboringNodes,
+                });
+                this.activeSession = {
+                    ...this.activeSession,
+                    graphNodes: built.graphNodes,
+                    graphEdges: built.graphEdges,
+                    contextualEdges: [],
+                    retrievalLedger: built.retrievalLedger || {},
+                    anchorItems: built.anchorItems,
+                    context: built.context,
+                };
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.showStatus(
+                    `Built graph with ${parts.join(", ")}`,
+                    3200
+                );
+            } catch (error) {
+                this.graphError = String(error?.message || error);
+                this.activeSession = null;
+                this.showStatus("Could not build graph.", 3200);
+            } finally {
+                this.graphLoading = false;
+            }
+        },
+        onCanvasNodeClick(nodeId) {
+            this.selectedNodeId = nodeId;
+            this.inspectorOpen = true;
+        },
+        onGraphAction(action) {
+            const labels = {
+                expand: "Expand KG",
+                filter: "Filter KG",
+            };
+            this.showStatus(`Triggered: ${labels[action] || action}`);
+        },
+        async onAddTableNode(row) {
+            if (!this.activeSession || !row?.node_id) {
+                return;
+            }
+            this.tableAddBusy = true;
+            this.graphLoading = true;
+            try {
+                const next = await addNodesToWorkspaceGraph(
+                    this.apiClient,
+                    this.activeSession,
+                    [row]
+                );
+                this.activeSession = {
+                    ...this.activeSession,
+                    graphNodes: next.graphNodes,
+                    graphEdges: next.graphEdges,
+                    retrievalLedger: next.retrievalLedger,
+                };
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.showStatus(`Added ${row.label || row.node_id} to the graph.`, 2800);
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Could not add node.",
+                    3200
+                );
+            } finally {
+                this.tableAddBusy = false;
+                this.graphLoading = false;
+            }
+        },
+        scheduleContextualEdgesFetch({ immediate = false } = {}) {
+            if (this.contextualFetchTimer) {
+                clearTimeout(this.contextualFetchTimer);
+                this.contextualFetchTimer = null;
+            }
+            const delayMs = immediate ? 0 : 400;
+            this.contextualFetchTimer = setTimeout(() => {
+                this.contextualFetchTimer = null;
+                this.loadContextualEdges();
+            }, delayMs);
+        },
+        async loadContextualEdges() {
+            const session = this.activeSession;
+            if (!session?.graphNodes?.length) {
+                return;
+            }
+            const signature = this.contextualGraphSignature;
+            if (signature === this.contextualFetchSignature) {
+                return;
+            }
+            this.contextualFetchSignature = signature;
+            try {
+                const contextualEdges = await fetchContextualEdgesForGraph(
+                    this.apiClient,
+                    session.graphNodes,
+                    session.graphEdges
+                );
+                if (!this.activeSession || this.contextualGraphSignature !== signature) {
+                    return;
+                }
+                this.activeSession = {
+                    ...this.activeSession,
+                    contextualEdges,
+                };
+            } catch (error) {
+                if (this.activeSession && this.contextualGraphSignature === signature) {
+                    this.activeSession = {
+                        ...this.activeSession,
+                        contextualEdges: [],
+                    };
+                }
+            }
         },
         refreshSavedGraphs() {
             this.savedGraphs = this.graphStore.listGraphs();
@@ -261,7 +457,49 @@ export default Vue.component("reveal-kg-workspace", {
                 this.openInitialGraphSetup({ reset: true });
                 return;
             }
+            if (payload.menu === "save" && payload.action === "saveKg") {
+                this.openSaveGraph();
+                return;
+            }
             this.showStatus(`Triggered: ${payload.label}`);
+        },
+        openSaveGraph() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Nothing to save — build a graph first.", 3200);
+                return;
+            }
+            this.saveGraphOpen = true;
+        },
+        closeSaveGraph() {
+            this.saveGraphOpen = false;
+        },
+        onSaveGraphConfirm({ label }) {
+            const session = {
+                ...this.activeSession,
+                label,
+                contextualEdgeSignature: this.contextualGraphSignature,
+            };
+            let record;
+            if (this.loadedSavedGraphId) {
+                record = this.graphStore.updateGraphFromSession(this.loadedSavedGraphId, session, {
+                    label,
+                });
+            } else {
+                record = this.graphStore.saveGraphFromSession(session, { label });
+            }
+            this.saveGraphOpen = false;
+            if (!record) {
+                this.showStatus("Could not save graph.", 3200);
+                return;
+            }
+            this.loadedSavedGraphId = record.id;
+            this.activeSession = {
+                ...this.activeSession,
+                label: record.label,
+                contextualEdgeSignature: this.contextualGraphSignature,
+            };
+            this.refreshSavedGraphs();
+            this.showStatus(`Saved "${record.label}"`, 3200);
         },
         onLibraryLoad(record) {
             const session = this.graphStore.sessionFromGraph(record);
@@ -269,8 +507,26 @@ export default Vue.component("reveal-kg-workspace", {
                 this.showStatus("Could not load that graph.");
                 return;
             }
-            this.activeSession = session;
+            const normalized = normalizeWorkspaceGraph(session.graphNodes, session.graphEdges);
+            this.activeSession = {
+                ...session,
+                graphNodes: normalized.graphNodes,
+                graphEdges: normalized.graphEdges,
+                contextualEdges: session.contextualEdges || [],
+                retrievalLedger: session.retrievalLedger || {},
+                contextualEdgeSignature: session.contextualEdgeSignature || "",
+            };
+            this.contextualFetchSignature = session.contextualEdgeSignature || "";
+            if (
+                !session.contextualEdges?.length &&
+                this.contextualGraphSignature !== this.contextualFetchSignature
+            ) {
+                this.scheduleContextualEdgesFetch({ immediate: true });
+            }
             this.loadedSavedGraphId = record.id;
+            this.graphError = "";
+            this.graphLoading = false;
+            this.selectedNodeId = null;
             this.welcomeOpen = false;
             this.initialGraphOpen = false;
             this.closeLibrary();

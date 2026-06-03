@@ -64,14 +64,25 @@
                 <h3 :id="`wkb-entity-add-title-${columnKey}`">{{ addModalTitle }}</h3>
 
                 <div class="wkb-entity-add-search">
-                    <input
-                        ref="searchInput"
-                        v-model="autocompleteQuery"
-                        type="text"
-                        class="wkb-entity-add-input"
-                        :placeholder="searchPlaceholder"
-                        :aria-label="searchPlaceholder"
-                    />
+                    <div class="wkb-entity-add-search-field">
+                        <input
+                            ref="searchInput"
+                            v-model="autocompleteQuery"
+                            type="text"
+                            class="wkb-entity-add-input"
+                            :placeholder="searchPlaceholder"
+                            :aria-label="searchPlaceholder"
+                        />
+                        <button
+                            v-if="autocompleteQuery"
+                            type="button"
+                            class="wkb-entity-search-clear"
+                            aria-label="Clear search"
+                            @click="clearSearchInput"
+                        >
+                            <span class="wkb-entity-search-clear-glyph" aria-hidden="true">×</span>
+                        </button>
+                    </div>
                     <p v-if="autocompleteLoading" class="wkb-entity-add-status">
                         Searching…
                     </p>
@@ -262,7 +273,11 @@ export default {
             return `Search ${this.title.toLowerCase()}`;
         },
         conceptualSearchEnabled() {
-            return this.entityType !== "gene_set" && this.llmAvailable;
+            return (
+                this.entityType !== "gene_set" &&
+                this.entityType !== "gene" &&
+                this.llmAvailable
+            );
         },
         showConceptualTabs() {
             return this.semanticMatches.length > 0;
@@ -322,12 +337,16 @@ export default {
             }
         },
         clearSearchState() {
+            this.clearSearchInput();
+            this.clearSelectedFeedback();
+        },
+        clearSearchInput() {
             this.cancelCatalogSearch();
             this.autocompleteQuery = "";
             this.autocompleteSuggestions = [];
             this.semanticMatches = [];
             this.matchTab = "catalog";
-            this.clearSelectedFeedback();
+            this.autocompleteLoading = false;
         },
         clearSelectedFeedback() {
             if (this.selectedFeedbackTimer) {
@@ -437,10 +456,10 @@ export default {
             }
             this.$emit("add", item);
             this.showSelectedFeedback("Selected term added");
-            this.autocompleteQuery = "";
-            this.autocompleteSuggestions = [];
-            this.semanticMatches = [];
-            this.matchTab = "catalog";
+            const query = this.autocompleteQuery.trim();
+            if (query) {
+                this.runCatalogSearch(query, ++this.catalogRequestId);
+            }
             this.$nextTick(() => {
                 this.$refs.searchInput?.focus();
             });
@@ -585,12 +604,50 @@ export default {
     margin-bottom: 12px;
 }
 
+.wkb-entity-add-search-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .wkb-entity-add-input {
     width: 100%;
-    padding: 8px 10px;
+    box-sizing: border-box;
+    padding: 8px 36px 8px 10px;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 8px;
     font-size: 13px;
+}
+
+.wkb-entity-search-clear {
+    position: absolute;
+    right: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0 0 2px 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--cfde-orange, #e07b39);
+    color: #fff;
+    cursor: pointer;
+}
+
+.wkb-entity-search-clear:hover {
+    background: var(--cfde-orange-dark, #c2662b);
+}
+
+.wkb-entity-search-clear:focus-visible {
+    outline: 2px solid var(--cfde-orange, #e07b39);
+    outline-offset: 1px;
+}
+
+.wkb-entity-search-clear-glyph {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 0;
 }
 
 .wkb-entity-add-status,
