@@ -66,11 +66,10 @@
                     >
                         <div class="liger-plot-panel">
                             <div class="liger-plot-wrapper">
-                                <research-section-visualizers
-                                    :plot-config="log2fcScatterPlotConfig"
+                                <research-simple-scatter-plot
+                                    :render-config="log2fcScatterPlotConfig"
                                     :plot-data="ligerPlotData"
                                     :utils="utilsBox"
-                                    :plot-margin="plotMargin"
                                     :colors="plotColors"
                                     section-id="ligerLog2fcScatter"
                                     row-key-field="liger_row_key"
@@ -78,7 +77,7 @@
                                     @hover-key-change="
                                         linkedPlotHoverKey = $event
                                     "
-                                ></research-section-visualizers>
+                                ></research-simple-scatter-plot>
                             </div>
                             <div class="liger-plot-title">
                                 Log2 FC vs -log10(p)
@@ -86,11 +85,10 @@
                         </div>
                         <div class="liger-plot-panel">
                             <div class="liger-plot-wrapper">
-                                <research-section-visualizers
-                                    :plot-config="cpkScatterPlotConfig"
+                                <research-simple-scatter-plot
+                                    :render-config="cpkScatterPlotConfig"
                                     :plot-data="ligerPlotData"
                                     :utils="utilsBox"
-                                    :plot-margin="plotMargin"
                                     :colors="plotColors"
                                     section-id="ligerCpkScatter"
                                     row-key-field="liger_row_key"
@@ -98,7 +96,7 @@
                                     @hover-key-change="
                                         linkedPlotHoverKey = $event
                                     "
-                                ></research-section-visualizers>
+                                ></research-simple-scatter-plot>
                             </div>
                             <div class="liger-plot-title">
                                 Log10 CPK vs -log10(p)
@@ -198,17 +196,6 @@
     width: 100%;
 }
 
-.liger-plot-wrapper ::v-deep .col-md-12 {
-    float: none;
-    flex: 0 1 auto;
-    width: auto;
-    max-width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-}
-
 .liger-plot-wrapper ::v-deep .scatter-plot-content {
     position: relative;
     display: flex;
@@ -254,7 +241,7 @@ import {
     predicateFromSpec,
 } from "@/utils/filterHelpers";
 import DataDownload from "@/components/DataDownload.vue";
-import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
+import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
@@ -272,7 +259,7 @@ const CELL_STATE_EXPRESSION_API =
 export default Vue.component("LigerTable", {
     components: {
         DataDownload,
-        ResearchSectionVisualizers,
+        ResearchSimpleScatterPlot,
         CriterionFunctionGroup,
         FilterEnumeration,
         FilterGreaterLess,
@@ -297,13 +284,6 @@ export default Vue.component("LigerTable", {
             items: [],
             loading: false,
             error: null,
-            plotMargin: {
-                leftMargin: 80,
-                rightMargin: 20,
-                topMargin: 20,
-                bottomMargin: 60,
-                bump: 5,
-            },
             plotColors: {
                 moderate: colors,
             },
