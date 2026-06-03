@@ -1,36 +1,34 @@
 <template>
     <div>
         <div class="label">{{ yField }}</div>
-        <div class="plot" v-if="plotId !== null"
-            :id="plotId">
-        </div>
+        <div class="plot" v-if="plotId !== null" :id="plotId"></div>
     </div>
 </template>
-  
+
 <script>
-import * as d3 from 'd3';
+import * as d3 from "d3";
 import colors from "@/utils/colors";
-import { truncate } from 'lodash';
-  import Vue from 'vue';
-  
-  export default Vue.component('functional-violin-plot', {
+import { truncate } from "lodash";
+import Vue from "vue";
+
+export default Vue.component("functional-violin-plot", {
     props: {
-      data: {                           
-        type: (Array, null),
-        required: true,
-      },
-      xField: {
-        type: (String, null),
-        required: true
-      },
-      xLabel: {
-        type: (String, null),
-        required: true
-      },
-      yField: {
-        type: (String, null),
-        required: true
-      },
+        data: {
+            type: (Array, null),
+            required: true,
+        },
+        xField: {
+            type: (String, null),
+            required: true,
+        },
+        xLabel: {
+            type: (String, null),
+            required: true,
+        },
+        yField: {
+            type: (String, null),
+            required: true,
+        },
     },
     data() {
         return {
@@ -43,26 +41,26 @@ import { truncate } from 'lodash';
                 top: 10,
                 right: 10,
                 bottom: 80,
-                left: 70
+                left: 70,
             },
             svg: null,
             fontSize: "13px",
             plotHeight: 250,
-        }
+        };
     },
     watch: {
         data() {
             this.drawChart();
         },
-        xField(){
+        xField() {
             this.drawChart();
         },
         highlightKey(key) {
             this.doHighlight(key);
-        }
+        },
     },
     mounted() {
-        if(this.data){
+        if (this.data) {
             this.chart = document.getElementById(this.plotId);
             this.chartWidth = this.chart.clientWidth;
             addEventListener("resize", (event) => {
@@ -73,30 +71,25 @@ import { truncate } from 'lodash';
         }
         //window.addEventListener('resize', this.handleResize);
     },
-    beforeDestroy(){
+    beforeDestroy() {
         //window.removeEventListener('resize', this.handleResize);
-        if(this.eventElements.length>0) {
+        if (this.eventElements.length > 0) {
             this.removeAllListeners(this.eventElements);
         }
     },
-    computed: {
-    },
+    computed: {},
     methods: {
-        handleResize(){
+        handleResize() {
             this.drawChart();
         },
-        drawChart(){
-            if(!this.data) return;
+        drawChart() {
+            if (!this.data) return;
             let plotId = `#${this.plotId}`;
 
             //Clear existing
 
-            d3.select(plotId)
-                .selectAll("svg")
-                .remove();
-            d3.select(plotId)
-                .selectAll("g")
-                .remove();
+            d3.select(plotId).selectAll("svg").remove();
+            d3.select(plotId).selectAll("g").remove();
 
             let xField = this.xField;
             let yField = this.yField;
@@ -104,152 +97,172 @@ import { truncate } from 'lodash';
             let width = this.chartWidth - this.margin.left - this.margin.right;
             let height = this.plotHeight - this.margin.top - this.margin.bottom;
 
-            this.svg = d3.select(plotId)
+            this.svg = d3
+                .select(plotId)
                 .append("svg")
-                    .attr("width", width + this.margin.left + this.margin.right)
-                    .attr("height", height + this.margin.top + this.margin.bottom)
-                    .attr("id", `${this.plotId}_svg`)
+                .attr("width", width + this.margin.left + this.margin.right)
+                .attr("height", height + this.margin.top + this.margin.bottom)
+                .attr("id", `${this.plotId}_svg`)
                 .append("g")
-                    .attr("transform", 
-                        `translate(${this.margin.left},${this.margin.top})`);
-            
-            let minVal = d3.min(this.data.map(d => d[yField]));
-            let maxVal = d3.max(this.data.map(d => d[yField]));
-            let y = d3.scaleLinear()
+                .attr(
+                    "transform",
+                    `translate(${this.margin.left},${this.margin.top})`
+                );
+
+            let minVal = d3.min(this.data.map((d) => d[yField]));
+            let maxVal = d3.max(this.data.map((d) => d[yField]));
+            let y = d3
+                .scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
-            this.svg.append("g").call(d3.axisLeft(y))
+            this.svg
+                .append("g")
+                .call(d3.axisLeft(y))
                 .selectAll("text")
                 .style("font-size", this.fontSize);
 
             let empty = "-";
-            let categories = Array.from(new Set(
-                this.data.map(d => d[xField]).filter(d => d !== empty)));
-            
+            let categories = Array.from(
+                new Set(
+                    this.data.map((d) => d[xField]).filter((d) => d !== empty)
+                )
+            );
 
-            let x = d3.scaleBand()
-                .range([0,width])
+            let x = d3
+                .scaleBand()
+                .range([0, width])
                 .domain(categories)
                 .padding(0.05);
-            this.svg.append("g")
+            this.svg
+                .append("g")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x))
                 .selectAll("text")
-				.style("font-size", this.fontSize)
+                .style("font-size", this.fontSize)
                 .style("text-anchor", "end")
                 .attr("transform", "rotate(-35) translate(-5, 0)")
-                .text(t => this.textLabel(t));
-            
-            let histogram = d3.histogram()
+                .text((t) => this.textLabel(t));
+
+            let histogram = d3
+                .histogram()
                 .domain(y.domain())
                 .thresholds(y.ticks(20))
-                .value(d => d);
+                .value((d) => d);
 
-            let statData = structuredClone(this.data).filter(d => d[xField] !== empty);
-            
-            let sumstat = d3.nest()
-                .key(d => d[xField])
-                .rollup(function(d){
-                    let input = d.map(g => g[yField]);
+            let statData = structuredClone(this.data).filter(
+                (d) => d[xField] !== empty
+            );
+
+            let sumstat = d3
+                .nest()
+                .key((d) => d[xField])
+                .rollup(function (d) {
+                    let input = d.map((g) => g[yField]);
                     let bins = histogram(input);
                     return bins;
                 })
                 .entries(statData);
-            
-                        
+
             let maxNum = 0;
-            for (let i = 0; i < sumstat.length; i++){
+            for (let i = 0; i < sumstat.length; i++) {
                 let allBins = sumstat[i].value;
-                let lengths = allBins.map(a => a.length);
+                let lengths = allBins.map((a) => a.length);
                 let longest = d3.max(lengths);
-                if (longest > maxNum){
+                if (longest > maxNum) {
                     maxNum = longest;
                 }
             }
-            let xNum = d3.scaleLinear()
+            let xNum = d3
+                .scaleLinear()
                 .range([0, x.bandwidth()])
                 .domain([-maxNum, maxNum]);
-            
-            this.svg.selectAll("myViolin")
+
+            this.svg
+                .selectAll("myViolin")
                 .data(sumstat)
                 .enter()
                 .append("g")
-                    .attr("transform", d => {
-                        return `translate(${x(d.key)} ,0)`;})
+                .attr("transform", (d) => {
+                    return `translate(${x(d.key)} ,0)`;
+                })
                 .append("path")
-                    .datum(d => d.value)
-                    .style("stroke", "none")
-                    .style("fill", (d,i) => colors[i] || colors[colors.length % i])
-                    .attr("d", d3.area()
-                        .x0(d => xNum(-d.length))
-                        .x1(d => xNum(d.length))
-                        .y(d => y(d.x0))
-                        .defined(d => d[xField] !== empty)
-                        .curve(d3.curveCatmullRom));
+                .datum((d) => d.value)
+                .style("stroke", "none")
+                .style("fill", (d, i) => colors[i] || colors[colors.length % i])
+                .attr(
+                    "d",
+                    d3
+                        .area()
+                        .x0((d) => xNum(-d.length))
+                        .x1((d) => xNum(d.length))
+                        .y((d) => y(d.x0))
+                        .defined((d) => d[xField] !== empty)
+                        .curve(d3.curveCatmullRom)
+                );
 
-            this.svg.append("g")
-				.attr("id", "axisLabelsGroup")
-				.attr("transform", "translate(0,0)")
+            this.svg
+                .append("g")
+                .attr("id", "axisLabelsGroup")
+                .attr("transform", "translate(0,0)")
                 .style("text-anchor", "middle");
 
-            this.svg.select("#axisLabelsGroup")
-				.append("text")
-				.attr("transform", "rotate(-90)")
+            this.svg
+                .select("#axisLabelsGroup")
+                .append("text")
+                .attr("transform", "rotate(-90)")
                 .attr("y", -35)
-                .attr("x", - height / 2)
-				.text(`AUC`);
+                .attr("x", -height / 2)
+                .text(`ng/100 IEQ`);
         },
-        truncateLabel(label){
-            if (label.indexOf(" ") !== -1){
+        truncateLabel(label) {
+            if (label.indexOf(" ") !== -1) {
                 return label.replaceAll(" ", "");
             }
-            return label.length < 8 ? label : `${label.slice(0,7)}.`;
+            return label.length < 8 ? label : `${label.slice(0, 7)}.`;
         },
-        textLabel(t){
+        textLabel(t) {
             let parenthetical = /\((\w+)\)/;
             let selfAbbreviation = t.match(parenthetical);
-            if (selfAbbreviation !== null){
+            if (selfAbbreviation !== null) {
                 return selfAbbreviation[1];
             }
-            if (this.xField === 'Isolation_center'){
-                let delimiters = /[-]? /
+            if (this.xField === "Isolation_center") {
+                let delimiters = /[-]? /;
                 let shortForm = t.split(delimiters);
                 return shortForm[0];
             }
             let diabetesType = /(type [\d])/;
             let getDiabetesType = t.match(diabetesType);
-            if (getDiabetesType !== null){
+            if (getDiabetesType !== null) {
                 return getDiabetesType[1];
             }
-            if (t.startsWith("control")){
+            if (t.startsWith("control")) {
                 return "control";
             }
             return t;
-
-        }
+        },
     },
-  });
-  </script>
-  
-  <style scoped>
-  svg {
+});
+</script>
+
+<style scoped>
+svg {
     font-family: sans-serif;
-  }
-  
-  ::v-deep .chart-label{
-    font-size:12px;
-    opacity:0.5;
-  }
-  ::v-deep .plot.highlighting .bar{
+}
+
+::v-deep .chart-label {
+    font-size: 12px;
+    opacity: 0.5;
+}
+::v-deep .plot.highlighting .bar {
     opacity: 0.2;
-  }
-  ::v-deep .plot.highlighting .bar.on{
+}
+::v-deep .plot.highlighting .bar.on {
     opacity: 1;
-  }
-    .plot{
-        margin-left: 15px;
-        margin-bottom: 15px;
-        background-color: white;
-    }
-  </style>
-  
+}
+.plot {
+    margin-left: 15px;
+    margin-bottom: 15px;
+    background-color: white;
+}
+</style>
