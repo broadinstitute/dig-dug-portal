@@ -250,7 +250,18 @@ export default {
         async getResearchData(context, targetDataPoint) {
             // If it's a kp4cd.org URL, use fallback logic; otherwise fetch directly
             let json;
-            if (targetDataPoint && targetDataPoint.includes('kp4cd.org')) {
+            let isKp4cdHost = false;
+            if (targetDataPoint) {
+                try {
+                    const parsedUrl = new URL(targetDataPoint);
+                    const hostname = parsedUrl.hostname.toLowerCase();
+                    isKp4cdHost = hostname === "kp4cd.org" || hostname.endsWith(".kp4cd.org");
+                } catch (e) {
+                    isKp4cdHost = false;
+                }
+            }
+
+            if (isKp4cdHost) {
                 json = await fetchWithFallback(targetDataPoint);
             } else {
                 json = await fetch(targetDataPoint).then((resp) => resp.json());

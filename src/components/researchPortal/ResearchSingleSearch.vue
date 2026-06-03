@@ -207,7 +207,7 @@ export default Vue.component("research-single-search", {
 					this.singleSearchResult[P] = [];
 				})
 			}
-		},
+		}
 	},
 	methods: {
 		...alertUtils,

@@ -207,7 +207,7 @@
                         <!-- Trait select -->
                         <div style="display: flex; flex-direction: row; padding:20px; background: white; gap:20px;">
 
-                            <div v-if="displayGroups?.cellType?.length>1" 
+                            <div v-if="displayGroups && displayGroups.cellType && displayGroups.cellType.length>1"
                                 style="display: flex; flex-direction: column; gap:5px; width:300px;">
                                 <div style="display: flex; gap:5px; align-items: center;">
                                     <div style="font-weight:bold; font-size: 16px; white-space:nowrap;">Group By</div> 
@@ -1118,9 +1118,10 @@
                 baseTableColumns: [
                     {key: "tissue", label: "Tissue", class:"capitalize"},
                     {key: "depot", label: "Depot", class:"capitalize"}, 
+                    {key: "sourceDataset", label: "Source"},
                     {key: "totalDonors", label: "Donors", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                     {key: "totalBiosamples", label: "Biosamples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
-                    {key: "totalSamples", label: "Samples", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
+                    {key: "totalSamples", label: "Cells", formatter: (val) => val?.toLocaleString(), thClass: 'text-right', tdClass: 'text-right', thStyle: { width: '150px' }},
                 ],
                 currentDatasetsPage: 1,
                 totalDatasets: null,
@@ -2141,14 +2142,17 @@
                     const genes = this.markersByCellType[key];
                     //for (const genes of this.markersByCellType[key]) {
                         if(!cellTypeName || (cellTypeName && cellType===cellTypeName)){
-                            if (genes.every(gene => gene.z_score != null)) {
-                                topGenes = genes
-                                    .sort((a, b) => b.z_score - a.z_score)
-                                    .filter(a => a.z_score > 0)
-                            }else{
-                                topGenes = genes
-                                    .sort((a, b) => b.mean_expression - a.mean_expression)
-                                    .filter(a => a.mean_expression > 0);
+                            console.log(cellType, genes);
+                            if(genes){
+                                if (genes.every(gene => gene.z_score != null)) {
+                                    topGenes = genes
+                                        .sort((a, b) => b.z_score - a.z_score)
+                                        .filter(a => a.z_score > 0)
+                                }else{
+                                    topGenes = genes
+                                        .sort((a, b) => b.mean_expression - a.mean_expression)
+                                        .filter(a => a.mean_expression > 0);
+                                }
                             }
 
                             if(topN){
