@@ -241,12 +241,11 @@ export default Vue.component("functional-violin-plot", {
                 .attr("transform", "rotate(-90)")
                 .attr("text-anchor", "middle");
 
-            const totalBlock = (labelLines.length - 1) * lineHeight;
             labelLines.forEach((line, i) => {
                 labelText
                     .append("tspan")
                     .attr("x", -height / 2)
-                    .attr("y", -(labelOffset - totalBlock + i * lineHeight))
+                    .attr("y", -(labelOffset - i * lineHeight))
                     .text(line);
             });
         },
