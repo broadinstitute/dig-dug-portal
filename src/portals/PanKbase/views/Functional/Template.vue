@@ -231,7 +231,7 @@
                                                     :yAxisLabel="
                                                         $parent.showContent
                                                             ? '% content min'
-                                                            : 'ng/100IEQ/min'
+                                                            : 'Insulin secretion\n(ng/100 IEQs/min)'
                                                     "
                                                 >
                                                 </time-series-line-plot>
@@ -258,7 +258,7 @@
                                                     :yAxisLabel="
                                                         $parent.showContent
                                                             ? '% content min'
-                                                            : 'pg/100IEQ/min'
+                                                            : 'Glucagon secretion\n(pg/100 IEQs/min)'
                                                     "
                                                 >
                                                 </time-series-line-plot>
