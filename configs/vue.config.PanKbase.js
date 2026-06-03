@@ -269,6 +269,13 @@ let pages = {
         title: "Liger",
         chunks: ["chunk-vendors", "chunk-common", "liger2"]
     },
+    liger3: {
+        entry: "src/portals/PanKbase/views/Liger3/main.js",
+        template: "src/portals/PanKbase/index.html",
+        filename: "liger3.html",
+        title: "Liger",
+        chunks: ["chunk-vendors", "chunk-common", "liger3"]
+    },
 };
 
 module.exports = {
