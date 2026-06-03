@@ -59,12 +59,16 @@
             </filter-pvalue-control>
             <template slot="filtered">
                 <template v-if="filteredItems().length > 0">
-                    <div class="liger-plots-row mb-4">
+                    <div
+                        v-if="plotsReady"
+                        :key="plotRenderKey"
+                        class="liger-plots-row mb-4"
+                    >
                         <div class="liger-plot-panel">
                             <div class="liger-plot-wrapper">
                                 <research-section-visualizers
                                     :plot-config="log2fcScatterPlotConfig"
-                                    :plot-data="plotDataFor()"
+                                    :plot-data="ligerPlotData"
                                     :utils="utilsBox"
                                     :plot-margin="plotMargin"
                                     :colors="plotColors"
@@ -84,7 +88,7 @@
                             <div class="liger-plot-wrapper">
                                 <research-section-visualizers
                                     :plot-config="cpkScatterPlotConfig"
-                                    :plot-data="plotDataFor()"
+                                    :plot-data="ligerPlotData"
                                     :utils="utilsBox"
                                     :plot-margin="plotMargin"
                                     :colors="plotColors"
@@ -420,10 +424,29 @@ export default Vue.component("LigerTable", {
         downloadFilename() {
             return `cell_state_expression_${this.geneName || "gene"}`;
         },
+        plotsReady() {
+            return (
+                !this.loading &&
+                !this.error &&
+                Array.isArray(this.items) &&
+                this.items.length > 0
+            );
+        },
+        plotRenderKey() {
+            return `${this.geneName || "gene"}-${this.items.length}`;
+        },
+        ligerPlotData() {
+            return this.buildPlotData(this.filteredItems());
+        },
     },
     watch: {
         geneName() {
             this.fetchData();
+        },
+        items() {
+            if (!this.loading && this.items.length > 0) {
+                this.refreshPlotLayout();
+            }
         },
     },
     mounted() {
@@ -432,7 +455,9 @@ export default Vue.component("LigerTable", {
     methods: {
         refreshPlotLayout() {
             this.$nextTick(() => {
-                window.dispatchEvent(new Event("resize"));
+                this.$nextTick(() => {
+                    window.dispatchEvent(new Event("resize"));
+                });
             });
         },
         onCriterionFilterListUpdate(filters) {
@@ -491,8 +516,8 @@ export default Vue.component("LigerTable", {
                 .filter(Boolean)
                 .join("|");
         },
-        plotDataFor() {
-            return this.filteredItems().map((row) => ({
+        buildPlotData(rows) {
+            return (rows || []).map((row) => ({
                 ...row,
                 liger_row_key: this.ligerRowKey(row),
                 cell_state_label: this.formatCellState(row),
@@ -503,6 +528,9 @@ export default Vue.component("LigerTable", {
                     row.log2fc_weighted_vs_all_parent
                 ),
             }));
+        },
+        plotDataFor() {
+            return this.buildPlotData(this.filteredItems());
         },
         negLog10P(pValue) {
             const p = Number(pValue);
