@@ -418,7 +418,7 @@
                                                                 $parent.functionalTrait
                                                             "
                                                             :yField="condition"
-                                                            yLabel="mg/100 IEQs/min"
+                                                            yLabel="pg/100 IEQs/min"
                                                         >
                                                         </functional-violin-plot>
                                                     </div>
