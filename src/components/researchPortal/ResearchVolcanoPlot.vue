@@ -181,9 +181,13 @@ export default Vue.component("research-volcano-plot", {
 							redDotsArr.push(tempObj);
 
 							this.posData[x + h][y + v].map((g, i) => {
+								const hoverLabel = this.renderConfig["on hover"][i];
+								const labelHtml = hoverLabel
+									? `<b>${hoverLabel}:</b> `
+									: "";
 								clickedDotValue +=
 									`<span class="gene-on-clicked-dot-volcano">
-									${(this.renderConfig["on hover"] ? '<b>'+this.renderConfig["on hover"][i]+':</b> ' : '')}
+									${labelHtml}
 									${g}
 									</span><br>`;
 							});
