@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div style="display:flex; flex-direction: column; min-height:100vh">
 		<!-- Header -->
 		<page-header
 			:disease-group="$parent.diseaseGroup"
@@ -8,7 +8,7 @@
 		></page-header>
 
 		<!-- Body -->
-		<div class="container-fluid mdkp-body">
+		<div class="container-fluid mdkp-body" style="flex:1">
             <div v-if="$parent.pageInfo"
                 class="card mdkp-card dataset-page-header"
             >
