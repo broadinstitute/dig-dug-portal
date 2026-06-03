@@ -185,15 +185,22 @@ export default Vue.component("research-simple-scatter-plot", {
 		},
 	},
 	watch: {
-		renderData() {
-			this.highlightedRowKey = null;
-			this.clearPlot();
-			this.renderPlot();
+		plotData: {
+			handler() {
+				this.highlightedRowKey = null;
+				this.scheduleRenderPlot();
+			},
+			deep: true,
+		},
+		renderConfig: {
+			handler() {
+				this.scheduleRenderPlot();
+			},
+			deep: true,
 		},
 		hoveredLegendValue() {
 			this.highlightedRowKey = null;
-			this.clearPlot();
-			this.renderPlot();
+			this.scheduleRenderPlot();
 		},
 		linkedHoverKey(rowKey) {
 			if (this.localHoverActive) {
@@ -209,9 +216,17 @@ export default Vue.component("research-simple-scatter-plot", {
 		},
 	},
 	mounted() {
-		this.renderPlot();
+		this.scheduleRenderPlot();
 	},
 	methods: {
+		scheduleRenderPlot() {
+			this.$nextTick(() => {
+				requestAnimationFrame(() => {
+					this.clearPlot();
+					this.renderPlot();
+				});
+			});
+		},
 		downloadImage(ID, NAME, TYPE) {
 			this.utils.uiUtils.downloadImg(ID, NAME, TYPE);
 		},
@@ -238,7 +253,7 @@ export default Vue.component("research-simple-scatter-plot", {
 				return;
 			}
 			this.highlightedRowKey = nextKey;
-			this.renderPlot();
+			this.scheduleRenderPlot();
 		},
 		drawHighlightRing(ctx, xPos, yPos, dotRadius) {
 			ctx.save();
