@@ -29,6 +29,10 @@ export default Vue.component("functional-violin-plot", {
             type: (String, null),
             required: true,
         },
+        yLabel: {
+            type: (String, null),
+            required: false,
+        },
     },
     data() {
         return {
@@ -212,7 +216,7 @@ export default Vue.component("functional-violin-plot", {
                 .attr("transform", "rotate(-90)")
                 .attr("y", -35)
                 .attr("x", -height / 2)
-                .text(`ng/100 IEQ`);
+                .text(this.yLabel || this.yField);
         },
         truncateLabel(label) {
             if (label.indexOf(" ") !== -1) {
