@@ -86,6 +86,22 @@ export default Vue.component("functional-violin-plot", {
         handleResize() {
             this.drawChart();
         },
+        getYAxisSpacing(yScale) {
+            const tickLabelFormatter = d3.format(",~g");
+            const tickValues = yScale.ticks();
+            const maxTickLabelLength =
+                d3.max(
+                    tickValues,
+                    (value) => tickLabelFormatter(value).length
+                ) || 0;
+            const tickLabelWidth = maxTickLabelLength * 8;
+            const labelOffset = tickLabelWidth + 16;
+
+            return {
+                labelOffset,
+                leftMargin: Math.max(this.margin.left, labelOffset + 20),
+            };
+        },
         drawChart() {
             if (!this.data) return;
             let plotId = `#${this.plotId}`;
@@ -101,24 +117,27 @@ export default Vue.component("functional-violin-plot", {
             let width = this.chartWidth - this.margin.left - this.margin.right;
             let height = this.plotHeight - this.margin.top - this.margin.bottom;
 
-            this.svg = d3
-                .select(plotId)
-                .append("svg")
-                .attr("width", width + this.margin.left + this.margin.right)
-                .attr("height", height + this.margin.top + this.margin.bottom)
-                .attr("id", `${this.plotId}_svg`)
-                .append("g")
-                .attr(
-                    "transform",
-                    `translate(${this.margin.left},${this.margin.top})`
-                );
-
             let minVal = d3.min(this.data.map((d) => d[yField]));
             let maxVal = d3.max(this.data.map((d) => d[yField]));
             let y = d3
                 .scaleLinear()
                 .domain([minVal, maxVal])
                 .range([height, 0]);
+
+            const { leftMargin, labelOffset } = this.getYAxisSpacing(y);
+            width = this.chartWidth - leftMargin - this.margin.right;
+
+            this.svg = d3
+                .select(plotId)
+                .append("svg")
+                .attr("width", width + leftMargin + this.margin.right)
+                .attr("height", height + this.margin.top + this.margin.bottom)
+                .attr("id", `${this.plotId}_svg`)
+                .append("g")
+                .attr(
+                    "transform",
+                    `translate(${leftMargin},${this.margin.top})`
+                );
             this.svg
                 .append("g")
                 .call(d3.axisLeft(y))
@@ -214,7 +233,7 @@ export default Vue.component("functional-violin-plot", {
                 .select("#axisLabelsGroup")
                 .append("text")
                 .attr("transform", "rotate(-90)")
-                .attr("y", -35)
+                .attr("y", -labelOffset)
                 .attr("x", -height / 2)
                 .text(this.yLabel || this.yField);
         },
