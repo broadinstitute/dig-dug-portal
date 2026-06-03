@@ -180,6 +180,19 @@
 				
 			></multi-genes-track>
 
+			<!-- simple scatter plot -->
+			<research-simple-scatter-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'simple scatter plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:plotMargin="plotMargin"
+				:colors="colors"
+				:sectionId="sectionId"
+				:utils="utils"
+				:row-key-field="rowKeyField"
+				:linked-hover-key="linkedHoverKey"
+				@hover-key-change="$emit('hover-key-change', $event)"
+			></research-simple-scatter-plot>
 			<!-- scatter plot -->
 			<research-scatter-plot
 				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
@@ -231,6 +244,7 @@ import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
+import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
@@ -244,10 +258,11 @@ import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfde
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
 		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
-		"regionViewArea","starItems","region","bigRegion"],
+		"regionViewArea","starItems","region","bigRegion","rowKeyField","linkedHoverKey"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
+		ResearchSimpleScatterPlot,
 		ResearchMPlotBitmap,
 		ResearchMQQPlot,
 		ResearchRegionPlot,

@@ -1,568 +1,746 @@
 <template>
-  <div class="scatter-plot-content">
-    <div :id="'clicked_dot_value_' + plotId" class="clicked-dot-value hidden"></div>
-    <div ref="legend" class="plot-legend"></div>
-    <canvas
-      v-if="!!renderConfig"
-      :id="'scatterPlot_' + plotId"
-      class="scatter-plot"
-      @mouseleave="hidePanel"
-      @mousemove="checkPosition"
-      :width="canvasWidth"
-      :height="canvasHeight"
-      :style="canvasStyle"
-    >
-    </canvas>
-  </div>
+	<div class="scatter-plot-content">
+		<div
+			v-if="colorLegend.length > 0"
+			ref="legend"
+			class="plot-legend"
+		>
+			<div
+				v-for="entry in colorLegend"
+				:key="entry.value"
+				class="legend-item"
+				@mouseenter="hoveredLegendValue = entry.value"
+				@mouseleave="hoveredLegendValue = null"
+			>
+				<span
+					class="legend-dot"
+					:style="{ backgroundColor: entry.color }"
+				></span>
+				<span>{{ entry.value }}</span>
+			</div>
+		</div>
+		<div
+			:id="'clicked_dot_value' + sectionId"
+			class="clicked-dot-value hidden"
+		></div>
+		<canvas
+			v-if="!!renderConfig"
+			:id="'simpleScatterPlot' + sectionId"
+			class="scatter-plot"
+			@mouseleave="onCanvasMouseLeave"
+			@mousemove="checkPosition"
+			:width="renderConfig.width * 2 + 240"
+			:height="renderConfig.height * 2 + 240"
+			:style="
+				'width:' +
+				(renderConfig.width + 120) +
+				'px;height:' +
+				(renderConfig.height + 120) +
+				'px;'
+			"
+		>
+		</canvas>
+		<div class="download-images-setting">
+			<span class="btn btn-default options-gear">
+				Download <b-icon icon="download"></b-icon>
+			</span>
+			<ul class="options">
+				<li>
+					<a
+						href="javascript:;"
+						@click="
+							downloadImage(
+								'simpleScatterPlot' + sectionId,
+								sectionId + '_simpleScatterPlot',
+								'png'
+							)
+						"
+						>Download PNG</a
+					>
+				</li>
+			</ul>
+		</div>
+		<div
+			v-if="!!renderConfig.label"
+			class="scatter-plot-label"
+			v-html="renderConfig.label"
+		></div>
+	</div>
 </template>
 
 <script>
-import * as d3 from 'd3';
-import Vue from 'vue';
+import Vue from "vue";
+import { BootstrapVueIcons } from "bootstrap-vue";
+import defaultColors from "@/utils/colors";
 
-export default Vue.component('research-simple-scatter-plot', {
-  props: {
-    data: {
-      type: Array,
-      required: true,
-      default: () => []
-    },
-    renderConfig: {
-      type: Object,
-      required: true,
-      default: () => ({})
-    }
-  },
-  data() {
-    return {
-      posData: {},
-      plotId: Math.random().toString(36).substr(2, 9),
-      hoveredLegendValue: null
-    };
-  },
-  computed: {
-    adjPlotMargin() {
-      const customPlotMargin = this.renderConfig.margin || null;
-      
-      const plotMargin = customPlotMargin ? {
-        left: customPlotMargin.left,
-        right: customPlotMargin.right,
-        top: customPlotMargin.top,
-        bottom: customPlotMargin.bottom,
-        bump: customPlotMargin.bump || 5
-      } : {
-        left: 60,
-        right: 30,
-        top: 30,
-        bottom: 50,
-        bump: 5
-      };
+Vue.use(BootstrapVueIcons);
 
-      return plotMargin;
-    },
-    renderData() {
-      if (!this.data || this.data.length === 0) {
-        return [];
-      }
+export default Vue.component("research-simple-scatter-plot", {
+	props: [
+		"plotData",
+		"renderConfig",
+		"utils",
+		"sectionId",
+		"colors",
+		"rowKeyField",
+		"linkedHoverKey",
+	],
+	data() {
+		return {
+			posData: {},
+			rowKeyToCanvasPos: {},
+			hoveredLegendValue: null,
+			localHoverActive: false,
+			highlightedRowKey: null,
+		};
+	},
+	computed: {
+		adjPlotMargin() {
+			let customPlotMargin = !!this.renderConfig["plot margin"]
+				? this.renderConfig["plot margin"]
+				: null;
 
-      const xKey = this.renderConfig.xKey;
-      const yKey = this.renderConfig.yKey;
-      const hoverContent = this.renderConfig.hoverContent || [];
+			return !!customPlotMargin
+				? {
+						left: customPlotMargin.left,
+						right: customPlotMargin.right,
+						top: customPlotMargin.top,
+						bottom: customPlotMargin.bottom,
+						bump: !!customPlotMargin.bump ? customPlotMargin.bump : 5,
+				  }
+				: {
+						left: 80,
+						right: 20,
+						top: 20,
+						bottom: 60,
+						bump: 5,
+				  };
+		},
+		colorByField() {
+			const colorBy = this.renderConfig["color by"];
+			if (!colorBy) {
+				return null;
+			}
+			if (Array.isArray(colorBy)) {
+				const first = colorBy[0];
+				return typeof first === "object" ? first.field : first;
+			}
+			return colorBy;
+		},
+		palette() {
+			return (
+				this.colors?.moderate ||
+				this.renderConfig.colors ||
+				defaultColors
+			);
+		},
+		colorScaleMap() {
+			if (!this.colorByField) {
+				return {};
+			}
+			const values = [
+				...new Set(
+					(this.plotData || [])
+						.map((row) => row[this.colorByField])
+						.filter((value) => value != null && value !== "")
+				),
+			].sort();
+			const map = {};
+			values.forEach((value, index) => {
+				map[value] = this.palette[index % this.palette.length];
+			});
+			return map;
+		},
+		colorLegend() {
+			return Object.entries(this.colorScaleMap).map(([value, color]) => ({
+				value,
+				color,
+			}));
+		},
+		renderData() {
+			let rawData = this.plotData || [];
+			let massagedData = [];
 
-      return this.data.map(d => {
-        const tempObj = {
-          x: d[xKey],
-          y: d[yKey]
-        };
+			rawData.map((r) => {
+				let tempObj = {};
+				tempObj[this.renderConfig["render by"]] =
+					r[this.renderConfig["render by"]];
+				tempObj[this.renderConfig["x axis field"]] =
+					r[this.renderConfig["x axis field"]];
+				tempObj[this.renderConfig["y axis field"]] =
+					r[this.renderConfig["y axis field"]];
+				if (this.colorByField) {
+					tempObj[this.colorByField] = r[this.colorByField];
+				}
+				this.renderConfig["on hover"]?.forEach((item) => {
+					tempObj[item] = r[item];
+				});
+				if (this.rowKeyField) {
+					tempObj[this.rowKeyField] = r[this.rowKeyField];
+				}
+				massagedData.push(tempObj);
+			});
 
-        // Add color key if provided
-        if (this.renderConfig.colorKey) {
-          tempObj.color = d[this.renderConfig.colorKey];
-        }
+			return massagedData;
+		},
+	},
+	watch: {
+		plotData: {
+			handler() {
+				this.highlightedRowKey = null;
+				this.scheduleRenderPlot();
+			},
+			deep: true,
+		},
+		renderConfig: {
+			handler() {
+				this.scheduleRenderPlot();
+			},
+			deep: true,
+		},
+		hoveredLegendValue() {
+			this.highlightedRowKey = null;
+			this.scheduleRenderPlot();
+		},
+		linkedHoverKey(rowKey) {
+			if (this.localHoverActive) {
+				return;
+			}
+			if (rowKey && this.rowKeyToCanvasPos[rowKey]) {
+				this.setHighlightedRowKey(rowKey);
+				this.showTooltipForRowKey(rowKey, false);
+			} else if (!this.localHoverActive) {
+				this.setHighlightedRowKey(null);
+				this.hidePanel();
+			}
+		},
+	},
+	mounted() {
+		this.scheduleRenderPlot();
+	},
+	methods: {
+		scheduleRenderPlot() {
+			this.$nextTick(() => {
+				requestAnimationFrame(() => {
+					this.clearPlot();
+					this.renderPlot();
+				});
+			});
+		},
+		downloadImage(ID, NAME, TYPE) {
+			this.utils.uiUtils.downloadImg(ID, NAME, TYPE);
+		},
+		hidePanel() {
+			this.utils.uiUtils.hideElement("clicked_dot_value" + this.sectionId);
+			const canvas = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (canvas) {
+				canvas.classList.remove("hover");
+			}
+		},
+		onCanvasMouseLeave() {
+			this.localHoverActive = false;
+			this.setHighlightedRowKey(null);
+			this.hidePanel();
+			if (this.rowKeyField) {
+				this.$emit("hover-key-change", null);
+			}
+		},
+		setHighlightedRowKey(rowKey) {
+			const nextKey = rowKey || null;
+			if (nextKey === this.highlightedRowKey) {
+				return;
+			}
+			this.highlightedRowKey = nextKey;
+			this.scheduleRenderPlot();
+		},
+		drawHighlightRing(ctx, xPos, yPos, dotRadius) {
+			ctx.save();
+			ctx.beginPath();
+			ctx.arc(xPos, yPos, dotRadius + 6, 0, 2 * Math.PI);
+			ctx.strokeStyle = "#ffffff";
+			ctx.lineWidth = 5;
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(xPos, yPos, dotRadius + 6, 0, 2 * Math.PI);
+			ctx.strokeStyle = "#e07b39";
+			ctx.lineWidth = 3;
+			ctx.stroke();
+			ctx.restore();
+		},
+		rowKeyForDatum(datum) {
+			if (!this.rowKeyField || !datum) {
+				return null;
+			}
+			const key = datum[this.rowKeyField];
+			return key == null || key === "" ? null : String(key);
+		},
+		buildHoverHtml(datum) {
+			if (!datum) {
+				return "";
+			}
+			let clickedDotValue = "";
+			if (this.renderConfig["on hover"]) {
+				this.renderConfig["on hover"].forEach((item, i) => {
+					const hoverLabel = item;
+					const labelHtml = hoverLabel ? `<b>${hoverLabel}:</b> ` : "";
+					clickedDotValue += `<span class="gene-on-clicked-dot-scatter">
+					${labelHtml}
+					${datum[item] ?? ""}
+					</span><br>`;
+					if (i < this.renderConfig["on hover"].length - 1) {
+						clickedDotValue += "<hr>";
+					}
+				});
+			} else {
+				clickedDotValue = `<span class="gene-on-clicked-dot-scatter">${
+					datum[this.renderConfig["render by"]] ?? ""
+				}</span>`;
+			}
+			return clickedDotValue;
+		},
+		showTooltipForRowKey(rowKey, emitChange = true) {
+			const entry = this.rowKeyToCanvasPos[rowKey];
+			if (!entry) {
+				return;
+			}
+			const wrapper = document.getElementById(
+				"clicked_dot_value" + this.sectionId
+			);
+			const canvas = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (!wrapper || !canvas) {
+				return;
+			}
+			wrapper.classList.remove("hidden");
+			const rect = canvas.getBoundingClientRect();
+			const displayX = (entry.x * 2 * rect.width) / canvas.width;
+			const displayY = (entry.y * 2 * rect.height) / canvas.height;
+			wrapper.style.top = displayY + canvas.offsetTop + "px";
+			wrapper.style.left = displayX + canvas.offsetLeft + 15 + "px";
+			wrapper.innerHTML = this.buildHoverHtml(entry.row);
+			canvas.classList.add("hover");
+			if (emitChange && this.rowKeyField) {
+				this.$emit("hover-key-change", rowKey);
+			}
+		},
+		checkPosition(event) {
+			let wrapper = document.getElementById(
+				"clicked_dot_value" + this.sectionId
+			);
+			wrapper.classList.remove("hidden");
 
-        // Add hover content fields
-        hoverContent.forEach(field => {
-          tempObj[field] = d[field];
-        });
+			let e = event;
+			var rect = document
+				.getElementById("simpleScatterPlot" + this.sectionId)
+				.getBoundingClientRect();
+			let canvas = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			const scaleX = canvas ? canvas.width / rect.width : 1;
+			const scaleY = canvas ? canvas.height / rect.height : 1;
+			var x = Math.floor((e.clientX - rect.left) * scaleX / 2);
+			var y = Math.floor((e.clientY - rect.top) * scaleY / 2);
 
-        return tempObj;
-      }).filter(d => d.x != null && !isNaN(d.x) && d.y != null && !isNaN(d.y));
-    },
-    canvasWidth() {
-      const width = this.renderConfig.width || 500;
-      const margin = this.adjPlotMargin;
-      const yLabelBumper = 110; // Space for rotated Y-axis label
-      return (width + margin.left + margin.right) * 2 + yLabelBumper;
-    },
-    canvasHeight() {
-      const height = this.renderConfig.height || 300;
-      const margin = this.adjPlotMargin;
-      return (height + margin.top + margin.bottom) * 2;
-    },
-    canvasStyle() {
-      const width = this.renderConfig.width || 500;
-      const height = this.renderConfig.height || 300;
-      const margin = this.adjPlotMargin;
-      const yLabelBumper = 110; // Space for rotated Y-axis label
-      return `width:${width + margin.left + margin.right + yLabelBumper / 2}px;height:${height + margin.top + margin.bottom}px;`;
-    }
-  },
-  watch: {
-    renderData() {
-      this.clearPlot();
-      this.renderPlot();
-    },
-    renderConfig: {
-      handler() {
-        this.clearPlot();
-        this.renderPlot();
-      },
-      deep: true
-    },
-    hoveredLegendValue() {
-      // Rerender plot when legend hover changes
-      this.clearPlot();
-      this.renderPlot();
-    }
-  },
-  mounted() {
-    this.renderPlot();
-    window.addEventListener('resize', this.handleResize);
-  },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.handleResize);
-  },
-  methods: {
-    handleResize() {
-      this.clearPlot();
-      this.renderPlot();
-    },
-    clearPlot() {
-      const c = document.getElementById('scatterPlot_' + this.plotId);
-      if (c) {
-        const ctx = c.getContext('2d');
-        ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      }
-      if (this.$refs.legend) {
-        this.$refs.legend.innerHTML = '';
-      }
-      this.posData = {};
-    },
-    hidePanel() {
-      const wrapper = document.getElementById('clicked_dot_value_' + this.plotId);
-      if (wrapper) {
-        wrapper.classList.add('hidden');
-      }
-      const canvas = document.getElementById('scatterPlot_' + this.plotId);
-      if (canvas) {
-        canvas.classList.remove('hover');
-      }
-    },
-    checkPosition(event) {
-      const wrapper = document.getElementById('clicked_dot_value_' + this.plotId);
-      if (!wrapper) return;
+			wrapper.style.top =
+				(e.clientY - rect.top) + canvas.offsetTop + "px";
+			wrapper.style.left =
+				e.clientX - rect.left + canvas.offsetLeft + 15 + "px";
 
-      wrapper.classList.remove('hidden');
+			let clickedDotValue = "";
 
-      const e = event;
-      const rect = document.getElementById('scatterPlot_' + this.plotId).getBoundingClientRect();
-      const x = Math.floor(e.clientX - rect.left);
-      const y = Math.floor(e.clientY - rect.top);
+			for (let h = -3; h <= 3; h++) {
+				if (!!this.posData[x + h]) {
+					for (let v = -3; v <= 3; v++) {
+						if (!!this.posData[x + h][y + v]) {
+							this.posData[x + h][y + v].map((g, i) => {
+								const hoverLabel =
+									this.renderConfig["on hover"][i];
+								const labelHtml = hoverLabel
+									? `<b>${hoverLabel}:</b> `
+									: "";
+								clickedDotValue +=
+									`<span class="gene-on-clicked-dot-scatter">
+									${labelHtml}
+									${g}
+									</span><br>`;
+							});
 
-      const canvas = document.getElementById('scatterPlot_' + this.plotId);
-      wrapper.style.top = y + canvas.offsetTop + 'px';
-      wrapper.style.left = x + canvas.offsetLeft + 15 + 'px';
+							clickedDotValue += this.renderConfig["on hover"]
+								? "<hr>"
+								: "";
+						}
+					}
+				}
+			}
 
-      let clickedDotValue = '';
+			if (clickedDotValue != "") {
+				wrapper.innerHTML = clickedDotValue;
+				document
+					.getElementById("simpleScatterPlot" + this.sectionId)
+					.classList.add("hover");
+				this.localHoverActive = true;
+				if (this.rowKeyField) {
+					const hoveredRowKey = this.findRowKeyNearCanvasPoint(x, y);
+					this.setHighlightedRowKey(hoveredRowKey);
+					this.$emit("hover-key-change", hoveredRowKey);
+				}
+			} else {
+				wrapper.innerHTML = clickedDotValue;
+				wrapper.classList.add("hidden");
+				document
+					.getElementById("simpleScatterPlot" + this.sectionId)
+					.classList.remove("hover");
+				this.localHoverActive = false;
+				this.setHighlightedRowKey(null);
+				if (this.rowKeyField) {
+					this.$emit("hover-key-change", null);
+				}
+			}
+		},
+		findRowKeyNearCanvasPoint(x, y) {
+			let closestKey = null;
+			let closestDistance = Infinity;
+			for (const [rowKey, entry] of Object.entries(
+				this.rowKeyToCanvasPos
+			)) {
+				const distance = Math.hypot(entry.x - x, entry.y - y);
+				if (distance <= 8 && distance < closestDistance) {
+					closestDistance = distance;
+					closestKey = rowKey;
+				}
+			}
+			return closestKey;
+		},
+		clearPlot() {
+			var c = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (!c) {
+				return;
+			}
+			var ctx = c.getContext("2d");
+			ctx.clearRect(
+				0,
+				0,
+				this.renderConfig.width * 2 + 240,
+				this.renderConfig.height * 2 + 240
+			);
+			this.posData = {};
+			this.rowKeyToCanvasPos = {};
+		},
+		dotFillStyle(row) {
+			const defaultColor =
+				this.renderConfig["default dot color"] || "#00000080";
 
-      // Check a small area around the mouse cursor
-      for (let h = -3; h <= 3; h++) {
-        if (this.posData[x + h]) {
-          for (let v = -3; v <= 3; v++) {
-            if (this.posData[x + h][y + v]) {
-              const dataArray = this.posData[x + h][y + v];
-              dataArray.forEach(item => {
-                const config = this.renderConfig;
-                const hoverContent = config.hoverContent || [];
+			if (!this.colorByField) {
+				return defaultColor;
+			}
 
-                // Only render fields from hoverContent
-                hoverContent.forEach(field => {
-                  if (item[field] != null && item[field] !== undefined) {
-                    const value = typeof item[field] === 'number' ? item[field].toFixed(2) : item[field];
-                    clickedDotValue += `<div><strong>${field}:</strong> ${value}</div>`;
-                  }
-                });
-                clickedDotValue += '<hr>';
-              });
-            }
-          }
-        }
-      }
+			const category = row[this.colorByField];
+			const baseColor =
+				this.colorScaleMap[category] || defaultColor;
 
-      if (clickedDotValue !== '') {
-        wrapper.innerHTML = clickedDotValue;
-        document.getElementById('scatterPlot_' + this.plotId).classList.add('hover');
-      } else {
-        wrapper.innerHTML = '';
-        wrapper.classList.add('hidden');
-        document.getElementById('scatterPlot_' + this.plotId).classList.remove('hover');
-      }
-    },
-    renderPlot() {
-      if (!this.renderData || this.renderData.length === 0 || !this.renderConfig) {
-        return;
-      }
+			if (
+				this.hoveredLegendValue != null &&
+				category !== this.hoveredLegendValue
+			) {
+				return "#80808014";
+			}
 
-      const config = this.renderConfig;
-      const margin = this.adjPlotMargin;
-      const width = config.width || 500;
-      const height = config.height || 300;
-      const xLabel = config.xLabel || config.xKey || '';
-      const yLabel = config.yLabel || config.yKey || '';
-      const colorKey = config.colorKey;
-      const colorMap = config.colorMap || null;
-      const colors = config.colors || [
-        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-        '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5',
-        '#c49c94'
-      ];
+			return this.withAlpha(baseColor);
+		},
+		withAlpha(color, alphaSuffix = "CC") {
+			if (!color) {
+				return "#00000080";
+			}
+			if (String(color).length === 9) {
+				return color;
+			}
+			return `${color}${alphaSuffix}`;
+		},
+		renderPlot() {
+			if (!this.renderData.length || !this.renderConfig) {
+				return;
+			}
 
-      // Add extra space for Y-axis label (bumper)
-      const yLabelBumper = 110; // Space for rotated Y-axis label
-      const canvasWidth = (width + margin.left + margin.right) * 2 + yLabelBumper;
-      const canvasHeight = (height + margin.top + margin.bottom) * 2;
-      const chartWidth = width * 2;
-      const chartHeight = height * 2;
-      const leftMargin = (margin.left * 2) + yLabelBumper; // Add bumper space for Y-axis label
-      const topMargin = margin.top * 2;
+			let xAxisData = [];
+			let yAxisData = [];
 
-      const c = document.getElementById('scatterPlot_' + this.plotId);
-      if (!c) return;
+			let canvasWidth = this.renderConfig.width * 2;
+			let canvasHeight = this.renderConfig.height * 2;
+			let leftMargin = 74.5 * 2;
+			let topMargin = 44.5 * 2;
 
-      const ctx = c.getContext('2d');
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+			let xBump = canvasWidth * 0.04;
+			let yBump = canvasHeight * 0.04;
 
-      // Clear posData
-      this.posData = {};
+			var c = document.getElementById(
+				"simpleScatterPlot" + this.sectionId
+			);
+			if (!c) {
+				return;
+			}
+			var ctx = c.getContext("2d");
+			ctx.clearRect(0, 0, canvasWidth + 240, canvasHeight + 240);
 
-      // Render legend above the plot if colorKey is provided
-      if (colorKey && this.$refs.legend) {
-        let uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
-        
-        // If colorMap is provided, use it to create the color scale
-        let colorScale;
-        if (colorMap) {
-          // Sort unique values according to colorMap order (if keys exist in colorMap)
-          const colorMapKeys = Object.keys(colorMap);
-          uniqueValues = uniqueValues.sort((a, b) => {
-            const aIndex = colorMapKeys.indexOf(a);
-            const bIndex = colorMapKeys.indexOf(b);
-            if (aIndex === -1 && bIndex === -1) return 0;
-            if (aIndex === -1) return 1;
-            if (bIndex === -1) return -1;
-            return aIndex - bIndex;
-          });
-          
-          // Create color scale using colorMap
-          colorScale = d3.scaleOrdinal()
-            .domain(uniqueValues)
-            .range(uniqueValues.map(val => colorMap[val] || colors[0]));
-        } else {
-          colorScale = d3.scaleOrdinal()
-            .domain(uniqueValues)
-            .range(colors);
-        }
+			ctx.beginPath();
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = "#000000";
+			ctx.setLineDash([]);
 
-        // Clear previous legend
-        this.$refs.legend.innerHTML = '';
+			this.renderData.map((d) => {
+				xAxisData.push(d[this.renderConfig["x axis field"]]);
+				yAxisData.push(d[this.renderConfig["y axis field"]]);
+			});
 
-        // Create HTML legend
-        uniqueValues.forEach((value, index) => {
-          const legendItem = document.createElement('div');
-          legendItem.className = 'legend-item';
-          legendItem.style.display = 'inline-block';
-          legendItem.style.marginRight = '20px';
-          legendItem.style.marginBottom = '5px';
-          legendItem.style.verticalAlign = 'middle';
-          legendItem.style.cursor = 'pointer';
-          
-          // Add hover event handlers
-          legendItem.addEventListener('mouseenter', () => {
-            this.hoveredLegendValue = value;
-          });
-          legendItem.addEventListener('mouseleave', () => {
-            this.hoveredLegendValue = null;
-          });
+			let dotSizeMin = 8;
 
-          const circle = document.createElement('span');
-          circle.style.display = 'inline-block';
-          circle.style.width = '8px';
-          circle.style.height = '8px';
-          circle.style.borderRadius = '50%';
-          circle.style.backgroundColor = value != null ? colorScale(value) : '#999';
-          circle.style.marginRight = '5px';
-          circle.style.verticalAlign = 'middle';
+			let xMin = Math.min.apply(Math, xAxisData);
+			let xMax = Math.max.apply(Math, xAxisData);
+			let yMin = Math.min.apply(Math, yAxisData);
+			let yMax = Math.max.apply(Math, yAxisData);
 
-          const label = document.createElement('span');
-          label.style.fontSize = '11px';
-          label.style.verticalAlign = 'middle';
-          label.textContent = value != null ? value : 'N/A';
+			let xAxisTicks = this.utils.uiUtils.getAxisTicks(xMin, xMax);
+			let yAxisTicks = this.utils.uiUtils.getAxisTicks(yMin, yMax);
 
-          legendItem.appendChild(circle);
-          legendItem.appendChild(label);
-          this.$refs.legend.appendChild(legendItem);
-        });
-      }
+			ctx.moveTo(leftMargin, canvasHeight + topMargin + yBump);
+			ctx.lineTo(
+				canvasWidth + leftMargin + xBump,
+				canvasHeight + topMargin + yBump
+			);
+			ctx.stroke();
 
-      // Calculate extents
-      const xValues = this.renderData.map(d => d.x);
-      const yValues = this.renderData.map(d => d.y);
-      
-      const xMin = Math.min(...xValues);
-      const xMax = Math.max(...xValues);
-      const yMin = Math.min(...yValues);
-      const yMax = Math.max(...yValues);
+			let xTickDistance = canvasWidth / 5;
+			for (let i = 0; i < 6; i++) {
+				ctx.moveTo(
+					leftMargin + i * xTickDistance + xBump,
+					topMargin + canvasHeight + yBump
+				);
+				ctx.lineTo(
+					leftMargin + i * xTickDistance + xBump,
+					canvasHeight + topMargin + 10 + yBump
+				);
+				ctx.stroke();
 
-      // Add padding to domains
-      const xRange = xMax - xMin;
-      const yRange = yMax - yMin;
-      const xDomain = [xMin - xRange * 0.05, xMax + xRange * 0.05];
-      const yDomain = [yMin - yRange * 0.05, yMax + yRange * 0.05];
+				ctx.font = "24px Arial";
+				ctx.textAlign = "center";
+				ctx.fillStyle = "#000000";
 
-      // Calculate scales
-      const xScale = (value) => {
-        return leftMargin + chartWidth * ((value - xDomain[0]) / (xDomain[1] - xDomain[0]));
-      };
+				if (xAxisTicks.lo + i * xAxisTicks.step == 0) {
+					ctx.fillText(
+						0,
+						leftMargin + i * xTickDistance + xBump,
+						topMargin + canvasHeight + 34 + yBump
+					);
+				} else {
+					ctx.fillText(
+						this.utils.Formatters.floatFormatter(
+							xAxisTicks.lo + i * xAxisTicks.step
+						),
+						leftMargin + i * xTickDistance + xBump,
+						topMargin + canvasHeight + 34 + yBump
+					);
+				}
+			}
 
-      const yScale = (value) => {
-        return topMargin + chartHeight - (chartHeight * ((value - yDomain[0]) / (yDomain[1] - yDomain[0])));
-      };
+			ctx.font = "28px Arial";
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#000000";
+			ctx.fillText(
+				this.renderConfig["x axis label"],
+				leftMargin + canvasWidth / 2,
+				topMargin + canvasHeight + 70 + yBump
+			);
 
-      // Set up color scale if colorKey is provided
-      let colorScale = null;
-      if (colorKey) {
-        let uniqueValues = [...new Set(this.renderData.map(d => d.color).filter(v => v != null))];
-        
-        // If colorMap is provided, use it to create the color scale
-        if (colorMap) {
-          // Sort unique values according to colorMap order (if keys exist in colorMap)
-          const colorMapKeys = Object.keys(colorMap);
-          uniqueValues = uniqueValues.sort((a, b) => {
-            const aIndex = colorMapKeys.indexOf(a);
-            const bIndex = colorMapKeys.indexOf(b);
-            if (aIndex === -1 && bIndex === -1) return 0;
-            if (aIndex === -1) return 1;
-            if (bIndex === -1) return -1;
-            return aIndex - bIndex;
-          });
-          
-          // Create color scale using colorMap
-          colorScale = d3.scaleOrdinal()
-            .domain(uniqueValues)
-            .range(uniqueValues.map(val => colorMap[val] || colors[0]));
-        } else {
-          colorScale = d3.scaleOrdinal()
-            .domain(uniqueValues)
-            .range(colors);
-        }
-      }
+			ctx.moveTo(leftMargin, topMargin);
+			ctx.lineTo(leftMargin, canvasHeight + topMargin + yBump);
+			ctx.stroke();
+			let yTickDistance = canvasHeight / 5;
+			for (let i = 0; i < 6; i++) {
+				ctx.moveTo(leftMargin - 5, topMargin + i * yTickDistance);
+				ctx.lineTo(leftMargin, topMargin + i * yTickDistance);
+				ctx.stroke();
 
-      // Draw axes
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#000000';
-      ctx.setLineDash([]);
+				ctx.font = "24px Arial";
+				ctx.textAlign = "right";
+				ctx.fillStyle = "#000000";
 
-      // X-axis
-      ctx.moveTo(leftMargin, topMargin + chartHeight);
-      ctx.lineTo(leftMargin + chartWidth, topMargin + chartHeight);
-      ctx.stroke();
+				if (yAxisTicks.lo + yAxisTicks.step * i == 0) {
+					ctx.fillText(
+						0,
+						leftMargin - 14,
+						topMargin + (5 - i) * yTickDistance + 3
+					);
+				} else {
+					ctx.fillText(
+						this.utils.Formatters.floatFormatter(
+							yAxisTicks.lo + yAxisTicks.step * i
+						),
+						leftMargin - 14,
+						topMargin + (5 - i) * yTickDistance + 3
+					);
+				}
+			}
 
-      // Y-axis
-      ctx.moveTo(leftMargin, topMargin);
-      ctx.lineTo(leftMargin, topMargin + chartHeight);
-      ctx.stroke();
+			ctx.font = "28px Arial";
+			ctx.textAlign = "center";
+			ctx.fillStyle = "#000000";
+			ctx.rotate(-(90 * Math.PI) / 180);
+			ctx.fillText(
+				this.renderConfig["y axis label"],
+				-(topMargin + canvasHeight / 2),
+				leftMargin - 110
+			);
 
-      // Draw axis ticks and labels
-      const xTickCount = 5;
-      const yTickCount = 5;
-      const xTickStep = chartWidth / xTickCount;
-      const yTickStep = chartHeight / yTickCount;
-      const xValueStep = (xDomain[1] - xDomain[0]) / xTickCount;
-      const yValueStep = (yDomain[1] - yDomain[0]) / yTickCount;
+			ctx.rotate((90 * Math.PI) / 180);
+			let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
+			let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
 
-      ctx.font = '24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#000000';
+			this.renderData.map((d) => {
+				let xPos =
+					leftMargin +
+					xBump +
+					canvasWidth *
+						((d[this.renderConfig["x axis field"]] -
+							xAxisTicks.lo) /
+							(xPosMax - xAxisTicks.lo));
+				let yPos =
+					topMargin +
+					canvasHeight -
+					canvasHeight *
+						((d[this.renderConfig["y axis field"]] -
+							yAxisTicks.lo) /
+							(yPosMax - yAxisTicks.lo));
 
-      // X-axis ticks
-      for (let i = 0; i <= xTickCount; i++) {
-        const xPos = leftMargin + i * xTickStep;
-        const value = xDomain[0] + i * xValueStep;
-        
-        ctx.beginPath();
-        ctx.moveTo(xPos, topMargin + chartHeight);
-        ctx.lineTo(xPos, topMargin + chartHeight + 10);
-        ctx.stroke();
+				const canvasX = Math.round(xPos / 2);
+				const canvasY = Math.round(yPos / 2);
+				const rowKey = this.rowKeyForDatum(d);
 
-        ctx.fillText(value.toFixed(2), xPos, topMargin + chartHeight + 34);
-      }
+				if (rowKey) {
+					this.rowKeyToCanvasPos[rowKey] = {
+						x: canvasX,
+						y: canvasY,
+						xPos,
+						yPos,
+						row: d,
+					};
+				}
 
-      // Y-axis ticks
-      ctx.textAlign = 'right';
-      for (let i = 0; i <= yTickCount; i++) {
-        const yPos = topMargin + chartHeight - i * yTickStep;
-        const value = yDomain[0] + i * yValueStep;
-        
-        ctx.beginPath();
-        ctx.moveTo(leftMargin - 5, yPos);
-        ctx.lineTo(leftMargin, yPos);
-        ctx.stroke();
+				if (!this.posData[canvasX]) {
+					this.posData[canvasX] = {};
+				}
 
-        ctx.fillText(value.toFixed(2), leftMargin - 14, yPos + 3);
-      }
+				this.posData[canvasX][canvasY] = [];
 
-      // Draw axis labels
-      ctx.font = '28px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(xLabel, leftMargin + chartWidth / 2, topMargin + chartHeight + 70);
+				if (this.renderConfig["on hover"]) {
+					this.renderConfig["on hover"].forEach((item) => {
+						this.posData[canvasX][canvasY].push(d[item]);
+					});
+				} else {
+					this.posData[canvasX][canvasY].push(
+						d[this.renderConfig["render by"]]
+					);
+				}
 
-      ctx.save();
-      ctx.translate(leftMargin - 110, topMargin + chartHeight / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.textAlign = 'center';
-      ctx.fillText(yLabel, 0, 0);
-      ctx.restore();
+				ctx.fillStyle = this.dotFillStyle(d);
+				ctx.lineWidth = 0;
+				ctx.beginPath();
+				ctx.arc(xPos, yPos, dotSizeMin, 0, 2 * Math.PI);
+				ctx.fill();
 
-      // Draw grid lines
-      ctx.strokeStyle = '#cccccc';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3, 3]);
+				if (!!this.renderConfig["dot label score"]) {
+					ctx.font = "24px Arial";
+					ctx.textAlign = "center";
+					ctx.fillStyle = "#000000";
+					ctx.fillText(
+						d[this.renderConfig["render by"]],
+						xPos,
+						yPos - 16
+					);
+				}
+			});
 
-      // Vertical grid lines
-      for (let i = 0; i <= xTickCount; i++) {
-        const xPos = leftMargin + i * xTickStep;
-        ctx.beginPath();
-        ctx.moveTo(xPos, topMargin);
-        ctx.lineTo(xPos, topMargin + chartHeight);
-        ctx.stroke();
-      }
-
-      // Horizontal grid lines
-      for (let i = 0; i <= yTickCount; i++) {
-        const yPos = topMargin + chartHeight - i * yTickStep;
-        ctx.beginPath();
-        ctx.moveTo(leftMargin, yPos);
-        ctx.lineTo(leftMargin + chartWidth, yPos);
-        ctx.stroke();
-      }
-
-      // Reset line style
-      ctx.setLineDash([]);
-      ctx.lineWidth = 0;
-
-      // Draw points
-      this.renderData.forEach(d => {
-        const xPos = xScale(d.x);
-        const yPos = yScale(d.y);
-
-        // Store position data for hover detection
-        const posX = Math.round(xPos / 2);
-        const posY = Math.round(yPos / 2);
-
-        if (!this.posData[posX]) {
-          this.posData[posX] = {};
-        }
-
-        if (!this.posData[posX][posY]) {
-          this.posData[posX][posY] = [];
-        }
-
-        this.posData[posX][posY].push(d);
-
-        // Determine color and opacity based on legend hover state
-        let fillColor;
-        let alpha;
-        
-        if (this.hoveredLegendValue !== null && colorKey) {
-          // If a legend is hovered, highlight matching dots, dim others
-          if (d.color === this.hoveredLegendValue) {
-            // Matching legend value: use original color
-            fillColor = colorScale && d.color != null 
-              ? colorScale(d.color) 
-              : colors[0] || '#1f77b4';
-            alpha = 0.7;
-          } else {
-            // Non-matching: use grey at 5% opacity
-            fillColor = '#808080';
-            alpha = 0.05;
-          }
-        } else {
-          // No legend hovered: normal rendering
-          fillColor = colorKey && colorScale && d.color != null 
-            ? colorScale(d.color) 
-            : colors[0] || '#1f77b4';
-          alpha = 0.7;
-        }
-
-        // Draw circle
-        ctx.beginPath();
-        ctx.fillStyle = fillColor;
-        ctx.globalAlpha = alpha;
-        ctx.arc(xPos, yPos, 8, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-      });
-    }
-  }
+			if (
+				this.highlightedRowKey &&
+				this.rowKeyToCanvasPos[this.highlightedRowKey]
+			) {
+				const highlight =
+					this.rowKeyToCanvasPos[this.highlightedRowKey];
+				this.drawHighlightRing(
+					ctx,
+					highlight.xPos,
+					highlight.yPos,
+					dotSizeMin
+				);
+			}
+		},
+	},
 });
 </script>
-
-<style scoped>
-.scatter-plot-content {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
+<style>
+#simpleScatterPlot.hover,
 .scatter-plot.hover,
 .scatter-plot:hover {
-  cursor: pointer;
+	cursor: pointer;
+}
+
+.scatter-plot-content {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .clicked-dot-value {
-  position: absolute;
-  background-color: #fff;
-  border: solid 1px #aaa;
-  box-shadow: 0 0 5px #00000075;
-  font-size: 14px;
-  padding: 8px 20px 8px 10px;
-  max-width: 300px;
-  border-radius: 5px;
-  z-index: 10;
-  width: auto;
+	position: absolute;
+	background-color: #fff;
+	border: solid 1px #aaa;
+	box-shadow: 0 0 5px #00000075;
+	font-size: 14px;
+	padding: 8px 20px 8px 10px !important;
+	max-width: 300px;
+	border-radius: 5px;
+	z-index: 10;
+	width: auto;
 }
 
-.clicked-dot-value.hidden {
-  display: none;
+.gene-on-clicked-dot-scatter {
+	display: block;
+	float: left;
+	padding: 0 5px;
+	text-align: left;
 }
 
 .plot-legend {
-  margin-bottom: 10px;
-  padding: 5px 0;
-  line-height: 1;
-  text-align: center;
-  width: 100%;
+	margin-bottom: 10px;
+	padding: 5px 0;
+	line-height: 1;
+	text-align: center;
+	width: 100%;
 }
 
 .plot-legend .legend-item {
-  white-space: nowrap;
-  transition: opacity 0.2s;
+	display: inline-block;
+	margin-right: 20px;
+	margin-bottom: 5px;
+	vertical-align: middle;
+	cursor: pointer;
+	white-space: nowrap;
 }
 
 .plot-legend .legend-item:hover {
-  opacity: 0.7;
+	opacity: 0.7;
+}
+
+.plot-legend .legend-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 5px;
+	vertical-align: middle;
 }
 </style>

@@ -1,6 +1,10 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import {
+    CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+    CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
+} from "./cellStateExpressionDocumentation";
 import _ from "lodash";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
@@ -23,6 +27,7 @@ import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue
 import EffectorGenesSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
 import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
 import ColocusTable from "@/components/ColocusTable.vue";
+import LigerTable from "@/components/LigerTable.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -87,6 +92,7 @@ new Vue({
         ResearchSingleSearch,
         MouseSummaryTable,
         ColocusTable,
+        LigerTable,
         PigeanGene,
     },
     mixins: [pageMixin],
@@ -94,6 +100,10 @@ new Vue({
     data() {
         return {
             counter: 0,
+            cellStateExpressionTooltipDefault:
+                CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
+            cellStateExpressionSubheaderDefault:
+                CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
             genePageSearchCriterion: [],
             phenotypeFilterList: [],
             activeTab: "hugeScorePheWASPlot",
