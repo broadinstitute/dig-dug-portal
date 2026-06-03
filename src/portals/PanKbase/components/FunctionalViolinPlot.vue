@@ -95,10 +95,15 @@ export default Vue.component("functional-violin-plot", {
                     (value) => tickLabelFormatter(value).length
                 ) || 0;
             const tickLabelWidth = maxTickLabelLength * 8;
-            const labelOffset = tickLabelWidth + 16;
+            const labelLines = (this.yLabel || this.yField).split("\n");
+            const lineHeight = 14;
+            const labelBlockWidth = labelLines.length * lineHeight;
+            const labelOffset = tickLabelWidth + 16 + labelBlockWidth;
 
             return {
                 labelOffset,
+                labelLines,
+                lineHeight,
                 leftMargin: Math.max(this.margin.left, labelOffset + 20),
             };
         },
@@ -124,7 +129,8 @@ export default Vue.component("functional-violin-plot", {
                 .domain([minVal, maxVal])
                 .range([height, 0]);
 
-            const { leftMargin, labelOffset } = this.getYAxisSpacing(y);
+            const { leftMargin, labelOffset, labelLines, lineHeight } =
+                this.getYAxisSpacing(y);
             width = this.chartWidth - leftMargin - this.margin.right;
 
             this.svg = d3
@@ -229,13 +235,20 @@ export default Vue.component("functional-violin-plot", {
                 .attr("transform", "translate(0,0)")
                 .style("text-anchor", "middle");
 
-            this.svg
+            const labelText = this.svg
                 .select("#axisLabelsGroup")
                 .append("text")
                 .attr("transform", "rotate(-90)")
-                .attr("y", -labelOffset)
-                .attr("x", -height / 2)
-                .text(this.yLabel || this.yField);
+                .attr("text-anchor", "middle");
+
+            const totalBlock = (labelLines.length - 1) * lineHeight;
+            labelLines.forEach((line, i) => {
+                labelText
+                    .append("tspan")
+                    .attr("x", -height / 2)
+                    .attr("y", -(labelOffset - totalBlock + i * lineHeight))
+                    .text(line);
+            });
         },
         truncateLabel(label) {
             if (label.indexOf(" ") !== -1) {

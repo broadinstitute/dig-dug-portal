@@ -361,7 +361,7 @@
                                                                 $parent.functionalTrait
                                                             "
                                                             :yField="condition"
-                                                            yLabel="Insulin secretion (ng/100 IEQs/min)"
+                                                            :yLabel="'Insulin secretion\n(ng/100 IEQs/min)'"
                                                         >
                                                         </functional-violin-plot>
                                                     </div>
@@ -418,7 +418,7 @@
                                                                 $parent.functionalTrait
                                                             "
                                                             :yField="condition"
-                                                            yLabel="Glucagon secretion (pg/100 IEQs/min)"
+                                                            :yLabel="'Glucagon secretion\n(pg/100 IEQs/min)'"
                                                         >
                                                         </functional-violin-plot>
                                                     </div>
