@@ -587,7 +587,7 @@ export default Vue.component("LigerTable", {
                 params.set("cell_type", ids.cell_type_id);
                 params.set("cell_state", ids.cell_state_id);
             }
-            return `/metadata.html?${params.toString()}`;
+            return `/liger.html?${params.toString()}`;
         },
         async fetchData() {
             if (!this.geneName) {
