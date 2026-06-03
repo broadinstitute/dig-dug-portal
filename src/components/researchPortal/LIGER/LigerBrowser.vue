@@ -1,8 +1,9 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { LIGER_BIOINDEX_HOST } from "./ligerBioIndexHost.js";
 
-const LIGER_API_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_API_HOST = LIGER_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
 const LIGER_TISSUE_CONFIG = {
     artery: {

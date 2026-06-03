@@ -251,10 +251,11 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import colors from "@/utils/colors";
-
-// Direct fetch until gene-program-expression-cell-state is on the portal BioIndex server.
-const CELL_STATE_EXPRESSION_API =
-    "https://bioindex-dev.hugeamp.org/api/bio/query/gene-program-expression-cell-state";
+import bioIndexUtils from "@/utils/bioIndexUtils";
+import {
+    LIGER_BIOINDEX_HOST,
+    LIGER_CELL_STATE_EXPRESSION_INDEX,
+} from "@/components/researchPortal/LIGER/ligerBioIndexHost.js";
 
 export default Vue.component("LigerTable", {
     components: {
@@ -601,21 +602,25 @@ export default Vue.component("LigerTable", {
             this.criterionFilterList = [];
             this.linkedPlotHoverKey = null;
 
-            const url = `${CELL_STATE_EXPRESSION_API}?q=${encodeURIComponent(
-                this.geneName
-            )}`;
-
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(
-                        `HTTP ${response.status}: ${response.statusText}`
-                    );
-                }
-                const json = await response.json();
-                this.items = (json.data || []).map((row) =>
-                    this.normalizeRow(row)
+                let loadError = null;
+                const data = await bioIndexUtils.query(
+                    LIGER_CELL_STATE_EXPRESSION_INDEX,
+                    this.geneName,
+                    {
+                        host: LIGER_BIOINDEX_HOST,
+                        onError: (json) => {
+                            loadError =
+                                json?.message ||
+                                json?.error ||
+                                "Failed to load cell state expression.";
+                        },
+                    }
                 );
+                if (loadError) {
+                    throw new Error(loadError);
+                }
+                this.items = (data || []).map((row) => this.normalizeRow(row));
             } catch (err) {
                 this.items = [];
                 this.error =
