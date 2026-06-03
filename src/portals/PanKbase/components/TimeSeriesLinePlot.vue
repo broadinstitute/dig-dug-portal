@@ -249,6 +249,27 @@ export default Vue.component("time-series-line-plot", {
             });
             return output;
         },
+        getYAxisSpacing(yScale, minimumLeftMargin) {
+            const tickLabelFormatter = d3.format(",~g");
+            const tickValues = yScale.ticks();
+            const maxTickLabelLength =
+                d3.max(
+                    tickValues,
+                    (value) => tickLabelFormatter(value).length
+                ) || 0;
+            const tickLabelWidth = maxTickLabelLength * 8;
+            const labelLines = `${this.yAxisLabel || this.yField}`.split("\n");
+            const lineHeight = 14;
+            const labelBlockWidth = labelLines.length * lineHeight;
+            const labelOffset = tickLabelWidth + 16 + labelBlockWidth;
+
+            return {
+                labelLines,
+                lineHeight,
+                labelOffset,
+                leftMargin: Math.max(minimumLeftMargin, labelOffset + 20),
+            };
+        },
         drawChart() {
             let margin = {
                 top: 80,
@@ -257,7 +278,6 @@ export default Vue.component("time-series-line-plot", {
                 left: 55,
             };
             let elementWidth = this.chart.clientWidth;
-            let width = elementWidth - margin.left - margin.right;
             let height = this.chartHeight - margin.top - margin.bottom;
             this.innerHeight = height;
 
@@ -265,14 +285,21 @@ export default Vue.component("time-series-line-plot", {
             this.xMedian = this.maxTime / 2;
             let xPadding = 1.01;
             let yPadding = 1.05;
-            this.xScale = d3
-                .scaleLinear()
-                .domain([0, this.maxTime * xPadding])
-                .range([0, width]);
             this.yScale = d3
                 .scaleLinear()
                 .domain([0, this.maxScore * yPadding]) // wider margin because y-axis is shorter visually
                 .range([height, 0]);
+            const { leftMargin, labelOffset, labelLines, lineHeight } =
+                this.getYAxisSpacing(this.yScale, margin.left);
+            margin.left = leftMargin;
+            let width = Math.max(
+                120,
+                elementWidth - margin.left - margin.right
+            );
+            this.xScale = d3
+                .scaleLinear()
+                .domain([0, this.maxTime * xPadding])
+                .range([0, width]);
 
             this.chart.innerHTML = "";
             this.svg = d3
@@ -341,26 +368,16 @@ export default Vue.component("time-series-line-plot", {
                 .attr("y", height + 32)
                 .attr("x", width / 2)
                 .text(this.xAxisLabel || this.xField);
-            const yAxisLabelLines = `${this.yAxisLabel || this.yField}`.split(
-                "\n"
-            );
             const yAxisLabel = this.svg
                 .append("text")
                 .attr("text-anchor", "middle")
                 .attr("transform", "rotate(-90)");
-            const yAxisBase = -margin.left + 15;
-            const yAxisLineHeight = 14;
-            const yAxisTotalHeight =
-                (yAxisLabelLines.length - 1) * yAxisLineHeight;
 
             yAxisLabelLines.forEach((line, i) => {
                 yAxisLabel
                     .append("tspan")
                     .attr("x", -height / 2)
-                    .attr(
-                        "y",
-                        yAxisBase - yAxisTotalHeight / 2 + i * yAxisLineHeight
-                    )
+                    .attr("y", -(labelOffset - i * lineHeight))
                     .text(line);
             });
 
