@@ -41,7 +41,7 @@
                         Exploration stays open-ended: you are not forced through a
                         fixed pipeline. Change, Analyze, and Save give you deliberate
                         ways to mutate the graph, read meaning from it, and keep work
-                        you may want again. Start from anchors or a saved graph, shape
+                        you may want again. Start from key nodes or a saved graph, shape
                         the canvas with expand and filter, open the Inspector when you
                         need provenance, and save when the graph reaches a state worth
                         returning to.
@@ -104,22 +104,23 @@
                     </p>
                     <ul class="wkb-docs-feature-list">
                         <li>
-                            <strong>Starting node</strong>
-                            <p>
-                                Gray diamonds mark anchors—the genes, traits, or other
-                                entities you chose when building or expanding the graph.
-                                They show where exploration started, not every node on
-                                the canvas.
-                            </p>
-                        </li>
-                        <li>
                             <strong>Key node</strong>
                             <p>
                                 Blue circles or blue diamonds are nodes you marked as
-                                important for this session (including starting nodes
-                                when you keep them in the key set). Use
-                                <em>Mark as key node</em> on the node menu to add or
-                                remove them; key nodes are saved with the graph.
+                                important for this session. New graphs start with your
+                                initial picks as key nodes. Use <em>Mark as key node</em>
+                                on the node menu to add or remove them. Key nodes drive
+                                connection ranking in the Inspector and are saved with
+                                the graph.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Starting node</strong>
+                            <p>
+                                Gray diamonds are entities you chose when you built or
+                                duplicated the graph. They stay visually distinct from
+                                nodes you added later. If you also mark a starting node as
+                                a key node, it appears blue like other key nodes.
                             </p>
                         </li>
                         <li>

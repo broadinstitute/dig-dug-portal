@@ -187,6 +187,8 @@ function normalizeGraphRecord(record) {
         nodeExpressionProfileCache: cloneJson(record.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(record.nodeExpressionReferenceById, {}),
         edgeProvenanceById: cloneJson(record.edgeProvenanceById, {}),
+        nodeSigChainPacketCache: cloneJson(record.nodeSigChainPacketCache, {}),
+        nodeFactorLoadingsCache: cloneJson(record.nodeFactorLoadingsCache, {}),
     };
 }
 
@@ -315,6 +317,8 @@ function graphPayloadFromSession(session, { label } = {}) {
         nodeExpressionProfileCache: cloneJson(session.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(session.nodeExpressionReferenceById, {}),
         edgeProvenanceById: cloneJson(session.edgeProvenanceById, {}),
+        nodeSigChainPacketCache: cloneJson(session.nodeSigChainPacketCache, {}),
+        nodeFactorLoadingsCache: cloneJson(session.nodeFactorLoadingsCache, {}),
     };
 }
 
@@ -369,6 +373,8 @@ function sessionFromGraph(record) {
         nodeExpressionProfileCache: cloneJson(graph.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(graph.nodeExpressionReferenceById, {}),
         edgeProvenanceById: cloneJson(graph.edgeProvenanceById, {}),
+        nodeSigChainPacketCache: cloneJson(graph.nodeSigChainPacketCache, {}),
+        nodeFactorLoadingsCache: cloneJson(graph.nodeFactorLoadingsCache, {}),
         savedGraphId: graph.id,
         savedAt: graph.savedAt,
     };

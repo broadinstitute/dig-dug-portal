@@ -1,5 +1,5 @@
 <template>
-    <div class="wkb-gene-inspector-stack">
+    <div class="wkb-trait-inspector-stack">
         <section v-if="hasHeader" class="wkb-inspector-panel-block">
             <h3 class="wkb-inspector-node-title">{{ node.label || node.id }}</h3>
             <p v-if="displaySubtitle" class="wkb-inspector-node-subtitle">
@@ -132,13 +132,11 @@
             @add-node="$emit('add-node', $event)"
         />
 
-        <WorkspaceNodeExpressionPanel
+        <WorkspaceTraitSigChainEvidence
             :node="node"
-            :expression-options="expressionOptions"
-            :expression-cache="expressionCache"
-            :preferred-expression-reference-id="preferredExpressionReferenceId"
-            :api-client="apiClient"
-            @cache-expression="$emit('cache-expression', $event)"
+            :packet="sigChainPacket"
+            :loading="sigChainLoading"
+            :error="sigChainError"
         />
     </div>
 </template>
@@ -146,13 +144,13 @@
 <script>
 import { groupedConnectedNeighborsForNode } from "./revealKgInspectorUtils";
 import WorkspaceNodeConnectionTabs from "./WorkspaceNodeConnectionTabs.vue";
-import WorkspaceNodeExpressionPanel from "./WorkspaceNodeExpressionPanel.vue";
+import WorkspaceTraitSigChainEvidence from "./WorkspaceTraitSigChainEvidence.vue";
 
 export default {
-    name: "WorkspaceGeneNodeInspectorContent",
+    name: "WorkspaceTraitNodeInspectorContent",
     components: {
         WorkspaceNodeConnectionTabs,
-        WorkspaceNodeExpressionPanel,
+        WorkspaceTraitSigChainEvidence,
     },
     props: {
         node: {
@@ -183,17 +181,17 @@ export default {
             type: Object,
             default: () => ({}),
         },
-        expressionCache: {
-            type: Object,
-            default: () => ({}),
-        },
-        preferredExpressionReferenceId: {
-            type: String,
-            default: "",
-        },
-        expressionOptions: {
+        sigChainPacket: {
             type: Object,
             default: null,
+        },
+        sigChainLoading: {
+            type: Boolean,
+            default: false,
+        },
+        sigChainError: {
+            type: String,
+            default: "",
         },
         apiClient: {
             type: Object,
@@ -225,7 +223,7 @@ export default {
                 return "";
             }
             const label = String(this.node?.label || "").trim();
-            if (subtitle.toLowerCase() === "gene" || subtitle === label) {
+            if (subtitle.toLowerCase() === "trait" || subtitle === label) {
                 return "";
             }
             return subtitle;
@@ -258,7 +256,7 @@ export default {
 </script>
 
 <style scoped>
-.wkb-gene-inspector-stack {
+.wkb-trait-inspector-stack {
     display: flex;
     flex-direction: column;
     gap: 4px;

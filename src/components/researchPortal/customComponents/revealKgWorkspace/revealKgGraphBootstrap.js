@@ -276,6 +276,16 @@ export function graphNodeToAnchorItem(node) {
     };
 }
 
+/** API `anchor_items` payload built from workspace key nodes (`session.highlighted`). */
+export function keyNodeItemsFromSession(session) {
+    if (!session) {
+        return [];
+    }
+    return normalizeKeyNodeIds(session)
+        .map((nodeId) => graphNodeToAnchorItem(findGraphNode(session, nodeId)))
+        .filter(Boolean);
+}
+
 function graphNodeIds(node) {
     return [node?.id, node?.node_id].filter(Boolean);
 }
@@ -363,7 +373,14 @@ export function canRemoveGraphNode(session, nodeId) {
     const node = (session.graphNodes || []).find(
         (entry) => entry.id === nodeId || entry.node_id === nodeId
     );
-    return Boolean(node && !isStartingGraphNode(node));
+    if (!node) {
+        return false;
+    }
+    // Starting nodes are visual markers only; users may remove them from the graph.
+    if (isStartingGraphNode(node)) {
+        return true;
+    }
+    return !isKeyNode(session, nodeId);
 }
 
 export function countConnectedEdgesForNode(session, nodeId) {

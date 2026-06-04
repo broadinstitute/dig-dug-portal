@@ -18,7 +18,10 @@
                         Key node
                     </span>
                     <span class="wkb-canvas-legend-item">
-                        <span class="wkb-canvas-swatch wkb-canvas-swatch--anchor" aria-hidden="true" />
+                        <span
+                            class="wkb-canvas-swatch wkb-canvas-swatch--starting-node"
+                            aria-hidden="true"
+                        />
                         Starting node
                     </span>
                     <span class="wkb-canvas-legend-item">
@@ -68,6 +71,9 @@
                     :selected-node="selectedNodeDetail"
                     :selected-edge="selectedEdgeDetail"
                     :gene-inspector-context="geneInspectorContext"
+                    :trait-inspector-context="traitInspectorContext"
+                    :mechanism-inspector-context="mechanismInspectorContext"
+                    :gene-set-inspector-context="geneSetInspectorContext"
                     :expression-options="expressionOptions"
                     :api-client="apiClient"
                     :graph-busy="graphLoading || tableAddBusy"
@@ -75,6 +81,8 @@
                     @toggle="$emit('toggle-inspector')"
                     @cache-connections="$emit('cache-node-connections', $event)"
                     @cache-expression="$emit('cache-node-expression', $event)"
+                    @cache-factor-loadings="$emit('cache-factor-loadings', $event)"
+                    @load-factor-loadings="$emit('load-factor-loadings', $event)"
                     @add-node="$emit('add-table-node', $event)"
                     @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                     @inspect-connected-node="$emit('inspect-connected-node', $event)"
@@ -86,6 +94,7 @@
                 :graph-edges="graphEdges"
                 :contextual-edges="contextualEdges"
                 :retrieval-ledger="retrievalLedger"
+                :key-node-ids="keyNodeIds"
                 :graph-busy="graphLoading || tableAddBusy"
                 @close="graphTableOpen = false"
                 @add-node="$emit('add-table-node', $event)"
@@ -166,6 +175,18 @@ export default {
             default: null,
         },
         geneInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        traitInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        mechanismInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        geneSetInspectorContext: {
             type: Object,
             default: null,
         },
@@ -306,7 +327,7 @@ export default {
     background: #488bf7;
 }
 
-.wkb-canvas-swatch--anchor {
+.wkb-canvas-swatch--starting-node {
     width: calc(var(--wkb-toolbar-symbol) * 0.92);
     height: calc(var(--wkb-toolbar-symbol) * 0.92);
     background: #888888;

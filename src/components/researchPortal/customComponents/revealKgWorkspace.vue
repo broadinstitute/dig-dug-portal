@@ -23,6 +23,9 @@
                 :selected-node-detail="selectedNodeDetail"
                 :selected-edge-detail="selectedEdgeDetail"
                 :gene-inspector-context="geneInspectorContext"
+                :trait-inspector-context="traitInspectorContext"
+                :mechanism-inspector-context="mechanismInspectorContext"
+                :gene-set-inspector-context="geneSetInspectorContext"
                 :expression-options="expressionOptions"
                 :api-client="apiClient"
                 :inspector-open="inspectorOpen"
@@ -37,6 +40,8 @@
                 @add-table-node="onAddTableNode"
                 @cache-node-connections="onCacheNodeConnections"
                 @cache-node-expression="onCacheNodeExpression"
+                @cache-factor-loadings="onCacheFactorLoadings"
+                @load-factor-loadings="onLoadFactorLoadings"
                 @inspect-connected-edge="onEdgeActionInspect"
                 @inspect-connected-node="onNodeActionInspect"
             />
@@ -166,8 +171,10 @@ import {
     fetchContextualEdgesForGraph,
     findGraphNode,
     findSessionEdge,
+    graphNodeToAnchorItem,
     isInspectableEdge,
     isKeyNode,
+    keyNodeItemsFromSession,
     normalizeKeyNodeIds,
     normalizeWorkspaceGraph,
     removeNodesFromWorkspaceGraph,
@@ -183,8 +190,15 @@ import {
 import {
     hierarchyEdgeKeysWithInspectorEvidence,
     isGeneInspectorNode,
+    isGeneSetInspectorNode,
+    isMechanismInspectorNode,
+    isTraitInspectorNode,
     nodeIdsWithInspectorEvidence,
 } from "./revealKgWorkspace/revealKgInspectorUtils.js";
+import {
+    buildGraphSigChainForFactor,
+    buildGraphSigChainForTrait,
+} from "./revealKgWorkspace/revealKgSigChainUtils.js";
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -238,6 +252,9 @@ export default Vue.component("reveal-kg-workspace", {
             selectedEdgeId: null,
             selectedEdgeRef: null,
             edgeProvenanceLoadingId: null,
+            traitSigChainLoadingNodeId: null,
+            mechanismSigChainLoadingNodeId: null,
+            factorLoadingsLoadingNodeId: null,
             contextualFetchTimer: null,
             contextualFetchSignature: "",
             tableAddBusy: false,
@@ -309,8 +326,8 @@ export default Vue.component("reveal-kg-workspace", {
             const nodeCount = this.activeSession.graphNodes.length;
             const edgeCount = (this.activeSession.graphEdges || []).length;
             const contextualCount = (this.activeSession.contextualEdges || []).length;
-            const anchorCount = this.activeSession.graphNodes.filter((node) => node.is_anchor).length;
-            const neighborCount = Math.max(0, nodeCount - anchorCount);
+            const keyNodeCount = normalizeKeyNodeIds(this.activeSession).length;
+            const neighborCount = Math.max(0, nodeCount - keyNodeCount);
             const parts = [
                 `${nodeCount} node${nodeCount === 1 ? "" : "s"}`,
                 `${edgeCount} edge${edgeCount === 1 ? "" : "s"}`,
@@ -318,8 +335,8 @@ export default Vue.component("reveal-kg-workspace", {
             if (contextualCount) {
                 parts.push(`${contextualCount} contextual`);
             }
-            if (anchorCount) {
-                parts.push(`${anchorCount} starting`);
+            if (keyNodeCount) {
+                parts.push(`${keyNodeCount} key`);
             }
             if (neighborCount) {
                 parts.push(`${neighborCount} neighbor${neighborCount === 1 ? "" : "s"}`);
@@ -367,7 +384,7 @@ export default Vue.component("reveal-kg-workspace", {
                 id: node.id,
                 label: node.label || node.id,
                 nodeType: typeLabels[nodeType] || nodeType || "",
-                isStartingNode: Boolean(node.is_anchor),
+                isKeyNode: isKeyNode(this.activeSession, node.id),
                 subtitle: node.subtitle || ledger.subtitle || "",
                 rationale: ledger.rationale || node.rationale || "",
             };
@@ -381,14 +398,9 @@ export default Vue.component("reveal-kg-workspace", {
                 return null;
             }
             const ledger = this.activeSession.retrievalLedger?.[node.id] || {};
-            const anchorItems = this.activeSession.anchorItems?.length
-                ? this.activeSession.anchorItems
-                : anchorItemsFromBuckets(
-                      this.activeSession.starterBuckets || emptyStarterBuckets()
-                  );
             return {
                 node,
-                anchorItems,
+                keyNodeItems: keyNodeItemsFromSession(this.activeSession),
                 sessionContext: this.activeSession.context || "",
                 graphNodes: this.activeSession.graphNodes || [],
                 graphEdges: this.activeSession.graphEdges || [],
@@ -400,6 +412,80 @@ export default Vue.component("reveal-kg-workspace", {
                 preferredExpressionReferenceId:
                     this.activeSession.nodeExpressionReferenceById?.[node.id] || "",
                 rationale: ledger.rationale || node.rationale || "",
+            };
+        },
+        traitInspectorContext() {
+            if (!this.selectedNodeId || !this.activeSession || this.selectedEdgeId) {
+                return null;
+            }
+            const node = findGraphNode(this.activeSession, this.selectedNodeId);
+            if (!node || !isTraitInspectorNode(node)) {
+                return null;
+            }
+            const ledger = this.activeSession.retrievalLedger?.[node.id] || {};
+            const sigChainEntry =
+                this.activeSession.nodeSigChainPacketCache?.[node.id] || null;
+            return {
+                node,
+                keyNodeItems: keyNodeItemsFromSession(this.activeSession),
+                sessionContext: this.activeSession.context || "",
+                graphNodes: this.activeSession.graphNodes || [],
+                graphEdges: this.activeSession.graphEdges || [],
+                contextualEdges: this.activeSession.contextualEdges || [],
+                connectionCache:
+                    this.activeSession.nodeConnectionEvidenceCache?.[node.id] || {},
+                sigChainPacket: sigChainEntry?.packet || null,
+                sigChainError: sigChainEntry?.error || "",
+                sigChainLoading: this.traitSigChainLoadingNodeId === node.id,
+                rationale: ledger.rationale || node.rationale || "",
+            };
+        },
+        mechanismInspectorContext() {
+            if (!this.selectedNodeId || !this.activeSession || this.selectedEdgeId) {
+                return null;
+            }
+            const node = findGraphNode(this.activeSession, this.selectedNodeId);
+            if (!node || !isMechanismInspectorNode(node)) {
+                return null;
+            }
+            const sigChainEntry =
+                this.activeSession.nodeSigChainPacketCache?.[node.id] || null;
+            const loadingsEntry =
+                this.activeSession.nodeFactorLoadingsCache?.[node.id] || null;
+            return {
+                node,
+                keyNodeItems: keyNodeItemsFromSession(this.activeSession),
+                sessionContext: this.activeSession.context || "",
+                graphNodes: this.activeSession.graphNodes || [],
+                graphEdges: this.activeSession.graphEdges || [],
+                contextualEdges: this.activeSession.contextualEdges || [],
+                connectionCache:
+                    this.activeSession.nodeConnectionEvidenceCache?.[node.id] || {},
+                factorLoadingsCache: loadingsEntry,
+                factorLoadingsError: loadingsEntry?.error || "",
+                factorLoadingsLoading: this.factorLoadingsLoadingNodeId === node.id,
+                sigChainPacket: sigChainEntry?.packet || null,
+                sigChainError: sigChainEntry?.error || "",
+                sigChainLoading: this.mechanismSigChainLoadingNodeId === node.id,
+            };
+        },
+        geneSetInspectorContext() {
+            if (!this.selectedNodeId || !this.activeSession || this.selectedEdgeId) {
+                return null;
+            }
+            const node = findGraphNode(this.activeSession, this.selectedNodeId);
+            if (!node || !isGeneSetInspectorNode(node)) {
+                return null;
+            }
+            return {
+                node,
+                keyNodeItems: keyNodeItemsFromSession(this.activeSession),
+                sessionContext: this.activeSession.context || "",
+                graphNodes: this.activeSession.graphNodes || [],
+                graphEdges: this.activeSession.graphEdges || [],
+                contextualEdges: this.activeSession.contextualEdges || [],
+                connectionCache:
+                    this.activeSession.nodeConnectionEvidenceCache?.[node.id] || {},
             };
         },
         selectedEdgeDetail() {
@@ -639,6 +725,8 @@ export default Vue.component("reveal-kg-workspace", {
                 nodeConnectionEvidenceCache: {},
                 nodeExpressionProfileCache: {},
                 nodeExpressionReferenceById: {},
+                nodeSigChainPacketCache: {},
+                nodeFactorLoadingsCache: {},
                 edgeProvenanceById: {},
                 context: context || "",
                 starterBuckets: buckets,
@@ -731,6 +819,178 @@ export default Vue.component("reveal-kg-workspace", {
             this.selectedEdgeRef = null;
             this.selectedNodeId = node.nodeId;
             this.inspectorOpen = true;
+            const graphNode = findGraphNode(this.activeSession, node.nodeId);
+            if (graphNode && isTraitInspectorNode(graphNode)) {
+                void this.loadTraitSigChainPacket(graphNode);
+            } else if (graphNode && isMechanismInspectorNode(graphNode)) {
+                void this.loadMechanismSigChainPacket(graphNode);
+                void this.loadFactorLoadings(graphNode);
+            }
+        },
+        setNodeSigChainCache(nodeId, entry) {
+            if (!this.activeSession || !nodeId) {
+                return;
+            }
+            this.activeSession = {
+                ...this.activeSession,
+                nodeSigChainPacketCache: {
+                    ...(this.activeSession.nodeSigChainPacketCache || {}),
+                    [nodeId]: entry,
+                },
+            };
+        },
+        async loadTraitSigChainPacket(node) {
+            if (!node?.id || !this.activeSession) {
+                return;
+            }
+            const nodeId = node.id;
+            const cached = this.activeSession.nodeSigChainPacketCache?.[nodeId];
+            if (cached?.packet || cached?.error) {
+                return;
+            }
+            if (!this.apiClient?.getInteractiveSigChainPacket) {
+                this.setNodeSigChainCache(nodeId, {
+                    error: "Association scores API is not configured.",
+                });
+                return;
+            }
+            const chain = buildGraphSigChainForTrait(node, this.activeSession);
+            if (!chain?.nodes?.length) {
+                this.setNodeSigChainCache(nodeId, {
+                    error: "No graph neighborhood available to score for this trait.",
+                });
+                return;
+            }
+            this.traitSigChainLoadingNodeId = nodeId;
+            try {
+                const packet = await this.fetchSigChainPacket(node, chain);
+                this.setNodeSigChainCache(nodeId, { packet: packet || null });
+            } catch (error) {
+                this.setNodeSigChainCache(nodeId, {
+                    error:
+                        String(error?.message || error) ||
+                        "Could not load trait association scores.",
+                });
+            } finally {
+                if (this.traitSigChainLoadingNodeId === nodeId) {
+                    this.traitSigChainLoadingNodeId = null;
+                }
+            }
+        },
+        async loadMechanismSigChainPacket(node) {
+            if (!node?.id || !this.activeSession) {
+                return;
+            }
+            const nodeId = node.id;
+            const cached = this.activeSession.nodeSigChainPacketCache?.[nodeId];
+            if (cached?.packet || cached?.error) {
+                return;
+            }
+            if (!this.apiClient?.getInteractiveSigChainPacket) {
+                this.setNodeSigChainCache(nodeId, {
+                    error: "Association scores API is not configured.",
+                });
+                return;
+            }
+            const chain = buildGraphSigChainForFactor(node, this.activeSession);
+            if (!chain?.nodes?.length) {
+                this.setNodeSigChainCache(nodeId, {
+                    error:
+                        "No graph neighborhood available to score for this mechanism.",
+                });
+                return;
+            }
+            this.mechanismSigChainLoadingNodeId = nodeId;
+            try {
+                const packet = await this.fetchSigChainPacket(node, chain);
+                this.setNodeSigChainCache(nodeId, { packet: packet || null });
+            } catch (error) {
+                this.setNodeSigChainCache(nodeId, {
+                    error:
+                        String(error?.message || error) ||
+                        "Could not load mechanism association scores.",
+                });
+            } finally {
+                if (this.mechanismSigChainLoadingNodeId === nodeId) {
+                    this.mechanismSigChainLoadingNodeId = null;
+                }
+            }
+        },
+        async fetchSigChainPacket(node, chain) {
+            return this.apiClient.getInteractiveSigChainPacket({
+                anchor_items: (() => {
+                    const keyItems = keyNodeItemsFromSession(this.activeSession);
+                    if (keyItems.length) {
+                        return keyItems;
+                    }
+                    const fallback = graphNodeToAnchorItem(node);
+                    return fallback ? [fallback] : [];
+                })(),
+                context: (this.activeSession.context || "").trim(),
+                intent: "",
+                chain,
+                graph_nodes: this.activeSession.graphNodes || [],
+                graph_edges: this.activeSession.graphEdges || [],
+            });
+        },
+        setFactorLoadingsCache(nodeId, entry) {
+            if (!this.activeSession || !nodeId) {
+                return;
+            }
+            this.activeSession = {
+                ...this.activeSession,
+                nodeFactorLoadingsCache: {
+                    ...(this.activeSession.nodeFactorLoadingsCache || {}),
+                    [nodeId]: entry,
+                },
+            };
+        },
+        onCacheFactorLoadings({ nodeId, payload, error }) {
+            if (!nodeId) {
+                return;
+            }
+            if (error) {
+                this.setFactorLoadingsCache(nodeId, { error: String(error) });
+                return;
+            }
+            this.setFactorLoadingsCache(nodeId, { payload: payload ?? null });
+        },
+        onLoadFactorLoadings({ nodeId }) {
+            const node = findGraphNode(this.activeSession, nodeId);
+            if (node) {
+                void this.loadFactorLoadings(node);
+            }
+        },
+        async loadFactorLoadings(node) {
+            if (!node?.id || !this.activeSession) {
+                return;
+            }
+            const nodeId = node.id;
+            const cached = this.activeSession.nodeFactorLoadingsCache?.[nodeId];
+            if (cached?.payload || cached?.error) {
+                return;
+            }
+            if (!this.apiClient?.getInteractiveFactorLoadings) {
+                this.setFactorLoadingsCache(nodeId, {
+                    error: "Factor loadings API is not configured.",
+                });
+                return;
+            }
+            this.factorLoadingsLoadingNodeId = nodeId;
+            try {
+                const payload = await this.apiClient.getInteractiveFactorLoadings(nodeId);
+                this.setFactorLoadingsCache(nodeId, { payload: payload || null });
+            } catch (error) {
+                this.setFactorLoadingsCache(nodeId, {
+                    error:
+                        String(error?.message || error) ||
+                        "Could not load factor loadings.",
+                });
+            } finally {
+                if (this.factorLoadingsLoadingNodeId === nodeId) {
+                    this.factorLoadingsLoadingNodeId = null;
+                }
+            }
         },
         onNodeActionRemove(node) {
             if (!node?.nodeId) {
@@ -741,7 +1001,10 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             if (!canRemoveGraphNode(this.activeSession, node.nodeId)) {
-                this.showStatus("Starting nodes cannot be removed from the graph.", 2800);
+                this.showStatus(
+                    "Key nodes cannot be removed. Remove from key nodes first.",
+                    2800
+                );
                 this.closeNodeActionMenu();
                 return;
             }
@@ -1114,6 +1377,8 @@ export default Vue.component("reveal-kg-workspace", {
                 nodeConnectionEvidenceCache: session.nodeConnectionEvidenceCache || {},
                 nodeExpressionProfileCache: session.nodeExpressionProfileCache || {},
                 nodeExpressionReferenceById: session.nodeExpressionReferenceById || {},
+                nodeSigChainPacketCache: session.nodeSigChainPacketCache || {},
+                nodeFactorLoadingsCache: session.nodeFactorLoadingsCache || {},
                 edgeProvenanceById: session.edgeProvenanceById || {},
             });
             this.contextualFetchSignature = session.contextualEdgeSignature || "";
@@ -1140,7 +1405,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
             const buckets = starterBucketsFromSession(session);
             if (!totalStarterCount(buckets)) {
-                this.showStatus("No starting nodes found in that graph.");
+                this.showStatus("No key nodes found in that graph.");
                 return;
             }
 

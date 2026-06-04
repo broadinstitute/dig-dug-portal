@@ -27,13 +27,13 @@
                     Retrieved nodes from graph build and expansion, including options not yet on
                     the canvas.
                 </p>
-                <p class="wkb-graph-table-legend" aria-label="Starting node rows legend">
+                <p class="wkb-graph-table-legend" aria-label="Key node rows legend">
                     <span class="wkb-graph-table-legend-item">
                         <span
                             class="wkb-graph-table-legend-swatch"
                             aria-hidden="true"
                         />
-                        Starting node
+                        Key node
                     </span>
                 </p>
             </header>
@@ -98,7 +98,7 @@
                                     <tr
                                         v-for="row in pagedRows"
                                         :key="row.node_id"
-                                        :class="{ 'is-anchor-row': row.is_anchor }"
+                                        :class="{ 'is-key-node-row': row.is_key_node }"
                                     >
                                         <td class="wkb-graph-table-label">{{ row.label }}</td>
                                         <td>{{ formatValue(row.aggregate_score) }}</td>
@@ -191,6 +191,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        keyNodeIds: {
+            type: Array,
+            default: () => [],
+        },
     },
     data() {
         panelIdCounter += 1;
@@ -213,7 +217,8 @@ export default {
                 this.resolvedLedger,
                 this.graphNodes,
                 this.graphEdges,
-                this.contextualEdges
+                this.contextualEdges,
+                this.keyNodeIds
             );
         },
         visibleTabs() {
@@ -539,7 +544,7 @@ export default {
     vertical-align: top;
 }
 
-.wkb-graph-table tbody tr.is-anchor-row td {
+.wkb-graph-table tbody tr.is-key-node-row td {
     background: rgba(72, 139, 247, 0.12);
 }
 

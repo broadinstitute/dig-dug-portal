@@ -1,5 +1,5 @@
 <template>
-    <div class="wkb-gene-inspector-stack">
+    <div class="wkb-mechanism-inspector-stack">
         <section v-if="hasHeader" class="wkb-inspector-panel-block">
             <h3 class="wkb-inspector-node-title">{{ node.label || node.id }}</h3>
             <p v-if="displaySubtitle" class="wkb-inspector-node-subtitle">
@@ -132,27 +132,37 @@
             @add-node="$emit('add-node', $event)"
         />
 
-        <WorkspaceNodeExpressionPanel
+        <WorkspaceFactorLoadingsPanel
             :node="node"
-            :expression-options="expressionOptions"
-            :expression-cache="expressionCache"
-            :preferred-expression-reference-id="preferredExpressionReferenceId"
+            :loadings-cache="factorLoadingsCache"
+            :loading="factorLoadingsLoading"
+            :error="factorLoadingsError"
             :api-client="apiClient"
-            @cache-expression="$emit('cache-expression', $event)"
+            @cache-factor-loadings="$emit('cache-factor-loadings', $event)"
+            @load-factor-loadings="$emit('load-factor-loadings', $event)"
+        />
+
+        <WorkspaceMechanismAssociationScores
+            :node="node"
+            :packet="sigChainPacket"
+            :loading="sigChainLoading"
+            :error="sigChainError"
         />
     </div>
 </template>
 
 <script>
 import { groupedConnectedNeighborsForNode } from "./revealKgInspectorUtils";
+import WorkspaceFactorLoadingsPanel from "./WorkspaceFactorLoadingsPanel.vue";
+import WorkspaceMechanismAssociationScores from "./WorkspaceMechanismAssociationScores.vue";
 import WorkspaceNodeConnectionTabs from "./WorkspaceNodeConnectionTabs.vue";
-import WorkspaceNodeExpressionPanel from "./WorkspaceNodeExpressionPanel.vue";
 
 export default {
-    name: "WorkspaceGeneNodeInspectorContent",
+    name: "WorkspaceMechanismNodeInspectorContent",
     components: {
         WorkspaceNodeConnectionTabs,
-        WorkspaceNodeExpressionPanel,
+        WorkspaceFactorLoadingsPanel,
+        WorkspaceMechanismAssociationScores,
     },
     props: {
         node: {
@@ -183,17 +193,29 @@ export default {
             type: Object,
             default: () => ({}),
         },
-        expressionCache: {
+        factorLoadingsCache: {
             type: Object,
-            default: () => ({}),
+            default: null,
         },
-        preferredExpressionReferenceId: {
+        factorLoadingsLoading: {
+            type: Boolean,
+            default: false,
+        },
+        factorLoadingsError: {
             type: String,
             default: "",
         },
-        expressionOptions: {
+        sigChainPacket: {
             type: Object,
             default: null,
+        },
+        sigChainLoading: {
+            type: Boolean,
+            default: false,
+        },
+        sigChainError: {
+            type: String,
+            default: "",
         },
         apiClient: {
             type: Object,
@@ -225,7 +247,13 @@ export default {
                 return "";
             }
             const label = String(this.node?.label || "").trim();
-            if (subtitle.toLowerCase() === "gene" || subtitle === label) {
+            const lower = subtitle.toLowerCase();
+            if (
+                lower === "trait" ||
+                lower === "factor" ||
+                lower === "mechanism" ||
+                subtitle === label
+            ) {
                 return "";
             }
             return subtitle;
@@ -258,7 +286,7 @@ export default {
 </script>
 
 <style scoped>
-.wkb-gene-inspector-stack {
+.wkb-mechanism-inspector-stack {
     display: flex;
     flex-direction: column;
     gap: 4px;

@@ -15,8 +15,9 @@
             class="wkb-node-action-btn"
             :class="{ 'wkb-node-action-btn-blocked': !canRemove }"
             role="menuitem"
-            :title="canRemove ? '' : 'Starting nodes cannot be removed from the graph.'"
-            @click="emitAndClose('remove-node')"
+            :disabled="!canRemove"
+            :title="removeNodeTitle"
+            @click="onRemoveNode"
         >
             Remove node
         </button>
@@ -72,6 +73,12 @@ export default {
         },
     },
     computed: {
+        removeNodeTitle() {
+            if (this.canRemove) {
+                return "";
+            }
+            return "Key nodes cannot be removed. Use Remove from key nodes first.";
+        },
         clampedPosition() {
             return clampMenuPosition(this.left, this.top);
         },
@@ -108,6 +115,12 @@ export default {
                 return;
             }
             this.$emit("close");
+        },
+        onRemoveNode() {
+            if (!this.canRemove) {
+                return;
+            }
+            this.emitAndClose("remove-node");
         },
         emitAndClose(action) {
             this.$emit(action, this.node);

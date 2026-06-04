@@ -25,10 +25,69 @@
                     :key="inspectorContentKey || 'inspector-empty'"
                     class="wkb-inspector-content"
                 >
+                    <WorkspaceGeneSetNodeInspectorContent
+                        v-if="geneSetInspectorContext"
+                        :node="geneSetInspectorContext.node"
+                        :key-node-items="geneSetInspectorContext.keyNodeItems"
+                        :session-context="geneSetInspectorContext.sessionContext"
+                        :graph-nodes="geneSetInspectorContext.graphNodes"
+                        :graph-edges="geneSetInspectorContext.graphEdges"
+                        :contextual-edges="geneSetInspectorContext.contextualEdges"
+                        :connection-cache="geneSetInspectorContext.connectionCache"
+                        :api-client="apiClient"
+                        :graph-busy="graphBusy"
+                        @cache-connections="$emit('cache-connections', $event)"
+                        @add-node="$emit('add-node', $event)"
+                        @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
+                        @inspect-connected-node="$emit('inspect-connected-node', $event)"
+                    />
+                    <WorkspaceMechanismNodeInspectorContent
+                        v-else-if="mechanismInspectorContext"
+                        :node="mechanismInspectorContext.node"
+                        :key-node-items="mechanismInspectorContext.keyNodeItems"
+                        :session-context="mechanismInspectorContext.sessionContext"
+                        :graph-nodes="mechanismInspectorContext.graphNodes"
+                        :graph-edges="mechanismInspectorContext.graphEdges"
+                        :contextual-edges="mechanismInspectorContext.contextualEdges"
+                        :connection-cache="mechanismInspectorContext.connectionCache"
+                        :factor-loadings-cache="mechanismInspectorContext.factorLoadingsCache"
+                        :factor-loadings-loading="mechanismInspectorContext.factorLoadingsLoading"
+                        :factor-loadings-error="mechanismInspectorContext.factorLoadingsError"
+                        :sig-chain-packet="mechanismInspectorContext.sigChainPacket"
+                        :sig-chain-loading="mechanismInspectorContext.sigChainLoading"
+                        :sig-chain-error="mechanismInspectorContext.sigChainError"
+                        :api-client="apiClient"
+                        :graph-busy="graphBusy"
+                        @cache-connections="$emit('cache-connections', $event)"
+                        @cache-factor-loadings="$emit('cache-factor-loadings', $event)"
+                        @load-factor-loadings="$emit('load-factor-loadings', $event)"
+                        @add-node="$emit('add-node', $event)"
+                        @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
+                        @inspect-connected-node="$emit('inspect-connected-node', $event)"
+                    />
+                    <WorkspaceTraitNodeInspectorContent
+                        v-else-if="traitInspectorContext"
+                        :node="traitInspectorContext.node"
+                        :key-node-items="traitInspectorContext.keyNodeItems"
+                        :session-context="traitInspectorContext.sessionContext"
+                        :graph-nodes="traitInspectorContext.graphNodes"
+                        :graph-edges="traitInspectorContext.graphEdges"
+                        :contextual-edges="traitInspectorContext.contextualEdges"
+                        :connection-cache="traitInspectorContext.connectionCache"
+                        :sig-chain-packet="traitInspectorContext.sigChainPacket"
+                        :sig-chain-loading="traitInspectorContext.sigChainLoading"
+                        :sig-chain-error="traitInspectorContext.sigChainError"
+                        :api-client="apiClient"
+                        :graph-busy="graphBusy"
+                        @cache-connections="$emit('cache-connections', $event)"
+                        @add-node="$emit('add-node', $event)"
+                        @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
+                        @inspect-connected-node="$emit('inspect-connected-node', $event)"
+                    />
                     <WorkspaceGeneNodeInspectorContent
-                        v-if="geneInspectorContext"
+                        v-else-if="geneInspectorContext"
                         :node="geneInspectorContext.node"
-                        :anchor-items="geneInspectorContext.anchorItems"
+                        :key-node-items="geneInspectorContext.keyNodeItems"
                         :session-context="geneInspectorContext.sessionContext"
                         :graph-nodes="geneInspectorContext.graphNodes"
                         :graph-edges="geneInspectorContext.graphEdges"
@@ -95,9 +154,9 @@
                                 <dt>Type</dt>
                                 <dd>{{ selectedNode.nodeType }}</dd>
                             </div>
-                            <div v-if="selectedNode.isStartingNode">
+                            <div v-if="selectedNode.isKeyNode">
                                 <dt>Role</dt>
-                                <dd>Starting node</dd>
+                                <dd>Key node</dd>
                             </div>
                             <div v-if="selectedNode.subtitle">
                                 <dt>Subtitle</dt>
@@ -109,9 +168,8 @@
                             </div>
                         </dl>
                         <p class="wkb-inspector-note">
-                            Full gene evidence (connections and expression) is available when you
-                            inspect a gene node. Other node types will be supported in a later
-                            update.
+                            Use <strong>Inspect node</strong> on gene, trait, mechanism, or
+                            gene set nodes for full evidence.
                         </p>
                     </template>
                     <template v-else-if="selectedNodeId">
@@ -133,11 +191,17 @@
 
 <script>
 import WorkspaceGeneNodeInspectorContent from "./WorkspaceGeneNodeInspectorContent.vue";
+import WorkspaceGeneSetNodeInspectorContent from "./WorkspaceGeneSetNodeInspectorContent.vue";
+import WorkspaceMechanismNodeInspectorContent from "./WorkspaceMechanismNodeInspectorContent.vue";
+import WorkspaceTraitNodeInspectorContent from "./WorkspaceTraitNodeInspectorContent.vue";
 
 export default {
     name: "WorkspaceInspector",
     components: {
         WorkspaceGeneNodeInspectorContent,
+        WorkspaceGeneSetNodeInspectorContent,
+        WorkspaceMechanismNodeInspectorContent,
+        WorkspaceTraitNodeInspectorContent,
     },
     props: {
         inspectorContentKey: {
@@ -165,6 +229,18 @@ export default {
             default: null,
         },
         geneInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        traitInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        mechanismInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        geneSetInspectorContext: {
             type: Object,
             default: null,
         },

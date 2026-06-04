@@ -25,6 +25,31 @@ export function isGeneInspectorNode(node) {
     return nodeId.startsWith("gene:");
 }
 
+export function isTraitInspectorNode(node) {
+    if (normalizeInspectorNodeType(node) === "trait") {
+        return true;
+    }
+    const nodeId = String(node?.id || node?.node_id || "");
+    return nodeId.startsWith("trait:");
+}
+
+export function isMechanismInspectorNode(node) {
+    const nodeType = normalizeInspectorNodeType(node);
+    if (nodeType === "factor" || nodeType === "mechanism") {
+        return true;
+    }
+    const nodeId = String(node?.id || node?.node_id || "");
+    return nodeId.startsWith("factor:");
+}
+
+export function isGeneSetInspectorNode(node) {
+    if (normalizeInspectorNodeType(node) === "gene_set") {
+        return true;
+    }
+    const nodeId = String(node?.id || node?.node_id || "");
+    return nodeId.startsWith("gene_set:");
+}
+
 export function connectionTargetTypesForNode(node) {
     const nodeType = normalizeInspectorNodeType(node);
     if (!nodeType) {
@@ -314,6 +339,18 @@ export function nodeIdsWithInspectorEvidence(session) {
     }
     for (const nodeId of Object.keys(expressionCache)) {
         if (inspectorCacheHasEntries(expressionCache[nodeId])) {
+            ids.add(nodeId);
+        }
+    }
+    const sigChainCache = session.nodeSigChainPacketCache || {};
+    for (const nodeId of Object.keys(sigChainCache)) {
+        if (sigChainCache[nodeId]?.packet || sigChainCache[nodeId]?.error) {
+            ids.add(nodeId);
+        }
+    }
+    const factorLoadingsCache = session.nodeFactorLoadingsCache || {};
+    for (const nodeId of Object.keys(factorLoadingsCache)) {
+        if (factorLoadingsCache[nodeId]?.payload || factorLoadingsCache[nodeId]?.error) {
             ids.add(nodeId);
         }
     }

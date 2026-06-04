@@ -13,7 +13,7 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 - **Canvas-first workspace**, not a linear stepper. The graph canvas is home.
 - **No forced end state** — exploration stays open-ended; save when you reach a useful checkpoint.
 - **Single persistence concept for graphs:** saved graphs in the browser Library (localStorage). A graph with only seed nodes and no edges is still a valid saved graph.
-- **Anchors** (genes, traits, mechanisms) define where search starts; graph build follows anchor commit (see Playground Step 1 for behavior reference).
+- **Key nodes** (`session.highlighted`) are the user’s focus set for ranking connections and association scores in the Inspector. User-facing copy says “key node,” not “anchor” (Playground terminology does not apply here). APIs still accept `anchor_items` in request bodies; the client fills that field from key nodes via `keyNodeItemsFromSession`.
 
 ### Top bar (left → right)
 
@@ -42,6 +42,8 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 | `nodeExpressionProfileCache` | Per node id → per reference id → expression payload or error |
 | `nodeExpressionReferenceById` | Last expression reference selected per node |
 | `edgeProvenanceById` | Per edge id → provenance payload or error |
+| `nodeSigChainPacketCache` | Per trait/mechanism node id → association scores packet (API: `sig-chains/packet`) |
+| `nodeFactorLoadingsCache` | Per mechanism node id → factor loadings payload (API: `factor-loadings`) |
 
 Rules when adding new Inspector data sources:
 
@@ -66,11 +68,11 @@ Click a node to open a pointer menu (Playground parity). Default actions:
 | Label | Behavior |
 |-------|----------|
 | **Inspect node** | Select node and open Inspector |
-| **Remove node** | Remove non–starting nodes from the session graph |
+| **Remove node** | Remove any starting node, or any node that is not a key node. Key nodes (non-starting) must be unmarked first. |
 | **Expand graph from node** | Fetch neighbors via connections API seeded on that node |
-| **Mark as key node** / **Remove from key nodes** | Mark or unmark any node as a key node (blue fill). Starting nodes use a diamond shape; neighbors use a circle. New graphs start with starting nodes marked as key nodes. Saved with the graph in `highlighted` (key node ids). |
+| **Mark as key node** / **Remove from key nodes** | Mark or unmark any node as a key node (blue fill). New graphs start with initial picks in `highlighted`. Saved with the graph. |
 
-Click the same node again to dismiss the menu. Starting nodes cannot be removed.
+Click the same node again to dismiss the menu. Starting nodes can always be removed; other key nodes must be unmarked first.
 
 ### Edge action menu (canvas)
 
@@ -200,7 +202,7 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 | **Smaller / auxiliary networks** (hypothesis maps, sig chains, compact supporting graphs in Analyze flows) | **vis-network** (`vis.js`) | `FactorBaseRevealNetwork2.vue` in dig-dug-portal |
 
 - Main graph: deterministic hierarchy, jumping-edge rules, contextual edges on hover — port/adapt Playground tree view, not force layout.
-- **Legend labels (toolbar):** Starting node (anchor diamond); **Active edges** (solid)—links in the saved/working graph; **Contextual edges** (dashed)—API-suggested links not yet in the graph. Do not use the label “Graph edges.”
+- **Legend labels (toolbar):** Key node (blue circle/diamond); **Starting node** (gray diamond, `is_anchor` on graph nodes from initial build); **Active edges** (solid)—links in the saved/working graph; **Contextual edges** (dashed)—API-suggested links not yet in the graph. Do not use the label “Graph edges.” User-facing text must not say “anchor.”
 - Document active vs contextual edges in `WorkspaceDocumentationModal.vue` whenever edge behavior changes.
 - Smaller graphs: existing vis-network patterns (physics stabilize then disable; mechanism flow maps with edge labels).
 - **Cytoscape** is Playground’s secondary “Canvas view” only; not planned for workspace v1 unless we add an explicit exploratory toggle later.

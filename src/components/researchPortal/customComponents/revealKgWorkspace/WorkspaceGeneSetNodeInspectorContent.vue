@@ -1,5 +1,5 @@
 <template>
-    <div class="wkb-gene-inspector-stack">
+    <div class="wkb-gene-set-inspector-stack">
         <section v-if="hasHeader" class="wkb-inspector-panel-block">
             <h3 class="wkb-inspector-node-title">{{ node.label || node.id }}</h3>
             <p v-if="displaySubtitle" class="wkb-inspector-node-subtitle">
@@ -131,28 +131,17 @@
             @cache-connections="$emit('cache-connections', $event)"
             @add-node="$emit('add-node', $event)"
         />
-
-        <WorkspaceNodeExpressionPanel
-            :node="node"
-            :expression-options="expressionOptions"
-            :expression-cache="expressionCache"
-            :preferred-expression-reference-id="preferredExpressionReferenceId"
-            :api-client="apiClient"
-            @cache-expression="$emit('cache-expression', $event)"
-        />
     </div>
 </template>
 
 <script>
 import { groupedConnectedNeighborsForNode } from "./revealKgInspectorUtils";
 import WorkspaceNodeConnectionTabs from "./WorkspaceNodeConnectionTabs.vue";
-import WorkspaceNodeExpressionPanel from "./WorkspaceNodeExpressionPanel.vue";
 
 export default {
-    name: "WorkspaceGeneNodeInspectorContent",
+    name: "WorkspaceGeneSetNodeInspectorContent",
     components: {
         WorkspaceNodeConnectionTabs,
-        WorkspaceNodeExpressionPanel,
     },
     props: {
         node: {
@@ -182,18 +171,6 @@ export default {
         connectionCache: {
             type: Object,
             default: () => ({}),
-        },
-        expressionCache: {
-            type: Object,
-            default: () => ({}),
-        },
-        preferredExpressionReferenceId: {
-            type: String,
-            default: "",
-        },
-        expressionOptions: {
-            type: Object,
-            default: null,
         },
         apiClient: {
             type: Object,
@@ -225,7 +202,11 @@ export default {
                 return "";
             }
             const label = String(this.node?.label || "").trim();
-            if (subtitle.toLowerCase() === "gene" || subtitle === label) {
+            if (
+                subtitle.toLowerCase() === "gene set" ||
+                subtitle.toLowerCase() === "gene_set" ||
+                subtitle === label
+            ) {
                 return "";
             }
             return subtitle;
@@ -258,7 +239,7 @@ export default {
 </script>
 
 <style scoped>
-.wkb-gene-inspector-stack {
+.wkb-gene-set-inspector-stack {
     display: flex;
     flex-direction: column;
     gap: 4px;

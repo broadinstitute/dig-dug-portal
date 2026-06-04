@@ -3,6 +3,9 @@
         <h4 class="wkb-inspector-section-heading">
             Top connections from {{ nodeLabel }}
         </h4>
+        <p class="wkb-node-connections-lead">
+            Ranked candidates you can add, using your key nodes and this node.
+        </p>
         <div class="wkb-node-connections-toolbar">
             <div class="wkb-node-connections-tabs" role="tablist" aria-label="Top connection types">
                 <button
@@ -42,7 +45,7 @@
                 :rows="visibleRows"
                 :columns="tableColumns"
                 :page-size="10"
-                :empty-note="emptyNote"
+                :empty-note="emptyStateMessage"
                 pagination-label="Top connections pages"
             >
                 <template #add="{ row }">
@@ -56,7 +59,7 @@
                     </button>
                 </template>
             </WorkspaceEvidenceTable>
-            <p v-else class="wkb-inspector-note">{{ emptyNote }}</p>
+            <p v-else class="wkb-inspector-note">{{ emptyStateMessage }}</p>
         </div>
     </div>
 </template>
@@ -68,6 +71,7 @@ import {
     graphNodeToConnectionAnchor,
     INSPECTOR_TARGET_TYPE_LABELS,
     mapConnectionCandidatesToRows,
+    normalizeInspectorNodeType,
 } from "./revealKgInspectorUtils.js";
 
 export default {
@@ -80,7 +84,7 @@ export default {
             type: Object,
             required: true,
         },
-        anchorItems: {
+        keyNodeItems: {
             type: Array,
             default: () => [],
         },
@@ -150,9 +154,30 @@ export default {
             }
             return this.tableRows;
         },
-        emptyNote() {
-            const tab = INSPECTOR_TARGET_TYPE_LABELS[this.selectedTab] || this.selectedTab;
-            return `No ${String(tab || "connection").toLowerCase()} connections matched this view.`;
+        emptyStateTypePlural() {
+            const plurals = {
+                gene: "genes",
+                trait: "traits",
+                factor: "mechanisms",
+                gene_set: "gene sets",
+            };
+            return plurals[this.selectedTab] || "connections";
+        },
+        emptyStateMessage() {
+            const typePlural = this.emptyStateTypePlural;
+            if (this.shownOnly && this.tableRows.length > 0) {
+                return `No ${typePlural} on the graph for this tab. Clear “Show only on graph” to see candidates you can add.`;
+            }
+            if (this.tabCache[this.selectedTab]) {
+                if (
+                    normalizeInspectorNodeType(this.node) === "gene_set" &&
+                    this.selectedTab === "gene"
+                ) {
+                    return "No gene membership rows were imported for this gene set. Trait and mechanism links can still exist because they are stored as separate gene-set association/loading edges.";
+                }
+                return `No ${typePlural} were returned to connect to ${this.nodeLabel} using your key nodes.`;
+            }
+            return `No ${typePlural} to show yet.`;
         },
         isSelectedTabLoading() {
             return (
@@ -179,7 +204,7 @@ export default {
                 this.preloadAllTabs(this.preloadToken);
             },
         },
-        anchorItems: {
+        keyNodeItems: {
             deep: true,
             handler() {
                 this.preloadAllTabs(this.preloadToken);
@@ -261,20 +286,20 @@ export default {
             }
             this.$set(this.loadingTabs, targetType, true);
             this.$set(this.tabErrors, targetType, "");
-            const anchorItems = (this.anchorItems || []).length
-                ? this.anchorItems
+            const seedItems = (this.keyNodeItems || []).length
+                ? this.keyNodeItems
                 : [graphNodeToConnectionAnchor(this.node)].filter(Boolean);
-            const useAnchorRanked = anchorItems.length > 0;
+            const useKeyNodeRanking = seedItems.length > 0;
             try {
                 const payload = await this.apiClient.getInteractiveConnections({
-                    anchor_items: anchorItems,
+                    anchor_items: seedItems,
                     context: (this.sessionContext || "").trim(),
                     target_type: targetType,
                     reducer: "max",
                     connection_scope: "direct",
                     limit: 100,
                     exclude_node_ids: [this.node.id],
-                    linked_node_id: useAnchorRanked ? this.node.id : undefined,
+                    linked_node_id: useKeyNodeRanking ? this.node.id : undefined,
                 });
                 if (token !== this.preloadToken) {
                     return;
@@ -307,6 +332,13 @@ export default {
 <style scoped>
 .wkb-node-connections {
     margin-top: 16px;
+}
+
+.wkb-node-connections-lead {
+    margin: 0 0 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-inspector-section-heading {

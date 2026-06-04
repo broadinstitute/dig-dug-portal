@@ -112,16 +112,13 @@ export function buildGraphTableRowsFromLedger(
     retrievalLedger = {},
     graphNodes = [],
     graphEdges = [],
-    contextualEdges = []
+    contextualEdges = [],
+    keyNodeIds = []
 ) {
     const graphNodeIds = new Set(
         (graphNodes || []).map((node) => node?.id || node?.node_id).filter(Boolean)
     );
-    const anchorIds = new Set(
-        (graphNodes || [])
-            .filter((node) => node?.is_anchor)
-            .map((node) => node?.id || node?.node_id)
-    );
+    const keyIds = new Set((keyNodeIds || []).filter(Boolean));
     const scoresByNode = buildGraphNodeScoreMap(graphEdges, contextualEdges);
     const rowsByType = Object.fromEntries(GRAPH_TABLE_TABS.map((tab) => [tab.key, []]));
 
@@ -136,7 +133,7 @@ export function buildGraphTableRowsFromLedger(
             label: entry.label || entry.node_id,
             node_type: nodeType,
             subtitle: entry.subtitle || "",
-            is_anchor: anchorIds.has(entry.node_id),
+            is_key_node: keyIds.has(entry.node_id),
             aggregate_score: entry.aggregate_score ?? edgeScores.aggregate_score,
             raw_max_score: entry.raw_max_score ?? edgeScores.raw_max_score,
             raw_mean_score: entry.raw_mean_score ?? edgeScores.raw_mean_score,
