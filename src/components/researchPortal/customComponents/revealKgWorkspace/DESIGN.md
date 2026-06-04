@@ -32,6 +32,33 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 - Right-edge drawer; **evidence only** (node/edge provenance).
 - CFDE dataset discovery lives under **Analyze → Data provenance**, not in the Inspector.
 
+#### Inspector evidence caching (required)
+
+**All interactive API results shown in the Inspector must be cached on the workspace session** so the user does not re-fetch when switching inspected items, and so **Save KG / Download snapshot / Library load** can restore the same evidence.
+
+| Session field | Contents |
+|---------------|----------|
+| `nodeConnectionEvidenceCache` | Per node id → per target type → connection candidates |
+| `nodeExpressionProfileCache` | Per node id → per reference id → expression payload or error |
+| `nodeExpressionReferenceById` | Last expression reference selected per node |
+| `edgeProvenanceById` | Per edge id → provenance payload or error |
+
+Rules when adding new Inspector data sources:
+
+1. Write successful (and failed) fetches into the session cache via a handler on `revealKgWorkspace.vue` (mirror `onCacheNodeConnections` / `onCacheNodeExpression`).
+2. Pass cached data into Inspector child components as props; skip API calls when cache hits.
+3. Include new cache fields in `graphPayloadFromSession`, `sessionFromGraph`, and `normalizeGraphRecord` in `src/utils/userUtils.js` so saved graphs and export bundles carry inspection data.
+4. Do **not** clear caches on Library load when the saved graph includes them; only reset on an explicit new graph.
+
+#### Graph cues for cached evidence
+
+When session caches contain Inspector data, the tree graph highlights:
+
+- **Nodes** — orange ring (`#ff6600` / `--cfde-orange`) if the node has connection and/or expression cache entries.
+- **Edges** — orange stroke and arrowhead if edge provenance is cached in `edgeProvenanceById`.
+
+Selection uses the same orange styling; selected items do not need a second ring.
+
 ### Node action menu (canvas)
 
 Click a node to open a pointer menu (Playground parity). Default actions:
@@ -41,9 +68,20 @@ Click a node to open a pointer menu (Playground parity). Default actions:
 | **Inspect node** | Select node and open Inspector |
 | **Remove node** | Remove non–starting nodes from the session graph |
 | **Expand graph from node** | Fetch neighbors via connections API seeded on that node |
-| **Highlight node** / **Clear highlight** | Mark or unmark any node as a node of interest (blue fill). Starting nodes use a diamond shape; neighbors use a circle. New graphs start with starting nodes highlighted. Saved with the graph in `highlighted`. |
+| **Mark as key node** / **Remove from key nodes** | Mark or unmark any node as a key node (blue fill). Starting nodes use a diamond shape; neighbors use a circle. New graphs start with starting nodes marked as key nodes. Saved with the graph in `highlighted` (key node ids). |
 
 Click the same node again to dismiss the menu. Starting nodes cannot be removed.
+
+### Edge action menu (canvas)
+
+Click an edge to open a pointer menu. Default actions:
+
+| Label | Behavior |
+|-------|----------|
+| **Inspect edge** | Select edge, open Inspector, load edge provenance when available (gene–trait links) |
+| **Expand graph from edge** | Expand from both endpoints via connections API |
+
+Click the same edge again to dismiss the menu.
 
 ---
 
@@ -96,6 +134,15 @@ Use for **action-required or high-salience messages** directly under a modal or 
 - Backdrop + elevation (shadow); avoid heavy bordered “cards inside cards.”
 - Section separation via vertical rhythm (`gap`), not boxes with outlines.
 
+### Pagination (paged tables and lists)
+
+Use the **Graph data table pagination** everywhere the workspace shows pageable rows—including the Inspector (top connections, expression, and any future evidence tables).
+
+- **Component:** `WorkspaceGraphTablePagination.vue` (pill control: « ‹ page numbers … › »).
+- **Do not** build ad hoc “Previous / Page X of Y / Next” controls in workspace UI.
+- Wire `current-page` (1-based), `total-pages`, and `@page-change`; set a specific `aria-label` per surface (e.g. `"Top connections pages"`, `"Expression profile pages"`).
+- The component hides itself when `totalPages <= 1`.
+
 ---
 
 ## Documentation copy (Documentation modal)
@@ -120,6 +167,7 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, S
 | `revealKgWorkspace/WorkspaceMenuBar.vue` | Menus + Library / Documentation buttons |
 | `revealKgWorkspace/WorkspaceCanvas.vue` | Main graph canvas (D3 layered tree) |
 | `revealKgWorkspace/WorkspaceInspector.vue` | Evidence drawer |
+| `revealKgWorkspace/WorkspaceGraphTablePagination.vue` | Standard pill pagination (graph data, inspector tables) |
 | `revealKgWorkspace/WorkspaceLibraryModal.vue` | Saved graphs + import/export |
 | `revealKgWorkspace/WorkspaceDocumentationModal.vue` | User guide |
 | `revealKgWorkspace/WorkspaceGraphDataTableModal.vue` | Tabbed graph data table popup |

@@ -14,8 +14,9 @@ import {
     HIERARCHY_LAYERS,
     TREE_VIEW_ANCHOR_NODE_COLOR,
     TREE_VIEW_DEFAULT_NODE_COLOR,
+    ACTIVE_SET_NODE_COLOR,
     TREE_VIEW_EDGE_COLOR,
-    TREE_VIEW_HIGHLIGHTED_NODE_COLOR,
+    TREE_VIEW_KEY_NODE_COLOR,
 } from "./revealKgGraphColors.js";
 import {
     buildRowLayout,
@@ -266,13 +267,13 @@ function hierarchyEdgeTooltip(entry, nodeMetaById) {
     return `${sourceLabel} → ${targetLabel}`;
 }
 
-function highlightedNodeIdSet(ids) {
+function keyNodeIdSet(ids) {
     return new Set((ids || []).filter(Boolean));
 }
 
-function nodeFillColor(entry, highlightedIds) {
-    if (highlightedIds.has(entry.id)) {
-        return TREE_VIEW_HIGHLIGHTED_NODE_COLOR;
+function nodeFillColor(entry, keyNodeIds) {
+    if (keyNodeIds.has(entry.id)) {
+        return TREE_VIEW_KEY_NODE_COLOR;
     }
     if (entry.meta?.isAnchor) {
         return TREE_VIEW_ANCHOR_NODE_COLOR;
@@ -299,7 +300,19 @@ export default {
             type: String,
             default: null,
         },
-        highlightedNodeIds: {
+        selectedEdgeId: {
+            type: String,
+            default: null,
+        },
+        keyNodeIds: {
+            type: Array,
+            default: () => [],
+        },
+        nodeIdsWithEvidence: {
+            type: Array,
+            default: () => [],
+        },
+        edgeKeysWithEvidence: {
             type: Array,
             default: () => [],
         },
@@ -351,8 +364,17 @@ export default {
         selectedNodeId() {
             this._graphInteraction?.updateNodeChromeStyles?.();
         },
-        highlightedNodeIds() {
+        selectedEdgeId() {
+            this._graphInteraction?.updateEdgeChromeStyles?.();
+        },
+        keyNodeIds() {
             this._graphInteraction?.updateNodeFillStyles?.();
+        },
+        nodeIdsWithEvidence() {
+            this._graphInteraction?.updateNodeChromeStyles?.();
+        },
+        edgeKeysWithEvidence() {
+            this._graphInteraction?.updateEdgeChromeStyles?.();
         },
         zoomLevel() {
             this.applyViewportTransform();
@@ -749,7 +771,8 @@ export default {
                 .attr("fill", "none")
                 .attr("stroke", "transparent")
                 .attr("stroke-width", 10)
-                .style("cursor", "pointer");
+                .style("cursor", "pointer")
+                .on("click", handleEdgeClick);
 
             const nodeEntries = Array.from(positions.entries()).map(([id, pos]) => ({
                 id,
@@ -817,36 +840,56 @@ export default {
             }
 
             function updateNodeChromeStyles() {
+                const evidenceNodeIds = keyNodeIdSet(vm.nodeIdsWithEvidence);
                 g.selectAll("g.wkb-tree-graph-node")
                     .classed("is-selected", (entry) => entry.id === vm.selectedNodeId)
+                    .classed(
+                        "has-evidence",
+                        (entry) => evidenceNodeIds.has(entry.id)
+                    )
                     .each(function updateNodeRings(entry) {
                         const group = select(this);
                         group.selectAll(".wkb-tree-graph-node-selection-ring").remove();
+                        group.selectAll(".wkb-tree-graph-node-evidence-ring").remove();
 
-                        if (entry.id !== vm.selectedNodeId) {
-                            return;
-                        }
                         const layer = entry.meta?.layer ?? 0;
                         const radius = nodeRadius(layer);
                         const anchorRadius = nodeShapeRadius(layer, true);
                         const isAnchor = entry.meta?.isAnchor;
                         const shapeRadius = isAnchor ? anchorRadius : radius;
+                        const ringRadius = shapeRadius + 4;
+                        const ringStroke = ACTIVE_SET_NODE_COLOR;
+
+                        if (entry.id === vm.selectedNodeId) {
+                            group
+                                .append("circle")
+                                .attr("class", "wkb-tree-graph-node-selection-ring")
+                                .attr("r", ringRadius)
+                                .attr("fill", "none")
+                                .attr("stroke", ringStroke)
+                                .attr("stroke-width", 2)
+                                .style("pointer-events", "none");
+                            return;
+                        }
+                        if (!evidenceNodeIds.has(entry.id)) {
+                            return;
+                        }
                         group
                             .append("circle")
-                            .attr("class", "wkb-tree-graph-node-selection-ring")
-                            .attr("r", shapeRadius + 4)
+                            .attr("class", "wkb-tree-graph-node-evidence-ring")
+                            .attr("r", ringRadius)
                             .attr("fill", "none")
-                            .attr("stroke", "#ff6600")
+                            .attr("stroke", ringStroke)
                             .attr("stroke-width", 2)
                             .style("pointer-events", "none");
                     });
             }
 
             function updateNodeFillStyles() {
-                const highlightedIds = highlightedNodeIdSet(vm.highlightedNodeIds);
+                const keyNodeIds = keyNodeIdSet(vm.keyNodeIds);
                 g.selectAll("g.wkb-tree-graph-node .wkb-tree-graph-node-shape").attr(
                     "fill",
-                    (entry) => nodeFillColor(entry, highlightedIds)
+                    (entry) => nodeFillColor(entry, keyNodeIds)
                 );
             }
 
@@ -855,6 +898,54 @@ export default {
                 vm._highlight = { nodeId: entry.id, edgeKey: null };
                 vm.showTooltip(event, entry.meta?.label || entry.id);
                 updateHighlightVisuals();
+            }
+
+            function updateEdgeChromeStyles() {
+                const selectedKey = vm.selectedEdgeId;
+                const evidenceEdgeKeys = keyNodeIdSet(vm.edgeKeysWithEvidence);
+                g.selectAll("g.wkb-tree-graph-edge")
+                    .classed("is-selected", (entry) => hierarchyEdgeKey(entry) === selectedKey)
+                    .classed(
+                        "has-evidence",
+                        (entry) => evidenceEdgeKeys.has(hierarchyEdgeKey(entry))
+                    )
+                    .each(function updateEdgeStroke(entry) {
+                        const key = hierarchyEdgeKey(entry);
+                        const hasEvidence = evidenceEdgeKeys.has(key);
+                        const isSelected = key === selectedKey;
+                        const strokeColor =
+                            hasEvidence || isSelected
+                                ? ACTIVE_SET_NODE_COLOR
+                                : TREE_VIEW_EDGE_COLOR;
+                        const strokeWidth = hasEvidence || isSelected ? 2 : 1;
+                        const group = select(this);
+                        group
+                            .select(".wkb-tree-graph-link")
+                            .attr("stroke", strokeColor)
+                            .attr("stroke-width", strokeWidth);
+                        group
+                            .select(".wkb-tree-graph-arrowhead")
+                            .attr("fill", strokeColor);
+                    });
+            }
+
+            function handleEdgeClick(event, entry) {
+                event.stopPropagation();
+                vm.clearGraphHover({ skipVisuals: true });
+                const sourceMeta = nodeMetaById.get(entry.sourceId);
+                const targetMeta = nodeMetaById.get(entry.targetId);
+                const sourceLabel = sourceMeta?.label || entry.sourceId;
+                const targetLabel = targetMeta?.label || entry.targetId;
+                vm.$emit("edge-menu-open", {
+                    edgeId: hierarchyEdgeKey(entry),
+                    sourceId: entry.sourceId,
+                    targetId: entry.targetId,
+                    label: `${sourceLabel} → ${targetLabel}`,
+                    isContextual: Boolean(entry.isContextual),
+                    edge: entry.edge,
+                    left: event.clientX + 10,
+                    top: event.clientY + 10,
+                });
             }
 
             function handleEdgePointerEnter(event, entry) {
@@ -871,8 +962,8 @@ export default {
                 const layer = entry.meta?.layer ?? 0;
                 const radius = nodeRadius(layer);
                 const anchorRadius = nodeShapeRadius(layer, true);
-                const highlightedIds = highlightedNodeIdSet(vm.highlightedNodeIds);
-                const fill = nodeFillColor(entry, highlightedIds);
+                const keyNodeIds = keyNodeIdSet(vm.keyNodeIds);
+                const fill = nodeFillColor(entry, keyNodeIds);
 
                 const onClick = (event) => {
                     event.stopPropagation();
@@ -933,11 +1024,13 @@ export default {
                 updateHighlightVisuals,
                 updateNodeChromeStyles,
                 updateNodeFillStyles,
+                updateEdgeChromeStyles,
             };
 
             applyEdgeVisibility();
             updateNodeChromeStyles();
             updateNodeFillStyles();
+            updateEdgeChromeStyles();
             if (this.getGraphHighlight()) {
                 updateHighlightVisuals();
             }
@@ -975,6 +1068,17 @@ export default {
 .wkb-tree-graph-label {
     fill: var(--cfde-ink, #33363d);
     pointer-events: stroke;
+}
+
+.wkb-tree-graph-edge.is-selected .wkb-tree-graph-link,
+.wkb-tree-graph-edge.has-evidence .wkb-tree-graph-link {
+    stroke: var(--cfde-orange, #e07b39);
+    stroke-width: 2;
+}
+
+.wkb-tree-graph-edge.is-selected .wkb-tree-graph-arrowhead,
+.wkb-tree-graph-edge.has-evidence .wkb-tree-graph-arrowhead {
+    fill: var(--cfde-orange, #e07b39);
 }
 
 .wkb-tree-graph-tooltip {

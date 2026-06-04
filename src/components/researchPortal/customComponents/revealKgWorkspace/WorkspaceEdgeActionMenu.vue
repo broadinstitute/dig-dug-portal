@@ -1,37 +1,24 @@
 <template>
     <div
-        v-if="open && node"
-        class="wkb-node-action-menu"
+        v-if="open && edge"
+        class="wkb-edge-action-menu"
         :style="{ left: `${clampedLeft}px`, top: `${clampedTop}px` }"
         role="menu"
-        :aria-label="`Actions for ${node.label || node.id}`"
+        :aria-label="`Actions for ${edge.label || edge.edgeId}`"
         @click.stop
     >
-        <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('inspect')">
-            Inspect node
+        <button type="button" class="wkb-edge-action-btn" role="menuitem" @click="emitAndClose('inspect')">
+            Inspect edge
         </button>
-        <button
-            type="button"
-            class="wkb-node-action-btn"
-            :class="{ 'wkb-node-action-btn-blocked': !canRemove }"
-            role="menuitem"
-            :title="canRemove ? '' : 'Starting nodes cannot be removed from the graph.'"
-            @click="emitAndClose('remove-node')"
-        >
-            Remove node
-        </button>
-        <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('expand')">
-            Expand graph from node
-        </button>
-        <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('toggle-key-node')">
-            {{ isKeyNode ? "Remove from key nodes" : "Mark as key node" }}
+        <button type="button" class="wkb-edge-action-btn" role="menuitem" @click="emitAndClose('expand')">
+            Expand graph from edge
         </button>
     </div>
 </template>
 
 <script>
 const MENU_WIDTH = 230;
-const MENU_HEIGHT = 200;
+const MENU_HEIGHT = 120;
 const PAD = 10;
 
 function clampMenuPosition(left, top) {
@@ -44,13 +31,13 @@ function clampMenuPosition(left, top) {
 }
 
 export default {
-    name: "WorkspaceNodeActionMenu",
+    name: "WorkspaceEdgeActionMenu",
     props: {
         open: {
             type: Boolean,
             default: false,
         },
-        node: {
+        edge: {
             type: Object,
             default: null,
         },
@@ -61,14 +48,6 @@ export default {
         top: {
             type: Number,
             default: 0,
-        },
-        canRemove: {
-            type: Boolean,
-            default: true,
-        },
-        isKeyNode: {
-            type: Boolean,
-            default: false,
         },
     },
     computed: {
@@ -110,7 +89,7 @@ export default {
             this.$emit("close");
         },
         emitAndClose(action) {
-            this.$emit(action, this.node);
+            this.$emit(action, this.edge);
             this.$nextTick(() => {
                 this.$emit("close");
             });
@@ -120,7 +99,7 @@ export default {
 </script>
 
 <style scoped>
-.wkb-node-action-menu {
+.wkb-edge-action-menu {
     position: fixed;
     z-index: 2200;
     display: flex;
@@ -135,7 +114,7 @@ export default {
     box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14);
 }
 
-.wkb-node-action-btn {
+.wkb-edge-action-btn {
     display: block;
     width: 100%;
     margin: 0;
@@ -152,18 +131,13 @@ export default {
     cursor: pointer;
 }
 
-.wkb-node-action-btn:hover:not(.wkb-node-action-btn-blocked) {
+.wkb-edge-action-btn:hover {
     background: #fff5eb;
     border-color: #efc39c;
 }
 
-.wkb-node-action-btn:focus-visible {
+.wkb-edge-action-btn:focus-visible {
     outline: 2px solid var(--cfde-orange, #e07b39);
     outline-offset: 2px;
-}
-
-.wkb-node-action-btn-blocked {
-    opacity: 0.45;
-    cursor: not-allowed;
 }
 </style>

@@ -21,41 +21,129 @@
                 </button>
             </header>
             <div class="wkb-inspector-body">
-                <div class="wkb-inspector-section-label">Evidence</div>
-                <template v-if="selectedNode">
-                    <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
-                    <dl class="wkb-inspector-meta">
-                        <div v-if="selectedNode.nodeType">
-                            <dt>Type</dt>
-                            <dd>{{ selectedNode.nodeType }}</dd>
-                        </div>
-                        <div v-if="selectedNode.isStartingNode">
-                            <dt>Role</dt>
-                            <dd>Starting node</dd>
-                        </div>
-                        <div v-if="selectedNode.subtitle">
-                            <dt>Subtitle</dt>
-                            <dd>{{ selectedNode.subtitle }}</dd>
-                        </div>
-                        <div v-if="selectedNode.rationale">
-                            <dt>Rationale</dt>
-                            <dd>{{ selectedNode.rationale }}</dd>
-                        </div>
-                    </dl>
-                </template>
-                <p v-else class="wkb-inspector-empty">
-                    Select a node or edge in the graph to see the associations
-                    behind it.
-                </p>
+                <div
+                    :key="inspectorContentKey || 'inspector-empty'"
+                    class="wkb-inspector-content"
+                >
+                    <WorkspaceGeneNodeInspectorContent
+                        v-if="geneInspectorContext"
+                        :node="geneInspectorContext.node"
+                        :anchor-items="geneInspectorContext.anchorItems"
+                        :session-context="geneInspectorContext.sessionContext"
+                        :graph-nodes="geneInspectorContext.graphNodes"
+                        :graph-edges="geneInspectorContext.graphEdges"
+                        :contextual-edges="geneInspectorContext.contextualEdges"
+                        :connection-cache="geneInspectorContext.connectionCache"
+                        :expression-cache="geneInspectorContext.expressionCache"
+                        :preferred-expression-reference-id="
+                            geneInspectorContext.preferredExpressionReferenceId
+                        "
+                        :expression-options="expressionOptions"
+                        :api-client="apiClient"
+                        :graph-busy="graphBusy"
+                        @cache-connections="$emit('cache-connections', $event)"
+                        @cache-expression="$emit('cache-expression', $event)"
+                        @add-node="$emit('add-node', $event)"
+                        @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
+                        @inspect-connected-node="$emit('inspect-connected-node', $event)"
+                    />
+                    <template v-else-if="selectedEdgeId && selectedEdge">
+                        <p class="wkb-inspector-edge-name">
+                            {{ selectedEdge.label || "Selected edge" }}
+                        </p>
+                        <dl class="wkb-inspector-meta">
+                            <div v-if="selectedEdge.edgeType">
+                                <dt>Type</dt>
+                                <dd>{{ selectedEdge.edgeType }}</dd>
+                            </div>
+                            <div v-if="selectedEdge.isContextual">
+                                <dt>Role</dt>
+                                <dd>Contextual edge</dd>
+                            </div>
+                            <div v-if="selectedEdge.scoreLabel">
+                                <dt>Score</dt>
+                                <dd>{{ selectedEdge.scoreLabel }}</dd>
+                            </div>
+                        </dl>
+                        <p v-if="selectedEdge.provenanceLoading" class="wkb-inspector-note">
+                            Loading edge provenance…
+                        </p>
+                        <p
+                            v-else-if="selectedEdge.provenanceError"
+                            class="wkb-inspector-note wkb-inspector-note--warn"
+                        >
+                            {{ selectedEdge.provenanceError }}
+                        </p>
+                        <template v-else-if="selectedEdge.provenanceSummary">
+                            <p class="wkb-inspector-note">{{ selectedEdge.provenanceSummary }}</p>
+                            <p
+                                v-if="selectedEdge.provenanceNote"
+                                class="wkb-inspector-note"
+                            >
+                                {{ selectedEdge.provenanceNote }}
+                            </p>
+                        </template>
+                        <p v-else class="wkb-inspector-note">
+                            Edge summary only. Gene–trait links include full provenance when
+                            available.
+                        </p>
+                    </template>
+                    <template v-else-if="selectedNode">
+                        <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
+                        <dl class="wkb-inspector-meta">
+                            <div v-if="selectedNode.nodeType">
+                                <dt>Type</dt>
+                                <dd>{{ selectedNode.nodeType }}</dd>
+                            </div>
+                            <div v-if="selectedNode.isStartingNode">
+                                <dt>Role</dt>
+                                <dd>Starting node</dd>
+                            </div>
+                            <div v-if="selectedNode.subtitle">
+                                <dt>Subtitle</dt>
+                                <dd>{{ selectedNode.subtitle }}</dd>
+                            </div>
+                            <div v-if="selectedNode.rationale">
+                                <dt>Rationale</dt>
+                                <dd>{{ selectedNode.rationale }}</dd>
+                            </div>
+                        </dl>
+                        <p class="wkb-inspector-note">
+                            Full gene evidence (connections and expression) is available when you
+                            inspect a gene node. Other node types will be supported in a later
+                            update.
+                        </p>
+                    </template>
+                    <template v-else-if="selectedNodeId">
+                        <p class="wkb-inspector-node-name">{{ selectedNodeId }}</p>
+                        <p class="wkb-inspector-note wkb-inspector-note--warn">
+                            This node is no longer on the graph. Choose another node on the
+                            canvas.
+                        </p>
+                    </template>
+                    <p v-else class="wkb-inspector-empty">
+                        Select a node or edge in the graph to see the associations
+                        behind it.
+                    </p>
+                </div>
             </div>
         </aside>
     </div>
 </template>
 
 <script>
+import WorkspaceGeneNodeInspectorContent from "./WorkspaceGeneNodeInspectorContent.vue";
+
 export default {
     name: "WorkspaceInspector",
+    components: {
+        WorkspaceGeneNodeInspectorContent,
+    },
     props: {
+        inspectorContentKey: {
+            type: String,
+            default: "",
+        },
         open: {
             type: Boolean,
             default: false,
@@ -64,6 +152,34 @@ export default {
             type: Object,
             default: null,
         },
+        selectedNodeId: {
+            type: String,
+            default: null,
+        },
+        selectedEdgeId: {
+            type: String,
+            default: null,
+        },
+        selectedEdge: {
+            type: Object,
+            default: null,
+        },
+        geneInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        expressionOptions: {
+            type: Object,
+            default: null,
+        },
+        apiClient: {
+            type: Object,
+            default: null,
+        },
+        graphBusy: {
+            type: Boolean,
+            default: false,
+        },
     },
 };
 </script>
@@ -71,16 +187,17 @@ export default {
 <style scoped>
 .wkb-inspector {
     position: absolute;
-    top: 50%;
+    top: 0;
     right: 0;
-    transform: translateY(-50%);
+    bottom: 0;
+    height: 100%;
+    max-height: 100%;
     display: flex;
     align-items: stretch;
     pointer-events: none;
     z-index: 6;
 }
 
-/* Handle centered on the right edge of the graph viewport. */
 .wkb-inspector-tab {
     pointer-events: auto;
     position: absolute;
@@ -114,104 +231,108 @@ export default {
     letter-spacing: 0.04em;
 }
 
+.wkb-inspector.is-open .wkb-inspector-tab {
+    border-color: var(--cfde-orange, #e07b39);
+}
+
 .wkb-inspector-panel {
     pointer-events: auto;
     width: 0;
     overflow: hidden;
-    max-height: min(72vh, 520px);
     background: #ffffff;
     border-left: 1px solid var(--cfde-border, #e6e1d6);
-    box-shadow: -8px 0 24px rgba(20, 22, 30, 0.08);
-    transition: width 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.22s ease;
 }
 
 .wkb-inspector.is-open .wkb-inspector-panel {
-    width: 340px;
+    width: 80vw;
 }
 
 .wkb-inspector-head {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--cfde-border, #e6e1d6);
-    min-width: 340px;
 }
 
 .wkb-inspector-title {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
 }
 
 .wkb-inspector-close {
     border: none;
     background: transparent;
-    font-size: 1.4rem;
+    font-size: 22px;
     line-height: 1;
-    color: #8a8a8a;
+    color: var(--cfde-muted, #6b6b6b);
     cursor: pointer;
     padding: 0 4px;
 }
 
 .wkb-inspector-close:hover {
-    color: #2a2a2a;
-}
-
-.wkb-inspector-body {
-    padding: 16px;
-    min-width: 340px;
-}
-
-.wkb-inspector-section-label {
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--cfde-orange, #e07b39);
-    margin-bottom: 8px;
-}
-
-.wkb-inspector-node-name {
-    margin: 0 0 12px;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.35;
     color: var(--cfde-ink, #33363d);
 }
 
+.wkb-inspector-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px 14px 16px;
+}
+
 .wkb-inspector-meta {
-    margin: 0;
-    display: grid;
-    gap: 10px;
+    margin: 0 0 12px;
+    font-size: 13px;
 }
 
 .wkb-inspector-meta div {
     display: grid;
-    gap: 2px;
+    grid-template-columns: 88px 1fr;
+    gap: 8px;
+    margin-bottom: 6px;
 }
 
 .wkb-inspector-meta dt {
     margin: 0;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-weight: 600;
     color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-inspector-meta dd {
     margin: 0;
-    font-size: 13px;
-    line-height: 1.45;
     color: var(--cfde-ink, #33363d);
 }
 
-.wkb-inspector-empty {
+.wkb-inspector-node-name,
+.wkb-inspector-edge-name {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-inspector-note {
+    margin: 0 0 10px;
     font-size: 13px;
-    line-height: 1.5;
-    color: #6b6b6b;
-    margin: 0;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-inspector-note--warn {
+    color: #9a3412;
+}
+
+.wkb-inspector-empty {
+    margin: 12px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
 }
 </style>

@@ -135,6 +135,7 @@ function graphNodeIdSet(nodes) {
 }
 
 function highlightedFromRecord(record, nodes) {
+    // Saved graphs store key node ids in `highlighted` (legacy field name).
     const raw =
         record?.highlighted ||
         record?.highlightedNodeIds ||
@@ -178,6 +179,14 @@ function normalizeGraphRecord(record) {
             record.dataProvenanceRuns || record.datasetRuns,
             []
         ),
+        starterBuckets: cloneJson(record.starterBuckets, null),
+        addNeighboringNodes:
+            record.addNeighboringNodes !== undefined ? record.addNeighboringNodes : true,
+        // Inspector evidence fetched in-session (required for snapshots / resume).
+        nodeConnectionEvidenceCache: cloneJson(record.nodeConnectionEvidenceCache, {}),
+        nodeExpressionProfileCache: cloneJson(record.nodeExpressionProfileCache, {}),
+        nodeExpressionReferenceById: cloneJson(record.nodeExpressionReferenceById, {}),
+        edgeProvenanceById: cloneJson(record.edgeProvenanceById, {}),
     };
 }
 
@@ -302,6 +311,10 @@ function graphPayloadFromSession(session, { label } = {}) {
             session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
         hypotheses: session.hypotheses || session.sigChainRuns || [],
         dataProvenanceRuns: session.dataProvenanceRuns || session.datasetRuns || [],
+        nodeConnectionEvidenceCache: cloneJson(session.nodeConnectionEvidenceCache, {}),
+        nodeExpressionProfileCache: cloneJson(session.nodeExpressionProfileCache, {}),
+        nodeExpressionReferenceById: cloneJson(session.nodeExpressionReferenceById, {}),
+        edgeProvenanceById: cloneJson(session.edgeProvenanceById, {}),
     };
 }
 
@@ -352,6 +365,10 @@ function sessionFromGraph(record) {
         sigChainRuns: cloneJson(graph.hypotheses, []),
         dataProvenanceRuns: cloneJson(graph.dataProvenanceRuns, []),
         datasetRuns: cloneJson(graph.dataProvenanceRuns, []),
+        nodeConnectionEvidenceCache: cloneJson(graph.nodeConnectionEvidenceCache, {}),
+        nodeExpressionProfileCache: cloneJson(graph.nodeExpressionProfileCache, {}),
+        nodeExpressionReferenceById: cloneJson(graph.nodeExpressionReferenceById, {}),
+        edgeProvenanceById: cloneJson(graph.edgeProvenanceById, {}),
         savedGraphId: graph.id,
         savedAt: graph.savedAt,
     };

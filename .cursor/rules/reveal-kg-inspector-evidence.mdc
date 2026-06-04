@@ -1,0 +1,20 @@
+---
+description: REVEAL KG Workspace — cache Inspector evidence on session for snapshots
+globs: src/components/researchPortal/customComponents/revealKgWorkspace/**,src/components/researchPortal/customComponents/revealKgWorkspace.vue,src/utils/userUtils.js
+alwaysApply: false
+---
+
+# Inspector evidence must be session-cached
+
+Interactive evidence shown in the KG Workspace Inspector (connections, expression, edge provenance, and any future tabs) is **critical workspace state**, not disposable UI state.
+
+## Requirements
+
+1. **Cache every fetch** on `activeSession` (keyed by node/edge id and any sub-keys such as connection target type or expression reference). Re-inspecting the same item must use the cache when possible.
+2. **Persist with the graph** — include cache fields in `graphPayloadFromSession`, `sessionFromGraph`, and `normalizeGraphRecord` in `userUtils.js` so Save KG, Library load, and snapshot export include inspection data.
+3. **Restore on load** — do not wipe inspector caches when loading a saved graph that contains them.
+4. **New fetches** — when adding a new Inspector panel, add `onCache…` on `revealKgWorkspace.vue`, props from `geneInspectorContext` (or edge detail), and document the field in `revealKgWorkspace/DESIGN.md`.
+
+Existing session fields: `nodeConnectionEvidenceCache`, `nodeExpressionProfileCache`, `nodeExpressionReferenceById`, `edgeProvenanceById`.
+
+See `revealKgWorkspace/DESIGN.md` § Inspector evidence caching.

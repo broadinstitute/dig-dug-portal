@@ -259,7 +259,7 @@ export async function buildInitialGraphFromAnchors({
         graphEdges,
         retrievalLedger,
         context: context || "",
-        highlighted: highlightedNodeIdsForGraphNodes(graphNodes),
+        highlighted: initialKeyNodeIdsForGraph(graphNodes),
     };
 }
 
@@ -284,8 +284,8 @@ export function isStartingGraphNode(node) {
     return Boolean(node?.is_anchor);
 }
 
-/** Keep only highlighted ids that still exist on the graph. */
-export function normalizeHighlightedNodeIds(session) {
+/** Keep only key-node ids that still exist on the graph (persisted as session.highlighted). */
+export function normalizeKeyNodeIds(session) {
     const nodeIds = new Set();
     for (const node of session?.graphNodes || []) {
         if (node?.id) {
@@ -298,7 +298,7 @@ export function normalizeHighlightedNodeIds(session) {
     return Array.from(new Set((session?.highlighted || []).filter((id) => nodeIds.has(id))));
 }
 
-export function highlightedNodeIdsForGraphNodes(graphNodes) {
+export function initialKeyNodeIdsForGraph(graphNodes) {
     return (graphNodes || [])
         .filter((node) => isStartingGraphNode(node))
         .map((node) => node.id || node.node_id)
@@ -314,24 +314,24 @@ export function findGraphNode(session, nodeId) {
     );
 }
 
-export function isNodeOfInterest(session, nodeId) {
+export function isKeyNode(session, nodeId) {
     if (!nodeId) {
         return false;
     }
     return (session?.highlighted || []).includes(nodeId);
 }
 
-export function withNormalizedHighlighted(session) {
+export function withNormalizedKeyNodes(session) {
     if (!session) {
         return session;
     }
     return {
         ...session,
-        highlighted: normalizeHighlightedNodeIds(session),
+        highlighted: normalizeKeyNodeIds(session),
     };
 }
 
-export function toggleNodeOfInterest(session, nodeId) {
+export function toggleKeyNode(session, nodeId) {
     if (!session || !nodeId) {
         return { session, changed: false };
     }
@@ -581,4 +581,71 @@ export async function fetchContextualEdgesForGraph(apiClient, graphNodes, graphE
     const payload = await apiClient.getInteractiveContextualEdges({ node_ids: nodeIds });
     const baseEdgeIds = new Set((graphEdges || []).map((edge) => edge.id));
     return (payload.edges || []).filter((edge) => edge?.id && !baseEdgeIds.has(edge.id));
+}
+
+export function isInspectableEdge(edge) {
+    if (!edge) {
+        return false;
+    }
+    const family = String(edge.family || edge.relation || edge.label || "").toLowerCase();
+    if (family.includes("trait_gene") || family.includes("gene_trait")) {
+        return true;
+    }
+    const source = String(edge.source || "");
+    const target = String(edge.target || "");
+    return (
+        (source.startsWith("trait:") && target.startsWith("gene:")) ||
+        (source.startsWith("gene:") && target.startsWith("trait:"))
+    );
+}
+
+export function findSessionEdge(session, edgeId, sourceId, targetId) {
+    const edges = [...(session?.graphEdges || []), ...(session?.contextualEdges || [])];
+    if (edgeId) {
+        const match = edges.find((edge) => edge.id === edgeId);
+        if (match) {
+            return match;
+        }
+    }
+    if (sourceId && targetId) {
+        return (
+            edges.find(
+                (edge) => edge.source === sourceId && edge.target === targetId
+            ) ||
+            edges.find(
+                (edge) => edge.source === targetId && edge.target === sourceId
+            ) ||
+            null
+        );
+    }
+    return null;
+}
+
+/**
+ * Expand the graph from both endpoints of an edge (Change → Expand along a link).
+ */
+export async function expandGraphFromEdge(apiClient, session, edgeRef) {
+    if (!apiClient?.getInteractiveConnections || !session) {
+        throw new Error("Interactive API client is not configured.");
+    }
+    const edge =
+        edgeRef?.edge ||
+        findSessionEdge(session, edgeRef?.edgeId, edgeRef?.sourceId, edgeRef?.targetId);
+    const sourceId = edgeRef?.sourceId || edge?.source;
+    const targetId = edgeRef?.targetId || edge?.target;
+    if (!sourceId || !targetId) {
+        throw new Error("Edge endpoints not found on the graph.");
+    }
+    const nodeIds = [sourceId, targetId].filter(
+        (nodeId, index, list) =>
+            nodeId && list.indexOf(nodeId) === index && findGraphNode(session, nodeId)
+    );
+    if (!nodeIds.length) {
+        throw new Error("Edge endpoints not found on the graph.");
+    }
+    let next = session;
+    for (const nodeId of nodeIds) {
+        next = await expandGraphFromNode(apiClient, next, nodeId);
+    }
+    return next;
 }

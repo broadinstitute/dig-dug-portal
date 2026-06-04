@@ -27,7 +27,7 @@
                     Retrieved nodes from graph build and expansion, including options not yet on
                     the canvas.
                 </p>
-                <p class="wkb-graph-table-legend" aria-label="Row highlighting legend">
+                <p class="wkb-graph-table-legend" aria-label="Starting node rows legend">
                     <span class="wkb-graph-table-legend-item">
                         <span
                             class="wkb-graph-table-legend-swatch"

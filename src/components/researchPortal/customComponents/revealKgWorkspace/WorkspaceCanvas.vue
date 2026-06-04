@@ -12,10 +12,10 @@
                 <div class="wkb-canvas-legend" aria-label="Tree view legend">
                     <span class="wkb-canvas-legend-item">
                         <span
-                            class="wkb-canvas-swatch wkb-canvas-swatch--highlighted"
+                            class="wkb-canvas-swatch wkb-canvas-swatch--key-node"
                             aria-hidden="true"
                         />
-                        Highlighted node
+                        Key node
                     </span>
                     <span class="wkb-canvas-legend-item">
                         <span class="wkb-canvas-swatch wkb-canvas-swatch--anchor" aria-hidden="true" />
@@ -45,22 +45,39 @@
                     @action="$emit('graph-action', $event)"
                 />
             </div>
-            <div class="wkb-canvas-graph-wrap">
+            <div class="wkb-canvas-graph-wrap" @click="onGraphViewerClick">
                 <WorkspaceTreeGraphCanvas
                     :graph-nodes="graphNodes"
                     :graph-edges="graphEdges"
                     :contextual-edges="contextualEdges"
-                    :selected-node-id="selectedNodeId"
-                    :highlighted-node-ids="highlightedNodeIds"
+                :selected-node-id="selectedNodeId"
+                :selected-edge-id="selectedEdgeId"
+                    :key-node-ids="keyNodeIds"
+                    :node-ids-with-evidence="nodeIdsWithEvidence"
+                    :edge-keys-with-evidence="edgeKeysWithEvidence"
                     :zoom-level="zoomLevel"
                     :hide-contextual-edges="hideContextualEdges"
                     :hide-jumping-edges="hideJumpingEdges"
                     @node-menu-open="$emit('node-menu-open', $event)"
+                    @edge-menu-open="$emit('edge-menu-open', $event)"
                 />
                 <WorkspaceInspector
                     :open="inspectorOpen"
+                    :selected-node-id="selectedNodeId"
+                    :selected-edge-id="selectedEdgeId"
                     :selected-node="selectedNodeDetail"
+                    :selected-edge="selectedEdgeDetail"
+                    :gene-inspector-context="geneInspectorContext"
+                    :expression-options="expressionOptions"
+                    :api-client="apiClient"
+                    :graph-busy="graphLoading || tableAddBusy"
+                    :inspector-content-key="inspectorContentKey"
                     @toggle="$emit('toggle-inspector')"
+                    @cache-connections="$emit('cache-node-connections', $event)"
+                    @cache-expression="$emit('cache-node-expression', $event)"
+                    @add-node="$emit('add-table-node', $event)"
+                    @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
+                    @inspect-connected-node="$emit('inspect-connected-node', $event)"
                 />
             </div>
             <WorkspaceGraphDataTableModal
@@ -124,11 +141,39 @@ export default {
             type: String,
             default: null,
         },
-        highlightedNodeIds: {
+        selectedEdgeId: {
+            type: String,
+            default: null,
+        },
+        keyNodeIds: {
+            type: Array,
+            default: () => [],
+        },
+        nodeIdsWithEvidence: {
+            type: Array,
+            default: () => [],
+        },
+        edgeKeysWithEvidence: {
             type: Array,
             default: () => [],
         },
         selectedNodeDetail: {
+            type: Object,
+            default: null,
+        },
+        selectedEdgeDetail: {
+            type: Object,
+            default: null,
+        },
+        geneInspectorContext: {
+            type: Object,
+            default: null,
+        },
+        expressionOptions: {
+            type: Object,
+            default: null,
+        },
+        apiClient: {
             type: Object,
             default: null,
         },
@@ -144,6 +189,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        inspectorContentKey: {
+            type: String,
+            default: "",
+        },
     },
     data() {
         return {
@@ -157,6 +206,27 @@ export default {
     computed: {
         hasGraph() {
             return (this.graphNodes || []).length > 0;
+        },
+    },
+    methods: {
+        onGraphViewerClick(event) {
+            if (event.target.closest(".wkb-inspector")) {
+                return;
+            }
+            if (
+                event.target.closest(".wkb-tree-graph-node") ||
+                event.target.closest(".wkb-tree-graph-link-hit") ||
+                event.target.closest(".wkb-tree-graph-edge")
+            ) {
+                return;
+            }
+            const onGraphSurface =
+                event.target === event.currentTarget ||
+                Boolean(event.target.closest(".wkb-tree-graph, .wkb-tree-graph-svg, .wkb-tree-graph-pan-bg"));
+            if (!onGraphSurface) {
+                return;
+            }
+            this.$emit("close-inspector");
         },
     },
     watch: {
@@ -232,7 +302,7 @@ export default {
     border-radius: 50%;
 }
 
-.wkb-canvas-swatch--highlighted {
+.wkb-canvas-swatch--key-node {
     background: #488bf7;
 }
 

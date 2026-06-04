@@ -69,7 +69,7 @@
                                 KG, Build hypotheses, and Data provenance help you
                                 summarize patterns, draft mechanistic stories, and trace
                                 CFDE-linked evidence—on the whole graph or on a
-                                selection you have highlighted.
+                                selection you have marked as key nodes.
                             </p>
                         </li>
                         <li>
@@ -106,10 +106,20 @@
                         <li>
                             <strong>Starting node</strong>
                             <p>
-                                Blue diamonds mark anchors—the genes, traits, or other
+                                Gray diamonds mark anchors—the genes, traits, or other
                                 entities you chose when building or expanding the graph.
                                 They show where exploration started, not every node on
                                 the canvas.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Key node</strong>
+                            <p>
+                                Blue circles or blue diamonds are nodes you marked as
+                                important for this session (including starting nodes
+                                when you keep them in the key set). Use
+                                <em>Mark as key node</em> on the node menu to add or
+                                remove them; key nodes are saved with the graph.
                             </p>
                         </li>
                         <li>
