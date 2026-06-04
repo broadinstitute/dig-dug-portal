@@ -627,6 +627,9 @@ new Vue({
         "$store.state.geneName"(NAME) {
             this.$store.dispatch("getHugeScoresData");
             this.$store.dispatch("getPigeanGeneData");
+            if (NAME) {
+                this.$store.dispatch("cellStateExpression/query", { q: NAME });
+            }
         },
     },
 

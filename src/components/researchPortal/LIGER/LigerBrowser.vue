@@ -1,9 +1,6 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-import { LIGER_BIOINDEX_HOST } from "./ligerBioIndexHost.js";
-
-const LIGER_API_HOST = LIGER_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
 const LIGER_TISSUE_CONFIG = {
     artery: {
@@ -677,43 +674,43 @@ export default Vue.component('LigerBrowser', {
             }
         },
         buildMatchUrl(queryValue) {
-            return `${LIGER_API_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
+            return `${BIO_INDEX_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
         },
         buildCellStateExpressionUrl(gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
         },
         buildProgramExpressionUrl(gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
         },
         buildCellTypeExpressionUrl(tissue, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissue},${gene}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissue},${gene}`)}`;
         },
         buildCellStateSectionExpressionUrl(tissue, cellType, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissue},${cellType},${gene}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissue},${cellType},${gene}`)}`;
         },
         buildProgramSectionExpressionUrl(datasetId, cellType, gene) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
         },
         buildCellStateMetadataUrl(tissue, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
         },
         buildGeneProgramInfoUrl(datasetId, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
         },
         buildProgramGeneInfoUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         buildRelationshipHeatmapUrl(tissue, cellType) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
         },
         buildTraitPhenotypesUrl() {
             return `${BIO_INDEX_HOST}/api/portal/phenotypes?q=md`;
         },
         buildCellStateTraitUrl(tissue, cellType, stateId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissue},${cellType},${stateId}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissue},${cellType},${stateId}`)}`;
         },
         buildProgramTraitUrl(datasetId, cellType, programId) {
-            return `${LIGER_API_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
         },
         rowsFromResponse(payload) {
             if (Array.isArray(payload)) {
