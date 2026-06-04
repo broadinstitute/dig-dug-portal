@@ -284,8 +284,6 @@ export default Vue.component('LigerBrowser', {
                 "correlation",
                 "gsea_neglog10p",
                 "gsea_neglog10q",
-                "gsea_p",
-                "gsea_q",
                 "combined_match_score",
                 "gsea_nes",
                 "loading_auc",
@@ -428,7 +426,10 @@ export default Vue.component('LigerBrowser', {
                 return "No relationships loaded";
             }
 
-            return `${heatmap.programCount} programs x ${heatmap.stateCount} states | ${this.relationshipMetricLabel(heatmap.metric)}`;
+            return `${heatmap.programCount} programs x ${heatmap.stateCount} states`;
+        },
+        relationshipHeatmapMetricLabel() {
+            return this.relationshipMetricLabel(this.relationshipHeatmapDisplay.metric);
         },
         traitPhenotypeLookup() {
             let map = {};
@@ -594,7 +595,10 @@ export default Vue.component('LigerBrowser', {
                 return "No trait links loaded";
             }
 
-            return `${traitCount} traits in ${groupCount} groups x ${columnCount} state/program columns | ${this.selectedTraitMetric === "beta" ? "joint beta" : "marginal beta"}`;
+            return `${traitCount} traits in ${groupCount} groups x ${columnCount} state/program columns`;
+        },
+        traitHeatmapMetricLabel() {
+            return this.selectedTraitMetric === "beta" ? "Joint beta" : "Marginal beta";
         },
         traitColumnHeaderLabel() {
             if (this.selectedTraitColumnFilter === "program") {
@@ -1169,6 +1173,23 @@ export default Vue.component('LigerBrowser', {
             };
 
             return labels[metric] || this.formatDisplayLabel(metric);
+        },
+        relationshipMetricTooltip(metric) {
+            let tooltips = {
+                correlation: "Correlation of cell expression values between program and state",
+                gsea_neglog10p: "Enrichment of state marker genes within genes with high factor loadings (p-value)",
+                gsea_neglog10q: "Enrichment of state marker genes within genes with high factor loadings (FDR q-value)",
+            };
+
+            return tooltips[metric] || "";
+        },
+        traitMetricTooltip(metric) {
+            let tooltips = {
+                beta: "Predictive power of state/factor on genetic association adjusting for other state/factors (produced by PIGEAN; 0.01=significant, 0.1=strong, 1.0=extreme)",
+                beta_uncorrected: "Predictive power of state/factor on genetic association in isolation (produced by PIGEAN; 0.01=significant, 0.1=strong, 1.0=extreme)",
+            };
+
+            return tooltips[metric] || "";
         },
         tooltipMetricValue(value, { pValue = false } = {}) {
             if (pValue) {
@@ -2647,58 +2668,66 @@ export default Vue.component('LigerBrowser', {
 
 <template>
     <div id="liger" class="f-col g-40">
-        <div class="f-row g-40">
-            <div class="f-col g-10 flex1">
-                <h3 class="bold">Cell State & Program Explorer</h3>
-                <h5 class="headline">
-                    Compare gene expression across cell types, curated cell states and 
-                    computationally inferred gene programs with genetically supported links 
-                    to human traits, revealing both established and potentially novel biology.
-                </h5>
-                <a href="/research.html?pageid=kp_liger_documnetation" target="_blank">Read Documentation</a>
-            </div>
-            <div class="f-col align-v-bottom flex1 g-5">
-                <h5 class="bold">Search gene</h5>
-                <div class="search f-row g-5 relative">
-                    <div class="search-input-wrap flex1 relative">
-                        <input
-                            type="text"
-                            class="flex1"
-                            v-model.trim="searchedGene"
-                            autocomplete="off"
-                            @keyup.enter="onSearchClick"
-                        />
-                        <div v-if="showGeneSuggestions" class="suggestions-panel">
-                            <div v-if="isLoadingGeneSuggestions" class="suggestion-message">
-                                Searching genes...
-                            </div>
-                            <div
-                                v-else-if="noGeneSuggestions"
-                                class="suggestion-message"
-                            >
-                                No matching genes found.
-                            </div>
-                            <button
-                                v-else
-                                v-for="gene in geneSuggestions"
-                                :key="normalizeGeneLabel(gene)"
-                                type="button"
-                                class="suggestion-item"
-                                @click="onSuggestionSelected(gene)"
-                            >
-                                {{ normalizeGeneLabel(gene) }}
-                            </button>
-                        </div>
-                    </div>
-                    <button class="primary bold"
-                        @click="onSearchClick"
-                    >
-                        Search
-                    </button>
+        <div class="f-col g-10">
+            <div class="f-row g-40">
+                <div class="f-col g-10 flex1">
+                    <h3 class="bold">Cell State & Program Explorer</h3>
+                    <h5 class="headline">
+                        Compare gene expression across cell types, curated cell states and 
+                        computationally inferred gene programs with genetically supported links 
+                        to human traits, revealing both established and potentially novel biology.
+                    </h5>
+                    <a href="/research.html?pageid=kp_liger_documnetation" target="_blank">Read Documentation</a>
                 </div>
-                <div v-if="geneSearchError" class="search-feedback error">{{ geneSearchError }}</div>
-                <div v-else-if="isLoadingGeneData" class="search-feedback">Loading gene data...</div>
-                <div v-else>&nbsp;</div>
+                <div class="f-col align-v-bottom flex1 g-5">
+                    <h5 class="bold">Search gene</h5>
+                    <div class="search f-row g-5 relative">
+                        <div class="search-input-wrap flex1 relative">
+                            <input
+                                type="text"
+                                class="flex1"
+                                v-model.trim="searchedGene"
+                                autocomplete="off"
+                                @keyup.enter="onSearchClick"
+                            />
+                            <div v-if="showGeneSuggestions" class="suggestions-panel">
+                                <div v-if="isLoadingGeneSuggestions" class="suggestion-message">
+                                    Searching genes...
+                                </div>
+                                <div
+                                    v-else-if="noGeneSuggestions"
+                                    class="suggestion-message"
+                                >
+                                    No matching genes found.
+                                </div>
+                                <button
+                                    v-else
+                                    v-for="gene in geneSuggestions"
+                                    :key="normalizeGeneLabel(gene)"
+                                    type="button"
+                                    class="suggestion-item"
+                                    @click="onSuggestionSelected(gene)"
+                                >
+                                    {{ normalizeGeneLabel(gene) }}
+                                </button>
+                            </div>
+                        </div>
+                        <button class="primary bold"
+                            @click="onSearchClick"
+                        >
+                            Search
+                        </button>
+                    </div>
+                    <div v-if="geneSearchError" class="search-feedback error">{{ geneSearchError }}</div>
+                    <div v-else-if="isLoadingGeneData" class="search-feedback">Loading gene data...</div>
+                    <div v-else>&nbsp;</div>
+                </div>
+            </div>
+            <div class="f-row spread-out g-40">
+                <div class="ai-disclosure flex1">
+                    <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
+                </div>
+                <div class="flex1">&nbsp;</div>
             </div>
         </div>
         <div v-if="selectedGene && availableTissues.length" id="liger-body" class="f-col g-40">
@@ -2998,9 +3027,6 @@ export default Vue.component('LigerBrowser', {
                             </div>
                         </div>
                     </div>
-                    <div class="ai-disclosure">
-                        <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
-                    </div>
                 </div>
                 <div class="f-col g-20">
                     <div>
@@ -3027,7 +3053,13 @@ export default Vue.component('LigerBrowser', {
                                         {{ option.label }}
                                     </option>
                                 </select>
-                                <span class="heatmap-meta">{{ relationshipHeatmapMeta }}</span>
+                                <span class="heatmap-meta">
+                                    {{ relationshipHeatmapMeta }} |
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">{{ relationshipHeatmapMetricLabel }}</span>
+                                        <span class="metric-tooltip-bubble">{{ relationshipMetricTooltip(relationshipHeatmapDisplay.metric) }}</span>
+                                    </span>
+                                </span>
                             </div>
                             <div class="heatmap-legend">
                                 <span class="legend-label">Lower</span>
@@ -3116,7 +3148,13 @@ export default Vue.component('LigerBrowser', {
                                     <option value="program">factors only</option>
                                     <option value="state">states only</option>
                                 </select>
-                                <span class="heatmap-meta">{{ traitHeatmapMeta }}</span>
+                                <span class="heatmap-meta">
+                                    {{ traitHeatmapMeta }} |
+                                    <span class="metric-tooltip">
+                                        <span class="metric-tooltip-label">{{ traitHeatmapMetricLabel }}</span>
+                                        <span class="metric-tooltip-bubble">{{ traitMetricTooltip(selectedTraitMetric) }}</span>
+                                    </span>
+                                </span>
                             </div>
                             <div class="heatmap-legend">
                                 <span class="legend-label">Negative</span>
@@ -3544,7 +3582,6 @@ export default Vue.component('LigerBrowser', {
                                     <tr>
                                         <th>Gene set</th>
                                         <th>Description</th>
-                                        <th>Relevance to factor</th>
                                         <th>Joint beta</th>
                                         <th>Marginal beta</th>
                                     </tr>
@@ -3553,7 +3590,6 @@ export default Vue.component('LigerBrowser', {
                                     <tr v-for="row in drawerContent.geneSetRows" :key="row.geneSet">
                                         <td>{{ row.geneSet }}</td>
                                         <td>{{ row.description || "Not available" }}</td>
-                                        <td>{{ formatMetric(row.relevanceToFactor) }}</td>
                                         <td>{{ formatMetric(row.beta) }}</td>
                                         <td>{{ formatMetric(row.betaUncorrected) }}</td>
                                     </tr>
@@ -3670,8 +3706,10 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .ai-disclosure {
     background: #e8f1fb;
-    padding: 10px 20px;
+    padding: 5px 10px;
     border-radius: 10px;
+    font-style: italic;
+    margin: 0 -10px;
 }
 
 .expression-grid{
