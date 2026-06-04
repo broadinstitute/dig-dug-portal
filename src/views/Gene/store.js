@@ -25,6 +25,7 @@ export default new Vuex.Store({
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
         mouseSummary: bioIndex("diff-exp-summary-gene"),
+        cellStateExpression: bioIndex("gene-program-expression-cell-state"),
         uniprot,
         pigeanGene: bioIndex("pigean-gene"),
         pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
@@ -163,6 +164,7 @@ export default new Vuex.Store({
             context.dispatch("associations52k/query", query);
             context.dispatch("geneassociations/query", query);
             context.dispatch("geneExpression/query", query);
+            context.dispatch("cellStateExpression/query", query);
         },
         async getVarAssociationsData(context, phenotype) {
             let gene = context.state.geneName;

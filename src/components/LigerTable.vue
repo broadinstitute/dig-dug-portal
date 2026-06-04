@@ -62,46 +62,16 @@
                     <div
                         v-if="plotsReady"
                         :key="plotRenderKey"
-                        class="liger-plots-row mb-4"
+                        class="liger-plots-wrapper mb-4"
                     >
-                        <div class="liger-plot-panel">
-                            <div class="liger-plot-wrapper">
-                                <research-simple-scatter-plot
-                                    :render-config="log2fcScatterPlotConfig"
-                                    :plot-data="ligerPlotData"
-                                    :utils="utilsBox"
-                                    :colors="plotColors"
-                                    section-id="ligerLog2fcScatter"
-                                    row-key-field="liger_row_key"
-                                    :linked-hover-key="linkedPlotHoverKey"
-                                    @hover-key-change="
-                                        linkedPlotHoverKey = $event
-                                    "
-                                ></research-simple-scatter-plot>
-                            </div>
-                            <div class="liger-plot-title">
-                                Log2 FC vs -log10(p)
-                            </div>
-                        </div>
-                        <div class="liger-plot-panel">
-                            <div class="liger-plot-wrapper">
-                                <research-simple-scatter-plot
-                                    :render-config="cpkScatterPlotConfig"
-                                    :plot-data="ligerPlotData"
-                                    :utils="utilsBox"
-                                    :colors="plotColors"
-                                    section-id="ligerCpkScatter"
-                                    row-key-field="liger_row_key"
-                                    :linked-hover-key="linkedPlotHoverKey"
-                                    @hover-key-change="
-                                        linkedPlotHoverKey = $event
-                                    "
-                                ></research-simple-scatter-plot>
-                            </div>
-                            <div class="liger-plot-title">
-                                Log10 CPK vs -log10(p)
-                            </div>
-                        </div>
+                        <research-simple-scatter-plot
+                            :plots="ligerScatterPlots"
+                            :plot-data="ligerPlotData"
+                            :utils="utilsBox"
+                            :colors="plotColors"
+                            section-id="ligerCellState"
+                            row-key-field="liger_row_key"
+                        ></research-simple-scatter-plot>
                     </div>
                     <div class="table-total-rows">
                         Total rows: {{ filteredItems().length }}
@@ -114,7 +84,6 @@
                     </div>
                     <b-table
                         small
-                        striped
                         hover
                         responsive
                         :items="filteredItems()"
@@ -142,6 +111,52 @@
                                 class="liger-metadata-link"
                             >{{ formatCellState(row.item) }}</a>
                         </template>
+                        <template #cell(show_gene_programs)="row">
+                            <b-button
+                                variant="outline-primary"
+                                size="sm"
+                                :disabled="
+                                    isGeneProgramLoading(row.item) &&
+                                    !row.detailsShowing
+                                "
+                                @click="showGenePrograms(row)"
+                            >
+                                {{
+                                    row.detailsShowing ? "Hide" : "View"
+                                }}
+                            </b-button>
+                        </template>
+                        <template #row-details="row">
+                            <div
+                                v-if="geneProgramErrorFor(row.item)"
+                                class="liger-gene-program-subtable-message"
+                            >
+                                {{ geneProgramErrorFor(row.item) }}
+                            </div>
+                            <div
+                                v-else-if="isGeneProgramLoading(row.item)"
+                                class="liger-gene-program-subtable-message"
+                            >
+                                <b-spinner small></b-spinner>
+                                Loading gene programs ...
+                            </div>
+                            <liger-gene-program-subtable
+                                v-else-if="
+                                    geneProgramsForRow(row.item).length > 0
+                                "
+                                :programs="geneProgramsForRow(row.item)"
+                                :correlation-max-absolute="
+                                    correlationMaxAbsoluteFor(row.item)
+                                "
+                            ></liger-gene-program-subtable>
+                            <div
+                                v-else
+                                class="liger-gene-program-subtable-message"
+                            >
+                                No gene program relationships found for this
+                                cell state.
+                            </div>
+                        </template>
                     </b-table>
                     <b-pagination
                         v-model="currentPage"
@@ -162,41 +177,12 @@
 <style scoped>
 @import url("/css/table.css");
 
-.liger-plots-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    align-items: flex-start;
+.liger-plots-wrapper {
     width: 100%;
     padding-top: 6px;
 }
 
-.liger-plot-panel {
-    flex: 1 1 420px;
-    max-width: 100%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.liger-plot-title {
-    font-size: 13px;
-    font-weight: 600;
-    text-align: center;
-    margin-top: -25px;
-    color: #33363d;
-    z-index: 10;
-}
-
-.liger-plot-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.liger-plot-wrapper ::v-deep .scatter-plot-content {
+.liger-plots-wrapper ::v-deep .scatter-plot-content {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -207,16 +193,16 @@
     padding-bottom: 0;
 }
 
-.liger-plot-wrapper ::v-deep .plot-legend {
+.liger-plots-wrapper ::v-deep .plot-legend {
     margin-bottom: 5px;
 }
 
-.liger-plot-wrapper ::v-deep .download-images-setting {
+.liger-plots-wrapper ::v-deep .download-images-setting {
     top: 0;
     right: 0;
 }
 
-.liger-plot-wrapper ::v-deep canvas.scatter-plot {
+.liger-plots-wrapper ::v-deep canvas.scatter-plot {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -231,16 +217,25 @@
     color: var(--cfde-orange, #e07b39);
 }
 
+.liger-gene-program-subtable-message {
+    font-size: 13px;
+    margin-left: 15px;
+    padding: 8px 12px;
+    background-color: #efefef;
+}
+
 </style>
 
 <script>
 import Vue from "vue";
 import { isEqual } from "lodash";
+import { query } from "@/utils/bioIndexUtils";
 import {
     filterFromPredicates,
     predicateFromSpec,
 } from "@/utils/filterHelpers";
 import DataDownload from "@/components/DataDownload.vue";
+import LigerGeneProgramSubtable from "@/components/LigerGeneProgramSubtable.vue";
 import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -251,15 +246,11 @@ import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import colors from "@/utils/colors";
-import bioIndexUtils from "@/utils/bioIndexUtils";
-import {
-    LIGER_BIOINDEX_HOST,
-    LIGER_CELL_STATE_EXPRESSION_INDEX,
-} from "@/components/researchPortal/LIGER/ligerBioIndexHost.js";
 
 export default Vue.component("LigerTable", {
     components: {
         DataDownload,
+        LigerGeneProgramSubtable,
         ResearchSimpleScatterPlot,
         CriterionFunctionGroup,
         FilterEnumeration,
@@ -281,10 +272,9 @@ export default Vue.component("LigerTable", {
             perPage: 10,
             currentPage: 1,
             criterionFilterList: [],
-            linkedPlotHoverKey: null,
-            items: [],
-            loading: false,
-            error: null,
+            geneProgramHeatmapByTissueCellType: {},
+            geneProgramHeatmapLoading: {},
+            geneProgramHeatmapErrors: {},
             plotColors: {
                 moderate: colors,
             },
@@ -346,10 +336,32 @@ export default Vue.component("LigerTable", {
                     sortable: true,
                     formatter: Formatters.pValueFormatter,
                 },
+                {
+                    key: "show_gene_programs",
+                    label: "Gene programs",
+                },
             ],
         };
     },
     computed: {
+        cellStateExpression() {
+            return this.$store.state.cellStateExpression;
+        },
+        items() {
+            return (this.cellStateExpression.data || []).map((row) =>
+                this.normalizeRow(row)
+            );
+        },
+        loading() {
+            const progress = this.cellStateExpression.progress;
+            if (!progress) {
+                return false;
+            }
+            return progress.bytes_read < progress.bytes_total;
+        },
+        error() {
+            return this.cellStateExpression.error;
+        },
         utilsBox() {
             return {
                 uiUtils,
@@ -419,19 +431,32 @@ export default Vue.component("LigerTable", {
         ligerPlotData() {
             return this.buildPlotData(this.filteredItems());
         },
+        ligerScatterPlots() {
+            return [
+                {
+                    title: "Log2 FC vs -log10(p)",
+                    renderConfig: this.log2fcScatterPlotConfig,
+                },
+                {
+                    title: "Log10 CPK vs -log10(p)",
+                    renderConfig: this.cpkScatterPlotConfig,
+                },
+            ];
+        },
     },
     watch: {
         geneName() {
-            this.fetchData();
+            this.criterionFilterList = [];
+            this.currentPage = 1;
+            this.geneProgramHeatmapByTissueCellType = {};
+            this.geneProgramHeatmapLoading = {};
+            this.geneProgramHeatmapErrors = {};
         },
         items() {
             if (!this.loading && this.items.length > 0) {
                 this.refreshPlotLayout();
             }
         },
-    },
-    mounted() {
-        this.fetchData();
     },
     methods: {
         refreshPlotLayout() {
@@ -466,7 +491,6 @@ export default Vue.component("LigerTable", {
 
             if (!isEqual(next, this.criterionFilterList)) {
                 this.criterionFilterList = next;
-                this.linkedPlotHoverKey = null;
             }
         },
         filteredItems() {
@@ -536,22 +560,31 @@ export default Vue.component("LigerTable", {
                 cell_type: row.cell_type ?? row.cellType ?? row.celltype,
             };
         },
-        cellStatePrefix(row) {
+        cellStatePrefixes(row) {
             const tissue = Formatters.toSnakeFormatter(row.tissue || "");
             const cellType = Formatters.toSnakeFormatter(row.cell_type || "");
             if (!tissue || !cellType) {
-                return "";
+                return [];
             }
-            return `${tissue}_${cellType}_cell_`;
+            const prefixes = new Set([
+                `${tissue}_${cellType}_`,
+                `${tissue}_${cellType}_cell_`,
+            ]);
+            if (!cellType.endsWith("_cell")) {
+                prefixes.add(`${tissue}_${cellType}_cell_`);
+            }
+            return [...prefixes].sort((a, b) => b.length - a.length);
         },
         formatCellState(row) {
             if (!row?.state_name) {
                 return "";
             }
-            const prefix = this.cellStatePrefix(row);
             let stateValue = row.state_name;
-            if (prefix && stateValue.startsWith(prefix)) {
-                stateValue = stateValue.slice(prefix.length);
+            for (const prefix of this.cellStatePrefixes(row)) {
+                if (stateValue.startsWith(prefix)) {
+                    stateValue = stateValue.slice(prefix.length);
+                    break;
+                }
             }
             return this.formatStateName(stateValue);
         },
@@ -590,45 +623,138 @@ export default Vue.component("LigerTable", {
             }
             return `/liger.html?${params.toString()}`;
         },
-        async fetchData() {
-            if (!this.geneName) {
-                this.items = [];
+        tissueCellTypeCacheKey(row) {
+            const tissue = this.tissueIdForQuery(row);
+            const cellType = this.cellTypeIdForQuery(row);
+            if (!tissue || !cellType) {
+                return "";
+            }
+            return `${tissue}|${cellType}`;
+        },
+        tissueIdForQuery(row) {
+            const value = row.tissue_id ?? row.tissue ?? "";
+            return Formatters.toSnakeFormatter(String(value));
+        },
+        cellTypeIdForQuery(row) {
+            const value = row.cell_type_id ?? row.cell_type ?? "";
+            return Formatters.toSnakeFormatter(String(value));
+        },
+        stateIdForMatch(row) {
+            return String(
+                row.state_name ?? row.state_id ?? row.cell_state_id ?? ""
+            );
+        },
+        isGeneProgramLoading(row) {
+            const cacheKey = this.tissueCellTypeCacheKey(row);
+            return !!cacheKey && !!this.geneProgramHeatmapLoading[cacheKey];
+        },
+        geneProgramErrorFor(row) {
+            const cacheKey = this.tissueCellTypeCacheKey(row);
+            return cacheKey ? this.geneProgramHeatmapErrors[cacheKey] : null;
+        },
+        correlationMaxAbsoluteFor(row) {
+            const cacheKey = this.tissueCellTypeCacheKey(row);
+            const rows = this.geneProgramHeatmapByTissueCellType[cacheKey] || [];
+            const values = rows
+                .map((entry) => Number(entry.correlation))
+                .filter((value) => Number.isFinite(value));
+
+            if (!values.length) {
+                return 1;
+            }
+
+            return Math.max(...values.map((value) => Math.abs(value)));
+        },
+        geneProgramsForRow(row) {
+            const cacheKey = this.tissueCellTypeCacheKey(row);
+            const stateId = this.stateIdForMatch(row);
+            if (!cacheKey || !stateId) {
+                return [];
+            }
+            const rows = this.geneProgramHeatmapByTissueCellType[cacheKey] || [];
+            return rows
+                .filter((entry) => String(entry.state_name) === stateId)
+                .slice()
+                .sort((a, b) => {
+                    const aVal = Number(a.correlation);
+                    const bVal = Number(b.correlation);
+                    const aNum = Number.isFinite(aVal) ? aVal : -Infinity;
+                    const bNum = Number.isFinite(bVal) ? bVal : -Infinity;
+                    return bNum - aNum;
+                });
+        },
+        async ensureGeneProgramHeatmap(row) {
+            const tissue = this.tissueIdForQuery(row);
+            const cellType = this.cellTypeIdForQuery(row);
+            const cacheKey = this.tissueCellTypeCacheKey(row);
+
+            if (!tissue || !cellType || !cacheKey) {
+                throw new Error(
+                    "Tissue and cell type are required to load gene programs."
+                );
+            }
+
+            if (this.geneProgramHeatmapByTissueCellType[cacheKey]) {
                 return;
             }
 
-            this.loading = true;
-            this.error = null;
-            this.currentPage = 1;
-            this.criterionFilterList = [];
-            this.linkedPlotHoverKey = null;
+            Vue.set(this.geneProgramHeatmapLoading, cacheKey, true);
+            Vue.set(this.geneProgramHeatmapErrors, cacheKey, null);
 
             try {
-                let loadError = null;
-                const data = await bioIndexUtils.query(
-                    LIGER_CELL_STATE_EXPRESSION_INDEX,
-                    this.geneName,
+                const data = await query(
+                    "gene-program-heatmap",
+                    `${tissue},${cellType}`,
                     {
-                        host: LIGER_BIOINDEX_HOST,
                         onError: (json) => {
-                            loadError =
+                            Vue.set(
+                                this.geneProgramHeatmapErrors,
+                                cacheKey,
                                 json?.message ||
-                                json?.error ||
-                                "Failed to load cell state expression.";
+                                    json?.error ||
+                                    "Failed to load gene program heatmap."
+                            );
                         },
                     }
                 );
-                if (loadError) {
-                    throw new Error(loadError);
+                if (this.geneProgramHeatmapErrors[cacheKey]) {
+                    return;
                 }
-                this.items = (data || []).map((row) => this.normalizeRow(row));
+                Vue.set(
+                    this.geneProgramHeatmapByTissueCellType,
+                    cacheKey,
+                    data || []
+                );
             } catch (err) {
-                this.items = [];
-                this.error =
-                    err.message || "Failed to load cell state expression.";
+                Vue.set(
+                    this.geneProgramHeatmapErrors,
+                    cacheKey,
+                    err.message || "Failed to load gene program heatmap."
+                );
             } finally {
-                this.loading = false;
-                this.refreshPlotLayout();
+                Vue.set(this.geneProgramHeatmapLoading, cacheKey, false);
             }
+        },
+        async showGenePrograms(row) {
+            if (row.detailsShowing) {
+                row.toggleDetails();
+                return;
+            }
+
+            try {
+                await this.ensureGeneProgramHeatmap(row.item);
+            } catch (err) {
+                const cacheKey = this.tissueCellTypeCacheKey(row.item);
+                if (cacheKey) {
+                    Vue.set(
+                        this.geneProgramHeatmapErrors,
+                        cacheKey,
+                        err.message
+                    );
+                }
+            }
+
+            row.toggleDetails();
         },
     },
 });
