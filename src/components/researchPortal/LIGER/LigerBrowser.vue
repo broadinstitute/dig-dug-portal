@@ -1,7 +1,18 @@
 <script>
 import Vue from "vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+
+const LIGER_FORCE_DEV_BIOINDEX = false; //change this flag to TRUE to force use of bioindex-dev in all cases
+const LIGER_DEV_BIOINDEX_HOST = "https://bioindex-dev.hugeamp.org";
+const LIGER_LOCAL_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0"];
+const LIGER_RUNTIME_HOSTNAME = typeof window !== "undefined" ? window.location.hostname : "";
+const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES.includes(LIGER_RUNTIME_HOSTNAME);
+const LIGER_RESOLVED_BIOINDEX_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_BIOINDEX_HOST : BIO_INDEX_HOST;
+const LIGER_API_HOST = LIGER_RESOLVED_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
+// Keep this code-level toggle in place so we can quickly compare raw API traits
+// versus portal-labeled traits without introducing UI controls yet.
+const LIGER_FILTER_UNLABELED_HEATMAP_TRAITS = true;
 const LIGER_TISSUE_CONFIG = {
     artery: {
         label: "Artery",
@@ -11,17 +22,41 @@ const LIGER_TISSUE_CONFIG = {
         label: "Heart",
         datasetId: "FNIH_Heart_scRNA_v3.2",
     },
+    hypothalamus: {
+        label: "Hypothalamus",
+        datasetId: "FNIH_Hypothalamus_scRNA_v2.2"
+    },
+    kidney: {
+        label: "Kidney",
+        datasetId: "FNIH_Kidney_scRNA_v2.2"
+    },
     liver: {
         label: "Liver",
-        datasetId: "FNIH_Liver_scRNA_v3",
+        datasetId: "FNIH_Liver_scRNA_v3.2",
+    },
+    muscle: {
+        label: "Muscle",
+        datasetId: "FNIH_Muscle_scRNA_v2.2",
     },
     pancreas: {
         label: "Pancreas",
-        datasetId: "FNIH_islet_of_Langerhans_scRNA_v3-3",
+        datasetId: "FNIH_Pancreas_scRNA_v2.2",
     },
+    sat: {
+        label: "SAT",
+        datasetId: "FNIH_SAT_scRNA_v2.2",
+    },
+    vat: {
+        label: "VAT",
+        datasetId: "FNIH_VAT_scRNA_v2.2",
+    }
 };
+
 const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, tissueKey) => {
-    map[LIGER_TISSUE_CONFIG[tissueKey].datasetId] = tissueKey;
+    let datasetId = LIGER_TISSUE_CONFIG[tissueKey].datasetId;
+    if (datasetId) {
+        map[datasetId] = tissueKey;
+    }
     return map;
 }, {});
 
@@ -52,9 +87,12 @@ export default Vue.component('LigerBrowser', {
             traitHeatmapRows: [],
             traitHeatmapColumns: [],
             phenotypeTraitRows: [],
+            qcMetadataRows: [],
             stateTraitRowsCache: {},
             programTraitRowsCache: {},
+            programGeneSetRowsCache: {},
             programGeneRowsCache: {},
+            programQcRowsCache: {},
             drawerOpen: false,
             drawerLoading: false,
             drawerKind: "Details",
@@ -62,6 +100,7 @@ export default Vue.component('LigerBrowser', {
             drawerBadges: [],
             drawerContent: null,
             drawerTargetId: "",
+            showAllProgramQcBadges: false,
             isHydratingFromQuery: false,
             isLoadingGeneSuggestions: false,
             isLoadingGeneData: false,
@@ -82,10 +121,32 @@ export default Vue.component('LigerBrowser', {
             noGeneSuggestions: false,
             geneSuggestionTimer: null,
             skipGeneSuggestionLookup: false,
+            floatingHeatmapTooltip: {
+                visible: false,
+                x: 0,
+                y: 0,
+                rows: [],
+            },
+            floatingExpressionTooltip: {
+                visible: false,
+                x: 0,
+                y: 0,
+                side: "right",
+                columns: [],
+            },
         };
     },
 
     computed: {
+        absoluteExpressionTooltip() {
+            return "Absolute expression is log10(CP10K + 1), where CP10K is gene counts normalized per 10,000 total cell counts and averaged within the cell type.";
+        },
+        specificityTooltip() {
+            return "Specificity is log2 fold-change of the cell-type mean expression versus the other cell types in the tissue.";
+        },
+        aiSuggestedLabelTooltip() {
+            return "AI was used to generate this program label. See rationale for more detail.";
+        },
         showGeneSuggestions() {
             return this.searchedGene.length > 1 &&
                 (this.geneSuggestions.length > 0 || this.isLoadingGeneSuggestions || this.noGeneSuggestions);
@@ -97,9 +158,17 @@ export default Vue.component('LigerBrowser', {
             return this.availableCellTypes.length;
         },
         cellStateCount() {
+            if (!this.selectedCellType) {
+                return 0;
+            }
+
             return this.cellStateExpressionList.length;
         },
         geneProgramCount() {
+            if (!this.selectedCellType) {
+                return 0;
+            }
+
             return this.geneProgramExpressionList.length;
         },
         availableCellTypes() {
@@ -194,6 +263,16 @@ export default Vue.component('LigerBrowser', {
             let map = {};
             this.geneProgramInfoRows.forEach((row) => {
                 let key = this.programKey(row);
+                if (key) {
+                    map[key] = row;
+                }
+            });
+            return map;
+        },
+        qcMetadataById() {
+            let map = {};
+            this.qcMetadataRows.forEach((row) => {
+                let key = String(this.field(row, ["qc_signature_id", "state_id", "state_name"]) || "");
                 if (key) {
                     map[key] = row;
                 }
@@ -325,6 +404,7 @@ export default Vue.component('LigerBrowser', {
                             key: `${stateKey}-${programKey}`,
                             value,
                             title: `${metadataRow ? this.stateLabel(metadataRow) : stateKey} x ${programHeader ? programHeader.label : programKey}`,
+                            tooltipRows: row ? this.relationshipHeatmapTooltipRows(row, metadataRow, programHeader, metric) : [],
                             color: Number.isFinite(value)
                                 ? this.relationshipCellColor(value, diverging, maxAbsolute, maxPositive)
                                 : "#f8fafc",
@@ -379,6 +459,10 @@ export default Vue.component('LigerBrowser', {
             let rows = this.traitHeatmapRows;
             let metric = this.selectedTraitMetric || "beta";
             let columns = this.availableTraitColumns;
+
+            if (LIGER_FILTER_UNLABELED_HEATMAP_TRAITS) {
+                rows = rows.filter((row) => this.shouldDisplayTraitInHeatmap(row));
+            }
 
             if (this.selectedTraitColumnFilter !== "all") {
                 rows = rows.filter((row) => row.__column_type === this.selectedTraitColumnFilter);
@@ -483,6 +567,7 @@ export default Vue.component('LigerBrowser', {
                             key: `${trait}-${column.id}`,
                             value,
                             title: `${column.label} | ${this.traitDisplayName(trait)}`,
+                            tooltipRows: record ? this.traitHeatmapTooltipRows(record.row, trait, column) : [],
                             color: Number.isFinite(value)
                                 ? this.relationshipCellColor(value, true, scaleMax, scaleMax)
                                 : "#f8fafc",
@@ -674,43 +759,68 @@ export default Vue.component('LigerBrowser', {
             }
         },
         buildMatchUrl(queryValue) {
-            return `${BIO_INDEX_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
+            return `${LIGER_API_HOST}/api/bio/match/gene?q=${encodeURIComponent(queryValue)}`;
         },
         buildCellStateExpressionUrl(gene) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(gene)}`;
         },
         buildProgramExpressionUrl(gene) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(gene)}`;
         },
         buildCellTypeExpressionUrl(tissue, gene) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissue},${gene}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-type?q=${encodeURIComponent(`${tissue},${gene}`)}`;
         },
         buildCellStateSectionExpressionUrl(tissue, cellType, gene) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissue},${cellType},${gene}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-cell-state?q=${encodeURIComponent(`${tissue},${cellType},${gene}`)}`;
         },
         buildProgramSectionExpressionUrl(datasetId, cellType, gene) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-expression-program?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${gene}`)}`;
         },
         buildCellStateMetadataUrl(tissue, cellType) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-metadata-extended?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
         },
         buildGeneProgramInfoUrl(datasetId, cellType) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL}`)}`;
         },
         buildProgramGeneInfoUrl(datasetId, cellType, programId) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+        },
+        buildProgramGeneSetInfoUrl(datasetId, cellType, programId) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-gene-set-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+        },
+        buildProgramQcInfoUrl(datasetId, cellType, programId) {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-qc-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+        },
+        buildQcMetadataUrl() {
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-qc-metadata-extended?q=1`;
         },
         buildRelationshipHeatmapUrl(tissue, cellType) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-heatmap?q=${encodeURIComponent(`${tissue},${cellType}`)}`;
         },
         buildTraitPhenotypesUrl() {
-            return `${BIO_INDEX_HOST}/api/portal/phenotypes?q=md`;
+            return `${LIGER_RESOLVED_BIOINDEX_HOST}/api/portal/phenotypes?q=md`;
         },
         buildCellStateTraitUrl(tissue, cellType, stateId) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissue},${cellType},${stateId}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-cell-state-trait-factor?q=${encodeURIComponent(`${tissue},${cellType},${stateId}`)}`;
         },
         buildProgramTraitUrl(datasetId, cellType, programId) {
-            return `${BIO_INDEX_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+            return `${LIGER_API_HOST}/api/bio/query/gene-program-trait-factor?q=${encodeURIComponent(`${datasetId},${cellType},${LIGER_PROGRAM_MODEL},${programId}`)}`;
+        },
+        async ensurePhenotypeTraitRows() {
+            if (this.phenotypeTraitRows.length) {
+                return;
+            }
+
+            let phenotypePayload = await this.fetchJson(this.buildTraitPhenotypesUrl());
+            this.phenotypeTraitRows = this.rowsFromResponse(phenotypePayload);
+        },
+        async ensureQcMetadataRows() {
+            if (this.qcMetadataRows.length) {
+                return;
+            }
+
+            let payload = await this.fetchJson(this.buildQcMetadataUrl());
+            this.qcMetadataRows = this.rowsFromResponse(payload);
         },
         rowsFromResponse(payload) {
             if (Array.isArray(payload)) {
@@ -1059,6 +1169,119 @@ export default Vue.component('LigerBrowser', {
             };
 
             return labels[metric] || this.formatDisplayLabel(metric);
+        },
+        tooltipMetricValue(value, { pValue = false } = {}) {
+            if (pValue) {
+                return this.formatPValue(value);
+            }
+
+            return this.formatMetric(value);
+        },
+        stateTooltipColumns(cellState) {
+            let metadataRow = this.stateMetadataById[cellState.key] || cellState.row || {};
+            let markerGenes = this.extractMarkerGenes(metadataRow);
+
+            return [
+                { label: "Cell State", value: cellState.label || this.stateLabel(metadataRow) || "Not available" },
+                { label: "Description", value: this.stateDescription(metadataRow) || "No description available." },
+                { label: "Marker Genes", value: this.joinDisplayList(markerGenes), items: markerGenes },
+            ];
+        },
+        programTooltipColumns(program) {
+            let infoRow = this.geneProgramInfoById[program.key] || program.row || {};
+            let topGenes = this.extractGenes(infoRow, ["top_genes", "genes", "gene_symbols"]);
+
+            return [
+                { label: "Gene Program", value: program.label || this.programLabel(infoRow) || "Not available" },
+                { label: "Description", value: this.programDescription(infoRow) || "No description available." },
+                { label: "Top Genes", value: this.joinDisplayList(topGenes), items: topGenes },
+            ];
+        },
+        isDrawerTarget(kind, id) {
+            return this.drawerOpen &&
+                this.drawerContent &&
+                this.drawerContent.type === kind &&
+                this.drawerTargetId === id;
+        },
+        showExpressionRowTooltip(event, kind, item) {
+            if (!event || !event.currentTarget || !item) {
+                this.hideExpressionRowTooltip();
+                return;
+            }
+
+            let columns = kind === "state"
+                ? this.stateTooltipColumns(item)
+                : this.programTooltipColumns(item);
+
+            if (!columns.length) {
+                this.hideExpressionRowTooltip();
+                return;
+            }
+
+            let rect = event.currentTarget.getBoundingClientRect();
+            let tooltipWidth = 430;
+            let tooltipHeight = 220;
+            let gap = 14;
+            let viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1440;
+            let viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
+            let preferredX = kind === "state" ? rect.right + gap : rect.left - tooltipWidth - gap;
+            let preferredY = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+
+            this.floatingExpressionTooltip.visible = true;
+            this.floatingExpressionTooltip.columns = columns;
+            this.floatingExpressionTooltip.side = kind === "state" ? "right" : "left";
+            this.floatingExpressionTooltip.x = Math.max(12, Math.min(viewportWidth - tooltipWidth - 12, preferredX));
+            this.floatingExpressionTooltip.y = Math.max(12, Math.min(viewportHeight - tooltipHeight - 12, preferredY));
+        },
+        hideExpressionRowTooltip() {
+            this.floatingExpressionTooltip.visible = false;
+            this.floatingExpressionTooltip.columns = [];
+        },
+        showHeatmapTooltip(event, rows = []) {
+            if (!rows.length) {
+                this.hideHeatmapTooltip();
+                return;
+            }
+
+            this.floatingHeatmapTooltip.visible = true;
+            this.floatingHeatmapTooltip.rows = rows;
+            this.moveHeatmapTooltip(event);
+        },
+        moveHeatmapTooltip(event) {
+            if (!this.floatingHeatmapTooltip.visible || !event) {
+                return;
+            }
+
+            this.floatingHeatmapTooltip.x = event.clientX + 16;
+            this.floatingHeatmapTooltip.y = event.clientY + 16;
+        },
+        hideHeatmapTooltip() {
+            this.floatingHeatmapTooltip.visible = false;
+            this.floatingHeatmapTooltip.rows = [];
+        },
+        relationshipHeatmapTooltipRows(row, metadataRow, programHeader, metric) {
+            let markerScore = this.numericField(row, ["combined_match_score", "loading_auc", "top100_overlap_n", "score"]);
+            let gseaP = this.gseaPValue(row);
+            let gseaQ = this.gseaQValue(row);
+            let gseaNes = this.numericField(row, ["gsea_nes"]);
+
+            return [
+                { label: "Cell state", value: metadataRow ? this.stateLabel(metadataRow) : this.stateLabel(row) },
+                { label: "Gene program", value: programHeader ? programHeader.label : this.programLabel(row) },
+                { label: this.relationshipMetricLabel(metric), value: this.tooltipMetricValue(row.__metric_value) },
+                { label: "Marker score", value: markerScore !== null ? this.tooltipMetricValue(markerScore) : null },
+                { label: "GSEA NES", value: gseaNes !== null ? this.tooltipMetricValue(gseaNes) : null },
+                { label: "GSEA P", value: gseaP !== null ? this.tooltipMetricValue(gseaP, { pValue: true }) : null },
+                { label: "GSEA q", value: gseaQ !== null ? this.tooltipMetricValue(gseaQ, { pValue: true }) : null },
+            ].filter((item) => item.value !== null && item.value !== undefined && item.value !== "");
+        },
+        traitHeatmapTooltipRows(row, trait, column) {
+            return [
+                { label: "Trait", value: this.traitDisplayName(trait) },
+                { label: column.type === "state" ? "Cell state" : "Gene program", value: column.label },
+                { label: "Joint score", value: this.numericField(row, ["beta"]) !== null ? this.tooltipMetricValue(this.numericField(row, ["beta"])) : null },
+                { label: "Marginal score", value: this.numericField(row, ["beta_uncorrected"]) !== null ? this.tooltipMetricValue(this.numericField(row, ["beta_uncorrected"])) : null },
+            ].filter((item) => item.value !== null && item.value !== undefined && item.value !== "");
         },
         relationshipMetricIsDiverging(metric) {
             return metric.includes("spearman") || metric.includes("auc") || metric.includes("correlation");
@@ -1503,8 +1726,42 @@ export default Vue.component('LigerBrowser', {
 
             return "good";
         },
+        qcStateLabel(row) {
+            let stateId = this.stateKey(row);
+            let rawLabel = this.field(row, ["display_name", "state_label"]);
+
+            if (!rawLabel && stateId && this.stateMetadataById[stateId]) {
+                return this.shortStateLabel(stateId);
+            }
+
+            rawLabel = rawLabel || this.field(row, ["state_name", "state_id", "qc_caveat", "match_class"]);
+
+            return this.formatDisplayLabel(
+                String(rawLabel || "")
+                    .replace(/^qc_bad_/i, "")
+                    .replace(/^qc_/i, "")
+            );
+        },
+        qcMetadataRow(row) {
+            let stateId = String(this.field(row, ["qc_signature_id", "state_name", "state_id"]) || "");
+            return this.qcMetadataById[stateId] || null;
+        },
+        programQcBadge(row) {
+            let metadata = this.qcMetadataRow(row);
+            let markerGenes = metadata && Array.isArray(metadata.markers) ? metadata.markers : [];
+
+            return {
+                text: this.programQcBubbleLabel(row),
+                tone: this.programQcBubbleClass(row),
+                tooltip: metadata ? {
+                    displayName: metadata.display_name || this.qcStateLabel(row),
+                    category: this.prettyToken(metadata.category),
+                    markerGenes: markerGenes,
+                } : null,
+            };
+        },
         programQcBubbleLabel(row) {
-            let baseLabel = this.shortStateLabel(this.stateKey(row)) || this.field(row, ["qc_caveat", "match_class", "state_name", "state_id"]);
+            let baseLabel = this.qcStateLabel(row) || this.field(row, ["qc_caveat", "match_class", "state_name", "state_id"]);
             let qValue = this.gseaQValue(row);
             let pValue = this.gseaPValue(row);
             let suffix = qValue !== null ? ` q=${this.formatPValue(qValue)}` : (pValue !== null ? ` p=${this.formatPValue(pValue)}` : "");
@@ -1526,10 +1783,18 @@ export default Vue.component('LigerBrowser', {
 
             return value.toFixed(3);
         },
-        programDrawerBadges(programId, quality, qcMatches) {
+        programDrawerBadges(programId, quality, qcRows = [], qcMatches = []) {
             let badges = [
                 { text: this.prettyToken(quality), tone: this.drawerBadgeTone(quality) },
             ];
+
+            if (qcRows[0]) {
+                badges.push({
+                    text: this.programQcBubbleLabel(qcRows[0]),
+                    tone: this.programQcBubbleClass(qcRows[0]),
+                });
+                return badges;
+            }
 
             if (qcMatches[0]) {
                 let text = this.field(qcMatches[0].row, ["qc_caveat", "match_class"]) || "QC reviewed";
@@ -1540,6 +1805,31 @@ export default Vue.component('LigerBrowser', {
             }
 
             return badges;
+        },
+        collapsedProgramQcBadgeCount(badges = []) {
+            let goodCount = 0;
+
+            for (let i = 0; i < badges.length; i++) {
+                if (badges[i] && badges[i].tone === "good") {
+                    goodCount += 1;
+
+                    if (goodCount === 2) {
+                        return i + 1;
+                    }
+                }
+            }
+
+            return badges.length;
+        },
+        visibleProgramQcBadges(badges = []) {
+            if (this.showAllProgramQcBadges) {
+                return badges;
+            }
+
+            return badges.slice(0, this.collapsedProgramQcBadgeCount(badges));
+        },
+        hiddenProgramQcBadgeCount(badges = []) {
+            return Math.max(0, badges.length - this.visibleProgramQcBadges(badges).length);
         },
         curatedStateMatchesForProgram(programId) {
             return this.relationshipHeatmapRows
@@ -1641,6 +1931,60 @@ export default Vue.component('LigerBrowser', {
                 return [];
             }
         },
+        async getProgramGeneSetRows(programId) {
+            if (this.programGeneSetRowsCache[programId]) {
+                return this.programGeneSetRowsCache[programId];
+            }
+
+            let datasetId = this.tissueDatasetId(this.selectedTissue);
+            if (!datasetId || !this.selectedCellType) {
+                return [];
+            }
+
+            try {
+                let payload = await this.fetchJson(this.buildProgramGeneSetInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
+                let rows = this.rowsFromResponse(payload);
+                this.$set(this.programGeneSetRowsCache, programId, rows);
+                return rows;
+            } catch (error) {
+                return [];
+            }
+        },
+        async getProgramQcRows(programId) {
+            if (this.programQcRowsCache[programId]) {
+                return this.programQcRowsCache[programId];
+            }
+
+            let datasetId = this.tissueDatasetId(this.selectedTissue);
+            if (!datasetId || !this.selectedCellType) {
+                return [];
+            }
+
+            try {
+                let payload = await this.fetchJson(this.buildProgramQcInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
+                let rows = this.rowsFromResponse(payload)
+                    .sort((a, b) => {
+                        let aQ = this.gseaQValue(a);
+                        let bQ = this.gseaQValue(b);
+                        let aP = this.gseaPValue(a);
+                        let bP = this.gseaPValue(b);
+                        let aQSort = Number.isFinite(aQ) ? aQ : Number.POSITIVE_INFINITY;
+                        let bQSort = Number.isFinite(bQ) ? bQ : Number.POSITIVE_INFINITY;
+                        let aPSort = Number.isFinite(aP) ? aP : Number.POSITIVE_INFINITY;
+                        let bPSort = Number.isFinite(bP) ? bP : Number.POSITIVE_INFINITY;
+
+                        if (aQSort !== bQSort) {
+                            return aQSort - bQSort;
+                        }
+
+                        return aPSort - bPSort;
+                    });
+                this.$set(this.programQcRowsCache, programId, rows);
+                return rows;
+            } catch (error) {
+                return [];
+            }
+        },
         buildTopGeneRows(rows, meta) {
             let loadingRows = rows
                 .filter((row) => (this.numericField(row, ["loading", "weight", "score", "value"]) || 0) > 0)
@@ -1668,9 +2012,35 @@ export default Vue.component('LigerBrowser', {
                 })),
             };
         },
+        buildProgramGeneSetTableRows(rows = []) {
+            return rows
+                .filter((row) => this.field(row, ["gene_set", "gene_set_name", "pathway", "name"]))
+                .map((row) => ({
+                    geneSet: this.field(row, ["gene_set", "gene_set_name", "pathway", "name"]),
+                    description: this.field(row, ["gene_set_description", "description", "label"]),
+                    relevanceToFactor: this.numericField(row, ["factor_value", "relevance_to_factor", "value", "score"]),
+                    beta: this.numericField(row, ["beta"]),
+                    betaUncorrected: this.numericField(row, ["beta_uncorrected"]),
+                }))
+                .sort((a, b) => {
+                    let aScore = Math.max(Math.abs(a.relevanceToFactor || 0), Math.abs(a.beta || 0), Math.abs(a.betaUncorrected || 0));
+                    let bScore = Math.max(Math.abs(b.relevanceToFactor || 0), Math.abs(b.beta || 0), Math.abs(b.betaUncorrected || 0));
+                    return bScore - aScore;
+                });
+        },
         topTraitRows(rows = []) {
             return rows
-                .filter((row) => this.traitKey(row) && (this.numericField(row, ["beta"]) !== null || this.numericField(row, ["beta_uncorrected"]) !== null))
+                .filter((row) => {
+                    if (!this.traitKey(row)) {
+                        return false;
+                    }
+
+                    if (LIGER_FILTER_UNLABELED_HEATMAP_TRAITS && !this.shouldDisplayTraitInHeatmap(row)) {
+                        return false;
+                    }
+
+                    return this.numericField(row, ["beta"]) !== null || this.numericField(row, ["beta_uncorrected"]) !== null;
+                })
                 .sort((a, b) => {
                     let aScore = Math.max(Math.abs(this.numericField(a, ["beta"]) || 0), Math.abs(this.numericField(a, ["beta_uncorrected"]) || 0));
                     let bScore = Math.max(Math.abs(this.numericField(b, ["beta"]) || 0), Math.abs(this.numericField(b, ["beta_uncorrected"]) || 0));
@@ -1685,6 +2055,8 @@ export default Vue.component('LigerBrowser', {
                 }));
         },
         openDrawerShell(kind, title, badges = []) {
+            this.hideExpressionRowTooltip();
+            this.showAllProgramQcBadges = false;
             this.drawerKind = kind;
             this.drawerTitle = title;
             this.drawerBadges = badges;
@@ -1695,6 +2067,7 @@ export default Vue.component('LigerBrowser', {
         closeDrawer() {
             this.drawerOpen = false;
             this.drawerTargetId = "";
+            this.showAllProgramQcBadges = false;
             this.syncQueryParams({
                 cell_state: "",
                 gene_program: "",
@@ -1707,11 +2080,10 @@ export default Vue.component('LigerBrowser', {
             this.openDrawerShell("Curated state", label, this.stateDrawerBadges(resolution));
             this.drawerTargetId = resolution.stateId;
 
+            await this.ensurePhenotypeTraitRows();
             let stateTraitRows = await this.getStateTraitRows(resolution.stateId);
             let markerDetail = this.stateMarkerDetail(resolution);
             let referenceDetail = this.stateReferenceDetail(resolution);
-            let methodsDetail = this.stateMethodsDetail(resolution);
-
             this.drawerContent = {
                 type: "state",
                 summaryDescription: this.resolvedStateDescription(resolution) || "A curated marker-defined cell state. Use expression and program overlap to assess whether a gene or factor maps to this state.",
@@ -1723,7 +2095,6 @@ export default Vue.component('LigerBrowser', {
                 interpretationRows: this.stateInterpretationRows(resolution),
                 markerDetail,
                 referenceDetail,
-                methodsDetail,
                 relatedPrograms: this.relatedProgramsForState(resolution.stateId),
                 traitRows: this.topTraitRows(stateTraitRows),
             };
@@ -1740,13 +2111,17 @@ export default Vue.component('LigerBrowser', {
             let label = this.field(meta, ["suggested_program_label", "program_label", "label"]) || this.inferredProgramLabel(programId);
             let curatedMatches = this.curatedStateMatchesForProgram(programId);
             let qcMatches = this.qcMatchesForProgram(programId);
+            await this.ensureQcMetadataRows();
+            let programQcRows = await this.getProgramQcRows(programId);
 
-            this.openDrawerShell("Inferred program", `${this.programApiFactor(programId)} - ${label}`, this.programDrawerBadges(programId, quality, qcMatches));
+            this.openDrawerShell("Inferred program", label, this.programDrawerBadges(programId, quality, programQcRows, qcMatches));
             this.drawerTargetId = programId;
 
-            let [programGeneRows, programTraitRows] = await Promise.all([
+            await this.ensurePhenotypeTraitRows();
+            let [programGeneRows, programTraitRows, programGeneSetRows] = await Promise.all([
                 this.getProgramGeneRows(programId),
                 this.getProgramTraitRows(programId),
+                this.getProgramGeneSetRows(programId),
             ]);
 
             this.drawerContent = {
@@ -1755,14 +2130,17 @@ export default Vue.component('LigerBrowser', {
                 summaryFields: [
                     { label: "Program ID", value: this.programApiFactor(programId) },
                     { label: "Suggested label", value: label },
+                    { label: "Rationale", value: this.field(meta, ["rationale"]) },
                     { label: "Quality", value: this.prettyToken(quality) },
-                    { label: "Collection", value: LIGER_PROGRAM_MODEL },
-                ],
-                qcBadges: qcMatches.length
-                    ? qcMatches.map((row) => ({
-                        text: this.programQcBubbleLabel(row.row),
-                        tone: this.programQcBubbleClass(row.row),
-                    }))
+                ].filter((row) => row.value),
+                qcBadges: programQcRows.length
+                    ? programQcRows.map((row) => this.programQcBadge(row))
+                    : qcMatches.length
+                        ? qcMatches.map((row) => ({
+                            text: this.programQcBubbleLabel(row.row),
+                            tone: this.programQcBubbleClass(row.row),
+                            tooltip: null,
+                        }))
                     : this.buildDrawerBadges(this.extractGenes(meta, ["qc_cell_states", "qc_caveat", "qc_recommendation"])).length
                         ? this.buildDrawerBadges(this.extractGenes(meta, ["qc_cell_states", "qc_caveat", "qc_recommendation"]))
                         : [{ text: "QC pass", tone: "good" }],
@@ -1770,6 +2148,7 @@ export default Vue.component('LigerBrowser', {
                 qcMatches,
                 topGenes: this.buildTopGeneRows(programGeneRows, meta),
                 traitRows: this.topTraitRows(programTraitRows).slice(0, 12),
+                geneSetRows: this.buildProgramGeneSetTableRows(programGeneSetRows),
             };
 
             this.syncQueryParams({
@@ -1800,9 +2179,17 @@ export default Vue.component('LigerBrowser', {
         traitKey(row) {
             return this.field(row, ["trait", "trait_label", "trait_internal", "phenotype"]);
         },
+        traitPhenotypeRow(valueOrRow) {
+            let traitKey = typeof valueOrRow === "string" ? valueOrRow : this.traitKey(valueOrRow);
+            return this.traitPhenotypeLookup[this.normalizeKey(traitKey)];
+        },
+        shouldDisplayTraitInHeatmap(valueOrRow) {
+            let phenotype = this.traitPhenotypeRow(valueOrRow);
+            return !!(phenotype && phenotype.description);
+        },
         traitDisplayName(valueOrRow) {
             let traitKey = typeof valueOrRow === "string" ? valueOrRow : this.traitKey(valueOrRow);
-            let phenotype = this.traitPhenotypeLookup[this.normalizeKey(traitKey)];
+            let phenotype = this.traitPhenotypeRow(valueOrRow);
             return (phenotype && phenotype.description) || traitKey;
         },
         traitName(row) {
@@ -1812,7 +2199,7 @@ export default Vue.component('LigerBrowser', {
             return this.numericField(row, [metric]);
         },
         traitGroupLabel(trait) {
-            let phenotype = this.traitPhenotypeLookup[this.normalizeKey(trait)];
+            let phenotype = this.traitPhenotypeRow(trait);
             return phenotype && phenotype.group ? String(phenotype.group) : "Other Traits";
         },
         buildTraitColumns() {
@@ -1885,7 +2272,9 @@ export default Vue.component('LigerBrowser', {
             this.traitHeatmapColumns = [];
             this.stateTraitRowsCache = {};
             this.programTraitRowsCache = {};
+            this.programGeneSetRowsCache = {};
             this.programGeneRowsCache = {};
+            this.programQcRowsCache = {};
             this.isLoadingCellTypes = false;
             this.isLoadingCellStateSection = false;
             this.isLoadingGeneProgramSection = false;
@@ -1916,7 +2305,9 @@ export default Vue.component('LigerBrowser', {
             this.traitHeatmapColumns = [];
             this.stateTraitRowsCache = {};
             this.programTraitRowsCache = {};
+            this.programGeneSetRowsCache = {};
             this.programGeneRowsCache = {};
+            this.programQcRowsCache = {};
             this.isLoadingCellStateSection = false;
             this.isLoadingGeneProgramSection = false;
             this.isLoadingRelationshipHeatmap = false;
@@ -2011,14 +2402,14 @@ export default Vue.component('LigerBrowser', {
                     this.fetchJson(this.buildProgramExpressionUrl(normalizedGene)),
                 ]);
 
-                this.cellStateExpressionRows = this.rowsFromResponse(cellStatePayload);
-                let programExpressionRows = this.rowsFromResponse(programPayload);
+                let geneLevelCellStateRows = this.rowsFromResponse(cellStatePayload);
+                let geneLevelProgramRows = this.rowsFromResponse(programPayload);
 
                 let uniqueTissues = Array.from(
                     new Set(
                         [
-                            ...this.collectTissues(this.cellStateExpressionRows),
-                            ...this.collectTissues(programExpressionRows),
+                            ...this.collectTissues(geneLevelCellStateRows),
+                            ...this.collectTissues(geneLevelProgramRows),
                         ]
                     )
                 ).sort((a, b) => a.localeCompare(b));
@@ -2081,7 +2472,7 @@ export default Vue.component('LigerBrowser', {
                 this.loadGeneProgramSection(cellType),
                 this.loadRelationshipHeatmap(cellType),
             ]);
-            await this.loadTraitHeatmap(cellType);
+            this.loadTraitHeatmap(cellType);
         },
         async loadCellStateSection(cellType) {
             this.cellStateExpressionRows = [];
@@ -2208,10 +2599,7 @@ export default Vue.component('LigerBrowser', {
             this.isLoadingTraitHeatmap = true;
 
             try {
-                if (!this.phenotypeTraitRows.length) {
-                    let phenotypePayload = await this.fetchJson(this.buildTraitPhenotypesUrl());
-                    this.phenotypeTraitRows = this.rowsFromResponse(phenotypePayload);
-                }
+                await this.ensurePhenotypeTraitRows();
 
                 let columns = this.buildTraitColumns();
                 this.traitHeatmapColumns = columns;
@@ -2267,6 +2655,7 @@ export default Vue.component('LigerBrowser', {
                     computationally inferred gene programs with genetically supported links 
                     to human traits, revealing both established and potentially novel biology.
                 </h5>
+                <a href="/research.html?pageid=kp_liger_documnetation" target="_blank">Read Documentation</a>
             </div>
             <div class="f-col align-v-bottom flex1 g-5">
                 <h5 class="bold">Search gene</h5>
@@ -2309,9 +2698,10 @@ export default Vue.component('LigerBrowser', {
                 </div>
                 <div v-if="geneSearchError" class="search-feedback error">{{ geneSearchError }}</div>
                 <div v-else-if="isLoadingGeneData" class="search-feedback">Loading gene data...</div>
+                <div v-else>&nbsp;</div>
             </div>
         </div>
-        <div v-if="selectedGene" id="liger-body" class="f-col g-40">
+        <div v-if="selectedGene && availableTissues.length" id="liger-body" class="f-col g-40">
             <div class="flex1">
                 <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span> expressed?</h4>
                 <div class="subtitle">See gene expression per tissue by cell type, cell states, and gene programs.</div>
@@ -2325,7 +2715,7 @@ export default Vue.component('LigerBrowser', {
                         </div>
                         <div class="section-card f-col g-10">
                             <div class="scroll-panel">
-                                <div class="options f-col">
+                                <div class="options f-col g-5">
                                     <div v-if="isLoadingGeneData" class="empty-state">
                                         Loading tissues...
                                     </div>
@@ -2347,7 +2737,7 @@ export default Vue.component('LigerBrowser', {
                     <div class="f-col g-5 flex1">
                         <div class="f-row g-5">
                             <h5 class="bold">Cell Types</h5>
-                            <span class="count">({{ cellTypeCount }})</span>
+                            <span class="count" v-if="cellTypeCount>0">({{ cellTypeCount }})</span>
                         </div>
                         <div class="section-card relative">
                             <div v-if="!selectedTissue && !isLoadingCellTypes"
@@ -2363,10 +2753,20 @@ export default Vue.component('LigerBrowser', {
                                     <div class="bar-grid-header">
                                         <div class="bold">Cell Type</div>
                                         <div class="bold">Expression</div>
-                                        <div class="bold text-right">ABS</div>
-                                        <div class="bold text-right">SPEC</div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">ABS</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">SPEC</span>
+                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="scroll-panel">
+                                    <div class="scroll-panel f-col g-5" @scroll="hideExpressionRowTooltip">
                                         <div v-if="cellTypeLoadError" class="empty-state">
                                             {{ cellTypeLoadError }}
                                         </div>
@@ -2402,15 +2802,20 @@ export default Vue.component('LigerBrowser', {
                                 <div class="f-row spread-out">
                                     <div class="f-row g-5">
                                         <h5 class="bold">Cell States</h5>
-                                        <span class="count">({{ cellStateCount }})</span>
+                                        <span class="count"  v-if="cellStateCount>0">({{ cellStateCount }})</span>
                                     </div>
+                                    <!--
                                     <button v-if="selectedCellType"
                                         @click="viewStateInfo=!viewStateInfo"
                                     >
                                         Show {{ viewStateInfo ? 'Expression': 'Info'}}
                                     </button>
+                                    -->
                                 </div>
-                                <div>Cell states are curated, marker-defined biology.</div>
+                                <div class="f-row spread-out g-10 align-v-bottom">
+                                    <div class="subtitle-2">Cell states are curated, marker-defined biology.</div>
+                                    <div v-if="selectedCellType" class="also">Hover row for info</div>
+                                </div>
                             </div>
                             <div class="section-card flex1 relative">
                                 <div v-if="!selectedCellType && !isLoadingCellStateSection"
@@ -2425,10 +2830,20 @@ export default Vue.component('LigerBrowser', {
                                     <div class="bar-grid-header">
                                         <div class="bold">Cell State</div>
                                         <div class="bold">Expression</div>
-                                        <div class="bold text-right">ABS</div>
-                                        <div class="bold text-right">SPEC</div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">ABS</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">SPEC</span>
+                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="scroll-panel">
+                                    <div class="scroll-panel f-col g-5" @scroll="hideExpressionRowTooltip">
                                         <div v-if="cellStateSectionError" class="empty-state">
                                             {{ cellStateSectionError }}
                                         </div>
@@ -2436,6 +2851,10 @@ export default Vue.component('LigerBrowser', {
                                             v-for="cellState in cellStateExpressionList"
                                             :key="cellState.key"
                                             class="bar-grid-item grid-item"
+                                            :class="{ selected: isDrawerTarget('state', cellState.key) }"
+                                            @mouseenter="showExpressionRowTooltip($event, 'state', cellState)"
+                                            @mousemove="showExpressionRowTooltip($event, 'state', cellState)"
+                                            @mouseleave="hideExpressionRowTooltip"
                                             @click="openStateDrawer(cellState.key, cellState.row)"
                                         >
                                             <div class="bar-label">{{cellState.label}}</div>
@@ -2459,7 +2878,7 @@ export default Vue.component('LigerBrowser', {
                                         <div class="bold">Description</div>
                                         <div class="bold">Marker Genes</div>
                                     </div>
-                                    <div class="scroll-panel">
+                                    <div class="scroll-panel f-col g-5">
                                         <div v-if="cellStateSectionError" class="empty-state">
                                             {{ cellStateSectionError }}
                                         </div>
@@ -2467,6 +2886,7 @@ export default Vue.component('LigerBrowser', {
                                             v-for="cellState in cellStateInfoList"
                                             :key="cellState.key"
                                             class="info-grid grid-item"
+                                            :class="{ selected: isDrawerTarget('state', cellState.key) }"
                                             @click="openStateDrawer(cellState.key, stateMetadataById[cellState.key])"
                                         >
                                             <div>{{cellState.label}}</div>
@@ -2483,15 +2903,20 @@ export default Vue.component('LigerBrowser', {
                                 <div class="f-row spread-out">
                                     <div class="f-row g-5">
                                         <h5 class="bold">Gene Programs</h5>
-                                    <span class="count">({{ geneProgramCount }})</span>
+                                    <span class="count" v-if="geneProgramCount>0">({{ geneProgramCount }})</span>
                                     </div>
+                                    <!--
                                     <button v-if="selectedCellType"
                                         @click="viewProgramInfo=!viewProgramInfo"
                                     >
                                         Show {{ viewProgramInfo ? 'Expression': 'Info'}}
                                     </button>
+                                    -->
                                 </div>
-                                <div>Gene programs are data-driven, computationally inferred latent factors.</div>
+                                <div class="f-row spread-out g-10 align-v-bottom">
+                                    <div class="subtitle-2">Gene programs are data-driven, computationally inferred latent factors.</div>
+                                    <div v-if="selectedCellType" class="also">Hover row for info</div>
+                                </div>
                             </div>
                             <div class="section-card  flex1 relative">
                                 <div v-if="!selectedCellType && !isLoadingGeneProgramSection"
@@ -2506,10 +2931,20 @@ export default Vue.component('LigerBrowser', {
                                     <div class="bar-grid-header">
                                         <div class="bold">Gene Program</div>
                                         <div class="bold">Expression</div>
-                                        <div class="bold text-right">ABS</div>
-                                        <div class="bold text-right">SPEC</div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">ABS</span>
+                                                <span class="metric-tooltip-bubble">{{ absoluteExpressionTooltip }}</span>
+                                            </span>
+                                        </div>
+                                        <div class="bold text-right">
+                                            <span class="metric-tooltip">
+                                                <span class="metric-tooltip-label">SPEC</span>
+                                                <span class="metric-tooltip-bubble">{{ specificityTooltip }}</span>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="scroll-panel">
+                                    <div class="scroll-panel  f-col g-5" @scroll="hideExpressionRowTooltip">
                                         <div v-if="geneProgramSectionError" class="empty-state">
                                             {{ geneProgramSectionError }}
                                         </div>
@@ -2517,6 +2952,10 @@ export default Vue.component('LigerBrowser', {
                                             v-for="program in geneProgramExpressionList"
                                             :key="program.key"
                                             class="bar-grid-item grid-item"
+                                            :class="{ selected: isDrawerTarget('program', program.key) }"
+                                            @mouseenter="showExpressionRowTooltip($event, 'program', program)"
+                                            @mousemove="showExpressionRowTooltip($event, 'program', program)"
+                                            @mouseleave="hideExpressionRowTooltip"
                                             @click="openProgramDrawer(program.key, program.row)"
                                         >
                                             <div class="bar-label">{{program.label}}</div>
@@ -2539,7 +2978,7 @@ export default Vue.component('LigerBrowser', {
                                         <div class="bold">Description</div>
                                         <div class="bold">Top Genes</div>
                                     </div>
-                                    <div class="scroll-panel">
+                                    <div class="scroll-panel  f-col g-5" @scroll="hideExpressionRowTooltip">
                                         <div v-if="geneProgramSectionError" class="empty-state">
                                             {{ geneProgramSectionError }}
                                         </div>
@@ -2547,6 +2986,7 @@ export default Vue.component('LigerBrowser', {
                                             v-for="program in geneProgramInfoList"
                                             :key="program.key"
                                             class="info-grid grid-item"
+                                            :class="{ selected: isDrawerTarget('program', program.key) }"
                                             @click="openProgramDrawer(program.key, geneProgramInfoById[program.key])"
                                         >
                                             <div>{{program.label}}</div>
@@ -2557,6 +2997,9 @@ export default Vue.component('LigerBrowser', {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="ai-disclosure">
+                        <span class="bold">Note:</span> this resource uses AI-assisted curation of program names and cell states; manual review and curation are ongoing. Please see cell state and program metadata for details.
                     </div>
                 </div>
                 <div class="f-col g-20">
@@ -2631,9 +3074,13 @@ export default Vue.component('LigerBrowser', {
                                             :key="cell.key"
                                             class="heatmap-cell"
                                             :style="{ background: cell.color }"
-                                            :title="`${cell.title}${isFiniteNumber(cell.value) ? `: ${formatMetric(cell.value)}` : ''}`"
+                                            @mouseenter="showHeatmapTooltip($event, cell.tooltipRows)"
+                                            @mousemove="moveHeatmapTooltip($event)"
+                                            @mouseleave="hideHeatmapTooltip()"
                                         >
-                                            <span v-if="isFiniteNumber(cell.value)">{{ formatMetric(cell.value) }}</span>
+                                            <div class="heatmap-cell-inner">
+                                                <span v-if="isFiniteNumber(cell.value)">{{ formatMetric(cell.value) }}</span>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -2647,7 +3094,7 @@ export default Vue.component('LigerBrowser', {
                 <div class="f-col g-20">
                     <div>
                         <h4 class="bold">Genetically supported links of states and programs to human traits</h4>
-                        <div class="subtitle">See which curated states and inferred programs connect to grouped human traits.</div>
+                        <div class="subtitle">See which curated states and inferred programs connect to human traits.</div>
                     </div>
                     <div class="section-card f-col g-10 relative">
                         <div v-if="!selectedCellType && !isLoadingTraitHeatmap"
@@ -2719,9 +3166,13 @@ export default Vue.component('LigerBrowser', {
                                                 :key="cell.key"
                                                 class="heatmap-cell"
                                                 :style="{ background: cell.color }"
-                                                :title="`${cell.title}${isFiniteNumber(cell.value) ? `: ${cell.value.toFixed(3)}` : ''}`"
+                                                @mouseenter="showHeatmapTooltip($event, cell.tooltipRows)"
+                                                @mousemove="moveHeatmapTooltip($event)"
+                                                @mouseleave="hideHeatmapTooltip()"
                                             >
-                                                <span v-if="isFiniteNumber(cell.value)">{{ cell.value.toFixed(3) }}</span>
+                                                <div class="heatmap-cell-inner">
+                                                    <span v-if="isFiniteNumber(cell.value)">{{ cell.value.toFixed(3) }}</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
@@ -2734,6 +3185,48 @@ export default Vue.component('LigerBrowser', {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div
+            v-if="floatingHeatmapTooltip.visible && floatingHeatmapTooltip.rows.length"
+            class="floating-heatmap-tooltip"
+            :style="{ left: `${floatingHeatmapTooltip.x}px`, top: `${floatingHeatmapTooltip.y}px` }"
+        >
+            <div
+                v-for="tooltipRow in floatingHeatmapTooltip.rows"
+                :key="`floating-${tooltipRow.label}`"
+                class="heatmap-tooltip-row"
+            >
+                <strong>{{ tooltipRow.label }}:</strong> {{ tooltipRow.value }}
+            </div>
+        </div>
+
+        <div
+            v-if="floatingExpressionTooltip.visible && floatingExpressionTooltip.columns.length"
+            class="floating-expression-tooltip"
+            :class="`side-${floatingExpressionTooltip.side}`"
+            :style="{ left: `${floatingExpressionTooltip.x}px`, top: `${floatingExpressionTooltip.y}px` }"
+        >
+            <div class="expression-tooltip-grid">
+                <div
+                    v-for="column in floatingExpressionTooltip.columns"
+                    :key="`expression-tooltip-${column.label}`"
+                    class="expression-tooltip-column"
+                >
+                    <div class="expression-tooltip-heading">{{ column.label }}</div>
+                    <div v-if="column.items && column.items.length" class="expression-tooltip-chip-list">
+                        <span
+                            v-for="item in column.items"
+                            :key="`${column.label}-${item}`"
+                            class="expression-tooltip-chip"
+                        >
+                            {{ item }}
+                        </span>
+                    </div>
+                    <div v-else class="expression-tooltip-value">{{ column.value }}</div>
+                </div>
+            </div>
+            <div class="expression-tooltip-note">Click row for full metadata</div>
         </div>
 
         <div
@@ -2874,21 +3367,6 @@ export default Vue.component('LigerBrowser', {
                     </div>
 
                     <div class="drawer-panel">
-                        <details class="drawer-details">
-                            <summary><strong>Advanced / methods details</strong></summary>
-                            <div class="drawer-details-body">
-                                <p v-if="drawerContent.methodsDetail.text">{{ drawerContent.methodsDetail.text }}</p>
-                                <dl v-if="drawerContent.methodsDetail.rows.length" class="drawer-field-grid">
-                                    <template v-for="field in drawerContent.methodsDetail.rows">
-                                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
-                                    </template>
-                                </dl>
-                            </div>
-                        </details>
-                    </div>
-
-                    <div class="drawer-panel">
                         <h3>Human genetic trait anchors</h3>
                         <div v-if="drawerContent.traitRows.length" class="table-wrap">
                             <table>
@@ -2920,20 +3398,47 @@ export default Vue.component('LigerBrowser', {
                         <p>{{ drawerContent.summaryText }}</p>
                         <dl class="drawer-field-grid">
                             <template v-for="field in drawerContent.summaryFields">
-                                <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                                <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                                <dt :key="`${field.label}-dt`">
+                                    <span v-if="field.label === 'Suggested label'" class="drawer-inline-value">
+                                        <span>{{ field.label }}</span>
+                                        <span class="drawer-ai-tooltip">
+                                            <span class="drawer-ai-pill">AI</span>
+                                            <span class="drawer-ai-tooltip-bubble">{{ aiSuggestedLabelTooltip }}</span>
+                                        </span>
+                                    </span>
+                                    <span v-else>{{ field.label }}</span>
+                                </dt>
+                                <dd :key="`${field.label}-dd`">
+                                    <span>{{ field.value }}</span>
+                                </dd>
                             </template>
                         </dl>
                         <div class="drawer-badge-row drawer-qc-row">
                             <span
-                                v-for="badge in drawerContent.qcBadges"
+                                v-for="badge in visibleProgramQcBadges(drawerContent.qcBadges)"
                                 :key="badge.text"
-                                class="drawer-badge"
-                                :class="badge.tone"
+                                class="drawer-qc-tooltip"
                             >
-                                {{ badge.text }}
+                                <span
+                                    class="drawer-badge"
+                                    :class="badge.tone"
+                                >
+                                    {{ badge.text }}
+                                </span>
+                                <span v-if="badge.tooltip" class="drawer-qc-tooltip-bubble">
+                                    <strong>{{ badge.tooltip.displayName }}</strong>
+                                    <span><strong>Category:</strong> {{ badge.tooltip.category }}</span>
+                                    <span><strong>Marker genes:</strong> {{ badge.tooltip.markerGenes.join(', ') }}</span>
+                                </span>
                             </span>
                         </div>
+                        <button
+                            v-if="hiddenProgramQcBadgeCount(drawerContent.qcBadges) > 0 && !showAllProgramQcBadges"
+                            class="drawer-link-button"
+                            @click="showAllProgramQcBadges = true"
+                        >
+                            See {{ hiddenProgramQcBadgeCount(drawerContent.qcBadges) }} more
+                        </button>
                         <div class="drawer-mini">QC bubble colors: green = QC GSEA P &gt;= 0.05, yellow = QC GSEA P &lt; 0.05, red = QC GSEA q &lt; 0.05</div>
                     </div>
 
@@ -3030,6 +3535,33 @@ export default Vue.component('LigerBrowser', {
                         </div>
                         <div v-else class="empty-state">No program trait anchors returned.</div>
                     </div>
+
+                    <div class="drawer-panel">
+                        <h3>Gene set associations</h3>
+                        <div v-if="drawerContent.geneSetRows.length" class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Gene set</th>
+                                        <th>Description</th>
+                                        <th>Relevance to factor</th>
+                                        <th>Joint beta</th>
+                                        <th>Marginal beta</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in drawerContent.geneSetRows" :key="row.geneSet">
+                                        <td>{{ row.geneSet }}</td>
+                                        <td>{{ row.description || "Not available" }}</td>
+                                        <td>{{ formatMetric(row.relevanceToFactor) }}</td>
+                                        <td>{{ formatMetric(row.beta) }}</td>
+                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="empty-state">No program gene set associations returned.</div>
+                    </div>
                 </template>
             </div>
         </aside>
@@ -3038,6 +3570,7 @@ export default Vue.component('LigerBrowser', {
 
 <style>
 :root{
+    --blue: #0277b6;
     --lite-green: #c7dd04;
     --lite-blue: #afe6fd;
 }
@@ -3057,6 +3590,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 #liger-body{
     background: #f8f8f8;
     padding: 20px;
+    min-width: 1230px;
 }
 .headline{
     line-height: 1.6rem;
@@ -3131,8 +3665,13 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 .shout {
     font-weight: bold;
-    color: #219198;
+    color: var(--blue);
     font-size: 1.2em;
+}
+.ai-disclosure {
+    background: #e8f1fb;
+    padding: 10px 20px;
+    border-radius: 10px;
 }
 
 .expression-grid{
@@ -3190,14 +3729,19 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     flex-wrap: wrap;
     gap: 5px;
     font-size: .9em;
+    height: fit-content;
 }
 .info-gene {
     padding: 0 5px;
     background: #eee;
+    height: fit-content;
 }
 .grid-item{
     text-align: left;
     cursor: pointer;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    border-radius: 10px;
 }
 .grid-item:hover{
     background: #ddd;
@@ -3207,6 +3751,121 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     color: white;
 }
 
+.metric-tooltip{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    cursor: help;
+}
+.metric-tooltip-label{
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+.metric-tooltip-bubble{
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: 260px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #16324f;
+    color: white;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+    pointer-events: none;
+    z-index: 20;
+}
+.metric-tooltip-bubble::after{
+    content: "";
+    position: absolute;
+    right: 12px;
+    top: 100%;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #16324f transparent transparent transparent;
+}
+.metric-tooltip:hover .metric-tooltip-bubble,
+.metric-tooltip:focus-within .metric-tooltip-bubble{
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.floating-expression-tooltip{
+    position: fixed;
+    width: 430px;
+    max-width: min(430px, calc(100vw - 24px));
+    padding: 14px;
+    border-radius: 12px;
+    background: #16324f;
+    color: white;
+    box-shadow: 0 18px 34px rgba(0, 0, 0, .22);
+    z-index: 35;
+    pointer-events: none;
+}
+.floating-expression-tooltip::after{
+    content: "";
+    position: absolute;
+    top: calc(50% - 7px);
+    border-width: 7px;
+    border-style: solid;
+}
+.floating-expression-tooltip.side-right::after{
+    left: -14px;
+    border-color: transparent #16324f transparent transparent;
+}
+.floating-expression-tooltip.side-left::after{
+    right: -14px;
+    border-color: transparent transparent transparent #16324f;
+}
+.expression-tooltip-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+.expression-tooltip-column{
+    min-width: 0;
+}
+.expression-tooltip-heading{
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: #c6ddf7;
+}
+.expression-tooltip-value{
+    font-size: 13px;
+    line-height: 1.45;
+    word-break: break-word;
+}
+.expression-tooltip-chip-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.expression-tooltip-chip{
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .14);
+    font-size: 12px;
+    line-height: 1.3;
+}
+.expression-tooltip-note{
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    font-size: 12px;
+    color: #c6ddf7;
+}
 
 
 .options > div {
@@ -3222,6 +3881,13 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .subtitle{
     font-size: 1.2em;
+}
+.subtitle-2{
+    font-size: 1.1em;
+}
+.also{
+    font-weight: bold;
+    font-size: .9em;
 }
 
 .spaceholder {
@@ -3326,7 +3992,6 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .heatmap-column-head{
     min-width: 62px;
     max-width: 62px;
-    padding: 10px 6px;
     vertical-align: bottom;
 }
 .heatmap-column-label{
@@ -3335,6 +4000,15 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     margin: 0 auto;
     max-height: 150px;
     line-height: 14px;
+    display: flex;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    cursor: pointer;
+}
+.heatmap-column-label:hover{
+    background: #ddd;
 }
 .heatmap-cell{
     min-width: 62px;
@@ -3343,6 +4017,32 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     text-align: center;
     font-size: 11px;
     color: #1f2937;
+    position: relative;
+}
+.heatmap-cell-inner{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.floating-heatmap-tooltip{
+    position: fixed;
+    width: 220px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #16324f;
+    color: white;
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.45;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    pointer-events: none;
+    z-index: 2000;
+}
+.heatmap-tooltip-row + .heatmap-tooltip-row{
+    margin-top: 4px;
 }
 .heatmap-group-row td{
     border-bottom: 1px solid #d9e0eb;
@@ -3359,6 +4059,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 .clickable-cell{
     cursor: pointer;
+}
+.clickable-cell:hover {
+    background: #ddd;
 }
 .drawer-backdrop{
     position: fixed;
@@ -3402,7 +4105,10 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #4e4e4e;
-    margin-bottom: 6px;
+    height: 32px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 .drawer-title{
     margin-bottom: 10px !important;
@@ -3436,10 +4142,70 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     margin: 0;
     color: #374151;
 }
+.drawer-inline-value{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.drawer-ai-tooltip{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+}
+.drawer-ai-pill{
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e8f1fb;
+    color: #175cd3;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+.drawer-ai-tooltip-bubble{
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    width: 280px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #16324f;
+    color: white;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 4px);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+    pointer-events: none;
+    z-index: 20;
+}
+.drawer-ai-tooltip-bubble::after{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #16324f transparent transparent transparent;
+}
+.drawer-ai-tooltip:hover .drawer-ai-tooltip-bubble,
+.drawer-ai-tooltip:focus-within .drawer-ai-tooltip-bubble{
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
 .drawer-badge-row{
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 5px;
 }
 .drawer-badge{
     display: inline-flex;
@@ -3448,6 +4214,55 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
+}
+.drawer-qc-tooltip{
+    position: relative;
+    display: inline-flex;
+}
+.drawer-qc-tooltip-bubble{
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    width: 320px;
+    max-width: min(320px, calc(100vw - 32px));
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #16324f;
+    color: white;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 4px);
+    transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+    pointer-events: none;
+    z-index: 20;
+}
+.drawer-qc-tooltip-bubble::after{
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #16324f transparent transparent transparent;
+}
+.drawer-qc-tooltip-bubble strong{
+    display: block;
+}
+.drawer-qc-tooltip-bubble span{
+    display: block;
+    margin-top: 4px;
+}
+.drawer-qc-tooltip:hover .drawer-qc-tooltip-bubble,
+.drawer-qc-tooltip:focus-within .drawer-qc-tooltip-bubble{
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
 }
 .drawer-badge.good{
     background: #e7f7ed;
@@ -3464,6 +4279,20 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .drawer-badge.blue{
     background: #e8f1fb;
     color: #175cd3;
+}
+.drawer-link-button{
+    margin-top: 10px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #175cd3;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+.drawer-link-button:hover{
+    text-decoration: underline;
 }
 .drawer-marker-list{
     display: flex;
@@ -3519,6 +4348,12 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 @media (max-width: 900px) {
     .drawer-field-grid{
+        grid-template-columns: 1fr;
+    }
+    .floating-expression-tooltip{
+        width: min(430px, calc(100vw - 24px));
+    }
+    .expression-tooltip-grid{
         grid-template-columns: 1fr;
     }
 }

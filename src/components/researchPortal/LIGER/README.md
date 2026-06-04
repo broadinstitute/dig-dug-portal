@@ -28,7 +28,18 @@ This folder contains the in-progress LIGER browser component for the portal.
 
 ## API Host
 
-- Current host in use: `https://bioindex-dev.hugeamp.org`
+LIGER now has a code-level host selection toggle in `LigerBrowser.vue`.
+
+- Default behavior:
+  - use `BIO_INDEX_HOST` from `@/utils/bioIndexUtils`
+  - if the page is running on `localhost`, `127.0.0.1`, or `0.0.0.0`, force dev BioIndex at runtime
+- Optional override:
+  - set `LIGER_FORCE_DEV_BIOINDEX = true` to force `https://bioindex-dev.hugeamp.org` everywhere
+
+Important implementation detail:
+
+- `BIO_INDEX_HOST` in this repo is compile-time injected by `vue.config.js`; it is not inherently runtime-aware of localhost
+- LIGER therefore adds its own localhost fallback logic
 
 ## Temporary Local Tissue Config
 
@@ -36,8 +47,18 @@ The program endpoints return dataset IDs instead of tissue labels, so there is a
 
 - `artery` -> `FNIH_Artery_scRNA_v2.2`
 - `heart` -> `FNIH_Heart_scRNA_v3.2`
-- `liver` -> `FNIH_Liver_scRNA_v3`
-- `pancreas` -> `FNIH_islet_of_Langerhans_scRNA_v3-3`
+- `hypothalamus` -> `FNIH_Hypothalamus_scRNA_v2.2`
+- `kidney` -> `FNIH_Kidney_scRNA_v2.2`
+- `liver` -> `FNIH_Liver_scRNA_v3.2`
+- `muscle` -> `FNIH_Muscle_scRNA_v2.2`
+- `pancreas` -> `FNIH_Pancreas_scRNA_v2.2`
+- `sat` -> `FNIH_SAT_scRNA_v2.2`
+- `vat` -> `FNIH_VAT_scRNA_v2.2`
+
+Config note:
+
+- keep this mapping consistent on `datasetId` only
+- do not mix `datasetId` and `datasetID`
 
 Program model currently hardcoded:
 
@@ -87,6 +108,8 @@ These power:
 
 Program labels should prefer metadata labels and avoid exposing raw factor IDs when a readable label exists.
 
+`gene-program-factor` now also provides a `rationale` field used in the program drawer under `Suggested label`.
+
 ### State/program relationship heatmap
 
 - `/api/bio/query/gene-program-heatmap?q=<tissue>,<cellType>`
@@ -119,6 +142,8 @@ Important behavior:
 - trait identity should stay keyed by raw API trait values internally
 - displayed trait labels should prefer phenotype `description` from `/api/portal/phenotypes?q=md`
 - trait group labels should come from phenotype `group`
+- rows with no matching phenotype label can now be filtered out in code via `LIGER_FILTER_UNLABELED_HEATMAP_TRAITS`
+- that same filter also applies to drawer trait tables
 
 ### Program gene loadings
 
@@ -128,12 +153,46 @@ This powers:
 
 - gene-program drawer top-gene-loading table
 
+### Program gene set associations
+
+- `/api/bio/query/gene-program-gene-set-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+
+This powers:
+
+- gene-program drawer gene set associations table
+
+### Program QC states
+
+- `/api/bio/query/gene-program-qc-factor?q=<datasetId>,<cellType>,<model>,<factorId>`
+- `/api/bio/query/gene-program-qc-metadata-extended?q=1`
+
+These power:
+
+- program drawer QC bubbles
+- program drawer QC badge colors
+- QC bubble hover tooltips
+
+Important behavior:
+
+- QC bubble colors are driven directly from QC GSEA values:
+  - green when `gsea_p >= 0.05`
+  - yellow when `gsea_p < 0.05`
+  - red when `gsea_q < 0.05`
+- keep the API sort order, but initially truncate the visible QC bubbles after the second green bubble
+- use the `See N more` control to expand the remaining QC bubbles
+- QC bubble tooltips should show:
+  - metadata `display_name`
+  - metadata `category`
+  - metadata marker genes
+- QC metadata joins on `qc_signature_id` matching QC row `state_name`
+
 ## Current UI Behavior
 
 ### Search
 
 - Gene autocomplete is self-contained inside `LigerBrowser.vue`.
 - Selecting a suggestion or pressing Enter triggers the initial gene load.
+- If no tissues are available for the gene, keep the search feedback visible but do not render `#liger-body`.
 
 ### Tissue card
 
@@ -146,6 +205,7 @@ This powers:
 - Loads only after tissue selection.
 - Count is shown in header: `Cell Type (N)`.
 - Uses bars plus numeric `ABS` and `SPEC`.
+- `ABS` and `SPEC` headers now use custom hover tooltips instead of native HTML `title`.
 - Labels are prettified for display:
   - underscores replaced with spaces
   - words capitalized
@@ -157,6 +217,13 @@ This powers:
 - Expression and info ordering should match.
 - Expression-card labels should truncate with ellipsis.
 - Info-card labels can wrap normally.
+- Count badges should reset to `0` unless a cell type is currently selected.
+- Expression rows now also have metadata hover tooltips:
+  - cell-state rows open a tooltip to the right
+  - gene-program rows open a tooltip to the left
+  - tooltip footer says `Click row for full metadata`
+- Keep `Show Info` and the info-card layouts in place for now even though tooltip previews now exist.
+- When a drawer is open, the matching state/program row should stay highlighted in both expression and info views.
 
 ### Relationships heatmap
 
@@ -164,8 +231,19 @@ This powers:
 - Has its own loading and error state.
 - Supports metric switching based on the available heatmap payload fields.
 - Uses sticky headers / row labels and click-through into drawer details.
+- Cell tooltips are custom floating overlays, not native `title`, to avoid clipping by the scroll container.
 - Cell states are row headers.
 - Gene programs are column headers.
+
+Current cell tooltip content includes:
+
+- cell state
+- gene program
+- active metric value
+- marker score
+- GSEA NES
+- GSEA P
+- GSEA q
 
 ### Trait links heatmap
 
@@ -180,12 +258,21 @@ This powers:
 - Trait rows are selected from the union of each visible column's top absolute beta values.
 - Trait rows are grouped by phenotype `group` from `/api/portal/phenotypes?q=md`.
 - Trait labels should show phenotype `description` when available.
+- Cell tooltips are custom floating overlays, not native `title`, to avoid clipping by the scroll container.
+
+Current cell tooltip content includes:
+
+- trait
+- linked cell state or gene program
+- joint score
+- marginal score
 
 ### Side drawer
 
 - Clicking a cell state or gene program from cards or heatmaps can open a right-side drawer.
 - If a `cell_state` query param is present on load, open the cell-state drawer automatically.
 - If a `gene_program` query param is present on load, open the gene-program drawer automatically.
+- On query-string hydration, the drawer should open before the full trait heatmap finishes loading; phenotype labels needed by the drawer are loaded separately.
 
 Current drawer coverage should match the prototype:
 
@@ -196,14 +283,25 @@ Current drawer coverage should match the prototype:
   - marker provenance
   - curation + references
   - related programs with significant matches
-  - advanced / methods details
   - human genetic trait anchors
 - Inferred program drawer:
   - summary
+  - suggested label + AI badge
+  - rationale
   - quality / QC badges
   - curated-state matches
   - top gene loadings
   - top anchor traits
+  - gene set associations
+
+Current drawer-specific behavior:
+
+- inferred program drawer title should use the readable label only, not `FactorN - label`
+- state drawer no longer shows the `Advanced / methods details` accordion
+- program drawer no longer shows `Collection`
+- `Suggested label` has an `AI` pill with a placeholder tooltip that can be revised later
+- program drawer QC bubbles now prefer the dedicated QC API over inferred relationship-heatmap QC rows
+- if the dedicated QC API is unavailable, fall back to the older QC-match-derived bubbles
 
 ### Query-string state
 
@@ -226,6 +324,7 @@ Expected behavior:
 - clicking/searching should update the URL progressively
 - loading the page with these params should restore the same selection path
 - `cell_state` and `gene_program` are mutually exclusive in the URL and should clear each other when drawer target changes
+- if a drawer target is present in the URL, do not block the drawer on the trait heatmap load
 
 ## Value Definitions
 
