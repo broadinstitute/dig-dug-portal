@@ -7,6 +7,7 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 import regionUtils from "@/utils/regionUtils";
+import { CELL_STATE_EXPRESSION_BIOINDEX_HOST } from "./cellStateExpressionBioIndexHost";
 
 Vue.use(Vuex);
 
@@ -25,7 +26,11 @@ export default new Vuex.Store({
         hugeScores: bioIndex("huge"),
         geneExpression: bioIndex("gene-expression"),
         mouseSummary: bioIndex("diff-exp-summary-gene"),
-        cellStateExpression: bioIndex("gene-program-expression-cell-state"),
+        cellStateExpression: bioIndex(
+            "gene-program-expression-cell-state",
+            undefined,
+            { host: CELL_STATE_EXPRESSION_BIOINDEX_HOST }
+        ),
         uniprot,
         pigeanGene: bioIndex("pigean-gene"),
         pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),

@@ -230,6 +230,7 @@
 import Vue from "vue";
 import { isEqual } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
+import { CELL_STATE_EXPRESSION_BIOINDEX_HOST } from "@/views/Gene/cellStateExpressionBioIndexHost";
 import {
     filterFromPredicates,
     predicateFromSpec,
@@ -706,6 +707,7 @@ export default Vue.component("LigerTable", {
                     "gene-program-heatmap",
                     `${tissue},${cellType}`,
                     {
+                        host: CELL_STATE_EXPRESSION_BIOINDEX_HOST,
                         onError: (json) => {
                             Vue.set(
                                 this.geneProgramHeatmapErrors,
