@@ -13,7 +13,13 @@
             @click.stop
         >
             <header class="wkb-welcome-head">
-                <h2 id="wkb-welcome-title">Welcome to REVEAL KG Canvas</h2>
+                <h2 id="wkb-welcome-title" class="wkb-welcome-title">
+                    Welcome to
+                    <span class="wkb-welcome-brand">
+                        <span class="wkb-welcome-mark">REVEAL</span>
+                        <span class="wkb-welcome-name">KG Canvas</span>
+                    </span>
+                </h2>
                 <p>
                     Start a new graph, open one from <strong>My library</strong>, or import
                     a graph file you exported earlier.
@@ -133,9 +139,33 @@ export default {
 
 .wkb-welcome-head h2 {
     margin: 0 0 8px;
+}
+
+.wkb-welcome-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35em;
     font-size: 1.35rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--cfde-ink, #33363d);
+}
+
+.wkb-welcome-brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+}
+
+.wkb-welcome-mark {
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--cfde-orange, #e07b39);
+}
+
+.wkb-welcome-name {
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
 }
 
 .wkb-welcome-head p {
