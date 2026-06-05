@@ -106,47 +106,16 @@
                         @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                         @inspect-connected-node="$emit('inspect-connected-node', $event)"
                     />
-                    <template v-else-if="selectedEdgeId && selectedEdge">
-                        <p class="wkb-inspector-edge-name">
-                            {{ selectedEdge.label || "Selected edge" }}
-                        </p>
-                        <dl class="wkb-inspector-meta">
-                            <div v-if="selectedEdge.edgeType">
-                                <dt>Type</dt>
-                                <dd>{{ selectedEdge.edgeType }}</dd>
-                            </div>
-                            <div v-if="selectedEdge.isContextual">
-                                <dt>Role</dt>
-                                <dd>Contextual edge</dd>
-                            </div>
-                            <div v-if="selectedEdge.scoreLabel">
-                                <dt>Score</dt>
-                                <dd>{{ selectedEdge.scoreLabel }}</dd>
-                            </div>
-                        </dl>
-                        <p v-if="selectedEdge.provenanceLoading" class="wkb-inspector-note">
-                            Loading edge provenance…
-                        </p>
-                        <p
-                            v-else-if="selectedEdge.provenanceError"
-                            class="wkb-inspector-note wkb-inspector-note--warn"
-                        >
-                            {{ selectedEdge.provenanceError }}
-                        </p>
-                        <template v-else-if="selectedEdge.provenanceSummary">
-                            <p class="wkb-inspector-note">{{ selectedEdge.provenanceSummary }}</p>
-                            <p
-                                v-if="selectedEdge.provenanceNote"
-                                class="wkb-inspector-note"
-                            >
-                                {{ selectedEdge.provenanceNote }}
-                            </p>
-                        </template>
-                        <p v-else class="wkb-inspector-note">
-                            Edge summary only. Gene–trait links include full provenance when
-                            available.
-                        </p>
-                    </template>
+                    <WorkspaceEdgeInspectorContent
+                        v-else-if="selectedEdgeId && selectedEdge"
+                        :selected-edge="selectedEdge"
+                        :payload="selectedEdge.provenancePayload"
+                        :provenance-loading="selectedEdge.provenanceLoading"
+                        :provenance-error="selectedEdge.provenanceError"
+                        :api-client="apiClient"
+                        :graph-busy="graphBusy"
+                        @add-node="$emit('add-node', $event)"
+                    />
                     <template v-else-if="selectedNode">
                         <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
                         <dl class="wkb-inspector-meta">
@@ -194,6 +163,7 @@ import WorkspaceGeneNodeInspectorContent from "./WorkspaceGeneNodeInspectorConte
 import WorkspaceGeneSetNodeInspectorContent from "./WorkspaceGeneSetNodeInspectorContent.vue";
 import WorkspaceMechanismNodeInspectorContent from "./WorkspaceMechanismNodeInspectorContent.vue";
 import WorkspaceTraitNodeInspectorContent from "./WorkspaceTraitNodeInspectorContent.vue";
+import WorkspaceEdgeInspectorContent from "./WorkspaceEdgeInspectorContent.vue";
 
 export default {
     name: "WorkspaceInspector",
@@ -202,6 +172,7 @@ export default {
         WorkspaceGeneSetNodeInspectorContent,
         WorkspaceMechanismNodeInspectorContent,
         WorkspaceTraitNodeInspectorContent,
+        WorkspaceEdgeInspectorContent,
     },
     props: {
         inspectorContentKey: {

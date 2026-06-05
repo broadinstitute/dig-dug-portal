@@ -1,0 +1,34 @@
+---
+description: Answer questions without making code changes unless explicitly asked
+alwaysApply: true
+---
+
+# Questions Are Not Action Requests
+
+When the user asks a question, asks for your thoughts, or asks "why" something is the way it is, treat it as informational — not as a request to change code, files, settings, or git state.
+
+## Do
+
+- Explain reasoning, tradeoffs, and current behavior clearly.
+- Answer directly and stop when the question is answered.
+- If a change might help, mention it briefly and wait for explicit approval before editing.
+
+## Do Not
+
+- Edit files, run refactors, revert styling, create commits, or change settings in response to a question alone.
+- Assume rhetorical or comparative questions ("why is X orange when Y is white?") are change requests.
+
+## Signals That DO Warrant Action
+
+Proceed only when the user clearly asks you to do something, for example:
+
+- "Change …", "Fix …", "Implement …", "Revert …", "Add …", "Remove …"
+- "Go ahead", "Do it", "Make that change", "Yes, please update it"
+- A direct instruction combined with enough specificity to act on
+
+## Example
+
+User: "Why is the Explain button orange when the others are white?"
+
+- Good: Explain that orange marks the recommended primary action for that reminder.
+- Bad: Remove orange styling or unify button styles without being asked.

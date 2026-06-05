@@ -23,7 +23,7 @@
 
             <header class="wkb-library-head">
                 <div class="wkb-library-head-row">
-                    <h2 id="wkb-library-modal-title">Saved graphs</h2>
+                    <h2 id="wkb-library-modal-title">My library</h2>
                     <div class="wkb-library-transfer">
                         <button
                             type="button"
@@ -31,14 +31,14 @@
                             :disabled="!records.length"
                             @click="onExport"
                         >
-                            Export library
+                            Back up library…
                         </button>
                         <button
                             type="button"
                             class="wkb-library-action"
                             @click="onImportClick"
                         >
-                            Import library
+                            Restore library backup…
                         </button>
                         <input
                             ref="importFileInput"
@@ -49,9 +49,16 @@
                         />
                     </div>
                 </div>
+                <p class="wkb-library-storage-note">
+                    My library lists graphs saved in <strong>this browser only</strong> (local
+                    storage). Graph layout and links are stored; inspector results are not.
+                    Use <strong>Manage → Export graph</strong> on the canvas for a full graph
+                    file that can rebuild the session with inspection data.
+                </p>
                 <p class="wkb-library-transfer-note">
-                    Export downloads a JSON file you can import on another browser or machine.
-                    Import merges graphs into this library; duplicate IDs are saved as new copies.
+                    <strong>Back up library</strong> downloads every My library graph as JSON for
+                    backup or another browser. <strong>Restore library backup</strong> merges those
+                    entries here; duplicate IDs are saved as new copies.
                 </p>
                 <p v-if="transferMessage" class="wkb-library-transfer-message">
                     {{ transferMessage }}
@@ -61,7 +68,8 @@
             <div class="wkb-library-body">
                 <p v-if="!records.length" class="wkb-library-empty">
                     No saved graphs in this browser yet. Build a graph on the canvas
-                    and use <strong>Save → Save KG</strong> when that option is available.
+                    and use <strong>Manage → Save graph to library…</strong> when that
+                    option is available.
                 </p>
 
                 <ul v-else class="wkb-library-list">
@@ -84,7 +92,7 @@
                                 class="wkb-library-action wkb-library-action-primary"
                                 @click="$emit('load', record)"
                             >
-                                Load
+                                Open on canvas
                             </button>
                             <button
                                 type="button"
@@ -98,7 +106,7 @@
                                 class="wkb-library-action wkb-library-action-danger"
                                 @click="$emit('delete', record)"
                             >
-                                Delete
+                                Remove from library
                             </button>
                         </div>
                     </li>
@@ -165,11 +173,11 @@ export default {
             if (!result.ok) {
                 this.transferMessage =
                     result.reason === "empty"
-                        ? "Nothing to export — save at least one graph first."
-                        : "Export failed.";
+                        ? "Nothing to back up — save at least one graph first."
+                        : "Backup failed.";
                 return;
             }
-            this.transferMessage = `Exported ${result.graphCount} graph${
+            this.transferMessage = `Backed up ${result.graphCount} graph${
                 result.graphCount === 1 ? "" : "s"
             } to ${result.filename}.`;
             this.$emit("exported", result);
@@ -195,7 +203,7 @@ export default {
                     this.transferMessage =
                         result.reason === "no_valid_graphs"
                             ? "No valid graphs found in that file."
-                            : "Import failed.";
+                            : "Restore failed.";
                     this.$emit("imported", result);
                     return;
                 }
@@ -214,8 +222,8 @@ export default {
                     parts.push(`skipped ${result.skipped}`);
                 }
                 this.transferMessage = parts.length
-                    ? `Import complete: ${parts.join("; ")}.`
-                    : "Import complete.";
+                    ? `Restore complete: ${parts.join("; ")}.`
+                    : "Restore complete.";
                 this.$emit("imported", result);
             } catch (error) {
                 this.transferMessage = String(error.message || error);
@@ -296,6 +304,17 @@ export default {
 
 .wkb-library-file-input {
     display: none;
+}
+
+.wkb-library-storage-note {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ead9c8;
+    background: #fff9f3;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
 }
 
 .wkb-library-transfer-note {

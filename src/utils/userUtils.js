@@ -85,6 +85,63 @@ function clearContext(GROUP) {
 const REVEAL_KG_GRAPHS_KEY = "_reveal_kg_graphs";
 const REVEAL_KG_GRAPH_SCHEMA_VERSION = 1;
 const MAX_SAVED_GRAPHS = 50;
+const GRAPH_STORE_QUOTA_ERROR = "GRAPH_STORE_QUOTA_EXCEEDED";
+const GRAPH_STORE_WRITE_ERROR = "GRAPH_STORE_WRITE_FAILED";
+
+let lastGraphSaveWarning = "";
+
+function isStorageQuotaError(error) {
+    return (
+        error?.name === "QuotaExceededError" ||
+        (error instanceof DOMException && (error.code === 22 || error.code === 1014))
+    );
+}
+
+function estimateJsonBytes(value) {
+    try {
+        return new Blob([JSON.stringify(value)]).size;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function formatStorageBytes(bytes) {
+    const size = Number(bytes) || 0;
+    if (size < 1024) {
+        return `${size} B`;
+    }
+    if (size < 1024 * 1024) {
+        return `${(size / 1024).toFixed(1)} KB`;
+    }
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function emptyInspectorCacheFields() {
+    return {
+        nodeConnectionEvidenceCache: {},
+        nodeExpressionProfileCache: {},
+        nodeExpressionReferenceById: {},
+        edgeProvenanceById: {},
+        nodeSigChainPacketCache: {},
+        nodeFactorLoadingsCache: {},
+    };
+}
+
+function stripInspectorCachesFromPayload(payload) {
+    if (!payload || typeof payload !== "object") {
+        return payload;
+    }
+    return {
+        ...payload,
+        ...emptyInspectorCacheFields(),
+    };
+}
+
+function consumeGraphSaveWarning() {
+    const warning = lastGraphSaveWarning;
+    lastGraphSaveWarning = "";
+    return warning;
+}
 
 function makeGraphId() {
     return `g_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -182,13 +239,8 @@ function normalizeGraphRecord(record) {
         starterBuckets: cloneJson(record.starterBuckets, null),
         addNeighboringNodes:
             record.addNeighboringNodes !== undefined ? record.addNeighboringNodes : true,
-        // Inspector evidence fetched in-session (required for snapshots / resume).
-        nodeConnectionEvidenceCache: cloneJson(record.nodeConnectionEvidenceCache, {}),
-        nodeExpressionProfileCache: cloneJson(record.nodeExpressionProfileCache, {}),
-        nodeExpressionReferenceById: cloneJson(record.nodeExpressionReferenceById, {}),
-        edgeProvenanceById: cloneJson(record.edgeProvenanceById, {}),
-        nodeSigChainPacketCache: cloneJson(record.nodeSigChainPacketCache, {}),
-        nodeFactorLoadingsCache: cloneJson(record.nodeFactorLoadingsCache, {}),
+        // Library graphs never store inspector caches (use Export graph for full workflow data).
+        ...emptyInspectorCacheFields(),
     };
 }
 
@@ -215,7 +267,18 @@ function writeGraphStore(records) {
         String(b.savedAt).localeCompare(String(a.savedAt))
     );
     const trimmed = sorted.slice(0, MAX_SAVED_GRAPHS);
-    localStorage.setItem(REVEAL_KG_GRAPHS_KEY, JSON.stringify(trimmed));
+    try {
+        localStorage.setItem(REVEAL_KG_GRAPHS_KEY, JSON.stringify(trimmed));
+    } catch (e) {
+        if (isStorageQuotaError(e)) {
+            const err = new Error(GRAPH_STORE_QUOTA_ERROR);
+            err.cause = e;
+            throw err;
+        }
+        const err = new Error(GRAPH_STORE_WRITE_ERROR);
+        err.cause = e;
+        throw err;
+    }
     return trimmed;
 }
 
@@ -233,7 +296,7 @@ function getGraph(id) {
 }
 
 function saveGraph(graph) {
-    const record = normalizeGraphRecord(graph);
+    const record = normalizeGraphRecord(stripInspectorCachesFromPayload(graph));
     if (!record) {
         console.error("saveGraph: a graph with at least one node is required");
         return null;
@@ -257,7 +320,7 @@ function updateGraph(id, patch) {
     }
     const record = normalizeGraphRecord({
         ...existing,
-        ...(patch || {}),
+        ...stripInspectorCachesFromPayload(patch || {}),
         id,
         savedAt: new Date().toISOString(),
     });
@@ -283,8 +346,7 @@ function clearGraphs() {
     localStorage.removeItem(REVEAL_KG_GRAPHS_KEY);
 }
 
-//Build a saved-graph payload from the live workspace session object.
-function graphPayloadFromSession(session, { label } = {}) {
+function graphPayloadFromSession(session, { label, includeInspectorCaches = false } = {}) {
     if (!session) {
         return null;
     }
@@ -295,7 +357,7 @@ function graphPayloadFromSession(session, { label } = {}) {
         },
         nodes
     );
-    return {
+    const base = {
         label: label !== undefined ? label : session.label,
         context: session.context || "",
         nodes,
@@ -313,6 +375,15 @@ function graphPayloadFromSession(session, { label } = {}) {
             session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
         hypotheses: session.hypotheses || session.sigChainRuns || [],
         dataProvenanceRuns: session.dataProvenanceRuns || session.datasetRuns || [],
+    };
+    if (!includeInspectorCaches) {
+        return {
+            ...base,
+            ...emptyInspectorCacheFields(),
+        };
+    }
+    return {
+        ...base,
         nodeConnectionEvidenceCache: cloneJson(session.nodeConnectionEvidenceCache, {}),
         nodeExpressionProfileCache: cloneJson(session.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(session.nodeExpressionReferenceById, {}),
@@ -338,6 +409,43 @@ function updateGraphFromSession(id, session, { label } = {}) {
         return null;
     }
     return updateGraph(id, payload);
+}
+
+function estimateGraphStoreBytes() {
+    try {
+        const raw = localStorage.getItem(REVEAL_KG_GRAPHS_KEY);
+        if (!raw) {
+            return 0;
+        }
+        return new Blob([raw]).size;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function estimateSessionSaveBytes(session, { label } = {}) {
+    const payload = graphPayloadFromSession(session, { label });
+    if (!payload) {
+        return 0;
+    }
+    const records = readGraphStore();
+    const graphId = session?.savedGraphId || session?.id || null;
+    const nextRecords = graphId
+        ? records.map((entry) =>
+              entry.id === graphId
+                  ? normalizeGraphRecord({
+                        ...entry,
+                        ...payload,
+                        id: graphId,
+                        savedAt: new Date().toISOString(),
+                    })
+                  : entry
+          )
+        : [
+              normalizeGraphRecord(payload),
+              ...records.filter((entry) => entry.id !== payload.id),
+          ].filter(Boolean);
+    return estimateJsonBytes(nextRecords.filter(Boolean));
 }
 
 //Restore a workspace session-shaped object from a saved graph (for Library load).
@@ -369,15 +477,126 @@ function sessionFromGraph(record) {
         sigChainRuns: cloneJson(graph.hypotheses, []),
         dataProvenanceRuns: cloneJson(graph.dataProvenanceRuns, []),
         datasetRuns: cloneJson(graph.dataProvenanceRuns, []),
-        nodeConnectionEvidenceCache: cloneJson(graph.nodeConnectionEvidenceCache, {}),
-        nodeExpressionProfileCache: cloneJson(graph.nodeExpressionProfileCache, {}),
-        nodeExpressionReferenceById: cloneJson(graph.nodeExpressionReferenceById, {}),
-        edgeProvenanceById: cloneJson(graph.edgeProvenanceById, {}),
-        nodeSigChainPacketCache: cloneJson(graph.nodeSigChainPacketCache, {}),
-        nodeFactorLoadingsCache: cloneJson(graph.nodeFactorLoadingsCache, {}),
+        ...emptyInspectorCacheFields(),
         savedGraphId: graph.id,
         savedAt: graph.savedAt,
     };
+}
+
+const REVEAL_KG_GRAPH_EXPORT_KIND = "reveal-kg-graph-export";
+const REVEAL_KG_GRAPH_EXPORT_SCHEMA_VERSION = 1;
+
+function defaultGraphExportFilename(label) {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const slug = String(label || "graph")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 48);
+    return `reveal-kg-graph-${slug || "export"}-${stamp}.json`;
+}
+
+function buildGraphExportBundle(session, { label } = {}) {
+    const sessionPayload = graphPayloadFromSession(session, {
+        label,
+        includeInspectorCaches: true,
+    });
+    if (!sessionPayload) {
+        return null;
+    }
+    return {
+        kind: REVEAL_KG_GRAPH_EXPORT_KIND,
+        schemaVersion: REVEAL_KG_GRAPH_EXPORT_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        label: String(label !== undefined ? label : session?.label || "").trim() || "Untitled graph",
+        session: sessionPayload,
+    };
+}
+
+function sessionPayloadFromGraphExport(record) {
+    if (!record || typeof record !== "object") {
+        return null;
+    }
+    if (record.kind === REVEAL_KG_GRAPH_EXPORT_KIND && record.session) {
+        return record.session;
+    }
+    if (record.session && typeof record.session === "object") {
+        return record.session;
+    }
+    if (graphNodesFromRecord(record).length) {
+        return record;
+    }
+    return null;
+}
+
+function sessionFromGraphExport(record) {
+    const payload = sessionPayloadFromGraphExport(record);
+    if (!payload) {
+        return null;
+    }
+    const nodes = cloneJson(graphNodesFromRecord(payload), []);
+    if (!nodes.length) {
+        return null;
+    }
+    const highlighted = highlightedFromRecord(payload, nodes);
+    return {
+        label: String(payload.label || record.label || "").trim() || "Untitled graph",
+        context: payload.context || "",
+        graphNodes: nodes,
+        graphEdges: cloneJson(graphEdgesFromRecord(payload), []),
+        highlighted,
+        reanchorSelection: highlighted,
+        controls: cloneJson(payload.controls, {}),
+        visibilityFilters: cloneJson(payload.visibilityFilters, {}),
+        appliedGraphFilter: payload.appliedGraphFilter
+            ? cloneJson(payload.appliedGraphFilter, null)
+            : null,
+        retrievalLedger: cloneJson(payload.retrievalLedger, {}),
+        contextualEdges: cloneJson(payload.contextualEdges, []),
+        contextualEdgeSignature: payload.contextualEdgeSignature || "",
+        starterBuckets: cloneJson(payload.starterBuckets, null),
+        addNeighboringNodes:
+            payload.addNeighboringNodes !== undefined ? payload.addNeighboringNodes : true,
+        hypotheses: cloneJson(payload.hypotheses || payload.sigChainRuns, []),
+        sigChainRuns: cloneJson(payload.hypotheses || payload.sigChainRuns, []),
+        dataProvenanceRuns: cloneJson(
+            payload.dataProvenanceRuns || payload.datasetRuns,
+            []
+        ),
+        datasetRuns: cloneJson(payload.dataProvenanceRuns || payload.datasetRuns, []),
+        nodeConnectionEvidenceCache: cloneJson(payload.nodeConnectionEvidenceCache, {}),
+        nodeExpressionProfileCache: cloneJson(payload.nodeExpressionProfileCache, {}),
+        nodeExpressionReferenceById: cloneJson(payload.nodeExpressionReferenceById, {}),
+        edgeProvenanceById: cloneJson(payload.edgeProvenanceById, {}),
+        nodeSigChainPacketCache: cloneJson(payload.nodeSigChainPacketCache, {}),
+        nodeFactorLoadingsCache: cloneJson(payload.nodeFactorLoadingsCache, {}),
+    };
+}
+
+async function exportGraphFromSession(session, { label, filename } = {}) {
+    const bundle = buildGraphExportBundle(session, { label });
+    if (!bundle) {
+        return { ok: false, reason: "no_session" };
+    }
+    const exportLabel = bundle.label;
+    const saveResult = await saveJsonPayloadToFile(
+        filename || defaultGraphExportFilename(exportLabel),
+        bundle
+    );
+    if (!saveResult.ok) {
+        return saveResult;
+    }
+    return {
+        ok: true,
+        label: exportLabel,
+        filename: saveResult.filename,
+        usedSavePicker: saveResult.usedSavePicker,
+    };
+}
+
+function parseGraphImportPayload(parsed) {
+    return sessionFromGraphExport(parsed);
 }
 
 function duplicateGraph(id, label) {
@@ -425,6 +644,18 @@ function defaultLibraryExportFilename() {
     return `reveal-kg-library-${stamp}.json`;
 }
 
+function normalizeExportFilename(filename) {
+    let name = String(filename || "").trim();
+    if (!name) {
+        name = "reveal-kg-graph-export.json";
+    }
+    name = name.replace(/[\\/:*?"<>|]+/g, "-");
+    if (!name.toLowerCase().endsWith(".json")) {
+        name = `${name}.json`;
+    }
+    return name;
+}
+
 function triggerJsonDownload(filename, payload) {
     if (typeof document === "undefined") {
         console.error("triggerJsonDownload: document is not available");
@@ -436,12 +667,54 @@ function triggerJsonDownload(filename, payload) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = filename;
+    anchor.download = normalizeExportFilename(filename);
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
     return true;
+}
+
+async function saveJsonPayloadToFile(filename, payload) {
+    const resolvedFilename = normalizeExportFilename(filename);
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+
+    if (
+        typeof window !== "undefined" &&
+        typeof window.showSaveFilePicker === "function"
+    ) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: resolvedFilename,
+                types: [
+                    {
+                        description: "JSON",
+                        accept: { "application/json": [".json"] },
+                    },
+                ],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return {
+                ok: true,
+                filename: handle.name || resolvedFilename,
+                usedSavePicker: true,
+            };
+        } catch (error) {
+            if (error?.name === "AbortError") {
+                return { ok: false, reason: "cancelled" };
+            }
+        }
+    }
+
+    const ok = triggerJsonDownload(resolvedFilename, payload);
+    return {
+        ok,
+        filename: resolvedFilename,
+        usedSavePicker: false,
+    };
 }
 
 //Bundle all saved graphs for export to another browser/machine.
@@ -541,6 +814,37 @@ function importLibrary(payload, { onIdConflict = "rename" } = {}) {
     };
 }
 
+function parseGraphImportFile(file) {
+    return new Promise((resolve, reject) => {
+        if (!file) {
+            reject(new Error("No file selected."));
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(String(reader.result || ""));
+                const session = parseGraphImportPayload(parsed);
+                if (!session) {
+                    reject(new Error("File is not a valid KG Workspace graph export."));
+                    return;
+                }
+                resolve(session);
+            } catch (e) {
+                reject(
+                    e?.message === "File is not a valid KG Workspace graph export."
+                        ? e
+                        : new Error("File is not valid JSON.")
+                );
+            }
+        };
+        reader.onerror = () => {
+            reject(new Error("Could not read the selected file."));
+        };
+        reader.readAsText(file);
+    });
+}
+
 function parseLibraryImportFile(file) {
     return new Promise((resolve, reject) => {
         if (!file) {
@@ -582,6 +886,19 @@ export default {
     updateGraphFromSession,
     sessionFromGraph,
     graphPayloadFromSession,
+    consumeGraphSaveWarning,
+    estimateGraphStoreBytes,
+    estimateSessionSaveBytes,
+    formatStorageBytes,
+    GRAPH_STORE_QUOTA_ERROR,
+    GRAPH_STORE_WRITE_ERROR,
+    buildGraphExportBundle,
+    defaultGraphExportFilename,
+    exportGraphFromSession,
+    normalizeExportFilename,
+    sessionFromGraphExport,
+    parseGraphImportPayload,
+    parseGraphImportFile,
     duplicateGraph,
     formatGraphCounts,
     formatGraphWhen,

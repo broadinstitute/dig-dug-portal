@@ -49,6 +49,12 @@
                 />
             </div>
             <div class="wkb-canvas-graph-wrap" @click="onGraphViewerClick">
+                <WorkspaceGraphReminder
+                    v-if="graphReminder && !graphLoading"
+                    :reminder="graphReminder"
+                    @action="$emit('graph-reminder-action', $event)"
+                    @dismiss="$emit('graph-reminder-dismiss')"
+                />
                 <WorkspaceTreeGraphCanvas
                     :graph-nodes="graphNodes"
                     :graph-edges="graphEdges"
@@ -105,7 +111,7 @@
             <p class="wkb-canvas-placeholder-title">Knowledge graph canvas</p>
             <p class="wkb-canvas-placeholder-sub">
                 Your graph will appear here. Start by building an initial graph from
-                <strong>Save → New graph</strong>, or open <strong>Library</strong> to load a saved graph.
+                <strong>Manage → New graph</strong>, or open <strong>My library</strong> to load a saved graph.
             </p>
         </div>
     </div>
@@ -115,6 +121,7 @@
 import WorkspaceTreeGraphCanvas from "./WorkspaceTreeGraphCanvas.vue";
 import WorkspaceGraphViewportControls from "./WorkspaceGraphViewportControls.vue";
 import WorkspaceGraphDataTableModal from "./WorkspaceGraphDataTableModal.vue";
+import WorkspaceGraphReminder from "./WorkspaceGraphReminder.vue";
 import WorkspaceInspector from "./WorkspaceInspector.vue";
 
 export default {
@@ -123,6 +130,7 @@ export default {
         WorkspaceTreeGraphCanvas,
         WorkspaceGraphViewportControls,
         WorkspaceGraphDataTableModal,
+        WorkspaceGraphReminder,
         WorkspaceInspector,
     },
     props: {
@@ -213,6 +221,10 @@ export default {
         inspectorContentKey: {
             type: String,
             default: "",
+        },
+        graphReminder: {
+            type: Object,
+            default: null,
         },
     },
     data() {

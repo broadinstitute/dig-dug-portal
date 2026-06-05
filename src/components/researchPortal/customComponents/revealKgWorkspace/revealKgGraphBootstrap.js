@@ -519,14 +519,8 @@ export async function expandGraphFromNode(
     };
 }
 
-/**
- * Add ledger rows to the visible graph via session node-links API (Playground manual add).
- */
-export async function addNodesToWorkspaceGraph(apiClient, session, rows = []) {
-    if (!apiClient?.getInteractiveSessionNodeLinks) {
-        throw new Error("Interactive API client is not configured.");
-    }
-    const items = (rows || [])
+function normalizeManualAddRows(rows = []) {
+    return (rows || [])
         .map((row) => ({
             node_id: row.node_id || row.id,
             node_type: row.node_type || row.type,
@@ -535,6 +529,112 @@ export async function addNodesToWorkspaceGraph(apiClient, session, rows = []) {
             subtitle: row.subtitle || "",
         }))
         .filter((item) => item.node_id && item.node_type);
+}
+
+/**
+ * Place new nodes on the canvas immediately without fetching links or relayout-blocking work.
+ */
+export function addNodesToGraphLocally(session, rows = []) {
+    const items = normalizeManualAddRows(rows);
+    if (!items.length) {
+        return session;
+    }
+
+    const graphNodes = [...(session.graphNodes || [])];
+    const existingIds = new Set(graphNodes.map((node) => node.id));
+    const newItems = items.filter((item) => !existingIds.has(item.node_id));
+    if (!newItems.length) {
+        return session;
+    }
+
+    for (const item of newItems) {
+        graphNodes.push(
+            normalizeGraphNode(
+                {
+                    id: item.node_id,
+                    node_id: item.node_id,
+                    node_type: item.node_type,
+                    type: item.node_type,
+                    label: item.label,
+                    subtitle: item.subtitle,
+                    pending_rebuild: true,
+                },
+                { originTag: "manual_pending" }
+            )
+        );
+    }
+
+    const reasonByNodeId = Object.fromEntries(
+        newItems.map((item) => [item.node_id, "yes"])
+    );
+    let retrievalLedger = mergeRetrievalLedger(
+        { retrievalLedger: session.retrievalLedger || {} },
+        newItems.map((item) => ({
+            candidate: {
+                node_id: item.node_id,
+                node_type: item.node_type,
+                label: item.label,
+                subtitle: item.subtitle,
+            },
+            aggregate_score: 0,
+            raw_max_score: 0,
+            raw_mean_score: 0,
+        })),
+        { reasonByNodeId }
+    );
+    retrievalLedger = markGraphNodesShownInLedger(retrievalLedger, graphNodes);
+
+    const pendingById = new Map(
+        (session.pendingNodeAdds || []).map((item) => [item.node_id, item])
+    );
+    for (const item of newItems) {
+        pendingById.set(item.node_id, item);
+    }
+
+    return {
+        ...session,
+        graphNodes,
+        retrievalLedger,
+        pendingNodeAdds: Array.from(pendingById.values()),
+        pendingGraphRebuild: true,
+    };
+}
+
+/**
+ * Fetch links for pending manual adds and merge them into the graph.
+ */
+export async function rebuildGraphFromPendingAdds(apiClient, session) {
+    const pending = session?.pendingNodeAdds || [];
+    if (!pending.length) {
+        return {
+            ...session,
+            pendingGraphRebuild: false,
+        };
+    }
+    const next = await addNodesToWorkspaceGraph(apiClient, session, pending);
+    const graphNodes = (next.graphNodes || []).map((node) => {
+        if (!node?.pending_rebuild) {
+            return node;
+        }
+        const { pending_rebuild, ...rest } = node;
+        return rest;
+    });
+    return {
+        ...next,
+        graphNodes,
+        pendingNodeAdds: [],
+        pendingGraphRebuild: false,
+    };
+}
+
+/**
+ * Add ledger rows to the visible graph via session node-links API (Playground manual add).
+ */
+export async function addNodesToWorkspaceGraph(apiClient, session, rows = []) {
+    if (!apiClient?.getInteractiveSessionNodeLinks) {
+        throw new Error("Interactive API client is not configured.");
+    }
+    const items = normalizeManualAddRows(rows);
     if (!items.length) {
         return session;
     }
@@ -608,12 +708,33 @@ export function isInspectableEdge(edge) {
     if (family.includes("trait_gene") || family.includes("gene_trait")) {
         return true;
     }
+    if (family.includes("gene_factor") || family.includes("factor_gene")) {
+        return true;
+    }
+    if (family.includes("factor_trait") || family.includes("trait_factor")) {
+        return true;
+    }
     const source = String(edge.source || "");
     const target = String(edge.target || "");
-    return (
+    if (
         (source.startsWith("trait:") && target.startsWith("gene:")) ||
         (source.startsWith("gene:") && target.startsWith("trait:"))
-    );
+    ) {
+        return true;
+    }
+    if (
+        (source.startsWith("gene:") && target.startsWith("factor:")) ||
+        (source.startsWith("factor:") && target.startsWith("gene:"))
+    ) {
+        return true;
+    }
+    if (
+        (source.startsWith("trait:") && target.startsWith("factor:")) ||
+        (source.startsWith("factor:") && target.startsWith("trait:"))
+    ) {
+        return true;
+    }
+    return false;
 }
 
 export function findSessionEdge(session, edgeId, sourceId, targetId) {

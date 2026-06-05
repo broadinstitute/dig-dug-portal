@@ -39,7 +39,7 @@
                     </p>
                     <p>
                         Exploration stays open-ended: you are not forced through a
-                        fixed pipeline. Change, Analyze, and Save give you deliberate
+                        fixed pipeline. Change, Analyze, and Manage give you deliberate
                         ways to mutate the graph, read meaning from it, and keep work
                         you may want again. Start from key nodes or a saved graph, shape
                         the canvas with expand and filter, open the Inspector when you
@@ -66,30 +66,32 @@
                             <p>
                                 Use Analyze once the graph is in a useful shape and you
                                 want interpretation rather than more structure. Explain
-                                KG, Build hypotheses, and Data provenance help you
+                                graph, Build hypotheses, and Find related datasets help you
                                 summarize patterns, draft mechanistic stories, and trace
                                 CFDE-linked evidence—on the whole graph or on a
                                 selection you have marked as key nodes.
                             </p>
                         </li>
                         <li>
-                            <strong>Save</strong>
+                            <strong>Manage</strong>
                             <p>
-                                Use Save when you want a checkpoint or a portable copy.
-                                New graph starts fresh; Save KG keeps the session in this
-                                browser; Download snapshot writes a file you can archive
-                                or share outside the workspace.
+                                Use Manage when you want a checkpoint or a portable copy.
+                                New graph starts fresh; Save graph to library keeps the
+                                layout in this browser; Export graph writes a file with
+                                inspector data you can Import graph later; Download review
+                                snapshot (when available) writes an HTML file for reading
+                                outside the workspace.
                             </p>
                         </li>
                         <li>
-                            <strong>Library</strong>
+                            <strong>My library</strong>
                             <p>
-                                Library is where saved graphs live when you are not
-                                building from scratch. Load a prior session, duplicate
-                                it for a variant, remove what you no longer need, or
-                                move collections between machines with Import and Export.
-                                Open it from the top bar whenever you want to browse
-                                saved work instead of continuing on the canvas.
+                                My library is where browser-saved graphs live when you are not
+                                building from scratch. Open on canvas to continue a prior session,
+                                duplicate it for a variant, remove what you no longer need, or
+                                move collections between machines with Back up library and
+                                Restore library backup. Open it from the top bar whenever you
+                                want to browse saved work instead of continuing on the canvas.
                             </p>
                         </li>
                     </ul>
@@ -128,7 +130,7 @@
                             <p>
                                 Solid lines are links that belong to your working graph:
                                 connections returned when you built, loaded, or expanded
-                                the graph. They are part of what Save KG stores. Some
+                                the graph. They are part of what Save graph to library stores. Some
                                 active links skip one or more rows (“jumping” edges); use
                                 <em>Hide jumping edges</em> in graph options to keep the
                                 view quiet, then hover a node to see jumping links tied to
@@ -176,10 +178,10 @@
                 <section class="wkb-docs-section">
                     <h3>Suggested user flow</h3>
                     <ol class="wkb-docs-flow">
-                        <li>Add or load a graph (Change or Library).</li>
+                        <li>Add or load a graph (Change, My library, or Import graph).</li>
                         <li>Shape it with Expand and Filter; use the Inspector for evidence.</li>
-                        <li>Run Analyze when you are ready to explain, hypothesize, or trace provenance.</li>
-                        <li>Save locally and use Library Import/Export when you work across machines.</li>
+                        <li>Run Analyze when you are ready to explain, hypothesize, or find datasets.</li>
+                        <li>Save to My library or use Export graph when you work across machines.</li>
                     </ol>
                 </section>
             </div>

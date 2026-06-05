@@ -47,32 +47,32 @@ export default {
     name: "WorkspaceMenuBar",
     data() {
         return {
-            // Disjoint taxonomy: Analyze = interpret, Save = persist.
+            // Disjoint taxonomy: Analyze = interpret, Manage = persist.
             menus: [
                 {
                     id: "analyze",
                     label: "Analyze",
                     items: [
-                        { id: "explain", label: "Explain KG" },
+                        { id: "explain", label: "Explain graph" },
                         { id: "hypotheses", label: "Build hypotheses" },
-                        { id: "dataProvenance", label: "Data provenance" },
+                        { id: "dataProvenance", label: "Find related datasets" },
                     ],
                 },
                 {
                     id: "save",
-                    label: "Save",
+                    label: "Manage",
                     items: [
                         { id: "newGraph", label: "New graph" },
-                        { id: "saveKg", label: "Save KG" },
-                        { id: "downloadSnapshot", label: "Download snapshot" },
+                        { id: "saveKg", label: "Save graph to library…" },
+                        { id: "exportGraph", label: "Export graph" },
+                        { id: "importGraph", label: "Import graph" },
+                        { id: "downloadSnapshot", label: "Download review snapshot…" },
                     ],
                 },
             ],
-            // Right-aligned: opens the browser to find and load saved graphs
-            // (a "node set" is just a graph with only its seed nodes).
             libraryMenu: {
                 id: "library",
-                label: "Library",
+                label: "My library",
             },
         };
     },
@@ -88,7 +88,7 @@ export default {
             this.$emit("action", {
                 menu: "library",
                 action: "open",
-                label: "Library",
+                label: "My library",
             });
         },
         onDocumentation() {

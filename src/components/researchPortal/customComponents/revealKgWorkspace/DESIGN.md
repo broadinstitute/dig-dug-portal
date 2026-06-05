@@ -12,7 +12,7 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 - **Canvas-first workspace**, not a linear stepper. The graph canvas is home.
 - **No forced end state** — exploration stays open-ended; save when you reach a useful checkpoint.
-- **Single persistence concept for graphs:** saved graphs in the browser Library (localStorage). A graph with only seed nodes and no edges is still a valid saved graph.
+- **Single persistence concept for graphs:** saved graphs in **My library** (browser localStorage). A graph with only seed nodes and no edges is still a valid saved graph.
 - **Key nodes** (`session.highlighted`) are the user’s focus set for ranking connections and association scores in the Inspector. User-facing copy says “key node,” not “anchor” (Playground terminology does not apply here). APIs still accept `anchor_items` in request bodies; the client fills that field from key nodes via `keyNodeItemsFromSession`.
 
 ### Top bar (left → right)
@@ -20,21 +20,30 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 | Area | Role |
 |------|------|
 | **Change** | Mutate graph structure and scope: Expand KG, Filter KG, Add nodes |
-| **Analyze** | Interpret: Explain KG, Build hypotheses, Data provenance |
-| **Save** | Persist: New graph, Save KG, Download snapshot |
-| **Library** | Browse saved graphs (Load, Duplicate, Delete, Import, Export) |
+| **Analyze** | Interpret: Explain graph, Build hypotheses, Find related datasets |
+| **Manage** | Persist: New graph, Save graph to library, Export graph, Import graph, Download review snapshot |
+| **My library** | Browse browser-saved graphs (Open on canvas, Duplicate, Remove from library, Back up / Restore library backup) |
 | **Documentation** | In-app guide modal |
 
-**Order on the right:** Library, then Documentation.
+**Order on the right:** My library, then Documentation.
 
 ### Inspector
 
 - Right-edge drawer; **evidence only** (node/edge provenance).
-- CFDE dataset discovery lives under **Analyze → Data provenance**, not in the Inspector.
+- CFDE dataset discovery lives under **Analyze → Find related datasets**, not in the Inspector.
 
 #### Inspector evidence caching (required)
 
-**All interactive API results shown in the Inspector must be cached on the workspace session** so the user does not re-fetch when switching inspected items, and so **Save KG / Download snapshot / Library load** can restore the same evidence.
+**All interactive API results shown in the Inspector must be cached on the workspace session** so the user does not re-fetch when switching inspected items during the current canvas session.
+
+**Persistence tiers (do not mix):**
+
+| Action | Storage | Inspector caches |
+|--------|---------|------------------|
+| **Save graph to library** (My library) | Browser `localStorage` | **Not saved**; My library load does **not** restore them |
+| **Export graph** (Manage menu) | JSON file download | **Included** — rebuild on **Import graph** |
+| **Back up library** (My library modal) | JSON bundle of My library graphs | **Not included** (library shape only) |
+| **Download snapshot** (planned) | HTML review artifact | TBD (human-facing, not for reload) |
 
 | Session field | Contents |
 |---------------|----------|
@@ -49,8 +58,8 @@ Rules when adding new Inspector data sources:
 
 1. Write successful (and failed) fetches into the session cache via a handler on `revealKgWorkspace.vue` (mirror `onCacheNodeConnections` / `onCacheNodeExpression`).
 2. Pass cached data into Inspector child components as props; skip API calls when cache hits.
-3. Include new cache fields in `graphPayloadFromSession`, `sessionFromGraph`, and `normalizeGraphRecord` in `src/utils/userUtils.js` so saved graphs and export bundles carry inspection data.
-4. Do **not** clear caches on Library load when the saved graph includes them; only reset on an explicit new graph.
+3. Include new cache fields in `graphPayloadFromSession(..., { includeInspectorCaches: true })` and `sessionFromGraphExport` in `src/utils/userUtils.js` for **Export graph** only.
+4. My library save/load (`normalizeGraphRecord`, `sessionFromGraph`) must **omit** inspector caches. Clear caches on My library load; restore them only from **Import graph**.
 
 #### Graph cues for cached evidence
 
@@ -157,7 +166,7 @@ Write help text in the **spirit of Why → What → How**, woven into natural pr
 
 **Do not** use literal prefixes or headings such as `What:`, `Why:`, `How:` or orange “What / Why / How” column headers in the UI.
 
-Keep paragraphs short; one feature block per menu or surface (Change, Analyze, Save, Library, Inspector).
+Keep paragraphs short; one feature block per menu or surface (Change, Analyze, Manage, My library, Inspector).
 
 ---
 
@@ -166,11 +175,11 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, S
 | Path | Purpose |
 |------|---------|
 | `revealKgWorkspace.vue` | Shell: header, stage, modals, session state |
-| `revealKgWorkspace/WorkspaceMenuBar.vue` | Menus + Library / Documentation buttons |
+| `revealKgWorkspace/WorkspaceMenuBar.vue` | Menus + My library / Documentation buttons |
 | `revealKgWorkspace/WorkspaceCanvas.vue` | Main graph canvas (D3 layered tree) |
 | `revealKgWorkspace/WorkspaceInspector.vue` | Evidence drawer |
 | `revealKgWorkspace/WorkspaceGraphTablePagination.vue` | Standard pill pagination (graph data, inspector tables) |
-| `revealKgWorkspace/WorkspaceLibraryModal.vue` | Saved graphs + import/export |
+| `revealKgWorkspace/WorkspaceLibraryModal.vue` | My library + backup/restore |
 | `revealKgWorkspace/WorkspaceDocumentationModal.vue` | User guide |
 | `revealKgWorkspace/WorkspaceGraphDataTableModal.vue` | Tabbed graph data table popup |
 | `revealKgWorkspace/revealKgGraphTableData.js` | Table rows, CSV export, edge-derived scores |

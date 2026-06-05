@@ -15,8 +15,8 @@
             <header class="wkb-welcome-head">
                 <h2 id="wkb-welcome-title">Welcome to REVEAL KG Workspace</h2>
                 <p>
-                    Start a new graph from genes, traits, and mechanisms, or continue
-                    from a graph you saved in this browser.
+                    Start a new graph, open one from <strong>My library</strong>, or import
+                    a graph file you exported earlier.
                 </p>
             </header>
 
@@ -40,11 +40,11 @@
                     class="wkb-welcome-option"
                     :class="{ 'is-disabled': !hasSavedGraphs }"
                 >
-                    <span class="wkb-welcome-option-title">Load graph from Library</span>
+                    <span class="wkb-welcome-option-title">Open from My library</span>
                     <span class="wkb-welcome-option-desc">
                         {{
                             hasSavedGraphs
-                                ? "Open your saved graphs and load one onto the canvas."
+                                ? "Open graphs saved in this browser (layout only, no inspector data)."
                                 : "No saved graphs in this browser yet."
                         }}
                     </span>
@@ -54,7 +54,22 @@
                         :disabled="!hasSavedGraphs"
                         @click="$emit('load-library')"
                     >
-                        Open Library
+                        Open My library
+                    </button>
+                </div>
+
+                <div class="wkb-welcome-option">
+                    <span class="wkb-welcome-option-title">Import graph</span>
+                    <span class="wkb-welcome-option-desc">
+                        Load a JSON workflow file exported from
+                        <strong>Manage → Export graph</strong>, including inspector data.
+                    </span>
+                    <button
+                        type="button"
+                        class="wkb-welcome-action"
+                        @click="$emit('import-graph')"
+                    >
+                        Import graph
                     </button>
                 </div>
             </div>
