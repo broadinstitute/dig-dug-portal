@@ -11,8 +11,8 @@
                 sort-by="correlation"
                 :sort-desc="true"
             >
-                <template #cell(program_id)="data">
-                    {{ data.value }}
+                <template #cell(program_label)="data">
+                    {{ programLabel(data.item) }}
                 </template>
                 <template #cell(correlation)="data">
                     <div
@@ -58,7 +58,7 @@ export default Vue.component("liger-gene-program-subtable", {
             currentPage: 1,
             fields: [
                 {
-                    key: "program_id",
+                    key: "program_label",
                     label: "Gene program",
                     sortable: true,
                 },
@@ -84,6 +84,17 @@ export default Vue.component("liger-gene-program-subtable", {
         };
     },
     methods: {
+        programLabel(item) {
+            if (!item) {
+                return "";
+            }
+            const label = item.program_label;
+            const id = item.program_id;
+            if (label && id) {
+                return `${label} (${id})`;
+            }
+            return label || id || "";
+        },
         formatCorrelation(value) {
             return Formatters.floatFormatter(value);
         },
