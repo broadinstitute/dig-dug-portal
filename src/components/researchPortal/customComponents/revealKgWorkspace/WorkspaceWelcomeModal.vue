@@ -13,7 +13,7 @@
             @click.stop
         >
             <header class="wkb-welcome-head">
-                <h2 id="wkb-welcome-title">Welcome to REVEAL KG Workspace</h2>
+                <h2 id="wkb-welcome-title">Welcome to REVEAL KG Canvas</h2>
                 <p>
                     Start a new graph, open one from <strong>My library</strong>, or import
                     a graph file you exported earlier.

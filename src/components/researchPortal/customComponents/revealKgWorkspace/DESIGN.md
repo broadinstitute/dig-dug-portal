@@ -1,6 +1,6 @@
-# REVEAL KG Workspace — design rules
+# REVEAL KG Canvas — design rules
 
-This document captures UI and product conventions for **REVEAL KG Workspace** in dig-dug-portal. Use it when adding or changing files under `revealKgWorkspace/` and `revealKgWorkspace.vue`.
+This document captures UI and product conventions for **REVEAL KG Canvas** in dig-dug-portal. Use it when adding or changing files under `revealKgWorkspace/` and `revealKgWorkspace.vue`.
 
 For cross-project baseline rules (including border usage and minimum font size), also follow the workspace-root document at `Documents/GitHub/DESIGN.md`.
 
@@ -10,7 +10,7 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 ## Product model
 
-- **Canvas-first workspace**, not a linear stepper. The graph canvas is home.
+- **Canvas-first**, not a linear stepper. The graph canvas is home.
 - **No forced end state** — exploration stays open-ended; save when you reach a useful checkpoint.
 - **Single persistence concept for graphs:** saved graphs in **My library** (browser localStorage). A graph with only seed nodes and no edges is still a valid saved graph.
 - **Key nodes** (`session.highlighted`) are the user’s focus set for ranking connections and association scores in the Inspector. User-facing copy says “key node,” not “anchor” (Playground terminology does not apply here). APIs still accept `anchor_items` in request bodies; the client fills that field from key nodes via `keyNodeItemsFromSession`.
@@ -34,7 +34,7 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 #### Inspector evidence caching (required)
 
-**All interactive API results shown in the Inspector must be cached on the workspace session** so the user does not re-fetch when switching inspected items during the current canvas session.
+**All interactive API results shown in the Inspector must be cached on the canvas session** so the user does not re-fetch when switching inspected items during the current canvas session.
 
 **Persistence tiers (do not mix):**
 
@@ -110,7 +110,7 @@ Click the same edge again to dismiss the menu.
 ### Typography
 
 - **Minimum font size for readable UI copy: `13px`.** Do not go below 13px for labels, body text, meta lines, or button labels — especially on high-DPI laptops.
-- Prefer explicit `13px` or `rem` values that compute to ≥ 13px at the workspace root font size (typically 16px).
+- Prefer explicit `13px` or `rem` values that compute to ≥ 13px at the canvas root font size (typically 16px).
 - Headings and brand text may be larger; decorative glyphs (e.g. close `×`) may be larger.
 
 ### Color (CFDE Knowledge Center palette)
@@ -147,10 +147,10 @@ Use for **action-required or high-salience messages** directly under a modal or 
 
 ### Pagination (paged tables and lists)
 
-Use the **Graph data table pagination** everywhere the workspace shows pageable rows—including the Inspector (top connections, expression, and any future evidence tables).
+Use the **Graph data table pagination** everywhere the canvas shows pageable rows—including the Inspector (top connections, expression, and any future evidence tables).
 
 - **Component:** `WorkspaceGraphTablePagination.vue` (pill control: « ‹ page numbers … › »).
-- **Do not** build ad hoc “Previous / Page X of Y / Next” controls in workspace UI.
+- **Do not** build ad hoc “Previous / Page X of Y / Next” controls in canvas UI.
 - Wire `current-page` (1-based), `total-pages`, and `@page-change`; set a specific `aria-label` per surface (e.g. `"Top connections pages"`, `"Expression profile pages"`).
 - The component hides itself when `totalPages <= 1`.
 
@@ -207,14 +207,14 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 
 | Surface | Library | Reference |
 |---------|---------|-----------|
-| **Main workspace graph** (`WorkspaceCanvas`) | **D3** (SVG, layered tree) | Playground `HierarchyGraphCanvas.jsx`, `hierarchyGraphData.js`, `graphNodeColors.js` — Genes → Gene sets → Mechanisms → Traits |
+| **Main canvas graph** (`WorkspaceCanvas`) | **D3** (SVG, layered tree) | Playground `HierarchyGraphCanvas.jsx`, `hierarchyGraphData.js`, `graphNodeColors.js` — Genes → Gene sets → Mechanisms → Traits |
 | **Smaller / auxiliary networks** (hypothesis maps, sig chains, compact supporting graphs in Analyze flows) | **vis-network** (`vis.js`) | `FactorBaseRevealNetwork2.vue` in dig-dug-portal |
 
 - Main graph: deterministic hierarchy, jumping-edge rules, contextual edges on hover — port/adapt Playground tree view, not force layout.
 - **Legend labels (toolbar):** Key node (blue circle/diamond); **Starting node** (gray diamond, `is_anchor` on graph nodes from initial build); **Active edges** (solid)—links in the saved/working graph; **Contextual edges** (dashed)—API-suggested links not yet in the graph. Do not use the label “Graph edges.” User-facing text must not say “anchor.”
 - Document active vs contextual edges in `WorkspaceDocumentationModal.vue` whenever edge behavior changes.
 - Smaller graphs: existing vis-network patterns (physics stabilize then disable; mechanism flow maps with edge labels).
-- **Cytoscape** is Playground’s secondary “Canvas view” only; not planned for workspace v1 unless we add an explicit exploratory toggle later.
+- **Cytoscape** is Playground’s secondary “Canvas view” only; not planned for REVEAL KG Canvas v1 unless we add an explicit exploratory toggle later.
 
 ---
 

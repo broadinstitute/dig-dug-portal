@@ -3,12 +3,17 @@
         <header class="rkw-header">
             <div class="rkw-brand">
                 <span class="rkw-mark">REVEAL</span>
-                <span class="rkw-title">KG Workspace</span>
+                <span class="rkw-title">KG Canvas</span>
             </div>
             <WorkspaceMenuBar @action="onMenuAction" />
         </header>
 
         <div class="rkw-stage">
+            <WorkspaceExplanationBubble
+                :visible="explanationBubbleVisible"
+                :entries="savedGraphExplanations"
+                @open-explanation="openSavedExplanation"
+            />
             <WorkspaceCanvas
                 :graph-nodes="canvasGraphNodes"
                 :graph-edges="canvasGraphEdges"
@@ -144,6 +149,27 @@
             @close="closeExportGraph"
             @export="onExportGraphConfirm"
         />
+        <WorkspaceExplainGraphModal
+            :open="explainGraphOpen"
+            :entry="activeGraphInterpretation"
+            :scope="explainScope"
+            :helper-text="explainHelperText"
+            :loading="graphInterpretationLoading"
+            :llm-available="llmAvailable"
+            :explain-intent="explainIntentValue"
+            :key-node-count="explainKeyNodeCount"
+            :node-count="explainNodeCount"
+            :edge-count="explainEdgeCount"
+            :contextual-edge-count="explainContextualEdgeCount"
+            :key-node-ids="canvasKeyNodeIds"
+            @close="closeExplainGraph"
+            @update:scope="onExplainScopeChange"
+            @update:explainIntent="onExplainIntentChange"
+            @update-entry="onExplainEntryPatch"
+            @run="runGraphExplanation"
+            @add-suggested-key-node="onExplainAddSuggestedKeyNode"
+            @add-all-suggested-key-nodes="onExplainAddAllSuggestedKeyNodes"
+        />
 
         <input
             ref="graphImportFileInput"
@@ -178,11 +204,14 @@ import WorkspaceWelcomeModal from "./revealKgWorkspace/WorkspaceWelcomeModal.vue
 import WorkspaceInitialGraphModal from "./revealKgWorkspace/WorkspaceInitialGraphModal.vue";
 import WorkspaceSaveGraphModal from "./revealKgWorkspace/WorkspaceSaveGraphModal.vue";
 import WorkspaceExportGraphModal from "./revealKgWorkspace/WorkspaceExportGraphModal.vue";
+import WorkspaceExplainGraphModal from "./revealKgWorkspace/WorkspaceExplainGraphModal.vue";
+import WorkspaceExplanationBubble from "./revealKgWorkspace/WorkspaceExplanationBubble.vue";
 import WorkspaceNodeActionMenu from "./revealKgWorkspace/WorkspaceNodeActionMenu.vue";
 import WorkspaceEdgeActionMenu from "./revealKgWorkspace/WorkspaceEdgeActionMenu.vue";
 import WorkspaceRemoveNodeConfirmModal from "./revealKgWorkspace/WorkspaceRemoveNodeConfirmModal.vue";
 import {
     addNodesToGraphLocally,
+    addKeyNodesBatch,
     addNodesToWorkspaceGraph,
     anchorItemsFromBuckets,
     buildInitialGraphFromAnchors,
@@ -223,6 +252,15 @@ import {
     buildGraphSigChainForTrait,
 } from "./revealKgWorkspace/revealKgSigChainUtils.js";
 import {
+    EXPLAIN_SCOPE,
+    buildExplanationDraft,
+    successfulGraphExplanations,
+    patchExplanationEntry,
+    explanationApiPayload,
+    parseSuggestedKeyNodesFromInterpretation,
+    interpretationMarkdownForDisplay,
+} from "./revealKgWorkspace/revealKgExplainUtils.js";
+import {
     REMINDER_ACTION,
     REMINDER_ID,
     NODES_ADDED_SAVE_THRESHOLD,
@@ -257,6 +295,8 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceInitialGraphModal,
         WorkspaceSaveGraphModal,
         WorkspaceExportGraphModal,
+        WorkspaceExplainGraphModal,
+        WorkspaceExplanationBubble,
         WorkspaceNodeActionMenu,
         WorkspaceEdgeActionMenu,
         WorkspaceRemoveNodeConfirmModal,
@@ -318,6 +358,8 @@ export default Vue.component("reveal-kg-workspace", {
             graphReminderAutoDismissTimer: null,
             graphRebuildTimer: null,
             graphRebuildBusy: false,
+            explainGraphOpen: false,
+            explainScope: EXPLAIN_SCOPE.KEY_NODES,
         };
     },
     computed: {
@@ -401,6 +443,40 @@ export default Vue.component("reveal-kg-workspace", {
                 parts.push(`${neighborCount} neighbor${neighborCount === 1 ? "" : "s"}`);
             }
             return parts.join(" · ");
+        },
+        graphInterpretationLoading() {
+            return Boolean(this.activeSession?.graphInterpretationLoading);
+        },
+        activeGraphInterpretation() {
+            return this.activeSession?.graphInterpretation || null;
+        },
+        savedGraphExplanations() {
+            return successfulGraphExplanations(this.activeSession);
+        },
+        explanationBubbleVisible() {
+            return (
+                !this.explainGraphOpen &&
+                this.savedGraphExplanations.length > 0 &&
+                Boolean(this.activeSession?.graphNodes?.length)
+            );
+        },
+        explainHelperText() {
+            return this.activeGraphInterpretation?.helper_text || "";
+        },
+        explainIntentValue() {
+            return this.activeSession?.controls?.explainIntent || "";
+        },
+        explainKeyNodeCount() {
+            return normalizeKeyNodeIds(this.activeSession).length;
+        },
+        explainNodeCount() {
+            return this.activeSession?.graphNodes?.length || 0;
+        },
+        explainEdgeCount() {
+            return (this.activeSession?.graphEdges || []).length;
+        },
+        explainContextualEdgeCount() {
+            return (this.activeSession?.contextualEdges || []).length;
         },
         canvasGraphNodes() {
             return this.activeSession?.graphNodes || [];
@@ -796,6 +872,9 @@ export default Vue.component("reveal-kg-workspace", {
                 nodeSigChainPacketCache: {},
                 nodeFactorLoadingsCache: {},
                 edgeProvenanceById: {},
+                graphInterpretations: [],
+                graphInterpretation: null,
+                graphInterpretationLoading: false,
                 context: context || "",
                 starterBuckets: buckets,
                 anchorItems,
@@ -1512,8 +1591,269 @@ export default Vue.component("reveal-kg-workspace", {
             }
         },
         triggerExplainGraph() {
-            this.showStatus("Triggered: Explain graph");
-            this.remindAfterAnalysis("Explain graph");
+            this.startNewExplanation();
+        },
+        startNewExplanation() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before explaining.", 3200);
+                return;
+            }
+            this.ensureExplainDraft({ forceNew: true });
+            this.explainGraphOpen = true;
+        },
+        openExplainGraphModal() {
+            this.startNewExplanation();
+        },
+        openSavedExplanation(explanationId) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before explaining.", 3200);
+                return;
+            }
+            if (!explanationId) {
+                this.startNewExplanation();
+                return;
+            }
+            const entry = (this.activeSession.graphInterpretations || []).find(
+                (item) => item.id === explanationId
+            );
+            if (entry) {
+                this.explainScope = entry.scope || this.explainScope;
+                this.activeSession = {
+                    ...this.activeSession,
+                    graphInterpretation: entry,
+                };
+            }
+            this.explainGraphOpen = true;
+        },
+        closeExplainGraph() {
+            if (this.graphInterpretationLoading) {
+                return;
+            }
+            this.explainGraphOpen = false;
+        },
+        ensureExplainDraft({ forceNew = false } = {}) {
+            if (!this.activeSession) {
+                return;
+            }
+            const current = this.activeSession.graphInterpretation;
+            if (
+                !forceNew &&
+                current &&
+                current.scope === this.explainScope &&
+                (current.status === "draft" ||
+                    current.status === "success" ||
+                    current.status === "error")
+            ) {
+                return;
+            }
+            const draft = buildExplanationDraft(this.activeSession, this.explainScope);
+            this.activeSession = {
+                ...this.activeSession,
+                explainContext: draft.additional_context,
+                graphInterpretation: draft,
+                graphInterpretations: [
+                    draft,
+                    ...(this.activeSession.graphInterpretations || []),
+                ],
+            };
+        },
+        onExplainScopeChange(scope) {
+            this.explainScope = scope;
+            if (!this.activeSession) {
+                return;
+            }
+            const draft = buildExplanationDraft(this.activeSession, scope);
+            this.activeSession = {
+                ...this.activeSession,
+                explainContext: draft.additional_context,
+                graphInterpretation: draft,
+                graphInterpretations: [
+                    draft,
+                    ...(this.activeSession.graphInterpretations || []).filter(
+                        (entry) => entry.id !== draft.id
+                    ),
+                ],
+            };
+        },
+        onExplainIntentChange(value) {
+            if (!this.activeSession) {
+                return;
+            }
+            const controls = {
+                ...(this.activeSession.controls || {}),
+                explainIntent: value,
+            };
+            this.activeSession = {
+                ...this.activeSession,
+                controls,
+            };
+            const entry = this.activeSession.graphInterpretation;
+            if (entry && entry.status === "draft") {
+                const draft = buildExplanationDraft(this.activeSession, this.explainScope);
+                const nextEntry = {
+                    ...entry,
+                    query_text: draft.query_text,
+                    intent: draft.intent,
+                    prompt_preview: draft.prompt_preview,
+                };
+                this.patchGraphInterpretationEntry(entry.id, nextEntry);
+            }
+        },
+        onExplainEntryPatch(patch) {
+            const entry = this.activeSession?.graphInterpretation;
+            if (!entry) {
+                return;
+            }
+            this.patchGraphInterpretationEntry(
+                entry.id,
+                patchExplanationEntry(entry, patch)
+            );
+        },
+        patchGraphInterpretationEntry(explanationId, patch) {
+            if (!this.activeSession || !explanationId) {
+                return;
+            }
+            const base =
+                (this.activeSession.graphInterpretations || []).find(
+                    (item) => item.id === explanationId
+                ) || this.activeSession.graphInterpretation;
+            const nextEntry = patchExplanationEntry(base, patch);
+            this.activeSession = {
+                ...this.activeSession,
+                explainContext:
+                    nextEntry.additional_context ?? this.activeSession.explainContext,
+                graphInterpretation:
+                    this.activeSession.graphInterpretation?.id === explanationId
+                        ? nextEntry
+                        : this.activeSession.graphInterpretation,
+                graphInterpretations: (this.activeSession.graphInterpretations || []).map(
+                    (item) => (item.id === explanationId ? nextEntry : item)
+                ),
+            };
+        },
+        async runGraphExplanation() {
+            const session = this.activeSession;
+            const entry = session?.graphInterpretation;
+            if (!session || !entry) {
+                return;
+            }
+            if (!this.llmAvailable) {
+                this.showStatus("LLM explanation is not available.", 3200);
+                return;
+            }
+            if (!this.apiClient?.interpretInteractiveSession) {
+                this.showStatus("Session interpretation API is not configured.", 3200);
+                return;
+            }
+            const explanationId = entry.id;
+            const loadingEntry = patchExplanationEntry(entry, {
+                status: "loading",
+                error: "",
+            });
+            this.activeSession = {
+                ...session,
+                graphInterpretationLoading: true,
+                graphInterpretation: loadingEntry,
+                graphInterpretations: (session.graphInterpretations || []).map((item) =>
+                    item.id === explanationId ? loadingEntry : item
+                ),
+            };
+            try {
+                const payload = await this.apiClient.interpretInteractiveSession(
+                    explanationApiPayload(session, loadingEntry)
+                );
+                const timestamp = new Date().toISOString();
+                let suggestedKeyNodes = [];
+                if (loadingEntry.scope === EXPLAIN_SCOPE.ENTIRE_GRAPH) {
+                    suggestedKeyNodes = parseSuggestedKeyNodesFromInterpretation(
+                        payload?.interpretation,
+                        loadingEntry.graph_nodes || []
+                    );
+                }
+                const successEntry = patchExplanationEntry(loadingEntry, {
+                    ...payload,
+                    status: "success",
+                    timestamp,
+                    timestamp_label: new Date(timestamp).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        second: "2-digit",
+                    }),
+                    suggested_key_nodes: suggestedKeyNodes,
+                    interpretation_display: interpretationMarkdownForDisplay(
+                        payload?.interpretation || ""
+                    ),
+                    error: "",
+                });
+                this.activeSession = {
+                    ...this.activeSession,
+                    graphInterpretation: successEntry,
+                    graphInterpretations: (
+                        this.activeSession.graphInterpretations || []
+                    ).map((item) =>
+                        item.id === explanationId ? successEntry : item
+                    ),
+                    graphInterpretationLoading: false,
+                };
+                this.remindAfterAnalysis("Explain graph");
+                this.showStatus("Graph explanation ready.", 2800);
+            } catch (error) {
+                const errorEntry = patchExplanationEntry(loadingEntry, {
+                    status: "error",
+                    error: String(error?.message || error) || "Explanation failed.",
+                });
+                this.activeSession = {
+                    ...this.activeSession,
+                    graphInterpretation: errorEntry,
+                    graphInterpretations: (
+                        this.activeSession.graphInterpretations || []
+                    ).map((item) =>
+                        item.id === explanationId ? errorEntry : item
+                    ),
+                    graphInterpretationLoading: false,
+                };
+                this.showStatus("Could not generate explanation.", 3200);
+            }
+        },
+        onExplainAddSuggestedKeyNode(nodeId) {
+            if (!nodeId || !this.activeSession) {
+                return;
+            }
+            const { session, changed, addedIds } = addKeyNodesBatch(
+                this.activeSession,
+                [nodeId]
+            );
+            if (!changed) {
+                return;
+            }
+            this.activeSession = withNormalizedKeyNodes(session);
+            const node = findGraphNode(this.activeSession, addedIds[0] || nodeId);
+            this.showStatus(
+                `Added ${node?.label || nodeId} as a key node.`,
+                2600
+            );
+        },
+        onExplainAddAllSuggestedKeyNodes() {
+            const entry = this.activeSession?.graphInterpretation;
+            const nodeIds = (entry?.suggested_key_nodes || [])
+                .map((item) => item.node_id)
+                .filter(Boolean);
+            if (!nodeIds.length || !this.activeSession) {
+                return;
+            }
+            const { session, changed, addedIds } = addKeyNodesBatch(
+                this.activeSession,
+                nodeIds
+            );
+            if (!changed) {
+                this.showStatus("Suggested nodes are already key nodes.", 2600);
+                return;
+            }
+            this.activeSession = withNormalizedKeyNodes(session);
+            this.showStatus(
+                `Added ${addedIds.length} suggested node${addedIds.length === 1 ? "" : "s"} as key nodes.`,
+                2800
+            );
         },
         triggerBuildHypotheses() {
             this.showStatus("Triggered: Build hypotheses");

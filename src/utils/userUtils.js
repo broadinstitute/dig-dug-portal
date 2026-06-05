@@ -77,7 +77,7 @@ function clearContext(GROUP) {
 }
 
 // ---------------------------------------------------------------------------
-// REVEAL KG Workspace — saved graphs (localStorage)
+// REVEAL KG Canvas — saved graphs (localStorage)
 // One store for all saved graphs. A seed-only graph is just nodes with no edges.
 // Records are normalized on read/write so the Library and canvas can share one shape.
 // ---------------------------------------------------------------------------
@@ -236,6 +236,9 @@ function normalizeGraphRecord(record) {
             record.dataProvenanceRuns || record.datasetRuns,
             []
         ),
+        graphInterpretations: cloneJson(record.graphInterpretations, []),
+        graphInterpretation: cloneJson(record.graphInterpretation, null),
+        explainContext: String(record.explainContext || record.context || ""),
         starterBuckets: cloneJson(record.starterBuckets, null),
         addNeighboringNodes:
             record.addNeighboringNodes !== undefined ? record.addNeighboringNodes : true,
@@ -375,6 +378,9 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
             session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
         hypotheses: session.hypotheses || session.sigChainRuns || [],
         dataProvenanceRuns: session.dataProvenanceRuns || session.datasetRuns || [],
+        graphInterpretations: cloneJson(session.graphInterpretations, []),
+        graphInterpretation: cloneJson(session.graphInterpretation, null),
+        explainContext: session.explainContext || "",
     };
     if (!includeInspectorCaches) {
         return {
@@ -477,6 +483,9 @@ function sessionFromGraph(record) {
         sigChainRuns: cloneJson(graph.hypotheses, []),
         dataProvenanceRuns: cloneJson(graph.dataProvenanceRuns, []),
         datasetRuns: cloneJson(graph.dataProvenanceRuns, []),
+        graphInterpretations: cloneJson(graph.graphInterpretations, []),
+        graphInterpretation: cloneJson(graph.graphInterpretation, null),
+        explainContext: graph.explainContext || graph.context || "",
         ...emptyInspectorCacheFields(),
         savedGraphId: graph.id,
         savedAt: graph.savedAt,
@@ -565,6 +574,9 @@ function sessionFromGraphExport(record) {
             []
         ),
         datasetRuns: cloneJson(payload.dataProvenanceRuns || payload.datasetRuns, []),
+        graphInterpretations: cloneJson(payload.graphInterpretations, []),
+        graphInterpretation: cloneJson(payload.graphInterpretation, null),
+        explainContext: payload.explainContext || payload.context || "",
         nodeConnectionEvidenceCache: cloneJson(payload.nodeConnectionEvidenceCache, {}),
         nodeExpressionProfileCache: cloneJson(payload.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(payload.nodeExpressionReferenceById, {}),
@@ -826,13 +838,13 @@ function parseGraphImportFile(file) {
                 const parsed = JSON.parse(String(reader.result || ""));
                 const session = parseGraphImportPayload(parsed);
                 if (!session) {
-                    reject(new Error("File is not a valid KG Workspace graph export."));
+                    reject(new Error("File is not a valid KG Canvas graph export."));
                     return;
                 }
                 resolve(session);
             } catch (e) {
                 reject(
-                    e?.message === "File is not a valid KG Workspace graph export."
+                    e?.message === "File is not a valid KG Canvas graph export."
                         ? e
                         : new Error("File is not valid JSON.")
                 );

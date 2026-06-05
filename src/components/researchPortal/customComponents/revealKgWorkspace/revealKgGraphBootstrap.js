@@ -366,6 +366,32 @@ export function toggleKeyNode(session, nodeId) {
     };
 }
 
+export function addKeyNodesBatch(session, nodeIds = []) {
+    if (!session) {
+        return { session, changed: false, addedIds: [] };
+    }
+    const highlighted = new Set(session.highlighted || []);
+    const addedIds = [];
+    for (const nodeId of nodeIds) {
+        if (!nodeId || !findGraphNode(session, nodeId) || highlighted.has(nodeId)) {
+            continue;
+        }
+        highlighted.add(nodeId);
+        addedIds.push(nodeId);
+    }
+    if (!addedIds.length) {
+        return { session, changed: false, addedIds: [] };
+    }
+    return {
+        session: {
+            ...session,
+            highlighted: Array.from(highlighted),
+        },
+        changed: true,
+        addedIds,
+    };
+}
+
 export function canRemoveGraphNode(session, nodeId) {
     if (!session || !nodeId) {
         return false;

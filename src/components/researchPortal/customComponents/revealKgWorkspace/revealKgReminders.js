@@ -1,4 +1,4 @@
-/** Contextual reminders for REVEAL KG Workspace (one visible at a time). */
+/** Contextual reminders for REVEAL KG Canvas (one visible at a time). */
 
 export const REMINDER_ACTION = {
     EXPLAIN_GRAPH: "explain_graph",

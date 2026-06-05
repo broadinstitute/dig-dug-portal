@@ -1,5 +1,5 @@
 /**
- * REVEAL KG Workspace — API client for cfde-reveal interactive routes.
+ * REVEAL KG Canvas — API client for cfde-reveal interactive routes.
  *
  * All workspace graph operations use `/api/interactive/*` on the same origin as the
  * portal (dig-dug-server proxies to cfde-reveal in local dev). Override with

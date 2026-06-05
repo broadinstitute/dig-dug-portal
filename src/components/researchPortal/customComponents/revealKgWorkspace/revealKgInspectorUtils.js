@@ -1,4 +1,4 @@
-/** Helpers for KG Workspace Inspector (Playground NodeProvenancePanel parity). */
+/** Helpers for KG Canvas Inspector (Playground NodeProvenancePanel parity). */
 
 import {
     getAvailableConnectionTargetTypes,

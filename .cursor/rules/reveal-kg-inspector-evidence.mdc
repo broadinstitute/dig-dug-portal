@@ -1,12 +1,12 @@
 ---
-description: REVEAL KG Workspace — cache Inspector evidence on session for snapshots
+description: REVEAL KG Canvas — cache Inspector evidence on session for snapshots
 globs: src/components/researchPortal/customComponents/revealKgWorkspace/**,src/components/researchPortal/customComponents/revealKgWorkspace.vue,src/utils/userUtils.js
 alwaysApply: false
 ---
 
 # Inspector evidence must be session-cached
 
-Interactive evidence shown in the KG Workspace Inspector (connections, expression, edge provenance, and any future tabs) is **critical workspace state**, not disposable UI state.
+Interactive evidence shown in the KG Canvas Inspector (connections, expression, edge provenance, and any future tabs) is **critical canvas session state**, not disposable UI state.
 
 ## Requirements
 

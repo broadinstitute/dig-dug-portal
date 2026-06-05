@@ -22,18 +22,18 @@
             </button>
 
             <header class="wkb-docs-head">
-                <h2 id="wkb-docs-modal-title">REVEAL KG Workspace Documentation</h2>
+                <h2 id="wkb-docs-modal-title">REVEAL KG Canvas Documentation</h2>
                 <p>
-                    A short guide to the workspace: what each part is for, when to
+                    A short guide to the canvas: what each part is for, when to
                     use it, and how it fits into a typical session.
                 </p>
             </header>
 
             <div class="wkb-docs-body">
                 <section class="wkb-docs-section">
-                    <h3>Workspace model</h3>
+                    <h3>Canvas model</h3>
                     <p class="wkb-docs-lead">
-                        REVEAL KG Workspace is a browser-based graph canvas where you
+                        REVEAL KG Canvas is a browser-based graph canvas where you
                         work on one graph over time—adding structure, interpreting it,
                         and saving checkpoints as you go.
                     </p>
@@ -80,7 +80,7 @@
                                 layout in this browser; Export graph writes a file with
                                 inspector data you can Import graph later; Download review
                                 snapshot (when available) writes an HTML file for reading
-                                outside the workspace.
+                                outside the canvas.
                             </p>
                         </li>
                         <li>

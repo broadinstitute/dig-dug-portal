@@ -1,4 +1,4 @@
-/** Node and edge colors for REVEAL KG workspace tree graph (Playground parity). */
+/** Node and edge colors for REVEAL KG Canvas tree graph (Playground parity). */
 
 export const ACTIVE_SET_NODE_COLOR = "#ff6600";
 export const TREE_VIEW_DEFAULT_NODE_COLOR = "#777777";
