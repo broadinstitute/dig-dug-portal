@@ -101,6 +101,7 @@ export default Vue.component('LigerBrowser', {
             drawerContent: null,
             drawerTargetId: "",
             showAllProgramQcBadges: false,
+            showAllProgramGeneSets: false,
             isHydratingFromQuery: false,
             isLoadingGeneSuggestions: false,
             isLoadingGeneData: false,
@@ -1852,6 +1853,16 @@ export default Vue.component('LigerBrowser', {
         hiddenProgramQcBadgeCount(badges = []) {
             return Math.max(0, badges.length - this.visibleProgramQcBadges(badges).length);
         },
+        visibleProgramGeneSetRows(rows = []) {
+            if (this.showAllProgramGeneSets) {
+                return rows;
+            }
+
+            return rows.slice(0, 25);
+        },
+        hiddenProgramGeneSetRowCount(rows = []) {
+            return Math.max(0, rows.length - this.visibleProgramGeneSetRows(rows).length);
+        },
         curatedStateMatchesForProgram(programId) {
             return this.relationshipHeatmapRows
                 .filter((row) => this.programKey(row) === programId && this.field(row, ["state_type"]) !== "qc_state")
@@ -2078,6 +2089,7 @@ export default Vue.component('LigerBrowser', {
         openDrawerShell(kind, title, badges = []) {
             this.hideExpressionRowTooltip();
             this.showAllProgramQcBadges = false;
+            this.showAllProgramGeneSets = false;
             this.drawerKind = kind;
             this.drawerTitle = title;
             this.drawerBadges = badges;
@@ -2089,6 +2101,7 @@ export default Vue.component('LigerBrowser', {
             this.drawerOpen = false;
             this.drawerTargetId = "";
             this.showAllProgramQcBadges = false;
+            this.showAllProgramGeneSets = false;
             this.syncQueryParams({
                 cell_state: "",
                 gene_program: "",
@@ -2677,7 +2690,7 @@ export default Vue.component('LigerBrowser', {
                         computationally inferred gene programs with genetically supported links 
                         to human traits, revealing both established and potentially novel biology.
                     </h5>
-                    <a href="/research.html?pageid=kp_liger_documnetation" target="_blank">Read Documentation</a>
+                    <a href="/research.html?pageid=kp_liger_documentation" target="_blank">Read Documentation</a>
                 </div>
                 <div class="f-col align-v-bottom flex1 g-5">
                     <h5 class="bold">Search gene</h5>
@@ -3558,7 +3571,6 @@ export default Vue.component('LigerBrowser', {
                                         <th>Trait</th>
                                         <th>Joint beta</th>
                                         <th>Marginal beta</th>
-                                        <th>Method</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3566,7 +3578,6 @@ export default Vue.component('LigerBrowser', {
                                         <td>{{ row.trait }}</td>
                                         <td>{{ formatMetric(row.beta) }}</td>
                                         <td>{{ formatMetric(row.betaUncorrected) }}</td>
-                                        <td>{{ row.method }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3576,26 +3587,33 @@ export default Vue.component('LigerBrowser', {
 
                     <div class="drawer-panel">
                         <h3>Gene set associations</h3>
-                        <div v-if="drawerContent.geneSetRows.length" class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Gene set</th>
-                                        <th>Description</th>
-                                        <th>Joint beta</th>
-                                        <th>Marginal beta</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="row in drawerContent.geneSetRows" :key="row.geneSet">
-                                        <td>{{ row.geneSet }}</td>
-                                        <td>{{ row.description || "Not available" }}</td>
-                                        <td>{{ formatMetric(row.beta) }}</td>
-                                        <td>{{ formatMetric(row.betaUncorrected) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <template v-if="drawerContent.geneSetRows.length">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Gene set</th>
+                                            <th>Joint beta</th>
+                                            <th>Marginal beta</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="row in visibleProgramGeneSetRows(drawerContent.geneSetRows)" :key="row.geneSet">
+                                            <td>{{ row.geneSet }}</td>
+                                            <td>{{ formatMetric(row.beta) }}</td>
+                                            <td>{{ formatMetric(row.betaUncorrected) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button
+                                v-if="hiddenProgramGeneSetRowCount(drawerContent.geneSetRows) > 0 && !showAllProgramGeneSets"
+                                class="drawer-link-button"
+                                @click="showAllProgramGeneSets = true"
+                            >
+                                See {{ hiddenProgramGeneSetRowCount(drawerContent.geneSetRows) }} more
+                            </button>
+                        </template>
                         <div v-else class="empty-state">No program gene set associations returned.</div>
                     </div>
                 </template>
