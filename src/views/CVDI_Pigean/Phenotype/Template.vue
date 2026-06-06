@@ -55,7 +55,10 @@
                                     @click="$parent.setSelectedPhenotype(item)"
                                     v-html="item.phenotype_name"
                                 ></a>
-                                <span class="trait-group">
+                                <span
+                                    v-if="$parent.traitGroups[item.trait_group]"
+                                    class="trait-group"
+                                >
                                     ({{
                                         $parent.traitGroups[item.trait_group]
                                     }})</span
