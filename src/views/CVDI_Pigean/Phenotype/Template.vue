@@ -31,7 +31,11 @@
                     />
 
                     <ul
-                        v-if="!!$parent.phenotypeSearchKey"
+                        v-if="
+                            !!$parent.phenotypeSearchKey &&
+                            !!$store.state.pigeanAllPhenotypes &&
+                            !!$store.state.pigeanAllPhenotypes.data
+                        "
                         class="page-phenotypes-list"
                     >
                         <template
@@ -119,8 +123,11 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -129,8 +136,11 @@
                             >
                             </pigean-plot>
                             <cvdi-pigean-table
-                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
@@ -176,8 +186,11 @@
 
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -186,8 +199,11 @@
                             >
                             </pigean-plot>
                             <cvdi-pigean-table
-                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
                                 :phenotypeMap="$parent.pigeanMap"

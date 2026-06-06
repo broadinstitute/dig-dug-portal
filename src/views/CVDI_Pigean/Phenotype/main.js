@@ -190,7 +190,7 @@ new Vue({
                 return this.$store.state.diseaseInSession;
             }
         },
-        traitGroups(){
+        traitGroups() {
             return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phenotypesInSession() {
@@ -215,33 +215,33 @@ new Vue({
             };
             return utils;
         },
-        pigeanMap(){
+        pigeanMap() {
             return this.pigeanPhenotypeMap;
         },
-        pigeanColors(){
+        pigeanColors() {
             let colors = {};
             let phenotype = this.$store.state.phenotype;
             let group = phenotype && phenotype.group;
-            if (group) { colors[group] = plotUtils.plotColors()[0]; }
+            if (group) {
+                colors[group] = plotUtils.plotColors()[0];
+            }
             return colors;
         },
-        pigeanPhenotypeData(){
+        pigeanPhenotypeData() {
             return this.$store.state.pigeanPhenotype.data;
-        }
-
+        },
     },
 
     watch: {
         "$store.state.phenotype": function (phenotype) {
-            //keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
         },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        pigeanPhenotypeData(newData){
+        pigeanPhenotypeData(newData) {
             console.log("Received new BI data", JSON.stringify(newData));
-        }
+        },
     },
 
     async created() {
@@ -250,6 +250,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        await this.$store.dispatch("getPigeanPhenotypes");
         this.lookupInPigeanMap();
     },
     methods: {
@@ -263,6 +264,7 @@ new Vue({
             this.newPhenotypeSearchKey = oldStylePhenotype.description;
             this.phenotypeSearchKey = null;
             this.$store.dispatch("selectedPhenotype", oldStylePhenotype);
+            this.$store.dispatch("queryPhenotype");
         },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
@@ -279,18 +281,17 @@ new Vue({
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        lookupInPigeanMap(){
+        lookupInPigeanMap() {
             let name = keyParams.phenotype;
             let phenotype = this.pigeanPhenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                //keyParams.set({ phenotype: phenotype.name });
                 this.$store.state.traitGroupToQuery = phenotype.trait_group;
                 keyParams.set({ traitGroup: phenotype.trait_group });
             }
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");
-        }
+        },
     },
 
     render(createElement) {

@@ -13,8 +13,14 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        pigeanPhenotype: bioIndex("pigean-gene-phenotype", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
-        genesetPhenotype: bioIndex("pigean-gene-set-phenotype", undefined, { host: cvdiBioIndexUtils.BIO_INDEX_HOST }),
+        pigeanPhenotype: bioIndex("pigean-gene-phenotype", undefined, {
+            host: cvdiBioIndexUtils.BIO_INDEX_HOST,
+        }),
+        genesetPhenotype: bioIndex("pigean-gene-set-phenotype", undefined, {
+            host: cvdiBioIndexUtils.BIO_INDEX_HOST,
+        }),
+        // Use shared PIGEAN phenotype index for search suggestions.
+        pigeanAllPhenotypes: bioIndex("pigean-phenotypes"),
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -36,11 +42,11 @@ export default new Vuex.Store({
         },
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
-            //keyParams.set({ phenotype: PHENOTYPE.name });
+            keyParams.set({ phenotype: PHENOTYPE.name });
             state.traitGroupToQuery = PHENOTYPE.trait_group;
-            keyParams.set({ traitGroup: PHENOTYPE.trait_group});
+            keyParams.set({ traitGroup: PHENOTYPE.trait_group });
         },
-        setTraitGroup(state, traitGroup){
+        setTraitGroup(state, traitGroup) {
             state.traitGroup = traitGroup || state.traitGroup;
             keyParams.set({ traitGroup: state.traitGroup });
         },
@@ -55,16 +61,23 @@ export default new Vuex.Store({
     actions: {
         onPhenotypeChange(context, phenotype) {
             context.state.selectedPhenotype = phenotype;
-            //keyParams.set({ phenotype: phenotype.name });
         },
 
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
-            let name = keyParams.phenotype;
-            let traitGroup = context.state.traitGroupToQuery || context.state.traitGroup;
+            let name = context.state.phenotype && context.state.phenotype.name;
+            let traitGroup =
+                context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setTraitGroup", traitGroup);
-            
-            let query = { q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`, limit: 1000 };
+
+            if (!name) {
+                return;
+            }
+
+            let query = {
+                q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`,
+                limit: 1000,
+            };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
         },
@@ -76,6 +89,9 @@ export default new Vuex.Store({
         },
         selectedPhenotype(context, PHENOTYPE) {
             context.commit("setSelectedPhenotype", PHENOTYPE);
+        },
+        async getPigeanPhenotypes(context) {
+            await context.dispatch("pigeanAllPhenotypes/query", { q: 1 });
         },
     },
 });
