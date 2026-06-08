@@ -27,13 +27,13 @@
                     Retrieved nodes from graph build and expansion, including options not yet on
                     the canvas.
                 </p>
-                <p class="wkb-graph-table-legend" aria-label="Key node rows legend">
+                <p class="wkb-graph-table-legend" aria-label="Selected node rows legend">
                     <span class="wkb-graph-table-legend-item">
                         <span
                             class="wkb-graph-table-legend-swatch"
                             aria-hidden="true"
                         />
-                        Key node
+                        Selected node
                     </span>
                 </p>
             </header>
@@ -198,6 +198,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        ledgerSession: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
         panelIdCounter += 1;
@@ -210,15 +214,21 @@ export default {
     },
     computed: {
         resolvedLedger() {
-            return effectiveRetrievalLedger({
+            const session = this.ledgerSession || {
                 graphNodes: this.graphNodes,
                 retrievalLedger: this.retrievalLedger,
-            });
+            };
+            return effectiveRetrievalLedger(session);
         },
         rowsByType() {
+            const session = this.ledgerSession || {
+                graphNodes: this.graphNodes,
+                retrievalLedger: this.retrievalLedger,
+                appliedGraphFilter: null,
+            };
             return buildGraphTableRowsFromLedger(
                 this.resolvedLedger,
-                this.graphNodes,
+                session,
                 this.graphEdges,
                 this.contextualEdges,
                 this.keyNodeIds

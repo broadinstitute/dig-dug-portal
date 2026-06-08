@@ -12,8 +12,8 @@
         <button
             type="button"
             class="wkb-graph-control-btn"
-            title="Filter KG"
-            aria-label="Filter KG"
+            title="Visibility filters"
+            aria-label="Visibility filters"
             @click="$emit('action', 'filter')"
         >
             <b-icon icon="funnel-fill" aria-hidden="true" />

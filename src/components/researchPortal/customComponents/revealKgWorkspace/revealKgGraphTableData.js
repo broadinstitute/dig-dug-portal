@@ -1,6 +1,6 @@
 /** Tabbed graph table rows (Playground retrieved-nodes ledger parity). */
 
-import { getLedgerShownReason } from "./revealKgRetrievalLedger.js";
+import { getLedgerShownReasonForSession } from "./revealKgGraphFilterUtils.js";
 
 export const GRAPH_TABLE_PAGE_SIZE = 10;
 
@@ -110,14 +110,11 @@ function sortTableRows(rows) {
 
 export function buildGraphTableRowsFromLedger(
     retrievalLedger = {},
-    graphNodes = [],
+    session = {},
     graphEdges = [],
     contextualEdges = [],
     keyNodeIds = []
 ) {
-    const graphNodeIds = new Set(
-        (graphNodes || []).map((node) => node?.id || node?.node_id).filter(Boolean)
-    );
     const keyIds = new Set((keyNodeIds || []).filter(Boolean));
     const scoresByNode = buildGraphNodeScoreMap(graphEdges, contextualEdges);
     const rowsByType = Object.fromEntries(GRAPH_TABLE_TABS.map((tab) => [tab.key, []]));
@@ -140,7 +137,7 @@ export function buildGraphTableRowsFromLedger(
             novelty_label: entry.novelty_label || "NYA",
             relevance_label: entry.relevance_label || "NYA",
             rationale: entry.rationale || entry.subtitle || "NYA",
-            shown: getLedgerShownReason(entry, graphNodeIds),
+            shown: getLedgerShownReasonForSession(session, entry),
         });
     }
 

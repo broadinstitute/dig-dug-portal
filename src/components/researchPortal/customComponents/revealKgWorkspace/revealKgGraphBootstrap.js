@@ -276,7 +276,7 @@ export function graphNodeToAnchorItem(node) {
     };
 }
 
-/** API `anchor_items` payload built from workspace key nodes (`session.highlighted`). */
+/** API `anchor_items` payload built from workspace selected nodes (`session.highlighted`). */
 export function keyNodeItemsFromSession(session) {
     if (!session) {
         return [];
@@ -294,7 +294,7 @@ export function isStartingGraphNode(node) {
     return Boolean(node?.is_anchor);
 }
 
-/** Keep only key-node ids that still exist on the graph (persisted as session.highlighted). */
+/** Keep only selected-node ids that still exist on the graph (persisted as session.highlighted). */
 export function normalizeKeyNodeIds(session) {
     const nodeIds = new Set();
     for (const node of session?.graphNodes || []) {

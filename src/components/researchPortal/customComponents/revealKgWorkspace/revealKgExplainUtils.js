@@ -7,6 +7,7 @@ import {
     keyNodeItemsFromSession,
     normalizeKeyNodeIds,
 } from "./revealKgGraphBootstrap.js";
+import { getDisplayGraph } from "./revealKgGraphDisplayUtils.js";
 
 export const EXPLAIN_SCOPE = {
     KEY_NODES: "key_nodes",
@@ -21,9 +22,15 @@ function visibleGraphEdges(session) {
 }
 
 export function resolveExplainIntent(session) {
-    const explicit = String(session?.controls?.explainIntent || "").trim();
-    if (explicit) {
-        return explicit;
+    const layers = session?.visibilityFilterLayers || [];
+    for (const layer of layers) {
+        if (layer.enabled === false) {
+            continue;
+        }
+        const layerIntent = String(layer.criteria?.intent || layer.intent || "").trim();
+        if (layerIntent) {
+            return layerIntent;
+        }
     }
     const graphIntent = String(session?.appliedGraphFilter?.intent || "").trim();
     if (graphIntent) {
@@ -72,7 +79,7 @@ export function buildKeyNodesExplainQuestion({
     backgroundContext,
 }) {
     const summary =
-        (keyNodes || []).map((node) => node.label).join(", ") || "the key nodes";
+        (keyNodes || []).map((node) => node.label).join(", ") || "the selected nodes";
     return `How do ${summary} relate to each other within this graph${
         intent ? `, specifically with respect to ${intent}` : ""
     }${
@@ -88,17 +95,17 @@ export function buildEntireGraphExplainQuestion({
 }) {
     const graphSummary =
         (activeNodes || []).map((node) => node.label).join(", ") ||
-        "all nodes in this graph";
+        "all visible nodes on this graph";
     const keySummary =
         (keyNodeItems || []).map((item) => item.label).join(", ") ||
-        "the key nodes";
+        "the selected nodes";
     return `Summarize what this knowledge graph shows about how ${graphSummary} connect, with emphasis on relationships to ${keySummary}${
         intent ? `, specifically with respect to ${intent}` : ""
     }${
         backgroundContext ? `, in the context of ${backgroundContext}` : ""
     }? Please answer two questions. What is already known about this question? What are some novel connections here that might be impactful?
 
-Also recommend which nodes on this graph should be marked as key nodes for follow-up hypothesis work. Choose nodes that best capture the mechanistic story (typically about 3–8 nodes).
+Also recommend which nodes on this graph should be marked as selected nodes for follow-up hypothesis work. Choose nodes that best capture the mechanistic story (typically about 3–8 nodes).
 
 After your narrative, append a fenced JSON block with this exact shape (use only node_id values from the graph snapshot):
 \`\`\`json
@@ -182,21 +189,19 @@ export function buildExplanationDraft(session, scope = EXPLAIN_SCOPE.KEY_NODES) 
     let apiTarget;
 
     if (scope === EXPLAIN_SCOPE.ENTIRE_GRAPH) {
-        focusNodes = graphNodes;
-        const focusNodeIds = new Set(focusNodes.map((node) => node.id));
-        focusEdges = visibleGraphEdges(session).filter(
-            (edge) => focusNodeIds.has(edge.source) && focusNodeIds.has(edge.target)
-        );
-        activeNodes = graphNodes.filter((node) => !isStartingGraphNode(node));
+        const { visibleNodes, visibleEdges } = getDisplayGraph(session);
+        focusNodes = visibleNodes;
+        focusEdges = visibleEdges;
+        activeNodes = visibleNodes.filter((node) => !isStartingGraphNode(node));
         queryText = buildEntireGraphExplainQuestion({
-            activeNodes: activeNodes.length ? activeNodes : graphNodes,
+            activeNodes: activeNodes.length ? activeNodes : visibleNodes,
             keyNodeItems,
             intent: explainIntent,
             backgroundContext,
         });
-        scopeNodeIds = graphNodes.map((node) => node.id).sort();
+        scopeNodeIds = focusNodes.map((node) => node.id).sort();
         helperText =
-            "Includes every node and edge on the canvas. The LLM may also suggest key nodes you can add in one click.";
+            "Includes all nodes and edges currently visible on the canvas. The LLM may also suggest selected nodes you can add in one click.";
         apiTarget = "graph";
     } else {
         focusNodes = graphNodes.filter((node) => keyIds.has(node.id));
@@ -211,7 +216,7 @@ export function buildExplanationDraft(session, scope = EXPLAIN_SCOPE.KEY_NODES) 
             backgroundContext,
         });
         scopeNodeIds = focusNodes.map((node) => node.id).sort();
-        helperText = "This explanation is limited to nodes marked as key nodes.";
+        helperText = "This explanation is limited to nodes marked as selected nodes.";
         apiTarget = "active_set";
     }
 
@@ -301,10 +306,10 @@ export function successfulGraphExplanations(session) {
 
 export function explainScopeLabel(scope) {
     if (scope === EXPLAIN_SCOPE.ENTIRE_GRAPH) {
-        return "Entire graph";
+        return "All visible nodes";
     }
     if (scope === EXPLAIN_SCOPE.KEY_NODES) {
-        return "Key nodes";
+        return "Selected nodes";
     }
     return "Graph";
 }

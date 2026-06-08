@@ -15,8 +15,9 @@
             <header class="wkb-export-head">
                 <h2 id="wkb-export-title">Export graph</h2>
                 <p class="wkb-export-intro">
-                    Download a workflow file with the full graph and inspector data so
-                    you can rebuild this session later with
+                    Download a workflow file with the full graph, inspector data, graph
+                    explanations, and build-hypotheses results (pathways plus generated
+                    hypothesis text) so you can rebuild this session later with
                     <strong>Manage → Import graph</strong>.
                 </p>
             </header>

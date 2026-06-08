@@ -4,7 +4,7 @@
             Top connections from {{ nodeLabel }}
         </h4>
         <p class="wkb-node-connections-lead">
-            Ranked candidates you can add, using your key nodes and this node.
+            Ranked candidates you can add, using your selected nodes and this node.
         </p>
         <div class="wkb-node-connections-toolbar">
             <div class="wkb-node-connections-tabs" role="tablist" aria-label="Top connection types">
@@ -185,7 +185,7 @@ export default {
                 ) {
                     return "No gene membership rows were imported for this gene set. Trait and mechanism links can still exist because they are stored as separate gene-set association/loading edges.";
                 }
-                return `No ${typePlural} were returned to connect to ${this.nodeLabel} using your key nodes.`;
+                return `No ${typePlural} were returned to connect to ${this.nodeLabel} using your selected nodes.`;
             }
             return `No ${typePlural} to show yet.`;
         },

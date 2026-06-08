@@ -9,13 +9,27 @@
         </header>
 
         <div class="rkw-stage">
-            <WorkspaceExplanationBubble
-                :visible="explanationBubbleVisible"
-                :entries="savedGraphExplanations"
-                @open-explanation="openSavedExplanation"
-            />
+            <div v-if="analysisBubblesVisible" class="rkw-analysis-bubbles">
+                <WorkspaceDatasetsBubble
+                    :visible="datasetsBubbleVisible"
+                    :entries="savedDatasetRuns"
+                    @open-datasets="openSavedDatasetsRun"
+                />
+                <WorkspaceHypothesesBubble
+                    :visible="hypothesesBubbleVisible"
+                    :entries="savedHypothesisRuns"
+                    @open-hypotheses="openSavedHypothesesRun"
+                />
+                <WorkspaceExplanationBubble
+                    :visible="explanationBubbleVisible"
+                    :entries="savedGraphExplanations"
+                    @open-explanation="openSavedExplanation"
+                />
+            </div>
             <WorkspaceCanvas
                 :graph-nodes="canvasGraphNodes"
+                :all-graph-nodes="allCanvasGraphNodes"
+                :ledger-session="activeSession"
                 :graph-edges="canvasGraphEdges"
                 :contextual-edges="canvasContextualEdges"
                 :graph-loading="graphLoading"
@@ -53,6 +67,29 @@
                 @inspect-connected-node="onNodeActionInspect"
                 @graph-reminder-action="onGraphReminderAction"
                 @graph-reminder-dismiss="dismissGraphReminder"
+            />
+            <WorkspaceVisibilityFilterPanel
+                :open="filterGraphOpen"
+                :loading="graphFilterLoading"
+                :progress-label="graphFilterProgress"
+                :filters="graphFilters"
+                :saved-filters="savedVisibilityFilters"
+                :expression-options="expressionOptions"
+                :llm-available="llmAvailable"
+                :filter-needs-llm="graphFilterNeedsLlm"
+                :can-clear-draft="graphFilterCanClearDraft"
+                :can-build="graphFilterCanBuild"
+                :node-count="allGraphNodeCount"
+                :visible-node-count="visibleGraphNodeCount"
+                :invisible-node-count="invisibleGraphNodeCount"
+                @close="closeFilterGraph"
+                @patch-filters="onGraphFiltersPatch"
+                @toggle-novelty="onGraphFilterToggleNovelty"
+                @build="buildVisibilityFilter"
+                @clear-draft="clearGraphFilterDraft"
+                @toggle-filter="onToggleVisibilityFilterLayer"
+                @remove-filter="onRemoveVisibilityFilterLayer"
+                @remove-invisible-nodes="onRemoveInvisibleNodesFromGraph"
             />
         </div>
 
@@ -157,7 +194,6 @@
             :helper-text="explainHelperText"
             :loading="graphInterpretationLoading"
             :llm-available="llmAvailable"
-            :explain-intent="explainIntentValue"
             :key-node-count="explainKeyNodeCount"
             :node-count="explainNodeCount"
             :edge-count="explainEdgeCount"
@@ -165,13 +201,43 @@
             :key-node-ids="canvasKeyNodeIds"
             @close="closeExplainGraph"
             @update:scope="onExplainScopeChange"
-            @update:explainIntent="onExplainIntentChange"
             @update-entry="onExplainEntryPatch"
             @run="runGraphExplanation"
             @add-suggested-key-node="onExplainAddSuggestedKeyNode"
             @add-all-suggested-key-nodes="onExplainAddAllSuggestedKeyNodes"
         />
-
+        <WorkspaceBuildHypothesesModal
+            :open="hypothesesOpen"
+            :draft-run="activeSigChainDraft"
+            :result-run="activeSigChainResult"
+            :loading="sigChainLoading"
+            :llm-available="llmAvailable"
+            :selected-node-count="explainKeyNodeCount"
+            :selected-node-ids="canvasKeyNodeIds"
+            :anchor-items="canvasAnchorItems"
+            :session-context="activeSession ? activeSession.context || '' : ''"
+            :api-client="apiClient"
+            @close="closeBuildHypotheses"
+            @update-draft="onSigChainDraftPatch"
+            @run="runSigChainPrioritization"
+            @new-run="onSigChainNewRun"
+            @pathway-state-update="onSigChainPathwayStateUpdate"
+        />
+        <WorkspaceFindRelatedDatasetsModal
+            :open="relatedDatasetsOpen"
+            :result-run="activeDatasetResult"
+            :show-search-form="datasetShowSearchForm"
+            :loading="datasetLoading"
+            :selected-gene-count="selectedGeneCount"
+            :current-active-set-key="cfdeActiveSetKey"
+            :canvas-graph-node-ids="canvasGraphNodeIds"
+            :graph-busy="graphLoading"
+            @close="closeFindRelatedDatasets"
+            @search="runCfdeDatasetSearch"
+            @search-again="onDatasetSearchAgain"
+            @add-gene-set="onAddCfdeGeneSet"
+            @remove-gene-set="onRemoveCfdeGeneSet"
+        />
         <input
             ref="graphImportFileInput"
             type="file"
@@ -206,7 +272,34 @@ import WorkspaceInitialGraphModal from "./revealKgWorkspace/WorkspaceInitialGrap
 import WorkspaceSaveGraphModal from "./revealKgWorkspace/WorkspaceSaveGraphModal.vue";
 import WorkspaceExportGraphModal from "./revealKgWorkspace/WorkspaceExportGraphModal.vue";
 import WorkspaceExplainGraphModal from "./revealKgWorkspace/WorkspaceExplainGraphModal.vue";
+import WorkspaceBuildHypothesesModal from "./revealKgWorkspace/WorkspaceBuildHypothesesModal.vue";
+import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFindRelatedDatasetsModal.vue";
+import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
+import {
+    buildVisibilityFilterOnSession,
+    graphFilterCanReset as sessionGraphFilterCanReset,
+    resetGraphFilterOnSession,
+} from "./revealKgWorkspace/revealKgGraphFilterApply.js";
+import { getDisplayGraph, computeContextualEdgeSignature } from "./revealKgWorkspace/revealKgGraphDisplayUtils.js";
+import {
+    createDefaultGraphFilters,
+    ensureSessionFilterState,
+    graphFilterNeedsLlm,
+    patchSessionGraphFilters,
+    toggleNoveltyIncludeCheckbox,
+} from "./revealKgWorkspace/revealKgGraphFilterUtils.js";
+import {
+    collectInvisibleNodeIds,
+    countInvisibleGraphNodes,
+    draftHasBuildCriteria,
+    isNodeVisibleInSession,
+    normalizeVisibilityFilterLayers,
+    removeVisibilityFilterLayer,
+    toggleVisibilityFilterLayer,
+} from "./revealKgWorkspace/revealKgVisibilityFilterUtils.js";
 import WorkspaceExplanationBubble from "./revealKgWorkspace/WorkspaceExplanationBubble.vue";
+import WorkspaceHypothesesBubble from "./revealKgWorkspace/WorkspaceHypothesesBubble.vue";
+import WorkspaceDatasetsBubble from "./revealKgWorkspace/WorkspaceDatasetsBubble.vue";
 import WorkspaceNodeActionMenu from "./revealKgWorkspace/WorkspaceNodeActionMenu.vue";
 import WorkspaceEdgeActionMenu from "./revealKgWorkspace/WorkspaceEdgeActionMenu.vue";
 import WorkspaceRemoveNodeConfirmModal from "./revealKgWorkspace/WorkspaceRemoveNodeConfirmModal.vue";
@@ -262,6 +355,26 @@ import {
     interpretationMarkdownForDisplay,
 } from "./revealKgWorkspace/revealKgExplainUtils.js";
 import {
+    buildSigChainPrioritizePayload,
+    buildSigChainPrioritizationQuestion,
+    computeSigChainDraftSnapshot,
+    edgesForVisibleNodes,
+    ensureSigChainDraft,
+    getSigChainPrioritizationSnapshot,
+    mergeGraphEdgesForSigChainRun,
+    patchSigChainRun,
+    successfulSigChainRuns,
+} from "./revealKgWorkspace/revealKgSigChainPrioritizeUtils.js";
+import {
+    buildCfdeDatasetRun,
+    buildCfdeDatasetSearchPayload,
+    cfdeDatasetRunMatchesActiveSet,
+    getCfdeActiveSetKey,
+    getCfdeActiveSetNodesFromSession,
+    patchCfdeDatasetRun,
+    successfulCfdeDatasetRuns,
+} from "./revealKgWorkspace/revealKgCfdeDatasetUtils.js";
+import {
     REMINDER_ACTION,
     REMINDER_ID,
     NODES_ADDED_SAVE_THRESHOLD,
@@ -297,7 +410,12 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceSaveGraphModal,
         WorkspaceExportGraphModal,
         WorkspaceExplainGraphModal,
+        WorkspaceBuildHypothesesModal,
+        WorkspaceFindRelatedDatasetsModal,
+        WorkspaceVisibilityFilterPanel,
         WorkspaceExplanationBubble,
+        WorkspaceHypothesesBubble,
+        WorkspaceDatasetsBubble,
         WorkspaceNodeActionMenu,
         WorkspaceEdgeActionMenu,
         WorkspaceRemoveNodeConfirmModal,
@@ -361,6 +479,12 @@ export default Vue.component("reveal-kg-workspace", {
             graphRebuildBusy: false,
             explainGraphOpen: false,
             explainScope: EXPLAIN_SCOPE.KEY_NODES,
+            hypothesesOpen: false,
+            relatedDatasetsOpen: false,
+            datasetForceSearchForm: false,
+            filterGraphOpen: false,
+            graphFilterLoading: false,
+            graphFilterProgress: "",
         };
     },
     computed: {
@@ -454,6 +578,12 @@ export default Vue.component("reveal-kg-workspace", {
         savedGraphExplanations() {
             return successfulGraphExplanations(this.activeSession);
         },
+        savedHypothesisRuns() {
+            return successfulSigChainRuns(this.activeSession);
+        },
+        savedDatasetRuns() {
+            return successfulCfdeDatasetRuns(this.activeSession);
+        },
         explanationBubbleVisible() {
             return (
                 !this.explainGraphOpen &&
@@ -461,29 +591,139 @@ export default Vue.component("reveal-kg-workspace", {
                 Boolean(this.activeSession?.graphNodes?.length)
             );
         },
+        hypothesesBubbleVisible() {
+            return (
+                !this.hypothesesOpen &&
+                this.savedHypothesisRuns.length > 0 &&
+                Boolean(this.activeSession?.graphNodes?.length)
+            );
+        },
+        datasetsBubbleVisible() {
+            return (
+                !this.relatedDatasetsOpen &&
+                this.savedDatasetRuns.length > 0 &&
+                Boolean(this.activeSession?.graphNodes?.length)
+            );
+        },
+        analysisBubblesVisible() {
+            return (
+                this.datasetsBubbleVisible ||
+                this.hypothesesBubbleVisible ||
+                this.explanationBubbleVisible
+            );
+        },
         explainHelperText() {
             return this.activeGraphInterpretation?.helper_text || "";
-        },
-        explainIntentValue() {
-            return this.activeSession?.controls?.explainIntent || "";
         },
         explainKeyNodeCount() {
             return normalizeKeyNodeIds(this.activeSession).length;
         },
         explainNodeCount() {
-            return this.activeSession?.graphNodes?.length || 0;
+            return this.displayGraph.visibleNodes.length || 0;
         },
         explainEdgeCount() {
-            return (this.activeSession?.graphEdges || []).length;
+            return this.displayGraph.visibleEdges.length || 0;
         },
         explainContextualEdgeCount() {
             return (this.activeSession?.contextualEdges || []).length;
         },
-        canvasGraphNodes() {
+        sigChainLoading() {
+            return Boolean(this.activeSession?.sigChainLoading);
+        },
+        activeSigChainRun() {
+            return this.activeSession?.sigChainRun || null;
+        },
+        activeSigChainDraft() {
+            const run = this.activeSigChainRun;
+            if (run && (run.status === "draft" || run.status === "error")) {
+                return run;
+            }
+            return (this.activeSession?.sigChainRuns || []).find(
+                (entry) => entry.status === "draft"
+            );
+        },
+        activeSigChainResult() {
+            const run = this.activeSigChainRun;
+            if (run?.status === "success") {
+                return run;
+            }
+            return null;
+        },
+        cfdeActiveSetNodes() {
+            return getCfdeActiveSetNodesFromSession(this.activeSession);
+        },
+        selectedGeneCount() {
+            return this.cfdeActiveSetNodes.length;
+        },
+        cfdeActiveSetKey() {
+            return getCfdeActiveSetKey(this.cfdeActiveSetNodes);
+        },
+        datasetLoading() {
+            return Boolean(this.activeSession?.datasetLoading);
+        },
+        activeDatasetRun() {
+            return this.activeSession?.datasetRun || null;
+        },
+        activeDatasetResult() {
+            const run = this.activeDatasetRun;
+            if (run && !this.datasetForceSearchForm) {
+                return run;
+            }
+            return null;
+        },
+        datasetShowSearchForm() {
+            return this.datasetForceSearchForm || !this.activeDatasetRun;
+        },
+        canvasGraphNodeIds() {
+            return (this.activeSession?.graphNodes || []).map((node) => node.id);
+        },
+        canvasAnchorItems() {
+            return keyNodeItemsFromSession(this.activeSession);
+        },
+        displayGraph() {
+            return getDisplayGraph(this.activeSession, {
+                selectedNodeId: this.selectedNodeId,
+                expressionOptions: this.expressionOptions,
+            });
+        },
+        allCanvasGraphNodes() {
             return this.activeSession?.graphNodes || [];
         },
+        canvasGraphNodes() {
+            return this.displayGraph.visibleNodes;
+        },
         canvasGraphEdges() {
-            return this.activeSession?.graphEdges || [];
+            return this.displayGraph.visibleEdges;
+        },
+        allGraphNodeCount() {
+            return this.activeSession?.graphNodes?.length || 0;
+        },
+        visibleGraphNodeCount() {
+            return this.displayGraph.visibleNodes.length;
+        },
+        graphFilters() {
+            return (
+                this.activeSession?.controls?.graphFilters ||
+                createDefaultGraphFilters(this.expressionOptions)
+            );
+        },
+        savedVisibilityFilters() {
+            return normalizeVisibilityFilterLayers(
+                this.activeSession,
+                this.expressionOptions
+            );
+        },
+        invisibleGraphNodeCount() {
+            return countInvisibleGraphNodes(this.activeSession, this.expressionOptions);
+        },
+        graphFilterCanClearDraft() {
+            return sessionGraphFilterCanReset(this.activeSession, this.expressionOptions);
+        },
+        graphFilterCanBuild() {
+            return draftHasBuildCriteria(this.graphFilters);
+        },
+        graphFilterNeedsLlm() {
+            return graphFilterNeedsLlm(this.graphFilters);
         },
         canvasContextualEdges() {
             return this.activeSession?.contextualEdges || [];
@@ -685,15 +925,7 @@ export default Vue.component("reveal-kg-workspace", {
             };
         },
         contextualGraphSignature() {
-            const nodes = (this.activeSession?.graphNodes || [])
-                .map((node) => node.id)
-                .sort()
-                .join("|");
-            const edges = (this.activeSession?.graphEdges || [])
-                .map((edge) => edge.id)
-                .sort()
-                .join("|");
-            return `${nodes}::${edges}`;
+            return computeContextualEdgeSignature(this.activeSession) || "";
         },
     },
     watch: {
@@ -876,6 +1108,12 @@ export default Vue.component("reveal-kg-workspace", {
                 graphInterpretations: [],
                 graphInterpretation: null,
                 graphInterpretationLoading: false,
+                sigChainRuns: [],
+                sigChainRun: null,
+                sigChainLoading: false,
+                datasetRuns: [],
+                datasetRun: null,
+                datasetLoading: false,
                 context: context || "",
                 starterBuckets: buckets,
                 anchorItems,
@@ -890,16 +1128,21 @@ export default Vue.component("reveal-kg-workspace", {
                     context: context || "",
                     addNeighboringNodes: this.addNeighboringNodes,
                 });
-                this.activeSession = withNormalizedKeyNodes({
-                    ...this.activeSession,
-                    graphNodes: built.graphNodes,
-                    graphEdges: built.graphEdges,
-                    contextualEdges: [],
-                    retrievalLedger: built.retrievalLedger || {},
-                    anchorItems: built.anchorItems,
-                    context: built.context,
-                    highlighted: built.highlighted || [],
-                });
+                this.activeSession = ensureSessionFilterState(
+                    withNormalizedKeyNodes({
+                        ...this.activeSession,
+                        graphNodes: built.graphNodes,
+                        graphEdges: built.graphEdges,
+                        contextualEdges: [],
+                        retrievalLedger: built.retrievalLedger || {},
+                        anchorItems: built.anchorItems,
+                        context: built.context,
+                        highlighted: built.highlighted || [],
+                        graphFilterCache: {},
+                        visibilityFilterLayers: [],
+                    }),
+                    this.expressionOptions
+                );
                 this.contextualFetchSignature = "";
                 this.scheduleContextualEdgesFetch({ immediate: true });
                 const statusMessage = this.duplicateFlowActive
@@ -1154,7 +1397,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
             if (!canRemoveGraphNode(this.activeSession, node.nodeId)) {
                 this.showStatus(
-                    "Key nodes cannot be removed. Remove from key nodes first.",
+                    "Selected nodes cannot be removed. Remove from selected nodes first.",
                     2800
                 );
                 this.closeNodeActionMenu();
@@ -1332,17 +1575,205 @@ export default Vue.component("reveal-kg-workspace", {
             this.activeSession = session;
             this.showStatus(
                 added
-                    ? `Marked ${label} as a key node.`
-                    : `Removed ${label} from key nodes.`,
+                    ? `Marked ${label} as a selected node.`
+                    : `Removed ${label} from selected nodes.`,
                 2600
             );
         },
         onGraphAction(action) {
-            const labels = {
-                expand: "Expand KG",
-                filter: "Filter KG",
+            if (action === "filter") {
+                this.openFilterGraph();
+                return;
+            }
+            if (action === "expand") {
+                this.showStatus("Expand graph is not available yet.", 3200);
+                return;
+            }
+            this.showStatus(`Triggered: ${action}`);
+        },
+        openFilterGraph() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before filtering.", 3200);
+                return;
+            }
+            let session = ensureSessionFilterState(
+                this.activeSession,
+                this.expressionOptions
+            );
+            session = {
+                ...session,
+                visibilityFilterLayers: normalizeVisibilityFilterLayers(
+                    session,
+                    this.expressionOptions
+                ),
+                appliedGraphFilter: null,
             };
-            this.showStatus(`Triggered: ${labels[action] || action}`);
+            this.activeSession = session;
+            this.filterGraphOpen = true;
+        },
+        closeFilterGraph() {
+            if (this.graphFilterLoading) {
+                return;
+            }
+            this.filterGraphOpen = false;
+        },
+        onGraphFiltersPatch(patch) {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = patchSessionGraphFilters(
+                this.activeSession,
+                patch,
+                this.expressionOptions
+            );
+        },
+        onGraphFilterToggleNovelty(label) {
+            if (!this.activeSession) {
+                return;
+            }
+            const current = this.activeSession.controls?.graphFilters || {};
+            this.activeSession = patchSessionGraphFilters(
+                this.activeSession,
+                toggleNoveltyIncludeCheckbox(current, label),
+                this.expressionOptions
+            );
+        },
+        clearSelectionIfHidden() {
+            if (!this.selectedNodeId || !this.activeSession) {
+                return;
+            }
+            const node = findGraphNode(this.activeSession, this.selectedNodeId);
+            if (
+                node &&
+                !isNodeVisibleInSession(node, this.activeSession, this.expressionOptions)
+            ) {
+                this.selectedNodeId = null;
+                this.selectedEdgeId = null;
+                this.selectedEdgeRef = null;
+                this.inspectorOpen = false;
+            }
+        },
+        async buildVisibilityFilter() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before creating filters.", 3200);
+                return;
+            }
+            if (!this.graphFilterCanBuild) {
+                this.showStatus(
+                    "Add expression, novelty, or intent criteria before building.",
+                    3200
+                );
+                return;
+            }
+            if (!this.llmAvailable && this.graphFilterNeedsLlm) {
+                this.showStatus("LLM filtering is not available.", 3200);
+                return;
+            }
+            this.graphFilterLoading = true;
+            this.graphFilterProgress = "Building visibility filter…";
+            this.graphLoading = true;
+            try {
+                const result = await buildVisibilityFilterOnSession(this.activeSession, {
+                    apiClient: this.apiClient,
+                    expressionOptions: this.expressionOptions,
+                    anchorItems: this.canvasAnchorItems,
+                    onProgress: (label) => {
+                        this.graphFilterProgress = label;
+                    },
+                });
+                this.activeSession = ensureSessionFilterState(
+                    result.session,
+                    this.expressionOptions
+                );
+                this.clearSelectionIfHidden();
+                this.showStatus(
+                    `Filter built (${result.afterVisibleCount}/${result.beforeVisibleCount} nodes visible).`,
+                    3600
+                );
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Filter build failed.",
+                    3600
+                );
+            } finally {
+                this.graphFilterLoading = false;
+                this.graphFilterProgress = "";
+                this.graphLoading = false;
+            }
+        },
+        clearGraphFilterDraft() {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = ensureSessionFilterState(
+                resetGraphFilterOnSession(this.activeSession, this.expressionOptions),
+                this.expressionOptions
+            );
+            this.showStatus("Filter form cleared.", 2800);
+        },
+        onToggleVisibilityFilterLayer(layerId) {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = {
+                ...toggleVisibilityFilterLayer(
+                    this.activeSession,
+                    layerId,
+                    this.expressionOptions
+                ),
+            };
+            this.clearSelectionIfHidden();
+        },
+        onRemoveVisibilityFilterLayer(layerId) {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = {
+                ...removeVisibilityFilterLayer(
+                    this.activeSession,
+                    layerId,
+                    this.expressionOptions
+                ),
+            };
+            this.clearSelectionIfHidden();
+        },
+        onRemoveInvisibleNodesFromGraph() {
+            if (!this.activeSession) {
+                return;
+            }
+            const nodeIds = collectInvisibleNodeIds(
+                this.activeSession,
+                this.expressionOptions
+            );
+            if (!nodeIds.length) {
+                this.showStatus("No hidden nodes to remove.", 2800);
+                return;
+            }
+            const nextSession = removeNodesFromWorkspaceGraph(this.activeSession, nodeIds);
+            this.activeSession = withNormalizedKeyNodes({
+                ...nextSession,
+                contextualEdgeSignature: "",
+            });
+            if (
+                this.selectedNodeId &&
+                nodeIds.includes(this.selectedNodeId)
+            ) {
+                this.selectedNodeId = null;
+                this.selectedEdgeId = null;
+                this.selectedEdgeRef = null;
+                this.inspectorOpen = false;
+            }
+            this.clearSelectionIfHidden();
+            this.showStatus(
+                `Removed ${nodeIds.length} hidden node${nodeIds.length === 1 ? "" : "s"} from the graph.`,
+                3600
+            );
+        },
+        async runGraphFilter() {
+            return this.buildVisibilityFilter();
+        },
+        resetGraphFilter() {
+            return this.clearGraphFilterDraft();
         },
         async onAddTableNode(row) {
             if (!this.activeSession || !row?.node_id) {
@@ -1392,9 +1823,10 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.contextualFetchSignature = signature;
             try {
+                const { visibleNodes } = getDisplayGraph(session);
                 const contextualEdges = await fetchContextualEdgesForGraph(
                     this.apiClient,
-                    session.graphNodes,
+                    visibleNodes,
                     session.graphEdges
                 );
                 if (!this.activeSession || this.contextualGraphSignature !== signature) {
@@ -1682,30 +2114,6 @@ export default Vue.component("reveal-kg-workspace", {
                 ],
             };
         },
-        onExplainIntentChange(value) {
-            if (!this.activeSession) {
-                return;
-            }
-            const controls = {
-                ...(this.activeSession.controls || {}),
-                explainIntent: value,
-            };
-            this.activeSession = {
-                ...this.activeSession,
-                controls,
-            };
-            const entry = this.activeSession.graphInterpretation;
-            if (entry && entry.status === "draft") {
-                const draft = buildExplanationDraft(this.activeSession, this.explainScope);
-                const nextEntry = {
-                    ...entry,
-                    query_text: draft.query_text,
-                    intent: draft.intent,
-                    prompt_preview: draft.prompt_preview,
-                };
-                this.patchGraphInterpretationEntry(entry.id, nextEntry);
-            }
-        },
         onExplainEntryPatch(patch) {
             const entry = this.activeSession?.graphInterpretation;
             if (!entry) {
@@ -1836,7 +2244,7 @@ export default Vue.component("reveal-kg-workspace", {
             this.activeSession = withNormalizedKeyNodes(session);
             const node = findGraphNode(this.activeSession, addedIds[0] || nodeId);
             this.showStatus(
-                `Added ${node?.label || nodeId} as a key node.`,
+                `Added ${node?.label || nodeId} as a selected node.`,
                 2600
             );
         },
@@ -1853,18 +2261,463 @@ export default Vue.component("reveal-kg-workspace", {
                 nodeIds
             );
             if (!changed) {
-                this.showStatus("Suggested nodes are already key nodes.", 2600);
+                this.showStatus("Suggested nodes are already selected nodes.", 2600);
                 return;
             }
             this.activeSession = withNormalizedKeyNodes(session);
             this.showStatus(
-                `Added ${addedIds.length} suggested node${addedIds.length === 1 ? "" : "s"} as key nodes.`,
+                `Added ${addedIds.length} suggested node${addedIds.length === 1 ? "" : "s"} as selected nodes.`,
                 2800
             );
         },
         triggerBuildHypotheses() {
-            this.showStatus("Triggered: Build hypotheses");
-            this.remindAfterAnalysis("Build hypotheses");
+            this.startBuildHypotheses();
+        },
+        startBuildHypotheses() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before building hypotheses.", 3200);
+                return;
+            }
+            if (!normalizeKeyNodeIds(this.activeSession).length) {
+                this.showStatus(
+                    "Mark nodes as selected on the canvas before building hypotheses.",
+                    3200
+                );
+                return;
+            }
+            const current = this.activeSession?.sigChainRun;
+            if (current?.status === "success") {
+                this.hypothesesOpen = true;
+                return;
+            }
+            if (current?.status === "draft" || current?.status === "error") {
+                this.ensureSigChainDraft({ forceNew: false });
+                this.hypothesesOpen = true;
+                return;
+            }
+            const saved = this.savedHypothesisRuns;
+            if (saved.length) {
+                this.activeSession = {
+                    ...this.activeSession,
+                    sigChainRun: saved[0],
+                };
+                this.hypothesesOpen = true;
+                return;
+            }
+            this.ensureSigChainDraft({ forceNew: false });
+            this.hypothesesOpen = true;
+        },
+        openSavedHypothesesRun(runId) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before building hypotheses.", 3200);
+                return;
+            }
+            if (!runId) {
+                this.startBuildHypotheses();
+                return;
+            }
+            const entry = (this.activeSession.sigChainRuns || []).find(
+                (item) => item.id === runId
+            );
+            if (entry) {
+                this.activeSession = {
+                    ...this.activeSession,
+                    sigChainRun: entry,
+                };
+            }
+            this.hypothesesOpen = true;
+        },
+        closeBuildHypotheses() {
+            if (this.sigChainLoading) {
+                return;
+            }
+            this.hypothesesOpen = false;
+        },
+        onSigChainNewRun() {
+            this.ensureSigChainDraft({ forceNew: true });
+        },
+        ensureSigChainDraft({ forceNew = false } = {}) {
+            if (!this.activeSession) {
+                return;
+            }
+            const draft = ensureSigChainDraft(this.activeSession, { forceNew });
+            const runs = this.mergeSigChainRunIntoHistory(draft).filter(
+                (entry) => entry.status !== "draft" || entry.id === draft.id
+            );
+            this.activeSession = {
+                ...this.activeSession,
+                sigChainRun: draft,
+                sigChainRuns: runs,
+                explainContext: draft.additionalContext,
+            };
+        },
+        mergeSigChainRunIntoHistory(run) {
+            const runs = this.activeSession?.sigChainRuns || [];
+            const existingIndex = runs.findIndex((entry) => entry.id === run.id);
+            if (existingIndex === -1) {
+                return [run, ...runs];
+            }
+            return runs.map((entry, index) => (index === existingIndex ? run : entry));
+        },
+        onSigChainPathwayStateUpdate({ chainKey, state }) {
+            const run = this.activeSigChainRun;
+            if (!run?.id || !chainKey) {
+                return;
+            }
+            const pathwayCache = {
+                ...(run.pathwayCache || {}),
+                [chainKey]: {
+                    ...(run.pathwayCache?.[chainKey] || {}),
+                    ...state,
+                },
+            };
+            this.patchSigChainRunEntry(run.id, patchSigChainRun(run, { pathwayCache }));
+        },
+        onSigChainDraftPatch(patch) {
+            const run = this.activeSigChainDraft || this.activeSigChainRun;
+            if (!run || !this.activeSession) {
+                return;
+            }
+            let mergedPatch = { ...patch };
+            if (patch.noveltyFilter !== undefined) {
+                const snapshot = computeSigChainDraftSnapshot(this.activeSession);
+                mergedPatch = {
+                    ...mergedPatch,
+                    queryText: buildSigChainPrioritizationQuestion({
+                        selectedNodes: run.selectedNodes?.length
+                            ? run.selectedNodes
+                            : snapshot.selectedNodes,
+                        intent: run.intent || snapshot.intent,
+                        noveltyFilter: patch.noveltyFilter,
+                    }),
+                };
+            }
+            const nextRun = patchSigChainRun(run, mergedPatch);
+            this.patchSigChainRunEntry(run.id, nextRun);
+        },
+        patchSigChainRunEntry(runId, nextRun) {
+            if (!this.activeSession || !runId) {
+                return;
+            }
+            this.activeSession = {
+                ...this.activeSession,
+                explainContext: nextRun.additionalContext ?? this.activeSession.explainContext,
+                sigChainRun:
+                    this.activeSession.sigChainRun?.id === runId
+                        ? nextRun
+                        : this.activeSession.sigChainRun,
+                sigChainRuns: (this.activeSession.sigChainRuns || []).map((entry) =>
+                    entry.id === runId ? nextRun : entry
+                ),
+            };
+        },
+        async runSigChainPrioritization() {
+            const session = this.activeSession;
+            const run = this.activeSigChainDraft || session?.sigChainRun;
+            if (!session || !run) {
+                return;
+            }
+            if (!this.llmAvailable) {
+                this.showStatus("LLM prioritization is not available.", 3200);
+                return;
+            }
+            if (!this.apiClient?.prioritizeInteractiveSigChains) {
+                this.showStatus("Connection ranking API is not configured.", 3200);
+                return;
+            }
+            const snapshot = getSigChainPrioritizationSnapshot(session);
+            const visibleNodes = run.graphNodes?.length
+                ? run.graphNodes
+                : snapshot.visibleNodes;
+            const selectedNodes = run.selectedNodes?.length
+                ? run.selectedNodes
+                : snapshot.selectedNodes;
+            let loadingRun = patchSigChainRun(run, {
+                status: "loading",
+                graphNodes: visibleNodes,
+                selectedNodes,
+                graphSignature: snapshot.graphSignature,
+                error: "",
+                pathwayCache: {},
+            });
+            this.patchSigChainRunEntry(run.id, loadingRun);
+            this.activeSession = {
+                ...this.activeSession,
+                sigChainLoading: true,
+            };
+            try {
+                let extraContextualEdges = [];
+                if (visibleNodes.length >= 2 && this.apiClient.getInteractiveSubgraphEdges) {
+                    const subgraphPayload = await this.apiClient.getInteractiveSubgraphEdges({
+                        node_ids: visibleNodes.map((node) => node.id),
+                        connection_scope: "direct",
+                    });
+                    const baseEdgeIds = new Set(
+                        (session.graphEdges || []).map((edge) => edge.id)
+                    );
+                    extraContextualEdges = (subgraphPayload.edges || []).filter(
+                        (edge) => !baseEdgeIds.has(edge.id)
+                    );
+                    this.activeSession = {
+                        ...this.activeSession,
+                        contextualEdges: extraContextualEdges,
+                    };
+                }
+                const mergedEdges = mergeGraphEdgesForSigChainRun(
+                    this.activeSession,
+                    extraContextualEdges
+                );
+                const visibleNodeIds = new Set(visibleNodes.map((node) => node.id));
+                const runEdges = edgesForVisibleNodes(mergedEdges, visibleNodeIds);
+                loadingRun = patchSigChainRun(loadingRun, { graphEdges: runEdges });
+                const payload = await this.apiClient.prioritizeInteractiveSigChains(
+                    buildSigChainPrioritizePayload(this.activeSession, loadingRun)
+                );
+                const successRun = patchSigChainRun(loadingRun, {
+                    status: payload?.status === "error" ? "error" : "success",
+                    completedAt: new Date().toISOString(),
+                    payload,
+                    error: payload?.error || "",
+                });
+                this.patchSigChainRunEntry(run.id, successRun);
+                this.activeSession = {
+                    ...this.activeSession,
+                    sigChainRun: successRun,
+                    sigChainLoading: false,
+                };
+                const chainCount = successRun.payload?.chains?.length || 0;
+                if (successRun.status === "error") {
+                    this.showStatus(
+                        successRun.error || "Could not rank connections.",
+                        3200
+                    );
+                } else {
+                    this.showStatus(
+                        chainCount
+                            ? `Found ${chainCount} connection${chainCount === 1 ? "" : "s"}.`
+                            : "No connections matched the current graph.",
+                        3200
+                    );
+                    this.remindAfterAnalysis("Build hypotheses");
+                }
+            } catch (error) {
+                const errorRun = patchSigChainRun(loadingRun, {
+                    status: "error",
+                    completedAt: new Date().toISOString(),
+                    payload: {
+                        status: "error",
+                        chains: [],
+                        zero_state_reason: "",
+                        llm_debug: { prompt: {}, response_text: "", model: "" },
+                    },
+                    error: String(error?.message || error),
+                });
+                this.patchSigChainRunEntry(run.id, errorRun);
+                this.activeSession = {
+                    ...this.activeSession,
+                    sigChainRun: errorRun,
+                    sigChainLoading: false,
+                };
+                this.showStatus(
+                    String(error?.message || error) || "Could not rank connections.",
+                    3200
+                );
+            }
+        },
+        triggerFindRelatedDatasets() {
+            this.startFindRelatedDatasets();
+        },
+        startFindRelatedDatasets() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before finding related datasets.", 3200);
+                return;
+            }
+            if (!this.selectedGeneCount) {
+                this.showStatus(
+                    "Mark one or more genes as selected on the canvas before finding related datasets.",
+                    3200
+                );
+                return;
+            }
+            const activeSetKey = this.cfdeActiveSetKey;
+            const current = this.activeSession?.datasetRun;
+            if (current && cfdeDatasetRunMatchesActiveSet(current, activeSetKey)) {
+                this.datasetForceSearchForm = false;
+                this.relatedDatasetsOpen = true;
+                return;
+            }
+            const saved = successfulCfdeDatasetRuns(this.activeSession);
+            if (saved.length && cfdeDatasetRunMatchesActiveSet(saved[0], activeSetKey)) {
+                this.activeSession = {
+                    ...this.activeSession,
+                    datasetRun: saved[0],
+                };
+                this.datasetForceSearchForm = false;
+                this.relatedDatasetsOpen = true;
+                return;
+            }
+            this.datasetForceSearchForm = true;
+            this.relatedDatasetsOpen = true;
+        },
+        openSavedDatasetsRun(runId) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before finding related datasets.", 3200);
+                return;
+            }
+            if (!runId) {
+                this.startFindRelatedDatasets();
+                return;
+            }
+            const entry = (this.activeSession.datasetRuns || []).find(
+                (item) => item.id === runId
+            );
+            if (entry) {
+                this.activeSession = {
+                    ...this.activeSession,
+                    datasetRun: entry,
+                };
+            }
+            this.datasetForceSearchForm = false;
+            this.relatedDatasetsOpen = true;
+        },
+        closeFindRelatedDatasets() {
+            if (this.datasetLoading) {
+                return;
+            }
+            this.relatedDatasetsOpen = false;
+        },
+        onDatasetSearchAgain() {
+            this.datasetForceSearchForm = true;
+        },
+        mergeDatasetRunIntoHistory(run) {
+            const runs = this.activeSession?.datasetRuns || [];
+            const existingIndex = runs.findIndex((entry) => entry.id === run.id);
+            if (existingIndex === -1) {
+                return [run, ...runs];
+            }
+            return runs.map((entry, index) => (index === existingIndex ? run : entry));
+        },
+        patchDatasetRunEntry(runId, nextRun) {
+            if (!this.activeSession || !runId) {
+                return;
+            }
+            this.activeSession = {
+                ...this.activeSession,
+                datasetRun:
+                    this.activeSession.datasetRun?.id === runId
+                        ? nextRun
+                        : this.activeSession.datasetRun,
+                datasetRuns: (this.activeSession.datasetRuns || []).map((entry) =>
+                    entry.id === runId ? nextRun : entry
+                ),
+            };
+        },
+        async runCfdeDatasetSearch() {
+            const session = this.activeSession;
+            const activeSetNodes = getCfdeActiveSetNodesFromSession(session);
+            if (!session || !activeSetNodes.length) {
+                this.showStatus(
+                    "Mark one or more genes as selected on the canvas before finding related datasets.",
+                    3200
+                );
+                return;
+            }
+            if (!this.apiClient?.findInteractiveCfdeDatasets) {
+                this.showStatus("CFDE dataset search API is not configured.", 3200);
+                return;
+            }
+            const run = buildCfdeDatasetRun(activeSetNodes);
+            this.activeSession = {
+                ...session,
+                datasetRun: run,
+                datasetRuns: this.mergeDatasetRunIntoHistory(run),
+                datasetLoading: true,
+            };
+            this.datasetForceSearchForm = false;
+            try {
+                const payload = await this.apiClient.findInteractiveCfdeDatasets(
+                    buildCfdeDatasetSearchPayload(session, activeSetNodes)
+                );
+                const nextRun = patchCfdeDatasetRun(run, {
+                    status: payload?.status === "error" ? "error" : "success",
+                    completedAt: new Date().toISOString(),
+                    payload,
+                    error: payload?.error || "",
+                });
+                this.patchDatasetRunEntry(run.id, nextRun);
+                this.activeSession = {
+                    ...this.activeSession,
+                    datasetLoading: false,
+                };
+                const datasetCount = nextRun.payload?.datasets?.length || 0;
+                if (nextRun.status === "error") {
+                    this.showStatus(
+                        nextRun.error || "CFDE gene-set search failed.",
+                        3200
+                    );
+                } else {
+                    this.showStatus(
+                        datasetCount
+                            ? `Found ${datasetCount} CFDE gene set${datasetCount === 1 ? "" : "s"}.`
+                            : "No CFDE gene sets matched the selected genes.",
+                        3200
+                    );
+                }
+            } catch (error) {
+                const errorRun = patchCfdeDatasetRun(run, {
+                    status: "error",
+                    completedAt: new Date().toISOString(),
+                    payload: null,
+                    error: String(error?.message || error),
+                });
+                this.patchDatasetRunEntry(run.id, errorRun);
+                this.activeSession = {
+                    ...this.activeSession,
+                    datasetLoading: false,
+                };
+                this.showStatus(
+                    String(error?.message || error) || "CFDE gene-set search failed.",
+                    3200
+                );
+            }
+        },
+        async onAddCfdeGeneSet(row) {
+            if (!this.activeSession || !row?.node_id) {
+                return;
+            }
+            this.graphLoading = true;
+            try {
+                const nextSession = await addNodesToWorkspaceGraph(this.apiClient, this.activeSession, [
+                    {
+                        node_id: row.node_id,
+                        node_type: "gene_set",
+                        type: "gene_set",
+                        label: row.label || row.node_id,
+                        subtitle: row.subtitle || "",
+                    },
+                ]);
+                const previousCount = this.activeSession.graphNodes?.length || 0;
+                if ((nextSession.graphNodes?.length || 0) <= previousCount) {
+                    this.showStatus(`${row.label || row.node_id} is already on the graph.`, 2800);
+                    return;
+                }
+                this.activeSession = withNormalizedKeyNodes(nextSession);
+                this.scheduleContextualEdgesFetch();
+                this.showStatus(`Added ${row.label || row.node_id} to the graph.`, 2800);
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Could not add gene set.",
+                    3200
+                );
+            } finally {
+                this.graphLoading = false;
+            }
+        },
+        onRemoveCfdeGeneSet(row) {
+            this.onRemoveTableNode({
+                nodeId: row?.node_id,
+                label: row?.label,
+            });
         },
         remindAfterAnalysis(analysisLabel) {
             if (!this.activeSession?.graphNodes?.length) {
@@ -1943,7 +2796,7 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             if (payload.menu === "analyze" && payload.action === "dataProvenance") {
-                this.showStatus(`Triggered: ${payload.label}`);
+                this.triggerFindRelatedDatasets();
                 return;
             }
             this.showStatus(`Triggered: ${payload.label}`);
@@ -2074,19 +2927,23 @@ export default Vue.component("reveal-kg-workspace", {
                   }
                 : emptyCaches;
 
-            this.activeSession = withNormalizedKeyNodes({
-                ...session,
-                graphNodes: normalized.graphNodes,
-                graphEdges: normalized.graphEdges,
-                contextualEdges: session.contextualEdges || [],
-                retrievalLedger: session.retrievalLedger || {},
-                contextualEdgeSignature: session.contextualEdgeSignature || "",
-                anchorItems: anchorItemsFromBuckets(buckets),
-                starterBuckets: buckets,
-                pendingNodeAdds: [],
-                pendingGraphRebuild: false,
-                ...inspectorCaches,
-            });
+            this.activeSession = ensureSessionFilterState(
+                withNormalizedKeyNodes({
+                    ...session,
+                    graphNodes: normalized.graphNodes,
+                    graphEdges: normalized.graphEdges,
+                    contextualEdges: session.contextualEdges || [],
+                    retrievalLedger: session.retrievalLedger || {},
+                    contextualEdgeSignature: session.contextualEdgeSignature || "",
+                    graphFilterCache: session.graphFilterCache || {},
+                    anchorItems: anchorItemsFromBuckets(buckets),
+                    starterBuckets: buckets,
+                    pendingNodeAdds: [],
+                    pendingGraphRebuild: false,
+                    ...inspectorCaches,
+                }),
+                this.expressionOptions
+            );
             this.contextualFetchSignature = session.contextualEdgeSignature || "";
             if (
                 !session.contextualEdges?.length &&
@@ -2208,7 +3065,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
             const buckets = starterBucketsFromSession(session);
             if (!totalStarterCount(buckets)) {
-                this.showStatus("No key nodes found in that graph.");
+                this.showStatus("No selected nodes found in that graph.");
                 return;
             }
 
@@ -2321,6 +3178,17 @@ export default Vue.component("reveal-kg-workspace", {
     position: relative;
     flex: 1;
     min-height: 0;
+}
+
+.rkw-analysis-bubbles {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    z-index: 6;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    gap: 8px;
 }
 
 .rkw-action-status {

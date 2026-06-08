@@ -41,7 +41,7 @@
                         Exploration stays open-ended: you are not forced through a
                         fixed pipeline. Change, Analyze, and Manage give you deliberate
                         ways to mutate the graph, read meaning from it, and keep work
-                        you may want again. Start from key nodes or a saved graph, shape
+                        you may want again. Start from selected nodes or a saved graph, shape
                         the canvas with expand and filter, open the Inspector when you
                         need provenance, and save when the graph reaches a state worth
                         returning to.
@@ -69,7 +69,7 @@
                                 graph, Build hypotheses, and Find related datasets help you
                                 summarize patterns, draft mechanistic stories, and trace
                                 CFDE-linked evidence—on the whole graph or on a
-                                selection you have marked as key nodes.
+                                selection you have marked as selected nodes.
                             </p>
                         </li>
                         <li>
@@ -106,12 +106,12 @@
                     </p>
                     <ul class="wkb-docs-feature-list">
                         <li>
-                            <strong>Key node</strong>
+                            <strong>Selected node</strong>
                             <p>
                                 Blue circles or blue diamonds are nodes you marked as
                                 important for this session. New graphs start with your
-                                initial picks as key nodes. Use <em>Mark as key node</em>
-                                on the node menu to add or remove them. Key nodes drive
+                                initial picks as selected nodes. Use <em>Mark as selected node</em>
+                                on the node menu to add or remove them. Selected nodes drive
                                 connection ranking in the Inspector and are saved with
                                 the graph.
                             </p>
@@ -122,7 +122,7 @@
                                 Gray diamonds are entities you chose when you built or
                                 duplicated the graph. They stay visually distinct from
                                 nodes you added later. If you also mark a starting node as
-                                a key node, it appears blue like other key nodes.
+                                a selected node, it appears blue like other selected nodes.
                             </p>
                         </li>
                         <li>

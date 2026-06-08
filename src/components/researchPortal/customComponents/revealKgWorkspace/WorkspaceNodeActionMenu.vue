@@ -25,7 +25,7 @@
             Expand graph from node
         </button>
         <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('toggle-key-node')">
-            {{ isKeyNode ? "Remove from key nodes" : "Mark as key node" }}
+            {{ isKeyNode ? "Remove from selected nodes" : "Mark as selected node" }}
         </button>
     </div>
 </template>
@@ -77,7 +77,7 @@ export default {
             if (this.canRemove) {
                 return "";
             }
-            return "Key nodes cannot be removed. Use Remove from key nodes first.";
+            return "Selected nodes cannot be removed. Use Remove from selected nodes first.";
         },
         clampedPosition() {
             return clampMenuPosition(this.left, this.top);

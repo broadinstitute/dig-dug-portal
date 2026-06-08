@@ -2,9 +2,9 @@
 
 export const ACTIVE_SET_NODE_COLOR = "#ff6600";
 export const TREE_VIEW_DEFAULT_NODE_COLOR = "#777777";
-/** Starting nodes — gray diamond when not a key node. */
+/** Starting nodes — gray diamond when not a selected node. */
 export const TREE_VIEW_ANCHOR_NODE_COLOR = "#888888";
-/** Key nodes — blue circle or blue diamond. */
+/** Selected nodes — blue circle or blue diamond. */
 export const TREE_VIEW_KEY_NODE_COLOR = "#488bf7";
 export const TREE_VIEW_EDGE_COLOR = "#b0a890";
 /** Inspector connected bubbles — 1-hop (prominent). */

@@ -43,9 +43,9 @@
                         @change="$emit('update:scope', scopeKeyNodes)"
                     />
                     <span class="wkb-explain-scope-copy">
-                        <strong>Key nodes only</strong>
+                        <strong>Selected nodes only</strong>
                         <span class="wkb-explain-scope-meta">
-                            {{ keyNodeCount }} key node{{ keyNodeCount === 1 ? "" : "s" }} on
+                            {{ keyNodeCount }} selected node{{ keyNodeCount === 1 ? "" : "s" }} on
                             canvas
                         </span>
                     </span>
@@ -59,7 +59,7 @@
                         @change="$emit('update:scope', scopeEntireGraph)"
                     />
                     <span class="wkb-explain-scope-copy">
-                        <strong>Entire graph</strong>
+                        <strong>All visible nodes</strong>
                         <span class="wkb-explain-scope-meta">
                             {{ nodeCount }} node{{ nodeCount === 1 ? "" : "s" }},
                             {{ edgeCount }} edge{{ edgeCount === 1 ? "" : "s" }}
@@ -103,10 +103,10 @@
             <section
                 v-if="showKeyNodeSuggestions"
                 class="wkb-explain-suggestions"
-                aria-label="Suggested key nodes"
+                aria-label="Suggested selected nodes"
             >
                 <div class="wkb-explain-suggestions-head">
-                    <h3 class="wkb-explain-suggestions-title">Suggested key nodes</h3>
+                    <h3 class="wkb-explain-suggestions-title">Suggested selected nodes</h3>
                     <button
                         v-if="addableSuggestionCount"
                         type="button"
@@ -117,7 +117,7 @@
                     </button>
                 </div>
                 <p class="wkb-explain-suggestions-intro">
-                    From the LLM explanation — add nodes to your key set for hypothesis work.
+                    From the LLM explanation — add nodes to your selected set for hypothesis work.
                 </p>
                 <ul class="wkb-explain-suggestions-list">
                     <li
@@ -132,7 +132,7 @@
                                 {{ item.node_type }}
                             </span>
                             <span v-if="item.is_key_node" class="wkb-explain-suggestion-badge">
-                                Key node
+                                Selected node
                             </span>
                         </div>
                         <p v-if="item.rationale" class="wkb-explain-suggestion-rationale">
@@ -144,7 +144,7 @@
                             :disabled="item.is_key_node"
                             @click="$emit('add-suggested-key-node', item.node_id)"
                         >
-                            {{ item.is_key_node ? "Already a key node" : "Add as key node" }}
+                            {{ item.is_key_node ? "Already a selected node" : "Add as selected node" }}
                         </button>
                     </li>
                 </ul>
@@ -179,20 +179,6 @@
                     placeholder="Optional context or intent to add to the prompt"
                     :disabled="loading || !entry"
                     @input="onContextInput"
-                />
-
-                <label class="wkb-explain-label" for="wkb-explain-intent">
-                    Focus intent
-                    <span class="wkb-explain-label-note">Optional; appended to the question.</span>
-                </label>
-                <input
-                    id="wkb-explain-intent"
-                    type="text"
-                    class="wkb-explain-input"
-                    :value="explainIntent"
-                    placeholder="Optional extra intent for this explanation"
-                    :disabled="loading"
-                    @input="$emit('update:explainIntent', $event.target.value)"
                 />
             </div>
 
@@ -249,10 +235,6 @@ export default {
         llmAvailable: {
             type: Boolean,
             default: false,
-        },
-        explainIntent: {
-            type: String,
-            default: "",
         },
         keyNodeCount: {
             type: Number,
@@ -603,13 +585,7 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
-.wkb-explain-label-note {
-    font-weight: 400;
-    color: var(--cfde-muted, #6b6b6b);
-}
-
-.wkb-explain-textarea,
-.wkb-explain-input {
+.wkb-explain-textarea {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid var(--cfde-border, #e6e1d6);

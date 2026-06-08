@@ -122,6 +122,7 @@
                         @add-node="$emit('add-node', $event)"
                         @remove-node="$emit('remove-node', $event)"
                     />
+                    <template v-else-if="selectedNode">
                         <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
                         <dl class="wkb-inspector-meta">
                             <div v-if="selectedNode.nodeType">
@@ -130,7 +131,7 @@
                             </div>
                             <div v-if="selectedNode.isKeyNode">
                                 <dt>Role</dt>
-                                <dd>Key node</dd>
+                                <dd>Selected node</dd>
                             </div>
                             <div v-if="selectedNode.subtitle">
                                 <dt>Subtitle</dt>

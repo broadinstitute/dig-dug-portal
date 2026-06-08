@@ -4,8 +4,8 @@
             type="button"
             class="wkb-graph-control-btn wkb-graph-view-options-trigger"
             :class="{ 'is-open': open }"
-            title="Graph view options"
-            aria-label="Graph view options"
+            title="View"
+            aria-label="View"
             aria-haspopup="menu"
             :aria-expanded="open ? 'true' : 'false'"
             :aria-controls="menuId"
@@ -18,7 +18,7 @@
             :id="menuId"
             class="wkb-graph-view-options-menu"
             role="menu"
-            aria-label="Graph view options"
+            aria-label="View"
             @click.stop
             @mousedown.stop
         >
@@ -164,7 +164,8 @@ export default {
     right: 0;
     z-index: 12;
     min-width: 220px;
-    padding: 6px 0;
+    max-width: min(320px, 92vw);
+    padding: 6px 0 8px;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 8px;
     background: #ffffff;
@@ -175,11 +176,11 @@ export default {
 .wkb-graph-view-options-menu-title {
     margin: 0;
     padding: 6px 14px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--cfde-muted, #6b6b6b);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+    letter-spacing: normal;
+    text-transform: none;
 }
 
 .wkb-graph-view-options-item {

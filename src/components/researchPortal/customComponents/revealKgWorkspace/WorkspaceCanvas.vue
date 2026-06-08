@@ -15,7 +15,7 @@
                             class="wkb-canvas-swatch wkb-canvas-swatch--key-node"
                             aria-hidden="true"
                         />
-                        Key node
+                        Selected node
                     </span>
                     <span class="wkb-canvas-legend-item">
                         <span
@@ -98,10 +98,11 @@
             </div>
             <WorkspaceGraphDataTableModal
                 :open="graphTableOpen && hasGraph"
-                :graph-nodes="graphNodes"
+                :graph-nodes="allGraphNodes.length ? allGraphNodes : graphNodes"
                 :graph-edges="graphEdges"
                 :contextual-edges="contextualEdges"
                 :retrieval-ledger="retrievalLedger"
+                :ledger-session="ledgerSession"
                 :key-node-ids="keyNodeIds"
                 :graph-busy="graphLoading || tableAddBusy"
                 @close="graphTableOpen = false"
@@ -140,6 +141,14 @@ export default {
         graphNodes: {
             type: Array,
             default: () => [],
+        },
+        allGraphNodes: {
+            type: Array,
+            default: () => [],
+        },
+        ledgerSession: {
+            type: Object,
+            default: null,
         },
         graphEdges: {
             type: Array,

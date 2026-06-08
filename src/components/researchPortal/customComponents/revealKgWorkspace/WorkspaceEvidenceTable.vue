@@ -4,7 +4,11 @@
             <h4 v-if="title" class="wkb-evidence-table-title">{{ title }}</h4>
             <slot name="controls" />
         </div>
-        <div v-if="rows.length" class="wkb-evidence-table-wrap">
+        <div
+            v-if="rows.length"
+            class="wkb-evidence-table-wrap"
+            :class="{ 'wkb-evidence-table-wrap--plain': !bordered }"
+        >
             <table class="wkb-evidence-table-grid">
                 <thead>
                     <tr>
@@ -77,6 +81,10 @@ export default {
             type: String,
             default: "Table pages",
         },
+        bordered: {
+            type: Boolean,
+            default: true,
+        },
     },
     data() {
         return {
@@ -147,6 +155,11 @@ export default {
     max-width: 100%;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 8px;
+}
+
+.wkb-evidence-table-wrap--plain {
+    border: none;
+    border-radius: 0;
 }
 
 .wkb-evidence-table-grid {

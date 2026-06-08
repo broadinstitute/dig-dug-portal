@@ -192,7 +192,7 @@ function graphNodeIdSet(nodes) {
 }
 
 function highlightedFromRecord(record, nodes) {
-    // Saved graphs store key node ids in `highlighted` (legacy field name).
+    // Saved graphs store selected node ids in `highlighted` (legacy field name).
     const raw =
         record?.highlighted ||
         record?.highlightedNodeIds ||
@@ -200,6 +200,94 @@ function highlightedFromRecord(record, nodes) {
         [];
     const nodeIds = graphNodeIdSet(nodes);
     return Array.from(new Set((raw || []).filter((id) => nodeIds.has(id))));
+}
+
+function sigChainRunsFromSession(session) {
+    if (!session) {
+        return [];
+    }
+    const byId = new Map();
+    const addRun = (run) => {
+        if (!run?.id) {
+            return;
+        }
+        const previous = byId.get(run.id);
+        byId.set(run.id, previous ? { ...previous, ...run } : run);
+    };
+    const hypothesisRuns = Array.isArray(session.hypotheses) ? session.hypotheses : [];
+    const sigChainRuns = Array.isArray(session.sigChainRuns) ? session.sigChainRuns : [];
+    if (hypothesisRuns.length) {
+        for (const run of hypothesisRuns) {
+            addRun(run);
+        }
+    }
+    for (const run of sigChainRuns) {
+        addRun(run);
+    }
+    if (session.sigChainRun?.id) {
+        addRun(session.sigChainRun);
+    }
+    return Array.from(byId.values()).sort((left, right) => {
+        const leftTime = Date.parse(left?.completedAt || left?.startedAt || 0);
+        const rightTime = Date.parse(right?.completedAt || right?.startedAt || 0);
+        return rightTime - leftTime;
+    });
+}
+
+function activeSigChainRunFromSession(session, runs = null) {
+    const mergedRuns = runs || sigChainRunsFromSession(session);
+    if (session?.sigChainRun?.id) {
+        return (
+            mergedRuns.find((run) => run.id === session.sigChainRun.id) ||
+            session.sigChainRun
+        );
+    }
+    return mergedRuns.find((run) => run.status === "success") || mergedRuns[0] || null;
+}
+
+function datasetRunsFromSession(session) {
+    if (!session) {
+        return [];
+    }
+    const byId = new Map();
+    const addRun = (run) => {
+        if (!run?.id) {
+            return;
+        }
+        const previous = byId.get(run.id);
+        byId.set(run.id, previous ? { ...previous, ...run } : run);
+    };
+    const provenanceRuns = Array.isArray(session.dataProvenanceRuns)
+        ? session.dataProvenanceRuns
+        : [];
+    const datasetRuns = Array.isArray(session.datasetRuns) ? session.datasetRuns : [];
+    if (provenanceRuns.length) {
+        for (const run of provenanceRuns) {
+            addRun(run);
+        }
+    }
+    for (const run of datasetRuns) {
+        addRun(run);
+    }
+    if (session.datasetRun?.id) {
+        addRun(session.datasetRun);
+    }
+    return Array.from(byId.values()).sort((left, right) => {
+        const leftTime = Date.parse(left?.completedAt || left?.startedAt || 0);
+        const rightTime = Date.parse(right?.completedAt || right?.startedAt || 0);
+        return rightTime - leftTime;
+    });
+}
+
+function activeDatasetRunFromSession(session, runs = null) {
+    const mergedRuns = runs || datasetRunsFromSession(session);
+    if (session?.datasetRun?.id) {
+        return (
+            mergedRuns.find((run) => run.id === session.datasetRun.id) ||
+            session.datasetRun
+        );
+    }
+    return mergedRuns.find((run) => run.status === "success") || mergedRuns[0] || null;
 }
 
 //normalize inbound graph/session payloads into the canonical saved record
@@ -224,6 +312,7 @@ function normalizeGraphRecord(record) {
         highlighted: highlightedFromRecord(record, nodes),
         controls: cloneJson(record.controls, {}),
         visibilityFilters: cloneJson(record.visibilityFilters, {}),
+        visibilityFilterLayers: cloneJson(record.visibilityFilterLayers, []),
         appliedGraphFilter: record.appliedGraphFilter
             ? cloneJson(record.appliedGraphFilter, null)
             : null,
@@ -360,6 +449,10 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
         },
         nodes
     );
+    const sigChainRuns = cloneJson(sigChainRunsFromSession(session), []);
+    const sigChainRun = cloneJson(activeSigChainRunFromSession(session, sigChainRuns), null);
+    const datasetRuns = cloneJson(datasetRunsFromSession(session), []);
+    const datasetRun = cloneJson(activeDatasetRunFromSession(session, datasetRuns), null);
     const base = {
         label: label !== undefined ? label : session.label,
         context: session.context || "",
@@ -369,6 +462,7 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
         highlightedNodeIds: highlighted,
         controls: session.controls || {},
         visibilityFilters: session.visibilityFilters || {},
+        visibilityFilterLayers: cloneJson(session.visibilityFilterLayers, []),
         appliedGraphFilter: session.appliedGraphFilter || null,
         retrievalLedger: session.retrievalLedger || {},
         contextualEdges: session.contextualEdges || [],
@@ -376,8 +470,12 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
         starterBuckets: session.starterBuckets || null,
         addNeighboringNodes:
             session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
-        hypotheses: session.hypotheses || session.sigChainRuns || [],
-        dataProvenanceRuns: session.dataProvenanceRuns || session.datasetRuns || [],
+        hypotheses: sigChainRuns,
+        sigChainRuns,
+        sigChainRun,
+        dataProvenanceRuns: datasetRuns,
+        datasetRuns,
+        datasetRun,
         graphInterpretations: cloneJson(session.graphInterpretations, []),
         graphInterpretation: cloneJson(session.graphInterpretation, null),
         explainContext: session.explainContext || "",
@@ -460,6 +558,16 @@ function sessionFromGraph(record) {
     if (!graph) {
         return null;
     }
+    const sigChainRuns = cloneJson(graph.hypotheses, []);
+    const sigChainRun = cloneJson(activeSigChainRunFromSession(null, sigChainRuns), null);
+    const datasetRuns = cloneJson(
+        datasetRunsFromSession({
+            dataProvenanceRuns: graph.dataProvenanceRuns,
+            datasetRuns: graph.dataProvenanceRuns,
+        }),
+        []
+    );
+    const datasetRun = cloneJson(activeDatasetRunFromSession(null, datasetRuns), null);
     return {
         id: graph.id,
         label: graph.label,
@@ -470,6 +578,7 @@ function sessionFromGraph(record) {
         reanchorSelection: cloneJson(graph.highlighted, []),
         controls: cloneJson(graph.controls, {}),
         visibilityFilters: cloneJson(graph.visibilityFilters, {}),
+        visibilityFilterLayers: cloneJson(graph.visibilityFilterLayers, []),
         appliedGraphFilter: graph.appliedGraphFilter
             ? cloneJson(graph.appliedGraphFilter, null)
             : null,
@@ -479,10 +588,14 @@ function sessionFromGraph(record) {
         starterBuckets: cloneJson(graph.starterBuckets, null),
         addNeighboringNodes:
             graph.addNeighboringNodes !== undefined ? graph.addNeighboringNodes : true,
-        hypotheses: cloneJson(graph.hypotheses, []),
-        sigChainRuns: cloneJson(graph.hypotheses, []),
-        dataProvenanceRuns: cloneJson(graph.dataProvenanceRuns, []),
-        datasetRuns: cloneJson(graph.dataProvenanceRuns, []),
+        hypotheses: sigChainRuns,
+        sigChainRuns,
+        sigChainRun,
+        sigChainLoading: false,
+        dataProvenanceRuns: datasetRuns,
+        datasetRuns,
+        datasetRun,
+        datasetLoading: false,
         graphInterpretations: cloneJson(graph.graphInterpretations, []),
         graphInterpretation: cloneJson(graph.graphInterpretation, null),
         explainContext: graph.explainContext || graph.context || "",
@@ -549,6 +662,33 @@ function sessionFromGraphExport(record) {
         return null;
     }
     const highlighted = highlightedFromRecord(payload, nodes);
+    const sigChainRuns = cloneJson(
+        sigChainRunsFromSession({
+            hypotheses: payload.hypotheses,
+            sigChainRuns: payload.sigChainRuns,
+            sigChainRun: payload.sigChainRun,
+        }),
+        []
+    );
+    const sigChainRun = cloneJson(
+        activeSigChainRunFromSession(
+            { sigChainRun: payload.sigChainRun },
+            sigChainRuns
+        ),
+        null
+    );
+    const datasetRuns = cloneJson(
+        datasetRunsFromSession({
+            dataProvenanceRuns: payload.dataProvenanceRuns,
+            datasetRuns: payload.datasetRuns,
+            datasetRun: payload.datasetRun,
+        }),
+        []
+    );
+    const datasetRun = cloneJson(
+        activeDatasetRunFromSession({ datasetRun: payload.datasetRun }, datasetRuns),
+        null
+    );
     return {
         label: String(payload.label || record.label || "").trim() || "Untitled graph",
         context: payload.context || "",
@@ -558,6 +698,7 @@ function sessionFromGraphExport(record) {
         reanchorSelection: highlighted,
         controls: cloneJson(payload.controls, {}),
         visibilityFilters: cloneJson(payload.visibilityFilters, {}),
+        visibilityFilterLayers: cloneJson(payload.visibilityFilterLayers, []),
         appliedGraphFilter: payload.appliedGraphFilter
             ? cloneJson(payload.appliedGraphFilter, null)
             : null,
@@ -567,13 +708,14 @@ function sessionFromGraphExport(record) {
         starterBuckets: cloneJson(payload.starterBuckets, null),
         addNeighboringNodes:
             payload.addNeighboringNodes !== undefined ? payload.addNeighboringNodes : true,
-        hypotheses: cloneJson(payload.hypotheses || payload.sigChainRuns, []),
-        sigChainRuns: cloneJson(payload.hypotheses || payload.sigChainRuns, []),
-        dataProvenanceRuns: cloneJson(
-            payload.dataProvenanceRuns || payload.datasetRuns,
-            []
-        ),
-        datasetRuns: cloneJson(payload.dataProvenanceRuns || payload.datasetRuns, []),
+        hypotheses: sigChainRuns,
+        sigChainRuns,
+        sigChainRun,
+        sigChainLoading: false,
+        dataProvenanceRuns: datasetRuns,
+        datasetRuns,
+        datasetRun,
+        datasetLoading: false,
         graphInterpretations: cloneJson(payload.graphInterpretations, []),
         graphInterpretation: cloneJson(payload.graphInterpretation, null),
         explainContext: payload.explainContext || payload.context || "",
