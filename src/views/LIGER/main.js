@@ -16,6 +16,12 @@ new Vue({
     },
     mixins: [pageMixin],
 
+    data() {
+        return {
+            liger_config: null,
+        }
+    },
+
     computed: {
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];

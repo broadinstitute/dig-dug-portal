@@ -10,6 +10,12 @@ const LIGER_USE_DEV_BIOINDEX = LIGER_FORCE_DEV_BIOINDEX || LIGER_LOCAL_HOSTNAMES
 const LIGER_RESOLVED_BIOINDEX_HOST = LIGER_USE_DEV_BIOINDEX ? LIGER_DEV_BIOINDEX_HOST : BIO_INDEX_HOST;
 const LIGER_API_HOST = LIGER_RESOLVED_BIOINDEX_HOST;
 const LIGER_PROGRAM_MODEL = "mouse_msigdb";
+const LIGER_DEFAULT_CONFIG = {
+    pageTitle: "Cell State & Program Explorer",
+    documentationUrl: "/research.html?pageid=kp_liger_documentation",
+    tissues: [],
+    hideTissueCardIfOneOption: false,
+};
 // Keep this code-level toggle in place so we can quickly compare raw API traits
 // versus portal-labeled traits without introducing UI controls yet.
 const LIGER_FILTER_UNLABELED_HEATMAP_TRAITS = true;
@@ -139,6 +145,43 @@ export default Vue.component('LigerBrowser', {
     },
 
     computed: {
+        ligerConfig() {
+            return {
+                ...LIGER_DEFAULT_CONFIG,
+                ...(this.config || {}),
+            };
+        },
+        pageTitle() {
+            return this.ligerConfig.pageTitle || LIGER_DEFAULT_CONFIG.pageTitle;
+        },
+        documentationUrl() {
+            return this.ligerConfig.documentationUrl || LIGER_DEFAULT_CONFIG.documentationUrl;
+        },
+        configuredTissueKeys() {
+            let configuredTissues = Array.isArray(this.ligerConfig.tissues)
+                ? this.ligerConfig.tissues
+                : [];
+
+            return configuredTissues
+                .map((tissue) => this.normalizeKey(tissue))
+                .filter((tissueKey) => !!tissueKey);
+        },
+        hideTissueCardIfOneOption() {
+            return this.ligerConfig.hideTissueCardIfOneOption === true;
+        },
+        hasSingleTissueOption() {
+            return this.availableTissues.length === 1;
+        },
+        shouldHideTissueCard() {
+            return this.hideTissueCardIfOneOption && this.hasSingleTissueOption;
+        },
+        expressionSectionTitleSuffix() {
+            if (this.shouldHideTissueCard && this.selectedTissue) {
+                return ` expressed in ${this.selectedTissue}?`;
+            }
+
+            return " expressed?";
+        },
         absoluteExpressionTooltip() {
             return "Absolute expression is log10(CP10K + 1), where CP10K is gene counts normalized per 10,000 total cell counts and averaged within the cell type.";
         },
@@ -929,6 +972,14 @@ export default Vue.component('LigerBrowser', {
             return Object.keys(LIGER_TISSUE_CONFIG).find((tissueKey) => {
                 return LIGER_TISSUE_CONFIG[tissueKey].label === label;
             }) || null;
+        },
+        tissueAllowed(label) {
+            if (!this.configuredTissueKeys.length) {
+                return true;
+            }
+
+            let tissueKey = this.tissueKeyFromLabel(label) || this.normalizeKey(label);
+            return this.configuredTissueKeys.includes(tissueKey);
         },
         tissueDatasetId(label) {
             let tissueKey = this.tissueKeyFromLabel(label);
@@ -2359,7 +2410,8 @@ export default Vue.component('LigerBrowser', {
         collectTissues(rows = []) {
             return rows
                 .map((row) => this.tissueLabel(row))
-                .filter((value) => !!value);
+                .filter((value) => !!value)
+                .filter((value) => this.tissueAllowed(value));
         },
         async lookupGenes(input) {
             try {
@@ -2452,6 +2504,8 @@ export default Vue.component('LigerBrowser', {
 
                 if (this.availableTissues.length === 0) {
                     this.geneSearchError = `No tissues are currently available for ${normalizedGene}.`;
+                } else if (this.availableTissues.length === 1) {
+                    await this.selectTissue(this.availableTissues[0]);
                 }
             } catch (error) {
                 this.selectedGene = null;
@@ -2684,13 +2738,13 @@ export default Vue.component('LigerBrowser', {
         <div class="f-col g-10">
             <div class="f-row g-40">
                 <div class="f-col g-10 flex1">
-                    <h3 class="bold">Cell State & Program Explorer</h3>
+                    <h3 class="bold">{{ pageTitle }}</h3>
                     <h5 class="headline">
                         Compare gene expression across cell types, curated cell states and 
                         computationally inferred gene programs with genetically supported links 
                         to human traits, revealing both established and potentially novel biology.
                     </h5>
-                    <a href="/research.html?pageid=kp_liger_documentation" target="_blank">Read Documentation</a>
+                    <a :href="documentationUrl" target="_blank">Read Documentation</a>
                 </div>
                 <div class="f-col align-v-bottom flex1 g-5">
                     <h5 class="bold">Search gene</h5>
@@ -2745,12 +2799,12 @@ export default Vue.component('LigerBrowser', {
         </div>
         <div v-if="selectedGene && availableTissues.length" id="liger-body" class="f-col g-40">
             <div class="flex1">
-                <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span> expressed?</h4>
+                <h4 class="bold">Where is <span class="pill">{{ selectedGene }}</span>{{ expressionSectionTitleSuffix }}</h4>
                 <div class="subtitle">See gene expression per tissue by cell type, cell states, and gene programs.</div>
             </div>
             <div class="f-col g-40">
                 <div class="f-row g-20">
-                    <div class="f-col g-5 flex1">
+                    <div v-if="!shouldHideTissueCard" class="f-col g-5 flex1">
                         <div class="f-row g-5">
                             <h5 class="bold">Tissues</h5>
                             <span class="count">({{ tissueCount }})</span>
