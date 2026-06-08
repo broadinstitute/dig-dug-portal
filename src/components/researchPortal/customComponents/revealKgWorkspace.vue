@@ -44,6 +44,7 @@
                 @close-inspector="inspectorOpen = false"
                 @graph-action="onGraphAction"
                 @add-table-node="onAddTableNode"
+                @remove-table-node="onRemoveTableNode"
                 @cache-node-connections="onCacheNodeConnections"
                 @cache-node-expression="onCacheNodeExpression"
                 @cache-factor-loadings="onCacheFactorLoadings"
@@ -1362,6 +1363,12 @@ export default Vue.component("reveal-kg-workspace", {
                     3200
                 );
             }
+        },
+        onRemoveTableNode(node) {
+            this.onNodeActionRemove({
+                nodeId: node?.nodeId || node?.node_id,
+                label: node?.label,
+            });
         },
         scheduleContextualEdgesFetch({ immediate = false } = {}) {
             if (this.contextualFetchTimer) {

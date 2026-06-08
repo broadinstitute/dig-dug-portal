@@ -130,6 +130,7 @@
             :graph-busy="graphBusy"
             @cache-connections="$emit('cache-connections', $event)"
             @add-node="$emit('add-node', $event)"
+            @remove-node="$emit('remove-node', $event)"
         />
     </div>
 </template>

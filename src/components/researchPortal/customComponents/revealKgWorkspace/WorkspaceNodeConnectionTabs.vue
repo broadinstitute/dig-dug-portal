@@ -50,12 +50,22 @@
             >
                 <template #add="{ row }">
                     <button
+                        v-if="row.shown === 'yes'"
                         type="button"
-                        class="wkb-inspector-mini-btn"
-                        :disabled="row.shown === 'yes' || graphBusy"
+                        class="wkb-inspector-mini-btn wkb-inspector-mini-btn--remove"
+                        :disabled="graphBusy"
+                        @click="onRemoveRow(row)"
+                    >
+                        Remove
+                    </button>
+                    <button
+                        v-else
+                        type="button"
+                        class="wkb-inspector-mini-btn wkb-inspector-mini-btn--add"
+                        :disabled="graphBusy"
                         @click="onAddRow(row)"
                     >
-                        {{ row.shown === "yes" ? "On graph" : "Add" }}
+                        Add
                     </button>
                 </template>
             </WorkspaceEvidenceTable>
@@ -266,6 +276,15 @@ export default {
                 type: row.node_type || row.type,
             });
         },
+        onRemoveRow(row) {
+            if (!row?.node_id || row.shown !== "yes") {
+                return;
+            }
+            this.$emit("remove-node", {
+                nodeId: row.node_id,
+                label: row.label,
+            });
+        },
         async loadTab(targetType, token = this.preloadToken) {
             if (token !== this.preloadToken) {
                 return;
@@ -400,6 +419,27 @@ export default {
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.wkb-inspector-mini-btn--add {
+    border-color: var(--cfde-orange, #e07b39);
+    color: var(--cfde-orange, #e07b39);
+    background: #fff;
+}
+
+.wkb-inspector-mini-btn--add:hover:not(:disabled) {
+    background: var(--cfde-orange-soft, #fbeee3);
+}
+
+.wkb-inspector-mini-btn--remove {
+    border-color: #8a8278;
+    color: #4a4540;
+    background: #f3f0eb;
+}
+
+.wkb-inspector-mini-btn--remove:hover:not(:disabled) {
+    background: #e8e3da;
+    border-color: #6f6860;
 }
 
 .wkb-inspector-mini-btn:disabled {

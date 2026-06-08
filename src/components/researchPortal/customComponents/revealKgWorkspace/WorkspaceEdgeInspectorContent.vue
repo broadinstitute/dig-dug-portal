@@ -82,8 +82,18 @@
                     </template>
                     <template #addGeneSet="{ row }">
                         <button
+                            v-if="isGeneSetOnGraph(row)"
                             type="button"
-                            class="wkb-inspector-mini-btn"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--remove"
+                            :disabled="graphBusy"
+                            @click="onRemoveGeneSet(row)"
+                        >
+                            Remove
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--add"
                             :disabled="graphBusy"
                             @click="onAddGeneSet(row)"
                         >
@@ -119,8 +129,18 @@
                 >
                     <template #addGeneSet="{ row }">
                         <button
+                            v-if="isGeneSetOnGraph(row)"
                             type="button"
-                            class="wkb-inspector-mini-btn"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--remove"
+                            :disabled="graphBusy"
+                            @click="onRemoveGeneSet(row)"
+                        >
+                            Remove
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--add"
                             :disabled="graphBusy"
                             @click="onAddGeneSet(row)"
                         >
@@ -164,8 +184,18 @@
                 >
                     <template #addGeneSet="{ row }">
                         <button
+                            v-if="isGeneSetOnGraph(row)"
                             type="button"
-                            class="wkb-inspector-mini-btn"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--remove"
+                            :disabled="graphBusy"
+                            @click="onRemoveGeneSet(row)"
+                        >
+                            Remove
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--add"
                             :disabled="graphBusy"
                             @click="onAddGeneSet(row)"
                         >
@@ -187,8 +217,18 @@
                 >
                     <template #addGeneSet="{ row }">
                         <button
+                            v-if="isGeneSetOnGraph(row)"
                             type="button"
-                            class="wkb-inspector-mini-btn"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--remove"
+                            :disabled="graphBusy"
+                            @click="onRemoveGeneSet(row)"
+                        >
+                            Remove
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="wkb-inspector-mini-btn wkb-inspector-mini-btn--add"
                             :disabled="graphBusy"
                             @click="onAddGeneSet(row)"
                         >
@@ -234,6 +274,7 @@ import {
     geneSetRowToAddPayload,
     inferLocusZoomPayload,
 } from "./revealKgEdgeProvenanceUtils.js";
+import { graphNodeIdSet } from "./revealKgInspectorUtils.js";
 import {
     formatProbabilityFromLogBf,
     GENE_TRAIT_PROBABILITY_COLUMNS,
@@ -270,6 +311,10 @@ export default {
         graphBusy: {
             type: Boolean,
             default: false,
+        },
+        graphNodes: {
+            type: Array,
+            default: () => [],
         },
     },
     data() {
@@ -361,6 +406,9 @@ export default {
                 ...this.geneSetAddColumn,
             ];
         },
+        graphNodeIds() {
+            return graphNodeIdSet(this.graphNodes);
+        },
     },
     methods: {
         formatValue: formatEdgeProvenanceValue,
@@ -371,6 +419,20 @@ export default {
                 return;
             }
             this.$emit("add-node", item);
+        },
+        isGeneSetOnGraph(row) {
+            const item = geneSetRowToAddPayload(row);
+            return Boolean(item?.node_id && this.graphNodeIds.has(item.node_id));
+        },
+        onRemoveGeneSet(row) {
+            const item = geneSetRowToAddPayload(row);
+            if (!item?.node_id) {
+                return;
+            }
+            this.$emit("remove-node", {
+                nodeId: item.node_id,
+                label: item.label,
+            });
         },
     },
 };
@@ -444,10 +506,29 @@ export default {
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 999px;
     background: #fff;
-    color: var(--cfde-blue, #2c5c97);
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.wkb-inspector-mini-btn--add {
+    border-color: var(--cfde-orange, #e07b39);
+    color: var(--cfde-orange, #e07b39);
+}
+
+.wkb-inspector-mini-btn--add:hover:not(:disabled) {
+    background: var(--cfde-orange-soft, #fbeee3);
+}
+
+.wkb-inspector-mini-btn--remove {
+    border-color: #8a8278;
+    color: #4a4540;
+    background: #f3f0eb;
+}
+
+.wkb-inspector-mini-btn--remove:hover:not(:disabled) {
+    background: #e8e3da;
+    border-color: #6f6860;
 }
 
 .wkb-inspector-mini-btn:disabled {

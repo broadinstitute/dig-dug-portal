@@ -38,6 +38,7 @@
                         :graph-busy="graphBusy"
                         @cache-connections="$emit('cache-connections', $event)"
                         @add-node="$emit('add-node', $event)"
+                        @remove-node="$emit('remove-node', $event)"
                         @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                         @inspect-connected-node="$emit('inspect-connected-node', $event)"
                     />
@@ -62,6 +63,7 @@
                         @cache-factor-loadings="$emit('cache-factor-loadings', $event)"
                         @load-factor-loadings="$emit('load-factor-loadings', $event)"
                         @add-node="$emit('add-node', $event)"
+                        @remove-node="$emit('remove-node', $event)"
                         @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                         @inspect-connected-node="$emit('inspect-connected-node', $event)"
                     />
@@ -81,6 +83,7 @@
                         :graph-busy="graphBusy"
                         @cache-connections="$emit('cache-connections', $event)"
                         @add-node="$emit('add-node', $event)"
+                        @remove-node="$emit('remove-node', $event)"
                         @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                         @inspect-connected-node="$emit('inspect-connected-node', $event)"
                     />
@@ -103,6 +106,7 @@
                         @cache-connections="$emit('cache-connections', $event)"
                         @cache-expression="$emit('cache-expression', $event)"
                         @add-node="$emit('add-node', $event)"
+                        @remove-node="$emit('remove-node', $event)"
                         @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                         @inspect-connected-node="$emit('inspect-connected-node', $event)"
                     />
@@ -114,9 +118,10 @@
                         :provenance-error="selectedEdge.provenanceError"
                         :api-client="apiClient"
                         :graph-busy="graphBusy"
+                        :graph-nodes="graphNodes"
                         @add-node="$emit('add-node', $event)"
+                        @remove-node="$emit('remove-node', $event)"
                     />
-                    <template v-else-if="selectedNode">
                         <p class="wkb-inspector-node-name">{{ selectedNode.label }}</p>
                         <dl class="wkb-inspector-meta">
                             <div v-if="selectedNode.nodeType">
@@ -226,6 +231,10 @@ export default {
         graphBusy: {
             type: Boolean,
             default: false,
+        },
+        graphNodes: {
+            type: Array,
+            default: () => [],
         },
     },
 };

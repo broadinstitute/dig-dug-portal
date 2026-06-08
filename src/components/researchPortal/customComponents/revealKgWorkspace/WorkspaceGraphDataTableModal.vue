@@ -91,7 +91,7 @@
                                         <th>Relevance</th>
                                         <th class="wkb-graph-table-col-description">Description</th>
                                         <th>Shown</th>
-                                        <th class="wkb-graph-table-col-action">Add</th>
+                                        <th class="wkb-graph-table-col-action">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -111,12 +111,15 @@
                                         </td>
                                         <td>{{ row.shown }}</td>
                                         <td class="wkb-graph-table-col-action">
-                                            <span
+                                            <button
                                                 v-if="row.shown === 'yes'"
-                                                class="wkb-graph-table-shown-note"
+                                                type="button"
+                                                class="wkb-graph-table-remove-btn"
+                                                :disabled="graphBusy"
+                                                @click="onRemoveRow(row)"
                                             >
-                                                Shown
-                                            </span>
+                                                Remove
+                                            </button>
                                             <button
                                                 v-else
                                                 type="button"
@@ -294,6 +297,15 @@ export default {
                 return;
             }
             this.$emit("add-node", row);
+        },
+        onRemoveRow(row) {
+            if (row?.shown !== "yes" || this.graphBusy || !row?.node_id) {
+                return;
+            }
+            this.$emit("remove-node", {
+                nodeId: row.node_id,
+                label: row.label,
+            });
         },
         downloadCurrentTab() {
             const tab = this.visibleTabs.find((entry) => entry.key === this.activeTab);
@@ -548,11 +560,6 @@ export default {
     background: rgba(72, 139, 247, 0.12);
 }
 
-.wkb-graph-table-shown-note {
-    color: var(--cfde-muted, #6b6b6b);
-    font-size: 13px;
-}
-
 .wkb-graph-table-add-btn {
     appearance: none;
     white-space: nowrap;
@@ -572,6 +579,30 @@ export default {
 }
 
 .wkb-graph-table-add-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.wkb-graph-table-remove-btn {
+    appearance: none;
+    white-space: nowrap;
+    border: 1px solid #8a8278;
+    border-radius: 6px;
+    background: #f3f0eb;
+    color: #4a4540;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.2rem 0.55rem;
+    cursor: pointer;
+}
+
+.wkb-graph-table-remove-btn:hover:not(:disabled) {
+    background: #e8e3da;
+    border-color: #6f6860;
+}
+
+.wkb-graph-table-remove-btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }

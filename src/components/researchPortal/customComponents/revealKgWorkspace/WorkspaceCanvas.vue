@@ -83,6 +83,7 @@
                     :expression-options="expressionOptions"
                     :api-client="apiClient"
                     :graph-busy="graphLoading || tableAddBusy"
+                    :graph-nodes="graphNodes"
                     :inspector-content-key="inspectorContentKey"
                     @toggle="$emit('toggle-inspector')"
                     @cache-connections="$emit('cache-node-connections', $event)"
@@ -90,6 +91,7 @@
                     @cache-factor-loadings="$emit('cache-factor-loadings', $event)"
                     @load-factor-loadings="$emit('load-factor-loadings', $event)"
                     @add-node="$emit('add-table-node', $event)"
+                    @remove-node="$emit('remove-table-node', $event)"
                     @inspect-connected-edge="$emit('inspect-connected-edge', $event)"
                     @inspect-connected-node="$emit('inspect-connected-node', $event)"
                 />
@@ -104,6 +106,7 @@
                 :graph-busy="graphLoading || tableAddBusy"
                 @close="graphTableOpen = false"
                 @add-node="$emit('add-table-node', $event)"
+                @remove-node="$emit('remove-table-node', $event)"
             />
         </template>
         <div v-else class="wkb-canvas-placeholder">
