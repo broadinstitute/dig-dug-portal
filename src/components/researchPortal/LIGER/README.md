@@ -13,6 +13,39 @@ This folder contains the in-progress LIGER browser component for the portal.
 - `references/liger_apis.txt`
   - Source of truth for the currently intended LIGER endpoints and host.
 
+## Component Config
+
+`LigerBrowser.vue` accepts an optional `config` object for small per-page overrides.
+
+Current supported keys:
+
+- `pageTitle`
+  - Overrides the hero title.
+  - Default: `Cell State & Program Explorer`
+- `documentationUrl`
+  - Overrides the `Read Documentation` link target.
+  - Default: `/research.html?pageid=kp_liger_documentation`
+- `tissues`
+  - Optional allowlist of tissue keys to expose in results.
+  - Example values: `["liver"]`, `["liver", "pancreas"]`
+  - If omitted or empty, all tissues are shown.
+- `hideTissueCardIfOneOption`
+  - Controls the one-tissue layout case.
+  - Default: `false`
+  - When only one tissue is available, that tissue is auto-selected.
+  - If this flag is `true`, the tissue card is hidden in that one-option case and the expression heading changes to `Where is {GENE} expressed in {Tissue}?`
+
+Example:
+
+```js
+config: {
+  pageTitle: "Liver Cell State Explorer",
+  documentationUrl: "/research.html?pageid=my_docs",
+  tissues: ["liver", "pancreas"],
+  hideTissueCardIfOneOption: true,
+}
+```
+
 ## Important Constraints
 
 - Maintain the structure and visual language already established in `LigerBrowser.vue`.
