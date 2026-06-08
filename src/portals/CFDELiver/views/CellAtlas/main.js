@@ -30,7 +30,7 @@ new Vue({
                     "gene": "gene"
                 },
                 "presets": {
-                    "datasetId": "FNIH_Liver_scRNA_v3"
+                    "datasetId": "FNIH_Liver_scRNA_v3.2"
                 },
                 "format":{
                     "default":{
