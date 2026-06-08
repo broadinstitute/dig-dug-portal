@@ -31,7 +31,11 @@
                     />
 
                     <ul
-                        v-if="!!$parent.phenotypeSearchKey"
+                        v-if="
+                            !!$parent.phenotypeSearchKey &&
+                            !!$store.state.pigeanAllPhenotypes &&
+                            !!$store.state.pigeanAllPhenotypes.data
+                        "
                         class="page-phenotypes-list"
                     >
                         <template
@@ -51,7 +55,10 @@
                                     @click="$parent.setSelectedPhenotype(item)"
                                     v-html="item.phenotype_name"
                                 ></a>
-                                <span class="trait-group">
+                                <span
+                                    v-if="$parent.traitGroups[item.trait_group]"
+                                    class="trait-group"
+                                >
                                     ({{
                                         $parent.traitGroups[item.trait_group]
                                     }})</span
@@ -119,8 +126,11 @@
                         </filter-greater-less>
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -129,8 +139,11 @@
                             >
                             </pigean-plot>
                             <cvdi-pigean-table
-                                v-if="$store.state.pigeanPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.pigeanPhenotype.data"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
@@ -176,8 +189,11 @@
 
                         <template slot="filtered" slot-scope="{ filter }">
                             <pigean-plot
-                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
@@ -186,8 +202,11 @@
                             >
                             </pigean-plot>
                             <cvdi-pigean-table
-                                v-if="$store.state.genesetPhenotype.data.length > 0 &&
-                                    Object.keys($parent.pigeanMap).length > 0"
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
                                 :pigeanData="$store.state.genesetPhenotype.data"
                                 :config="$parent.genesetTableConfig"
                                 :phenotypeMap="$parent.pigeanMap"
