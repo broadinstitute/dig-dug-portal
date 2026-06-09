@@ -13,7 +13,16 @@
             <search-header-wrapper>
                 <div class="col filter-col-md">
                     <div class="label">Gene set</div>
-                    <geneset-selectpicker></geneset-selectpicker>
+                    <template>
+                        <autocomplete
+                            :placeholder="
+                                !$store.state.genesetToQuery ? 'Search gene set' : $store.state.genesetToQuery
+                            "
+                            :matches="$parent.matchingGenesets"
+                            @input-change="$parent.lookupGenesets($event)"
+                            @item-select="$parent.selectGeneset($event)"
+                        ></autocomplete>
+                    </template>
                 </div>
                 <div class="col filter-col-md">
                     <div class="label">Trait group</div>

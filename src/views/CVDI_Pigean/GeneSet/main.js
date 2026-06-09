@@ -110,6 +110,7 @@ new Vue({
                 },
             },
             genesetSearchOptions: [],
+            matchingGenesets: [],
         };
     },
     computed: {
@@ -164,7 +165,16 @@ new Vue({
                 }/api/bio/keys/pigean-gene-set/3?columns=gene_set`;
             let params = await fetch(url).then(response => response.json());
             return params.keys.map(i => i[0]);
-        }
+        },
+        lookupGenesets(input) {
+			if (!!input) {
+				let matches = this.genesetSearchOptions.filter(d => d.includes(input)).slice(0,10);
+				this.matchingGenesets = matches;
+			}
+		},
+        selectGeneset(geneset) {
+		    this.$store.state.genesetToQuery = geneset;
+		},
     },
     watch: {
         diseaseGroup(group) {
