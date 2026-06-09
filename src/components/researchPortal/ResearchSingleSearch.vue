@@ -95,7 +95,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes", "utils"],
+	props: ["singleSearchConfig", "phenotypes", "utils", "geneSets"],
 	modules: {},
 
 	data() {
@@ -174,6 +174,29 @@ export default Vue.component("research-single-search", {
 				let shorterFirst = searchPhenotypes.sort((a, b) => a.name.length - b.name.length);
 
 				this.singleSearchResult.phenotypes = shorterFirst;
+
+				/// For gene set search on CVDI Pigean
+				let searchGeneSets = [];
+
+				this.geneSets.map((gs) => {
+					let isInGeneSet = 0;
+					paramWords.map((w) => {
+						if (
+							!!gs.toLowerCase()
+								.includes(w.toLowerCase())
+						) {
+							isInGeneSet++;
+						}
+					});
+
+					if (isInGeneSet == paramWords.length) {
+						searchGeneSets.push(gs);
+					}
+				});
+
+				let shorterFirstGeneSets = searchGeneSets.sort((a, b) => a.length - b.length);
+				console.log(JSON.stringify(shorterFirstGeneSets));
+				this.singleSearchResult.geneSets = shorterFirstGeneSets;
 
 				/// for custom parameters
 				let searchFields = Object.keys(this.customList);
