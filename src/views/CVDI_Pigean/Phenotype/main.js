@@ -238,9 +238,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        pigeanPhenotypeData(newData) {
-            console.log("Received new BI data", JSON.stringify(newData));
-        },
     },
 
     async created() {
