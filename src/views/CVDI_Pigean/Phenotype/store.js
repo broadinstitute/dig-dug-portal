@@ -28,7 +28,6 @@ export default new Vuex.Store({
         newPhenotype: null,
         diseaseInSession: null,
         selectedPhenotype: null,
-        manhattanPlotAvailable: false,
         traitGroup: keyParams.traitGroup,
         traitGroupToQuery: null,
     },
