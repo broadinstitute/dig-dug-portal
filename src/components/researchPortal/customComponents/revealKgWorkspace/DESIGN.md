@@ -19,13 +19,20 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 | Area | Role |
 |------|------|
-| **Change** | Mutate graph structure and scope: Expand KG, Filter KG, Add nodes |
 | **Analyze** | Interpret: Explain graph, Build hypotheses, Find related datasets |
-| **Manage** | Persist: New graph, Save graph to library, Export graph, Import graph, Download review snapshot |
+| **Manage** | Persist: New graph, Save graph to library, Export graph, Import graph, Download graph snapshot |
 | **My library** | Browse browser-saved graphs (Open on canvas, Duplicate, Remove from library, Back up / Restore library backup) |
 | **Documentation** | In-app guide modal |
 
 **Order on the right:** My library, then Documentation.
+
+**Change** (mutate graph structure) lives on the **canvas toolbar**, not the top bar: Expand KG (+), visibility filters (funnel), graph data table, and view options. Add nodes is a tab inside the Expand KG panel.
+
+### Initial graph
+
+- **Search & select only** — no AI-assisted graph start. Users search entity columns (catalog typeahead or conceptual search) and pick one or two starting entities.
+- **Neighboring nodes off by default** — initial build adds starting entities plus direct connecting links only. Optional checkbox fetches extra neighbors in the first pass.
+- Optional free-text **context** is passed to build and explain APIs; it does not replace entity search.
 
 ### Inspector
 
@@ -38,12 +45,14 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 
 **Persistence tiers (do not mix):**
 
-| Action | Storage | Inspector caches |
-|--------|---------|------------------|
-| **Save graph to library** (My library) | Browser `localStorage` | **Not saved**; My library load does **not** restore them |
-| **Export graph** (Manage menu) | JSON file download | **Included** — rebuild on **Import graph** |
-| **Back up library** (My library modal) | JSON bundle of My library graphs | **Not included** (library shape only) |
-| **Download snapshot** (planned) | HTML review artifact | TBD (human-facing, not for reload) |
+| Action | Storage | Inspector caches | Expansion history / candidate cache |
+|--------|---------|------------------|-----------------------------------|
+| **Save graph to library** (My library) | Browser `localStorage` | **Not saved** | **Not saved** |
+| **Export graph** (Manage menu) | JSON file download | **Included** | **Included** — rebuild on **Import graph** |
+| **Back up library** (My library modal) | JSON bundle of My library graphs | **Not included** | **Not included** (library shape only) |
+| **Download graph snapshot** (Manage menu) | Self-contained HTML download | **Included** in HTML (read-only) | **Included** in HTML (read-only) |
+
+My library saves layout, links, selected nodes, visibility filters, and analysis text. **Export graph** is the portable workflow file. **Download graph snapshot** is for human review and sharing—it cannot be reloaded into the canvas.
 
 | Session field | Contents |
 |---------------|----------|
@@ -182,7 +191,9 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, M
 | `revealKgWorkspace/WorkspaceLibraryModal.vue` | My library + backup/restore |
 | `revealKgWorkspace/WorkspaceDocumentationModal.vue` | User guide |
 | `revealKgWorkspace/WorkspaceGraphDataTableModal.vue` | Tabbed graph data table popup |
+| `revealKgWorkspace/revealKgGraphSnapshotUtils.js` | Self-contained HTML graph snapshot export |
 | `revealKgWorkspace/revealKgGraphTableData.js` | Table rows, CSV export, edge-derived scores |
+| `revealKgWorkspace/revealKgReminders.js` | Contextual post-action reminders |
 | `src/utils/revealKgApi.js` | Interactive API client |
 | `src/utils/userUtils.js` | Saved graph CRUD + library I/O |
 
@@ -196,8 +207,9 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 - **Search & select columns (order):** Genes, Gene sets, Mechanisms, Traits.
 - **Catalog typeahead:** `searchInteractiveCatalog(entityType, query)` — `gene`, `trait`, `factor` (UI: mechanisms).
 - **Gene set search:** `POST /api/interactive/gene-set/search` with `{ query, top_k }` via `searchInteractiveGeneSets` (also sends `limit` for backward compatibility; catalog `gene_set` fallback on 404/405).
-- **Free-text anchors:** `parseInteractiveAnchor({ query, context })`.
-- **Graph bootstrap from anchors:** `getInteractiveAnchorLinks`, then expansion/connection APIs as needed.
+- **Conceptual search:** per-column semantic match when LLM is available (initial graph and Add nodes).
+- **Graph bootstrap from anchors:** `getInteractiveAnchorLinks`, then optional neighboring-node fetch; default is direct links only.
+- **`parseInteractiveAnchor`** exists in `revealKgApi.js` but is not wired in the UI—entity search covers cold starts.
 
 ---
 
@@ -223,7 +235,7 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 - [ ] No sub-13px text
 - [ ] No decorative borders on content groups
 - [ ] Uses CFDE CSS variables from `.reveal-kg-workspace`
-- [ ] Menu actions map to Change / Analyze / Save taxonomy
+- [ ] Menu actions map to Analyze / Manage taxonomy; Change lives on canvas toolbar
 - [ ] Help copy follows prose Why/What/How (no literal labels)
 - [ ] API calls go through `revealKgApi`, not ad-hoc fetch paths
 
@@ -239,3 +251,8 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 | 2026-06-03 | Legend: drop Default; rename graph links to Active edges; document edge types in Documentation modal |
 | 2026-06-03 | Tree layout: no even-row 25px stagger; rows centered; nodes ordered center-out by edge degree |
 | 2026-06-03 | Toolbar table icon opens tabbed graph data modal (Playground ledger columns) |
+| 2026-06-02 | Download graph snapshot: self-contained HTML export (Manage menu) |
+| 2026-06-02 | Expand progress overlay: neighbor classification batches, early stop at count limit |
+| 2026-06-02 | Removed AI-assisted graph start; search & select + conceptual search only |
+| 2026-06-02 | Initial build: neighboring nodes off by default (opt-in checkbox) |
+| 2026-06-02 | Documentation modal + DESIGN.md aligned with persistence tiers and toolbar IA |

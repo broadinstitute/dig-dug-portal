@@ -30,8 +30,9 @@
                 <div class="wkb-welcome-option wkb-welcome-option-primary">
                     <span class="wkb-welcome-option-title">Create a new graph</span>
                     <span class="wkb-welcome-option-desc">
-                        Search and select starting genes, traits, and mechanisms, or
-                        use AI-assisted suggestions.
+                        Search and select starting genes, gene sets, mechanisms, and
+                        traits. Use conceptual search when you have a topic but not a
+                        specific entity.
                     </span>
                     <button
                         type="button"
@@ -42,22 +43,18 @@
                     </button>
                 </div>
 
-                <div
-                    class="wkb-welcome-option"
-                    :class="{ 'is-disabled': !hasSavedGraphs }"
-                >
+                <div class="wkb-welcome-option">
                     <span class="wkb-welcome-option-title">Open from My library</span>
                     <span class="wkb-welcome-option-desc">
                         {{
                             hasSavedGraphs
                                 ? "Open graphs saved in this browser (layout only, no inspector data)."
-                                : "No saved graphs in this browser yet."
+                                : "No saved graphs in this browser yet. Open My library to restore a backup from another machine."
                         }}
                     </span>
                     <button
                         type="button"
                         class="wkb-welcome-action"
-                        :disabled="!hasSavedGraphs"
                         @click="$emit('load-library')"
                     >
                         Open My library

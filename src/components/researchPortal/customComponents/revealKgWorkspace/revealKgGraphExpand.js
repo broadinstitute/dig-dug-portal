@@ -1,5 +1,11 @@
-/** Expand graph from starting anchors (Playground fetchConnections parity). */
-
+import {
+    buildClassifyProgressMeta,
+    createExpansionBatchList,
+    markExpansionBatchComplete,
+    markExpansionBatchRunning,
+    markExpansionBatchesSkipped,
+    normalizeExpandProgressUpdate,
+} from "./revealKgExpandProgressUtils.js";
 import {
     getAvailableConnectionTargetTypes,
     interleaveCandidateLanes,
@@ -171,6 +177,38 @@ function expandCacheKey(session, anchorItems, targetTypes) {
     return `${seedKey}:mixed:${targetTypes.join(",")}:${session.controls?.reducer || "mean"}:${session.controls?.connectionScope || "direct"}`;
 }
 
+function reportExpandProgress(onProgress, update) {
+    onProgress(normalizeExpandProgressUpdate(update));
+}
+
+function classifyProgressPayload({
+    message,
+    stage,
+    currentBatch,
+    totalBatches,
+    batches,
+    matchedNeighborCount,
+    targetNeighborCount,
+    classifiedCandidateCount,
+    totalCandidateCount,
+    stoppedEarly = false,
+}) {
+    return {
+        message,
+        stage,
+        currentBatch,
+        totalBatches,
+        batches,
+        ...buildClassifyProgressMeta({
+            matchedNeighborCount,
+            targetNeighborCount,
+            classifiedCandidateCount,
+            totalCandidateCount,
+            stoppedEarly,
+        }),
+    };
+}
+
 export async function expandGraphOnSession(
     session,
     {
@@ -213,7 +251,10 @@ export async function expandGraphOnSession(
     let cacheEntry = session.candidateCache?.[cacheKey];
 
     if (!cacheEntry?.candidates?.length) {
-        onProgress("Fetching connection candidates…");
+        reportExpandProgress(onProgress, {
+            message: "Fetching connection candidates…",
+            stage: "fetch",
+        });
         const candidateLanes = await fetchConnectionLanes(
             apiClient,
             session,
@@ -255,7 +296,10 @@ export async function expandGraphOnSession(
         let expressionByNodeId = {};
 
         if (needsExpressionFiltering) {
-            onProgress("Applying expression filter…");
+            reportExpandProgress(onProgress, {
+                message: "Applying expression filter…",
+                stage: "expression",
+            });
             const expressionKey = expressionFilterKey(expandFilters);
             expressionByNodeId =
                 cacheEntry.expressionFilters?.[expressionKey] ||
@@ -312,7 +356,10 @@ export async function expandGraphOnSession(
     let expressionByNodeId = cacheEntry.expressionFilters?.[expressionKey] || {};
 
     if (needsExpressionFiltering && !Object.keys(expressionByNodeId).length) {
-        onProgress("Applying expression filter…");
+        reportExpandProgress(onProgress, {
+            message: "Applying expression filter…",
+            stage: "expression",
+        });
         expressionByNodeId = await fetchExpressionByCandidateId(
             apiClient,
             expandFilters,
@@ -330,6 +377,24 @@ export async function expandGraphOnSession(
 
     let classifiedCount = existingClassification.classifiedCount || 0;
     const totalBatches = Math.ceil(candidates.length / CLASSIFY_BATCH_SIZE);
+    let batches = createExpansionBatchList(totalBatches, candidates, CLASSIFY_BATCH_SIZE);
+
+    if (totalBatches > 0) {
+        reportExpandProgress(
+            onProgress,
+            classifyProgressPayload({
+                message: `Preparing to classify ${candidates.length} neighbor candidates in ${totalBatches} batch${totalBatches === 1 ? "" : "es"} (Count: ${limit})…`,
+                stage: "classify",
+                currentBatch: 0,
+                totalBatches,
+                batches,
+                matchedNeighborCount: 0,
+                targetNeighborCount: limit,
+                classifiedCandidateCount: classifiedCount,
+                totalCandidateCount: candidates.length,
+            })
+        );
+    }
 
     const passes = (item) =>
         candidatePassesCombinedFilter(
@@ -343,7 +408,21 @@ export async function expandGraphOnSession(
     while (filtered.length < limit && classifiedCount < candidates.length) {
         const batchIndex = Math.floor(classifiedCount / CLASSIFY_BATCH_SIZE) + 1;
         const batch = candidates.slice(classifiedCount, classifiedCount + CLASSIFY_BATCH_SIZE);
-        onProgress(`Classifying expansion batch ${batchIndex} of ${totalBatches}…`);
+        batches = markExpansionBatchRunning(batches, batchIndex);
+        reportExpandProgress(
+            onProgress,
+            classifyProgressPayload({
+                message: `Classifying neighbor batch ${batchIndex} of ${totalBatches} (20 nodes each)…`,
+                stage: "classify",
+                currentBatch: batchIndex,
+                totalBatches,
+                batches,
+                matchedNeighborCount: filtered.length,
+                targetNeighborCount: limit,
+                classifiedCandidateCount: classifiedCount,
+                totalCandidateCount: candidates.length,
+            })
+        );
         const classification = await apiClient.classifyInteractiveCandidates({
             anchor_items: anchorItems,
             context: classifyContext,
@@ -366,6 +445,44 @@ export async function expandGraphOnSession(
         }
         classifiedCount += batch.length;
         filtered = candidates.filter(passes);
+        const matchedCount = batch.reduce((count, item) => {
+            const nodeId = item.candidate?.node_id;
+            return candidatePassesCombinedFilter(
+                labelsByNodeId[nodeId],
+                expressionByNodeId[nodeId],
+                expandFilters
+            )
+                ? count + 1
+                : count;
+        }, 0);
+        batches = markExpansionBatchComplete(batches, batchIndex, { matchedCount });
+        const willContinue = filtered.length < limit && classifiedCount < candidates.length;
+        const stoppedEarly = !willContinue && filtered.length >= limit && classifiedCount < candidates.length;
+        if (stoppedEarly) {
+            batches = markExpansionBatchesSkipped(batches, batchIndex + 1);
+        }
+        const matchedForAdd = Math.min(filtered.length, limit);
+        reportExpandProgress(
+            onProgress,
+            classifyProgressPayload({
+                message: stoppedEarly
+                    ? `Found ${matchedForAdd} matching neighbor${matchedForAdd === 1 ? "" : "s"} (Count: ${limit}) after classifying ${classifiedCount} candidates. Finishing expansion…`
+                    : willContinue
+                      ? `Classifying neighbor batch ${batchIndex + 1} of ${totalBatches}…`
+                      : batchIndex >= totalBatches
+                        ? "Finishing expansion…"
+                        : `Classified all ${classifiedCount} candidates. Finishing expansion…`,
+                stage: "classify",
+                currentBatch: batchIndex,
+                totalBatches,
+                batches,
+                matchedNeighborCount: filtered.length,
+                targetNeighborCount: limit,
+                classifiedCandidateCount: classifiedCount,
+                totalCandidateCount: candidates.length,
+                stoppedEarly,
+            })
+        );
     }
 
     cacheEntry = {

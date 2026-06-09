@@ -290,6 +290,7 @@ export function ensureSessionFilterState(session, expressionOptions = {}) {
             ? session.visibilityFilterLayers
             : [],
         appliedGraphFilter: session.appliedGraphFilter || null,
+        historyEntries: Array.isArray(session.historyEntries) ? session.historyEntries : [],
     };
 }
 

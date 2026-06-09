@@ -66,7 +66,7 @@ export default {
                         { id: "saveKg", label: "Save graph to library…" },
                         { id: "exportGraph", label: "Export graph" },
                         { id: "importGraph", label: "Import graph" },
-                        { id: "downloadSnapshot", label: "Download review snapshot…" },
+                        { id: "downloadSnapshot", label: "Download graph snapshot" },
                     ],
                 },
             ],

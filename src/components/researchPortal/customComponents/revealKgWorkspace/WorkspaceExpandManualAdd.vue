@@ -82,15 +82,6 @@
             </button>
         </div>
 
-        <button
-            type="button"
-            class="wkb-expand-manual-exact-btn"
-            :disabled="busy || !catalogSuggestions.length"
-            @click="addFirstExactMatch"
-        >
-            Add first exact match
-        </button>
-
         <p v-if="!llmAvailable && entityType !== 'gene_set' && entityType !== 'gene'" class="wkb-expand-manual-note">
             Conceptual matching requires an LLM backend.
         </p>
@@ -253,11 +244,6 @@ export default {
                 this.semanticLoading = false;
             }
         },
-        addFirstExactMatch() {
-            if (this.catalogSuggestions[0]) {
-                this.addItem(this.catalogSuggestions[0]);
-            }
-        },
         addItem(item) {
             if (!item?.node_id && !item?.id) {
                 return;
@@ -402,23 +388,6 @@ export default {
     font-size: 12px;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);
-}
-
-.wkb-expand-manual-exact-btn {
-    align-self: flex-start;
-    padding: 7px 12px;
-    border: 1px solid var(--cfde-orange, #e07b39);
-    border-radius: 999px;
-    background: #ffffff;
-    color: var(--cfde-orange, #e07b39);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.wkb-expand-manual-exact-btn:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
 }
 
 .wkb-expand-manual-note {

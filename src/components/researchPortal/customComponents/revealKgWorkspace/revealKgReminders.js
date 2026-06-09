@@ -136,11 +136,11 @@ export function buildNodesAddedSaveReminder(addedCount) {
 export function buildAfterAnalysisPersistReminder({ analysisLabel = "Analysis" } = {}) {
     return {
         id: REMINDER_ID.AFTER_ANALYSIS_PERSIST,
-        message: `${analysisLabel} finished. Save this graph to My library, export it, or download a review snapshot?`,
+        message: `${analysisLabel} finished. Save this graph to My library, export it, or download a graph snapshot?`,
         actions: [
             action(REMINDER_ACTION.SAVE_LIBRARY, "Save to library", { primary: true }),
             action(REMINDER_ACTION.EXPORT_GRAPH, "Export graph"),
-            action(REMINDER_ACTION.DOWNLOAD_SNAPSHOT, "Download review snapshot…"),
+            action(REMINDER_ACTION.DOWNLOAD_SNAPSHOT, "Download graph snapshot"),
             action(REMINDER_ACTION.DISMISS, "Not now"),
         ],
     };

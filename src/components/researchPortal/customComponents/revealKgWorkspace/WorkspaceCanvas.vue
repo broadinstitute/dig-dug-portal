@@ -57,6 +57,7 @@
                     @dismiss="$emit('graph-reminder-dismiss')"
                 />
                 <WorkspaceTreeGraphCanvas
+                    ref="treeGraph"
                     :graph-nodes="graphNodes"
                     :graph-edges="graphEdges"
                     :contextual-edges="contextualEdges"
@@ -83,7 +84,7 @@
                     :gene-set-inspector-context="geneSetInspectorContext"
                     :expression-options="expressionOptions"
                     :api-client="apiClient"
-                    :graph-busy="graphLoading || tableAddBusy"
+                    :graph-busy="graphBusy"
                     :graph-nodes="graphNodes"
                     :inspector-content-key="inspectorContentKey"
                     @toggle="$emit('toggle-inspector')"
@@ -105,7 +106,7 @@
                 :retrieval-ledger="retrievalLedger"
                 :ledger-session="ledgerSession"
                 :key-node-ids="keyNodeIds"
-                :graph-busy="graphLoading || tableAddBusy"
+                :graph-busy="graphBusy"
                 @close="graphTableOpen = false"
                 @add-node="$emit('add-table-node', $event)"
                 @remove-node="$emit('remove-table-node', $event)"
@@ -161,6 +162,10 @@ export default {
             default: () => [],
         },
         graphLoading: {
+            type: Boolean,
+            default: false,
+        },
+        graphBusy: {
             type: Boolean,
             default: false,
         },
@@ -280,6 +285,9 @@ export default {
                 return;
             }
             this.$emit("close-inspector");
+        },
+        captureGraphSvgMarkup() {
+            return this.$refs.treeGraph?.getSvgSnapshotMarkup?.() || "";
         },
     },
     watch: {

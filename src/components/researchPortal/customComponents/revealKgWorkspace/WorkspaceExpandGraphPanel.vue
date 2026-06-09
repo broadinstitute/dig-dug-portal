@@ -26,6 +26,10 @@
                     Fetch neighbors connected to this node. Use Discover to rank candidates, or Add
                     nodes to place a specific node on the graph.
                 </template>
+                <template v-else-if="expandFromEdge">
+                    Fetch neighbors connected to both endpoints of this edge. Use Discover to rank
+                    candidates, or Add nodes to place a specific node on the graph.
+                </template>
                 <template v-else>
                     Fetch neighbors from your selected nodes. Use Discover to rank candidates, or
                     Add nodes to place a specific node on the graph.
@@ -64,15 +68,26 @@
                 >
                     Add nodes
                 </button>
+                <button
+                    :id="tabButtonId('history')"
+                    type="button"
+                    role="tab"
+                    class="wkb-expand-tab"
+                    :class="{ 'is-active': activeTab === 'history' }"
+                    :aria-selected="activeTab === 'history' ? 'true' : 'false'"
+                    :aria-controls="tabPanelId('history')"
+                    :disabled="loading || manualAddBusy"
+                    @click="activeTab = 'history'"
+                >
+                    History
+                    <span v-if="expansionHistoryCount > 0" class="wkb-expand-tab-count">{{
+                        expansionHistoryCount
+                    }}</span>
+                </button>
             </div>
         </div>
 
         <div class="wkb-expand-body">
-            <p v-if="loading && progressLabel" class="wkb-expand-progress" role="status">
-                <span class="wkb-expand-spinner" aria-hidden="true" />
-                {{ progressLabel }}
-            </p>
-
             <section
                 v-show="activeTab === 'discover'"
                 :id="tabPanelId('discover')"
@@ -84,108 +99,6 @@
                     LLM expansion filters are not available — the interactive API did not report an
                     LLM backend.
                 </p>
-
-                <label class="wkb-expand-type-field">
-                    <span class="wkb-expand-label">Filter type</span>
-                    <select
-                        :id="`${panelId}-expand-filter-type`"
-                        class="wkb-expand-type-select"
-                        :value="expandFilterType"
-                        :disabled="loading"
-                        @change="onExpandFilterTypeChange"
-                    >
-                        <option
-                            v-for="option in expandFilterTypeOptions"
-                            :key="option.value"
-                            :value="option.value"
-                        >
-                            {{ option.label }}
-                        </option>
-                    </select>
-                </label>
-
-                <div
-                    v-show="expandFilterType === 'intent'"
-                    class="wkb-expand-option wkb-expand-intent"
-                >
-                    <div class="wkb-expand-option-head">
-                        <label class="wkb-expand-label" for="wkb-expand-intent">Intent</label>
-                        <span
-                            class="wkb-expand-ai-badge"
-                            title="Uses LLM or semantic classification"
-                            >AI</span
-                        >
-                    </div>
-                    <small class="wkb-expand-hint">
-                        Optional focus for relevance when ranking new connections.
-                    </small>
-                    <textarea
-                        id="wkb-expand-intent"
-                        class="wkb-expand-textarea"
-                        rows="2"
-                        :value="filters.intent || ''"
-                        :disabled="loading"
-                        placeholder="e.g. mechanisms linked to insulin resistance"
-                        @input="onIntentInput"
-                    />
-                    <label class="wkb-expand-intent-suboption">
-                        <input
-                            type="checkbox"
-                            :checked="filters.relevanceMode === 'semantic'"
-                            :disabled="loading || !intentHasText"
-                            @change="onSemanticToggle"
-                        />
-                        <span>Semantic similarity</span>
-                    </label>
-                </div>
-
-                <fieldset
-                    v-show="expandFilterType === 'novelty'"
-                    class="wkb-expand-option wkb-expand-novelty"
-                    :disabled="loading"
-                >
-                    <div class="wkb-expand-option-head">
-                        <legend class="wkb-expand-novelty-legend">Known / Novel</legend>
-                        <span class="wkb-expand-ai-badge" title="Uses LLM classification">AI</span>
-                    </div>
-                    <p class="wkb-expand-novelty-intro">
-                        Only add nodes classified as known or novel when expanding.
-                    </p>
-                    <div class="wkb-expand-novelty-options">
-                        <label class="wkb-expand-novelty-option">
-                            <input
-                                type="checkbox"
-                                :checked="Boolean(filters.noveltyKnown)"
-                                @change="$emit('toggle-novelty', 'known')"
-                            />
-                            <span>Known</span>
-                        </label>
-                        <label class="wkb-expand-novelty-option">
-                            <input
-                                type="checkbox"
-                                :checked="Boolean(filters.noveltyNovel)"
-                                @change="$emit('toggle-novelty', 'novel')"
-                            />
-                            <span>Novel</span>
-                        </label>
-                    </div>
-                </fieldset>
-
-                <section
-                    v-show="expandFilterType === 'expression'"
-                    class="wkb-expand-option wkb-expand-expression"
-                >
-                    <h4 class="wkb-expand-subsection-title">Gene expression filter</h4>
-                    <WorkspaceExpressionFilterControls
-                        :filters="filters"
-                        :options="expressionOptions"
-                        compact
-                        use-select-dropdowns
-                        @change="$emit('patch-filters', $event)"
-                    />
-                </section>
-
-                <hr class="wkb-expand-divider" aria-hidden="true" />
 
                 <label class="wkb-expand-field">
                     <span class="wkb-expand-label">Target node type</span>
@@ -239,26 +152,137 @@
                             :disabled="loading"
                             @change="onLimitChange"
                         />
+                        <small class="wkb-expand-hint">
+                            Max neighbors to add. AI classification often stops early once this many
+                            pass your filters.
+                        </small>
                     </label>
                 </div>
 
-                <details class="wkb-expand-advanced">
-                    <summary>Advanced options</summary>
-                    <div class="wkb-expand-advanced-body">
-                        <label class="wkb-expand-field">
-                            <span class="wkb-expand-label">Evidence scope</span>
-                            <select
-                                class="wkb-expand-select"
-                                :value="controls.connectionScope || 'direct'"
-                                :disabled="loading"
-                                @change="onConnectionScopeChange"
-                            >
-                                <option value="direct">Direct only</option>
-                                <option value="expanded">Allow two-hop</option>
-                            </select>
+                <label class="wkb-expand-hop-option">
+                    <input
+                        type="checkbox"
+                        :checked="controls.connectionScope === 'expanded'"
+                        :disabled="loading"
+                        @change="onTwoHopToggle"
+                    />
+                    <span>Allow two-hop</span>
+                </label>
+
+                <hr class="wkb-expand-divider" aria-hidden="true" />
+
+                <label class="wkb-expand-type-field">
+                    <span class="wkb-expand-label">Expand with</span>
+                    <select
+                        :id="`${panelId}-expand-filter-type`"
+                        class="wkb-expand-type-select"
+                        :value="expandFilterType"
+                        :disabled="loading"
+                        @change="onExpandFilterTypeChange"
+                    >
+                        <option
+                            v-for="option in expandFilterTypeOptions"
+                            :key="option.value"
+                            :value="option.value"
+                        >
+                            {{ option.label }}
+                        </option>
+                    </select>
+                </label>
+
+                <div
+                    v-show="expandFilterType === 'intent'"
+                    class="wkb-expand-option wkb-expand-intent"
+                >
+                    <div class="wkb-expand-option-head">
+                        <label class="wkb-expand-label" for="wkb-expand-intent">Intent</label>
+                        <span
+                            class="wkb-expand-ai-badge"
+                            title="Uses LLM or semantic classification"
+                            >AI</span
+                        >
+                    </div>
+                    <small class="wkb-expand-hint">
+                        Optional focus for relevance when ranking new connections.
+                    </small>
+                    <textarea
+                        id="wkb-expand-intent"
+                        class="wkb-expand-textarea"
+                        rows="2"
+                        :value="filters.intent || ''"
+                        :disabled="loading"
+                        placeholder="e.g. mechanisms linked to insulin resistance"
+                        @input="onIntentInput"
+                    />
+                    <label class="wkb-expand-intent-suboption">
+                        <input
+                            type="checkbox"
+                            :checked="filters.relevanceMode === 'semantic'"
+                            :disabled="loading || !intentHasText"
+                            @change="onSemanticToggle"
+                        />
+                        <span>Rank with semantic similarity</span>
+                    </label>
+                    <p
+                        v-if="intentHasText && filters.relevanceMode === 'semantic'"
+                        class="wkb-expand-hint wkb-expand-intent-helper"
+                    >
+                        Prefer neighbors whose descriptions match your intent (embedding-based),
+                        combined with session context, instead of LLM relevance labels.
+                    </p>
+                    <p
+                        v-else-if="intentHasText"
+                        class="wkb-expand-hint wkb-expand-intent-helper"
+                    >
+                        Neighbors are ranked by LLM relevance to your intent and session context.
+                    </p>
+                </div>
+
+                <fieldset
+                    v-show="expandFilterType === 'novelty'"
+                    class="wkb-expand-option wkb-expand-novelty"
+                    :disabled="loading"
+                >
+                    <div class="wkb-expand-option-head">
+                        <legend class="wkb-expand-novelty-legend">Known / Novel</legend>
+                        <span class="wkb-expand-ai-badge" title="Uses LLM classification">AI</span>
+                    </div>
+                    <p class="wkb-expand-novelty-intro">
+                        Only add nodes classified as known or novel when expanding.
+                    </p>
+                    <div class="wkb-expand-novelty-options">
+                        <label class="wkb-expand-novelty-option">
+                            <input
+                                type="checkbox"
+                                :checked="Boolean(filters.noveltyKnown)"
+                                @change="$emit('toggle-novelty', 'known')"
+                            />
+                            <span>Known</span>
+                        </label>
+                        <label class="wkb-expand-novelty-option">
+                            <input
+                                type="checkbox"
+                                :checked="Boolean(filters.noveltyNovel)"
+                                @change="$emit('toggle-novelty', 'novel')"
+                            />
+                            <span>Novel</span>
                         </label>
                     </div>
-                </details>
+                </fieldset>
+
+                <section
+                    v-show="expandFilterType === 'expression'"
+                    class="wkb-expand-option wkb-expand-expression"
+                >
+                    <h4 class="wkb-expand-subsection-title">Gene expression filter</h4>
+                    <WorkspaceExpressionFilterControls
+                        :filters="filters"
+                        :options="expressionOptions"
+                        compact
+                        use-select-dropdowns
+                        @change="$emit('patch-filters', $event)"
+                    />
+                </section>
             </section>
 
             <section
@@ -274,6 +298,20 @@
                     :busy="manualAddBusy"
                     @add="$emit('add-manual-node', $event)"
                     @error="$emit('manual-add-error', $event)"
+                />
+            </section>
+
+            <section
+                v-show="activeTab === 'history'"
+                :id="tabPanelId('history')"
+                class="wkb-expand-tab-panel"
+                role="tabpanel"
+                :aria-labelledby="tabButtonId('history')"
+            >
+                <WorkspaceExpandHistoryPanel
+                    :entries="expansionHistoryEntries"
+                    :loading="loading"
+                    @remove-entry="$emit('remove-history-entry', $event)"
                 />
             </section>
         </div>
@@ -294,6 +332,7 @@
 <script>
 import WorkspaceExpressionFilterControls from "./WorkspaceExpressionFilterControls.vue";
 import WorkspaceExpandManualAdd from "./WorkspaceExpandManualAdd.vue";
+import WorkspaceExpandHistoryPanel from "./WorkspaceExpandHistoryPanel.vue";
 import {
     EXPAND_TARGET_TYPE_OPTIONS,
     MATCH_REDUCER_HELP,
@@ -313,6 +352,7 @@ export default {
     components: {
         WorkspaceExpressionFilterControls,
         WorkspaceExpandManualAdd,
+        WorkspaceExpandHistoryPanel,
     },
     props: {
         open: {
@@ -326,10 +366,6 @@ export default {
         manualAddBusy: {
             type: Boolean,
             default: false,
-        },
-        progressLabel: {
-            type: String,
-            default: "",
         },
         filters: {
             type: Object,
@@ -350,6 +386,14 @@ export default {
         expandFromSingleNode: {
             type: Boolean,
             default: false,
+        },
+        expandFromEdge: {
+            type: Boolean,
+            default: false,
+        },
+        expansionHistoryEntries: {
+            type: Array,
+            default: () => [],
         },
         availableTargetTypes: {
             type: Array,
@@ -395,6 +439,9 @@ export default {
         },
         intentHasText() {
             return Boolean(String(this.filters?.intent || "").trim());
+        },
+        expansionHistoryCount() {
+            return (this.expansionHistoryEntries || []).length;
         },
     },
     mounted() {
@@ -451,8 +498,10 @@ export default {
         onTargetTypeChange(event) {
             this.$emit("patch-controls", { targetType: event.target.value });
         },
-        onConnectionScopeChange(event) {
-            this.$emit("patch-controls", { connectionScope: event.target.value });
+        onTwoHopToggle(event) {
+            this.$emit("patch-controls", {
+                connectionScope: event.target.checked ? "expanded" : "direct",
+            });
         },
     },
 };
@@ -464,7 +513,7 @@ export default {
     top: 12px;
     right: 12px;
     bottom: 12px;
-    z-index: 10;
+    z-index: 25;
     display: flex;
     flex-direction: column;
     width: min(380px, calc(100% - 24px));
@@ -570,6 +619,21 @@ export default {
     z-index: 1;
 }
 
+.wkb-expand-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--cfde-blue, #2c5c97);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .wkb-expand-tab:disabled {
     opacity: 0.55;
     cursor: not-allowed;
@@ -589,31 +653,6 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 14px;
-}
-
-.wkb-expand-progress {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-size: 13px;
-    color: var(--cfde-muted, #6b6b6b);
-}
-
-.wkb-expand-spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #ddd;
-    border-top-color: var(--cfde-orange, #e07b39);
-    border-radius: 50%;
-    animation: wkb-expand-spin 0.8s linear infinite;
-    flex-shrink: 0;
-}
-
-@keyframes wkb-expand-spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .wkb-expand-llm-note {
@@ -716,6 +755,10 @@ export default {
     cursor: pointer;
 }
 
+.wkb-expand-intent-helper {
+    margin-top: 6px;
+}
+
 .wkb-expand-novelty {
     padding: 0;
     border: none;
@@ -776,18 +819,12 @@ export default {
     gap: 6px;
 }
 
-.wkb-expand-advanced summary {
+.wkb-expand-hop-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
     cursor: pointer;
-}
-
-.wkb-expand-advanced-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 12px;
 }
 
 .wkb-expand-actions {

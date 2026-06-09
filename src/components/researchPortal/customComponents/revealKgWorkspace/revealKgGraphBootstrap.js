@@ -183,7 +183,7 @@ export async function buildInitialGraphFromAnchors({
     apiClient,
     anchorItems,
     context = "",
-    addNeighboringNodes = true,
+    addNeighboringNodes = false,
     neighborLimit = 20,
 } = {}) {
     if (!apiClient?.getInteractiveAnchorLinks) {
@@ -820,7 +820,8 @@ export function findSessionEdge(session, edgeId, sourceId, targetId) {
 }
 
 /**
- * Expand the graph from both endpoints of an edge (Change → Expand along a link).
+ * Legacy edge expand: sequential single-node fetch without expand panel filters.
+ * Prefer opening the expand panel with both edge endpoints as seeds.
  */
 export async function expandGraphFromEdge(apiClient, session, edgeRef) {
     if (!apiClient?.getInteractiveConnections || !session) {

@@ -47,6 +47,45 @@
                 </section>
 
                 <section class="wkb-docs-section">
+                    <h3>Starting a graph</h3>
+                    <p class="wkb-docs-lead">
+                        New sessions begin with a small set of starting nodes—not a
+                        large auto-built neighborhood.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Search &amp; select</strong>
+                            <p>
+                                From <em>Manage → New graph</em>, search genes, gene sets,
+                                mechanisms, and traits in four columns. Use catalog typeahead
+                                for exact names, or <em>By conceptual search</em> when you
+                                have a topic (for example “insulin resistance”) but not a
+                                specific entity. Pick one or two entities to start, add
+                                optional context, then click <em>Build a KG</em>.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Neighboring nodes (optional)</strong>
+                            <p>
+                                By default, the initial build adds only your starting
+                                entities and the links that connect them directly. Check
+                                <em>Add neighboring nodes</em> if you want REVEAL to fetch
+                                extra neighbors in the first pass. Most sessions grow the
+                                graph gradually with <em>Expand KG</em> instead.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Load or import</strong>
+                            <p>
+                                <em>My library → Open on canvas</em> restores a browser-saved
+                                layout. <em>Manage → Import graph</em> restores a full
+                                workflow file (including inspector caches and analysis runs).
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
                     <h3>Top menus</h3>
                     <ul class="wkb-docs-feature-list">
                         <li>
@@ -66,11 +105,15 @@
                             <strong>Manage</strong>
                             <p>
                                 Use Manage when you want a checkpoint or a portable copy.
-                                New graph starts fresh; Save graph to library keeps the
-                                layout in this browser; Export graph writes a file with
-                                inspector data you can Import graph later; Download review
-                                snapshot (when available) writes an HTML file for reading
-                                outside the canvas.
+                                <em>New graph</em> starts fresh.
+                                <em>Save graph to library</em> stores layout, links, filters,
+                                selected nodes, and analysis text in this browser only.
+                                <em>Export graph</em> writes a JSON workflow file with inspector
+                                caches and expansion history for <em>Import graph</em> later.
+                                <em>Download graph snapshot</em> writes a self-contained HTML
+                                file (graph image, tables, explanations, hypotheses, datasets,
+                                and cached inspector evidence) for reading or sharing outside
+                                the canvas—it cannot be reloaded into the workspace.
                             </p>
                         </li>
                         <li>
@@ -79,9 +122,11 @@
                                 My library is where browser-saved graphs live when you are not
                                 building from scratch. Open on canvas to continue a prior session,
                                 duplicate it for a variant, remove what you no longer need, or
-                                move collections between machines with Back up library and
-                                Restore library backup. Open it from the top bar whenever you
-                                want to browse saved work instead of continuing on the canvas.
+                                move collections between machines with <em>Back up library</em> and
+                                <em>Restore library backup</em>. Library saves and backups store
+                                layout and session metadata only—not inspector caches, expansion
+                                history, or candidate caches. Use <em>Export graph</em> when you
+                                need a full workflow file.
                             </p>
                         </li>
                         <li>
@@ -105,9 +150,14 @@
                             <p>
                                 Opens the expand panel from your <em>selected nodes</em> (blue
                                 fill). Use <em>Discover</em> to fetch ranked neighbors with optional
-                                filters, or <em>Add nodes</em> to search for a specific node.
-                                From a node’s pointer menu, <em>Expand graph from node</em> opens
-                                the same panel scoped to that node only.
+                                intent or novelty filters, or <em>Add nodes</em> to search for a
+                                specific entity. From a node’s pointer menu,
+                                <em>Expand graph from node</em> opens the same panel scoped to
+                                that node only; <em>Expand graph from edge</em> seeds from both
+                                endpoints. While expansion runs, a progress overlay shows neighbor
+                                classification batches and stops early once enough neighbors pass
+                                your count limit. Use the <em>History</em> tab to review past
+                                expansion runs (restored on <em>Import graph</em>, not My library).
                             </p>
                         </li>
                         <li>
@@ -228,9 +278,9 @@
                         <li>
                             <strong>Edge menu</strong>
                             <p>
-                                <em>Inspect edge</em> opens edge provenance in the Inspector
-                                when available. <em>Expand graph from edge</em> grows the
-                                graph from both endpoints of the link.
+                                <em>Inspect edge</em> opens edge provenance in the Inspector.
+                                <em>Expand graph from edge</em> opens the expand panel using
+                                both endpoints of the link as expansion seeds.
                             </p>
                         </li>
                     </ul>
@@ -371,14 +421,60 @@
                 </section>
 
                 <section class="wkb-docs-section">
+                    <h3>Saving and sharing</h3>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>My library (quick checkpoint)</strong>
+                            <p>
+                                Best for resuming on the same browser. Saves nodes, edges,
+                                selected nodes, visibility filters, and analysis bubbles—not
+                                inspector evidence or expansion history.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Export / Import graph (full workflow)</strong>
+                            <p>
+                                Best for moving between machines or archiving a session you
+                                may reopen in the canvas. Includes inspector caches, expansion
+                                history, and candidate caches.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Download graph snapshot (read-only review)</strong>
+                            <p>
+                                Best for sharing a readable report with collaborators. HTML
+                                only—open in a browser; cannot be imported back.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Back up / Restore library backup</strong>
+                            <p>
+                                Moves your My library collection between browsers. Same limits
+                                as individual library saves—layout only, no inspector data.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Reminders</h3>
+                    <p>
+                        Short callouts below the graph legend suggest next steps after key
+                        events—new graph built, expansion finished, analysis completed, or
+                        many nodes added since last save. They appear once per graph and
+                        dismiss automatically or when you act on them.
+                    </p>
+                </section>
+
+                <section class="wkb-docs-section">
                     <h3>Suggested user flow</h3>
                     <ol class="wkb-docs-flow">
-                        <li>Add or load a graph (Manage → New graph, My library, or Import graph).</li>
-                        <li>Grow the graph from node or edge menus; add retrieved nodes from Graph data.</li>
+                        <li>Start with one or two entities (Manage → New graph) or load prior work.</li>
+                        <li>Expand gradually from selected nodes; add specific entities from Graph data.</li>
                         <li>Narrow the view with visibility filters when the canvas gets busy.</li>
                         <li>Mark selected nodes and use the Inspector for evidence.</li>
                         <li>Run Analyze when you are ready to explain, hypothesize, or find datasets.</li>
-                        <li>Save to My library or Export graph when you work across machines.</li>
+                        <li>Save to My library for a quick checkpoint; Export graph for a full workflow file; download a snapshot to share a report.</li>
                     </ol>
                 </section>
             </div>

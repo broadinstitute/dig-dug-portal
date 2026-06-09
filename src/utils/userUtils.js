@@ -330,7 +330,7 @@ function normalizeGraphRecord(record) {
         explainContext: String(record.explainContext || record.context || ""),
         starterBuckets: cloneJson(record.starterBuckets, null),
         addNeighboringNodes:
-            record.addNeighboringNodes !== undefined ? record.addNeighboringNodes : true,
+            record.addNeighboringNodes !== undefined ? record.addNeighboringNodes : false,
         // Library graphs never store inspector caches (use Export graph for full workflow data).
         ...emptyInspectorCacheFields(),
     };
@@ -469,7 +469,7 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
         contextualEdgeSignature: session.contextualEdgeSignature || "",
         starterBuckets: session.starterBuckets || null,
         addNeighboringNodes:
-            session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : true,
+            session.addNeighboringNodes !== undefined ? session.addNeighboringNodes : false,
         hypotheses: sigChainRuns,
         sigChainRuns,
         sigChainRun,
@@ -479,6 +479,8 @@ function graphPayloadFromSession(session, { label, includeInspectorCaches = fals
         graphInterpretations: cloneJson(session.graphInterpretations, []),
         graphInterpretation: cloneJson(session.graphInterpretation, null),
         explainContext: session.explainContext || "",
+        historyEntries: cloneJson(session.historyEntries, []),
+        candidateCache: cloneJson(session.candidateCache, {}),
     };
     if (!includeInspectorCaches) {
         return {
@@ -587,7 +589,7 @@ function sessionFromGraph(record) {
         contextualEdgeSignature: graph.contextualEdgeSignature,
         starterBuckets: cloneJson(graph.starterBuckets, null),
         addNeighboringNodes:
-            graph.addNeighboringNodes !== undefined ? graph.addNeighboringNodes : true,
+            graph.addNeighboringNodes !== undefined ? graph.addNeighboringNodes : false,
         hypotheses: sigChainRuns,
         sigChainRuns,
         sigChainRun,
@@ -599,6 +601,8 @@ function sessionFromGraph(record) {
         graphInterpretations: cloneJson(graph.graphInterpretations, []),
         graphInterpretation: cloneJson(graph.graphInterpretation, null),
         explainContext: graph.explainContext || graph.context || "",
+        historyEntries: cloneJson(graph.historyEntries, []),
+        candidateCache: cloneJson(graph.candidateCache, {}),
         ...emptyInspectorCacheFields(),
         savedGraphId: graph.id,
         savedAt: graph.savedAt,
@@ -707,7 +711,7 @@ function sessionFromGraphExport(record) {
         contextualEdgeSignature: payload.contextualEdgeSignature || "",
         starterBuckets: cloneJson(payload.starterBuckets, null),
         addNeighboringNodes:
-            payload.addNeighboringNodes !== undefined ? payload.addNeighboringNodes : true,
+            payload.addNeighboringNodes !== undefined ? payload.addNeighboringNodes : false,
         hypotheses: sigChainRuns,
         sigChainRuns,
         sigChainRun,
@@ -719,6 +723,8 @@ function sessionFromGraphExport(record) {
         graphInterpretations: cloneJson(payload.graphInterpretations, []),
         graphInterpretation: cloneJson(payload.graphInterpretation, null),
         explainContext: payload.explainContext || payload.context || "",
+        historyEntries: cloneJson(payload.historyEntries, []),
+        candidateCache: cloneJson(payload.candidateCache, {}),
         nodeConnectionEvidenceCache: cloneJson(payload.nodeConnectionEvidenceCache, {}),
         nodeExpressionProfileCache: cloneJson(payload.nodeExpressionProfileCache, {}),
         nodeExpressionReferenceById: cloneJson(payload.nodeExpressionReferenceById, {}),

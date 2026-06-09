@@ -26,35 +26,8 @@
                 <p>{{ modalDescription }}</p>
             </header>
 
-            <div class="wkb-initial-tabrow">
-                <div class="wkb-initial-tabs" role="tablist" aria-label="How to add starting entities">
-                    <button
-                        type="button"
-                        role="tab"
-                        :aria-selected="buildMode === 'search'"
-                        :class="['wkb-initial-tab', buildMode === 'search' && 'is-active']"
-                        @click="buildMode = 'search'"
-                    >
-                        Search &amp; select
-                    </button>
-                    <button
-                        type="button"
-                        role="tab"
-                        :aria-selected="buildMode === 'ai'"
-                        :class="['wkb-initial-tab', buildMode === 'ai' && 'is-active']"
-                        @click="buildMode = 'ai'"
-                    >
-                        AI assisted
-                    </button>
-                </div>
-            </div>
-
             <div class="wkb-initial-body">
-                <div
-                    v-show="buildMode === 'search'"
-                    role="tabpanel"
-                    class="wkb-initial-panel"
-                >
+                <div class="wkb-initial-panel">
                     <div class="wkb-initial-columns">
                         <WorkspaceEntityColumn
                             v-for="column in starterColumns"
@@ -96,29 +69,10 @@
                     </div>
                     <p v-if="columnError" class="wkb-initial-error">{{ columnError }}</p>
                 </div>
-
-                <div
-                    v-show="buildMode === 'ai'"
-                    role="tabpanel"
-                    class="wkb-initial-panel wkb-initial-panel-ai"
-                >
-                    <p class="wkb-initial-ai-lead">
-                        Describe your research interest and we will suggest starting
-                        genes, traits, and mechanisms. This mode will be available in a
-                        follow-up step.
-                    </p>
-                    <textarea
-                        class="wkb-initial-ai-textarea"
-                        rows="5"
-                        disabled
-                        placeholder="Example: genes involved in adipose tissue expansion and adverse metabolic outcomes."
-                    />
-                </div>
             </div>
 
             <footer class="wkb-initial-footer">
                 <button
-                    v-if="buildMode === 'search'"
                     type="button"
                     class="wkb-initial-reset"
                     @click="$emit('reset')"
@@ -128,7 +82,7 @@
                 <button
                     type="button"
                     class="wkb-initial-build"
-                    :disabled="buildMode === 'search' ? !starterCount : true"
+                    :disabled="!starterCount"
                     @click="onContinue"
                 >
                     Build a KG
@@ -167,7 +121,7 @@ export default {
         },
         addNeighboringNodes: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         apiClient: {
             type: Object,
@@ -184,7 +138,6 @@ export default {
     },
     data() {
         return {
-            buildMode: "search",
             columnError: "",
         };
     },
@@ -218,7 +171,6 @@ export default {
     watch: {
         open(isOpen) {
             if (isOpen) {
-                this.buildMode = "search";
                 this.columnError = "";
             }
         },
@@ -265,10 +217,7 @@ export default {
             this.columnError = message;
         },
         onContinue() {
-            if (this.buildMode === "search" && !this.starterCount) {
-                return;
-            }
-            if (this.buildMode === "ai") {
+            if (!this.starterCount) {
                 return;
             }
             this.$emit("continue", {
@@ -335,35 +284,6 @@ export default {
     font-size: 13px;
     line-height: 1.55;
     color: var(--cfde-muted, #6b6b6b);
-}
-
-.wkb-initial-tabrow {
-    padding: 0 24px 14px;
-}
-
-.wkb-initial-tabs {
-    display: flex;
-    gap: 0;
-    padding: 4px;
-    border-radius: 10px;
-    background: var(--cfde-bg, #f6f5f2);
-}
-
-.wkb-initial-tab {
-    border: none;
-    background: transparent;
-    color: var(--cfde-muted, #6b6b6b);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.wkb-initial-tab.is-active {
-    background: #fff;
-    color: var(--cfde-ink, #33363d);
-    box-shadow: 0 1px 4px rgba(20, 22, 30, 0.08);
 }
 
 .wkb-initial-reset {
@@ -456,26 +376,6 @@ export default {
     margin: 12px 0 0;
     font-size: 13px;
     color: #c45c3a;
-}
-
-.wkb-initial-panel-ai {
-    padding: 8px 0 16px;
-}
-
-.wkb-initial-ai-lead {
-    margin: 0 0 12px;
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--cfde-muted, #6b6b6b);
-}
-
-.wkb-initial-ai-textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 8px;
-    font-size: 13px;
-    opacity: 0.7;
 }
 
 .wkb-initial-footer {

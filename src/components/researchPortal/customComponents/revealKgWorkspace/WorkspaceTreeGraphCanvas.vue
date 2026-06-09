@@ -1035,6 +1035,21 @@ export default {
                 updateHighlightVisuals();
             }
         },
+        getSvgSnapshotMarkup() {
+            const svg = this.$refs.svg;
+            if (!svg) {
+                return "";
+            }
+            try {
+                const clone = svg.cloneNode(true);
+                clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                clone.removeAttribute("style");
+                return new XMLSerializer().serializeToString(clone);
+            } catch (error) {
+                console.warn("Could not serialize graph SVG for snapshot", error);
+                return "";
+            }
+        },
     },
 };
 </script>

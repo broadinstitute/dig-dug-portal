@@ -26,58 +26,68 @@
                     @open-explanation="openSavedExplanation"
                 />
             </div>
-            <WorkspaceCanvas
-                :graph-nodes="canvasGraphNodes"
-                :all-graph-nodes="allCanvasGraphNodes"
-                :ledger-session="activeSession"
-                :graph-edges="canvasGraphEdges"
-                :contextual-edges="canvasContextualEdges"
-                :graph-loading="graphLoading"
-                :graph-error="graphError"
-                :selected-node-id="selectedNodeId"
-                :selected-edge-id="selectedEdgeId"
-                :key-node-ids="canvasKeyNodeIds"
-                :node-ids-with-evidence="nodeIdsWithEvidence"
-                :edge-keys-with-evidence="edgeKeysWithEvidence"
-                :selected-node-detail="selectedNodeDetail"
-                :selected-edge-detail="selectedEdgeDetail"
-                :gene-inspector-context="geneInspectorContext"
-                :trait-inspector-context="traitInspectorContext"
-                :mechanism-inspector-context="mechanismInspectorContext"
-                :gene-set-inspector-context="geneSetInspectorContext"
-                :expression-options="expressionOptions"
-                :api-client="apiClient"
-                :inspector-open="inspectorOpen"
-                :retrieval-ledger="canvasRetrievalLedger"
-                :table-add-busy="tableAddBusy"
-                :inspector-content-key="inspectorContentKey"
-                :graph-reminder="graphReminder"
-                @node-menu-open="onNodeMenuOpen"
-                @edge-menu-open="onEdgeMenuOpen"
-                @toggle-inspector="onToggleInspector"
-                @close-inspector="inspectorOpen = false"
-                @graph-action="onGraphAction"
-                @add-table-node="onAddTableNode"
-                @remove-table-node="onRemoveTableNode"
-                @cache-node-connections="onCacheNodeConnections"
-                @cache-node-expression="onCacheNodeExpression"
-                @cache-factor-loadings="onCacheFactorLoadings"
-                @load-factor-loadings="onLoadFactorLoadings"
-                @inspect-connected-edge="onEdgeActionInspect"
-                @inspect-connected-node="onNodeActionInspect"
-                @graph-reminder-action="onGraphReminderAction"
-                @graph-reminder-dismiss="dismissGraphReminder"
-            />
+            <div class="rkw-canvas-shell">
+                <WorkspaceCanvas
+                    ref="workspaceCanvas"
+                    :graph-nodes="canvasGraphNodes"
+                    :all-graph-nodes="allCanvasGraphNodes"
+                    :ledger-session="activeSession"
+                    :graph-edges="canvasGraphEdges"
+                    :contextual-edges="canvasContextualEdges"
+                    :graph-loading="graphLoading"
+                    :graph-busy="canvasGraphBusy"
+                    :graph-error="graphError"
+                    :selected-node-id="selectedNodeId"
+                    :selected-edge-id="selectedEdgeId"
+                    :key-node-ids="canvasKeyNodeIds"
+                    :node-ids-with-evidence="nodeIdsWithEvidence"
+                    :edge-keys-with-evidence="edgeKeysWithEvidence"
+                    :selected-node-detail="selectedNodeDetail"
+                    :selected-edge-detail="selectedEdgeDetail"
+                    :gene-inspector-context="geneInspectorContext"
+                    :trait-inspector-context="traitInspectorContext"
+                    :mechanism-inspector-context="mechanismInspectorContext"
+                    :gene-set-inspector-context="geneSetInspectorContext"
+                    :expression-options="expressionOptions"
+                    :api-client="apiClient"
+                    :inspector-open="inspectorOpen"
+                    :retrieval-ledger="canvasRetrievalLedger"
+                    :table-add-busy="tableAddBusy"
+                    :inspector-content-key="inspectorContentKey"
+                    :graph-reminder="graphReminder"
+                    @node-menu-open="onNodeMenuOpen"
+                    @edge-menu-open="onEdgeMenuOpen"
+                    @toggle-inspector="onToggleInspector"
+                    @close-inspector="inspectorOpen = false"
+                    @graph-action="onGraphAction"
+                    @add-table-node="onAddTableNode"
+                    @remove-table-node="onRemoveTableNode"
+                    @cache-node-connections="onCacheNodeConnections"
+                    @cache-node-expression="onCacheNodeExpression"
+                    @cache-factor-loadings="onCacheFactorLoadings"
+                    @load-factor-loadings="onLoadFactorLoadings"
+                    @inspect-connected-edge="onEdgeActionInspect"
+                    @inspect-connected-node="onNodeActionInspect"
+                    @graph-reminder-action="onGraphReminderAction"
+                    @graph-reminder-dismiss="dismissGraphReminder"
+                />
+                <WorkspaceExpandProgressOverlay
+                    :open="expandGraphLoading"
+                    :message="expandGraphProgress"
+                    :progress="expandBatchProgress"
+                />
+            </div>
             <WorkspaceExpandGraphPanel
                 :open="expandGraphOpen"
                 :loading="expandGraphLoading"
                 :manual-add-busy="expandManualAddBusy"
-                :progress-label="expandGraphProgress"
                 :filters="expandFilters"
                 :controls="expandControls"
                 :expand-seed-summary="expandSeedSummary"
                 :expand-seed-label="expandSeedLabel"
                 :expand-from-single-node="expandFromSingleNode"
+                :expand-from-edge="expandFromEdge"
+                :expansion-history-entries="expansionHistoryEntries"
                 :available-target-types="expandAvailableTargetTypes"
                 :expression-options="expressionOptions"
                 :api-client="apiClient"
@@ -90,6 +100,7 @@
                 @expand="runExpandGraph"
                 @add-manual-node="onExpandManualAddNode"
                 @manual-add-error="onExpandManualAddError"
+                @remove-history-entry="onRemoveExpansionHistoryEntry"
             />
             <WorkspaceVisibilityFilterPanel
                 :open="filterGraphOpen"
@@ -299,7 +310,19 @@ import WorkspaceBuildHypothesesModal from "./revealKgWorkspace/WorkspaceBuildHyp
 import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFindRelatedDatasetsModal.vue";
 import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
 import WorkspaceExpandGraphPanel from "./revealKgWorkspace/WorkspaceExpandGraphPanel.vue";
+import WorkspaceExpandProgressOverlay from "./revealKgWorkspace/WorkspaceExpandProgressOverlay.vue";
 import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
+import {
+    emptyExpandBatchProgress,
+    normalizeExpandProgressUpdate,
+} from "./revealKgWorkspace/revealKgExpandProgressUtils.js";
+import { downloadGraphSnapshotFromSession } from "./revealKgWorkspace/revealKgGraphSnapshotUtils.js";
+import {
+    appendExpansionHistoryEntry,
+    buildExpansionHistoryEntry,
+    expansionHistoryEntriesFromSession,
+    removeExpansionHistoryEntry,
+} from "./revealKgWorkspace/revealKgExpansionHistoryUtils.js";
 import {
     buildVisibilityFilterOnSession,
     graphFilterCanReset as sessionGraphFilterCanReset,
@@ -341,7 +364,6 @@ import {
     graphNodeToAnchorItem,
     canRemoveGraphNode,
     countConnectedEdgesForNode,
-    expandGraphFromEdge,
     fetchContextualEdgesForGraph,
     findSessionEdge,
     isInspectableEdge,
@@ -441,6 +463,7 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceFindRelatedDatasetsModal,
         WorkspaceVisibilityFilterPanel,
         WorkspaceExpandGraphPanel,
+        WorkspaceExpandProgressOverlay,
         WorkspaceExplanationBubble,
         WorkspaceHypothesesBubble,
         WorkspaceDatasetsBubble,
@@ -476,7 +499,7 @@ export default Vue.component("reveal-kg-workspace", {
             initialGraphOpen: false,
             starterBuckets: emptyStarterBuckets(),
             starterContext: "",
-            addNeighboringNodes: true,
+            addNeighboringNodes: false,
             llmAvailable: false,
             graphLoading: false,
             graphError: "",
@@ -493,6 +516,7 @@ export default Vue.component("reveal-kg-workspace", {
             saveGraphOpen: false,
             exportGraphOpen: false,
             exportGraphBusy: false,
+            snapshotDownloadBusy: false,
             duplicateFlowActive: false,
             duplicateSourceLabel: "",
             nodeActionMenu: null,
@@ -516,8 +540,9 @@ export default Vue.component("reveal-kg-workspace", {
             expandGraphOpen: false,
             expandGraphLoading: false,
             expandGraphProgress: "",
+            expandBatchProgress: null,
             expandManualAddBusy: false,
-            expandSeedNodeId: null,
+            expandSeedNodeIds: [],
         };
     },
     computed: {
@@ -713,6 +738,14 @@ export default Vue.component("reveal-kg-workspace", {
         canvasAnchorItems() {
             return keyNodeItemsFromSession(this.activeSession);
         },
+        canvasGraphBusy() {
+            return (
+                this.graphLoading ||
+                this.expandGraphLoading ||
+                this.expandManualAddBusy ||
+                this.tableAddBusy
+            );
+        },
         displayGraph() {
             return getDisplayGraph(this.activeSession, {
                 selectedNodeId: this.selectedNodeId,
@@ -753,18 +786,39 @@ export default Vue.component("reveal-kg-workspace", {
             return expandNeedsLlm(this.expandFilters);
         },
         expandSeedItems() {
-            if (this.expandSeedNodeId) {
-                const node = findGraphNode(this.activeSession, this.expandSeedNodeId);
-                const item = graphNodeToAnchorItem(node);
-                return item ? [item] : [];
+            if (this.expandSeedNodeIds.length) {
+                return this.expandSeedNodeIds
+                    .map((nodeId) => graphNodeToAnchorItem(findGraphNode(this.activeSession, nodeId)))
+                    .filter(Boolean);
             }
             return keyNodeItemsFromSession(this.activeSession);
         },
         expandFromSingleNode() {
-            return Boolean(this.expandSeedNodeId);
+            return this.expandSeedNodeIds.length === 1;
+        },
+        expandFromEdge() {
+            return this.expandSeedNodeIds.length === 2;
         },
         expandSeedLabel() {
-            return this.expandFromSingleNode ? "From node" : "Selected nodes";
+            if (this.expandFromSingleNode) {
+                return "From node";
+            }
+            if (this.expandFromEdge) {
+                return "From edge";
+            }
+            return "Selected nodes";
+        },
+        expansionHistoryEntries() {
+            return expansionHistoryEntriesFromSession(this.activeSession);
+        },
+        expandSeedMode() {
+            if (this.expandFromEdge) {
+                return "edge";
+            }
+            if (this.expandFromSingleNode) {
+                return "node";
+            }
+            return "selected";
         },
         expandSeedSummary() {
             const labels = (this.expandSeedItems || [])
@@ -772,6 +826,9 @@ export default Vue.component("reveal-kg-workspace", {
                 .filter(Boolean);
             if (!labels.length) {
                 return "";
+            }
+            if (this.expandFromEdge && labels.length === 2) {
+                return `${labels[0]} ↔ ${labels[1]}`;
             }
             if (labels.length <= 4) {
                 return labels.join(", ");
@@ -1130,9 +1187,6 @@ export default Vue.component("reveal-kg-workspace", {
             }
         },
         onWelcomeLoadLibrary() {
-            if (!this.savedGraphs.length) {
-                return;
-            }
             this.welcomeOpen = false;
             this.openLibrary();
         },
@@ -1153,12 +1207,12 @@ export default Vue.component("reveal-kg-workspace", {
         resetStarterBuilder() {
             this.starterBuckets = emptyStarterBuckets();
             this.starterContext = "";
-            this.addNeighboringNodes = true;
+            this.addNeighboringNodes = false;
         },
         async onInitialGraphContinue({ buckets, context, addNeighboringNodes }) {
             this.starterBuckets = buckets;
             this.starterContext = context;
-            this.addNeighboringNodes = addNeighboringNodes !== false;
+            this.addNeighboringNodes = addNeighboringNodes === true;
             this.initialGraphOpen = false;
             this.graphError = "";
             this.selectedNodeId = null;
@@ -1578,33 +1632,7 @@ export default Vue.component("reveal-kg-workspace", {
             if (!this.activeSession || !edge?.edgeId) {
                 return;
             }
-            const label = edge.label || edge.edgeId;
-            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
-            this.graphLoading = true;
-            try {
-                const next = await expandGraphFromEdge(
-                    this.apiClient,
-                    this.activeSession,
-                    edge
-                );
-                this.activeSession = withNormalizedKeyNodes({
-                    ...this.activeSession,
-                    graphNodes: next.graphNodes,
-                    graphEdges: next.graphEdges,
-                    retrievalLedger: next.retrievalLedger,
-                });
-                this.contextualFetchSignature = "";
-                this.scheduleContextualEdgesFetch({ immediate: true });
-                this.maybeRemindAfterGraphMutation(previousNodeCount);
-                this.showStatus(`Expanded graph from ${label}.`, 3200);
-            } catch (error) {
-                this.showStatus(
-                    String(error?.message || error) || "Could not expand from that edge.",
-                    3200
-                );
-            } finally {
-                this.graphLoading = false;
-            }
+            this.openExpandGraphFromEdge(edge);
         },
         onNodeActionToggleKeyNode(node) {
             if (!node?.nodeId || !this.activeSession) {
@@ -1641,32 +1669,58 @@ export default Vue.component("reveal-kg-workspace", {
             this.showStatus(`Triggered: ${action}`);
         },
         openExpandGraph() {
-            this.openExpandGraphPanel({ seedNodeId: null });
+            this.openExpandGraphPanel({ seedNodeIds: [] });
         },
         openExpandGraphFromNode(nodeId) {
             if (!nodeId) {
                 return;
             }
-            this.openExpandGraphPanel({ seedNodeId: nodeId });
+            this.openExpandGraphPanel({ seedNodeIds: [nodeId] });
         },
-        openExpandGraphPanel({ seedNodeId = null } = {}) {
+        openExpandGraphFromEdge(edgeRef) {
+            const edge =
+                edgeRef?.edge ||
+                findSessionEdge(
+                    this.activeSession,
+                    edgeRef?.edgeId,
+                    edgeRef?.sourceId,
+                    edgeRef?.targetId
+                );
+            const sourceId = edgeRef?.sourceId || edge?.source;
+            const targetId = edgeRef?.targetId || edge?.target;
+            const nodeIds = [sourceId, targetId].filter(
+                (nodeId, index, list) =>
+                    nodeId &&
+                    list.indexOf(nodeId) === index &&
+                    findGraphNode(this.activeSession, nodeId)
+            );
+            if (!nodeIds.length) {
+                this.showStatus("Edge endpoints not found on the graph.", 3200);
+                return;
+            }
+            this.openExpandGraphPanel({ seedNodeIds: nodeIds });
+        },
+        openExpandGraphPanel({ seedNodeIds = [] } = {}) {
             if (!this.activeSession?.graphNodes?.length) {
                 this.showStatus("Build a graph before expanding.", 3200);
                 return;
             }
-            if (!seedNodeId && !keyNodeItemsFromSession(this.activeSession).length) {
+            const normalizedSeedIds = (seedNodeIds || []).filter(Boolean);
+            if (!normalizedSeedIds.length && !keyNodeItemsFromSession(this.activeSession).length) {
                 this.showStatus(
                     "Mark at least one selected node before expanding from the toolbar.",
                     3200
                 );
                 return;
             }
-            if (seedNodeId && !findGraphNode(this.activeSession, seedNodeId)) {
-                this.showStatus("That node is no longer on the graph.", 3200);
-                return;
+            for (const nodeId of normalizedSeedIds) {
+                if (!findGraphNode(this.activeSession, nodeId)) {
+                    this.showStatus("That node is no longer on the graph.", 3200);
+                    return;
+                }
             }
             this.filterGraphOpen = false;
-            this.expandSeedNodeId = seedNodeId || null;
+            this.expandSeedNodeIds = normalizedSeedIds;
             this.activeSession = ensureSessionFilterState(
                 this.activeSession,
                 this.expressionOptions
@@ -1678,7 +1732,13 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             this.expandGraphOpen = false;
-            this.expandSeedNodeId = null;
+            this.expandSeedNodeIds = [];
+        },
+        onRemoveExpansionHistoryEntry(entryId) {
+            if (!this.activeSession || !entryId) {
+                return;
+            }
+            this.activeSession = removeExpansionHistoryEntry(this.activeSession, entryId);
         },
         onExpandFiltersPatch(patch) {
             if (!this.activeSession) {
@@ -1756,8 +1816,8 @@ export default Vue.component("reveal-kg-workspace", {
             }
             if (!this.expandSeedItems.length) {
                 this.showStatus(
-                    this.expandFromSingleNode
-                        ? "That node is no longer available to expand from."
+                    this.expandFromSingleNode || this.expandFromEdge
+                        ? "Those expansion seeds are no longer on the graph."
                         : "Mark at least one selected node before expanding.",
                     3200
                 );
@@ -1769,20 +1829,35 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.expandGraphLoading = true;
             this.expandGraphProgress = "Expanding graph…";
+            this.expandBatchProgress = emptyExpandBatchProgress("Expanding graph…");
+            this.nodeActionMenu = null;
+            this.edgeActionMenu = null;
             const previousNodeCount = this.activeSession.graphNodes?.length || 0;
             try {
                 const result = await expandGraphOnSession(this.activeSession, {
                     apiClient: this.apiClient,
                     expressionOptions: this.expressionOptions,
                     anchorItems: this.expandSeedItems,
-                    onProgress: (label) => {
-                        this.expandGraphProgress = label;
+                    onProgress: (update) => {
+                        this.onExpandProgress(update);
                     },
                 });
-                this.activeSession = ensureSessionFilterState(
+                let nextSession = ensureSessionFilterState(
                     withNormalizedKeyNodes(result.session),
                     this.expressionOptions
                 );
+                nextSession = appendExpansionHistoryEntry(
+                    nextSession,
+                    buildExpansionHistoryEntry({
+                        addedItems: result.addedItems,
+                        addedCount: result.addedCount,
+                        expandFilters: this.expandFilters,
+                        controls: this.expandControls,
+                        seedSummary: this.expandSeedSummary,
+                        seedMode: this.expandSeedMode,
+                    })
+                );
+                this.activeSession = nextSession;
                 this.contextualFetchSignature = "";
                 this.scheduleContextualEdgesFetch({ immediate: true });
                 this.maybeRemindAfterGraphMutation(previousNodeCount);
@@ -1802,6 +1877,11 @@ export default Vue.component("reveal-kg-workspace", {
                 this.expandGraphLoading = false;
                 this.expandGraphProgress = "";
             }
+        },
+        onExpandProgress(update) {
+            const normalized = normalizeExpandProgressUpdate(update);
+            this.expandGraphProgress = normalized.message;
+            this.expandBatchProgress = normalized;
         },
         openFilterGraph() {
             if (!this.activeSession?.graphNodes?.length) {
@@ -2963,7 +3043,7 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             if (actionId === REMINDER_ACTION.DOWNLOAD_SNAPSHOT) {
-                this.showStatus("Download review snapshot is not available yet.", 3200);
+                void this.downloadGraphSnapshot();
                 return;
             }
             if (actionId === REMINDER_ACTION.BUILD_GRAPH) {
@@ -2997,7 +3077,7 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             if (payload.menu === "save" && payload.action === "downloadSnapshot") {
-                this.showStatus("Download review snapshot is not available yet.", 3200);
+                void this.downloadGraphSnapshot();
                 return;
             }
             if (payload.menu === "analyze" && payload.action === "explain") {
@@ -3013,6 +3093,39 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             this.showStatus(`Triggered: ${payload.label}`);
+        },
+        async downloadGraphSnapshot() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Nothing to snapshot — build a graph first.", 3200);
+                return;
+            }
+            if (this.snapshotDownloadBusy) {
+                return;
+            }
+            this.snapshotDownloadBusy = true;
+            try {
+                await this.$nextTick();
+                const graphSvgMarkup = this.$refs.workspaceCanvas?.captureGraphSvgMarkup?.() || "";
+                const result = await downloadGraphSnapshotFromSession(this.activeSession, {
+                    label: this.saveGraphLabel,
+                    graphSvgMarkup,
+                    graphEdges: this.canvasGraphEdges,
+                    contextualEdges: this.activeSession?.contextualEdges || [],
+                    keyNodeIds: this.canvasKeyNodeIds,
+                });
+                if (!result?.ok) {
+                    const detail = result?.reason ? ` ${result.reason}` : "";
+                    this.showStatus(`Could not download graph snapshot.${detail}`, 5200);
+                    return;
+                }
+                this.showStatus(`Downloaded graph snapshot as ${result.filename}.`, 4200);
+            } catch (error) {
+                console.error("Download graph snapshot failed", error);
+                const detail = error?.message ? ` ${error.message}` : "";
+                this.showStatus(`Could not download graph snapshot.${detail}`, 5200);
+            } finally {
+                this.snapshotDownloadBusy = false;
+            }
         },
         openExportGraph() {
             if (!this.activeSession?.graphNodes?.length) {
@@ -3289,7 +3402,7 @@ export default Vue.component("reveal-kg-workspace", {
             this.addNeighboringNodes =
                 session.addNeighboringNodes !== undefined
                     ? session.addNeighboringNodes
-                    : true;
+                    : false;
             this.activeSession = null;
             this.loadedSavedGraphId = null;
             this.graphError = "";
@@ -3391,6 +3504,11 @@ export default Vue.component("reveal-kg-workspace", {
     position: relative;
     flex: 1;
     min-height: 0;
+}
+
+.rkw-canvas-shell {
+    position: absolute;
+    inset: 0;
 }
 
 .rkw-analysis-bubbles {
