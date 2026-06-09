@@ -68,6 +68,29 @@
                 @graph-reminder-action="onGraphReminderAction"
                 @graph-reminder-dismiss="dismissGraphReminder"
             />
+            <WorkspaceExpandGraphPanel
+                :open="expandGraphOpen"
+                :loading="expandGraphLoading"
+                :manual-add-busy="expandManualAddBusy"
+                :progress-label="expandGraphProgress"
+                :filters="expandFilters"
+                :controls="expandControls"
+                :expand-seed-summary="expandSeedSummary"
+                :expand-seed-label="expandSeedLabel"
+                :expand-from-single-node="expandFromSingleNode"
+                :available-target-types="expandAvailableTargetTypes"
+                :expression-options="expressionOptions"
+                :api-client="apiClient"
+                :llm-available="llmAvailable"
+                :expand-needs-llm="expandGraphNeedsLlm"
+                @close="closeExpandGraph"
+                @patch-filters="onExpandFiltersPatch"
+                @patch-controls="onExpandControlsPatch"
+                @toggle-novelty="onExpandToggleNovelty"
+                @expand="runExpandGraph"
+                @add-manual-node="onExpandManualAddNode"
+                @manual-add-error="onExpandManualAddError"
+            />
             <WorkspaceVisibilityFilterPanel
                 :open="filterGraphOpen"
                 :loading="graphFilterLoading"
@@ -275,6 +298,8 @@ import WorkspaceExplainGraphModal from "./revealKgWorkspace/WorkspaceExplainGrap
 import WorkspaceBuildHypothesesModal from "./revealKgWorkspace/WorkspaceBuildHypothesesModal.vue";
 import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFindRelatedDatasetsModal.vue";
 import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
+import WorkspaceExpandGraphPanel from "./revealKgWorkspace/WorkspaceExpandGraphPanel.vue";
+import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
 import {
     buildVisibilityFilterOnSession,
     graphFilterCanReset as sessionGraphFilterCanReset,
@@ -284,7 +309,9 @@ import { getDisplayGraph, computeContextualEdgeSignature } from "./revealKgWorks
 import {
     createDefaultGraphFilters,
     ensureSessionFilterState,
+    expandNeedsLlm,
     graphFilterNeedsLlm,
+    patchSessionExpandControls,
     patchSessionGraphFilters,
     toggleNoveltyIncludeCheckbox,
 } from "./revealKgWorkspace/revealKgGraphFilterUtils.js";
@@ -309,14 +336,14 @@ import {
     addNodesToWorkspaceGraph,
     anchorItemsFromBuckets,
     buildInitialGraphFromAnchors,
+    getAvailableConnectionTargetTypes,
+    findGraphNode,
+    graphNodeToAnchorItem,
     canRemoveGraphNode,
     countConnectedEdgesForNode,
     expandGraphFromEdge,
-    expandGraphFromNode,
     fetchContextualEdgesForGraph,
-    findGraphNode,
     findSessionEdge,
-    graphNodeToAnchorItem,
     isInspectableEdge,
     isKeyNode,
     keyNodeItemsFromSession,
@@ -413,6 +440,7 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceBuildHypothesesModal,
         WorkspaceFindRelatedDatasetsModal,
         WorkspaceVisibilityFilterPanel,
+        WorkspaceExpandGraphPanel,
         WorkspaceExplanationBubble,
         WorkspaceHypothesesBubble,
         WorkspaceDatasetsBubble,
@@ -485,6 +513,11 @@ export default Vue.component("reveal-kg-workspace", {
             filterGraphOpen: false,
             graphFilterLoading: false,
             graphFilterProgress: "",
+            expandGraphOpen: false,
+            expandGraphLoading: false,
+            expandGraphProgress: "",
+            expandManualAddBusy: false,
+            expandSeedNodeId: null,
         };
     },
     computed: {
@@ -706,6 +739,48 @@ export default Vue.component("reveal-kg-workspace", {
                 this.activeSession?.controls?.graphFilters ||
                 createDefaultGraphFilters(this.expressionOptions)
             );
+        },
+        expandFilters() {
+            return (
+                this.activeSession?.controls?.expandFilters ||
+                createDefaultGraphFilters(this.expressionOptions)
+            );
+        },
+        expandControls() {
+            return this.activeSession?.controls || {};
+        },
+        expandGraphNeedsLlm() {
+            return expandNeedsLlm(this.expandFilters);
+        },
+        expandSeedItems() {
+            if (this.expandSeedNodeId) {
+                const node = findGraphNode(this.activeSession, this.expandSeedNodeId);
+                const item = graphNodeToAnchorItem(node);
+                return item ? [item] : [];
+            }
+            return keyNodeItemsFromSession(this.activeSession);
+        },
+        expandFromSingleNode() {
+            return Boolean(this.expandSeedNodeId);
+        },
+        expandSeedLabel() {
+            return this.expandFromSingleNode ? "From node" : "Selected nodes";
+        },
+        expandSeedSummary() {
+            const labels = (this.expandSeedItems || [])
+                .map((item) => item.label || item.node_id)
+                .filter(Boolean);
+            if (!labels.length) {
+                return "";
+            }
+            if (labels.length <= 4) {
+                return labels.join(", ");
+            }
+            return `${labels.slice(0, 4).join(", ")} + ${labels.length - 4} more`;
+        },
+        expandAvailableTargetTypes() {
+            const scope = this.activeSession?.controls?.connectionScope || "direct";
+            return getAvailableConnectionTargetTypes(this.expandSeedItems, scope);
         },
         savedVisibilityFilters() {
             return normalizeVisibilityFilterLayers(
@@ -1448,33 +1523,7 @@ export default Vue.component("reveal-kg-workspace", {
             if (!this.activeSession || !node?.nodeId) {
                 return;
             }
-            const label = node.label || node.nodeId;
-            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
-            this.graphLoading = true;
-            try {
-                const next = await expandGraphFromNode(
-                    this.apiClient,
-                    this.activeSession,
-                    node.nodeId
-                );
-                this.activeSession = withNormalizedKeyNodes({
-                    ...this.activeSession,
-                    graphNodes: next.graphNodes,
-                    graphEdges: next.graphEdges,
-                    retrievalLedger: next.retrievalLedger,
-                });
-                this.contextualFetchSignature = "";
-                this.scheduleContextualEdgesFetch({ immediate: true });
-                this.maybeRemindAfterGraphMutation(previousNodeCount);
-                this.showStatus(`Expanded graph from ${label}.`, 3200);
-            } catch (error) {
-                this.showStatus(
-                    String(error?.message || error) || "Could not expand from that node.",
-                    3200
-                );
-            } finally {
-                this.graphLoading = false;
-            }
+            this.openExpandGraphFromNode(node.nodeId);
         },
         async onEdgeActionInspect(edge) {
             if (!edge?.edgeId || !this.activeSession) {
@@ -1586,16 +1635,180 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             if (action === "expand") {
-                this.showStatus("Expand graph is not available yet.", 3200);
+                this.openExpandGraph();
                 return;
             }
             this.showStatus(`Triggered: ${action}`);
+        },
+        openExpandGraph() {
+            this.openExpandGraphPanel({ seedNodeId: null });
+        },
+        openExpandGraphFromNode(nodeId) {
+            if (!nodeId) {
+                return;
+            }
+            this.openExpandGraphPanel({ seedNodeId: nodeId });
+        },
+        openExpandGraphPanel({ seedNodeId = null } = {}) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before expanding.", 3200);
+                return;
+            }
+            if (!seedNodeId && !keyNodeItemsFromSession(this.activeSession).length) {
+                this.showStatus(
+                    "Mark at least one selected node before expanding from the toolbar.",
+                    3200
+                );
+                return;
+            }
+            if (seedNodeId && !findGraphNode(this.activeSession, seedNodeId)) {
+                this.showStatus("That node is no longer on the graph.", 3200);
+                return;
+            }
+            this.filterGraphOpen = false;
+            this.expandSeedNodeId = seedNodeId || null;
+            this.activeSession = ensureSessionFilterState(
+                this.activeSession,
+                this.expressionOptions
+            );
+            this.expandGraphOpen = true;
+        },
+        closeExpandGraph() {
+            if (this.expandGraphLoading || this.expandManualAddBusy) {
+                return;
+            }
+            this.expandGraphOpen = false;
+            this.expandSeedNodeId = null;
+        },
+        onExpandFiltersPatch(patch) {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = patchSessionExpandControls(
+                this.activeSession,
+                { expandFilters: patch },
+                this.expressionOptions
+            );
+        },
+        onExpandControlsPatch(patch) {
+            if (!this.activeSession) {
+                return;
+            }
+            this.activeSession = patchSessionExpandControls(
+                this.activeSession,
+                patch,
+                this.expressionOptions
+            );
+        },
+        onExpandToggleNovelty(label) {
+            if (!this.activeSession) {
+                return;
+            }
+            const current = this.activeSession.controls?.expandFilters || {};
+            this.activeSession = patchSessionExpandControls(
+                this.activeSession,
+                {
+                    expandFilters: toggleNoveltyIncludeCheckbox(current, label),
+                },
+                this.expressionOptions
+            );
+        },
+        onExpandManualAddError(message) {
+            this.showStatus(String(message || "Could not search for that node."), 3200);
+        },
+        async onExpandManualAddNode(row) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before adding nodes.", 3200);
+                return;
+            }
+            if (!row?.node_id) {
+                return;
+            }
+            const existingIds = new Set((this.activeSession.graphNodes || []).map((node) => node.id));
+            if (existingIds.has(row.node_id)) {
+                this.showStatus(`${row.label || row.node_id} is already on the graph.`, 2800);
+                return;
+            }
+            this.expandManualAddBusy = true;
+            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            try {
+                const nextSession = await addNodesToWorkspaceGraph(this.apiClient, this.activeSession, [
+                    row,
+                ]);
+                this.activeSession = withNormalizedKeyNodes(nextSession);
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.maybeRemindAfterGraphMutation(previousNodeCount);
+                this.showStatus(`Added ${row.label || row.node_id} to the graph.`, 2800);
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Could not add that node.",
+                    3200
+                );
+            } finally {
+                this.expandManualAddBusy = false;
+            }
+        },
+        async runExpandGraph() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before expanding.", 3200);
+                return;
+            }
+            if (!this.expandSeedItems.length) {
+                this.showStatus(
+                    this.expandFromSingleNode
+                        ? "That node is no longer available to expand from."
+                        : "Mark at least one selected node before expanding.",
+                    3200
+                );
+                return;
+            }
+            if (!this.llmAvailable && this.expandGraphNeedsLlm) {
+                this.showStatus("LLM expansion filters are not available.", 3200);
+                return;
+            }
+            this.expandGraphLoading = true;
+            this.expandGraphProgress = "Expanding graph…";
+            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            try {
+                const result = await expandGraphOnSession(this.activeSession, {
+                    apiClient: this.apiClient,
+                    expressionOptions: this.expressionOptions,
+                    anchorItems: this.expandSeedItems,
+                    onProgress: (label) => {
+                        this.expandGraphProgress = label;
+                    },
+                });
+                this.activeSession = ensureSessionFilterState(
+                    withNormalizedKeyNodes(result.session),
+                    this.expressionOptions
+                );
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.maybeRemindAfterGraphMutation(previousNodeCount);
+                const count = result.addedCount || 0;
+                this.showStatus(
+                    count
+                        ? `Added ${count} node${count === 1 ? "" : "s"} to the graph.`
+                        : "Expansion completed with no new nodes.",
+                    3200
+                );
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Could not expand the graph.",
+                    3200
+                );
+            } finally {
+                this.expandGraphLoading = false;
+                this.expandGraphProgress = "";
+            }
         },
         openFilterGraph() {
             if (!this.activeSession?.graphNodes?.length) {
                 this.showStatus("Build a graph before filtering.", 3200);
                 return;
             }
+            this.expandGraphOpen = false;
             let session = ensureSessionFilterState(
                 this.activeSession,
                 this.expressionOptions

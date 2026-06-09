@@ -195,7 +195,7 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 - Workspace graph operations use **`/api/interactive/*`** only (not legacy RAG `/query/*`).
 - **Search & select columns (order):** Genes, Gene sets, Mechanisms, Traits.
 - **Catalog typeahead:** `searchInteractiveCatalog(entityType, query)` — `gene`, `trait`, `factor` (UI: mechanisms).
-- **Gene set search:** `POST /api/interactive/gene-set/search` with `{ query, limit }` via `searchInteractiveGeneSets` (catalog `gene_set` fallback on 404/405).
+- **Gene set search:** `POST /api/interactive/gene-set/search` with `{ query, top_k }` via `searchInteractiveGeneSets` (also sends `limit` for backward compatibility; catalog `gene_set` fallback on 404/405).
 - **Free-text anchors:** `parseInteractiveAnchor({ query, context })`.
 - **Graph bootstrap from anchors:** `getInteractiveAnchorLinks`, then expansion/connection APIs as needed.
 

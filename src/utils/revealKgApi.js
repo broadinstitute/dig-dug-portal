@@ -17,7 +17,7 @@ export const REQUEST_TIMEOUT_MS = 2 * 60 * 1000;
 export const DEFAULT_REVEAL_KG_API_BASE_URL =
     "http://ec2-3-210-5-42.compute-1.amazonaws.com";
 
-/** POST /api/interactive/gene-set/search — body: { query, limit } */
+/** POST /api/interactive/gene-set/search — body: { query, top_k } */
 const DEFAULT_GENE_SET_SEARCH_PATH = `${INTERACTIVE_API_PREFIX}/gene-set/search`;
 
 let apiBaseUrl = normalizeApiBase(
@@ -217,21 +217,27 @@ function normalizeGeneSetSearchResponse(payload) {
 }
 
 /**
- * Search gene sets by name (Search & select → Gene sets).
+ * Search gene sets by name or natural-language query (Search & select → Gene sets).
  *
- * POST /api/interactive/gene-set/search with { query, limit }.
+ * POST /api/interactive/gene-set/search with { query, top_k }.
+ * Sends `limit` as well for servers that still honor it for result capping.
  * Override path via VUE_APP_REVEAL_KG_GENE_SET_SEARCH_PATH if needed.
  */
-export async function searchInteractiveGeneSets(query, limit = 10) {
+export async function searchInteractiveGeneSets(query, topK = 10) {
     const q = String(query || "").trim();
     if (!q) {
         return { items: [] };
     }
     const searchPath = getGeneSetSearchPath();
+    const cappedTopK = Math.max(1, Number(topK) || 10);
     try {
         const payload = await requestJson(searchPath, {
             method: "POST",
-            body: JSON.stringify({ query: q, limit }),
+            body: JSON.stringify({
+                query: q,
+                top_k: cappedTopK,
+                limit: cappedTopK,
+            }),
         });
         return normalizeGeneSetSearchResponse(payload);
     } catch (primaryError) {
@@ -239,7 +245,7 @@ export async function searchInteractiveGeneSets(query, limit = 10) {
         if (!message.includes("404") && !message.includes("Method Not Allowed")) {
             throw primaryError;
         }
-        return searchInteractiveCatalog("gene_set", q, limit);
+        return searchInteractiveCatalog("gene_set", q, cappedTopK);
     }
 }
 

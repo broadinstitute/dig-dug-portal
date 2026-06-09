@@ -270,6 +270,9 @@ export default {
             return "Add mechanisms";
         },
         searchPlaceholder() {
+            if (this.entityType === "gene_set") {
+                return "Search by name or describe a biology question";
+            }
             return `Search ${this.title.toLowerCase()}`;
         },
         conceptualSearchEnabled() {

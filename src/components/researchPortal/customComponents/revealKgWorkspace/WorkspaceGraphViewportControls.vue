@@ -11,12 +11,19 @@
         </button>
         <button
             type="button"
-            class="wkb-graph-control-btn"
+            class="wkb-graph-control-btn wkb-graph-control-btn--filter"
             title="Visibility filters"
-            aria-label="Visibility filters"
+            :aria-label="visibilityFilterBadgeLabel"
             @click="$emit('action', 'filter')"
         >
             <b-icon icon="funnel-fill" aria-hidden="true" />
+            <span
+                v-if="visibilityFilterCount > 0"
+                class="wkb-graph-control-badge"
+                aria-hidden="true"
+            >
+                {{ visibilityFilterCount }}
+            </span>
         </button>
         <div class="zoom-slider-outer">
             <input
@@ -108,6 +115,10 @@ export default {
             type: Boolean,
             default: true,
         },
+        visibilityFilterCount: {
+            type: Number,
+            default: 0,
+        },
     },
     data() {
         zoomInputCounter += 1;
@@ -119,6 +130,14 @@ export default {
     watch: {
         zoomLevel(value) {
             this.localZoom = value;
+        },
+    },
+    computed: {
+        visibilityFilterBadgeLabel() {
+            if (this.visibilityFilterCount > 0) {
+                return `Visibility filters, ${this.visibilityFilterCount} active`;
+            }
+            return "Visibility filters";
         },
     },
     methods: {
@@ -189,6 +208,31 @@ export default {
     width: calc(var(--wkb-toolbar-icon, 17px) + 2px);
     height: calc(var(--wkb-toolbar-icon, 17px) + 2px);
     font-size: calc(var(--wkb-toolbar-icon, 17px) + 2px);
+}
+
+.wkb-graph-control-btn--filter {
+    position: relative;
+    overflow: visible;
+}
+
+.wkb-graph-control-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border: 1.5px solid #ffffff;
+    border-radius: 999px;
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
 }
 
 .wkb-graph-control-btn:hover {

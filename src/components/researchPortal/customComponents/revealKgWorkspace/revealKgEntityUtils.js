@@ -57,6 +57,11 @@ export function formatEntitySearchSubtitle(entityType, item) {
     }
     if (entityType === "gene_set") {
         const line = (item.subtitle || item.node_key || "").trim();
+        const score = Number(item.score);
+        if (Number.isFinite(score)) {
+            const scoreLabel = `match ${score.toFixed(2)}`;
+            return line ? `${line} · ${scoreLabel}` : scoreLabel;
+        }
         return line || null;
     }
     if (entityType === "factor") {

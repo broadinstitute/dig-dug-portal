@@ -39,12 +39,10 @@
                     </p>
                     <p>
                         Exploration stays open-ended: you are not forced through a
-                        fixed pipeline. Change, Analyze, and Manage give you deliberate
-                        ways to mutate the graph, read meaning from it, and keep work
-                        you may want again. Start from selected nodes or a saved graph, shape
-                        the canvas with expand and filter, open the Inspector when you
-                        need provenance, and save when the graph reaches a state worth
-                        returning to.
+                        fixed pipeline. Use the canvas toolbar and element menus to
+                        grow or narrow the graph, open the Inspector when you need
+                        provenance, run Analyze when you want interpretation, and save
+                        when the graph reaches a state worth returning to.
                     </p>
                 </section>
 
@@ -52,24 +50,16 @@
                     <h3>Top menus</h3>
                     <ul class="wkb-docs-feature-list">
                         <li>
-                            <strong>Change</strong>
-                            <p>
-                                Use Change when you need to reshape what is on the
-                                canvas—broader context, a tighter view, or new starting
-                                nodes. Expand KG, Filter KG, and Add nodes live here;
-                                pick the action that matches your intent and apply it to
-                                the current session.
-                            </p>
-                        </li>
-                        <li>
                             <strong>Analyze</strong>
                             <p>
                                 Use Analyze once the graph is in a useful shape and you
-                                want interpretation rather than more structure. Explain
-                                graph, Build hypotheses, and Find related datasets help you
-                                summarize patterns, draft mechanistic stories, and trace
-                                CFDE-linked evidence—on the whole graph or on a
-                                selection you have marked as selected nodes.
+                                want interpretation rather than more structure.
+                                <em>Explain graph</em> summarizes patterns with an LLM;
+                                <em>Build hypotheses</em> ranks gene → mechanism → trait
+                                pathways among your selected nodes; <em>Find related datasets</em>
+                                searches CFDE gene sets linked to selected genes. Each run can
+                                be reopened from numbered bubbles on the canvas while you keep
+                                working.
                             </p>
                         </li>
                         <li>
@@ -92,6 +82,155 @@
                                 move collections between machines with Back up library and
                                 Restore library backup. Open it from the top bar whenever you
                                 want to browse saved work instead of continuing on the canvas.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Documentation</strong>
+                            <p>
+                                Opens this guide from the top bar at any time.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Canvas toolbar</h3>
+                    <p class="wkb-docs-lead">
+                        Controls on the right side of the graph legend row act on the
+                        current session.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Expand KG (+)</strong>
+                            <p>
+                                Opens the expand panel from your <em>selected nodes</em> (blue
+                                fill). Use <em>Discover</em> to fetch ranked neighbors with optional
+                                filters, or <em>Add nodes</em> to search for a specific node.
+                                From a node’s pointer menu, <em>Expand graph from node</em> opens
+                                the same panel scoped to that node only.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Visibility filters (funnel)</strong>
+                            <p>
+                                Opens the visibility filter panel. A numbered badge on
+                                the icon shows how many saved filters are currently
+                                enabled. See the Visibility filters section below.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Zoom</strong>
+                            <p>
+                                Drag the slider to zoom the tree layout in or out.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Graph data (table)</strong>
+                            <p>
+                                Opens a tabbed table of retrieved nodes from build and
+                                expansion— including candidates not yet on the canvas.
+                                Add or remove nodes from the graph directly from this
+                                table. See Graph data table below.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>View options (eye)</strong>
+                            <p>
+                                Toggle <em>Hide contextual edges</em> and
+                                <em>Hide jumping edges</em>. These only affect display;
+                                they do not remove links from the saved graph.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Visibility filters</h3>
+                    <p class="wkb-docs-lead">
+                        Visibility filters annotate nodes on the graph and control what
+                        stays visible— without deleting nodes from the session until you
+                        choose to remove them.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Build a filter</strong>
+                            <p>
+                                Open the funnel icon and switch to <em>Create filters</em>.
+                                Choose a filter type from the dropdown— <em>Intent</em>,
+                                <em>Known / Novel</em>, or <em>Expression</em>— configure
+                                that type, then click <em>Build filter</em>. Intent filters
+                                can optionally use semantic similarity instead of LLM
+                                relevance. You can build multiple filters over a session;
+                                each becomes a saved layer.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Toggle filters on or off</strong>
+                            <p>
+                                On the <em>Filters</em> tab, each saved filter appears as a
+                                numbered bubble. Click a bubble to enable or disable it
+                                without rebuilding. All enabled filters apply together
+                                (a node must pass every enabled layer to stay visible).
+                            </p>
+                        </li>
+                        <li>
+                            <strong>All nodes are filtered equally</strong>
+                            <p>
+                                Starting nodes, manually added nodes, and nodes returned
+                                from build or expansion are treated the same. If a starting
+                                node does not pass an enabled filter, it is hidden like any
+                                other node.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Remove invisible nodes</strong>
+                            <p>
+                                When filters hide nodes, the panel shows how many are
+                                invisible and offers to remove them permanently from the
+                                graph. This is distinct from toggling a filter off, which
+                                only restores visibility.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Graph data table</h3>
+                    <p>
+                        The graph data table lists nodes REVEAL retrieved during build
+                        and expansion, grouped by type (genes, gene sets, mechanisms,
+                        traits). Rows highlighted in blue are selected nodes. Use
+                        <em>Add to graph</em> to place a retrieved node on the canvas, or
+                        <em>Remove</em> to drop one that is already there. Download the
+                        current tab as CSV when you need a spreadsheet copy.
+                    </p>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Node and edge menus</h3>
+                    <p class="wkb-docs-lead">
+                        Click a node or edge on the canvas to open a short action menu.
+                        Click the same element again to dismiss it.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Node menu</strong>
+                            <p>
+                                <em>Inspect node</em> selects the node and opens the
+                                Inspector. <em>Mark as selected node</em> / <em>Remove from
+                                selected nodes</em> updates your focus set (blue fill).
+                                <em>Expand graph from node</em> opens the expand panel scoped
+                                to that node only. <em>Remove node</em> deletes
+                                the node from the graph; unmark a non-starting selected node
+                                before removing it.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Edge menu</strong>
+                            <p>
+                                <em>Inspect edge</em> opens edge provenance in the Inspector
+                                when available. <em>Expand graph from edge</em> grows the
+                                graph from both endpoints of the link.
                             </p>
                         </li>
                     </ul>
@@ -120,9 +259,11 @@
                             <strong>Starting node</strong>
                             <p>
                                 Gray diamonds are entities you chose when you built or
-                                duplicated the graph. They stay visually distinct from
-                                nodes you added later. If you also mark a starting node as
-                                a selected node, it appears blue like other selected nodes.
+                                duplicated the graph. They mark where the session began
+                                and stay visually distinct from nodes you added later.
+                                Visibility filters apply to starting nodes the same as any
+                                other node. If you also mark a starting node as a selected
+                                node, it appears blue like other selected nodes.
                             </p>
                         </li>
                         <li>
@@ -173,15 +314,71 @@
                         canvas, and review what supports that connection while you keep
                         exploring.
                     </p>
+                    <p>
+                        For genes, traits, mechanisms, and gene sets, the Inspector can
+                        show top connections, expression profiles, factor loadings, and
+                        association-score tables depending on node type. Fetched evidence
+                        is cached for the current session; nodes and edges with cached
+                        Inspector data show an orange highlight on the graph.
+                    </p>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Analyze features</h3>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Explain graph</strong>
+                            <p>
+                                Choose <em>Selected nodes only</em> to focus the narrative
+                                on your blue selected nodes, or <em>All visible nodes</em>
+                                to summarize everything currently shown on the canvas
+                                (respecting visibility filters). Edit the question and
+                                optional context before running. Saved explanations appear
+                                in the Explanation bubble on the canvas.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Build hypotheses</strong>
+                            <p>
+                                Requires at least one selected node. REVEAL ranks gene →
+                                mechanism → trait pathways that connect your selection,
+                                then lets you generate an LLM hypothesis per pathway or
+                                open association-score tables. Saved runs appear in the
+                                Hypotheses bubble.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Find related datasets</strong>
+                            <p>
+                                Requires at least one selected gene. Searches CFDE gene
+                                sets linked to those genes and shows overlap and
+                                enrichment-style scores. Saved runs appear in the Datasets
+                                bubble.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Analysis bubbles</h3>
+                    <p>
+                        After you run Explain graph, Build hypotheses, or Find related
+                        datasets, a numbered bubble appears above the canvas (for example
+                        <em>Explanation 1</em> or <em>Hypotheses 2</em>). Click a bubble
+                        to reopen that result while continuing to edit the graph. Bubbles
+                        hide while their modal is open and return when you close it.
+                    </p>
                 </section>
 
                 <section class="wkb-docs-section">
                     <h3>Suggested user flow</h3>
                     <ol class="wkb-docs-flow">
-                        <li>Add or load a graph (Change, My library, or Import graph).</li>
-                        <li>Shape it with Expand and Filter; use the Inspector for evidence.</li>
+                        <li>Add or load a graph (Manage → New graph, My library, or Import graph).</li>
+                        <li>Grow the graph from node or edge menus; add retrieved nodes from Graph data.</li>
+                        <li>Narrow the view with visibility filters when the canvas gets busy.</li>
+                        <li>Mark selected nodes and use the Inspector for evidence.</li>
                         <li>Run Analyze when you are ready to explain, hypothesize, or find datasets.</li>
-                        <li>Save to My library or use Export graph when you work across machines.</li>
+                        <li>Save to My library or Export graph when you work across machines.</li>
                     </ol>
                 </section>
             </div>

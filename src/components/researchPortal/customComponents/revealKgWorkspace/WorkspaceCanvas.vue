@@ -40,6 +40,7 @@
                     :graph-options-open="graphOptionsOpen"
                     :hide-contextual-edges="hideContextualEdges"
                     :hide-jumping-edges="hideJumpingEdges"
+                    :visibility-filter-count="activeVisibilityFilterCount"
                     @update:zoomLevel="zoomLevel = $event"
                     @update:graphTableOpen="graphTableOpen = $event"
                     @update:graphOptionsOpen="graphOptionsOpen = $event"
@@ -127,6 +128,7 @@ import WorkspaceGraphViewportControls from "./WorkspaceGraphViewportControls.vue
 import WorkspaceGraphDataTableModal from "./WorkspaceGraphDataTableModal.vue";
 import WorkspaceGraphReminder from "./WorkspaceGraphReminder.vue";
 import WorkspaceInspector from "./WorkspaceInspector.vue";
+import { getEnabledVisibilityFilterLayers } from "./revealKgVisibilityFilterUtils.js";
 
 export default {
     name: "WorkspaceCanvas",
@@ -251,6 +253,12 @@ export default {
     computed: {
         hasGraph() {
             return (this.graphNodes || []).length > 0;
+        },
+        activeVisibilityFilterCount() {
+            return getEnabledVisibilityFilterLayers(
+                this.ledgerSession,
+                this.expressionOptions
+            ).length;
         },
     },
     methods: {

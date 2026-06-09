@@ -7,7 +7,7 @@ import {
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
 
-const NEIGHBOR_TARGET_ORDER = ["gene", "trait", "factor"];
+const NEIGHBOR_TARGET_ORDER = ["gene", "gene_set", "trait", "factor"];
 
 function itemNodeType(item) {
     return String(item.node_type || item.type || "").toLowerCase();
@@ -15,12 +15,12 @@ function itemNodeType(item) {
 
 export function getAvailableConnectionTargetTypes(anchorItems, connectionScope = "direct") {
     if (connectionScope === "expanded") {
-        return ["gene", "trait", "factor"];
+        return ["gene", "gene_set", "trait", "factor"];
     }
     const directMap = {
         gene: ["trait", "factor"],
         trait: ["gene", "factor"],
-        factor: ["gene", "trait", "factor"],
+        factor: ["gene", "trait", "factor", "gene_set"],
         gene_set: ["gene", "trait", "factor"],
     };
     const available = new Set();
@@ -110,7 +110,7 @@ function mergeGraphPayload(graphNodes, graphEdges, nodes, edges, originTag) {
     };
 }
 
-function interleaveCandidateLanes(candidateLanes, limit = 20) {
+export function interleaveCandidateLanes(candidateLanes, limit = 20) {
     const laneTypes = NEIGHBOR_TARGET_ORDER.filter((entityType) => (candidateLanes[entityType] || []).length);
     const positions = Object.fromEntries(laneTypes.map((entityType) => [entityType, 0]));
     const results = [];
@@ -274,6 +274,18 @@ export function graphNodeToAnchorItem(node) {
         subtitle: node.subtitle || "",
         node_type: node.node_type || node.type,
     };
+}
+
+/** Persisted build anchors or `is_anchor` graph nodes (initial graph only; expand uses selected nodes). */
+export function startingAnchorItemsFromSession(session) {
+    const stored = session?.anchorItems || [];
+    if (stored.length) {
+        return stored;
+    }
+    return (session?.graphNodes || [])
+        .filter((node) => isStartingGraphNode(node))
+        .map((node) => graphNodeToAnchorItem(node))
+        .filter(Boolean);
 }
 
 /** API `anchor_items` payload built from workspace selected nodes (`session.highlighted`). */
@@ -543,6 +555,28 @@ export async function expandGraphFromNode(
         graphEdges,
         retrievalLedger,
     };
+}
+
+/**
+ * Merge connection API candidates (node + edges) into the session graph.
+ */
+export function mergeConnectionCandidatesIntoSession(session, candidates = [], originTag = "top") {
+    let graphNodes = [...(session.graphNodes || [])];
+    let graphEdges = [...(session.graphEdges || [])];
+    for (const item of candidates) {
+        const candidate = item?.candidate;
+        if (!candidate?.node_id) {
+            continue;
+        }
+        ({ graphNodes, graphEdges } = mergeGraphPayload(
+            graphNodes,
+            graphEdges,
+            [{ ...candidate, is_anchor: false }],
+            item.edges || [],
+            originTag
+        ));
+    }
+    return { graphNodes, graphEdges };
 }
 
 function normalizeManualAddRows(rows = []) {

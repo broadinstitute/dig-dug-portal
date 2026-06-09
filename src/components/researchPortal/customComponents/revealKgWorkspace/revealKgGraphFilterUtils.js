@@ -54,6 +54,37 @@ export function graphFilterNeedsLlm(filters = {}) {
     return hasNoveltyRestriction(filters) || hasRelevanceFilter(filters);
 }
 
+export function expandNeedsLlm(filters = {}) {
+    return graphFilterNeedsLlm(filters);
+}
+
+export function getExpansionOriginTag(filters = {}) {
+    if (filters.noveltyKnown && !filters.noveltyNovel) {
+        return "known";
+    }
+    if (filters.noveltyNovel && !filters.noveltyKnown) {
+        return "novel";
+    }
+    return "top";
+}
+
+export const MATCH_REQUIREMENT_OPTIONS = [
+    { value: "max", label: "Any" },
+    { value: "min", label: "All" },
+    { value: "mean", label: "Balanced" },
+];
+
+export const MATCH_REDUCER_HELP =
+    "Controls how connection scores combine across your selected nodes. Any keeps nodes that strongly match at least one selected node. Balanced averages support across selected nodes. All requires every selected node to support the node — missing support from any selected node excludes it.";
+
+export const EXPAND_TARGET_TYPE_OPTIONS = [
+    { value: "all", label: "All valid types" },
+    { value: "gene", label: "Genes" },
+    { value: "gene_set", label: "Gene sets" },
+    { value: "factor", label: "Mechanisms" },
+    { value: "trait", label: "Traits" },
+];
+
 export function candidatePassesNovelty(labelInfo, filters = {}) {
     if (!hasNoveltyRestriction(filters)) {
         return true;
@@ -227,11 +258,14 @@ export function ensureSessionFilterState(session, expressionOptions = {}) {
     }
     const graphDefaults = createDefaultGraphFilters(expressionOptions);
     const existingGraphFilters = session.controls?.graphFilters || {};
+    const existingExpandFilters = session.controls?.expandFilters || {};
     return {
         ...session,
         controls: {
             reducer: "mean",
             connectionScope: "direct",
+            targetType: "all",
+            limit: 15,
             ...(session.controls || {}),
             graphFilters: {
                 ...graphDefaults,
@@ -241,12 +275,38 @@ export function ensureSessionFilterState(session, expressionOptions = {}) {
                     expressionOptions?.default_reference_id ||
                     "",
             },
+            expandFilters: {
+                ...graphDefaults,
+                ...existingExpandFilters,
+                expressionReferenceId:
+                    existingExpandFilters.expressionReferenceId ||
+                    expressionOptions?.default_reference_id ||
+                    "",
+            },
         },
         graphFilterCache: session.graphFilterCache || {},
+        candidateCache: session.candidateCache || {},
         visibilityFilterLayers: Array.isArray(session.visibilityFilterLayers)
             ? session.visibilityFilterLayers
             : [],
         appliedGraphFilter: session.appliedGraphFilter || null,
+    };
+}
+
+export function patchSessionExpandControls(session, patch = {}, expressionOptions = {}) {
+    const defaults = createDefaultGraphFilters(expressionOptions);
+    const current = session?.controls || {};
+    const currentExpand = current.expandFilters || defaults;
+    const nextControls = { ...current, ...patch };
+    if (patch.expandFilters) {
+        nextControls.expandFilters = {
+            ...currentExpand,
+            ...patch.expandFilters,
+        };
+    }
+    return {
+        ...session,
+        controls: nextControls,
     };
 }
 
