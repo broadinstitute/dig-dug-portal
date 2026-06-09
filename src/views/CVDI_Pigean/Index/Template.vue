@@ -60,6 +60,7 @@
                                         :phenotypes="
                                             $parent.phenotypesInSession
                                         "
+                                        :genesets="$parent.genesetSearchOptions"
                                         :utils="$parent.utilsBox"
                                     ></research-single-search>
                                 </div>

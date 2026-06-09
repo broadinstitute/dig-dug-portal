@@ -109,6 +109,8 @@ new Vue({
                     bottom: 300,
                 },
             },
+            genesetSearchOptions: [],
+            matchingGenesets: [],
         };
     },
     computed: {
@@ -157,7 +159,18 @@ new Vue({
     methods: {
         storeColors(colors){
             this.pigeanColors = colors;
-        }
+        },
+        lookupGenesets(input) {
+            let query = input ? input.toLowerCase() : "";
+            this.matchingGenesets = query
+                ? this.genesetSearchOptions
+                      .filter(d => d.toLowerCase().includes(query))
+                      .slice(0, 10)
+                : [];
+        },
+        selectGeneset(geneset) {
+            this.$store.state.genesetToQuery = geneset;
+        },
     },
     watch: {
         diseaseGroup(group) {
@@ -169,6 +182,7 @@ new Vue({
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.genesetSearchOptions = await cvdiBioIndexUtils.getAllGenesets();
     },
 
     render(createElement, context) {

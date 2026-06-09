@@ -194,11 +194,10 @@ new Vue({
             return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
+            return Object.values(this.pigeanPhenotypeMap).map(p => 
+                ({ ...p, 
+                    name: p.phenotype,
+                    display_group: p.group }));
         },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
@@ -239,18 +238,13 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        pigeanPhenotypeData(newData) {
-            console.log("Received new BI data", JSON.stringify(newData));
-        },
     },
 
     async created() {
         this.pigeanPhenotypeMap = await cvdiBioIndexUtils.getPhecodeMap();
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDatasets");
-        await this.$store.dispatch("getPigeanPhenotypes");
+        this.$store.dispatch("getPigeanPhenotypes");
         this.lookupInPigeanMap();
     },
     methods: {

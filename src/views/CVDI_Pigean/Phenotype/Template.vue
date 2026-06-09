@@ -33,14 +33,12 @@
                     <ul
                         v-if="
                             !!$parent.phenotypeSearchKey &&
-                            !!$store.state.pigeanAllPhenotypes &&
-                            !!$store.state.pigeanAllPhenotypes.data
+                            !!$parent.phenotypesInSession
                         "
                         class="page-phenotypes-list"
                     >
                         <template
-                            v-for="item in $store.state.pigeanAllPhenotypes
-                                .data"
+                            v-for="item in $parent.phenotypesInSession"
                         >
                             <li
                                 v-if="

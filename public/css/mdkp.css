@@ -2487,3 +2487,8 @@ span.spacer-5 {
     font-size: 1.15em;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+/* Overriding standard width for autofill menu on the CVDI geneset page*/
+.geneset-cvdi-search-box .vbt-autcomplete-list{
+    width: 440px !important;
+}

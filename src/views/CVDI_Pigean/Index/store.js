@@ -21,7 +21,6 @@ export default new Vuex.Store({
         invalidGeneOrRegionOrVariant: false,
         userInput: null,
         matchingGenes: null,
-        phenotypesInSession: null,
         diseaseInSession: null,
         phenotypeCorrelation: null,
     },
@@ -35,9 +34,6 @@ export default new Vuex.Store({
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
         },
-        setPhenotypesInSession(state, PHENOTYPES) {
-            state.phenotypesInSession = PHENOTYPES;
-        },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
         },
@@ -47,9 +43,6 @@ export default new Vuex.Store({
     },
 
     actions: {
-        phenotypesInSession(context, PHENOTYPES) {
-            context.commit("setPhenotypesInSession", PHENOTYPES);
-        },
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
         },

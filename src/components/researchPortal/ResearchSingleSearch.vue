@@ -34,7 +34,6 @@
 				<template v-for="param in singleSearchConfig['search parameters']">
 					<template
 						v-if="!param.values || (!!param.values && param.values != 'kp genes' && param.values != 'kp phenotypes')">
-
 						<template v-if="!!isParameterActive(param['parameter']).active">
 							<div v-for="item in singleSearchResult[param['parameter']]" :value="item.value"
 								:key="item.value" class="single-search-option">{{ item.label }}
@@ -95,7 +94,15 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes", "utils"],
+	props: {
+		singleSearchConfig: {},
+		phenotypes: {},
+		utils: {},
+		genesets: {
+			type: Array,
+			default: () => [],
+		},
+	},
 	modules: {},
 
 	data() {
@@ -105,7 +112,8 @@ export default Vue.component("research-single-search", {
 				genes: [],
 				phenotypes: [],
 				tissues: [],
-				diseases: []
+				diseases: [],
+				geneset: []
 			},
 			customList: {}
 		};
@@ -175,6 +183,30 @@ export default Vue.component("research-single-search", {
 
 				this.singleSearchResult.phenotypes = shorterFirst;
 
+				/// For gene set search on CVDI Pigean
+				let searchGeneSets = [];
+
+				(this.genesets || []).map((gs) => {
+					let isInGeneSet = 0;
+					paramWords.map((w) => {
+						if (
+							!!gs.toLowerCase()
+								.includes(w.toLowerCase())
+						) {
+							isInGeneSet++;
+						}
+					});
+
+					if (isInGeneSet == paramWords.length) {
+						let entry = { value: gs, label: gs}
+						searchGeneSets.push(entry);
+					}
+				});
+
+				let shorterFirstGeneSets = searchGeneSets.sort((a, b) => a.value.length - b.value.length);
+				
+				this.singleSearchResult.geneset = shorterFirstGeneSets;
+
 				/// for custom parameters
 				let searchFields = Object.keys(this.customList);
 
@@ -201,6 +233,7 @@ export default Vue.component("research-single-search", {
 			} else {
 				this.singleSearchResult.genes = [];
 				this.singleSearchResult.phenotypes = [];
+				this.singleSearchResult.geneset = [];
 				let searchFields = Object.keys(this.customList);
 
 				searchFields.map(P => {
