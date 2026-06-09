@@ -169,6 +169,16 @@
                             </p>
                         </li>
                         <li>
+                            <strong>Canvas assistant (AI)</strong>
+                            <p>
+                                Opens the AI assistant panel. Describe graph changes in
+                                plain language—such as selecting genes by intent or
+                                running a filter-then-expand workflow—and the assistant
+                                will eventually turn your request into a reviewable
+                                step-by-step plan using canvas actions.
+                            </p>
+                        </li>
+                        <li>
                             <strong>Zoom</strong>
                             <p>
                                 Drag the slider to zoom the tree layout in or out.

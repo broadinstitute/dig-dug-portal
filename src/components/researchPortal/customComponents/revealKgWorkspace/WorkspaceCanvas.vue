@@ -41,6 +41,7 @@
                     :hide-contextual-edges="hideContextualEdges"
                     :hide-jumping-edges="hideJumpingEdges"
                     :visibility-filter-count="activeVisibilityFilterCount"
+                    :ai-assistant-open="aiAssistantOpen"
                     @update:zoomLevel="zoomLevel = $event"
                     @update:graphTableOpen="graphTableOpen = $event"
                     @update:graphOptionsOpen="graphOptionsOpen = $event"
@@ -244,6 +245,10 @@ export default {
         graphReminder: {
             type: Object,
             default: null,
+        },
+        aiAssistantOpen: {
+            type: Boolean,
+            default: false,
         },
     },
     data() {

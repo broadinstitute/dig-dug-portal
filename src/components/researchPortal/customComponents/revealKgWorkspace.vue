@@ -55,6 +55,7 @@
                     :table-add-busy="tableAddBusy"
                     :inspector-content-key="inspectorContentKey"
                     :graph-reminder="graphReminder"
+                    :ai-assistant-open="aiAssistantOpen"
                     @node-menu-open="onNodeMenuOpen"
                     @edge-menu-open="onEdgeMenuOpen"
                     @toggle-inspector="onToggleInspector"
@@ -101,6 +102,10 @@
                 @add-manual-node="onExpandManualAddNode"
                 @manual-add-error="onExpandManualAddError"
                 @remove-history-entry="onRemoveExpansionHistoryEntry"
+            />
+            <WorkspaceAiAssistantPanel
+                :open="aiAssistantOpen"
+                @close="closeAiAssistant"
             />
             <WorkspaceVisibilityFilterPanel
                 :open="filterGraphOpen"
@@ -310,6 +315,7 @@ import WorkspaceBuildHypothesesModal from "./revealKgWorkspace/WorkspaceBuildHyp
 import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFindRelatedDatasetsModal.vue";
 import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
 import WorkspaceExpandGraphPanel from "./revealKgWorkspace/WorkspaceExpandGraphPanel.vue";
+import WorkspaceAiAssistantPanel from "./revealKgWorkspace/WorkspaceAiAssistantPanel.vue";
 import WorkspaceExpandProgressOverlay from "./revealKgWorkspace/WorkspaceExpandProgressOverlay.vue";
 import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
 import {
@@ -463,6 +469,7 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceFindRelatedDatasetsModal,
         WorkspaceVisibilityFilterPanel,
         WorkspaceExpandGraphPanel,
+        WorkspaceAiAssistantPanel,
         WorkspaceExpandProgressOverlay,
         WorkspaceExplanationBubble,
         WorkspaceHypothesesBubble,
@@ -543,6 +550,7 @@ export default Vue.component("reveal-kg-workspace", {
             expandBatchProgress: null,
             expandManualAddBusy: false,
             expandSeedNodeIds: [],
+            aiAssistantOpen: false,
         };
     },
     computed: {
@@ -1666,7 +1674,27 @@ export default Vue.component("reveal-kg-workspace", {
                 this.openExpandGraph();
                 return;
             }
+            if (action === "assistant") {
+                this.openAiAssistant();
+                return;
+            }
             this.showStatus(`Triggered: ${action}`);
+        },
+        openAiAssistant() {
+            if (this.aiAssistantOpen) {
+                this.closeAiAssistant();
+                return;
+            }
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before using the canvas assistant.", 3200);
+                return;
+            }
+            this.expandGraphOpen = false;
+            this.filterGraphOpen = false;
+            this.aiAssistantOpen = true;
+        },
+        closeAiAssistant() {
+            this.aiAssistantOpen = false;
         },
         openExpandGraph() {
             this.openExpandGraphPanel({ seedNodeIds: [] });
@@ -1720,6 +1748,7 @@ export default Vue.component("reveal-kg-workspace", {
                 }
             }
             this.filterGraphOpen = false;
+            this.aiAssistantOpen = false;
             this.expandSeedNodeIds = normalizedSeedIds;
             this.activeSession = ensureSessionFilterState(
                 this.activeSession,
@@ -1889,6 +1918,7 @@ export default Vue.component("reveal-kg-workspace", {
                 return;
             }
             this.expandGraphOpen = false;
+            this.aiAssistantOpen = false;
             let session = ensureSessionFilterState(
                 this.activeSession,
                 this.expressionOptions

@@ -25,6 +25,17 @@
                 {{ visibilityFilterCount }}
             </span>
         </button>
+        <button
+            type="button"
+            class="wkb-graph-control-btn wkb-graph-control-btn--assistant"
+            :class="{ 'is-active': aiAssistantOpen }"
+            title="Canvas assistant"
+            aria-label="Canvas assistant"
+            :aria-expanded="aiAssistantOpen ? 'true' : 'false'"
+            @click="$emit('action', 'assistant')"
+        >
+            <span class="wkb-graph-control-ai-label" aria-hidden="true">AI</span>
+        </button>
         <div class="zoom-slider-outer">
             <input
                 :id="zoomInputId"
@@ -118,6 +129,10 @@ export default {
         visibilityFilterCount: {
             type: Number,
             default: 0,
+        },
+        aiAssistantOpen: {
+            type: Boolean,
+            default: false,
         },
     },
     data() {
@@ -213,6 +228,14 @@ export default {
 .wkb-graph-control-btn--filter {
     position: relative;
     overflow: visible;
+}
+
+.wkb-graph-control-ai-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: inherit;
 }
 
 .wkb-graph-control-badge {
