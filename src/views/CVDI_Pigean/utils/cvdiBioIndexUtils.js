@@ -65,6 +65,13 @@ export async function getPhecodeMap(){
     return phecodeMap;
 }
 
+export async function getAllGenesets(){
+    let url = `${BIO_INDEX_HOST
+        }/api/bio/keys/pigean-gene-set/3?columns=gene_set`;
+    let params = await fetch(url).then(response => response.json());
+    return params.keys.map(i => i[0]);
+}
+
 export const DEFAULT_MODEL = "mouse_msigdb";
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
@@ -82,6 +89,7 @@ export default {
     request,
     rawUrl,
     getPhecodeMap,
+    getAllGenesets,
     BIO_INDEX_HOST,
     DEFAULT_MODEL,
     DEFAULT_SIGMA,
