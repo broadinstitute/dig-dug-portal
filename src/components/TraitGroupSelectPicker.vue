@@ -29,9 +29,10 @@ export default Vue.component("trait-group-selectpicker", {
     },
     data() {
         return {
-            traitGroup: keyParams.traitGroup || this.cvdi 
-                ? cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP 
-                : bioIndexUtils.DEFAULT_TRAIT_GROUP,
+            traitGroup: keyParams.traitGroup ||
+                (this.cvdi
+                    ? cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP
+                    : bioIndexUtils.DEFAULT_TRAIT_GROUP),
         };
     },
     computed: {

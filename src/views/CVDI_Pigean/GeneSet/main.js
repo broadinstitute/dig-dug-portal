@@ -161,14 +161,16 @@ new Vue({
             this.pigeanColors = colors;
         },
         lookupGenesets(input) {
-			if (!!input) {
-				let matches = this.genesetSearchOptions.filter(d => d.includes(input)).slice(0,10);
-				this.matchingGenesets = matches;
-			}
-		},
+            let query = input ? input.toLowerCase() : "";
+            this.matchingGenesets = query
+                ? this.genesetSearchOptions
+                      .filter(d => d.toLowerCase().includes(query))
+                      .slice(0, 10)
+                : [];
+        },
         selectGeneset(geneset) {
-		    this.$store.state.genesetToQuery = geneset;
-		},
+            this.$store.state.genesetToQuery = geneset;
+        },
     },
     watch: {
         diseaseGroup(group) {

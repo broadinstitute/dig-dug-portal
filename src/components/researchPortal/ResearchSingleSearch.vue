@@ -94,7 +94,15 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 
 export default Vue.component("research-single-search", {
-	props: ["singleSearchConfig", "phenotypes", "utils", "genesets"],
+	props: {
+		singleSearchConfig: {},
+		phenotypes: {},
+		utils: {},
+		genesets: {
+			type: Array,
+			default: () => [],
+		},
+	},
 	modules: {},
 
 	data() {
@@ -104,7 +112,8 @@ export default Vue.component("research-single-search", {
 				genes: [],
 				phenotypes: [],
 				tissues: [],
-				diseases: []
+				diseases: [],
+				geneset: []
 			},
 			customList: {}
 		};
@@ -177,7 +186,7 @@ export default Vue.component("research-single-search", {
 				/// For gene set search on CVDI Pigean
 				let searchGeneSets = [];
 
-				this.genesets.map((gs) => {
+				(this.genesets || []).map((gs) => {
 					let isInGeneSet = 0;
 					paramWords.map((w) => {
 						if (
@@ -224,6 +233,7 @@ export default Vue.component("research-single-search", {
 			} else {
 				this.singleSearchResult.genes = [];
 				this.singleSearchResult.phenotypes = [];
+				this.singleSearchResult.geneset = [];
 				let searchFields = Object.keys(this.customList);
 
 				searchFields.map(P => {

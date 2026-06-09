@@ -60,7 +60,7 @@ export default new Vuex.Store({
 
         queryPhenotype(context) {
             context.state.phenotype = context.state.selectedPhenotype;
-            let name = context.state.phenotype.phenotype;
+            let name = context.state.phenotype && context.state.phenotype.phenotype;
             let traitGroup =
                 context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setTraitGroup", traitGroup);
