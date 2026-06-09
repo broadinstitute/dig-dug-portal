@@ -64,8 +64,10 @@ export default new Vuex.Store({
         },
 
         queryPhenotype(context) {
+            console.log("Querying phenotype");
             context.state.phenotype = context.state.selectedPhenotype;
-            let name = context.state.phenotype && context.state.phenotype.name;
+            console.log(context.state.phenotype);
+            let name = context.state.phenotype.phenotype;
             let traitGroup =
                 context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setTraitGroup", traitGroup);
@@ -78,6 +80,7 @@ export default new Vuex.Store({
                 q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`,
                 limit: 1000,
             };
+            console.log(JSON.stringify(query));
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
         },

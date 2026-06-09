@@ -250,7 +250,8 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
-        await this.$store.dispatch("getPigeanPhenotypes");
+        this.$store.dispatch("getPigeanPhenotypes");
+        //await this.$store.dispatch("getPigeanPhenotypes");
         this.lookupInPigeanMap();
     },
     methods: {
