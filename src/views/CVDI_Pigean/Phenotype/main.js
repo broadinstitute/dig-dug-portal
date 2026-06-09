@@ -194,11 +194,10 @@ new Vue({
             return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phenotypesInSession() {
-            if (this.$store.state.phenotypesInSession == null) {
-                return this.$store.state.bioPortal.phenotypes;
-            } else {
-                return this.$store.state.phenotypesInSession;
-            }
+            return Object.values(this.pigeanPhenotypeMap).map(p => 
+                ({ ...p, 
+                    name: p.phenotype,
+                    display_group: p.group }));
         },
         rawPhenotypes() {
             return this.$store.state.bioPortal.phenotypes;
@@ -251,7 +250,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("getPigeanPhenotypes");
-        //await this.$store.dispatch("getPigeanPhenotypes");
         this.lookupInPigeanMap();
     },
     methods: {
