@@ -24,6 +24,13 @@ let pages = {
         title: "Cell Atlas",
         chunks: ["chunk-vendors", "chunk-common", "cellatlas"],
     },
+    liger: {
+        entry: "src/portals/CFDELiver/views/Liger/main.js",
+        template: "src/portals/CFDELiver/views/index.html",
+        filename: "liger.html",
+        title: "Cell State & Program Browser",
+        chunks: ["chunk-vendors", "chunk-common", "liger"],
+    },
 };
 
 module.exports = {
