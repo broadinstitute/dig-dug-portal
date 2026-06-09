@@ -1,6 +1,6 @@
 <template>
     <select v-model="traitGroup" class="form-control">
-        <option value="all">All</option>
+        <option v-if="!cvdi" value="all">All</option>
         <option v-if="!cvdi" value="all_but_hpo">All but HPO</option>
         <option v-if="!cvdi" value="all_complex">Complex traits</option>
         <option v-for="group in groups" :value="group[0]">
@@ -29,7 +29,9 @@ export default Vue.component("trait-group-selectpicker", {
     },
     data() {
         return {
-            traitGroup: keyParams.traitGroup,
+            traitGroup: keyParams.traitGroup || this.cvdi 
+                ? cvdiBioIndexUtils.DEFAULT_TRAIT_GROUP 
+                : bioIndexUtils.DEFAULT_TRAIT_GROUP,
         };
     },
     computed: {
