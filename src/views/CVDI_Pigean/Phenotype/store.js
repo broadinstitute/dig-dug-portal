@@ -26,7 +26,6 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         phenotype: keyParams.phenotype,
         newPhenotype: null,
-        phenotypesInSession: null,
         diseaseInSession: null,
         selectedPhenotype: null,
         manhattanPlotAvailable: false,
@@ -34,9 +33,6 @@ export default new Vuex.Store({
         traitGroupToQuery: null,
     },
     mutations: {
-        setPhenotypesInSession(state, PHENOTYPES) {
-            state.phenotypesInSession = PHENOTYPES;
-        },
         setDiseaseInSession(state, DISEASE) {
             state.diseaseInSession = DISEASE;
         },
@@ -80,9 +76,6 @@ export default new Vuex.Store({
             };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
-        },
-        phenotypesInSession(context, PHENOTYPES) {
-            context.commit("setPhenotypesInSession", PHENOTYPES);
         },
         diseaseInSession(context, DISEASE) {
             context.commit("setDiseaseInSession", DISEASE);
