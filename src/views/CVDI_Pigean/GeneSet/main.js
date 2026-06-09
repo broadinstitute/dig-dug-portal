@@ -109,6 +109,7 @@ new Vue({
                     bottom: 300,
                 },
             },
+            genesetSearchOptions: [],
         };
     },
     computed: {
@@ -157,6 +158,12 @@ new Vue({
     methods: {
         storeColors(colors){
             this.pigeanColors = colors;
+        },
+        async getAllGenesets(){
+            let url = `${cvdiBioIndexUtils.BIO_INDEX_HOST
+                }/api/bio/keys/pigean-gene-set/3?columns=gene_set`;
+            let params = await fetch(url).then(response => response.json());
+            return params.keys.map(i => i[0]);
         }
     },
     watch: {
@@ -169,6 +176,7 @@ new Vue({
         this.$store.dispatch("queryGeneset", this.$store.state.geneset);
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.genesetSearchOptions = await this.getAllGenesets();
     },
 
     render(createElement, context) {
