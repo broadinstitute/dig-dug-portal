@@ -11,7 +11,7 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
-                <div class="col filter-col-md">
+                <div class="col filter-col-md geneset-cvdi-search-box">
                     <div class="label">Gene set</div>
                     <template>
                         <autocomplete
