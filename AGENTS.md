@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.11 | Generated: 2026-05-19T00:21:45Z | Hash: e7a7f5d63a64 -->
+<!-- Version: 1.0.12 | Generated: 2026-06-06T15:26:15Z | Hash: e1a7c61898c8 -->
 <!-- Sources: dig-dug-portal/cfde-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — cfde-main
@@ -238,21 +238,59 @@ $env:BIOINDEX_HOST = "http://localhost:5000"
 $env:BIOINDEX_HOST_PRIVATE = "http://localhost:5000"
 ```
 
-### 4. Build / Deploy
+### 4. Secondary BioIndex Host (Per Module or Per Call)
+
+Upstream supports an optional `host` override so a specific Vuex module or call can read from a different BioIndex without forking `bioIndexUtils.js` / `bioIndex.js`. Anything that omits `host` keeps using the build-time default.
+
+Per Vuex module (3rd factory argument):
+
+```js
+import bioIndex from "@/modules/bioIndex";
+
+specialData: bioIndex("special-index", undefined, { host: "https://secondary.example.org" }),
+```
+
+Per call (options object):
+
+```js
+import { query } from "@/utils/bioIndexUtils";
+
+const rows = await query("special-index", q, {
+    host: "https://secondary.example.org",
+    limit: 100,
+});
+```
+
+Reuse the existing private host constant when targeting the internal server:
+
+```js
+import { BIO_INDEX_HOST_PRIVATE } from "@/utils/bioIndexUtils";
+
+privateData: bioIndex("bar", undefined, { host: BIO_INDEX_HOST_PRIVATE }),
+```
+
+Notes:
+
+- `host` is optional everywhere; existing modules and calls behave exactly as before.
+- `BIO_INDEX_HOST` / `BIO_INDEX_HOST_PRIVATE` exports and the `query_private` flag on `apiUrl` are unchanged.
+- Override is threaded through `query` / `match` → `request` → `rawUrl` → `apiUrl`, including continuation fetches.
+- Branches pulling from `master` need no edits unless they want to use a secondary host.
+
+### 5. Build / Deploy
 
 ```bash
 npm run build    # development-mode build
 npm run deploy   # production build
 ```
 
-### 5. Cache Cleanup (Optional)
+### 6. Cache Cleanup (Optional)
 
 ```bash
 ./build-clean.sh build   # bash
 .\build-clean.ps1 build  # PowerShell
 ```
 
-### 6. Testing
+### 7. Testing
 
 Upstream defines no automated `test` script. Validate by:
 
@@ -261,7 +299,7 @@ Upstream defines no automated `test` script. Validate by:
 - Run against BIOINDEX_DEV and default BioIndex once each
 - Verify integration with DIG-DUG server when full runtime is required
 
-### 7. Local Static Preview (No dig-dug-server)
+### 8. Local Static Preview (No dig-dug-server)
 
 For static smoke-testing of compiled output, serve build artifacts locally:
 
