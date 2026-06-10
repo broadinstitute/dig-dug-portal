@@ -153,6 +153,7 @@ new Vue({
                     },
                 },
             ],
+            "showTraitGroup": true
         },
     },
 

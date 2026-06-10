@@ -145,15 +145,9 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            let data = structuredClone(this.$store.state.phewasData);
-            data.forEach(p => {
-                let delimiter = "___";
-                // Harmonize this formatting
-                if (p.phenotype.includes(delimiter)){
-                    p.phenotype = p.phenotype.split(delimiter)[0];
-                }
-            });
-            return data;
+            // Returns the live Vuex array (shared references); callers that mutate
+            // rows must clone first (see phewasAdjustedData above).
+            return this.$store.state.phewasData;
         }
     },
     methods: {

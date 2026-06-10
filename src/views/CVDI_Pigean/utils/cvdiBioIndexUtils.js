@@ -39,28 +39,19 @@ export function match(index, q, opts = {}) {
 }
 
 export async function getPhecodeMap(){
-    // The raw /sites/default/files/*.csv URL has no CORS headers, so fetch()ing it
-    // is blocked by the browser. Route through the CMS `servedata/dataset` endpoint
-    // (which does send CORS headers) by passing the file URL as the `dataset` param.
-    // That endpoint escapes special chars and wraps the payload in quotes, so we undo
-    // that before parsing -- same handling as cfdeEcoSystem.vue loadFile().
-    const phecodeFileUrl = "https://hugeampkpncms.org/sites/default/files/phenotypes_with_labels.csv";
-    const phecodeMapUrl = `https://hugeampkpncms.org/servedata/dataset?dataset=${phecodeFileUrl}`;
+    const phecodeMapUrl = `${BIO_INDEX_HOST}/api/raw/file/pigean/phenotypes/phenotypes_with_labels.tsv`;
     let phecodeText = await fetch(phecodeMapUrl)
         .then(response => response.text());
-    phecodeText = phecodeText
-        .replace(/\\u0022/g, '"')   // quotes
-        .replace(/\\\//g, '/')      // slashes
-        .replace(/\\n/g, '\n')      // line breaks
-        .replace(/\\r/g, '\r');     // carriage returns
-    phecodeText = phecodeText.substring(1, phecodeText.length - 1); // strip surrounding quotes
-    let phecodeJson = dataConvert.csv2Json(phecodeText);
+    // BioIndex serves the raw TSV unescaped, so a trim is all that's needed
+    // (unlike the old CMS servedata endpoint, which quoted+escaped the payload).
+    phecodeText = phecodeText.trim();
+    let phecodeJson = dataConvert.tsv2Json(phecodeText);
     let phecodeMap = {};
     phecodeJson.forEach(j => {
-        let phecodeKey = `phecode_${j.phenotype}`;
-        j.phenotype = phecodeKey;
         j.phenotype_name = j.description;
-        phecodeMap[phecodeKey] = j;
+        j.trait_group = jurgensTraitGroup(j.phenotype);
+        j.trait_group_description = TRAIT_GROUPS[j.trait_group];
+        phecodeMap[j.phenotype] = j;
     });
     return phecodeMap;
 }
@@ -75,6 +66,19 @@ export async function getAllGenesets(){
         console.error("Failed to fetch gene sets", error);
         return [];
     }
+}
+
+function jurgensTraitGroup(phenotypeId){
+    let delimiter = "___";
+    let delimited = phenotypeId.split(delimiter);
+    if (delimited.length === 1){
+        return "jurgens_exomes";
+    }
+    let suffix = delimited[1];
+    if (suffix.startsWith("gcat_trait")){
+        return "jurgens_exomes___gcat_trait";
+    }
+    return "jurgens_exomes___portal";
 }
 
 export const DEFAULT_MODEL = "mouse_msigdb";
