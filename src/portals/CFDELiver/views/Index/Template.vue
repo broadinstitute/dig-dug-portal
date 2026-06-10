@@ -26,7 +26,11 @@
                             <div class="section-subtitle">{{ section.subtitle }}</div>
                         </div>
                         <div class="f-row fill-children" style="flex-wrap: wrap; gap: 20px">
-                            <div v-for="card in section.cards" class="section-card f-col">
+                            <a v-for="card in section.cards" 
+                                class="section-card f-col"
+                                :class="{'coming-soon': card.link==='#'}"
+                                :href="card.link"
+                            >
                                 <div class="img">
                                     <img v-if="card.image" :src="card.image" />
                                 </div>
@@ -34,63 +38,10 @@
                                     <h4>{{ card.title }}</h4>
                                     <div class="section-card-body">{{ card.body }}</div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>
-                <!--
-                <div class="f-row" style="gap:20px">
-                    <div class="f-col">
-                        <div class="section fill-height" style="width:300px"></div>
-                    </div>
-                    <div class="f-col fill-height" style="gap:20px;">
-                        <div class="section"></div>
-                        <div class="section"></div>
-                    </div>
-                </div>
-                <div>
-                    <input type="text" placeholder="Input" class="lg"/>
-                    <input type="text" placeholder="Input"/>
-                    <input type="text" placeholder="Input" class="sm"/>
-                    <input type="text" placeholder="Input" class="sm" disabled/>
-                </div>
-                <div>
-                    <button class="lg">Button</button>
-                    <button>Button</button>
-                    <button class="sm">Button</button>
-                    <button class="sm" disabled>Button</button>
-                </div>
-                <div>
-                    <select class="lg">
-                        <option>One</option>
-                        <option>Two</option>
-                    </select>
-                    <select>
-                        <option>One</option>
-                        <option>Two</option>
-                    </select>
-                    <select class="sm">
-                        <option>One</option>
-                        <option>Two</option>
-                    </select>
-                    <select class="sm" disabled>
-                        <option>One</option>
-                        <option>Two</option>
-                    </select>
-                </div>
-                <div>
-                    <input type="checkbox" />
-                    <input type="checkbox" checked />
-                    <input type="checkbox" disabled />
-                </div>
-                <div>
-                    <fieldset>
-                        <input type="radio" name="group"/>
-                        <input type="radio" name="group" checked/>
-                        <input type="radio" name="group" disabled/>
-                    </fieldset>
-                </div>
-                -->
             </div>
         </div>
         <div v-if="$parent.pageContent?.support" class="supported">
@@ -123,6 +74,7 @@
     border-radius: 20px;
     overflow: clip;
     transition: all 0.1s ease-in-out;
+    position: relative;
 }
 .section-subtitle{
     font-size: 1.3em;
@@ -150,7 +102,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: grayscale(1);
     transition: all .2s;
 }
 .card-img-cite {
@@ -187,6 +138,29 @@
 .section-card:hover .section-card-info{
     background: var(--cfde-blue);
 }
+
+.section-card.coming-soon{
+    pointer-events: none;
+}
+.section-card.coming-soon:after {
+    content: 'Coming soon';
+    position: absolute;
+    top: 100px;
+    background: #a1a7ab;
+    width: 100%;
+    text-align: center;
+    color: yellow;
+    padding: 10px;
+    font-weight: bold;
+    letter-spacing: .5px;
+}
+.section-card.coming-soon img {
+    filter: grayscale(1);
+}
+.section-card.coming-soon .section-card-info {
+    background: #a1a7ab;
+}
+
 .supported{
     background: var(--cfde-lite-blue);
     color: white;
