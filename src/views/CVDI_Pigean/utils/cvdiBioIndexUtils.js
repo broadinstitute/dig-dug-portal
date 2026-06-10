@@ -52,6 +52,7 @@ export async function getPhecodeMap(){
     phecodeJson.forEach(j => {
         j.phenotype_name = j.description;
         j.trait_group = jurgensTraitGroup(j.phenotype);
+        j.trait_group_description = TRAIT_GROUPS[j.trait_group];
         phecodeMap[j.phenotype] = j;
     });
     return phecodeMap;
