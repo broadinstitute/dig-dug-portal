@@ -20,14 +20,14 @@ let pages = {
     cellatlas: {
         entry: "src/portals/CFDELiver/views/CellAtlas/main.js",
         template: "src/portals/CFDELiver/views/index.html",
-        filename: "cell-atlas.html",
-        title: "Cell Atlas",
+        filename: "single-cell-map.html",
+        title: "Single Cell Map",
         chunks: ["chunk-vendors", "chunk-common", "cellatlas"],
     },
     liger: {
         entry: "src/portals/CFDELiver/views/Liger/main.js",
         template: "src/portals/CFDELiver/views/index.html",
-        filename: "liger.html",
+        filename: "gene-expression.html",
         title: "Cell State & Program Browser",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
