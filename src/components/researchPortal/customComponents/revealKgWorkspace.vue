@@ -77,6 +77,10 @@
                     :message="expandGraphProgress"
                     :progress="expandBatchProgress"
                 />
+                <WorkspaceAssistantActionProgressOverlay
+                    :open="assistantActionProgressOpen"
+                    :message="assistantActionProgressMessage"
+                />
             </div>
             <WorkspaceExpandGraphPanel
                 :open="expandGraphOpen"
@@ -105,7 +109,19 @@
             />
             <WorkspaceAiAssistantPanel
                 :open="aiAssistantOpen"
+                :planning="assistantPlanning"
+                :executing="assistantExecuting"
+                :executing-step-label="assistantExecutingStepLabel"
+                :plan="assistantPlan"
+                :clarification="assistantClarification"
+                :step-states="assistantStepStates"
+                :error="assistantError"
+                :graph-nodes="assistantSuggestNodes"
                 @close="closeAiAssistant"
+                @plan-request="onAssistantPlanRequest"
+                @execute-all="onAssistantExecuteAll"
+                @execute-step="onAssistantExecuteStep"
+                @error-acknowledged="assistantError = ''"
             />
             <WorkspaceVisibilityFilterPanel
                 :open="filterGraphOpen"
@@ -189,10 +205,13 @@
         />
         <WorkspaceWelcomeModal
             :open="welcomeOpen"
+            :initial-tab="welcomeInitialTab"
+            :dismissible="canDismissWelcome"
             :has-saved-graphs="savedGraphs.length > 0"
             @create="onWelcomeCreate"
             @load-library="onWelcomeLoadLibrary"
             @import-graph="onWelcomeImportGraph"
+            @close="closeWelcome"
         />
         <WorkspaceInitialGraphModal
             :open="initialGraphOpen"
@@ -316,6 +335,16 @@ import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFind
 import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
 import WorkspaceExpandGraphPanel from "./revealKgWorkspace/WorkspaceExpandGraphPanel.vue";
 import WorkspaceAiAssistantPanel from "./revealKgWorkspace/WorkspaceAiAssistantPanel.vue";
+import WorkspaceAssistantActionProgressOverlay from "./revealKgWorkspace/WorkspaceAssistantActionProgressOverlay.vue";
+import {
+    assistantActionShowsProgressOverlay,
+    assistantActionUsesExpandProgress,
+    defaultProgressMessageForAction,
+} from "./revealKgWorkspace/revealKgAssistantActionCatalog.js";
+import { planAssistantQuery, abortAssistantPlan } from "./revealKgWorkspace/revealKgAssistantLlm.js";
+import { executeAssistantPlan } from "./revealKgWorkspace/revealKgAssistantExecutor.js";
+import { sanitizeAssistantError } from "./revealKgWorkspace/revealKgAssistantErrorUtils.js";
+import { computeAssistantPlanPostEffects, initialAssistantStepStates } from "./revealKgWorkspace/revealKgAssistantPlan.js";
 import WorkspaceExpandProgressOverlay from "./revealKgWorkspace/WorkspaceExpandProgressOverlay.vue";
 import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
 import {
@@ -471,6 +500,7 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceExpandGraphPanel,
         WorkspaceAiAssistantPanel,
         WorkspaceExpandProgressOverlay,
+        WorkspaceAssistantActionProgressOverlay,
         WorkspaceExplanationBubble,
         WorkspaceHypothesesBubble,
         WorkspaceDatasetsBubble,
@@ -503,6 +533,7 @@ export default Vue.component("reveal-kg-workspace", {
             lastActionLabel: "",
             lastActionTimer: null,
             welcomeOpen: true,
+            welcomeInitialTab: "start",
             initialGraphOpen: false,
             starterBuckets: emptyStarterBuckets(),
             starterContext: "",
@@ -551,6 +582,16 @@ export default Vue.component("reveal-kg-workspace", {
             expandManualAddBusy: false,
             expandSeedNodeIds: [],
             aiAssistantOpen: false,
+            assistantPlanning: false,
+            assistantExecuting: false,
+            assistantExecutingStepLabel: "",
+            assistantActionProgressOpen: false,
+            assistantActionProgressMessage: "",
+            assistantCurrentStep: null,
+            assistantPlan: null,
+            assistantClarification: null,
+            assistantStepStates: {},
+            assistantError: "",
         };
     },
     computed: {
@@ -678,6 +719,9 @@ export default Vue.component("reveal-kg-workspace", {
                 this.explanationBubbleVisible
             );
         },
+        canDismissWelcome() {
+            return Boolean(this.activeSession?.graphNodes?.length);
+        },
         explainHelperText() {
             return this.activeGraphInterpretation?.helper_text || "";
         },
@@ -746,12 +790,21 @@ export default Vue.component("reveal-kg-workspace", {
         canvasAnchorItems() {
             return keyNodeItemsFromSession(this.activeSession);
         },
+        assistantSuggestNodes() {
+            return (this.activeSession?.graphNodes || []).map((node) => ({
+                id: node.id,
+                label: node.label || node.id,
+                type: node.type || node.node_type,
+            }));
+        },
         canvasGraphBusy() {
             return (
                 this.graphLoading ||
                 this.expandGraphLoading ||
                 this.expandManualAddBusy ||
-                this.tableAddBusy
+                this.tableAddBusy ||
+                this.assistantPlanning ||
+                this.assistantExecuting
             );
         },
         displayGraph() {
@@ -1209,6 +1262,7 @@ export default Vue.component("reveal-kg-workspace", {
                 this.clearDuplicateFlow();
             }
             if (!this.activeSession && totalStarterCount(this.starterBuckets) === 0) {
+                this.welcomeInitialTab = "start";
                 this.welcomeOpen = true;
             }
         },
@@ -1305,7 +1359,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
         },
         onNodeMenuOpen(payload) {
-            if (!payload?.nodeId) {
+            if (!payload?.nodeId || this.canvasGraphBusy) {
                 return;
             }
             this.closeEdgeActionMenu();
@@ -1322,7 +1376,7 @@ export default Vue.component("reveal-kg-workspace", {
             this.nodeActionMenu = null;
         },
         onEdgeMenuOpen(payload) {
-            if (!payload?.edgeId) {
+            if (!payload?.edgeId || this.canvasGraphBusy) {
                 return;
             }
             this.closeNodeActionMenu();
@@ -1694,7 +1748,251 @@ export default Vue.component("reveal-kg-workspace", {
             this.aiAssistantOpen = true;
         },
         closeAiAssistant() {
+            if (this.assistantExecuting) {
+                return;
+            }
+            abortAssistantPlan();
             this.aiAssistantOpen = false;
+            this.assistantPlanning = false;
+            this.assistantPlan = null;
+            this.assistantClarification = null;
+            this.assistantStepStates = {};
+            this.assistantError = "";
+            this.assistantExecutingStepLabel = "";
+            this.clearAssistantStepProgress();
+        },
+        beginAssistantStepProgress(step) {
+            if (!step?.action) {
+                return;
+            }
+            this.assistantExecutingStepLabel = String(step.label || "").trim();
+            this.nodeActionMenu = null;
+            this.edgeActionMenu = null;
+            const message =
+                this.assistantExecutingStepLabel ||
+                defaultProgressMessageForAction(step.action);
+            if (assistantActionUsesExpandProgress(step.action)) {
+                this.expandGraphLoading = true;
+                this.expandGraphProgress = message;
+                this.expandBatchProgress = emptyExpandBatchProgress(message);
+                return;
+            }
+            if (assistantActionShowsProgressOverlay(step.action, step.options || {})) {
+                this.assistantActionProgressOpen = true;
+                this.assistantActionProgressMessage = message;
+            }
+        },
+        endAssistantStepProgress(step) {
+            if (!step?.action) {
+                return;
+            }
+            if (assistantActionUsesExpandProgress(step.action)) {
+                this.expandGraphLoading = false;
+                this.expandGraphProgress = "";
+                this.expandBatchProgress = null;
+            }
+            if (assistantActionShowsProgressOverlay(step.action, step.options || {})) {
+                this.assistantActionProgressOpen = false;
+                this.assistantActionProgressMessage = "";
+            }
+        },
+        clearAssistantStepProgress() {
+            this.assistantExecutingStepLabel = "";
+            this.expandGraphLoading = false;
+            this.expandGraphProgress = "";
+            this.expandBatchProgress = null;
+            this.assistantActionProgressOpen = false;
+            this.assistantActionProgressMessage = "";
+        },
+        onAssistantProgress(update, step) {
+            if (step && assistantActionUsesExpandProgress(step.action)) {
+                if (update && typeof update === "object") {
+                    this.onExpandProgress(update);
+                    return;
+                }
+                this.expandGraphProgress = String(update || this.expandGraphProgress);
+                return;
+            }
+            const message = String(update || "").trim();
+            if (!message) {
+                return;
+            }
+            if (step && assistantActionShowsProgressOverlay(step.action, step.options || {})) {
+                this.assistantActionProgressMessage = message;
+            }
+        },
+        resetAssistantPlanState() {
+            this.assistantPlan = null;
+            this.assistantClarification = null;
+            this.assistantStepStates = {};
+            this.assistantError = "";
+        },
+        async onAssistantPlanRequest(query) {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.assistantError = "Build a graph before planning canvas actions.";
+                return;
+            }
+            if (this.assistantPlanning || this.assistantExecuting) {
+                return;
+            }
+            this.resetAssistantPlanState();
+            this.assistantPlanning = true;
+            try {
+                const canvas = this.$refs.workspaceCanvas;
+                const { result } = await planAssistantQuery(query, this.activeSession, {
+                    interactiveLlmAvailable: this.llmAvailable,
+                    viewOptions: canvas?.getGraphViewOptions?.() || {},
+                });
+                if (result?.type === "clarify") {
+                    this.assistantClarification = {
+                        ...result,
+                        restoreQuery: query,
+                    };
+                    return;
+                }
+                this.assistantPlan = result;
+                this.assistantStepStates = initialAssistantStepStates(result.steps);
+            } catch (error) {
+                this.assistantError = sanitizeAssistantError(error);
+            } finally {
+                this.assistantPlanning = false;
+            }
+        },
+        async onAssistantExecuteAll() {
+            if (!this.assistantPlan?.steps?.length || this.assistantExecuting) {
+                return;
+            }
+            await this.runAssistantPlanSteps(this.assistantPlan.steps, { startIndex: 0 });
+        },
+        async onAssistantExecuteStep(stepId) {
+            if (!this.assistantPlan?.steps?.length || this.assistantExecuting) {
+                return;
+            }
+            const index = this.assistantPlan.steps.findIndex((step) => step.id === stepId);
+            if (index < 0) {
+                return;
+            }
+            await this.runAssistantPlanSteps(this.assistantPlan.steps, { startIndex: index });
+        },
+        setAssistantStepState(stepId, status) {
+            this.assistantStepStates = {
+                ...this.assistantStepStates,
+                [stepId]: status,
+            };
+        },
+        async runAssistantPlanSteps(steps, { startIndex = 0 } = {}) {
+            if (!this.activeSession || this.assistantExecuting) {
+                return;
+            }
+            const stepsToRun = steps.slice(startIndex);
+            const postEffects = computeAssistantPlanPostEffects(stepsToRun);
+            this.assistantExecuting = true;
+            this.assistantError = "";
+            if (postEffects.graphLoading) {
+                this.graphLoading = true;
+            }
+            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            try {
+                const result = await executeAssistantPlan(
+                    this.activeSession,
+                    steps,
+                    {
+                        apiClient: this.apiClient,
+                        expressionOptions: this.expressionOptions,
+                        interactiveLlmAvailable: this.llmAvailable,
+                        anchorItems: this.canvasAnchorItems,
+                        setGraphViewOptions: (options) => {
+                            this.$refs.workspaceCanvas?.setGraphViewOptions(options);
+                        },
+                        setGraphTableOpen: (open) => {
+                            this.$refs.workspaceCanvas?.setGraphTableOpen(open);
+                        },
+                        inspectNode: ({ nodeId }) => {
+                            this.onNodeActionInspect({ nodeId });
+                        },
+                        inspectEdge: ({ edgeId, sourceId, targetId }) => {
+                            this.inspectorInspectSeq += 1;
+                            this.selectedNodeId = null;
+                            this.selectedEdgeId = edgeId || null;
+                            this.selectedEdgeRef = { edgeId, sourceId, targetId };
+                            this.inspectorOpen = true;
+                        },
+                        openExportGraph: () => this.openExportGraph(),
+                        openImportGraph: () => this.onImportGraphClick(),
+                        openSaveGraph: () => this.openSaveGraph(),
+                        openNewGraph: () => this.openInitialGraphSetup({ reset: true }),
+                        downloadSnapshot: () => this.downloadGraphSnapshot(),
+                        onProgress: (update) => {
+                            this.onAssistantProgress(update, this.assistantCurrentStep);
+                        },
+                        onStepStart: (step) => {
+                            this.assistantCurrentStep = step;
+                            this.setAssistantStepState(step.id, "running");
+                            this.beginAssistantStepProgress(step);
+                        },
+                        onStepComplete: (step) => {
+                            this.endAssistantStepProgress(step);
+                            this.setAssistantStepState(step.id, "done");
+                        },
+                        onStepError: (step) => {
+                            this.endAssistantStepProgress(step);
+                            this.setAssistantStepState(step.id, "error");
+                        },
+                    },
+                    { startIndex }
+                );
+                if (postEffects.normalizeSession) {
+                    this.activeSession = ensureSessionFilterState(
+                        withNormalizedKeyNodes(result.session),
+                        this.expressionOptions
+                    );
+                } else {
+                    this.activeSession = result.session;
+                }
+                if (postEffects.forceContextualRefetch) {
+                    this.contextualFetchSignature = "";
+                    this.scheduleContextualEdgesFetch({ immediate: true });
+                }
+                if (postEffects.clearHiddenSelection) {
+                    this.clearSelectionIfHidden();
+                }
+                if (postEffects.remindAfterMutation) {
+                    this.maybeRemindAfterGraphMutation(previousNodeCount);
+                }
+                for (const entry of result.stepResults || []) {
+                    if (!entry.ok) {
+                        continue;
+                    }
+                    const meta = entry.meta || {};
+                    if (entry.step?.action === "explain_graph" && meta.openExplain) {
+                        this.explainScope =
+                            meta.scope === EXPLAIN_SCOPE.ENTIRE_GRAPH
+                                ? EXPLAIN_SCOPE.ENTIRE_GRAPH
+                                : EXPLAIN_SCOPE.KEY_NODES;
+                        this.explainGraphOpen = true;
+                        this.remindAfterAnalysis("Explain graph");
+                    }
+                    if (meta.openHypotheses) {
+                        this.hypothesesOpen = true;
+                        this.remindAfterAnalysis("Build hypotheses");
+                    }
+                    if (meta.openDatasets) {
+                        this.relatedDatasetsOpen = true;
+                        this.datasetForceSearchForm = false;
+                    }
+                }
+                this.showStatus("Canvas assistant finished running the plan.", 3200);
+            } catch (error) {
+                this.assistantError = sanitizeAssistantError(error);
+                this.showStatus(this.assistantError, 3600);
+            } finally {
+                this.assistantExecuting = false;
+                this.assistantCurrentStep = null;
+                this.clearAssistantStepProgress();
+                if (postEffects.graphLoading) {
+                    this.graphLoading = false;
+                }
+            }
         },
         openExpandGraph() {
             this.openExpandGraphPanel({ seedNodeIds: [] });
@@ -2180,6 +2478,13 @@ export default Vue.component("reveal-kg-workspace", {
         },
         openDocumentation() {
             this.docsOpen = true;
+        },
+        openLearnCanvas() {
+            this.welcomeInitialTab = "learn";
+            this.welcomeOpen = true;
+        },
+        closeWelcome() {
+            this.welcomeOpen = false;
         },
         closeDocumentation() {
             this.docsOpen = false;
@@ -3086,7 +3391,14 @@ export default Vue.component("reveal-kg-workspace", {
                 this.openLibrary();
                 return;
             }
-            if (payload.menu === "documentation" && payload.action === "open") {
+            if (payload.menu === "help" && payload.action === "learnCanvas") {
+                this.openLearnCanvas();
+                return;
+            }
+            if (
+                (payload.menu === "help" && payload.action === "documentation") ||
+                (payload.menu === "documentation" && payload.action === "open")
+            ) {
                 this.openDocumentation();
                 return;
             }

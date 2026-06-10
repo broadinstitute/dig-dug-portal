@@ -2,6 +2,8 @@
 
 This document captures UI and product conventions for **REVEAL KG Canvas** in dig-dug-portal. Use it when adding or changing files under `revealKgWorkspace/` and `revealKgWorkspace.vue`.
 
+For system structure, session model, and assistant pipeline details, see [`ARCHITECTURE.md`](./ARCHITECTURE.md) in this folder.
+
 For cross-project baseline rules (including border usage and minimum font size), also follow the workspace-root document at `Documents/GitHub/DESIGN.md`.
 
 Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes in repo-root `KgWorkspaceApis.rtf`, client in `src/utils/revealKgApi.js`, persistence in `src/utils/userUtils.js` (saved graphs).
@@ -22,11 +24,17 @@ Reference implementations: Playground (`cfde-graph-portal-frontend`), API notes 
 | **Analyze** | Interpret: Explain graph, Build hypotheses, Find related datasets |
 | **Manage** | Persist: New graph, Save graph to library, Export graph, Import graph, Download graph snapshot |
 | **My library** | Browse browser-saved graphs (Open on canvas, Duplicate, Remove from library, Back up / Restore library backup) |
-| **Documentation** | In-app guide modal |
+| **Help** | Learn Canvas (welcome guide) and Documentation (full in-app guide) |
 
-**Order on the right:** My library, then Documentation.
+**Order on the right:** My library, then Help.
 
-**Change** (mutate graph structure) lives on the **canvas toolbar**, not the top bar: Expand KG (+), visibility filters (funnel), graph data table, and view options. Add nodes is a tab inside the Expand KG panel.
+**Change** (mutate graph structure) lives on the **canvas toolbar**, not the top bar: Expand KG (+), visibility filters (funnel), canvas assistant (AI), graph data table, zoom, and view options. Add nodes is a tab inside the Expand KG panel.
+
+### Welcome / Learn Canvas
+
+- First visit with no graph shows the **Welcome** modal (Start Canvas tab): create a new graph, open My library, or import a graph.
+- **Help → Learn Canvas** reopens the welcome modal on the Learn tab (getting-started copy). When a graph is already active, the modal can be dismissed.
+- **Help → Documentation** opens the full user guide modal.
 
 ### Initial graph
 
@@ -181,18 +189,35 @@ Keep paragraphs short; one feature block per menu or surface (Change, Analyze, M
 
 ## Code layout
 
+See **`ARCHITECTURE.md`** in this folder for component hierarchy, session model, assistant pipeline, and data-flow diagrams.
+
 | Path | Purpose |
 |------|---------|
-| `revealKgWorkspace.vue` | Shell: header, stage, modals, session state |
-| `revealKgWorkspace/WorkspaceMenuBar.vue` | Menus + My library / Documentation buttons |
+| `revealKgWorkspace.vue` | Shell: header, stage, modals, session state, assistant orchestration |
+| `revealKgWorkspace/WorkspaceMenuBar.vue` | Analyze / Manage menus; My library; Help (Learn + Documentation) |
 | `revealKgWorkspace/WorkspaceCanvas.vue` | Main graph canvas (D3 layered tree) |
 | `revealKgWorkspace/WorkspaceInspector.vue` | Evidence drawer |
+| `revealKgWorkspace/WorkspaceWelcomeModal.vue` | Welcome / Learn Canvas (Start + Learn tabs) |
+| `revealKgWorkspace/WorkspaceAiAssistantPanel.vue` | Canvas assistant UI (Request + Actions tabs) |
+| `revealKgWorkspace/WorkspaceAssistantActionProgressOverlay.vue` | Progress overlay for non-expand assistant steps |
 | `revealKgWorkspace/WorkspaceGraphTablePagination.vue` | Standard pill pagination (graph data, inspector tables) |
 | `revealKgWorkspace/WorkspaceLibraryModal.vue` | My library + backup/restore |
 | `revealKgWorkspace/WorkspaceDocumentationModal.vue` | User guide |
 | `revealKgWorkspace/WorkspaceGraphDataTableModal.vue` | Tabbed graph data table popup |
 | `revealKgWorkspace/revealKgGraphSnapshotUtils.js` | Self-contained HTML graph snapshot export |
 | `revealKgWorkspace/revealKgGraphTableData.js` | Table rows, CSV export, edge-derived scores |
+| `revealKgWorkspace/revealKgAssistantTools.js` | Planner action catalog (`ASSISTANT_ACTIONS`) |
+| `revealKgWorkspace/revealKgAssistantActionCatalog.js` | UI examples catalog (Actions tab) |
+| `revealKgWorkspace/revealKgAssistantPrompt.js` | Planner system + user prompt builders |
+| `revealKgWorkspace/revealKgAssistantLlm.js` | Client-side planner via `createLLMClient` |
+| `revealKgWorkspace/revealKgAssistantPlan.js` | Plan parse/validate + post-execution effects |
+| `revealKgWorkspace/revealKgAssistantPlanRepair.js` | Pre-validation plan repair + clarify conversion |
+| `revealKgWorkspace/revealKgAssistantExecutor.js` | Run validated assistant plans (v2) |
+| `revealKgWorkspace/revealKgAssistantContext.js` | Session context JSON for the planner |
+| `revealKgWorkspace/revealKgAssistantTarget.js` | Target schema (`scope`, `node_labels`, …) |
+| `revealKgWorkspace/revealKgAssistantTargetResolve.js` | Resolve targets → node IDs / seeds |
+| `revealKgWorkspace/revealKgAssistantNodeSuggest.js` | Request-box node autocomplete |
+| `revealKgWorkspace/revealKgAssistantErrorUtils.js` | Sanitize assistant errors for UI |
 | `revealKgWorkspace/revealKgReminders.js` | Contextual post-action reminders |
 | `src/utils/revealKgApi.js` | Interactive API client |
 | `src/utils/userUtils.js` | Saved graph CRUD + library I/O |
@@ -256,3 +281,7 @@ Import API via `revealKgApi` (same-origin `/api/interactive/*`; dig-dug-server p
 | 2026-06-02 | Removed AI-assisted graph start; search & select + conceptual search only |
 | 2026-06-02 | Initial build: neighboring nodes off by default (opt-in checkbox) |
 | 2026-06-02 | Documentation modal + DESIGN.md aligned with persistence tiers and toolbar IA |
+| 2026-06-02 | Canvas assistant: client LLM planner + step executor (HybridSearchReveal llmClient pattern) |
+| 2026-06-10 | Canvas assistant v2: action + target + options planner; executor wired; progress overlays; node autocomplete; plan repair |
+| 2026-06-10 | Help menu (Learn Canvas + Documentation); welcome modal tabs; dismissible Learn when graph active |
+| 2026-06-10 | Removed v1 assistant catalog and legacy expand helpers; added ARCHITECTURE.md |

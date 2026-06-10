@@ -272,6 +272,23 @@ export default {
         },
     },
     methods: {
+        getGraphViewOptions() {
+            return {
+                hideContextualEdges: this.hideContextualEdges,
+                hideJumpingEdges: this.hideJumpingEdges,
+            };
+        },
+        setGraphViewOptions({ hideContextualEdges, hideJumpingEdges } = {}) {
+            if (hideContextualEdges !== undefined) {
+                this.hideContextualEdges = Boolean(hideContextualEdges);
+            }
+            if (hideJumpingEdges !== undefined) {
+                this.hideJumpingEdges = Boolean(hideJumpingEdges);
+            }
+        },
+        setGraphTableOpen(open) {
+            this.graphTableOpen = Boolean(open);
+        },
         onGraphViewerClick(event) {
             if (event.target.closest(".wkb-inspector")) {
                 return;

@@ -279,6 +279,66 @@ export function patchExplanationEntry(entry, patch) {
     return next;
 }
 
+export async function executeGraphExplanationOnSession(
+    session,
+    { scope = EXPLAIN_SCOPE.KEY_NODES, apiClient, queryText, additionalContext } = {}
+) {
+    if (!apiClient?.interpretInteractiveSession) {
+        throw new Error("Session interpretation API is not configured.");
+    }
+    if (scope === EXPLAIN_SCOPE.KEY_NODES && !normalizeKeyNodeIds(session).length) {
+        throw new Error("Mark at least one selected node before explaining.");
+    }
+
+    let draft = buildExplanationDraft(session, scope);
+    if (queryText || additionalContext) {
+        draft = patchExplanationEntry(draft, {
+            ...(queryText ? { query_text: String(queryText).trim() } : {}),
+            ...(additionalContext !== undefined
+                ? { additional_context: String(additionalContext).trim() }
+                : {}),
+        });
+    }
+    const loadingEntry = patchExplanationEntry(draft, { status: "loading", error: "" });
+    const payload = await apiClient.interpretInteractiveSession(
+        explanationApiPayload(session, loadingEntry)
+    );
+    const timestamp = new Date().toISOString();
+    let suggestedKeyNodes = [];
+    if (scope === EXPLAIN_SCOPE.ENTIRE_GRAPH) {
+        suggestedKeyNodes = parseSuggestedKeyNodesFromInterpretation(
+            payload?.interpretation,
+            loadingEntry.graph_nodes || []
+        );
+    }
+    const successEntry = patchExplanationEntry(loadingEntry, {
+        ...payload,
+        status: "success",
+        timestamp,
+        timestamp_label: new Date(timestamp).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
+        }),
+        suggested_key_nodes: suggestedKeyNodes,
+        interpretation_display: interpretationMarkdownForDisplay(payload?.interpretation || ""),
+        error: "",
+    });
+    const prior = (session.graphInterpretations || []).filter(
+        (entry) => entry.id !== successEntry.id
+    );
+    return {
+        session: {
+            ...session,
+            explainContext: successEntry.additional_context ?? session.explainContext,
+            graphInterpretation: successEntry,
+            graphInterpretations: [successEntry, ...prior],
+            graphInterpretationLoading: false,
+        },
+        meta: { explanationId: successEntry.id, scope },
+    };
+}
+
 export function explanationApiPayload(session, entry) {
     const userPrompt = composeEditableExplanationPrompt(
         entry.query_text,

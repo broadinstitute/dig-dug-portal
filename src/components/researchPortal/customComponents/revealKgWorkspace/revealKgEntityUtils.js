@@ -3,9 +3,6 @@
 /** Column order for Search & select (initial graph). */
 export const STARTER_ENTITY_ORDER = ["gene", "gene_set", "factor", "trait"];
 
-/** @deprecated Use STARTER_ENTITY_ORDER */
-export const ENTITY_TYPE_ORDER = STARTER_ENTITY_ORDER;
-
 export const STARTER_COLUMN_CONFIG = [
     { entityType: "gene", title: "Genes", columnKey: "starter-gene" },
     { entityType: "gene_set", title: "Gene sets", columnKey: "starter-gene-set" },

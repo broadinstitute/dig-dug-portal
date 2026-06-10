@@ -227,11 +227,6 @@ export async function buildVisibilityFilterOnSession(
     };
 }
 
-/** @deprecated Use buildVisibilityFilterOnSession */
-export async function applyGraphFilterToSession(session, options = {}) {
-    return buildVisibilityFilterOnSession(session, options);
-}
-
 export function resetGraphFilterOnSession(session, expressionOptions = {}) {
     return resetGraphFilterDraftOnSession(session, expressionOptions);
 }

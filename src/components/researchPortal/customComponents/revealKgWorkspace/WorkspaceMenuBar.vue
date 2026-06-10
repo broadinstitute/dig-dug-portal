@@ -30,14 +30,21 @@
             >
                 {{ libraryMenu.label }}
             </b-button>
-            <b-button
+            <b-dropdown
+                text="Help"
                 variant="outline-secondary"
                 size="sm"
-                class="wkb-library-button"
-                @click="onDocumentation"
+                class="wkb-menu wkb-help-menu"
+                menu-class="wkb-menu-list"
+                toggle-class="wkb-menu-toggle"
             >
-                Documentation
-            </b-button>
+                <b-dropdown-item @click="onHelpLearnCanvas">
+                    Learn Canvas
+                </b-dropdown-item>
+                <b-dropdown-item @click="onHelpDocumentation">
+                    Documentation
+                </b-dropdown-item>
+            </b-dropdown>
         </div>
     </div>
 </template>
@@ -91,10 +98,17 @@ export default {
                 label: "My library",
             });
         },
-        onDocumentation() {
+        onHelpLearnCanvas() {
             this.$emit("action", {
-                menu: "documentation",
-                action: "open",
+                menu: "help",
+                action: "learnCanvas",
+                label: "Learn Canvas",
+            });
+        },
+        onHelpDocumentation() {
+            this.$emit("action", {
+                menu: "help",
+                action: "documentation",
                 label: "Documentation",
             });
         },

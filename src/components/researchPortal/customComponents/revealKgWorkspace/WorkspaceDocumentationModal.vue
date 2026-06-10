@@ -49,40 +49,10 @@
                 <section class="wkb-docs-section">
                     <h3>Starting a graph</h3>
                     <p class="wkb-docs-lead">
-                        New sessions begin with a small set of starting nodes—not a
-                        large auto-built neighborhood.
+                        See <strong>Help → Learn Canvas</strong> for how to search and select
+                        starting entities, optional neighboring nodes, and load or import saved
+                        graphs.
                     </p>
-                    <ul class="wkb-docs-feature-list">
-                        <li>
-                            <strong>Search &amp; select</strong>
-                            <p>
-                                From <em>Manage → New graph</em>, search genes, gene sets,
-                                mechanisms, and traits in four columns. Use catalog typeahead
-                                for exact names, or <em>By conceptual search</em> when you
-                                have a topic (for example “insulin resistance”) but not a
-                                specific entity. Pick one or two entities to start, add
-                                optional context, then click <em>Build a KG</em>.
-                            </p>
-                        </li>
-                        <li>
-                            <strong>Neighboring nodes (optional)</strong>
-                            <p>
-                                By default, the initial build adds only your starting
-                                entities and the links that connect them directly. Check
-                                <em>Add neighboring nodes</em> if you want REVEAL to fetch
-                                extra neighbors in the first pass. Most sessions grow the
-                                graph gradually with <em>Expand KG</em> instead.
-                            </p>
-                        </li>
-                        <li>
-                            <strong>Load or import</strong>
-                            <p>
-                                <em>My library → Open on canvas</em> restores a browser-saved
-                                layout. <em>Manage → Import graph</em> restores a full
-                                workflow file (including inspector caches and analysis runs).
-                            </p>
-                        </li>
-                    </ul>
                 </section>
 
                 <section class="wkb-docs-section">
@@ -130,9 +100,11 @@
                             </p>
                         </li>
                         <li>
-                            <strong>Documentation</strong>
+                            <strong>Help</strong>
                             <p>
-                                Opens this guide from the top bar at any time.
+                                <em>Learn Canvas</em> opens a short getting-started guide.
+                                <em>Documentation</em> opens this full guide from the top bar
+                                at any time.
                             </p>
                         </li>
                     </ul>
@@ -171,11 +143,9 @@
                         <li>
                             <strong>Canvas assistant (AI)</strong>
                             <p>
-                                Opens the AI assistant panel. Describe graph changes in
-                                plain language—such as selecting genes by intent or
-                                running a filter-then-expand workflow—and the assistant
-                                will eventually turn your request into a reviewable
-                                step-by-step plan using canvas actions.
+                                Opens the canvas assistant panel. See the
+                                <em>Canvas assistant</em> section below for planning and
+                                running graph actions in plain language.
                             </p>
                         </li>
                         <li>
@@ -199,6 +169,79 @@
                                 Toggle <em>Hide contextual edges</em> and
                                 <em>Hide jumping edges</em>. These only affect display;
                                 they do not remove links from the saved graph.
+                            </p>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="wkb-docs-section">
+                    <h3>Canvas assistant</h3>
+                    <p class="wkb-docs-lead">
+                        The canvas assistant turns plain-language requests into a short
+                        plan of graph actions you can review and run. Open it from the
+                        toolbar AI icon after you have built a graph.
+                    </p>
+                    <ul class="wkb-docs-feature-list">
+                        <li>
+                            <strong>Request tab</strong>
+                            <p>
+                                Type what you want to do—for example
+                                <em>Explain selected nodes</em>,
+                                <em>Select top 5 genes connected to Type 2 diabetes</em>, or
+                                <em>Filter genes related to insulin resistance, then expand from selected nodes</em>.
+                                Click <em>Plan</em> to generate a numbered step list. Each step
+                                shows a label and status; click <em>Run</em> on one step or
+                                <em>Execute all</em> to run the whole plan. While steps run,
+                                progress overlays appear for expansion, filtering, and analysis
+                                actions; the graph is not interactive during execution.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Actions tab</strong>
+                            <p>
+                                Browse grouped examples of what you can ask for—graph changes,
+                                analysis, view toggles, and manage actions. Click
+                                <em>Try</em> on an example to copy it into the Request tab and
+                                plan from there.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Node autocomplete</strong>
+                            <p>
+                                While typing in the request box, matching node labels from the
+                                current graph appear in a dropdown. Use arrow keys and Enter or
+                                Tab to insert a label into your request.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>Clarify vs execute</strong>
+                            <p>
+                                If the assistant cannot map your request safely—for example a
+                                named gene is not on the graph, or “top genes” is ambiguous—it
+                                returns a clarification message instead of a plan. Edit your
+                                request and plan again. Failed steps restore your original text
+                                to the input box.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>What the assistant can do</strong>
+                            <p>
+                                Expand the graph, build or toggle visibility filters, mark
+                                selected nodes, explain the graph, build hypotheses, find
+                                related datasets, open or close the data table, show or hide
+                                jumping or contextual edges, inspect a node or edge, and open
+                                save/export/import/snapshot flows. Explain and filter steps
+                                require interactive LLM classification when those options are
+                                used; if LLM is unavailable, planning may still succeed but
+                                those steps will not run.
+                            </p>
+                        </li>
+                        <li>
+                            <strong>After analysis steps</strong>
+                            <p>
+                                When a plan includes Explain graph, Build hypotheses, or Find
+                                related datasets, the assistant opens the same modals and
+                                analysis bubbles as the Analyze menu after the step completes.
                             </p>
                         </li>
                     </ul>
@@ -423,7 +466,8 @@
                     <h3>Analysis bubbles</h3>
                     <p>
                         After you run Explain graph, Build hypotheses, or Find related
-                        datasets, a numbered bubble appears above the canvas (for example
+                        datasets—from the Analyze menu or the canvas assistant—a numbered
+                        bubble appears above the canvas (for example
                         <em>Explanation 1</em> or <em>Hypotheses 2</em>). Click a bubble
                         to reopen that result while continuing to edit the graph. Bubbles
                         hide while their modal is open and return when you close it.
@@ -483,7 +527,11 @@
                         <li>Expand gradually from selected nodes; add specific entities from Graph data.</li>
                         <li>Narrow the view with visibility filters when the canvas gets busy.</li>
                         <li>Mark selected nodes and use the Inspector for evidence.</li>
-                        <li>Run Analyze when you are ready to explain, hypothesize, or find datasets.</li>
+                        <li>
+                            Run Analyze when you are ready to explain, hypothesize, or find
+                            datasets—or use the canvas assistant for the same actions in
+                            plain language.
+                        </li>
                         <li>Save to My library for a quick checkpoint; Export graph for a full workflow file; download a snapshot to share a report.</li>
                     </ol>
                 </section>
