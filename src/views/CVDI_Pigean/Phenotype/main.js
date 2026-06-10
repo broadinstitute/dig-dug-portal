@@ -199,9 +199,6 @@ new Vue({
                     name: p.phenotype,
                     display_group: p.group }));
         },
-        rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
-        },
         utilsBox() {
             let utils = {
                 Formatters: Formatters,
