@@ -39,13 +39,7 @@ export function match(index, q, opts = {}) {
 }
 
 export async function getPhecodeMap(){
-    // The raw /sites/default/files/*.csv URL has no CORS headers, so fetch()ing it
-    // is blocked by the browser. Route through the CMS `servedata/dataset` endpoint
-    // (which does send CORS headers) by passing the file URL as the `dataset` param.
-    // That endpoint escapes special chars and wraps the payload in quotes, so we undo
-    // that before parsing -- same handling as cfdeEcoSystem.vue loadFile().
-    const phecodeFileUrl = "https://hugeampkpncms.org/sites/default/files/phenotypes_with_labels.csv";
-    const phecodeMapUrl = `https://hugeampkpncms.org/servedata/dataset?dataset=${phecodeFileUrl}`;
+    const phecodeMapUrl = `${BIO_INDEX_HOST}/api/raw/file/pigean/phenotypes/phenotypes_with_labels.tsv`;
     let phecodeText = await fetch(phecodeMapUrl)
         .then(response => response.text());
     phecodeText = phecodeText
@@ -53,14 +47,12 @@ export async function getPhecodeMap(){
         .replace(/\\\//g, '/')      // slashes
         .replace(/\\n/g, '\n')      // line breaks
         .replace(/\\r/g, '\r');     // carriage returns
-    phecodeText = phecodeText.substring(1, phecodeText.length - 1); // strip surrounding quotes
-    let phecodeJson = dataConvert.csv2Json(phecodeText);
+    //phecodeText = phecodeText.substring(1, phecodeText.length - 1); // strip surrounding quotes
+    let phecodeJson = dataConvert.tsv2Json(phecodeText);
     let phecodeMap = {};
     phecodeJson.forEach(j => {
-        let phecodeKey = `phecode_${j.phenotype}`;
-        j.phenotype = phecodeKey;
         j.phenotype_name = j.description;
-        phecodeMap[phecodeKey] = j;
+        phecodeMap[j.phenotype] = j;
     });
     return phecodeMap;
 }
