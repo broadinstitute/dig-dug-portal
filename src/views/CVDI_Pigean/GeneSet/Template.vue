@@ -4,7 +4,6 @@
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
-            :raw-phenotypes="$parent.rawPhenotypes"
         >
         </page-header>
 
