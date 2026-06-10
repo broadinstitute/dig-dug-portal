@@ -42,12 +42,11 @@ export async function getPhecodeMap(){
     const phecodeMapUrl = `${BIO_INDEX_HOST}/api/raw/file/pigean/phenotypes/phenotypes_with_labels.tsv`;
     let phecodeText = await fetch(phecodeMapUrl)
         .then(response => response.text());
-    phecodeText = phecodeText
+    phecodeText = phecodeText.trim()
         .replace(/\\u0022/g, '"')   // quotes
         .replace(/\\\//g, '/')      // slashes
         .replace(/\\n/g, '\n')      // line breaks
         .replace(/\\r/g, '\r');     // carriage returns
-    //phecodeText = phecodeText.substring(1, phecodeText.length - 1); // strip surrounding quotes
     let phecodeJson = dataConvert.tsv2Json(phecodeText);
     let phecodeMap = {};
     phecodeJson.forEach(j => {
