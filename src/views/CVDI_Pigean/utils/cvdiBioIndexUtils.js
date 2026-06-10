@@ -42,11 +42,9 @@ export async function getPhecodeMap(){
     const phecodeMapUrl = `${BIO_INDEX_HOST}/api/raw/file/pigean/phenotypes/phenotypes_with_labels.tsv`;
     let phecodeText = await fetch(phecodeMapUrl)
         .then(response => response.text());
-    phecodeText = phecodeText.trim()
-        .replace(/\\u0022/g, '"')   // quotes
-        .replace(/\\\//g, '/')      // slashes
-        .replace(/\\n/g, '\n')      // line breaks
-        .replace(/\\r/g, '\r');     // carriage returns
+    // BioIndex serves the raw TSV unescaped, so a trim is all that's needed
+    // (unlike the old CMS servedata endpoint, which quoted+escaped the payload).
+    phecodeText = phecodeText.trim();
     let phecodeJson = dataConvert.tsv2Json(phecodeText);
     let phecodeMap = {};
     phecodeJson.forEach(j => {

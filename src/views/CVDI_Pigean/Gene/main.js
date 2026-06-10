@@ -158,8 +158,8 @@ new Vue({
             return cvdiBioIndexUtils.TRAIT_GROUPS;
         },
         phewasAdjustedData() {
-            // Spread each row into a fresh object so mutating .combined below
-            // doesn't affect the rows shared with phewasAllData/pigeanFilteredData.
+            // phewasAllData returns the live Vuex array, so spread each row into a
+            // fresh object before mutating .combined to avoid touching store state.
             return this.pigeanFilteredData.map(item => {
                 let row = { ...item };
                 if (row.combined < 0) {
@@ -169,8 +169,8 @@ new Vue({
             });
         },
         pigeanFilteredData(){
-            // phewasAllData is already deep-cloned at the source; filter()
-            // returns a new array, so no additional clone is needed here.
+            // filter() returns a new array, but the rows are the same references as
+            // the live Vuex state.phewasData — callers must not mutate them in place.
             return this.phewasAllData.filter(item => item.log_bf > 0 || item.prior > 0);
         },
         pigeanMap(){

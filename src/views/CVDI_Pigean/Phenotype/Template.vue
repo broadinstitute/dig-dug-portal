@@ -85,7 +85,9 @@
                     <div class="col-md-12 gene-page-header-body">
                         <span v-if="$store.state.phenotype">
                             {{ $store.state.phenotype.description }}
-                            ({{ $store.state.phenotype.trait_group_description }})
+                            <template v-if="$store.state.phenotype.trait_group_description">
+                                ({{ $store.state.phenotype.trait_group_description }})
+                            </template>
                         </span>
                     </div>
                 </div>

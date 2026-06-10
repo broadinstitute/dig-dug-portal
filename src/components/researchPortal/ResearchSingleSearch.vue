@@ -29,7 +29,7 @@
 						<span v-if="!!singleSearchConfig.showTraitGroup"
 							> ({{ phenotype?.trait_group_description || phenotype.trait_group }})
 						</span>
-						<span class="search-word-group">{{ phenotype.group}}</span>
+						<span class="search-word-group">{{ phenotype.group }}</span>
 					</div>
 				</template>
 

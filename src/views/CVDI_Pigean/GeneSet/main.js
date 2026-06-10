@@ -145,6 +145,8 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
+            // Returns the live Vuex array (shared references); callers that mutate
+            // rows must clone first (see phewasAdjustedData above).
             return this.$store.state.phewasData;
         }
     },

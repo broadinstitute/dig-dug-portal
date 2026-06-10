@@ -70,8 +70,6 @@ export default new Vuex.Store({
                 context.state.traitGroupToQuery || context.state.traitGroup;
             context.commit("setTraitGroup", traitGroup);
 
-            
-
             let query = {
                 q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`,
                 limit: 1000,
