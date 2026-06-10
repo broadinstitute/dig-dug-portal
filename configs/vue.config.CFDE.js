@@ -26,7 +26,7 @@ let pages = {
     },
 };
 
-const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
+const { REVEAL_KG_API_TARGET } = require("../src/utils/revealKgApi.defaults.js");
 
 module.exports = {
     devServer: {
