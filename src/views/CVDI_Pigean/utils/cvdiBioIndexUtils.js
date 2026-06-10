@@ -51,6 +51,7 @@ export async function getPhecodeMap(){
     let phecodeMap = {};
     phecodeJson.forEach(j => {
         j.phenotype_name = j.description;
+        j.trait_group = jurgensTraitGroup(j.phenotype);
         phecodeMap[j.phenotype] = j;
     });
     return phecodeMap;
@@ -66,6 +67,19 @@ export async function getAllGenesets(){
         console.error("Failed to fetch gene sets", error);
         return [];
     }
+}
+
+function jurgensTraitGroup(phenotypeId){
+    let delimiter = "___";
+    let delimited = phenotypeId.split(delimiter);
+    if (delimited.length === 1){
+        return "jurgens_exomes";
+    }
+    let suffix = delimited[1];
+    if (suffix.startsWith("gcat_trait")){
+        return "jurgens_exomes___gcat_trait";
+    }
+    return "jurgens_exomes___portal";
 }
 
 export const DEFAULT_MODEL = "mouse_msigdb";

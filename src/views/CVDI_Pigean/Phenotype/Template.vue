@@ -53,7 +53,6 @@
                                     v-html="item.phenotype_name"
                                 ></a>
                                 <span
-                                    v-if="$parent.traitGroups[item.trait_group]"
                                     class="trait-group"
                                 >
                                     ({{
