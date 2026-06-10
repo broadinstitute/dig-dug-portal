@@ -52,7 +52,7 @@
                                     @click="$parent.setSelectedPhenotype(item)"
                                     v-html="item.phenotype_name"
                                 ></a>
-                                <span
+                                <span v-if="!!item.trait_group_description"
                                     class="trait-group"
                                 >
                                     ({{
