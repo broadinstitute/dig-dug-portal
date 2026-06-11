@@ -6,6 +6,7 @@ import {
     normalizeKeyNodeIds,
 } from "./revealKgGraphBootstrap.js";
 import { candidatePassesCombinedFilter } from "./revealKgGraphFilterUtils.js";
+import { getDisplayGraph } from "./revealKgGraphDisplayUtils.js";
 
 function nodeTypeOf(node) {
     return String(node?.type || node?.node_type || "").trim();
@@ -125,7 +126,11 @@ function resolveNodeIdsFromFilterLayer(session, layer, { nodeTypes = [], match =
 }
 
 function rankAndLimitNodeIds(session, nodeIds, layer, options = {}) {
-    const limit = Math.min(50, Math.max(1, Number(options.limit) || 0));
+    const rawLimit = Number(options.limit);
+    const limit =
+        Number.isFinite(rawLimit) && rawLimit > 0
+            ? Math.min(50, Math.max(1, rawLimit))
+            : 0;
     if (!limit || nodeIds.length <= limit) {
         return nodeIds;
     }
@@ -219,7 +224,41 @@ export function resolveAssistantTargetNodeIds(session, target = {}, options = {}
     return [];
 }
 
+function resolveAssistantEdgeEndpointNodeIds(session, target = {}) {
+    if (target.scope !== "edge" || !target.edge) {
+        return [];
+    }
+    const sourceLabel = String(target.edge.source_label || "").trim().toLowerCase();
+    const targetLabel = String(target.edge.target_label || "").trim().toLowerCase();
+    const edge = [...(session.graphEdges || []), ...(session.contextualEdges || [])].find(
+        (entry) => {
+            const sourceNode = findGraphNode(session, entry.source);
+            const targetNode = findGraphNode(session, entry.target);
+            const sourceMatch = sourceLabel
+                ? String(sourceNode?.label || "").trim().toLowerCase().includes(sourceLabel)
+                : true;
+            const targetMatch = targetLabel
+                ? String(targetNode?.label || "").trim().toLowerCase().includes(targetLabel)
+                : true;
+            return sourceMatch && targetMatch;
+        }
+    );
+    if (!edge) {
+        throw new Error("Could not find that edge on the graph.");
+    }
+    return [edge.source, edge.target].filter(Boolean);
+}
+
 export function resolveAssistantSeedAnchorItems(session, target = {}) {
+    if (target.scope === "edge" && target.edge) {
+        const nodeIds = resolveAssistantEdgeEndpointNodeIds(session, target);
+        if (!nodeIds.length) {
+            throw new Error("No seed nodes matched the edge target.");
+        }
+        return nodeIds
+            .map((nodeId) => graphNodeToAnchorItem(findGraphNode(session, nodeId)))
+            .filter(Boolean);
+    }
     const nodeIds = resolveAssistantTargetNodeIds(session, target);
     if (!nodeIds.length && target.scope === "selected_nodes") {
         throw new Error("Mark at least one selected node before expanding.");
@@ -279,4 +318,54 @@ export function resolveAssistantGeneNodes(session, target = {}) {
     return resolveAssistantTargetNodeIds(session, geneTarget)
         .map((nodeId) => findGraphNode(session, nodeId))
         .filter((node) => node && nodeTypeOf(node) === "gene");
+}
+
+/** Node ids currently shown on the canvas (respects enabled visibility filters). */
+export function resolveVisibleNodeIds(
+    session,
+    target = {},
+    expressionOptions = {},
+    options = {}
+) {
+    const { visibleNodes } = getDisplayGraph(session, { expressionOptions });
+    const nodeTypes = Array.isArray(target.node_types) ? target.node_types : [];
+    let nodes = visibleNodes;
+    if (nodeTypes.length) {
+        nodes = nodes.filter((node) => nodeTypes.includes(nodeTypeOf(node)));
+    }
+    const rawLimit = Number(options.limit);
+    const limit =
+        Number.isFinite(rawLimit) && rawLimit > 0
+            ? Math.min(50, Math.max(1, rawLimit))
+            : 0;
+    if (limit && nodes.length > limit) {
+        nodes = [...nodes].sort((left, right) =>
+            String(left.label || left.id).localeCompare(String(right.label || right.id), undefined, {
+                sensitivity: "base",
+            })
+        );
+        nodes = nodes.slice(0, limit);
+    }
+    return nodes.map((node) => node.id);
+}
+
+/** Selected node ids to unmark — intersects target/visible matches with current selection. */
+export function resolveUnselectNodeIds(
+    session,
+    target = {},
+    expressionOptions = {},
+    options = {}
+) {
+    const selectedIds = normalizeKeyNodeIds(session);
+    if (!selectedIds.length) {
+        return [];
+    }
+    if (options.clear || options.all) {
+        return selectedIds;
+    }
+    const candidateIds = options.visible
+        ? resolveVisibleNodeIds(session, target, expressionOptions, options)
+        : resolveAssistantTargetNodeIds(session, target, options);
+    const candidateSet = new Set(candidateIds);
+    return selectedIds.filter((nodeId) => candidateSet.has(nodeId));
 }

@@ -108,6 +108,7 @@
                 @remove-history-entry="onRemoveExpansionHistoryEntry"
             />
             <WorkspaceAiAssistantPanel
+                ref="aiAssistantPanel"
                 :open="aiAssistantOpen"
                 :planning="assistantPlanning"
                 :executing="assistantExecuting"
@@ -344,7 +345,12 @@ import {
 import { planAssistantQuery, abortAssistantPlan } from "./revealKgWorkspace/revealKgAssistantLlm.js";
 import { executeAssistantPlan } from "./revealKgWorkspace/revealKgAssistantExecutor.js";
 import { sanitizeAssistantError } from "./revealKgWorkspace/revealKgAssistantErrorUtils.js";
-import { computeAssistantPlanPostEffects, initialAssistantStepStates } from "./revealKgWorkspace/revealKgAssistantPlan.js";
+import {
+    assistantActionPostEffects,
+    computeAssistantPlanPostEffects,
+    initialAssistantStepStates,
+} from "./revealKgWorkspace/revealKgAssistantPlan.js";
+import { formatAssistantStepSummary } from "./revealKgWorkspace/revealKgAssistantStepSummary.js";
 import WorkspaceExpandProgressOverlay from "./revealKgWorkspace/WorkspaceExpandProgressOverlay.vue";
 import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
 import {
@@ -1827,7 +1833,57 @@ export default Vue.component("reveal-kg-workspace", {
             this.assistantStepStates = {};
             this.assistantError = "";
         },
-        async onAssistantPlanRequest(query) {
+        applyAssistantStepOutcome(step, session, meta = {}, previousNodeCount = 0) {
+            const effects = assistantActionPostEffects(step?.action, step?.options || {});
+            if (effects.normalizeSession) {
+                this.activeSession = ensureSessionFilterState(
+                    withNormalizedKeyNodes(session),
+                    this.expressionOptions
+                );
+            } else {
+                this.activeSession = session;
+            }
+            if (effects.forceContextualRefetch) {
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+            }
+            if (effects.clearHiddenSelection) {
+                this.clearSelectionIfHidden();
+            }
+            if (effects.remindAfterMutation) {
+                this.maybeRemindAfterGraphMutation(previousNodeCount);
+            }
+            this.applyAssistantStepUiEffects(step, meta);
+        },
+        applyAssistantStepUiEffects(step, meta = {}) {
+            if (step?.action === "explain_graph" && meta.openExplain) {
+                this.explainScope =
+                    meta.scope === EXPLAIN_SCOPE.ENTIRE_GRAPH
+                        ? EXPLAIN_SCOPE.ENTIRE_GRAPH
+                        : EXPLAIN_SCOPE.KEY_NODES;
+                this.explainGraphOpen = true;
+                this.remindAfterAnalysis("Explain graph");
+            }
+            if (meta.openHypotheses) {
+                this.hypothesesOpen = true;
+                this.remindAfterAnalysis("Build hypotheses");
+            }
+            if (meta.openDatasets) {
+                this.relatedDatasetsOpen = true;
+                this.datasetForceSearchForm = false;
+            }
+        },
+        async onAssistantPlanRequest(payload) {
+            const query = String(
+                typeof payload === "string" ? payload : payload?.query || ""
+            ).trim();
+            const threadHistory =
+                typeof payload === "object" && Array.isArray(payload?.threadHistory)
+                    ? payload.threadHistory
+                    : [];
+            if (!query) {
+                return;
+            }
             if (!this.activeSession?.graphNodes?.length) {
                 this.assistantError = "Build a graph before planning canvas actions.";
                 return;
@@ -1835,13 +1891,18 @@ export default Vue.component("reveal-kg-workspace", {
             if (this.assistantPlanning || this.assistantExecuting) {
                 return;
             }
+            const previousPlan = this.assistantPlan;
             this.resetAssistantPlanState();
             this.assistantPlanning = true;
             try {
+                this.refreshSavedGraphs();
                 const canvas = this.$refs.workspaceCanvas;
                 const { result } = await planAssistantQuery(query, this.activeSession, {
                     interactiveLlmAvailable: this.llmAvailable,
                     viewOptions: canvas?.getGraphViewOptions?.() || {},
+                    conversation: threadHistory,
+                    lastPlan: previousPlan,
+                    savedLibraryGraphs: this.savedGraphs,
                 });
                 if (result?.type === "clarify") {
                     this.assistantClarification = {
@@ -1891,8 +1952,9 @@ export default Vue.component("reveal-kg-workspace", {
             if (postEffects.graphLoading) {
                 this.graphLoading = true;
             }
-            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            let stepPreviousNodeCount = this.activeSession.graphNodes?.length || 0;
             try {
+                this.refreshSavedGraphs();
                 const result = await executeAssistantPlan(
                     this.activeSession,
                     steps,
@@ -1901,6 +1963,7 @@ export default Vue.component("reveal-kg-workspace", {
                         expressionOptions: this.expressionOptions,
                         interactiveLlmAvailable: this.llmAvailable,
                         anchorItems: this.canvasAnchorItems,
+                        savedLibraryGraphs: this.savedGraphs,
                         setGraphViewOptions: (options) => {
                             this.$refs.workspaceCanvas?.setGraphViewOptions(options);
                         },
@@ -1922,6 +1985,27 @@ export default Vue.component("reveal-kg-workspace", {
                         openSaveGraph: () => this.openSaveGraph(),
                         openNewGraph: () => this.openInitialGraphSetup({ reset: true }),
                         downloadSnapshot: () => this.downloadGraphSnapshot(),
+                        openExpandGraphPanel: ({ seedNodeIds = [] } = {}) =>
+                            this.openExpandGraphPanel({ seedNodeIds }),
+                        openFilterGraphPanel: () => this.openFilterGraph(),
+                        openMyLibrary: () => this.openLibrary(),
+                        loadLibraryGraph: (record) => {
+                            const session = this.graphStore.sessionFromGraph(record);
+                            if (!session?.graphNodes?.length) {
+                                throw new Error("Could not load that saved graph.");
+                            }
+                            this.loadSessionOntoCanvas(session, {
+                                restoreInspectorCaches: false,
+                                loadedSavedGraphId: record.id,
+                                statusMessage: `Loaded "${record.label}"`,
+                            });
+                            return this.activeSession;
+                        },
+                        onGraphNodesAddedLocally: () => {
+                            this.showGraphRebuildReminder();
+                        },
+                        focusGraphView: (options) =>
+                            this.$refs.workspaceCanvas?.focusGraphView?.(options),
                         onProgress: (update) => {
                             this.onAssistantProgress(update, this.assistantCurrentStep);
                         },
@@ -1930,9 +2014,18 @@ export default Vue.component("reveal-kg-workspace", {
                             this.setAssistantStepState(step.id, "running");
                             this.beginAssistantStepProgress(step);
                         },
-                        onStepComplete: (step) => {
+                        onStepComplete: (step, index, workingSession, meta) => {
                             this.endAssistantStepProgress(step);
                             this.setAssistantStepState(step.id, "done");
+                            this.applyAssistantStepOutcome(
+                                step,
+                                workingSession,
+                                meta,
+                                stepPreviousNodeCount
+                            );
+                            stepPreviousNodeCount = workingSession?.graphNodes?.length || 0;
+                            const summary = formatAssistantStepSummary(step, meta);
+                            this.$refs.aiAssistantPanel?.appendStepResult?.(summary);
                         },
                         onStepError: (step) => {
                             this.endAssistantStepProgress(step);
@@ -1941,46 +2034,6 @@ export default Vue.component("reveal-kg-workspace", {
                     },
                     { startIndex }
                 );
-                if (postEffects.normalizeSession) {
-                    this.activeSession = ensureSessionFilterState(
-                        withNormalizedKeyNodes(result.session),
-                        this.expressionOptions
-                    );
-                } else {
-                    this.activeSession = result.session;
-                }
-                if (postEffects.forceContextualRefetch) {
-                    this.contextualFetchSignature = "";
-                    this.scheduleContextualEdgesFetch({ immediate: true });
-                }
-                if (postEffects.clearHiddenSelection) {
-                    this.clearSelectionIfHidden();
-                }
-                if (postEffects.remindAfterMutation) {
-                    this.maybeRemindAfterGraphMutation(previousNodeCount);
-                }
-                for (const entry of result.stepResults || []) {
-                    if (!entry.ok) {
-                        continue;
-                    }
-                    const meta = entry.meta || {};
-                    if (entry.step?.action === "explain_graph" && meta.openExplain) {
-                        this.explainScope =
-                            meta.scope === EXPLAIN_SCOPE.ENTIRE_GRAPH
-                                ? EXPLAIN_SCOPE.ENTIRE_GRAPH
-                                : EXPLAIN_SCOPE.KEY_NODES;
-                        this.explainGraphOpen = true;
-                        this.remindAfterAnalysis("Explain graph");
-                    }
-                    if (meta.openHypotheses) {
-                        this.hypothesesOpen = true;
-                        this.remindAfterAnalysis("Build hypotheses");
-                    }
-                    if (meta.openDatasets) {
-                        this.relatedDatasetsOpen = true;
-                        this.datasetForceSearchForm = false;
-                    }
-                }
                 this.showStatus("Canvas assistant finished running the plan.", 3200);
             } catch (error) {
                 this.assistantError = sanitizeAssistantError(error);
@@ -3800,6 +3853,12 @@ export default Vue.component("reveal-kg-workspace", {
     --cfde-bg: #f6f5f2;
     --cfde-ink: #33363d;
     --cfde-muted: #6b6b6b;
+    --wkb-toolbar-row: 28px;
+    --wkb-canvas-toolbar-pad-y: 20px;
+    --wkb-side-panel-gap: 8px;
+    --wkb-side-panel-top: calc(
+        var(--wkb-canvas-toolbar-pad-y) + var(--wkb-toolbar-row) + var(--wkb-side-panel-gap)
+    );
 
     display: flex;
     flex-direction: column;

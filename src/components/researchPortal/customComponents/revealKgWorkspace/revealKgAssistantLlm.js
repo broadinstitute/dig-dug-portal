@@ -2,6 +2,7 @@
 
 import { createLLMClient } from "@/utils/llmClient";
 import { buildAssistantSessionContext } from "./revealKgAssistantContext.js";
+import { buildConversationPromptSection } from "./revealKgAssistantConversation.js";
 import {
     buildAssistantSystemPrompt,
     buildAssistantUserPrompt,
@@ -62,13 +63,26 @@ function sendPlannerPrompt(userPrompt) {
 export async function planAssistantQuery(
     userQuery,
     session,
-    { interactiveLlmAvailable = false, viewOptions = {} } = {}
+    {
+        interactiveLlmAvailable = false,
+        viewOptions = {},
+        savedLibraryGraphs = [],
+        conversation = [],
+        lastPlan = null,
+    } = {}
 ) {
     const sessionContext = buildAssistantSessionContext(session, {
         interactiveLlmAvailable,
         viewOptions,
+        savedLibraryGraphs,
     });
-    const userPrompt = buildAssistantUserPrompt(userQuery, sessionContext);
+    const conversationSection = buildConversationPromptSection({
+        conversation,
+        lastPlan,
+    });
+    const userPrompt = buildAssistantUserPrompt(userQuery, sessionContext, {
+        conversationSection,
+    });
     const raw = await sendPlannerPrompt(userPrompt);
     const json = parseAssistantLlmJson(raw);
     if (!json) {

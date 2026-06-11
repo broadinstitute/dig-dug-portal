@@ -404,6 +404,32 @@ export function addKeyNodesBatch(session, nodeIds = []) {
     };
 }
 
+export function removeKeyNodesBatch(session, nodeIds = []) {
+    if (!session) {
+        return { session, changed: false, removedIds: [] };
+    }
+    const highlighted = new Set(session.highlighted || []);
+    const removedIds = [];
+    for (const nodeId of nodeIds) {
+        if (!nodeId || !highlighted.has(nodeId) || !findGraphNode(session, nodeId)) {
+            continue;
+        }
+        highlighted.delete(nodeId);
+        removedIds.push(nodeId);
+    }
+    if (!removedIds.length) {
+        return { session, changed: false, removedIds: [] };
+    }
+    return {
+        session: {
+            ...session,
+            highlighted: Array.from(highlighted),
+        },
+        changed: true,
+        removedIds,
+    };
+}
+
 export function canRemoveGraphNode(session, nodeId) {
     if (!session || !nodeId) {
         return false;

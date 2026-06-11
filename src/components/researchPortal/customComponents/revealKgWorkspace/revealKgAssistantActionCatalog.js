@@ -11,6 +11,25 @@ export const ASSISTANT_ACTION_CATALOG = [
                 examples: [
                     "Expand from selected genes",
                     "Add 10 neighbor mechanisms to BRCA1",
+                    "Expand neighbors from the edge between TP53 and BRCA1",
+                ],
+            },
+            {
+                id: "open_expand_panel",
+                label: "Open Expand KG",
+                description: "Open the Expand KG panel with seeds prefilled (no fetch yet).",
+                examples: [
+                    "Open expand panel for selected nodes",
+                    "Open Expand KG from BRCA1",
+                ],
+            },
+            {
+                id: "focus_graph_view",
+                label: "Focus view",
+                description: "Pan and zoom to selected nodes or fit the whole graph.",
+                examples: [
+                    "Zoom to selected nodes",
+                    "Fit the whole graph in view",
                 ],
             },
             {
@@ -24,6 +43,27 @@ export const ASSISTANT_ACTION_CATALOG = [
                 ],
             },
             {
+                id: "unselect_nodes",
+                label: "Unselect nodes",
+                description:
+                    "Remove nodes from the current selection without deleting them from the graph.",
+                examples: [
+                    "Unselect all selected nodes",
+                    "Unselect all visible genes",
+                    "Unselect BRCA1",
+                ],
+            },
+            {
+                id: "select_visible_nodes",
+                label: "Select visible nodes",
+                description:
+                    "Mark all nodes currently shown on the canvas as selected (respects visibility filters).",
+                examples: [
+                    "Select all visible nodes",
+                    "Select all visible genes",
+                ],
+            },
+            {
                 id: "select_nodes",
                 label: "Select nodes",
                 description: "Mark nodes as selected (blue) on the canvas, including top-N picks.",
@@ -31,6 +71,50 @@ export const ASSISTANT_ACTION_CATALOG = [
                     "Select top 5 genes connected to Type 2 diabetes",
                     "Clear selected nodes",
                 ],
+            },
+            {
+                id: "remove_node",
+                label: "Remove node",
+                description: "Remove one or more nodes from the graph.",
+                examples: [
+                    "Remove BRCA1 from the graph",
+                    "Remove TP53 from the graph",
+                ],
+            },
+            {
+                id: "remove_invisible_nodes",
+                label: "Remove hidden nodes",
+                description: "Delete all nodes currently hidden by visibility filters.",
+                examples: ["Remove invisible nodes", "Delete hidden nodes from the graph"],
+            },
+            {
+                id: "add_node",
+                label: "Add node",
+                description: "Search the catalog and add a specific node without expanding neighbors.",
+                examples: ["Add TP53 to the graph", "Add gene BRCA1"],
+            },
+            {
+                id: "open_filter_panel",
+                label: "Open filter panel",
+                description: "Open the visibility filter panel without running a filter.",
+                examples: ["Open the filter panel", "Show visibility filters"],
+            },
+        ],
+    },
+    {
+        group: "My library",
+        actions: [
+            {
+                id: "open_my_library",
+                label: "Open My library",
+                description: "Browse graphs saved in this browser.",
+                examples: ["Open My library", "Show my saved graphs"],
+            },
+            {
+                id: "open_library_graph",
+                label: "Open saved graph",
+                description: "Load a named graph from My library onto the canvas.",
+                examples: ["Open my Waist-hip ratio graph", "Load saved graph Type 2 diabetes study"],
             },
         ],
     },
@@ -145,6 +229,22 @@ export function defaultProgressMessageForAction(action) {
             return "Finding related datasets…";
         case "select_nodes":
             return "Updating selected nodes…";
+        case "select_visible_nodes":
+            return "Selecting visible nodes…";
+        case "unselect_nodes":
+            return "Updating selection…";
+        case "open_expand_panel":
+            return "Opening Expand KG…";
+        case "focus_graph_view":
+            return "Adjusting graph view…";
+        case "add_node":
+            return "Adding node…";
+        case "remove_node":
+            return "Removing nodes…";
+        case "remove_invisible_nodes":
+            return "Removing hidden nodes…";
+        case "open_library_graph":
+            return "Loading saved graph…";
         default:
             return "Running assistant action…";
     }

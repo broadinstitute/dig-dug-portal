@@ -61,6 +61,7 @@
         <div
             v-show="activeTab === 'request'"
             id="wkb-assistant-panel-request"
+            ref="messageScroll"
             role="tabpanel"
             aria-labelledby="wkb-assistant-tab-request"
             class="wkb-assistant-body"
@@ -85,10 +86,17 @@
                             ? 'wkb-assistant-message--user'
                             : 'wkb-assistant-message--assistant',
                         entry.isClarify ? 'wkb-assistant-message--clarify' : '',
+                        entry.isStepResult ? 'wkb-assistant-message--step-result' : '',
                     ]"
                 >
                     <span class="wkb-assistant-message-label">
-                        {{ entry.role === "user" ? "You" : "Assistant" }}
+                        {{
+                            entry.role === "user"
+                                ? "You"
+                                : entry.isStepResult
+                                  ? "Step"
+                                  : "Assistant"
+                        }}
                     </span>
                     <p>{{ entry.text }}</p>
                 </div>
@@ -373,6 +381,7 @@ export default {
                 return;
             }
             this.replacePendingAssistantMessage(nextPlan.summary);
+            this.scrollMessagePanelToEnd();
         },
         clarification(nextClarification) {
             if (!nextClarification?.message) {
@@ -383,6 +392,16 @@ export default {
             this.restoreDraftToInput(
                 nextClarification.restoreQuery || this.lastSubmittedQuery
             );
+            this.scrollMessagePanelToEnd();
+        },
+        planning(isPlanning, wasPlanning) {
+            if (isPlanning) {
+                this.scrollMessagePanelToEnd();
+                return;
+            }
+            if (wasPlanning) {
+                this.scrollMessagePanelToEnd();
+            }
         },
         error(message) {
             if (!message) {
@@ -401,10 +420,21 @@ export default {
                 ];
             }
             this.restoreDraftToInput(this.lastSubmittedQuery);
+            this.scrollMessagePanelToEnd();
             this.$emit("error-acknowledged");
         },
     },
     methods: {
+        scrollMessagePanelToEnd() {
+            this.$nextTick(() => {
+                requestAnimationFrame(() => {
+                    const el = this.$refs.messageScroll;
+                    if (el) {
+                        el.scrollTop = el.scrollHeight;
+                    }
+                });
+            });
+        },
         getRequestInput() {
             return this.$refs.requestInput || null;
         },
@@ -520,6 +550,32 @@ export default {
                 input?.focus();
             });
         },
+        buildThreadHistory() {
+            return this.threadEntries
+                .filter((entry) => !entry.pending && String(entry.text || "").trim())
+                .map((entry) => ({
+                    role: entry.role,
+                    text: String(entry.text).trim(),
+                }))
+                .slice(-12);
+        },
+        appendStepResult(text) {
+            const message = String(text || "").trim();
+            if (!message) {
+                return;
+            }
+            entryCounter += 1;
+            this.threadEntries = [
+                ...this.threadEntries,
+                {
+                    id: `step-result-${entryCounter}`,
+                    role: "assistant",
+                    text: message,
+                    isStepResult: true,
+                },
+            ];
+            this.scrollMessagePanelToEnd();
+        },
         replacePendingAssistantMessage(text, { isClarify = false } = {}) {
             const last = this.threadEntries[this.threadEntries.length - 1];
             if (last?.role === "assistant" && last.pending) {
@@ -532,6 +588,7 @@ export default {
                         isClarify,
                     },
                 ];
+                this.scrollMessagePanelToEnd();
                 return;
             }
             entryCounter += 1;
@@ -544,6 +601,7 @@ export default {
                     isClarify,
                 },
             ];
+            this.scrollMessagePanelToEnd();
         },
         onPlan() {
             const text = String(this.draft || "").trim();
@@ -564,7 +622,11 @@ export default {
             ];
             this.draft = "";
             this.closeNodeSuggestions();
-            this.$emit("plan-request", text);
+            this.scrollMessagePanelToEnd();
+            this.$emit("plan-request", {
+                query: text,
+                threadHistory: this.buildThreadHistory(),
+            });
         },
         stepStatus(stepId) {
             return this.stepStates?.[stepId] || "pending";
@@ -589,7 +651,7 @@ export default {
 <style scoped>
 .wkb-assistant-popup {
     position: absolute;
-    top: 12px;
+    top: var(--wkb-side-panel-top, 56px);
     right: 12px;
     bottom: 12px;
     z-index: 25;
@@ -710,6 +772,15 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.wkb-assistant-message--step-result {
+    padding-left: 10px;
+    border-left: 3px solid var(--cfde-orange, #e07b39);
+}
+
+.wkb-assistant-message--step-result .wkb-assistant-message-label {
+    color: var(--cfde-orange, #e07b39);
 }
 
 .wkb-assistant-message-label {

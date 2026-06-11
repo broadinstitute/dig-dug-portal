@@ -311,6 +311,23 @@ export default {
         captureGraphSvgMarkup() {
             return this.$refs.treeGraph?.getSvgSnapshotMarkup?.() || "";
         },
+        focusGraphView({ nodeIds = [], fit = true, resetView = false } = {}) {
+            const treeGraph = this.$refs.treeGraph;
+            if (!treeGraph) {
+                return;
+            }
+            if (resetView || !nodeIds.length) {
+                const reset = treeGraph.resetGraphView?.();
+                if (reset?.zoomLevel !== undefined) {
+                    this.zoomLevel = reset.zoomLevel;
+                }
+                return;
+            }
+            const result = treeGraph.focusOnNodeIds?.(nodeIds, { fit });
+            if (result?.zoomLevel !== undefined) {
+                this.zoomLevel = result.zoomLevel;
+            }
+        },
     },
     watch: {
         hasGraph(isVisible) {
@@ -348,6 +365,7 @@ export default {
     gap: 12px 24px;
     padding: 10px 16px;
     background: rgba(246, 245, 242, 0.92);
+    z-index: 30;
     --wkb-toolbar-row: 28px;
     --wkb-toolbar-icon: 17px;
     --wkb-toolbar-gap: 12px;

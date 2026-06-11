@@ -25,7 +25,7 @@ function summarizeNode(node) {
 
 export function buildAssistantSessionContext(
     session,
-    { interactiveLlmAvailable = false, viewOptions = {} } = {}
+    { interactiveLlmAvailable = false, viewOptions = {}, savedLibraryGraphs = [] } = {}
 ) {
     if (!session) {
         return null;
@@ -43,6 +43,19 @@ export function buildAssistantSessionContext(
         ...summarizeNode(node),
         is_selected: selectedIds.has(node.id),
     }));
+    const nodeById = new Map(nodes.map((node) => [node.id, node]));
+    const graphEdges = session.graphEdges || [];
+    const sampleEdges = graphEdges.slice(0, 60).map((edge) => {
+        const source = nodeById.get(edge.source);
+        const target = nodeById.get(edge.target);
+        return {
+            edge_id: edge.id,
+            source_label: source?.label || edge.source,
+            target_label: target?.label || edge.target,
+            source_type: source?.type || source?.node_type || "",
+            target_type: target?.type || target?.node_type || "",
+        };
+    });
     const layers = (session.visibilityFilterLayers || []).map((layer, index) => ({
         index: index + 1,
         id: layer.id,
@@ -66,6 +79,12 @@ export function buildAssistantSessionContext(
         visibility_filters: layers,
         sample_nodes: nodeSummaries,
         nodes_truncated: nodes.length > nodeSummaries.length,
+        sample_edges: sampleEdges,
+        edges_truncated: graphEdges.length > sampleEdges.length,
+        saved_library_graphs: (savedLibraryGraphs || []).slice(0, 40).map((record) => ({
+            id: record.id,
+            label: String(record.label || record.id || "").trim() || "Untitled graph",
+        })),
         interactive_llm_available: Boolean(interactiveLlmAvailable),
         view_options: {
             hide_jumping_edges: viewOptions.hideJumpingEdges !== false,

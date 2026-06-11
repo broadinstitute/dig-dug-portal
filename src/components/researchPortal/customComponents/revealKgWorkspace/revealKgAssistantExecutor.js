@@ -2,7 +2,12 @@
 
 import {
     addKeyNodesBatch,
+    addNodesToGraphLocally,
+    canRemoveGraphNode,
+    isKeyNode,
     keyNodeItemsFromSession,
+    removeKeyNodesBatch,
+    removeNodesFromWorkspaceGraph,
 } from "./revealKgGraphBootstrap.js";
 import { buildVisibilityFilterOnSession } from "./revealKgGraphFilterApply.js";
 import {
@@ -33,12 +38,16 @@ import {
     edgesForVisibleNodes,
 } from "./revealKgSigChainPrioritizeUtils.js";
 import { getAssistantActionDefinition } from "./revealKgAssistantTools.js";
-import { toggleVisibilityFilterLayer } from "./revealKgVisibilityFilterUtils.js";
+import { toggleVisibilityFilterLayer, collectInvisibleNodeIds } from "./revealKgVisibilityFilterUtils.js";
+import { resolveAssistantAddNodeRows } from "./revealKgAssistantAddNode.js";
+import { resolveAssistantLibraryGraph } from "./revealKgAssistantLibraryResolve.js";
 import {
     resolveAssistantGeneNodes,
     resolveAssistantInspectSubject,
     resolveAssistantSeedAnchorItems,
     resolveAssistantTargetNodeIds,
+    resolveUnselectNodeIds,
+    resolveVisibleNodeIds,
 } from "./revealKgAssistantTargetResolve.js";
 
 function resolveFilterLayerId(session, filterRef) {
@@ -167,6 +176,181 @@ async function runAssistantAction(session, step, runtime) {
                 session: markedSession,
                 meta: { markedCount: addedIds.length, nodeIds: addedIds },
             };
+        }
+        case "select_visible_nodes": {
+            if (options.clear) {
+                return {
+                    session: { ...session, highlighted: [] },
+                    meta: { cleared: true },
+                };
+            }
+            let nextSession = session;
+            if (options.replace) {
+                nextSession = { ...nextSession, highlighted: [] };
+            }
+            const nodeIds = resolveVisibleNodeIds(
+                nextSession,
+                target,
+                expressionOptions,
+                options
+            );
+            if (!nodeIds.length) {
+                throw new Error("No visible nodes matched the selection criteria.");
+            }
+            const { session: markedSession, addedIds } = addKeyNodesBatch(nextSession, nodeIds);
+            return {
+                session: markedSession,
+                meta: {
+                    markedCount: addedIds.length,
+                    nodeIds: addedIds,
+                    visibleCount: nodeIds.length,
+                },
+            };
+        }
+        case "unselect_nodes": {
+            const nodeIds = resolveUnselectNodeIds(
+                session,
+                target,
+                expressionOptions,
+                options
+            );
+            if (options.clear || options.all) {
+                return {
+                    session: { ...session, highlighted: [] },
+                    meta: { cleared: true, unselectedCount: nodeIds.length },
+                };
+            }
+            if (!nodeIds.length) {
+                throw new Error("No selected nodes matched the unselect criteria.");
+            }
+            const { session: nextSession, removedIds } = removeKeyNodesBatch(session, nodeIds);
+            return {
+                session: nextSession,
+                meta: { unselectedCount: removedIds.length, nodeIds: removedIds },
+            };
+        }
+        case "open_expand_panel": {
+            const seedItems = resolveAssistantSeedAnchorItems(session, target);
+            runtime.openExpandGraphPanel?.({
+                seedNodeIds: seedItems.map((item) => item.node_id || item.id).filter(Boolean),
+            });
+            return {
+                session,
+                meta: { seedCount: seedItems.length },
+            };
+        }
+        case "remove_node": {
+            onProgress?.("Removing nodes…");
+            const nodeIds = resolveAssistantTargetNodeIds(session, target, options);
+            if (!nodeIds.length) {
+                throw new Error("No nodes matched the removal target.");
+            }
+            const unmarkIds = new Set(
+                nodeIds.filter((nodeId) => isKeyNode(session, nodeId))
+            );
+            const workingSession = unmarkIds.size
+                ? {
+                      ...session,
+                      highlighted: (session.highlighted || []).filter(
+                          (id) => !unmarkIds.has(id)
+                      ),
+                  }
+                : session;
+            const removable = nodeIds.filter((nodeId) =>
+                canRemoveGraphNode(workingSession, nodeId)
+            );
+            if (!removable.length) {
+                throw new Error(
+                    "Those nodes cannot be removed. Unmark selected nodes first, then try again."
+                );
+            }
+            const skipped = nodeIds.length - removable.length;
+            const nextSession = removeNodesFromWorkspaceGraph(workingSession, removable);
+            return {
+                session: nextSession,
+                meta: {
+                    removedCount: removable.length,
+                    skippedCount: skipped,
+                    unmarkedCount: unmarkIds.size,
+                },
+            };
+        }
+        case "remove_invisible_nodes": {
+            onProgress?.("Removing hidden nodes…");
+            const nodeIds = collectInvisibleNodeIds(
+                session,
+                runtime.expressionOptions || {}
+            );
+            if (!nodeIds.length) {
+                throw new Error("No hidden nodes to remove.");
+            }
+            const nextSession = removeNodesFromWorkspaceGraph(session, nodeIds);
+            return {
+                session: { ...nextSession, contextualEdgeSignature: "" },
+                meta: { removedCount: nodeIds.length },
+            };
+        }
+        case "add_node": {
+            onProgress?.("Adding node…");
+            const rows = await resolveAssistantAddNodeRows(session, target, options, runtime);
+            const previousCount = session.graphNodes?.length || 0;
+            let nextSession = session;
+            for (const row of rows) {
+                nextSession = addNodesToGraphLocally(nextSession, [row]);
+            }
+            const addedCount = Math.max(
+                0,
+                (nextSession.graphNodes?.length || 0) - previousCount
+            );
+            if (!addedCount) {
+                const labelText = rows.map((row) => row.label).filter(Boolean).join(", ");
+                throw new Error(
+                    labelText
+                        ? `"${labelText}" is already on the graph.`
+                        : "Those nodes are already on the graph."
+                );
+            }
+            runtime.onGraphNodesAddedLocally?.(addedCount);
+            return {
+                session: nextSession,
+                meta: { addedCount, labels: rows.map((row) => row.label) },
+            };
+        }
+        case "open_filter_panel":
+            runtime.openFilterGraphPanel?.();
+            return { session, meta: { uiAction: "open_filter_panel" } };
+        case "open_my_library":
+            runtime.openMyLibrary?.();
+            return { session, meta: { uiAction: "open_my_library" } };
+        case "open_library_graph": {
+            const record = resolveAssistantLibraryGraph(runtime.savedLibraryGraphs || [], {
+                graphId: options.graph_id,
+                graphLabel: options.graph_label,
+            });
+            const loadedSession = runtime.loadLibraryGraph?.(record);
+            if (!loadedSession) {
+                throw new Error("Could not load that saved graph.");
+            }
+            return {
+                session: loadedSession,
+                meta: { graphLabel: record.label, graphId: record.id },
+            };
+        }
+        case "focus_graph_view": {
+            const scope = options.scope || "target";
+            if (scope === "entire_graph") {
+                runtime.focusGraphView?.({ nodeIds: [], resetView: true });
+                return { session, meta: { resetView: true, focusedCount: 0 } };
+            }
+            const nodeIds = resolveAssistantTargetNodeIds(session, target, options);
+            if (!nodeIds.length) {
+                throw new Error("No nodes matched the focus target.");
+            }
+            runtime.focusGraphView?.({
+                nodeIds,
+                fit: options.fit !== false,
+            });
+            return { session, meta: { focusedCount: nodeIds.length } };
         }
         case "expand_graph": {
             onProgress?.("Expanding graph…");

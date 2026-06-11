@@ -394,6 +394,7 @@ export default {
         this._baseTransform = null;
         this._panOffset = { x: 0, y: 0 };
         this._panDrag = null;
+        this._layoutPositions = null;
     },
     mounted() {
         this.observeResize();
@@ -664,6 +665,7 @@ export default {
                 visibleRowLayers = [],
                 populatedLayerIndices = [],
             } = layout;
+            this._layoutPositions = positions;
 
             const contextualEdgeIds = new Set(contextualEdgeList.map((edge) => edge.id));
             const hierarchyEdges = collectHierarchyEdges(
@@ -1034,6 +1036,55 @@ export default {
             if (this.getGraphHighlight()) {
                 updateHighlightVisuals();
             }
+        },
+        resetGraphView() {
+            this._panOffset = { x: 0, y: 0 };
+            this.applyViewportTransform();
+            return { zoomLevel: 1 };
+        },
+        focusOnNodeIds(nodeIds = [], { fit = true } = {}) {
+            const positions = this._layoutPositions;
+            const ids = (nodeIds || []).filter(Boolean);
+            if (!positions || !ids.length || !this._baseTransform) {
+                return null;
+            }
+            const coords = ids
+                .map((nodeId) => positions.get(nodeId))
+                .filter((point) => point && Number.isFinite(point.x) && Number.isFinite(point.y));
+            if (!coords.length) {
+                return null;
+            }
+            const minX = Math.min(...coords.map((point) => point.x));
+            const maxX = Math.max(...coords.map((point) => point.x));
+            const minY = Math.min(...coords.map((point) => point.y));
+            const maxY = Math.max(...coords.map((point) => point.y));
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            const viewWidth = this.size.width;
+            const viewHeight = this.size.height;
+            if (!viewWidth || !viewHeight) {
+                return null;
+            }
+            const padding = 48;
+            const boundsWidth = Math.max(1, maxX - minX + padding * 2);
+            const boundsHeight = Math.max(1, maxY - minY + padding * 2);
+            const { offsetX, offsetY, scale } = this._baseTransform;
+            const baseZoom = Math.max(0.2, Math.min(2, Number(this.zoomLevel) || 1));
+            let zoomLevel = baseZoom;
+            if (fit) {
+                const fitScaleX = viewWidth / boundsWidth;
+                const fitScaleY = viewHeight / boundsHeight;
+                const targetScale = Math.min(fitScaleX, fitScaleY);
+                zoomLevel = Math.max(0.2, Math.min(2, targetScale / Math.max(scale, 0.0001)));
+            }
+            const cx = viewWidth / 2;
+            const cy = viewHeight / 2;
+            const effectiveScale = scale * zoomLevel;
+            const panX = cx - centerX * effectiveScale - (cx - zoomLevel * (cx - offsetX));
+            const panY = cy - centerY * effectiveScale - (cy - zoomLevel * (cy - offsetY));
+            this._panOffset = { x: panX, y: panY };
+            this.applyViewportTransform();
+            return { zoomLevel };
         },
         getSvgSnapshotMarkup() {
             const svg = this.$refs.svg;

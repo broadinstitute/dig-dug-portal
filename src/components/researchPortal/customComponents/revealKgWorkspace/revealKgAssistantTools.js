@@ -8,6 +8,70 @@ export const ASSISTANT_NODE_TYPES = ["gene", "gene_set", "factor", "trait"];
  */
 export const ASSISTANT_ACTIONS = [
     {
+        action: "remove_node",
+        description:
+            "Remove node(s) from the canvas by name or target. One step — auto-unmarks removal targets; do not prepend select_nodes clear.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "add_node",
+        description:
+            "Add a specific gene, trait, mechanism, or gene set to the graph by catalog search (does not fetch neighbors — use expand_graph for that).",
+        has_options: true,
+        options: {
+            node_type: "gene | gene_set | factor | trait (default gene when adding by label)",
+            search_label: "optional label when target does not name a node already on the graph",
+        },
+    },
+    {
+        action: "remove_invisible_nodes",
+        description:
+            "Permanently delete all nodes currently hidden by visibility filters from the graph.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "open_filter_panel",
+        description:
+            "Open the visibility filter panel for manual review (does not build or run a filter).",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "open_my_library",
+        description: "Open My library to browse saved graphs in this browser.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "open_library_graph",
+        description:
+            "Load a saved graph from My library onto the canvas by label (see saved_library_graphs in session context).",
+        has_options: true,
+        options: {
+            graph_label: "saved graph title (required unless graph_id is set)",
+            graph_id: "optional saved graph id",
+        },
+    },
+    {
+        action: "open_expand_panel",
+        description:
+            "Open the Expand KG panel with seed nodes prefilled. Does not run expansion — use expand_graph to fetch neighbors immediately.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "focus_graph_view",
+        description:
+            "Pan and zoom the canvas to show target nodes, or reset to the full graph when scope is entire_graph.",
+        has_options: true,
+        options: {
+            scope: "target (default) | entire_graph",
+            fit: "boolean — zoom to fit target nodes (default true)",
+        },
+    },
+    {
         action: "expand_graph",
         description:
             "Fetch and add neighbor nodes from the API. Seeds are usually selected nodes unless the user names a specific node or edge.",
@@ -141,6 +205,29 @@ export const ASSISTANT_ACTIONS = [
         has_options: true,
         options: {
             subject: "node | edge (default node when target is a node, edge when target is edge)",
+        },
+    },
+    {
+        action: "unselect_nodes",
+        description:
+            "Remove nodes from the current selection (unmark blue nodes) without deleting them from the graph. Use options.clear to unselect everything; options.visible with target.node_types for visible genes/traits; or target by name/filter like select_nodes.",
+        has_options: true,
+        options: {
+            clear: "boolean — unselect all currently selected nodes",
+            all: "alias for clear",
+            visible: "boolean — only unselect nodes currently visible on the canvas",
+            limit: "optional cap when resolving visible matches (same as select_visible_nodes)",
+        },
+    },
+    {
+        action: "select_visible_nodes",
+        description:
+            "Mark all nodes currently visible on the canvas as selected (blue). Respects active visibility filters. Use target.node_types to limit to genes, traits, etc.",
+        has_options: true,
+        options: {
+            replace: "boolean — clear existing selection first",
+            clear: "boolean — remove all selected nodes (ignores visibility)",
+            limit: "optional number — select at most N visible nodes (alphabetical by label)",
         },
     },
     {

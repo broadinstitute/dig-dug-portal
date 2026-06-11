@@ -180,6 +180,62 @@ function validateStepOptions(action, options = {}) {
                 validateNodeTypes([next.connected_to_node_type], "connected_to_node_type");
             }
             break;
+        case "select_visible_nodes":
+            if (next.replace !== undefined) {
+                next.replace = Boolean(next.replace);
+            }
+            if (next.clear !== undefined) {
+                next.clear = Boolean(next.clear);
+            }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(50, Math.max(1, Number(next.limit) || 1));
+            }
+            break;
+        case "unselect_nodes":
+            if (next.clear !== undefined) {
+                next.clear = Boolean(next.clear);
+            }
+            if (next.all !== undefined) {
+                next.all = Boolean(next.all);
+            }
+            if (next.visible !== undefined) {
+                next.visible = Boolean(next.visible);
+            }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(50, Math.max(1, Number(next.limit) || 1));
+            }
+            break;
+        case "focus_graph_view":
+            next.scope =
+                next.scope === "entire_graph" ? "entire_graph" : "target";
+            if (next.fit !== undefined) {
+                next.fit = Boolean(next.fit);
+            }
+            break;
+        case "add_node":
+            if (next.node_type !== undefined) {
+                next.node_type = ASSISTANT_NODE_TYPES.includes(next.node_type)
+                    ? next.node_type
+                    : "gene";
+            }
+            if (next.search_label) {
+                next.search_label = String(next.search_label).trim();
+            }
+            break;
+        case "open_library_graph":
+            if (next.graph_id) {
+                next.graph_id = String(next.graph_id).trim();
+            }
+            if (next.graph_label) {
+                next.graph_label = String(next.graph_label).trim();
+            }
+            break;
+        case "remove_node":
+        case "remove_invisible_nodes":
+        case "open_filter_panel":
+        case "open_my_library":
+        case "unselect_nodes":
+        case "open_expand_panel":
         case "find_datasets":
         case "export_graph":
         case "import_graph":
@@ -292,6 +348,8 @@ export function assistantActionPostEffects(action, options = {}) {
                 forceContextualRefetch: false,
             };
         case "select_nodes":
+        case "select_visible_nodes":
+        case "unselect_nodes":
             return {
                 graphLoading: false,
                 normalizeSession: true,
@@ -299,6 +357,33 @@ export function assistantActionPostEffects(action, options = {}) {
                 remindAfterMutation: false,
                 forceContextualRefetch: false,
             };
+        case "remove_node":
+        case "remove_invisible_nodes":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: true,
+                remindAfterMutation: true,
+                forceContextualRefetch: true,
+            };
+        case "add_node":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: false,
+                remindAfterMutation: true,
+                forceContextualRefetch: false,
+            };
+        case "open_library_graph":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: true,
+                remindAfterMutation: false,
+                forceContextualRefetch: true,
+            };
+        case "open_filter_panel":
+        case "open_my_library":
         case "explain_graph":
         case "build_hypotheses":
         case "find_datasets":

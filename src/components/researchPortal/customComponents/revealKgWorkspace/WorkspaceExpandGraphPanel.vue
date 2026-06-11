@@ -510,7 +510,7 @@ export default {
 <style scoped>
 .wkb-expand-popup {
     position: absolute;
-    top: 12px;
+    top: var(--wkb-side-panel-top, 56px);
     right: 12px;
     bottom: 12px;
     z-index: 25;
