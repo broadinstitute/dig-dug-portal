@@ -19,28 +19,56 @@
                     <button class="lg" style="width: 100px;" disabled>Search</button>
                 </div>
                 <div class="sections f-col" style="gap:50px; margin: 0 0 50px;">
-
-                    <div v-for="section in $parent.pageContent.sections" class="section f-col" style="gap:20px">
-                        <div>
-                            <h3>{{ section.title }}</h3>
-                            <div class="section-subtitle">{{ section.subtitle }}</div>
+                    <template v-for="(section, index) in $parent.pageContent.sections">
+                        <div v-if="index===0" class="section f-col" style="gap:20px">
+                            <div>
+                                <h3>{{ section.title }}</h3>
+                                <div class="section-subtitle">{{ section.subtitle }}</div>
+                            </div>
+                            <div class="f-row fill-children" style="flex-wrap: wrap; gap: 20px">
+                                <a v-for="card in section.cards" 
+                                    class="section-card f-col"
+                                    :class="{'coming-soon': card.link==='#'}"
+                                    :href="card.link"
+                                >
+                                    <div class="img">
+                                        <img v-if="card.image" :src="card.image" />
+                                    </div>
+                                    <div class="section-card-info f-col">
+                                        <h4>{{ card.title }}</h4>
+                                        <div class="section-card-body">{{ card.body }}</div>
+                                    </div>
+                                </a>
+                            </div>
                         </div>
-                        <div class="f-row fill-children" style="flex-wrap: wrap; gap: 20px">
-                            <a v-for="card in section.cards" 
-                                class="section-card f-col"
-                                :class="{'coming-soon': card.link==='#'}"
-                                :href="card.link"
-                            >
-                                <div class="img">
-                                    <img v-if="card.image" :src="card.image" />
-                                </div>
-                                <div class="section-card-info f-col">
-                                    <h4>{{ card.title }}</h4>
-                                    <div class="section-card-body">{{ card.body }}</div>
-                                </div>
-                            </a>
+                    </template>
+                </div>
+                <div class="sections f-row" style="gap:20px; margin: 0 0 50px;">
+                    <template v-for="(section, index) in $parent.pageContent.sections">
+                        <div v-if="index>0" class="section f-col" style="gap:20px; flex:1">
+                            <div>
+                                <h3>{{ section.title }}</h3>
+                                <div class="section-subtitle" style="min-height: 45px;">{{ section.subtitle }}</div>
+                            </div>
+                            <div class="f-col fill-children" style="flex-wrap: wrap; gap: 20px">
+                                <a v-for="card in section.cards" 
+                                    class="section-card f-row"
+                                    :class="{'coming-soon': card.link==='#'}"
+                                    :href="card.link"
+                                >
+                                    <!--
+                                    <div class="img">
+                                        <img v-if="card.image" :src="card.image" />
+                                    </div>
+                                    -->
+                                    <div class="section-card-info f-col">
+                                        <h4>{{ card.title }}</h4>
+                                        <div class="section-card-body">{{ card.body }}</div>
+                                    </div>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -78,18 +106,19 @@
 }
 .section-subtitle{
     font-size: 1.3em;
+    line-height: 1.1em;
 }
 .section-card .img {
     height: 200px;
     width: 100%;
-    background: #eee;
+    background: #f6f6f6;
     overflow: clip;
     position: relative;
+    padding: 10px;
 }
 .img::after {
     content: '';
     position: absolute;
-    background: var(--cfde-blue);
     opacity: 0.1;
     width: 100%;
     height: 100%;
@@ -101,7 +130,8 @@
 .section-card img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    mix-blend-mode: darken;
     transition: all .2s;
 }
 .card-img-cite {
@@ -125,14 +155,14 @@
 }
 .section-card:hover {
     cursor: pointer;
-    transform: scale(1.01) translateY(-5px);
+    transform: scale(1.05);
     box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset, rgba(50, 50, 93, 0.25) 0px 30px 60px -10px, rgba(0, 0, 0, 0.3) 0px 15px 30px -20px;
 }
 .section-card:hover .img::after {
     opacity: 0;
 }
 .section-card:hover img {
-    transform: scale(1.05);
+    transform: scale(0.8);
     filter: grayscale(0);
 }
 .section-card:hover .section-card-info{
@@ -142,6 +172,7 @@
 .section-card.coming-soon{
     pointer-events: none;
 }
+/*
 .section-card.coming-soon:after {
     content: 'Coming soon';
     position: absolute;
@@ -154,6 +185,7 @@
     font-weight: bold;
     letter-spacing: .5px;
 }
+*/
 .section-card.coming-soon img {
     filter: grayscale(1);
 }

@@ -31,6 +31,13 @@ let pages = {
         title: "Cell State & Program Browser",
         chunks: ["chunk-vendors", "chunk-common", "liger"],
     },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"],
+    },
 };
 
 module.exports = {

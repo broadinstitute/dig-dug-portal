@@ -2,13 +2,10 @@
     <div class="main-content">
         <div class="f-col" style="width:100%">
             <!-- CONTENT -->
-             <!--
+             <h2>Single Cell Map</h2>
             <div v-if="$parent.info">
-                <h2>{{ $parent.title }}</h2>
                 <div v-html="$parent.info"></div>
             </div>
-            -->
-            <h2>Cell Atlas</h2>
             <research-single-cell-browser 
                 v-if="$parent.scbConfig"
                 sectionId="matkp"

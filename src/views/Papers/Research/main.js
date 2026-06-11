@@ -5,6 +5,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import "../../../portals/CFDELiver/assets/styles.css"
 
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";

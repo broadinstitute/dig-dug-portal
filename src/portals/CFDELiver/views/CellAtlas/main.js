@@ -47,7 +47,7 @@ new Vue({
     },
 
     async created() {
-        const pageId = 'matkp_singlecellbrowser';
+        const pageId = 'cfde_liver_documentation';
         const content = await getTextContent(pageId, false, true);
         console.log('content', content);
         this.title = content.title;
