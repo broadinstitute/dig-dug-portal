@@ -141,10 +141,12 @@
 
                 <div v-if="plan && plan.steps.length" class="wkb-assistant-plan">
                     <button
+                        ref="executeAllButton"
                         type="button"
                         class="wkb-assistant-execute-all"
-                        :disabled="planning || executing"
-                        @click="$emit('execute-all')"
+                        :disabled="!canExecuteAll"
+                        @click="onExecuteAll"
+                        @keydown.enter.prevent="onExecuteAll"
                     >
                         Execute all
                     </button>
@@ -237,36 +239,47 @@
                     autocapitalize="off"
                     spellcheck="false"
                     aria-autocomplete="list"
-                    :aria-expanded="showNodeSuggestions ? 'true' : 'false'"
-                    aria-controls="wkb-assistant-node-suggest"
+                    :aria-expanded="showAutocomplete ? 'true' : 'false'"
+                    aria-controls="wkb-assistant-suggest"
                     @input="onDraftInput"
                     @keydown="onDraftKeydown"
-                    @click="updateNodeSuggestions"
-                    @focus="updateNodeSuggestions"
+                    @click="updateAutocomplete"
+                    @focus="updateAutocomplete"
                     @blur="onDraftBlur"
                 />
                 <ul
-                    v-if="showNodeSuggestions"
-                    id="wkb-assistant-node-suggest"
-                    class="wkb-assistant-node-suggest"
+                    v-if="showAutocomplete"
+                    id="wkb-assistant-suggest"
+                    class="wkb-assistant-suggest"
                     role="listbox"
-                    aria-label="Matching graph nodes"
+                    aria-label="Matching actions and graph nodes"
                 >
                     <li
-                        v-for="(item, index) in nodeSuggestions"
-                        :key="item.node_id"
+                        v-for="(item, index) in autocompleteSuggestions"
+                        :key="item.id"
                         role="presentation"
                     >
                         <button
                             type="button"
-                            class="wkb-assistant-node-suggest-item"
+                            class="wkb-assistant-suggest-item"
                             :class="{ 'is-active': index === suggestHighlight }"
                             role="option"
                             :aria-selected="index === suggestHighlight ? 'true' : 'false'"
-                            @mousedown.prevent="selectNodeSuggestion(item)"
+                            @mousedown.prevent="selectSuggestion(item)"
                         >
-                            <span class="wkb-assistant-node-suggest-label">{{ item.label }}</span>
-                            <span class="wkb-assistant-node-suggest-type">{{ item.typeLabel }}</span>
+                            <span class="wkb-assistant-suggest-label">{{ item.label }}</span>
+                            <span
+                                class="wkb-assistant-suggest-hint"
+                                :class="{
+                                    'wkb-assistant-suggest-hint--action': item.kind === 'action',
+                                    'wkb-assistant-suggest-hint--entity': item.kind === 'entity',
+                                    'wkb-assistant-suggest-hint--term': item.kind === 'term',
+                                    'wkb-assistant-suggest-hint--phrase': item.kind === 'phrase',
+                                    'wkb-assistant-suggest-hint--node': item.kind === 'node',
+                                }"
+                            >
+                                {{ item.hint }}
+                            </span>
                         </button>
                     </li>
                 </ul>
@@ -285,11 +298,8 @@
 
 <script>
 import { ASSISTANT_ACTION_CATALOG } from "./revealKgAssistantActionCatalog.js";
-import {
-    getActiveToken,
-    matchAssistantSuggestNodes,
-    replaceActiveToken,
-} from "./revealKgAssistantNodeSuggest.js";
+import { buildAssistantAutocompleteSuggestions } from "./revealKgAssistantActionSuggest.js";
+import { getActiveToken, replaceActiveToken } from "./revealKgAssistantNodeSuggest.js";
 
 let entryCounter = 0;
 
@@ -340,7 +350,7 @@ export default {
             threadEntries: [],
             lastSubmittedQuery: "",
             actionCatalog: ASSISTANT_ACTION_CATALOG,
-            nodeSuggestions: [],
+            autocompleteSuggestions: [],
             suggestHighlight: -1,
             suggestTokenStart: 0,
             suggestTokenEnd: 0,
@@ -362,8 +372,15 @@ export default {
             const last = this.threadEntries[this.threadEntries.length - 1];
             return !(last?.role === "assistant" && last.isClarify && last.text === this.error);
         },
-        showNodeSuggestions() {
-            return this.nodeSuggestions.length > 0 && this.activeTab === "request";
+        showAutocomplete() {
+            return this.autocompleteSuggestions.length > 0 && this.activeTab === "request";
+        },
+        canExecuteAll() {
+            return (
+                Boolean(this.plan?.steps?.length) &&
+                !this.planning &&
+                !this.executing
+            );
         },
     },
     watch: {
@@ -377,11 +394,13 @@ export default {
             }
         },
         plan(nextPlan) {
-            if (!nextPlan?.summary) {
-                return;
+            if (nextPlan?.summary) {
+                this.replacePendingAssistantMessage(nextPlan.summary);
+                this.scrollMessagePanelToEnd();
             }
-            this.replacePendingAssistantMessage(nextPlan.summary);
-            this.scrollMessagePanelToEnd();
+            if (nextPlan?.steps?.length) {
+                this.focusExecuteAllButton();
+            }
         },
         clarification(nextClarification) {
             if (!nextClarification?.message) {
@@ -401,6 +420,9 @@ export default {
             }
             if (wasPlanning) {
                 this.scrollMessagePanelToEnd();
+                if (this.canExecuteAll) {
+                    this.focusExecuteAllButton();
+                }
             }
         },
         error(message) {
@@ -438,38 +460,65 @@ export default {
         getRequestInput() {
             return this.$refs.requestInput || null;
         },
-        closeNodeSuggestions() {
-            this.nodeSuggestions = [];
+        getExecuteAllButton() {
+            return this.$refs.executeAllButton || null;
+        },
+        focusExecuteAllButton() {
+            if (!this.canExecuteAll || this.activeTab !== "request") {
+                return;
+            }
+            this.$nextTick(() => {
+                requestAnimationFrame(() => {
+                    const button = this.getExecuteAllButton();
+                    if (button && !button.disabled) {
+                        button.focus();
+                    }
+                });
+            });
+        },
+        onExecuteAll() {
+            if (!this.canExecuteAll) {
+                return;
+            }
+            this.$emit("execute-all");
+        },
+        closeAutocomplete() {
+            this.autocompleteSuggestions = [];
             this.suggestHighlight = -1;
         },
-        updateNodeSuggestions() {
+        updateAutocomplete() {
             const input = this.getRequestInput();
             if (!input || this.planning || this.executing) {
-                this.closeNodeSuggestions();
+                this.closeAutocomplete();
                 return;
             }
             const { token, start, end } = getActiveToken(this.draft, input.selectionStart);
-            const matches = matchAssistantSuggestNodes(token, this.graphNodes);
+            const matches = buildAssistantAutocompleteSuggestions({
+                token,
+                text: this.draft,
+                tokenStart: start,
+                graphNodes: this.graphNodes,
+            });
             this.suggestTokenStart = start;
             this.suggestTokenEnd = end;
-            this.nodeSuggestions = matches;
+            this.autocompleteSuggestions = matches;
             this.suggestHighlight = matches.length ? 0 : -1;
         },
         onDraftInput() {
-            this.updateNodeSuggestions();
+            this.updateAutocomplete();
         },
         onDraftBlur() {
             window.setTimeout(() => {
-                this.closeNodeSuggestions();
+                this.closeAutocomplete();
             }, 120);
         },
         onDraftKeydown(event) {
-            if (this.nodeSuggestions.length) {
+            if (this.autocompleteSuggestions.length) {
                 if (event.key === "ArrowDown") {
                     event.preventDefault();
                     this.suggestHighlight = Math.min(
                         this.suggestHighlight + 1,
-                        this.nodeSuggestions.length - 1
+                        this.autocompleteSuggestions.length - 1
                     );
                     return;
                 }
@@ -480,44 +529,53 @@ export default {
                 }
                 if (event.key === "Escape") {
                     event.preventDefault();
-                    this.closeNodeSuggestions();
+                    this.closeAutocomplete();
                     return;
                 }
                 if (event.key === "Tab" && this.suggestHighlight >= 0) {
                     event.preventDefault();
-                    this.selectNodeSuggestion(this.nodeSuggestions[this.suggestHighlight]);
+                    this.selectSuggestion(this.autocompleteSuggestions[this.suggestHighlight]);
                     return;
                 }
                 if (event.key === "Enter" && !event.shiftKey && this.suggestHighlight >= 0) {
                     event.preventDefault();
-                    this.selectNodeSuggestion(this.nodeSuggestions[this.suggestHighlight]);
+                    this.selectSuggestion(this.autocompleteSuggestions[this.suggestHighlight]);
                     return;
                 }
             }
             if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
+                if (this.canExecuteAll && !String(this.draft || "").trim()) {
+                    this.onExecuteAll();
+                    return;
+                }
                 this.onPlan();
             }
         },
-        selectNodeSuggestion(node) {
-            if (!node?.label) {
+        selectSuggestion(item) {
+            if (!item?.insertText) {
                 return;
             }
+            const replacement =
+                item.kind === "action" ||
+                item.kind === "entity" ||
+                item.kind === "term"
+                    ? `${item.insertText} `
+                    : String(item.insertText);
             const { text, caret } = replaceActiveToken(
                 this.draft,
                 this.suggestTokenStart,
                 this.suggestTokenEnd,
-                node.label
+                replacement
             );
             this.draft = text;
-            this.closeNodeSuggestions();
+            this.closeAutocomplete();
             this.$nextTick(() => {
                 const input = this.getRequestInput();
                 if (input) {
                     input.focus();
                     input.setSelectionRange(caret, caret);
                 }
-                this.updateNodeSuggestions();
             });
         },
         restoreDraftToInput(query) {
@@ -534,7 +592,7 @@ export default {
                     const end = restored.length;
                     input.setSelectionRange(end, end);
                 }
-                this.updateNodeSuggestions();
+                this.updateAutocomplete();
             });
         },
         tryExample(example) {
@@ -544,7 +602,7 @@ export default {
             }
             this.activeTab = "request";
             this.draft = text;
-            this.closeNodeSuggestions();
+            this.closeAutocomplete();
             this.$nextTick(() => {
                 const input = this.getRequestInput();
                 input?.focus();
@@ -621,7 +679,7 @@ export default {
                 },
             ];
             this.draft = "";
-            this.closeNodeSuggestions();
+            this.closeAutocomplete();
             this.scrollMessagePanelToEnd();
             this.$emit("plan-request", {
                 query: text,
@@ -970,7 +1028,7 @@ export default {
     position: relative;
 }
 
-.wkb-assistant-node-suggest {
+.wkb-assistant-suggest {
     position: absolute;
     left: 0;
     right: 0;
@@ -987,7 +1045,7 @@ export default {
     box-shadow: 0 8px 24px rgba(20, 22, 30, 0.12);
 }
 
-.wkb-assistant-node-suggest-item {
+.wkb-assistant-suggest-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1001,12 +1059,12 @@ export default {
     cursor: pointer;
 }
 
-.wkb-assistant-node-suggest-item:hover,
-.wkb-assistant-node-suggest-item.is-active {
+.wkb-assistant-suggest-item:hover,
+.wkb-assistant-suggest-item.is-active {
     background: #eef4fb;
 }
 
-.wkb-assistant-node-suggest-label {
+.wkb-assistant-suggest-label {
     font-size: 13px;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);
@@ -1016,13 +1074,32 @@ export default {
     white-space: nowrap;
 }
 
-.wkb-assistant-node-suggest-type {
+.wkb-assistant-suggest-hint {
     flex-shrink: 0;
     font-size: 11px;
     font-weight: 600;
-    color: var(--cfde-blue, #2c5c97);
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+.wkb-assistant-suggest-hint--action {
+    color: var(--cfde-orange, #e07b39);
+}
+
+.wkb-assistant-suggest-hint--entity {
+    color: #3d7a5f;
+}
+
+.wkb-assistant-suggest-hint--term {
+    color: #5a6a7a;
+}
+
+.wkb-assistant-suggest-hint--phrase {
+    color: #6b5b95;
+}
+
+.wkb-assistant-suggest-hint--node {
+    color: var(--cfde-blue, #2c5c97);
 }
 
 .wkb-assistant-input {

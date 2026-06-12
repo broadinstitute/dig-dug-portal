@@ -3873,13 +3873,14 @@ export default Vue.component("reveal-kg-workspace", {
 }
 
 .rkw-header {
+    position: relative;
+    z-index: 40;
     display: flex;
     align-items: center;
     gap: 24px;
     padding: 12px 18px;
     border-bottom: 1px solid var(--cfde-border);
     background: #ffffff;
-    z-index: 7;
 }
 
 .rkw-brand {

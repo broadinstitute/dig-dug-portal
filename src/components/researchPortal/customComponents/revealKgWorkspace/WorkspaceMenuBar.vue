@@ -118,6 +118,8 @@ export default {
 
 <style scoped>
 .wkb-menubar {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -152,6 +154,10 @@ export default {
     color: #ffffff;
     background: var(--cfde-blue, #2c5c97);
     border-color: var(--cfde-blue, #2c5c97);
+}
+
+.wkb-menu >>> .dropdown-menu {
+    z-index: 50;
 }
 
 .wkb-menu >>> .wkb-menu-list {

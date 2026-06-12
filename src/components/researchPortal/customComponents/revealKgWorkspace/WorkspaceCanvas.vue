@@ -365,7 +365,6 @@ export default {
     gap: 12px 24px;
     padding: 10px 16px;
     background: rgba(246, 245, 242, 0.92);
-    z-index: 30;
     --wkb-toolbar-row: 28px;
     --wkb-toolbar-icon: 17px;
     --wkb-toolbar-gap: 12px;
