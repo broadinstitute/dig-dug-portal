@@ -12,14 +12,16 @@ import {
     prepareAssistantPlannerJson,
     validationErrorToClarifyJson,
 } from "./revealKgAssistantPlanRepair.js";
+import { recordAssistantPlanUsage } from "./revealKgAssistantUsage.js";
 
 let plannerClient = null;
+const ASSISTANT_PLANNER_MODEL = "gpt-5-mini";
 
 function getPlannerClient() {
     if (!plannerClient) {
         plannerClient = createLLMClient({
             llm: "openai",
-            model: "gpt-5-mini",
+            model: ASSISTANT_PLANNER_MODEL,
             system_prompt: buildAssistantSystemPrompt(),
         });
     }
@@ -32,8 +34,11 @@ export function abortAssistantPlan() {
 
 function sendPlannerPrompt(userPrompt) {
     const client = getPlannerClient();
+    const systemPrompt = buildAssistantSystemPrompt();
+    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
     return new Promise((resolve, reject) => {
         let settled = false;
+        let usage = null;
         const finish = (error, response) => {
             if (settled) {
                 return;
@@ -43,12 +48,17 @@ function sendPlannerPrompt(userPrompt) {
                 reject(error);
                 return;
             }
-            resolve(response);
+            resolve({ response, usage, duration_ms: Math.round(
+                (typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt
+            ) });
         };
         client.sendPrompt({
             userPrompt,
-            systemPrompt: buildAssistantSystemPrompt(),
+            systemPrompt,
             onResponse: (response) => finish(null, response),
+            onUsage: (nextUsage) => {
+                usage = nextUsage;
+            },
             onError: (error) =>
                 finish(error || new Error("Canvas assistant planner failed.")),
             onEnd: () => {
@@ -83,7 +93,7 @@ export async function planAssistantQuery(
     const userPrompt = buildAssistantUserPrompt(userQuery, sessionContext, {
         conversationSection,
     });
-    const raw = await sendPlannerPrompt(userPrompt);
+    const { response: raw, usage, duration_ms } = await sendPlannerPrompt(userPrompt);
     const json = parseAssistantLlmJson(raw);
     if (!json) {
         throw new Error("Could not parse planner response as JSON.");
@@ -91,23 +101,56 @@ export async function planAssistantQuery(
 
     const prepared = prepareAssistantPlannerJson(json, userQuery, sessionContext);
     if (prepared.type === "clarify") {
+        const result = validateAssistantClarification(prepared.json);
+        recordAssistantPlanUsage({
+            usage,
+            model: ASSISTANT_PLANNER_MODEL,
+            outcome: "clarify",
+            duration_ms,
+        });
+        if (process.env.NODE_ENV === "development") {
+            console.info("[Canvas Assist] planner tokens", usage);
+        }
         return {
-            result: validateAssistantClarification(prepared.json),
+            result,
             raw,
+            usage,
         };
     }
 
     try {
+        const result = validateAssistantPlan(prepared.json);
+        recordAssistantPlanUsage({
+            usage,
+            model: ASSISTANT_PLANNER_MODEL,
+            outcome: "plan",
+            duration_ms,
+        });
+        if (process.env.NODE_ENV === "development") {
+            console.info("[Canvas Assist] planner tokens", usage);
+        }
         return {
-            result: validateAssistantPlan(prepared.json),
+            result,
             raw,
+            usage,
         };
     } catch (error) {
+        const result = validateAssistantClarification(
+            validationErrorToClarifyJson(error, userQuery)
+        );
+        recordAssistantPlanUsage({
+            usage,
+            model: ASSISTANT_PLANNER_MODEL,
+            outcome: "clarify",
+            duration_ms,
+        });
+        if (process.env.NODE_ENV === "development") {
+            console.info("[Canvas Assist] planner tokens", usage);
+        }
         return {
-            result: validateAssistantClarification(
-                validationErrorToClarifyJson(error, userQuery)
-            ),
+            result,
             raw,
+            usage,
         };
     }
 }

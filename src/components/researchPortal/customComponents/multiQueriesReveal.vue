@@ -666,91 +666,51 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <template v-if="usePerRouteSearchTermsEditor">
-                                            <div
-                                                v-for="routeRow in multiQueryRouteEditRows"
-                                                :key="'route-terms-' + routeRow.route_id"
-                                                class="mb-3 p-2"
-                                                style="border-left: 3px solid #ff6600;"
-                                            >
-                                                <div class="font-weight-bold mb-1">{{ routeRow.category }}</div>
-                                                <div v-if="routeRow.biological_query_variation" class="small text-muted mb-2">
-                                                    {{ routeRow.biological_query_variation }}
-                                                </div>
-                                                <b-table
-                                                    :items="routeRowEditFields()"
-                                                    :fields="[
-                                                        { key: 'type', label: 'Type', thStyle: { width: '34%' } },
-                                                        { key: 'term', label: 'Term' }
-                                                    ]"
-                                                    small
-                                                    striped
-                                                    responsive="sm"
-                                                    head-variant="light"
-                                                    class="mb-0"
-                                                >
-                                                    <template #cell(type)="row">
-                                                        <span>{{ row.item.type }}</span>
-                                                    </template>
-                                                    <template #cell(term)="row">
-                                                        <input
-                                                            type="text"
-                                                            class="form-control form-control-sm"
-                                                            v-model="routeRow[row.item.key]"
-                                                            placeholder="Comma-separated terms"
-                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                        />
-                                                    </template>
-                                                </b-table>
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="small font-weight-bold text-muted mb-1 d-block">Shared research context</label>
-                                                <textarea
-                                                    class="form-control form-control-sm"
-                                                    v-model="sharedResearchContextTerm"
-                                                    rows="4"
-                                                    style="min-height: 6.5em; resize: vertical;"
-                                                    placeholder="Enter research context"
-                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                ></textarea>
-                                            </div>
-                                        </template>
-                                        <b-table
-                                            v-else
-                                            :items="searchCriteriaEditRows"
-                                            :fields="[
-                                                { key: 'type', label: 'Type', thStyle: { width: '34%' } },
-                                                { key: 'term', label: 'Term' }
-                                            ]"
-                                            small
-                                            striped
-                                            responsive="sm"
-                                            head-variant="light"
-                                            class="mb-2"
+                                        <div
+                                            v-if="
+                                                extractionAmbiguityCheck &&
+                                                extractionAmbiguityCheck.has_ambiguity &&
+                                                !extractionAmbiguityDismissed
+                                            "
+                                            class="alert alert-warning py-2 px-3 reveal-extraction-section-gap"
+                                            role="alert"
                                         >
-                                            <template #cell(type)="row">
-                                                <span>{{ row.item.type }}</span>
-                                            </template>
-                                            <template #cell(term)="row">
-                                                <textarea
-                                                    v-if="row.item.type === 'Research context'"
-                                                    class="form-control form-control-sm"
-                                                    v-model="row.item.term"
-                                                    rows="4"
-                                                    style="min-height: 6.5em; resize: vertical;"
-                                                    placeholder="Enter research context"
-                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                ></textarea>
-                                                <input
-                                                    v-else
-                                                    type="text"
-                                                    class="form-control form-control-sm"
-                                                    v-model="row.item.term"
-                                                    placeholder="Comma-separated terms"
-                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                />
-                                            </template>
-                                        </b-table>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="small pr-2">
+                                                    <strong>Interpretation note:</strong>
+                                                    {{ extractionAmbiguityCheck.warning_message }}
+                                                    <div
+                                                        v-if="extractionAmbiguityCheck.anti_anchor_terms && extractionAmbiguityCheck.anti_anchor_terms.length"
+                                                        class="mt-1"
+                                                    >
+                                                        <strong>Detected anti-anchor terms:</strong>
+                                                        {{ extractionAmbiguityCheck.anti_anchor_terms.join(", ") }}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="close p-0 m-0"
+                                                    aria-label="Dismiss"
+                                                    @click="extractionAmbiguityDismissed = true"
+                                                >
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div
+                                            v-if="usePerRouteSearchTermsEditor"
+                                            class="reveal-shared-research-context-section"
+                                        >
+                                            <label class="small font-weight-bold text-muted mb-1 d-block">Shared research context</label>
+                                            <textarea
+                                                class="form-control form-control-sm"
+                                                v-model="sharedResearchContextTerm"
+                                                rows="4"
+                                                style="min-height: 6.5em; resize: vertical;"
+                                                placeholder="Enter research context"
+                                                :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                            ></textarea>
+                                        </div>
                                         <div
                                             v-if="multiQueryRoutes.length || lastAlternativeQueries.length"
                                             class="mt-3 d-flex flex-column flex-lg-row align-items-start"
@@ -793,11 +753,96 @@
                                                                 class="pill"
                                                             >{{ term }}</span>
                                                         </div>
+                                                        <div
+                                                            v-if="route.extracted_terms && route.extracted_terms.genes_of_interest && route.extracted_terms.genes_of_interest.length"
+                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
+                                                        >
+                                                            <strong>Genes:</strong>
+                                                            <span
+                                                                v-for="term in route.extracted_terms.genes_of_interest"
+                                                                :key="route.route_id + '-gene-' + term"
+                                                                class="pill"
+                                                            >{{ term }}</span>
+                                                        </div>
+                                                        <div
+                                                            v-if="route.extracted_terms && route.extracted_terms.tissues && route.extracted_terms.tissues.length"
+                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
+                                                        >
+                                                            <strong>Tissues:</strong>
+                                                            <span
+                                                                v-for="term in route.extracted_terms.tissues"
+                                                                :key="route.route_id + '-tissue-' + term"
+                                                                class="pill"
+                                                            >{{ term }}</span>
+                                                        </div>
+                                                        <div
+                                                            v-if="route.extracted_terms && route.extracted_terms.cell_types && route.extracted_terms.cell_types.length"
+                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
+                                                        >
+                                                            <strong>Cell types:</strong>
+                                                            <span
+                                                                v-for="term in route.extracted_terms.cell_types"
+                                                                :key="route.route_id + '-cell-' + term"
+                                                                class="pill"
+                                                            >{{ term }}</span>
+                                                        </div>
                                                         <div class="small text-muted">
                                                             <strong>Embedding text:</strong> {{ route.sanitized_query }}
                                                         </div>
                                                         <div v-if="route.rationale" class="small text-muted mt-1">
                                                             <strong>Rationale:</strong> {{ route.rationale }}
+                                                        </div>
+                                                        <div
+                                                            v-if="usePerRouteSearchTermsEditor && getRouteEditRow(route)"
+                                                            class="route-terms-edit-panel mt-2"
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                class="route-terms-edit-toggle btn btn-link d-inline-flex align-items-center p-0 text-decoration-none"
+                                                                :aria-expanded="isRouteTermsEditExpanded(route.route_id) ? 'true' : 'false'"
+                                                                :aria-controls="'route-terms-edit-' + route.route_id"
+                                                                @click="toggleRouteTermsEditAccordion(route.route_id)"
+                                                            >
+                                                                <span class="font-weight-bold">Edit search terms</span>
+                                                                <b-icon
+                                                                    :icon="isRouteTermsEditExpanded(route.route_id) ? 'chevron-up' : 'chevron-down'"
+                                                                    class="ml-1"
+                                                                    aria-hidden="true"
+                                                                ></b-icon>
+                                                            </button>
+                                                            <div
+                                                                v-show="isRouteTermsEditExpanded(route.route_id)"
+                                                                :id="'route-terms-edit-' + route.route_id"
+                                                                role="region"
+                                                                class="route-terms-edit-content mt-2 pt-2 border-top"
+                                                            >
+                                                                <b-table
+                                                                    :items="routeRowEditFields()"
+                                                                    :fields="[
+                                                                        { key: 'type', label: 'Type', thStyle: { width: '34%' } },
+                                                                        { key: 'term', label: 'Term' }
+                                                                    ]"
+                                                                    small
+                                                                    striped
+                                                                    responsive="sm"
+                                                                    head-variant="light"
+                                                                    class="mb-0"
+                                                                >
+                                                                    <template #cell(type)="row">
+                                                                        <span>{{ row.item.type }}</span>
+                                                                    </template>
+                                                                    <template #cell(term)="row">
+                                                                        <input
+                                                                            type="text"
+                                                                            class="form-control form-control-sm"
+                                                                            :value="getRouteEditRow(route)[row.item.key]"
+                                                                            placeholder="Comma-separated terms"
+                                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                                            @input="updateRouteEditRowField(route, row.item.key, $event.target.value)"
+                                                                        />
+                                                                    </template>
+                                                                </b-table>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -822,37 +867,42 @@
                                                 </ul>
                                             </div>
                                         </div>
-                                        <div
-                                            v-if="
-                                                extractionAmbiguityCheck &&
-                                                extractionAmbiguityCheck.has_ambiguity &&
-                                                !extractionAmbiguityDismissed
-                                            "
-                                            class="alert alert-warning py-2 px-3 mb-2"
-                                            role="alert"
+                                        <b-table
+                                            v-if="!usePerRouteSearchTermsEditor"
+                                            :items="searchCriteriaEditRows"
+                                            :fields="[
+                                                { key: 'type', label: 'Type', thStyle: { width: '34%' } },
+                                                { key: 'term', label: 'Term' }
+                                            ]"
+                                            small
+                                            striped
+                                            responsive="sm"
+                                            head-variant="light"
+                                            class="mb-2"
                                         >
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="small pr-2">
-                                                    <strong>Interpretation note:</strong>
-                                                    {{ extractionAmbiguityCheck.warning_message }}
-                                                    <div
-                                                        v-if="extractionAmbiguityCheck.anti_anchor_terms && extractionAmbiguityCheck.anti_anchor_terms.length"
-                                                        class="mt-1"
-                                                    >
-                                                        <strong>Detected anti-anchor terms:</strong>
-                                                        {{ extractionAmbiguityCheck.anti_anchor_terms.join(", ") }}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    class="close p-0 m-0"
-                                                    aria-label="Dismiss"
-                                                    @click="extractionAmbiguityDismissed = true"
-                                                >
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                            <template #cell(type)="row">
+                                                <span>{{ row.item.type }}</span>
+                                            </template>
+                                            <template #cell(term)="row">
+                                                <textarea
+                                                    v-if="row.item.type === 'Research context'"
+                                                    class="form-control form-control-sm"
+                                                    v-model="row.item.term"
+                                                    rows="4"
+                                                    style="min-height: 6.5em; resize: vertical;"
+                                                    placeholder="Enter research context"
+                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                ></textarea>
+                                                <input
+                                                    v-else
+                                                    type="text"
+                                                    class="form-control form-control-sm"
+                                                    v-model="row.item.term"
+                                                    placeholder="Comma-separated terms"
+                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
+                                                />
+                                            </template>
+                                        </b-table>
                                     </div>
                                 </div>
                             </template>
@@ -2347,6 +2397,8 @@ export default Vue.component("factor-base-reveal", {
             /** Editable per-route term rows (synced to multiQueryRoutes before retrieval). */
             multiQueryRouteEditRows: [],
             multiQueryRouteEditRowsDefault: [],
+            /** Per-route "Edit search terms" accordion open state (default collapsed). */
+            routeTermsEditAccordionOpen: {},
             multiQueryEvidenceLimits: {
                 maxRoutes: 3,
                 maxPairsPerRoute: 5,
@@ -4052,6 +4104,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.multiQueryRouteErrors = [];
             this.multiQueryRouteEditRows = [];
             this.multiQueryRouteEditRowsDefault = [];
+            this.routeTermsEditAccordionOpen = {};
             this.lastExplicitUserGenes = [];
             this.lastGenesOfInterest = [];
             this.lastHybridSearchMeta = {};
@@ -5480,10 +5533,27 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return [
                 { type: "Phenotype terms", key: "phenotype_term" },
                 { type: "Mechanism terms", key: "mechanism_term" },
-                { type: "Genes of interest", key: "genes_of_interest" },
+                { type: "Genes", key: "genes_of_interest" },
                 { type: "Tissues", key: "tissues" },
                 { type: "Cell types", key: "cell_types" },
             ];
+        },
+        getRouteEditRow(route) {
+            if (!route || route.route_id == null) return null;
+            const routeId = String(route.route_id);
+            return (this.multiQueryRouteEditRows || []).find((row) => row && String(row.route_id) === routeId) || null;
+        },
+        isRouteTermsEditExpanded(routeId) {
+            return !!this.routeTermsEditAccordionOpen[String(routeId || "")];
+        },
+        toggleRouteTermsEditAccordion(routeId) {
+            const key = String(routeId || "");
+            this.$set(this.routeTermsEditAccordionOpen, key, !this.routeTermsEditAccordionOpen[key]);
+        },
+        updateRouteEditRowField(route, fieldKey, value) {
+            const row = this.getRouteEditRow(route);
+            if (!row || !fieldKey) return;
+            this.$set(row, fieldKey, value);
         },
         parseCommaSeparatedTerms(raw) {
             return String(raw || "")
@@ -10421,6 +10491,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 .query-guidelines-panel {
     width: 100%;
 }
+.reveal-extraction-section-gap {
+    margin-bottom: 25px;
+}
+.reveal-shared-research-context-section {
+    margin-bottom: 25px;
+}
 .query-guidelines-toggle {
     border: none;
     box-shadow: none;
@@ -10434,6 +10510,19 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 }
 .query-guidelines-content {
     overflow: visible;
+}
+.route-terms-edit-toggle {
+    color: #f16822;
+    font-size: inherit;
+}
+.route-terms-edit-toggle:hover,
+.route-terms-edit-toggle:focus {
+    color: #c45212;
+    text-decoration: none;
+    background: transparent;
+}
+.route-terms-edit-content {
+    border-color: #dee2e6 !important;
 }
 .reveal-data-step-pre {
     background: #eee;

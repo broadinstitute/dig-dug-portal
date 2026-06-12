@@ -31,6 +31,7 @@
             userPrompt: "Summarize this paragraph...",
             onToken: token => console.log("token:", token),
             onResponse: resp => console.log("full response:", resp),
+            onUsage: usage => console.log("token usage:", usage),
             onState: state => console.log("state:", state),
             onError: err => console.error("error:", err),
             onEnd: () => console.log("done")
@@ -47,10 +48,15 @@
         pirate.abort();
 **/
 
+import {
+  extractOpenAiResponseText,
+  resolveLlmUsage,
+} from "@/utils/llmUsageUtils";
+
 export function createLLMClient({ llm = "gemini", model, system_prompt, stream = false }) {
   let abortController = null;
 
-  async function sendPrompt({ userPrompt, systemPrompt, onResponse, onToken, onError, onState, onEnd }) {
+  async function sendPrompt({ userPrompt, systemPrompt, onResponse, onUsage, onToken, onError, onState, onEnd }) {
     if (!userPrompt) {
       onError?.(new Error("Missing prompt"));
       return;
@@ -88,7 +94,16 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       if (stream) {
         await callStreaming(url, options, { onToken, onState, onEnd, onError, signal });
       } else {
-        await callOnce(url, options, { onResponse, onState, onEnd, onError, signal });
+        await callOnce(url, options, {
+          onResponse,
+          onUsage,
+          onState,
+          onEnd,
+          onError,
+          signal,
+          systemPrompt: effectiveSystem,
+          userPrompt,
+        });
       }
     } catch (err) {
       // This catches AbortError if fetch() or reader.read() is cancelled
@@ -102,7 +117,16 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     }
   }
 
-  async function callOnce(url, options, { onResponse, onError, onState, onEnd, signal }) {
+  async function callOnce(url, options, {
+    onResponse,
+    onUsage,
+    onError,
+    onState,
+    onEnd,
+    signal,
+    systemPrompt,
+    userPrompt,
+  }) {
     const response = await fetch(url, options); // This will throw AbortError if aborted
 
     // --- FIX ---
@@ -126,10 +150,25 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       return;
     }
 
-    const data =
+    const rawData =
       llm === "openai"
         ? res.data[0].openai_response
         : res.data[0].gemini_response;
+
+    const data =
+      llm === "openai" ? extractOpenAiResponseText(rawData) : rawData;
+
+    if (onUsage && !signal.aborted) {
+      const usage = resolveLlmUsage({
+        res,
+        llm,
+        model,
+        systemPrompt,
+        userPrompt,
+        responseText: data || "",
+      });
+      onUsage(usage);
+    }
 
     // Check before firing callback
     if (data && !signal.aborted) {
