@@ -209,10 +209,20 @@
             :initial-tab="welcomeInitialTab"
             :dismissible="canDismissWelcome"
             :has-saved-graphs="savedGraphs.length > 0"
+            :show-learn-companion="showWelcomeLearnCompanion"
+            :canvas-open-count="canvasOpenCount"
+            :learn-companion-max-opens="learnCompanionMaxOpens"
             @create="onWelcomeCreate"
             @load-library="onWelcomeLoadLibrary"
             @import-graph="onWelcomeImportGraph"
             @close="closeWelcome"
+        />
+        <WorkspaceLearnCompanionOverlay
+            :open="learnCompanionOpen"
+            :canvas-open-count="canvasOpenCount"
+            :learn-companion-max-opens="learnCompanionMaxOpens"
+            :dismissible="canDismissWelcome"
+            @close="closeLearnCompanion"
         />
         <WorkspaceInitialGraphModal
             :open="initialGraphOpen"
@@ -327,6 +337,7 @@ import WorkspaceCanvas from "./revealKgWorkspace/WorkspaceCanvas.vue";
 import WorkspaceLibraryModal from "./revealKgWorkspace/WorkspaceLibraryModal.vue";
 import WorkspaceDocumentationModal from "./revealKgWorkspace/WorkspaceDocumentationModal.vue";
 import WorkspaceWelcomeModal from "./revealKgWorkspace/WorkspaceWelcomeModal.vue";
+import WorkspaceLearnCompanionOverlay from "./revealKgWorkspace/WorkspaceLearnCompanionOverlay.vue";
 import WorkspaceInitialGraphModal from "./revealKgWorkspace/WorkspaceInitialGraphModal.vue";
 import WorkspaceSaveGraphModal from "./revealKgWorkspace/WorkspaceSaveGraphModal.vue";
 import WorkspaceExportGraphModal from "./revealKgWorkspace/WorkspaceExportGraphModal.vue";
@@ -496,6 +507,7 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceLibraryModal,
         WorkspaceDocumentationModal,
         WorkspaceWelcomeModal,
+        WorkspaceLearnCompanionOverlay,
         WorkspaceInitialGraphModal,
         WorkspaceSaveGraphModal,
         WorkspaceExportGraphModal,
@@ -539,6 +551,8 @@ export default Vue.component("reveal-kg-workspace", {
             lastActionLabel: "",
             lastActionTimer: null,
             welcomeOpen: true,
+            learnCompanionOpen: false,
+            canvasOpenCount: 0,
             welcomeInitialTab: "start",
             initialGraphOpen: false,
             starterBuckets: emptyStarterBuckets(),
@@ -727,6 +741,12 @@ export default Vue.component("reveal-kg-workspace", {
         },
         canDismissWelcome() {
             return Boolean(this.activeSession?.graphNodes?.length);
+        },
+        learnCompanionMaxOpens() {
+            return userUtils.REVEAL_KG_LEARN_COMPANION_MAX_OPENS;
+        },
+        showWelcomeLearnCompanion() {
+            return userUtils.shouldShowRevealKgLearnCompanion(this.canvasOpenCount);
         },
         explainHelperText() {
             return this.activeGraphInterpretation?.helper_text || "";
@@ -1133,6 +1153,7 @@ export default Vue.component("reveal-kg-workspace", {
         },
     },
     created() {
+        this.canvasOpenCount = userUtils.recordRevealKgCanvasOpen();
         this.refreshSavedGraphs();
         this.bootstrapInteractiveApi();
         this.bootstrapExpressionOptions();
@@ -2533,8 +2554,10 @@ export default Vue.component("reveal-kg-workspace", {
             this.docsOpen = true;
         },
         openLearnCanvas() {
-            this.welcomeInitialTab = "learn";
-            this.welcomeOpen = true;
+            this.learnCompanionOpen = true;
+        },
+        closeLearnCompanion() {
+            this.learnCompanionOpen = false;
         },
         closeWelcome() {
             this.welcomeOpen = false;

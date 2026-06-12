@@ -83,6 +83,8 @@ function clearContext(GROUP) {
 // ---------------------------------------------------------------------------
 
 const REVEAL_KG_GRAPHS_KEY = "_reveal_kg_graphs";
+const REVEAL_KG_CANVAS_OPEN_COUNT_KEY = "_reveal_kg_canvas_open_count";
+const REVEAL_KG_LEARN_COMPANION_MAX_OPENS = 5;
 const REVEAL_KG_GRAPH_SCHEMA_VERSION = 1;
 const MAX_SAVED_GRAPHS = 50;
 const GRAPH_STORE_QUOTA_ERROR = "GRAPH_STORE_QUOTA_EXCEEDED";
@@ -436,6 +438,39 @@ function deleteGraph(id) {
 
 function clearGraphs() {
     localStorage.removeItem(REVEAL_KG_GRAPHS_KEY);
+}
+
+function parseRevealKgCanvasOpenCount(raw) {
+    const value = Number.parseInt(String(raw ?? ""), 10);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+function getRevealKgCanvasOpenCount() {
+    try {
+        return parseRevealKgCanvasOpenCount(
+            localStorage.getItem(REVEAL_KG_CANVAS_OPEN_COUNT_KEY)
+        );
+    } catch (e) {
+        return 0;
+    }
+}
+
+function recordRevealKgCanvasOpen() {
+    try {
+        const nextCount = getRevealKgCanvasOpenCount() + 1;
+        localStorage.setItem(REVEAL_KG_CANVAS_OPEN_COUNT_KEY, String(nextCount));
+        return nextCount;
+    } catch (e) {
+        console.warn("Could not record REVEAL KG Canvas open count", e);
+        return getRevealKgCanvasOpenCount();
+    }
+}
+
+function shouldShowRevealKgLearnCompanion(
+    openCount = getRevealKgCanvasOpenCount(),
+    maxOpens = REVEAL_KG_LEARN_COMPANION_MAX_OPENS
+) {
+    return openCount > 0 && openCount <= maxOpens;
 }
 
 function graphPayloadFromSession(session, { label, includeInspectorCaches = false } = {}) {
@@ -1042,6 +1077,10 @@ export default {
     updateGraph,
     deleteGraph,
     clearGraphs,
+    getRevealKgCanvasOpenCount,
+    recordRevealKgCanvasOpen,
+    shouldShowRevealKgLearnCompanion,
+    REVEAL_KG_LEARN_COMPANION_MAX_OPENS,
     saveGraphFromSession,
     updateGraphFromSession,
     sessionFromGraph,
