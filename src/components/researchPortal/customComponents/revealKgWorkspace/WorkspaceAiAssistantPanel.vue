@@ -49,6 +49,14 @@
                     Actions
                 </button>
             </div>
+            <p v-if="activeTab === 'request'" class="wkb-assistant-autocomplete-hint">
+                Suggestions appear as you type. Use
+                <kbd class="wkb-assistant-kbd">↑</kbd><kbd class="wkb-assistant-kbd">↓</kbd>
+                to move,
+                <kbd class="wkb-assistant-kbd">Tab</kbd> or
+                <kbd class="wkb-assistant-kbd">Enter</kbd> to accept,
+                <kbd class="wkb-assistant-kbd">Esc</kbd> to close.
+            </p>
             <p v-if="activeTab === 'request'" class="wkb-assistant-intro">
                 Describe graph changes in plain language. The assistant builds a step-by-step
                 plan, then runs those steps for you.
@@ -792,8 +800,30 @@ export default {
     cursor: not-allowed;
 }
 
+.wkb-assistant-autocomplete-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-assistant-kbd {
+    display: inline-block;
+    margin: 0 1px;
+    padding: 1px 5px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 4px;
+    background: #f6f5f2;
+    color: var(--cfde-ink, #33363d);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
 .wkb-assistant-intro {
-    margin: 8px 0 0;
+    margin: 6px 0 0;
     font-size: 13px;
     line-height: 1.5;
     color: var(--cfde-muted, #6b6b6b);
