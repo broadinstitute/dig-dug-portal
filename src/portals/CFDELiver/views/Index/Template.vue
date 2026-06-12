@@ -14,10 +14,12 @@
                         </div>
                     </div>
                 </div>
+                <!--
                 <div class="f-row" style="max-width: 800px; width:100%; margin:0 auto; gap:10px">
                     <input class="lg fill-width" placeholder="Search gene" />
                     <button class="lg" style="width: 100px;" disabled>Search</button>
                 </div>
+                -->
                 <div class="sections f-col" style="gap:50px; margin: 0 0 50px;">
                     <template v-for="(section, index) in $parent.pageContent.sections">
                         <div v-if="index===0" class="section f-col" style="gap:20px">
