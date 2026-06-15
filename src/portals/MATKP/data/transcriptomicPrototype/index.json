@@ -1,0 +1,11 @@
+{
+  "title": "matkp prototype - transcriptomic datasets viewer",
+  "default_gene": "LEP",
+  "dataset_count": 47,
+  "gene_count": 5,
+  "outcome_count": 13,
+  "generated_at": "2026-05-17T00:28:02Z",
+  "genes_index_file": "genes_index.json",
+  "datasets_index_file": "datasets_index.json",
+  "outcomes_index_file": "outcomes_index.json"
+}

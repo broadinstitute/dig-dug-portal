@@ -81,6 +81,13 @@ let pages = {
         filename: "nmf.html",
         title: "MATKP | NMF",
         chunks: ["chunk-vendors", "chunk-common", "nmf"]
+    },
+    transcriptomics: {
+        entry: "src/portals/MATKP/views/Transcriptomics/main.js",
+        template: "public/index.html",
+        filename: "transcriptomics.html",
+        title: "MATKP | Transcriptomic Viewer",
+        chunks: ["chunk-vendors", "chunk-common", "transcriptomics"]
     }
 };
 

@@ -1,0 +1,93 @@
+[
+  {
+    "outcome_id": "age",
+    "outcome_label": "Age",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "depot_binary",
+    "outcome_label": "Depot",
+    "outcome_type": "binary",
+    "row_count": 15,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "diet_group",
+    "outcome_label": "Diet group",
+    "outcome_type": "binary",
+    "row_count": 70,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "genotype_status",
+    "outcome_label": "Genotype / perturbation",
+    "outcome_type": "binary",
+    "row_count": 185,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "hdl",
+    "outcome_label": "HDL",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "homa_ir",
+    "outcome_label": "HOMA-IR",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "insulin_resistance_status",
+    "outcome_label": "Insulin resistance status",
+    "outcome_type": "binary",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "ldl",
+    "outcome_label": "LDL",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "log10_homa_ir",
+    "outcome_label": "log10(HOMA-IR)",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "obesity_status",
+    "outcome_label": "Obesity status",
+    "outcome_type": "binary",
+    "row_count": 5,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "temperature_group",
+    "outcome_label": "Temperature group",
+    "outcome_type": "binary",
+    "row_count": 50,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "treatment_group",
+    "outcome_label": "Treatment / exposure",
+    "outcome_type": "binary",
+    "row_count": 50,
+    "gene_support_count": 5
+  },
+  {
+    "outcome_id": "triglycerides",
+    "outcome_label": "Triglycerides",
+    "outcome_type": "continuous",
+    "row_count": 5,
+    "gene_support_count": 5
+  }
+]

@@ -1,0 +1,112 @@
+[
+  {
+    "gene": "LEP",
+    "payload_file": "genes/LEP.json",
+    "supported_outcomes": [
+      "age",
+      "depot_binary",
+      "diet_group",
+      "genotype_status",
+      "hdl",
+      "homa_ir",
+      "insulin_resistance_status",
+      "ldl",
+      "log10_homa_ir",
+      "obesity_status",
+      "temperature_group",
+      "treatment_group",
+      "triglycerides"
+    ],
+    "supported_outcome_count": 13,
+    "dataset_count": 47,
+    "default_gene": true
+  },
+  {
+    "gene": "ADIPOQ",
+    "payload_file": "genes/ADIPOQ.json",
+    "supported_outcomes": [
+      "age",
+      "depot_binary",
+      "diet_group",
+      "genotype_status",
+      "hdl",
+      "homa_ir",
+      "insulin_resistance_status",
+      "ldl",
+      "log10_homa_ir",
+      "obesity_status",
+      "temperature_group",
+      "treatment_group",
+      "triglycerides"
+    ],
+    "supported_outcome_count": 13,
+    "dataset_count": 47,
+    "default_gene": false
+  },
+  {
+    "gene": "UCP1",
+    "payload_file": "genes/UCP1.json",
+    "supported_outcomes": [
+      "age",
+      "depot_binary",
+      "diet_group",
+      "genotype_status",
+      "hdl",
+      "homa_ir",
+      "insulin_resistance_status",
+      "ldl",
+      "log10_homa_ir",
+      "obesity_status",
+      "temperature_group",
+      "treatment_group",
+      "triglycerides"
+    ],
+    "supported_outcome_count": 13,
+    "dataset_count": 47,
+    "default_gene": false
+  },
+  {
+    "gene": "PPARG",
+    "payload_file": "genes/PPARG.json",
+    "supported_outcomes": [
+      "age",
+      "depot_binary",
+      "diet_group",
+      "genotype_status",
+      "hdl",
+      "homa_ir",
+      "insulin_resistance_status",
+      "ldl",
+      "log10_homa_ir",
+      "obesity_status",
+      "temperature_group",
+      "treatment_group",
+      "triglycerides"
+    ],
+    "supported_outcome_count": 13,
+    "dataset_count": 47,
+    "default_gene": false
+  },
+  {
+    "gene": "PLIN1",
+    "payload_file": "genes/PLIN1.json",
+    "supported_outcomes": [
+      "age",
+      "depot_binary",
+      "diet_group",
+      "genotype_status",
+      "hdl",
+      "homa_ir",
+      "insulin_resistance_status",
+      "ldl",
+      "log10_homa_ir",
+      "obesity_status",
+      "temperature_group",
+      "treatment_group",
+      "triglycerides"
+    ],
+    "supported_outcome_count": 13,
+    "dataset_count": 47,
+    "default_gene": false
+  }
+]
