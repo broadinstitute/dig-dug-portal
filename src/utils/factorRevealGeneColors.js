@@ -37,3 +37,28 @@ export function compareGeneRoleLegend(a, b) {
     if (ra !== rb) return ra - rb;
     return String(a).localeCompare(String(b));
 }
+
+/** GWAS support tiers aligned with FactorBaseReveal heatmap / PigeanPhenotype tables. */
+export function colorForGwasSupportScore(score) {
+    const n = Number(score);
+    if (score == null || score === "" || Number.isNaN(n)) {
+        return { background: "#cccccc", border: "#999999", tier: "not_significant" };
+    }
+    if (n > 3) {
+        return { background: "#4a90e2", border: "#2c5aa0", tier: "very_strong" };
+    }
+    if (n >= 2) {
+        return { background: "#f5a623", border: "#d68910", tier: "strongly_suggestive" };
+    }
+    if (n >= 1) {
+        return { background: "#f8e71c", border: "#d4c716", tier: "nominally_significant" };
+    }
+    return { background: "#cccccc", border: "#999999", tier: "not_significant" };
+}
+
+export const GWAS_SUPPORT_LEGEND = [
+    { label: "Very Strong (> 3)", background: "#4a90e2", border: "#2c5aa0" },
+    { label: "Strongly Suggestive (2–3)", background: "#f5a623", border: "#d68910" },
+    { label: "Nominally Significant (1–2)", background: "#f8e71c", border: "#d4c716" },
+    { label: "Not Significant (< 1)", background: "#cccccc", border: "#999999" },
+];

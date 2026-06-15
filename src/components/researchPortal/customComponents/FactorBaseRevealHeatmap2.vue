@@ -1,5 +1,9 @@
 <template>
-  <div class="factors-viz-container" :style="containerStyle">
+  <div
+    class="factors-viz-container"
+    :class="{ 'factors-viz-container--network': useFactorBaseRevealData && dataVizTab === 'network' }"
+    :style="containerStyle"
+  >
     <div v-if="error" class="error-alert">
       {{ error }}
     </div>
@@ -30,6 +34,44 @@
         />
       </div>
     </div>
+    <div
+      :class="useFactorBaseRevealData && heatmapPairCount ? 'fbr-data-viz-ledger mb-2' : ''"
+    >
+      <div
+        v-if="useFactorBaseRevealData && heatmapPairCount"
+        class="fbr-data-viz-toolbar"
+      >
+        <div
+          class="fbr-data-viz-tabs"
+          role="tablist"
+          aria-label="Data visualization"
+        >
+          <button
+            type="button"
+            role="tab"
+            class="fbr-data-viz-tab"
+            :class="{ 'is-active': dataVizTab === 'heatmap' }"
+            :aria-selected="dataVizTab === 'heatmap' ? 'true' : 'false'"
+            @click="dataVizTab = 'heatmap'"
+          >
+            Heatmap
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="fbr-data-viz-tab"
+            :class="{ 'is-active': dataVizTab === 'network' }"
+            :aria-selected="dataVizTab === 'network' ? 'true' : 'false'"
+            @click="dataVizTab = 'network'"
+          >
+            Graph network
+          </button>
+        </div>
+      </div>
+      <div
+        :class="useFactorBaseRevealData && heatmapPairCount ? 'fbr-data-viz-panel' : ''"
+      >
+    <div v-show="!useFactorBaseRevealData || dataVizTab === 'heatmap'">
     <div class="viz-legend" v-if="!loading && (useFactorBaseRevealData ? (heatmapDataFromFactorData && heatmapDataFromFactorData.ready) : (heatmapData && heatmapData.genes && heatmapData.genes.length > 0))">
       <div class="legend-content">
         <div class="legend-item">
@@ -80,6 +122,56 @@
         <div class="heatmap-content-scrollable" ref="heatmapContainer"></div>
       </div>
     </div>
+    </div>
+    <div
+      v-if="useFactorBaseRevealData && dataVizTab === 'network'"
+      class="fbr-data-network-panel"
+    >
+      <div
+        v-if="!heatmapPairCount"
+        class="text-center p-3 text-muted"
+      >
+        No phenotypes or data categories available to plot.
+      </div>
+      <div
+        v-else-if="heatmapGroupMode !== 'all' && !selectedHeatmapGroup"
+        class="text-center p-3 text-muted"
+      >
+        Select a {{ heatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.
+      </div>
+      <div
+        v-else-if="!dataViewNetwork.nodes.length"
+        class="text-center p-3 text-muted"
+      >
+        No network data for this selection.
+      </div>
+      <div
+        v-else
+        class="fbr-network-viz-wrap"
+        :style="{ minHeight: dataViewNetworkHeight + 'px' }"
+      >
+        <div
+          v-if="dataVizNetworkRendering"
+          class="fbr-network-loading-overlay"
+          role="status"
+          aria-live="polite"
+        >
+          <b-spinner small type="grow" variant="secondary" />
+          <span class="ml-2 small text-muted">Rendering network…</span>
+        </div>
+        <factor-base-reveal-network
+          :key="dataViewNetworkKey"
+          :network="dataViewNetwork"
+          :genes="dataViewNetworkGenes"
+          :height="dataViewNetworkHeight"
+          gene-node-metric-key="combined_score"
+          gene-color-by-gwas-support
+          @network-ready="onDataViewNetworkReady"
+        />
+      </div>
+    </div>
+    </div>
+    </div>
     <div v-if="loading" class="loading">Loading visualization...</div>
   </div>
 </template>
@@ -87,8 +179,14 @@
 import Vue from "vue";
 import JSZip from "jszip";
 import { resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
+import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
+import {
+  buildMergedFactorDataNetwork,
+  genesFromFactorDataNetwork,
+} from "./factorRevealDataNetwork.js";
 
 export default Vue.component("pigean-factors-viz", {
+  components: { FactorBaseRevealNetwork },
   props: {
     pigeanFactorData: {
       type: Array,
@@ -134,6 +232,10 @@ export default Vue.component("pigean-factors-viz", {
       heatmapGroupMode: "phenotype",
       /** Selected phenotype id or data category label for the active group mode (unused when Group by is Show all). */
       selectedHeatmapGroup: "",
+      /** heatmap | network */
+      dataVizTab: "heatmap",
+      dataVizNetworkRendering: false,
+      dataVizNetworkRenderTimerId: null,
     };
   },
   computed: {
@@ -156,6 +258,36 @@ export default Vue.component("pigean-factors-viz", {
     heatmapGroupSelectLabel() {
       if (this.heatmapGroupMode === "direction") return "Data category";
       return "Phenotype";
+    },
+    pairsInView() {
+      const pairs = this.buildHeatmapPairs();
+      if (!pairs.length) return [];
+      if (this.heatmapGroupMode === "all") return pairs.slice();
+      const selected = String(this.selectedHeatmapGroup || "").trim();
+      if (!selected) return [];
+      return this.heatmapGroupMode === "direction"
+        ? pairs.filter((p) => (p.fetchedDirection || "(unknown direction)") === selected)
+        : pairs.filter((p) => p.phenotype === selected);
+    },
+    dataViewNetwork() {
+      if (!this.useFactorBaseRevealData) return { nodes: [], edges: [] };
+      return buildMergedFactorDataNetwork(this.pairsInView, this.factorData || {}, {
+        phenotypeDisplay: (id) => this.phenoDisplay(id),
+      });
+    },
+    dataViewNetworkGenes() {
+      return genesFromFactorDataNetwork(this.dataViewNetwork);
+    },
+    dataViewNetworkHeight() {
+      return 600;
+    },
+    dataViewNetworkKey() {
+      return [
+        this.heatmapGroupMode,
+        this.selectedHeatmapGroup,
+        this.pairsInView.length,
+        (this.dataViewNetwork.nodes || []).length,
+      ].join("|");
     },
     /** Sorted selector options for the active group-by mode. */
     heatmapGroupOptions() {
@@ -325,6 +457,19 @@ export default Vue.component("pigean-factors-viz", {
       return out;
     },
     containerStyle() {
+      const base = {
+        width: "100%",
+        position: "relative",
+        background: "#fff",
+      };
+      if (this.useFactorBaseRevealData && this.dataVizTab === "network") {
+        return {
+          ...base,
+          height: "auto",
+          minHeight: "0",
+        };
+      }
+
       let dynamicHeight = this.height;
       const cellHeight = 20;
       const margin = { top: 100, bottom: 20 };
@@ -354,10 +499,8 @@ export default Vue.component("pigean-factors-viz", {
       }
 
       return {
+        ...base,
         height: dynamicHeight,
-        width: "100%",
-        position: "relative",
-        background: "#fff"
       };
     }
   },
@@ -470,6 +613,38 @@ export default Vue.component("pigean-factors-viz", {
       deep: true,
       immediate: true
     },
+    dataVizTab(next) {
+      if (next === "network" && (this.dataViewNetwork.nodes || []).length) {
+        this.beginDataViewNetworkRender();
+      }
+    },
+    dataViewNetworkKey() {
+      if (this.dataVizTab === "network" && (this.dataViewNetwork.nodes || []).length) {
+        this.beginDataViewNetworkRender();
+      }
+    },
+    heatmapDataFromFactorData: {
+      handler(val) {
+        if (!this.useFactorBaseRevealData || !val || !val.ready) return;
+        this.cleanupTooltips();
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.renderFactorBaseRevealHeatmap();
+          }, 100);
+        });
+      },
+      deep: true,
+    },
+    heatmapPairCount(count) {
+      if (!this.useFactorBaseRevealData || !count) return;
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
+            this.renderFactorBaseRevealHeatmap();
+          }
+        }, 100);
+      });
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -492,10 +667,29 @@ export default Vue.component("pigean-factors-viz", {
     });
   },
   beforeDestroy() {
+    this.clearDataViewNetworkRenderTimer();
     // Clean up all tooltips when component is destroyed
     this.cleanupTooltips();
   },
   methods: {
+    beginDataViewNetworkRender() {
+      this.clearDataViewNetworkRenderTimer();
+      this.dataVizNetworkRendering = true;
+      this.dataVizNetworkRenderTimerId = setTimeout(() => {
+        this.dataVizNetworkRendering = false;
+        this.dataVizNetworkRenderTimerId = null;
+      }, 15000);
+    },
+    onDataViewNetworkReady() {
+      this.clearDataViewNetworkRenderTimer();
+      this.dataVizNetworkRendering = false;
+    },
+    clearDataViewNetworkRenderTimer() {
+      if (this.dataVizNetworkRenderTimerId != null) {
+        clearTimeout(this.dataVizNetworkRenderTimerId);
+        this.dataVizNetworkRenderTimerId = null;
+      }
+    },
     phenoDisplay(pid) {
       const descById = this.phenotypeDescriptionById || {};
       const fromSearch = descById[pid] != null && String(descById[pid]).trim() !== "" ? String(descById[pid]).trim() : "";
@@ -2194,6 +2388,11 @@ export default Vue.component("pigean-factors-viz", {
   overflow: hidden;
 }
 
+.factors-viz-container.factors-viz-container--network {
+  overflow: visible;
+  height: auto !important;
+}
+
 .fbr-heatmap-toolbar {
   gap: 1rem;
   align-items: center;
@@ -2218,6 +2417,94 @@ export default Vue.component("pigean-factors-viz", {
   margin-left: 0;
   padding-left: 0.75rem;
   border-left: 1px solid #dee2e6;
+}
+
+.fbr-data-viz-ledger {
+  min-width: 0;
+}
+
+.fbr-data-viz-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 0.75rem;
+  padding: 0.4rem 0.55rem 0;
+  background: #e8e3da;
+  border: 1px solid #d4cdc2;
+  border-bottom: none;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.fbr-data-viz-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.15rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fbr-data-viz-tab {
+  flex: 0 0 auto;
+  margin: 0 0 -1px;
+  padding: 0.5rem 0.85rem 0.6rem;
+  border: 1px solid #d4cdc2;
+  border-bottom: 1px solid #d4cdc2;
+  border-radius: 10px 10px 0 0;
+  background: #f0ebe3;
+  color: #33363d;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  appearance: none;
+}
+
+.fbr-data-viz-tab:not(.is-active):hover {
+  background: #f6f2eb;
+}
+
+.fbr-data-viz-tab.is-active {
+  background: #fff;
+  color: #e07b39;
+  font-weight: 700;
+  border-color: #d4cdc2;
+  border-bottom: 1px solid #fff;
+  z-index: 1;
+}
+
+.fbr-data-viz-tab:focus-visible {
+  outline: 2px solid #e07b39;
+  outline-offset: 2px;
+}
+
+.fbr-data-viz-panel {
+  padding: 0.5rem 0.55rem 0.65rem;
+  border: 1px solid #d4cdc2;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: #fff;
+}
+
+.fbr-data-network-panel {
+  margin-top: 0;
+}
+
+.fbr-network-viz-wrap {
+  position: relative;
+  min-height: 600px;
+}
+
+.fbr-network-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .heatmap-tabs {

@@ -66,6 +66,8 @@ import { DataSet } from "vis-data";
 import { resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
 import { colorForGeneRole, compareGeneRoleLegend, DEFAULT_GENE_NODE_COLOR } from "@/utils/factorRevealGeneColors";
 
+const DATA_TAB_GENE_COLOR = { background: "#f5a623", border: "#d68910" };
+
 const NODE_COLORS = {
     Phenotype: "#e41a1c",
     Factor: "#377eb8",
@@ -139,6 +141,8 @@ export default {
         showOriginalHypothesisMap: { type: Boolean, default: false },
         /** Optional: scale Gene node size by this numeric metadata key (e.g., "gwas_support"). */
         geneNodeMetricKey: { type: String, default: "" },
+        /** When true, color Gene nodes by metadata.gwas_support tiers (data-tab network view). */
+        geneColorByGwasSupport: { type: Boolean, default: false },
         /** Optional: map edge distance from this numeric metadata key (e.g., "functional_support"). */
         edgeDistanceMetricKey: { type: String, default: "" },
     },
@@ -196,6 +200,14 @@ export default {
                         color: NODE_COLORS[t] || DEFAULT_NODE_COLOR,
                     }));
             }
+            if (this.geneColorByGwasSupport) {
+                return [
+                    { label: "Phenotype", color: NODE_COLORS.Phenotype },
+                    { label: "Gene set cluster group.", color: NODE_COLORS.Factor },
+                    { label: "Gene Set", color: NODE_COLORS.Pathway },
+                    { label: "Gene", color: DATA_TAB_GENE_COLOR.background },
+                ];
+            }
             const items = [];
             items.push(
                 { label: "Phenotype", color: NODE_COLORS.Phenotype },
@@ -236,6 +248,9 @@ export default {
             this.$nextTick(() => this.render());
         },
         isBiolinkMap() {
+            this.$nextTick(() => this.render());
+        },
+        geneColorByGwasSupport() {
             this.$nextTick(() => this.render());
         },
     },
@@ -450,20 +465,18 @@ export default {
                 const biolinkClass = meta.biolink_class != null ? String(meta.biolink_class).trim() : "";
                 const biolinkColor = colorFromBiolinkClass(biolinkClass);
                 if (biolinkColor) color = biolinkColor;
-                if (type === "Gene") {
-                    const name = (n.id || n.label || "").toString().trim();
-                    const group = geneToGroup[name];
-                    color = colorForGeneRole(group);
-                    if (biolinkColor) color = biolinkColor;
-                }
                 const rawDisplay = (n.label || n.id || "").toString();
                 const headlineLabel =
                     type === "Factor"
                         ? resolveCfdeFactorClusterDisplayLabel(rawDisplay)
                         : rawDisplay;
                 const parts = [`Full label: ${headlineLabel}`, `Type: ${type}`];
+                let geneBorder = meta.biolink_unmapped ? "#6b7280" : "#fff";
                 if (type === "Gene") {
-                    const geneName = (n.id || n.label || "").toString().trim();
+                    const geneName = (n.label || n.id || "")
+                        .toString()
+                        .trim()
+                        .replace(/^gene:/i, "");
                     const geneEntry = (this.genes || []).find(
                         (g) => (g.gene != null ? String(g.gene).trim() : "") === geneName
                     );
@@ -477,6 +490,14 @@ export default {
                     parts.push(`Combined: ${combinedVal != null ? Number(combinedVal).toFixed(2) : "—"}`);
                     parts.push(`GWAS support: ${gwasVal != null ? Number(gwasVal).toFixed(2) : "—"}`);
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
+                    if (this.geneColorByGwasSupport) {
+                        color = DATA_TAB_GENE_COLOR.background;
+                        geneBorder = DATA_TAB_GENE_COLOR.border;
+                    } else {
+                        const group = geneToGroup[geneName];
+                        color = colorForGeneRole(group);
+                        if (biolinkColor) color = biolinkColor;
+                    }
                 }
                 if (biolinkClass) {
                     parts.push(`Biolink class: ${biolinkClass}`);
@@ -515,7 +536,7 @@ export default {
                     title,
                     color: {
                         background: color,
-                        border: meta.biolink_unmapped ? "#6b7280" : "#fff",
+                        border: type === "Gene" && this.geneColorByGwasSupport ? geneBorder : (meta.biolink_unmapped ? "#6b7280" : "#fff"),
                     },
                     font: {
                         size: 14,
@@ -617,7 +638,10 @@ export default {
                 metadata: e.metadata || null,
             }));
 
-            if (nodes.length === 0) return;
+            if (nodes.length === 0) {
+                this.$emit("network-ready");
+                return;
+            }
 
             nodes.forEach(n => {
                 this.nodeMap[n.id] = n;
@@ -688,6 +712,7 @@ export default {
                 if (typeof scale === "number" && !Number.isNaN(scale)) {
                     this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
                 }
+                this.$emit("network-ready");
             });
 
             this.visNetwork.fit({

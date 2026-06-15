@@ -2,442 +2,28 @@
     <div class="factor-base-reveal">
         <div class="card mdkp-card" style="margin: 0 0 50px 0;">
             <div class="card-body" style="display:flex; flex-direction: column; gap:30px">
-                <div style="display:flex; gap:20px">
-                    <div><img src="https://hugeampkpncms.org/sites/default/files/users/user32/kc_icons/kc_reveal.png" style="height:100px"/></div>
-                    <div style="display:flex; flex-direction: column;">
-                        <div style="font-size: 2em; font-weight: bold;">CFDE REVEAL</div>
-                        <div style="font-size: 1.5em; font-weight: bold;">Tell us what you're researching. We'll surface candidate genes and mechanisms you may not have considered.</div>
-                        <div style="font-size: 1.2em;">All results are grounded in <a role="button" @click="showByorTab()">computational analyses of biological data</a>. An LLM is used to find, filter, and interpret findings in the context of your research.</div>
-                    </div>
-                </div>
-                <div>
-                    <ol>
-                        <li>
-                        <strong>Search:</strong> For the best results, try entering a research question that combines a target gene, biological mechanism, tissue context, and disease phenotype.
-                        </li>
-                        <li>
-                        <strong>Refine:</strong> Review and edit the extracted search terms to ensure they perfectly capture your intent, and toggle on "Exploratory Mode" if you want the AI to bridge missing gaps in the data with speculative leaps.
-                        </li>
-                        <li>
-                        <strong>Analyze &amp; Export:</strong> Review the generated mechanistic hypotheses. Explore the biological mechanism maps automatically translated into the Biolink standard. Check the map's edges to see which connections are validated by the NCATS Translator. Download your full interactive report to continue your workflow.
-                        </li>
-                    </ol>
-                </div>
-
-                <div class="d-flex flex-column gap-2">
-                    <div class="d-flex justify-content-end align-items-center">
-                        <div
-                            class="reveal-hypothesis-mode-toggle small"
-                            title="Strict: graph-grounded “say no” rules. Relaxed: best-effort mechanisms with explicit gap warnings (entities still limited to the retrieved CSV)."
-                        >
-                            <span
-                                class="reveal-mode-label reveal-mode-label-strict"
-                                :class="hypothesisGenerationMode === 'strict' ? 'font-weight-bold text-dark' : 'text-muted'"
-                            >Evidence-grounded</span>
-                            <!-- Slot reserves space: B-V switch draws ::before with left: ~-2.25rem over the control’s left edge. -->
-                            <div class="reveal-switch-slot">
-                                <b-form-checkbox
-                                    v-model="hypothesisModeRelaxedSwitch"
-                                    switch
-                                    class="reveal-mode-switch mb-0"
-                                    aria-label="Toggle relaxed exploratory hypothesis mode"
-                                />
-                            </div>
-                            <span
-                                class="reveal-mode-label reveal-mode-label-relaxed"
-                                :class="hypothesisGenerationMode === 'relaxed' ? 'font-weight-bold text-dark' : 'text-muted'"
-                            >Exploratory</span>
-                        </div>
-                    </div>
-                    <div class="reveal-query-input-wrap">
-                        <input
-                            type="text"
-                            class="form-control"
-                            ref="queryInput"
-                            v-model="userQuery"
-                            :placeholder="searchInputPlaceholder"
-                            @focus="onQueryInputFocus"
-                            @blur="onQueryInputBlur"
-                            @input="onQueryInput"
-                            @keydown.enter.prevent="queryParse()"
-                            style="padding: 10px 300px 10px 10px; font-size: 11pt; height: auto;"
-                        />
-                        <div class="reveal-query-input-actions">
-                            <!-- Temporarily hidden while query helper is refined; set queryHelperLinkVisible to true to restore. -->
-                            <button
-                                v-if="queryHelperLinkVisible"
-                                type="button"
-                                class="btn btn-link p-0 query-helper-link"
-                                @click="openQueryHelperModal"
-                            >
-                                Need help?
-                            </button>
-                            <button class="btn btn-cfde reveal-query-submit-btn" style="min-width: 120px;" @click="queryParse()">Reveal</button>
-                        </div>
-                    </div>
-                    <b-modal
-                        v-model="queryHelperOpen"
-                        size="xl"
-                        title="Guided Query Builder"
-                        body-class="pb-4"
-                        hide-footer
-                        no-close-on-backdrop
-                    >
-                        <div class="small text-muted mb-3">
-                            Build a targeted search from CFDE evidence. The AI will draft both a scientifically grounded query and a research context you can review before search.
-                        </div>
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">1. Select Target Phenotype or Disease</label>
-                            <div class="small text-muted mb-1">
-                                Start by anchoring your search to a specific physiological trait or disease state (e.g., Waist-to-hip ratio, Type 2 Diabetes).
-                            </div>
-                            <input
-                                type="text"
-                                class="form-control"
-                                v-model="queryHelperPhenotypeInput"
-                                placeholder="Type to search CFDE phenotypes..."
-                            />
-                            <ul
-                                v-if="queryHelperPhenotypeSuggestions.length"
-                                class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
-                            >
-                                <li
-                                    v-for="opt in queryHelperPhenotypeSuggestions"
-                                    :key="'qh-pheno-' + opt.value"
-                                    class="query-helper-suggest-item px-2 py-1"
-                                >
-                                    <button
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 text-left w-100"
-                                        @click="onQueryHelperPickPhenotype(opt)"
-                                    >
-                                        <span class="font-weight-bold">{{ opt.label }}</span>
-                                        <span class="text-muted"> ({{ opt.value }})</span>
-                                    </button>
-                                </li>
-                            </ul>
-                            <div v-if="queryHelperSelectedPhenotypes.length" class="d-flex flex-wrap mt-2">
-                                <span
-                                    v-for="item in queryHelperSelectedPhenotypes"
-                                    :key="'qh-pheno-chip-' + item.value"
-                                    class="pill query-helper-pill mr-2 mb-2"
-                                >
-                                    {{ item.label }}
-                                    <button
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="removeQueryHelperPhenotype(item.value)"
-                                        aria-label="Remove phenotype"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            </div>
-                            <div
-                                v-if="queryHelperNoFactorPhenotypeLabels.length"
-                                class="small text-warning mt-1"
-                            >
-                                No factors returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
-                            </div>
-                        </div>
-
-                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Factors)</div>
-                        <div v-if="queryHelperFactorRows.length" class="small text-muted mb-2">
-                            Select 1-2 pathways to force the AI to investigate these specific mechanisms.
-                        </div>
-                        <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
-                            <b-spinner small class="mr-2"></b-spinner>
-                            Loading factors for selected phenotypes...
-                        </div>
-                        <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
-                            {{ queryHelperFactorError }}
-                        </div>
-                        <div v-else-if="queryHelperFactorRows.length" class="mb-3">
-                            <div class="form-group mb-2">
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    v-model="queryHelperClusterFilterInput"
-                                    placeholder="Filter gene set clusters (comma-separated keywords)"
-                                    @input="applyQueryHelperClusterFilterSelection"
-                                />
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-striped mb-0">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th style="width: 90px;">
-                                                <div class="d-flex align-items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="query-helper-factor-checkbox mr-2"
-                                                        :checked="queryHelperAllFactorsSelected"
-                                                        :indeterminate.prop="queryHelperSomeFactorsSelected"
-                                                        @change="toggleQueryHelperAllFactors($event)"
-                                                    />
-                                                    <span>Select</span>
-                                                </div>
-                                            </th>
-                                            <th style="width: 260px;">Phenotype</th>
-                                            <th>Gene set cluster</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="row in queryHelperFactorPageRows" :key="'qh-factor-' + row.key">
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    class="query-helper-factor-checkbox"
-                                                    :checked="!!queryHelperFactorSelection[row.key]"
-                                                    @change="toggleQueryHelperFactor(row.key, $event)"
-                                                />
-                                            </td>
-                                            <td>{{ row.phenotypeLabel }}</td>
-                                            <td>{{ row.factorLabel }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div v-if="queryHelperFactorRows.length > queryHelperFactorsPerPage" class="d-flex justify-content-end mt-2">
-                                <b-pagination
-                                    v-model="queryHelperFactorPage"
-                                    :total-rows="queryHelperFactorRows.length"
-                                    :per-page="queryHelperFactorsPerPage"
-                                    size="sm"
-                                    pills
-                                />
-                            </div>
-                        </div>
-                        <div v-else class="small text-muted mb-3">
-                            {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'First, select a phenotype above to view its associated biological mechanisms and pathways.' }}
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">Additional mechanism terms (optional)</label>
-                            <div class="small text-muted mb-1">
-                                Add extra mechanism keywords not captured by selected pathways.
-                            </div>
-                            <input
-                                type="text"
-                                class="form-control"
-                                v-model="queryHelperMechanismInput"
-                                placeholder="Add an extra mechanism term, then press Enter"
-                                @keydown.enter.prevent="addQueryHelperMechanismFromInput"
-                            />
-                            <div v-if="queryHelperMechanismTerms.length" class="d-flex flex-wrap mt-2">
-                                <span
-                                    v-for="term in queryHelperMechanismTerms"
-                                    :key="'qh-mech-chip-' + term"
-                                    class="pill query-helper-pill mr-2 mb-2"
-                                >
-                                    {{ term }}
-                                    <button
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="removeQueryHelperMechanism(term)"
-                                        aria-label="Remove mechanism term"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">3. Pin Specific Genes (Optional)</label>
-                            <div class="small text-muted mb-1">
-                                Leave empty to let the AI discover contextually novel genes. Pin specific genes to force the network to build a pathway around them.
-                            </div>
-                            <input
-                                type="text"
-                                class="form-control"
-                                v-model="queryHelperGeneInput"
-                                placeholder="Search and select a gene symbol"
-                                @input="onQueryHelperGeneInput"
-                                @keydown.enter.prevent="addQueryHelperGeneFromInput"
-                            />
-                            <ul
-                                v-if="queryHelperGeneSuggestions.length"
-                                class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
-                            >
-                                <li
-                                    v-for="gene in queryHelperGeneSuggestions"
-                                    :key="'qh-gene-suggest-' + gene"
-                                    class="query-helper-suggest-item px-2 py-1"
-                                >
-                                    <button
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 text-left w-100"
-                                        @click="selectQueryHelperGeneSuggestion(gene)"
-                                    >
-                                        {{ gene }}
-                                    </button>
-                                </li>
-                            </ul>
-                            <div v-if="queryHelperGenesOfInterest.length" class="d-flex flex-wrap mt-2">
-                                <span
-                                    v-for="gene in queryHelperGenesOfInterest"
-                                    :key="'qh-gene-chip-' + gene"
-                                    class="pill query-helper-pill mr-2 mb-2"
-                                >
-                                    {{ gene }}
-                                    <button
-                                        type="button"
-                                        class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="removeQueryHelperGene(gene)"
-                                        aria-label="Remove gene"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
-                            <label class="font-weight-bold mb-1">Research context (optional draft)</label>
-                            <textarea
-                                v-model="queryHelperDraftResearchContext"
-                                class="form-control"
-                                rows="3"
-                                placeholder="Optional: add context you want included when composing your query."
-                            ></textarea>
-                        </div>
-                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
-                            <button
-                                type="button"
-                                class="btn btn-link p-0 d-flex align-items-center"
-                                style="gap: 0.35rem;"
-                                @click="queryHelperAdvancedOpen = !queryHelperAdvancedOpen"
-                                :aria-expanded="queryHelperAdvancedOpen ? 'true' : 'false'"
-                                aria-controls="query-helper-advanced-retrieval-options"
-                            >
-                                <span class="font-weight-bold">Advanced retrieval options</span>
-                                <b-icon :icon="queryHelperAdvancedOpen ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></b-icon>
-                            </button>
-                            <div v-if="queryHelperAdvancedOpen" id="query-helper-advanced-retrieval-options" class="mt-2 border rounded p-2">
-                                <label class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
-                                    <input
-                                        type="checkbox"
-                                        :checked="queryHelperHardConstraintEnabled"
-                                        :disabled="!queryHelperHardConstraintEligible"
-                                        @change="queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
-                                    />
-                                    <span class="font-weight-bold">Use helper selections as hard retrieval constraints</span>
-                                </label>
-                                <div class="small text-muted">
-                                    Next, the LLM will extract search terms and generate research context for retrieval.
-                                    When this option is enabled, your selected phenotype and gene set cluster choices are still enforced during data retrieval.
-                                </div>
-                                <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
-                                    This option becomes available after selecting at least one phenotype and one gene set cluster.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div v-if="queryHelperError" class="small text-danger">{{ queryHelperError }}</div>
-                            <div class="ml-auto d-flex align-items-center">
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-secondary mr-2"
-                                    @click="queryHelperOpen = false"
-                                    :disabled="queryHelperComposing"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    v-if="queryHelperCanContinue"
-                                    type="button"
-                                    class="btn btn-cfde"
-                                    @click="continueWithQueryHelper"
-                                    :disabled="queryHelperComposing"
-                                >
-                                    <span v-if="queryHelperComposing">
-                                        <b-spinner small class="mr-1"></b-spinner>
-                                        Building...
-                                    </span>
-                                    <span v-else>Draft Query + Context</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div v-if="queryHelperCanContinue" class="small text-muted text-right mt-1">
-                            You can review and edit the drafted query and context before searching.
-                        </div>
-                    </b-modal>
-                    <div class="query-guidelines-panel">
-                        <button
-                            type="button"
-                            class="query-guidelines-toggle btn btn-link w-100 d-flex align-items-center text-decoration-none text-right"
-                            :aria-expanded="queryGuidelinesExpanded ? 'true' : 'false'"
-                            aria-controls="query-guidelines-content"
-                            id="query-guidelines-label"
-                            @click="queryGuidelinesExpanded = !queryGuidelinesExpanded"
-                        >
-                            <span>How to build your query</span>
-                        </button>
-                        <div
-                            v-show="queryGuidelinesExpanded"
-                            id="query-guidelines-content"
-                            role="region"
-                            aria-labelledby="query-guidelines-label"
-                            class="query-guidelines-content px-3 pb-3 small text-secondary border-top"
-                        >
-                            <h5 class="text-dark font-weight-bold mt-3 mb-3">Best Practices for Structuring Search Queries</h5>
-                            <p class="mb-3">
-                                To maximize precision and retrieve actionable mechanisms, structure your query around the principles below. The hybrid engine combines exact-match (lexical) and conceptual (semantic) retrieval—clear, entity-aware wording helps you bypass generic &quot;canonical&quot; results and align the graph with your intent.
-                            </p>
-                            <p class="mb-3 small border-left pl-3" style="border-left: 3px solid #f16822;">
-                                <strong class="text-dark">Four checks</strong> the extractor uses before suggesting alternate wording:
-                                explicit <strong>anchor</strong> (gene, protein, or concrete entity), a <strong>semantic net</strong> (mechanism or pathway concept),
-                                <strong>spatial</strong> anchoring (tissue or cell type), and a focused <strong>phenotypic</strong> outcome.
-                                When all four are satisfied, suggested queries are omitted on purpose.
-                            </p>
-
-                            <h6 class="text-dark font-weight-bold mt-3 mb-2">1. Anchor Your Query with Explicit Targets (Entity Forcing)</h6>
-                            <p class="mb-2">
-                                Purely conceptual searches are prone to the &quot;Canonical Shadow&quot;: the system may emphasize historically famous hub genes rather than the specific target you care about. If you are investigating a particular gene or protein, name it explicitly so the engine can anchor topology around that entity (this triggers structured gene targeting in extraction).
-                            </p>
-                            <ul class="mb-3 pl-3">
-                                <li><em>Suboptimal:</em> &quot;Find a kidney transporter mechanism…&quot; (tends toward heavily annotated, generic transporters).</li>
-                                <li><em>Optimal:</em> &quot;Find a kidney transporter mechanism involving SLC22A24…&quot; (anchors the network on your exact target).</li>
-                            </ul>
-
-                            <h6 class="text-dark font-weight-bold mt-3 mb-2">2. Define the Anatomical or Cellular Context (Spatial Anchoring)</h6>
-                            <p class="mb-2">
-                                Mechanisms are localized. State tissue, cell type, or subcellular compartment to avoid generic systemic hits and keep results tied to your area of interest.
-                            </p>
-                            <ul class="mb-3 pl-3">
-                                <li><em>Suboptimal:</em> &quot;Find a mechanism for metabolite handling.&quot;</li>
-                                <li><em>Optimal:</em> &quot;Find a mechanism for metabolite handling in the renal proximal tubule.&quot;</li>
-                            </ul>
-
-                            <h6 class="text-dark font-weight-bold mt-3 mb-2">3. Limit the Phenotypic Scope and Beware of &quot;Hub Gravity&quot;</h6>
-                            <p class="mb-2">
-                                Broad disease terms (e.g., &quot;heart disease&quot;) dilute the search vector—prefer specific traits or biomarkers (e.g., &quot;LDL cholesterol secretion&quot;). Also watch <strong class="text-dark">hub gravity</strong>: naming a highly pleiotropic hub (e.g., TP53 or SQSTM1) can pull in its most heavily annotated disease contexts and eclipse a narrower question. Prefer the most specific, localized mechanism you can state.
-                            </p>
-                            <ul class="mb-3 pl-3">
-                                <li><em>Suboptimal:</em> &quot;Find a mechanism that drives blood clotting and heart disease.&quot;</li>
-                                <li><em>Optimal:</em> &quot;Find a mechanism that alters the hepatic secretion of LDL cholesterol and fibrinogen.&quot;</li>
-                            </ul>
-
-                            <h6 class="text-dark font-weight-bold mt-3 mb-2">4. Use the &quot;Anchor + Semantic Net&quot; Formula</h6>
-                            <p class="mb-2">
-                                Combine an explicit target (<strong class="text-dark">the anchor</strong>) with a broader biochemical process (<strong class="text-dark">the semantic net</strong>) without over-constraining the clinical phenotype.
-                            </p>
-                            <p class="mb-2 font-weight-bold text-dark">
-                                Suggested template: &quot;Find a [Broad Mechanism / Semantic Net] involving [Explicit Gene Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype].&quot;
-                            </p>
-                            <p class="mb-1 font-weight-bold text-dark small">Example of a fully optimized query:</p>
-                            <blockquote class="query-guidelines-example mb-3 pl-3 border-left">
-                                <em>&quot;Find a mitochondrial metabolic reprogramming mechanism involving the TRAP1 chaperone in vascular smooth muscle cells that drives cellular senescence.&quot;</em>
-                            </blockquote>
-
-                            <p class="mb-0 pt-2 border-top">
-                                <strong class="text-dark">Why this matters:</strong>
-                                These patterns teach you how to drive the hybrid pipeline: explicit entities engage exact-match and grounding behavior, while a clear semantic net keeps retrieval interpretable—moving away from generic LLM-style prompts toward queries tuned for this Discovery Engine.
-                            </p>
-                        </div>
-                    </div>
+                <workflow-header @show-byor-tab="showByorTab" />
+                <div class="reveal-query-section">
+                    <workflow-ops-menu
+                        :hypothesis-generation-mode="hypothesisGenerationMode"
+                        :can-export-workflow="canExportWorkflow"
+                        :busy="workflowExportImportBusy"
+                        :query-builder-visible="queryHelperLinkVisible"
+                        @set-mode="onOpsSetMode"
+                        @export-workflow="exportWorkflowSnapshot"
+                        @import-workflow-file="onWorkflowImportFile"
+                        @open-query-builder="openQueryHelperModal"
+                        @open-query-guidelines="queryGuidelinesOpen = true"
+                    />
+                    <workflow-query-bar
+                        ref="workflowQueryBar"
+                        :user-query="userQuery"
+                        :search-input-placeholder="searchInputPlaceholder"
+                        @update:userQuery="onUserQueryUpdate"
+                        @query-focus="onQueryInputFocus"
+                        @query-blur="onQueryInputBlur"
+                        @reveal="queryParse"
+                    />
                 </div>
 
                 <!--
@@ -547,1616 +133,61 @@
                 </template>
 
                 <div v-if="steps && steps.length" style="display:flex; flex-direction: column;">
-                    <div v-if="workflowErrorSteps.length" class="mb-2">
-                        <div
-                            v-for="(errStep, ei) in workflowErrorSteps"
-                            :key="'reveal-wf-err-' + ei + '-' + (errStep.title || '')"
-                            class="alert alert-danger py-2 small mb-1"
-                            role="alert"
-                        >
-                            <strong>Error:</strong> {{ errStep.title }}
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:20px">
-                        <h4
-                            class="reveal-tab"
-                            :class="{ 'tab-active': showTab === 'terms' }"
-                            @click="showTab = 'terms'"
-                        >
-                            Search terms
-                        </h4>
-                        <h4
-                            class="reveal-tab"
-                            :class="{ 'tab-active': showTab === 'data', 'tab-inactive': !revealDataTabEnabled }"
-                            @click="revealDataTabEnabled && (showTab = 'data')"
-                        >
-                            Data
-                        </h4>
-                        <h4
-                            class="reveal-tab"
-                            :class="{ 'tab-active': showTab === 'results', 'tab-inactive': !revealResultsTabEnabled }"
-                            @click="revealResultsTabEnabled && (showTab = 'results')"
-                        >
-                            Results
-                        </h4>
-                    </div>
+                    <workflow-tab-bar
+                        :active-tab="showTab"
+                        :data-tab-enabled="revealDataTabEnabled"
+                        :results-tab-enabled="revealResultsTabEnabled"
+                        :workflow-error-steps="workflowErrorSteps"
+                        @select-tab="switchRevealTab"
+                    />
                     <div>
-                        <div
+                        <workflow-terms-panel
                             v-if="showTab === 'terms'"
-                            style="display:flex; flex-direction: column; gap: 12px; color: #555;"
+                            :extraction-step="revealExtractionStep"
+                            :extraction-step-time-label="extractionStepTimeLabel"
+                            :loading-search-criteria="loading_search_criteria"
+                            :gate-active="stepApprovalGateActive"
+                            :gate-step-id="stepApprovalGateStepId"
+                            :search-criteria-edit-rows="searchCriteriaEditRows"
+                            :multi-query-route-edit-rows="multiQueryRouteEditRows"
+                            :extraction-gate-done="searchCriteriaExtractionGateDone"
+                            :search-terms-extraction-expanded.sync="searchTermsExtractionExpanded"
+                            :extraction-ambiguity-check="extractionAmbiguityCheck"
+                            :extraction-ambiguity-dismissed="extractionAmbiguityDismissed"
+                            :use-per-route-search-terms-editor="usePerRouteSearchTermsEditor"
+                            :shared-research-context="sharedResearchContextTerm"
+                            :multi-query-routes="multiQueryRoutes"
+                            :alternative-queries="lastAlternativeQueries"
+                            :route-terms-edit-accordion-open="routeTermsEditAccordionOpen"
+                            @approve-gate="approveStepGate"
+                            @update:sharedResearchContext="sharedResearchContextTerm = $event"
+                            @dismiss-ambiguity="extractionAmbiguityDismissed = true"
+                            @toggle-route-terms-edit="toggleRouteTermsEditAccordion"
+                            @update-route-edit-field="onRouteEditFieldUpdate"
+                            @select-alternative-query="onAlternativeQuerySelected"
+                        />
+
+                        <workflow-data-panel
+                            v-if="showDataTabContent"
+                            ref="workflowDataPanel"
                         >
-                            <template v-if="revealExtractionStep">
-                                <div style="display:flex; gap: 8px; align-items: center;">
-                                    <b-spinner v-if="loading_search_criteria" small></b-spinner>
-                                    <span v-else>♦</span>
-                                    <span style="font-weight:bold">{{ revealExtractionStep.title }}</span>
-                                    <span>{{ formatTime(revealExtractionStep.time) || currStepTime(revealExtractionStep) }}</span>
-                                </div>
-                                <div
-                                    v-for="(substep, ii) in revealExtractionSubstepsForTermsTab"
-                                    :key="'ext-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
-                                    class="mt-2"
-                                >
-                                    <div
-                                        v-if="stepApprovalGateActive && stepApprovalGateStepId === '1'"
-                                        class="reveal-gate-box reveal-gate-box-tight mt-2 mb-1"
-                                    >
-                                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
-                                            <div class="small reveal-gate-text" style="line-height: 1.35;">
-                                                Search terms and research context are extracted from your query. Please review terms, edit them if necessary. When you are ready, hit the Continue button.
-                                                <br />
-                                                We will use these terms to retrieve phenotype-gene set cluster and gene-set evidence data from the
-                                                <a class="reveal-gate-link" href="https://cfdeknowledge.org/r/kc_gsb?source=all&model=cfde" target="_blank" rel="noopener noreferrer">PIGEAN</a>
-                                                knowledge graph.
-                                            </div>
-                                            <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
-                                                Continue
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div
-                                        v-if="(searchCriteriaEditRows.length || multiQueryRouteEditRows.length) && ((stepApprovalGateActive && stepApprovalGateStepId === '1') || searchCriteriaExtractionGateDone)"
-                                    >
-                                        <div class="query-guidelines-panel mb-2">
-                                            <div class="text-right">
-                                                <button
-                                                    type="button"
-                                                    class="query-guidelines-toggle btn btn-link d-inline-flex align-items-center text-decoration-none text-right"
-                                                    :aria-expanded="searchTermsExtractionExpanded ? 'true' : 'false'"
-                                                    aria-controls="search-terms-extraction-method-content"
-                                                    id="search-terms-extraction-method-label"
-                                                    @click="searchTermsExtractionExpanded = !searchTermsExtractionExpanded"
-                                                >
-                                                    <span>How search terms are extracted</span>
-                                                </button>
-                                            </div>
-                                            <div
-                                                v-show="searchTermsExtractionExpanded"
-                                                id="search-terms-extraction-method-content"
-                                                role="region"
-                                                aria-labelledby="search-terms-extraction-method-label"
-                                                class="query-guidelines-content px-3 pb-3 small text-secondary border-top"
-                                            >
-                                                <h5 class="text-dark font-weight-bold mt-3 mb-3">How REVEAL prepared this search</h5>
-                                                <p class="mb-3">
-                                                    The LLM first reads your query as a biological intent statement, then extracts structured terms that can drive retrieval:
-                                                    phenotypes or traits, mechanism terms, gene anchors, and a short research context.
-                                                </p>
-                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">1. Separate user anchors from route expansion</h6>
-                                                <p class="mb-2">
-                                                    Genes directly named or aliased by you are tracked separately from additional genes introduced by routing.
-                                                    This helps the workflow preserve your original targets while allowing the search to include downstream or related pathway members.
-                                                </p>
-                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">2. Create multiple biological retrieval directions</h6>
-                                                <p class="mb-2">
-                                                    The extractor first expands your single query into 10 candidate biological query variations.
-                                                    It then selects the 3 most complementary directions, such as tissue expression, perturbation response, and genetic association.
-                                                    Each selected direction gets its own biological query variation and route-specific terms.
-                                                </p>
-                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">3. Keep embedding text biological, not repository-specific</h6>
-                                                <p class="mb-2">
-                                                    Retrieval directions avoid literal repository names in the text sent for semantic matching.
-                                                    Instead, they describe modalities such as transcript co-expression, perturbation signatures, or variant-to-trait evidence.
-                                                    Program or modality preferences are handled separately as structured routing hints when supported.
-                                                </p>
-                                                <h6 class="text-dark font-weight-bold mt-3 mb-2">4. Preserve user genes during compact evidence building</h6>
-                                                <p class="mb-0">
-                                                    During data fetch, each route keeps top-scoring genes and also pins matching genes of interest when they appear in the returned data.
-                                                    Pinned genes are still judged by their scores and graph support, but they remain visible to the final synthesis step.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div
-                                            v-if="
-                                                extractionAmbiguityCheck &&
-                                                extractionAmbiguityCheck.has_ambiguity &&
-                                                !extractionAmbiguityDismissed
-                                            "
-                                            class="alert alert-warning py-2 px-3 reveal-extraction-section-gap"
-                                            role="alert"
-                                        >
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="small pr-2">
-                                                    <strong>Interpretation note:</strong>
-                                                    {{ extractionAmbiguityCheck.warning_message }}
-                                                    <div
-                                                        v-if="extractionAmbiguityCheck.anti_anchor_terms && extractionAmbiguityCheck.anti_anchor_terms.length"
-                                                        class="mt-1"
-                                                    >
-                                                        <strong>Detected anti-anchor terms:</strong>
-                                                        {{ extractionAmbiguityCheck.anti_anchor_terms.join(", ") }}
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    class="close p-0 m-0"
-                                                    aria-label="Dismiss"
-                                                    @click="extractionAmbiguityDismissed = true"
-                                                >
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div
-                                            v-if="usePerRouteSearchTermsEditor"
-                                            class="reveal-shared-research-context-section"
-                                        >
-                                            <label class="small font-weight-bold text-muted mb-1 d-block">Shared research context</label>
-                                            <textarea
-                                                class="form-control form-control-sm"
-                                                v-model="sharedResearchContextTerm"
-                                                rows="4"
-                                                style="min-height: 6.5em; resize: vertical;"
-                                                placeholder="Enter research context"
-                                                :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                            ></textarea>
-                                        </div>
-                                        <div
-                                            v-if="multiQueryRoutes.length || lastAlternativeQueries.length"
-                                            class="mt-3 d-flex flex-column flex-lg-row align-items-start"
-                                            style="gap: 16px;"
-                                        >
-                                            <div
-                                                v-if="multiQueryRoutes.length"
-                                                style="flex: 1 1 70%; width: 100%;"
-                                            >
-                                                <div class="font-weight-bold small text-muted mb-2">Data retrieval directions</div>
-                                                <div class="d-flex flex-column" style="gap: 8px;">
-                                                    <div
-                                                        v-for="route in multiQueryRoutes"
-                                                        :key="'multi-route-' + route.route_id"
-                                                        class="p-2"
-                                                    >
-                                                        <div class="mb-1">
-                                                            <strong>{{ route.category }}</strong>
-                                                        </div>
-                                                        <div class="small mb-1">{{ route.biological_query_variation }}</div>
-                                                        <div
-                                                            v-if="route.extracted_terms && route.extracted_terms.phenotype_terms && route.extracted_terms.phenotype_terms.length"
-                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
-                                                        >
-                                                            <strong>Phenotypes:</strong>
-                                                            <span
-                                                                v-for="term in route.extracted_terms.phenotype_terms"
-                                                                :key="route.route_id + '-phen-' + term"
-                                                                class="pill"
-                                                            >{{ term }}</span>
-                                                        </div>
-                                                        <div
-                                                            v-if="route.extracted_terms && route.extracted_terms.mechanism_terms && route.extracted_terms.mechanism_terms.length"
-                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
-                                                        >
-                                                            <strong>Mechanisms:</strong>
-                                                            <span
-                                                                v-for="term in route.extracted_terms.mechanism_terms"
-                                                                :key="route.route_id + '-mech-' + term"
-                                                                class="pill"
-                                                            >{{ term }}</span>
-                                                        </div>
-                                                        <div
-                                                            v-if="route.extracted_terms && route.extracted_terms.genes_of_interest && route.extracted_terms.genes_of_interest.length"
-                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
-                                                        >
-                                                            <strong>Genes:</strong>
-                                                            <span
-                                                                v-for="term in route.extracted_terms.genes_of_interest"
-                                                                :key="route.route_id + '-gene-' + term"
-                                                                class="pill"
-                                                            >{{ term }}</span>
-                                                        </div>
-                                                        <div
-                                                            v-if="route.extracted_terms && route.extracted_terms.tissues && route.extracted_terms.tissues.length"
-                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
-                                                        >
-                                                            <strong>Tissues:</strong>
-                                                            <span
-                                                                v-for="term in route.extracted_terms.tissues"
-                                                                :key="route.route_id + '-tissue-' + term"
-                                                                class="pill"
-                                                            >{{ term }}</span>
-                                                        </div>
-                                                        <div
-                                                            v-if="route.extracted_terms && route.extracted_terms.cell_types && route.extracted_terms.cell_types.length"
-                                                            class="small mb-1 d-flex flex-wrap align-items-baseline gap-1"
-                                                        >
-                                                            <strong>Cell types:</strong>
-                                                            <span
-                                                                v-for="term in route.extracted_terms.cell_types"
-                                                                :key="route.route_id + '-cell-' + term"
-                                                                class="pill"
-                                                            >{{ term }}</span>
-                                                        </div>
-                                                        <div class="small text-muted">
-                                                            <strong>Embedding text:</strong> {{ route.sanitized_query }}
-                                                        </div>
-                                                        <div v-if="route.rationale" class="small text-muted mt-1">
-                                                            <strong>Rationale:</strong> {{ route.rationale }}
-                                                        </div>
-                                                        <div
-                                                            v-if="usePerRouteSearchTermsEditor && getRouteEditRow(route)"
-                                                            class="route-terms-edit-panel mt-2"
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                class="route-terms-edit-toggle btn btn-link d-inline-flex align-items-center p-0 text-decoration-none"
-                                                                :aria-expanded="isRouteTermsEditExpanded(route.route_id) ? 'true' : 'false'"
-                                                                :aria-controls="'route-terms-edit-' + route.route_id"
-                                                                @click="toggleRouteTermsEditAccordion(route.route_id)"
-                                                            >
-                                                                <span class="font-weight-bold">Edit search terms</span>
-                                                                <b-icon
-                                                                    :icon="isRouteTermsEditExpanded(route.route_id) ? 'chevron-up' : 'chevron-down'"
-                                                                    class="ml-1"
-                                                                    aria-hidden="true"
-                                                                ></b-icon>
-                                                            </button>
-                                                            <div
-                                                                v-show="isRouteTermsEditExpanded(route.route_id)"
-                                                                :id="'route-terms-edit-' + route.route_id"
-                                                                role="region"
-                                                                class="route-terms-edit-content mt-2 pt-2 border-top"
-                                                            >
-                                                                <b-table
-                                                                    :items="routeRowEditFields()"
-                                                                    :fields="[
-                                                                        { key: 'type', label: 'Type', thStyle: { width: '34%' } },
-                                                                        { key: 'term', label: 'Term' }
-                                                                    ]"
-                                                                    small
-                                                                    striped
-                                                                    responsive="sm"
-                                                                    head-variant="light"
-                                                                    class="mb-0"
-                                                                >
-                                                                    <template #cell(type)="row">
-                                                                        <span>{{ row.item.type }}</span>
-                                                                    </template>
-                                                                    <template #cell(term)="row">
-                                                                        <input
-                                                                            type="text"
-                                                                            class="form-control form-control-sm"
-                                                                            :value="getRouteEditRow(route)[row.item.key]"
-                                                                            placeholder="Comma-separated terms"
-                                                                            :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                                            @input="updateRouteEditRowField(route, row.item.key, $event.target.value)"
-                                                                        />
-                                                                    </template>
-                                                                </b-table>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                v-if="lastAlternativeQueries.length"
-                                                class="reveal-alt-queries-block mb-0"
-                                                style="flex: 1 1 30%; width: 100%;"
-                                            >
-                                                <div class="font-weight-bold small text-muted mb-1">Suggested pro-anchor paths</div>
-                                                <ul class="reveal-alt-query-links mb-0">
-                                                    <li
-                                                        v-for="(opt, idx) in lastAlternativeQueries"
-                                                        :key="'alt-below-' + idx + '-' + opt"
-                                                    >
-                                                        <a
-                                                            href="#"
-                                                            class="reveal-alt-query-link"
-                                                            @click.prevent="onAlternativeQuerySelected(opt)"
-                                                        >{{ opt }}</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <b-table
-                                            v-if="!usePerRouteSearchTermsEditor"
-                                            :items="searchCriteriaEditRows"
-                                            :fields="[
-                                                { key: 'type', label: 'Type', thStyle: { width: '34%' } },
-                                                { key: 'term', label: 'Term' }
-                                            ]"
-                                            small
-                                            striped
-                                            responsive="sm"
-                                            head-variant="light"
-                                            class="mb-2"
-                                        >
-                                            <template #cell(type)="row">
-                                                <span>{{ row.item.type }}</span>
-                                            </template>
-                                            <template #cell(term)="row">
-                                                <textarea
-                                                    v-if="row.item.type === 'Research context'"
-                                                    class="form-control form-control-sm"
-                                                    v-model="row.item.term"
-                                                    rows="4"
-                                                    style="min-height: 6.5em; resize: vertical;"
-                                                    placeholder="Enter research context"
-                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                ></textarea>
-                                                <input
-                                                    v-else
-                                                    type="text"
-                                                    class="form-control form-control-sm"
-                                                    v-model="row.item.term"
-                                                    placeholder="Comma-separated terms"
-                                                    :disabled="!(stepApprovalGateActive && stepApprovalGateStepId === '1')"
-                                                />
-                                            </template>
-                                        </b-table>
-                                    </div>
-                                </div>
+                            <template #data-viz>
+                                <factor-base-reveal-heatmap
+                                    v-if="dataVizReady"
+                                    ref="factorBaseRevealHeatmap"
+                                    :key="'fbr-heatmap-' + workflowVisualKey + '-' + factorDataTableRowsFiltered.length"
+                                    :factor-data="factorData"
+                                    :factor-data-table-rows="factorDataTableRowsFiltered"
+                                    :phenotype-description-by-id="phenotypeDescriptionById"
+                                    height="auto"
+                                />
                             </template>
-                        </div>
+                        </workflow-data-panel>
 
-                        <div
-                            v-if="showTab === 'data'"
-                            style="display:flex; flex-direction: column; gap: 12px; color: #555;"
-                        >
-                            <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
-                                <div
-                                    v-if="stepApprovalGateActive && stepApprovalGateStepId === '2'"
-                                    class="reveal-gate-box mb-3"
-                                >
-                                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="gap: 12px;">
-                                        <div class="small reveal-gate-text" style="line-height: 1.35;">
-                                            Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
-                                            Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
-                                            REVEAL will generate mechanistic hypotheses using the data.
-                                        </div>
-                                        <button class="btn reveal-gate-btn reveal-query-submit-btn" style="min-width: 120px;" @click="approveStepGate">
-                                            Continue
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mb-1">
-                                    <div class="flex-grow-1">
-                                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
-                                            Selected {{ phenotypeCount }} phenotype{{ phenotypeCount !== 1 ? 's' : '' }} and {{ factorCount }} gene set cluster{{ factorCount !== 1 ? 's' : '' }} relevant to research context.
-                                        </div>
-                                        <ul v-if="hybridSearchMetaSummaryLines.length" class="mb-2 pl-3 text-secondary small">
-                                            <li v-for="(line, idx) in hybridSearchMetaSummaryLines" :key="`hybrid-meta-${idx}`">{{ line }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-for="step in revealDataSteps" :key="'reveal-data-' + step.id" class="status">
-                                <div style="display:flex; gap: 5px; align-items: center;">
-                                    <b-spinner v-if="dataStepShowsSpinner(step)" small></b-spinner>
-                                    <span v-else-if="dataStepShowsGatePause(step)">▶</span>
-                                    <span v-else-if="step.substeps && step.substeps.length">{{ dataFetchDirectionsExpanded ? '▼' : '▶' }}</span>
-                                    <span v-else>♦</span>
-                                    <button
-                                        type="button"
-                                        class="btn btn-link p-0 text-left font-weight-bold"
-                                        :aria-expanded="dataFetchDirectionsExpanded ? 'true' : 'false'"
-                                        aria-controls="data-fetch-directions-content"
-                                        @click="dataFetchDirectionsExpanded = !dataFetchDirectionsExpanded"
-                                    >
-                                        {{ step.title }}
-                                    </button>
-                                    <span>{{ formatTime(step.time) || currStepTime(step) }}</span>
-                                </div>
-                                <div
-                                    v-if="dataFetchDirectionsExpanded"
-                                    id="data-fetch-directions-content"
-                                    class="sub-status mt-1"
-                                    style="display:flex; flex-direction: column; padding-left: 18px;"
-                                >
-                                    <div
-                                        v-for="(substep, ii) in (step.substeps || [])"
-                                        :key="'ds-' + step.id + '-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
-                                        class="mb-2"
-                                    >
-                                        <div class="small font-weight-bold mb-1">{{ substep.title }}</div>
-                                        <div
-                                            v-if="substep.result && (substep.result.title || (substep.id !== '2.h2' && substep.result.result != null))"
-                                            style="padding-left: 8px;"
-                                        >
-                                            <div v-if="substep.result.title" v-html="substep.result.title"></div>
-                                            <pre
-                                                v-if="substep.id !== '2.h2' && substep.result.result != null"
-                                                class="reveal-data-step-pre"
-                                            >{{ substep.result.result }}</pre>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <div v-if="(genesAndFactorValuesLoaded || loadComplete) && factorDataTableRows.length">
-                            <!--
-                            <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
-                                <div class="d-flex flex-column gap-2" style="max-width: calc(100% - 100px);">
-                                    <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                        <strong>Phenotype:</strong>
-                                        <span class="pill" v-for="p in phenotypeList" :key="p">{{ getPhenotypeDisplay(p) }}</span>
-                                    </div>
-                                    <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                        <strong>Factors:</strong>
-                                        <span class="pill" v-for="f in factorLabelsListDisplay" :key="f">{{ f }}</span>
-                                    </div>
-                                </div>
-                                <span class="small text-muted">{{ display_phenotypes_factors ? 'show less' : 'show more' }}</span>
-                            </div>
-                            -->
-                            <div class="criteria-detail">
-                            <div class="mt-2">
-                                <div class="mb-4" style="margin-top:20px;">
-                                    <factor-base-reveal-heatmap
-                                        ref="factorBaseRevealHeatmap"
-                                        :factor-data="factorData"
-                                        :factor-data-table-rows="factorDataTableRowsFiltered"
-                                        :phenotype-description-by-id="phenotypeDescriptionById"
-                                        height="auto"
-                                    />
-                                </div>
-                                    <!-- Phenotype path: Selected Rationale section above table -->
-                                    <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
-                                        <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
-                                        <ul class="list-unstyled small text-muted mb-0">
-                                            <li v-for="item in phenotypeRationaleList" :key="item.phenotype" class="mb-2">
-                                                <strong>{{ getPhenotypeDisplay(item.phenotype) }}:</strong> {{ item.rationale }}
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="d-flex justify-content-end mb-2">
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
-                                            @click="downloadLastHybridSearchRawJson"
-                                        >
-                                            <b-icon icon="download" class="mr-1" aria-hidden="true" />
-                                            Raw data
-                                        </button>
-                                    </div>
-                                    <div>
-                                        <!-- Phenotype path: custom table, no rationale column -->
-                                        <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
-                                            <thead variant="light">
-                                                <tr>
-                                                    <th style="width: 72px;">Included</th>
-                                                    <th style="width: auto;">Phenotype</th>
-                                                    <th style="width: auto;">Fetch direction</th>
-                                                    <th style="width: 120px;">Number of gene sets</th>
-                                                    <th style="width: 110px;">Number of genes</th>
-                                                    <!--<th style="width: auto;">Top gene sets</th>-->
-                                                    <th style="width: 300px;">Genes and gene sets in cluster</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody v-for="row in mainFactorTableRowsPaged" :key="getRowKey(row)">
-                                                <tr>
-                                                    <td>
-                                                        <div class="text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        :checked="isPairIncluded(row)"
-                                                        class="form-check-input d-inline-block"
-                                                        aria-label="Included"
-                                                        @change="onPairIncludedToggle(row, $event.target.checked)"
-                                                    />
-                                                        </div>
-                                                    </td>
-                                                    <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                                    <td>{{ getFetchDirectionDisplay(row) }}</td>
-                                                    <td class="text-center">{{ getGeneSetCountForRow(row) }}</td>
-                                                    <td class="text-center">{{ getGeneCountForRow(row) }}</td>
-                                                    <!--
-                                                    <td>
-                                                        <div style="display:flex; flex-direction: column; gap: 3px">
-                                                            <div v-for="(geneset, index) in row.top_gene_sets" class="small" style="display: flex; gap: 5px">
-                                                                <span>{{ geneset }}</span>
-                                                                <span>[{{ row.top_gene_set_programs[index] }}]</span>
-                                                                <a role="button" v-if="row.top_gene_set_programs[index] === 'gtex'" @click="getProvenance(geneset, row.top_gene_set_programs[index])">info</a>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    -->
-                                                    <td style="text-align: center;">
-                                                        <button
-                                                            class="btn btn-sm btn-outline-primary"
-                                                            @click="toggleFactorGenesRow({ item: row })"
-                                                        >
-                                                            {{ isFactorRowExpanded(row) ? 'Hide' : 'Show' }}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr v-if="isFactorRowExpanded(row)">
-                                                    <td colspan="6" class="p-0 border-0">
-                                                        <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
-                                                            <div class="px-3 pt-2 pb-0 w-100">
-                                                                <factor-base-reveal-network
-                                                                    v-if="getFactorConnectivityNetwork(row) && getFactorConnectivityNetwork(row).nodes.length"
-                                                                    :network="getFactorConnectivityNetwork(row)"
-                                                                    :height="220"
-                                                                    :show-popup-button="true"
-                                                                    gene-node-metric-key="gwas_support"
-                                                                    edge-distance-metric-key="functional_support"
-                                                                    @open-popup="openFactorConnectivityPopup(row)"
-                                                                />
-                                                            </div>
-                                                            <div v-if="getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                                <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                                <!--
-                                                                <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
-                                                                    <span>{{ gs.geneset }}</span>
-                                                                    <span>[{{ gs.program }}]</span>
-                                                                    <a role="button" v-if="gs.program === 'gtex'" @click="getProvenance(gs.geneset, gs.program)">info</a>
-                                                                </div>
-                                                                -->
-                                                                <b-table
-                                                                    striped
-                                                                    hover
-                                                                    small
-                                                                    responsive="sm"
-                                                                    head-variant="light"
-                                                                    :items="getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)"
-                                                                    :fields="[
-                                                                        { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                        { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                        { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                                    ]"
-                                                                >
-                                                                    <template #cell(geneset)="gsRow">
-                                                                        <a
-                                                                            :href="cfdeExploreAssociationHref(row.phenotype, gsRow.item.geneset, gsRow.item.program)"
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            class="cfde-explore-geneset-link truncate-cell d-inline-block"
-                                                                            :title="gsRow.item.geneset"
-                                                                            style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                        >{{ gsRow.item.geneset }}</a>
-                                                                    </template>
-                                                                    <template #cell(actions)="gsRow">
-                                                                        <button
-                                                                            v-if="gsRow.item.program === 'gtex'"
-                                                                            class="btn btn-sm btn-outline-primary"
-                                                                            @click="onGeneSetRowToggled(gsRow)"
-                                                                        >
-                                                                            {{ gsRow.detailsShowing ? 'Hide' : 'Show' }}
-                                                                        </button>
-                                                                    </template>  
-                                                                    <template #row-details="gsRow">
-                                                                        <div style="padding: 10px;">
-                                                                            <!--
-                                                                            <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
-                                                                            <pre>{{ gene_set_sources[gsRow.item.geneset] }}</pre>
-                                                                            -->
-                                                                            <div v-if="gene_set_sources[gsRow.item.geneset]">
-                                                                                <b-card>
-                                                                                    <a :href="gene_set_sources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gsRow.item.geneset].geneSet }}</a>
-
-                                                                                    <ul>
-                                                                                        <li v-for="(rel, i) in gene_set_sources[gsRow.item.geneset].relations" :key="i" class="text-muted small">
-                                                                                            <div>
-                                                                                                <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                via 
-                                                                                                <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
-                                                                                                ({{ rel.method.direction }})
-                                                                                            </div>
-                                                                                        </li>
-                                                                                    </ul>
-                                                                                </b-card>
-                                                                            </div>
-                                                                            <div v-else>
-                                                                                no data available yet.
-                                                                            </div>
-                                                                        </div>
-                                                                    </template>  
-                                                                </b-table>
-                                                            </div>
-                                                            <div class="subtable-container py-2 px-3" style="flex:1">
-                                                                <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
-                                                                <b-table
-                                                                    v-if="!loadingGenesForFactor[getRowKey(row)]"
-                                                                    striped
-                                                                    hover
-                                                                    small
-                                                                    responsive="sm"
-                                                                    head-variant="light"
-                                                                    :items="getGenesForFactor(row.phenotype, row.factor, row.fetched_direction)"
-                                                                    :fields="[
-                                                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                                    ]"
-                                                                    :per-page="subtablePerPage"
-                                                                    :current-page="getSubtableCurrentPage(row)"
-                                                                />
-                                                                <b-pagination
-                                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length > subtablePerPage"
-                                                                    v-model="subtableCurrentPages[getRowKey(row)]"
-                                                                    class="pagination-sm justify-content-center mt-2"
-                                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length"
-                                                                    :per-page="subtablePerPage"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </b-table-simple>
-                                        <!-- Association path: standard b-table, one rationale per row -->
-                                        <b-table
-                                            v-else
-                                            :items="mainFactorTableRowsPaged"
-                                            primary-key="_rowKey"
-                                            :fields="[
-                                                { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
-                                                { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'fetchDirection', label: 'Fetch direction', thStyle: { width: '180px' } },
-                                                { key: 'geneSetCount', label: 'Number of gene sets', thStyle: { width: '120px' }, tdClass: 'text-center' },
-                                                { key: 'geneCount', label: 'Number of genes', thStyle: { width: '110px' }, tdClass: 'text-center' },
-                                                //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
-                                                { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
-                                                { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
-                                            ]"
-                                            small
-                                            striped
-                                            hover
-                                            head-variant="light"
-                                        >
-                                            <template #cell(included)="row">
-                                                <div class="text-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        :checked="isPairIncluded(row.item)"
-                                                        class="form-check-input d-inline-block"
-                                                        aria-label="Included in selection"
-                                                        @change="onPairIncludedToggle(row.item, $event.target.checked)"
-                                                    />
-                                                </div>
-                                            </template>
-                                            <template #cell(phenotype)="row">
-                                                {{ getPhenotypeDisplay(row.item.phenotype) }}
-                                            </template>
-                                            <template #cell(fetchDirection)="row">
-                                                {{ getFetchDirectionDisplay(row.item) }}
-                                            </template>
-                                            <template #cell(geneSetCount)="row">
-                                                {{ getGeneSetCountForRow(row.item) }}
-                                            </template>
-                                            <template #cell(geneCount)="row">
-                                                {{ getGeneCountForRow(row.item) }}
-                                            </template>
-                                            <template #cell(top_gene_sets)="row">
-                                                <span class="small">{{ row.item.top_gene_sets }}</span>
-                                            </template>
-                                            <template #cell(rationale)="row">
-                                                <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
-                                                <span v-else class="small text-muted">—</span>
-                                            </template>
-                                            <template #cell(view_genes)="row">
-                                                <button
-                                                    class="btn btn-sm btn-outline-primary"
-                                                    @click="toggleFactorGenesRow(row)"
-                                                >
-                                                    {{ isFactorRowExpanded(row.item) ? 'Hide' : 'Show' }}
-                                                </button>
-                                            </template>
-                                            <template #row-details="row">
-                                                <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
-                                                    <div class="px-3 pt-2 pb-0 w-100">
-                                                        <factor-base-reveal-network
-                                                            v-if="getFactorConnectivityNetwork(row.item) && getFactorConnectivityNetwork(row.item).nodes.length"
-                                                            :network="getFactorConnectivityNetwork(row.item)"
-                                                            :height="220"
-                                                            :show-popup-button="true"
-                                                            gene-node-metric-key="gwas_support"
-                                                            edge-distance-metric-key="functional_support"
-                                                            @open-popup="openFactorConnectivityPopup(row.item)"
-                                                        />
-                                                    </div>
-                                                    <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                        <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                        <!--
-                                                        <div v-for="gs in getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
-                                                            <span>{{ gs.geneset }}</span>
-                                                            <span>[{{ gs.program }}]</span>
-                                                            <a role="button" v-if="gs.program === 'gtex'" @click="getProvenance(gs.geneset, gs.program)">info</a>
-                                                        </div>
-                                                        -->
-                                                        <b-table
-                                                            striped
-                                                            hover
-                                                            small
-                                                            responsive="sm"
-                                                            head-variant="light"
-                                                            :items="getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
-                                                            :fields="[
-                                                                { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                            ]"
-                                                        >
-                                                            <template #cell(geneset)="gsRow">
-                                                                <a
-                                                                    :href="cfdeExploreAssociationHref(row.item.phenotype, gsRow.item.geneset, gsRow.item.program)"
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    class="cfde-explore-geneset-link truncate-cell d-inline-block"
-                                                                    :title="gsRow.item.geneset"
-                                                                    style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                >{{ gsRow.item.geneset }}</a>
-                                                            </template>
-                                                            <template #cell(actions)="gsRow">
-                                                                <button
-                                                                    v-if="gsRow.item.program === 'gtex'"
-                                                                    class="btn btn-sm btn-outline-primary"
-                                                                    @click="onGeneSetRowToggled(gsRow)"
-                                                                >
-                                                                    {{ gsRow.detailsShowing ? 'Hide' : 'Show' }}
-                                                                </button>
-                                                            </template>  
-                                                            <template #row-details="gsRow">
-                                                                <div style="padding: 10px;">
-                                                                    <!--
-                                                                    <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
-                                                                    <pre>{{ gene_set_sources[gsRow.item.geneset] }}</pre>
-                                                                    -->
-                                                                    <div v-if="gene_set_sources[gsRow.item.geneset]">
-                                                                        <b-card>
-                                                                            <a :href="gene_set_sources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gsRow.item.geneset].geneSet }}</a>
-
-                                                                            <ul>
-                                                                                <li v-for="(rel, i) in gene_set_sources[gsRow.item.geneset].relations" :key="i" class="text-muted small">
-                                                                                    <div>
-                                                                                        <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        via 
-                                                                                        <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
-                                                                                        ({{ rel.method.direction }})
-                                                                                    </div>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </b-card>
-                                                                    </div>
-                                                                    <div v-else>
-                                                                        no data available yet.
-                                                                    </div>
-                                                                </div>
-                                                            </template>  
-                                                        </b-table>
-                                                    </div>
-                                                    <div class="subtable-container py-2" style="flex:1">
-                                                        <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
-                                                        <b-table
-                                                            striped
-                                                            hover
-                                                            small
-                                                            responsive="sm"
-                                                            head-variant="light"
-                                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
-                                                            :fields="[
-                                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                            ]"
-                                                            :per-page="subtablePerPage"
-                                                            :current-page="getSubtableCurrentPage(row.item)"
-                                                        />
-                                                        <b-pagination
-                                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length > subtablePerPage"
-                                                            v-model="subtableCurrentPages[getRowKey(row.item)]"
-                                                            class="pagination-sm justify-content-center mt-2"
-                                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length"
-                                                            :per-page="subtablePerPage"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </b-table>
-                                        <b-pagination
-                                            v-if="(isPhenotypePath ? factorDataTableRowsWithRationaleMeta.length : factorDataTableRows.length) > mainTablePerPage"
-                                            v-model="mainTableCurrentPage"
-                                            class="pagination-sm justify-content-center mt-2"
-                                            :total-rows="isPhenotypePath ? factorDataTableRowsWithRationaleMeta.length : factorDataTableRows.length"
-                                            :per-page="mainTablePerPage"
-                                        />
-                                    </div>
-                            </div>
-                            </div>
-                        </div>
-                        </div>
-    
-                        <div v-if="showTab === 'results'" style="display:flex; flex-direction: column; gap: 12px;">
-                            <div
-                                v-if="isMechanismHypothesisLoading"
-                                class="d-flex align-items-center gap-2 my-2"
-                                style="color: #555;"
-                            >
-                                <b-spinner small></b-spinner>
-                                <span class="font-weight-bold">LLM: Generating mechanistic hypotheses</span>
-                                <span v-if="revealHypothesisStep" class="text-muted small">{{ formatTime(revealHypothesisStep.time) || currStepTime(revealHypothesisStep) }}</span>
-                            </div>
-                            <div
-                                v-if="!isMechanismHypothesisLoading && error_mechanisms"
-                                class="alert alert-danger d-flex align-items-center justify-content-between mt-2"
-                                role="alert"
-                            >
-                                <span>{{ error_msg_mechanisms }}</span>
-                                <button type="button" class="btn btn-sm btn-primary" @click="retryMechanismHypotheses">Retry</button>
-                            </div>
-                            <div v-if="!isMechanismHypothesisLoading && showMechanismResultsPanel">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="font-weight-bold" style="color: #FF6600; font-size: 1.2em;">
-                                    <template v-if="mechanisms && mechanisms.length">Generated {{ mechanisms.length }} mechanistic hypotheses.</template>
-                                    <template v-else>Mechanistic hypotheses</template>
-                                </div>
-                                <button
-                                    v-if="canDownloadMechanismReport"
-                                    class="btn btn-outline-secondary btn-sm"
-                                    @click="downloadReport"
-                                >
-                                    Download report
-                                </button>
-                            </div>
-                            <div
-                                v-if="mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.warning_flag"
-                                class="alert alert-warning small mb-3"
-                                role="status"
-                            >
-                                <div class="font-weight-bold text-dark mb-1">Diagnostic warning</div>
-                                <div class="mb-0">{{ mechanismDiagnosticAssessment.warning_flag }}</div>
-                                <div
-                                    v-if="mechanismDiagnosticAssessment.suggested_optimized_query"
-                                    class="mt-2 pt-2 border-top"
-                                    style="border-color: rgba(0,0,0,0.08) !important;"
-                                >
-                                    <div class="font-weight-bold small mb-1">Suggested optimized query</div>
-                                    <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
-                                    <button
-                                        type="button"
-                                        class="btn btn-cfde btn-sm"
-                                        @click="applySuggestedOptimizedQuery(mechanismDiagnosticAssessment.suggested_optimized_query)"
-                                    >
-                                        Use this query and run Reveal
-                                    </button>
-                                </div>
-                            </div>
-                            <div
-                                v-if="mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.can_generate_hypothesis === false"
-                                class="alert alert-secondary border small mb-3"
-                                role="status"
-                            >
-                                <div class="font-weight-bold text-dark mb-1">No hypothesis generated (diagnostic assessment)</div>
-                                <p class="mb-2 small mb-0">{{ mechanismDiagnosticAssessment.rejection_reason || "The model declined to invent connections not supported by the retrieved graph." }}</p>
-                                <div
-                                    v-if="hypothesisGenerationMode === 'strict'"
-                                    class="mt-2 pt-2 border-top"
-                                    style="border-color: rgba(0,0,0,0.08) !important;"
-                                >
-                                    <p class="small mb-2">
-                                        Retrieval and strict graph rules blocked a mechanism. You can run again in <strong>Relaxed</strong> mode to ask the model for a best-effort, explicitly warned hypothesis (still grounded in the retrieved CSV).
-                                    </p>
-                                    <button type="button" class="btn btn-cfde btn-sm" @click="retryMechanismHypothesesRelaxed">
-                                        Try in relaxed (exploratory) mode
-                                    </button>
-                                </div>
-                                <div v-if="mechanismDiagnosticAssessment.suggested_optimized_query" class="mt-2 pt-2 border-top">
-                                    <div class="font-weight-bold small mb-1">Suggested optimized query</div>
-                                    <div class="small text-dark mb-2" style="white-space: pre-wrap;">{{ mechanismDiagnosticAssessment.suggested_optimized_query }}</div>
-                                    <button
-                                        type="button"
-                                        class="btn btn-cfde btn-sm"
-                                        @click="applySuggestedOptimizedQuery(mechanismDiagnosticAssessment.suggested_optimized_query)"
-                                    >
-                                        Use this query and run Reveal
-                                    </button>
-                                </div>
-                            </div>
-                            <div v-if="mechanismResultsDetailVisible">
-                            <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_mechanisms = !display_mechanisms">
-                                <div v-if="searchCriteria && searchCriteria[1]" class="text-muted">In the context of <strong>{{ searchCriteria[1].values }}</strong></div>
-                                <!--<span class="small text-muted">{{ display_mechanisms ? 'show less' : 'show more' }}</span>-->
-                            </div>
-                            <div :class="{ collapsed: !display_mechanisms }" class="criteria-detail">
-                                <div v-if="getReportSessionSummary() !== '—'" class="mb-4">
-                                    <strong class="d-block mb-2" style="font-size: 1.1em;">Summary</strong>
-                                    <div class="text-muted">{{ getReportSessionSummary() }}</div>
-                                </div>
-                                <div class="d-flex flex-column gap-4" style="gap:40px;">
-                                    <div
-                                        v-for="(mechanism, idx) in mechanisms"
-                                        :key="idx"
-                                        class="mechanism-card rounded border shadow-sm bg-light overflow-hidden"
-                                    >
-                                        <div
-                                            v-if="hypothesisLastRunMode === 'relaxed' || mechanismDiagnosticAssessment && mechanismDiagnosticAssessment.exploratory_mode === true"
-                                            class="px-3 py-2 small mb-0 border-bottom"
-                                            style="background: #fff8e6; border-color: #f0d060 !important; color: #5c4a00;"
-                                            role="status"
-                                        >
-                                            <strong>Exploratory hypothesis.</strong>
-                                            This run used relaxed mode: check diagnostic warnings and Biolink map edge validation—speculative interpretation may bridge gaps not proven by single-hop graph evidence.
-                                        </div>
-                                        <div class="mechanism-card-header px-3 py-3 bg-secondary text-white d-flex align-items-center flex-wrap gap-2">
-                                            <div class="font-weight-bold" style="font-size: 1.1em;">{{ mechanism.group_name }}</div>
-                                        </div>
-                                        <div class="" style="display:flex; flex-direction: column; gap:20px; padding:20px">
-                                            <div
-                                                class="d-flex flex-column flex-lg-row align-items-stretch"
-                                                style="gap: 20px;"
-                                            >
-                                                <div class="mechanism-hypothesis-rationale-col flex-grow-1" style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
-                                                    <div class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Mechanistic hypothesis</div>
-                                                        <div class="font-size-1">{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div
-                                                        v-if="mechanism.pathway_shift_rationale"
-                                                        class="alert alert-warning py-2 px-3 mb-0 small"
-                                                        role="status"
-                                                    >
-                                                        <strong>Why the hypothesis shifted:</strong>
-                                                        {{ mechanism.pathway_shift_rationale }}<span class="ai-gen">AI</span>
-                                                    </div>
-                                                    <div class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Rationale</div>
-                                                        <div class="small">{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.cross_route_crosstalk_model" class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Cross-route crosstalk model</div>
-                                                        <div class="small">{{ mechanism.cross_route_crosstalk_model }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.cellular_assignment" class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Cellular assignment</div>
-                                                        <div class="small">{{ formatCellularAssignmentDisplay(mechanism.cellular_assignment) }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.depot_contrast" class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Depot contrast</div>
-                                                        <div class="small">{{ formatDepotContrastDisplay(mechanism.depot_contrast) }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.effect_direction_notes && mechanism.effect_direction_notes.length" class="">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Effect direction notes</div>
-                                                        <ul class="small mb-0 pl-3">
-                                                            <li
-                                                                v-for="(note, nidx) in mechanism.effect_direction_notes"
-                                                                :key="'dir-' + idx + '-' + nidx + '-' + (note.gene || '')"
-                                                            >
-                                                                <strong>{{ note.gene }}</strong>: {{ note.direction || 'unknown' }}<span v-if="note.note"> — {{ note.note }}</span><span class="ai-gen">AI</span>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
-                                                    class="mechanism-hypothesis-map-col flex-grow-1"
-                                                    style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;"
-                                                >
-                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">
-                                                        Hypothesis map (biological mechanism)
-                                                    </div>
-                                                    <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="small text-muted mb-2">
-                                                        {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
-                                                    </p>
-                                                    <div class="bg-white border rounded flex-grow-1" style="min-height: 220px;">
-                                                        <factor-base-reveal-network
-                                                            :ref="'mechanismHypothesisMap-' + idx"
-                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
-                                                            :network="mechanism.core_spine_network"
-                                                            :genes="mechanism.candidate_genes || mechanism.genes || []"
-                                                            :width="640"
-                                                            :height="280"
-                                                            :show-popup-button="true"
-                                                            :is-mechanism-flow-map="true"
-                                                            :is-biolink-map="isMechanismUsingBiolinkMap(mechanism)"
-                                                            :show-hypothesis-map-view-toggle="hasMechanismBiolinkNetwork(mechanism)"
-                                                            :show-original-hypothesis-map="!isMechanismUsingBiolinkMap(mechanism)"
-                                                            @hypothesis-original-map="
-                                                                setMechanismMapViewMode(idx, $event ? 'original' : 'biolink')
-                                                            "
-                                                            @open-popup="openNetworkPopup(idx, { hypothesisMap: true })"
-                                                        />
-                                                    </div>
-                                                    <p
-                                                        v-if="isMechanismUsingBiolinkMap(mechanism)"
-                                                        class="small text-muted mt-2 mb-0"
-                                                    >
-                                                        Nodes in this view are mapped to Biolink Model categories (classes), and edges are labeled with Biolink predicates to standardize relationship types across knowledge graphs.
-                                                        Edge support is then checked through the NCATS Biomedical Data Translator using TRAPI queries against Translator knowledge sources.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div v-if="mechanism.relevance" class="mb-3">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevance</div>
-                                                <div class="small">{{ mechanism.relevance }}</div>
-                                            </div>
-                                            <div v-if="candidateInventoryRows(mechanism.candidate_inventory).length" class="mb-3">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-2">Evidence-derived candidate inventory</div>
-                                                <b-table
-                                                    small
-                                                    striped
-                                                    hover
-                                                    responsive="sm"
-                                                    head-variant="light"
-                                                    :items="candidateInventoryRows(mechanism.candidate_inventory)"
-                                                    :fields="[
-                                                        { key: 'category', label: 'Role', thStyle: { width: '230px' } },
-                                                        { key: 'symbol', label: 'Gene', thStyle: { width: '95px' } },
-                                                        { key: 'provenance', label: 'Route provenance', thStyle: { width: '180px' } },
-                                                        { key: 'reason', label: 'Reason / note' }
-                                                    ]"
-                                                >
-                                                    <template #cell(symbol)="row">
-                                                        <span class="small pill">{{ row.item.symbol }}</span>
-                                                    </template>
-                                                    <template #cell(provenance)="row">
-                                                        <span>{{ row.item.provenance }}</span>
-                                                    </template>
-                                                </b-table>
-                                            </div>
-                                            <div style="display:flex; flex-direction: row; gap:20px">
-                                                <div style="display:flex; flex-direction: column; flex:1; overflow-x: auto;">
-                                                    <div class="mb-3">
-                                                        <template v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
-                                                            <!--
-                                                            <div class="candidate-genes-legend mb-2 small">
-                                                                <span class="candidate-genes-legend-pill ai-generated">AI Generated</span>
-                                                                <span class="candidate-genes-legend-pill raw-data">From Raw Data</span>
-                                                            </div>
-                                                            -->
-                                                            <b-table
-                                                                small
-                                                                striped
-                                                                hover
-                                                                responsive="sm"
-                                                                head-variant="light"
-                                                                :items="mechanism.candidate_genes || mechanism.genes || []"
-                                                                :fields="[
-                                                                    { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
-                                                                    { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
-                                                                    { key: 'reason', label: 'Reason' },
-                                                                    { key: 'gene_sets', label: 'Gene sets (selected row)', thStyle: { width: '180px' } },
-                                                                    { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' } },
-                                                                    { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' } },
-                                                                    { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' } }
-                                                                ]"
-                                                            >
-                                                                <template #cell(scores_combined)="row">
-                                                                    {{ row.item.scores && (row.item.scores.combined != null || row.item.scores.c != null) ? Number(row.item.scores.combined ?? row.item.scores.c).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(scores_gwas)="row">
-                                                                    {{ row.item.scores && (row.item.scores.gwas != null || row.item.scores.g != null) ? Number(row.item.scores.gwas ?? row.item.scores.g).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(scores_functional)="row">
-                                                                    {{ row.item.scores && (row.item.scores.functional != null || row.item.scores.f != null) ? Number(row.item.scores.functional ?? row.item.scores.f).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(reason)="row">
-                                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}<span class="ai-gen">AI</span>
-                                                                </template>
-                                                                <template #cell(gene)="row">
-                                                                    <span class="small pill" :style="mechanismGeneGroupPillStyle(row.item.group)">{{ row.item.gene }}</span>
-                                                                </template>
-                                                                <template #cell(gene_sets)="row">
-                                                                    <span class="small">{{ (getGeneConnectionForMechanism(mechanism, row.item.gene).gene_sets || []).join(', ') || '—' }}</span>
-                                                                </template>
-                                                                <template #cell(group)="row">
-                                                                    <span class="small">{{ row.item.group || "—" }}</span>
-                                                                </template>
-                                                            </b-table>
-                                                        </template>
-                                                    </div>
-                                                    <div v-if="mechanism.genes_collective_reason" class="mb-3">
-                                                        <div class="font-weight-bold small text-uppercase text-muted mb-1">Genes collective reason</div>
-                                                        <div class="bg-warning bg-opacity-25 p-2 rounded small">{{ mechanism.genes_collective_reason }}</div>
-                                                    </div>
-                                                </div>
-                                                <div v-if="(mechanism.supporting_network || mechanism.network) && ((mechanism.supporting_network || mechanism.network).nodes || (mechanism.supporting_network || mechanism.network).edges)" class="" style="flex:1">
-                                                    <div class="font-weight-bold small text-uppercase text-muted mb-2">Supporting network</div>
-                                                    <div class="small text-muted mb-2">
-                                                        {{ ((mechanism.supporting_network || mechanism.network).nodes || []).length }} nodes,
-                                                        {{ ((mechanism.supporting_network || mechanism.network).edges || []).length }} edges
-                                                    </div>
-                                                    <factor-base-reveal-network
-                                                        :key="mechanism.group_name || idx"
-                                                        :ref="'mechanismNetwork-' + idx"
-                                                        :network="mechanism.supporting_network || mechanism.network"
-                                                        :genes="mechanism.candidate_genes || mechanism.genes || []"
-                                                        :width="640"
-                                                        :height="360"
-                                                        :show-popup-button="true"
-                                                        @open-popup="openNetworkPopup(idx)"
-                                                    />
-                                                    <div class="mt-2" style="display:flex; flex-direction: column;">
-                                                        <div v-if="(mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant phenotypes</div>
-                                                            <div style="display:flex; flex-direction: column; gap:3px">
-                                                                <div
-                                                                    v-for="(phenotypeLabel, pidx) in getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)"
-                                                                    :key="'mech-' + idx + '-rphen-' + pidx + '-' + (phenotypeLabel || '')"
-                                                                    class="small pill"
-                                                                    :style="`background:${NODE_COLORS.Phenotype}; color:white`"
-                                                                >
-                                                                    {{ phenotypeLabel }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div v-if="(mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Related data categories</div>
-                                                            <div style="display:flex; flex-wrap: wrap; gap:3px">
-                                                                <div
-                                                                    v-for="(pair, ridx) in mechanism.redundant_associated_pairs"
-                                                                    :key="'mech-' + idx + '-red-' + ridx + '-' + (pair.factor || '')"
-                                                                    class="small pill"
-                                                                    style="background:#e2e3e5; color:#383d41;"
-                                                                >
-                                                                    {{ getPhenotypeDisplay(pair.phenotype) }} - {{ getFactorClusterDisplayString(pair.factor) }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div v-if="(mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)" class="mb-2">
-                                                            <div class="font-weight-bold small text-uppercase text-muted mb-1">Relevant gene sets</div>
-                                                            <div class="small" style="white-space: normal; display:flex; flex-direction: column; gap:3px">
-                                                                <div v-for="set in formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)" :key="set.gs">
-                                                                    <div style="display:flex; gap:10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-                                                                        <a
-                                                                            :href="cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            class="pill text-white text-decoration-none cfde-explore-geneset-link"
-                                                                            style="overflow: clip; text-overflow: ellipsis; max-width: 300px; word-wrap: normal;"
-                                                                            :style="`background:${NODE_COLORS.Pathway}`"
-                                                                            :title="set.desc || set.gs"
-                                                                        >{{ set.gs }}</a>
-                                                                        <div class="d-flex flex-wrap align-items-center fbr-relevant-geneset-programs" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
-                                                                            <template v-if="c2m2GeneSetDownloadNodes(set.gs).length">
-                                                                                <div class="fbr-program-download-wrap">
-                                                                                    <div
-                                                                                        class="pill text-white small d-inline-flex align-items-center fbr-program-download-trigger"
-                                                                                        :style="{ background: NODE_COLORS.GeneSetProgramDownloads }"
-                                                                                        role="button"
-                                                                                        tabindex="0"
-                                                                                        :title="(set.program || 'Data files') + ' — hover for download links'"
-                                                                                    >
-                                                                                        <span class="fbr-program-download-label">{{ set.program || "Data files" }}</span>
-                                                                                        <b-icon icon="three-dots-vertical" class="fbr-program-download-icon ml-1 flex-shrink-0" aria-hidden="true" />
-                                                                                    </div>
-                                                                                    <div class="fbr-program-download-menu border rounded bg-white shadow-sm">
-                                                                                        <div class="fbr-program-download-menu-heading px-2 pt-2 pb-1 text-muted small text-uppercase">Open or download</div>
-                                                                                        <a
-                                                                                            v-for="(pn, nidx) in c2m2GeneSetDownloadNodes(set.gs)"
-                                                                                            :key="'mech-' + idx + '-prov-menu-' + set.gs + '-' + nidx + '-' + pn.id"
-                                                                                            :href="pn.dcc_url"
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            class="fbr-provenance-menu-link d-block px-2 py-1 small text-dark text-decoration-none"
-                                                                                        >{{ pn.id }}</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </template>
-                                                                            <span v-else-if="c2m2ProvenanceEntry(set.gs) && c2m2ProvenanceEntry(set.gs).status === 'loading'" class="text-muted small">Provenance…</span>
-                                                                            <template v-else>
-                                                                                <div v-if="set.program" class="pill">{{ set.program }}</div>
-                                                                            </template>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div v-if="mechanism.next_steps && mechanism.next_steps.length" class="mt-2 mb-1 border-top pt-3">
-                                                <div class="font-weight-bold small text-uppercase text-muted mb-2">Recommended next steps</div>
-                                                <div class="d-flex flex-column" style="gap:8px">
-                                                    <div
-                                                        v-for="(step, sidx) in mechanism.next_steps"
-                                                        :key="'step-' + idx + '-' + sidx"
-                                                        class="p-2 border rounded bg-white"
-                                                        style="border-left: 4px solid #f16822 !important;"
-                                                    >
-                                                        <span class="badge badge-secondary mr-2 mb-1">{{ step.category }}</span><br />
-                                                        <strong class="text-dark" style="font-size: 0.95em;">{{ step.action }}</strong>
-                                                        <span class="small text-muted"> {{ step.reason }}</span>
-                                                        <div
-                                                            v-if="isNextStepExperimentalValidation(step)"
-                                                            class="mt-2"
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                class="btn btn-cfde btn-sm"
-                                                                @click.stop="openDesignProtocolForMechanism(mechanism, step)"
-                                                            >
-                                                                Design experiment protocol
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div
-                                                v-if="mechanism.next_queries && mechanism.next_queries.length"
-                                                class="reveal-alt-queries-block mt-3 mb-0 border-top pt-3"
-                                            >
-                                                <div class="font-weight-bold small text-muted mb-1">Explore further (next queries)</div>
-                                                <ul class="reveal-alt-query-links mb-0">
-                                                    <li
-                                                        v-for="(query, qidx) in mechanism.next_queries"
-                                                        :key="'nq-' + idx + '-' + qidx"
-                                                    >
-                                                        <a
-                                                            href="#"
-                                                            class="reveal-alt-query-link"
-                                                            @click.prevent="onAlternativeQuerySelected(query)"
-                                                        >{{ query }}</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div
-                                                class="mechanism-llm-handoff-actions d-flex flex-wrap align-items-center mt-3 pt-3 border-top"
-                                                style="gap: 8px;"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-outline-secondary"
-                                                    @click.stop="copyMechanismForLlm(mechanism, idx)"
-                                                >
-                                                    <b-icon icon="clipboard" class="mr-1"></b-icon>
-                                                    {{ handoffCopiedMechanismIndex === idx ? 'Copied!' : 'Copy for LLM' }}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-outline-secondary"
-                                                    @click.stop="downloadMechanismHandoffPackage(mechanism, idx)"
-                                                >
-                                                    <b-icon icon="download" class="mr-1"></b-icon>
-                                                    Download handoff data
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Remaining: included pairs not yet cited in hypothesis evidence -->
-                                    <div
-                                        v-if="remainingGeneSetClusterRows.length"
-                                        class="remaining-gene-clusters mt-5 pt-4 border-top"
-                                    >
-                                        <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
-                                            Remaining gene set clusters
-                                        </div>
-                                        <p class="text-muted small mb-3">
-                                            These phenotype-gene set cluster pairs were included in your data selection but are not yet covered by supporting evidence in the generated hypotheses.
-                                        </p>
-                                        <div v-if="remainingPairGenerateError" class="alert alert-danger small mb-3" role="alert">
-                                            {{ remainingPairGenerateError }}
-                                        </div>
-                                        <div class="criteria-detail">
-                                            <div>
-                                                        <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
-                                                            <thead variant="light">
-                                                                <tr>
-                                                                    <th style="width: 72px;">Included</th>
-                                                                    <th style="width: auto;">Phenotype</th>
-                                                                    <th style="width: auto;">Trait group</th>
-                                                                    <th style="width: 300px;">Genes and gene sets in cluster</th>
-                                                                    <th style="width: 130px;">Hypothesis</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody v-for="row in remainingFactorTableRowsPaged" :key="'rem-' + getRowKey(row)">
-                                                                <tr>
-                                                                    <td>
-                                                                        <div class="text-center">
-                                                                            <input type="checkbox" :checked="row.included" class="form-check-input d-inline-block" aria-label="Included" />
-                                                                        </div>
-                                                                    </td>
-                                                                    <td>{{ getPhenotypeDisplay(row.phenotype) }}</td>
-                                                                    <td>{{ getFactorClusterDisplay(row) }}</td>
-                                                                    <td style="text-align: center;">
-                                                                        <button
-                                                                            class="btn btn-sm btn-outline-primary"
-                                                                            @click="toggleFactorGenesRow({ item: row })"
-                                                                        >
-                                                                            {{ isFactorRowExpanded(row) ? 'Hide' : 'Show' }}
-                                                                        </button>
-                                                                    </td>
-                                                                    <td class="text-center align-middle">
-                                                                        <button
-                                                                            type="button"
-                                                                            class="btn btn-sm btn-cfde"
-                                                                            :disabled="generatingRemainingRowKey === getRowKey(row)"
-                                                                            @click="generateHypothesisForRemainingPair(row)"
-                                                                        >
-                                                                            <b-spinner v-if="generatingRemainingRowKey === getRowKey(row)" small class="mr-1"></b-spinner>
-                                                                            <template v-if="generatingRemainingRowKey === getRowKey(row)">Generating… {{ formatRemainingGenerateElapsed() }}</template>
-                                                                            <template v-else>Generate</template>
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr v-if="isFactorRowExpanded(row)">
-                                                                    <td colspan="5" class="p-0 border-0">
-                                                                        <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
-                                                                            <div class="px-3 pt-2 pb-0 w-100">
-                                                                                <factor-base-reveal-network
-                                                                                    v-if="getFactorConnectivityNetwork(row) && getFactorConnectivityNetwork(row).nodes.length"
-                                                                                    :network="getFactorConnectivityNetwork(row)"
-                                                                                    :height="220"
-                                                                                    :show-popup-button="true"
-                                                                                    gene-node-metric-key="gwas_support"
-                                                                                    edge-distance-metric-key="functional_support"
-                                                                                    @open-popup="openFactorConnectivityPopup(row)"
-                                                                                />
-                                                                            </div>
-                                                                            <div v-if="getGenesetForFactor(row.phenotype, row.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                                                <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                                                <b-table
-                                                                                    striped
-                                                                                    hover
-                                                                                    small
-                                                                                    responsive="sm"
-                                                                                    head-variant="light"
-                                                                                    :items="getGenesetForFactor(row.phenotype, row.factor)"
-                                                                                    :fields="[
-                                                                                        { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                                        { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                                        { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                                                    ]"
-                                                                                >
-                                                                                    <template #cell(geneset)="gRow">
-                                                                                        <a
-                                                                                            :href="cfdeExploreAssociationHref(row.phenotype, gRow.item.geneset, gRow.item.program)"
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            class="cfde-explore-geneset-link truncate-cell d-inline-block"
-                                                                                            :title="gRow.item.geneset"
-                                                                                            style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                                        >{{ gRow.item.geneset }}</a>
-                                                                                    </template>
-                                                                                    <template #cell(actions)="gRow">
-                                                                                        <button
-                                                                                            v-if="gRow.item.program === 'gtex'"
-                                                                                            class="btn btn-sm btn-outline-primary"
-                                                                                            @click="onGeneSetRowToggled(gRow)"
-                                                                                        >
-                                                                                            {{ gRow.detailsShowing ? 'Hide' : 'Show' }}
-                                                                                        </button>
-                                                                                    </template>
-                                                                                    <template #row-details="gRow">
-                                                                                        <div style="padding: 10px;">
-                                                                                            <div v-if="gene_set_sources[gRow.item.geneset]">
-                                                                                                <b-card>
-                                                                                                    <a :href="gene_set_sources[gRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gRow.item.geneset].geneSet }}</a>
-                                                                                                    <ul>
-                                                                                                        <li v-for="(rel, i) in gene_set_sources[gRow.item.geneset].relations" :key="i" class="text-muted small">
-                                                                                                            <div>
-                                                                                                                <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
-                                                                                                            </div>
-                                                                                                            <div>
-                                                                                                                via
-                                                                                                                <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
-                                                                                                                ({{ rel.method.direction }})
-                                                                                                            </div>
-                                                                                                        </li>
-                                                                                                    </ul>
-                                                                                                </b-card>
-                                                                                            </div>
-                                                                                            <div v-else>no data available yet.</div>
-                                                                                        </div>
-                                                                                    </template>
-                                                                                </b-table>
-                                                                            </div>
-                                                                            <div class="subtable-container py-2 px-3" style="flex:1">
-                                                                                <div v-if="loadingGenesForFactor[getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                                <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
-                                                                                <b-table
-                                                                                    v-if="!loadingGenesForFactor[getRowKey(row)]"
-                                                                                    striped
-                                                                                    hover
-                                                                                    small
-                                                                                    responsive="sm"
-                                                                                    head-variant="light"
-                                                                                    :items="getGenesForFactor(row.phenotype, row.factor)"
-                                                                                    :fields="[
-                                                                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                                                    ]"
-                                                                                    :per-page="subtablePerPage"
-                                                                                    :current-page="getSubtableCurrentPage(row)"
-                                                                                />
-                                                                                <b-pagination
-                                                                                    v-if="!loadingGenesForFactor[getRowKey(row)] && getGenesForFactor(row.phenotype, row.factor).length > subtablePerPage"
-                                                                                    v-model="subtableCurrentPages[getRowKey(row)]"
-                                                                                    class="pagination-sm justify-content-center mt-2"
-                                                                                    :total-rows="getGenesForFactor(row.phenotype, row.factor).length"
-                                                                                    :per-page="subtablePerPage"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </b-table-simple>
-                                                        <b-table
-                                                            v-else
-                                                            :items="remainingGeneSetClusterRowsPaged"
-                                                            primary-key="_rowKey"
-                                                            :fields="[
-                                                                { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
-                                                                { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
-                                                                { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
-                                                                { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } },
-                                                                { key: 'hypothesis', label: 'Hypothesis', thStyle: { width: '130px' } }
-                                                            ]"
-                                                            small
-                                                            striped
-                                                            hover
-                                                            head-variant="light"
-                                                        >
-                                                            <template #cell(included)="row">
-                                                                <div class="text-center">
-                                                                    <input type="checkbox" :checked="row.item.included" class="form-check-input d-inline-block" aria-label="Included in selection" />
-                                                                </div>
-                                                            </template>
-                                                            <template #cell(phenotype)="row">
-                                                                {{ getPhenotypeDisplay(row.item.phenotype) }}
-                                                            </template>
-                                                            <template #cell(factorLabel)="row">
-                                                                {{ getFactorClusterDisplay(row.item) }}
-                                                            </template>
-                                                            <template #cell(rationale)="row">
-                                                                <span v-if="row.item.rationale" class="small text-muted" style="white-space: normal;">{{ row.item.rationale }}</span>
-                                                                <span v-else class="small text-muted">—</span>
-                                                            </template>
-                                                            <template #cell(view_genes)="row">
-                                                                <button
-                                                                    class="btn btn-sm btn-outline-primary"
-                                                                    @click="toggleFactorGenesRow(row)"
-                                                                >
-                                                                    {{ isFactorRowExpanded(row.item) ? 'Hide' : 'Show' }}
-                                                                </button>
-                                                            </template>
-                                                            <template #cell(hypothesis)="row">
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn btn-sm btn-cfde"
-                                                                    :disabled="generatingRemainingRowKey === getRowKey(row.item)"
-                                                                    @click="generateHypothesisForRemainingPair(row.item)"
-                                                                >
-                                                                    <b-spinner v-if="generatingRemainingRowKey === getRowKey(row.item)" small class="mr-1"></b-spinner>
-                                                                    <template v-if="generatingRemainingRowKey === getRowKey(row.item)">Generating… {{ formatRemainingGenerateElapsed() }}</template>
-                                                                    <template v-else>Generate</template>
-                                                                </button>
-                                                            </template>
-                                                            <template #row-details="row">
-                                                                <div class="bg-light" style="display:flex; gap: 20px; flex-wrap: wrap;">
-                                                                    <div class="px-3 pt-2 pb-0 w-100">
-                                                                        <factor-base-reveal-network
-                                                                            v-if="getFactorConnectivityNetwork(row.item) && getFactorConnectivityNetwork(row.item).nodes.length"
-                                                                            :network="getFactorConnectivityNetwork(row.item)"
-                                                                            :height="220"
-                                                                            :show-popup-button="true"
-                                                                            gene-node-metric-key="gwas_support"
-                                                                            edge-distance-metric-key="functional_support"
-                                                                            @open-popup="openFactorConnectivityPopup(row.item)"
-                                                                        />
-                                                                    </div>
-                                                                    <div v-if="getGenesetForFactor(row.item.phenotype, row.item.factor)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                                        <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                                        <b-table
-                                                                            striped
-                                                                            hover
-                                                                            small
-                                                                            responsive="sm"
-                                                                            head-variant="light"
-                                                                            :items="getGenesetForFactor(row.item.phenotype, row.item.factor)"
-                                                                            :fields="[
-                                                                                { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                                { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                                { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                                            ]"
-                                                                        >
-                                                                            <template #cell(geneset)="gRow">
-                                                                                <a
-                                                                                    :href="cfdeExploreAssociationHref(row.item.phenotype, gRow.item.geneset, gRow.item.program)"
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    class="cfde-explore-geneset-link truncate-cell d-inline-block"
-                                                                                    :title="gRow.item.geneset"
-                                                                                    style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                                >{{ gRow.item.geneset }}</a>
-                                                                            </template>
-                                                                            <template #cell(actions)="gRow">
-                                                                                <button
-                                                                                    v-if="gRow.item.program === 'gtex'"
-                                                                                    class="btn btn-sm btn-outline-primary"
-                                                                                    @click="onGeneSetRowToggled(gRow)"
-                                                                                >
-                                                                                    {{ gRow.detailsShowing ? 'Hide' : 'Show' }}
-                                                                                </button>
-                                                                            </template>
-                                                                            <template #row-details="gRow">
-                                                                                <div style="padding: 10px;">
-                                                                                    <div v-if="gene_set_sources[gRow.item.geneset]">
-                                                                                        <b-card>
-                                                                                            <a :href="gene_set_sources[gRow.item.geneset].geneSetUrl" target="_blank">{{ gene_set_sources[gRow.item.geneset].geneSet }}</a>
-                                                                                            <ul>
-                                                                                                <li v-for="(rel, i) in gene_set_sources[gRow.item.geneset].relations" :key="i" class="text-muted small">
-                                                                                                    <div>
-                                                                                                        <strong>{{rel.method.predicate}}: </strong><a :href="rel.file.dcc_url" target="_blank">{{ rel.file.filename }}</a>
-                                                                                                    </div>
-                                                                                                    <div>
-                                                                                                        via
-                                                                                                        <a :href="rel.method.script" target="_blank">{{ rel.method.type }}</a>
-                                                                                                        ({{ rel.method.direction }})
-                                                                                                    </div>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                        </b-card>
-                                                                                    </div>
-                                                                                    <div v-else>no data available yet.</div>
-                                                                                </div>
-                                                                            </template>
-                                                                        </b-table>
-                                                                    </div>
-                                                                    <div class="subtable-container py-2" style="flex:1">
-                                                                        <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
-                                                                        <b-table
-                                                                            striped
-                                                                            hover
-                                                                            small
-                                                                            responsive="sm"
-                                                                            head-variant="light"
-                                                                            :items="getGenesForFactor(row.item.phenotype, row.item.factor)"
-                                                                            :fields="[
-                                                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                                            ]"
-                                                                            :per-page="subtablePerPage"
-                                                                            :current-page="getSubtableCurrentPage(row.item)"
-                                                                        />
-                                                                        <b-pagination
-                                                                            v-if="getGenesForFactor(row.item.phenotype, row.item.factor).length > subtablePerPage"
-                                                                            v-model="subtableCurrentPages[getRowKey(row.item)]"
-                                                                            class="pagination-sm justify-content-center mt-2"
-                                                                            :total-rows="getGenesForFactor(row.item.phenotype, row.item.factor).length"
-                                                                            :per-page="subtablePerPage"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </template>
-                                                        </b-table>
-                                                        <b-pagination
-                                                            v-if="(isPhenotypePath ? remainingFactorDataTableRowsWithRationaleMeta.length : remainingGeneSetClusterRows.length) > mainTablePerPage"
-                                                            v-model="remainingTableCurrentPage"
-                                                            class="pagination-sm justify-content-center mt-2"
-                                                            :total-rows="isPhenotypePath ? remainingFactorDataTableRowsWithRationaleMeta.length : remainingGeneSetClusterRows.length"
-                                                            :per-page="mainTablePerPage"
-                                                        />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                            </div>
-                        </div>
+                        <workflow-results-panel
+                            v-if="showResultsTabContent"
+                            ref="workflowResultsPanel"
+                        />
                     </div>
                 </div>
 
@@ -2172,98 +203,9 @@
             </div>
         </div>
 
-        <div v-if="all_supporting_network" 
-        style="position: absolute; z-index: 999; top: 200px; right: 50px">
-            <factor-base-reveal-network
-                :key="999"
-                :ref="'mechanismNetwork-' + 999"
-                :network="all_supporting_network"
-                :genes="[]"
-                :width="640"
-                :height="360"
-                :show-popup-button="true"
-                @open-popup="openNetworkPopup(999)"
-            />
-        </div>
-
-        <!-- Network viz popup: 90% window size -->
-        <div
-            v-if="
-                networkPopupMechanismIndex !== null &&
-                mechanisms &&
-                mechanisms[networkPopupMechanismIndex] &&
-                (!networkPopupIsHypothesisMap ||
-                    (mechanisms[networkPopupMechanismIndex].core_spine_network &&
-                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes &&
-                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes.length))
-            "
-            class="network-popup-overlay"
-            @click.self="closeNetworkPopup"
-        >
-            <div class="network-popup-box">
-                <div class="network-popup-header d-flex justify-content-between align-items-center">
-                    <span class="font-weight-bold">{{
-                        networkPopupIsHypothesisMap ? "Hypothesis map (biological mechanism)" : "Supporting network"
-                    }}</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" aria-label="Close" @click="closeNetworkPopup">
-                        <b-icon icon="x"></b-icon>
-                    </button>
-                </div>
-                <div class="network-popup-body">
-                    <factor-base-reveal-network
-                        :key="'popup-' + networkPopupMechanismIndex + '-' + (networkPopupIsHypothesisMap ? 'hypothesis' : 'supporting')"
-                        :network="
-                            networkPopupIsHypothesisMap
-                                ? mechanisms[networkPopupMechanismIndex].core_spine_network
-                                : mechanisms[networkPopupMechanismIndex].supporting_network ||
-                                  mechanisms[networkPopupMechanismIndex].network
-                        "
-                        :genes="mechanisms[networkPopupMechanismIndex].candidate_genes || mechanisms[networkPopupMechanismIndex].genes || []"
-                        :width="popupNetworkWidth"
-                        :height="popupNetworkHeight"
-                        :show-popup-button="false"
-                        :is-mechanism-flow-map="networkPopupIsHypothesisMap"
-                        :is-biolink-map="networkPopupIsHypothesisMap && isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])"
-                        :show-hypothesis-map-view-toggle="
-                            networkPopupIsHypothesisMap &&
-                            hasMechanismBiolinkNetwork(mechanisms[networkPopupMechanismIndex])
-                        "
-                        :show-original-hypothesis-map="
-                            networkPopupIsHypothesisMap &&
-                            !isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])
-                        "
-                        @hypothesis-original-map="
-                            setMechanismMapViewMode(
-                                networkPopupMechanismIndex,
-                                $event ? 'original' : 'biolink'
-                            )
-                        "
-                    />
-                </div>
-            </div>
-        </div>
-
-        <b-modal
-            v-model="factorConnectivityPopupOpen"
-            size="xl"
-            title="Phenotype-gene set-gene connectivity"
-            hide-footer
-            body-class="pt-2 pb-2"
-        >
-            <div v-if="factorConnectivityPopupRow" class="small text-muted mb-2">
-                {{ getPhenotypeDisplay(factorConnectivityPopupRow.phenotype) }} - {{ getFactorClusterDisplay(factorConnectivityPopupRow) }}
-            </div>
-            <factor-base-reveal-network
-                v-if="factorConnectivityPopupNetwork && factorConnectivityPopupNetwork.nodes && factorConnectivityPopupNetwork.nodes.length"
-                :network="factorConnectivityPopupNetwork"
-                :width="popupNetworkWidth"
-                :height="popupNetworkHeight"
-                :show-popup-button="false"
-                gene-node-metric-key="gwas_support"
-                edge-distance-metric-key="functional_support"
-            />
-            <div v-else class="small text-muted">No connectivity graph data available for this row.</div>
-        </b-modal>
+        <workflow-query-helper-modal />
+        <workflow-query-guidelines-modal :open.sync="queryGuidelinesOpen" />
+        <workflow-network-modals />
 
     </div>
 </template>
@@ -2286,9 +228,53 @@ import { colorForGeneRole } from "@/utils/factorRevealGeneColors";
 
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
 import FactorBaseRevealHeatmap from "./FactorBaseRevealHeatmap2.vue";
+import WorkflowHeader from "./revealMultiQueryWorkflow/WorkflowHeader.vue";
+import WorkflowOpsMenu from "./revealMultiQueryWorkflow/WorkflowOpsMenu.vue";
+import WorkflowQueryBar from "./revealMultiQueryWorkflow/WorkflowQueryBar.vue";
+import WorkflowTabBar from "./revealMultiQueryWorkflow/WorkflowTabBar.vue";
+import WorkflowTermsPanel from "./revealMultiQueryWorkflow/WorkflowTermsPanel.vue";
+import WorkflowDataPanel from "./revealMultiQueryWorkflow/WorkflowDataPanel.vue";
+import WorkflowResultsPanel from "./revealMultiQueryWorkflow/WorkflowResultsPanel.vue";
+import WorkflowQueryGuidelinesModal from "./revealMultiQueryWorkflow/WorkflowQueryGuidelinesModal.vue";
+import WorkflowQueryHelperModal from "./revealMultiQueryWorkflow/WorkflowQueryHelperModal.vue";
+import WorkflowNetworkModals from "./revealMultiQueryWorkflow/WorkflowNetworkModals.vue";
+import {
+    beginExtractionFlow,
+    handleExtractionError as reportExtractionError,
+    processExtractionResponse,
+    resetWorkflowStateForNewRun as resetMqWorkflowSessionForNewRun,
+    startWorkflowFromExtractedTerms as orchestrateStartFromExtractedTerms,
+} from "./revealMultiQueryWorkflow/revealMqWorkflowOrchestrator.js";
+import WorkflowStepGate from "./revealMultiQueryWorkflow/WorkflowStepGate.vue";
+import {
+    buildHybridQueryText,
+    inferExplicitUserGenes,
+    normalizeLlmTermList,
+    parseLlmJsonResponse,
+} from "./revealMultiQueryWorkflow/revealMqExtraction.js";
+import {
+    buildHybridSearchRequestBody as composeHybridSearchRequestBody,
+    hybridSearchErrorMessage as formatHybridSearchErrorMessage,
+    normalizeHybridFactorsToFactorData as mapHybridFactorsToFactorData,
+    prepareHybridSearchRequestFields,
+} from "./revealMultiQueryWorkflow/revealMqHybridSearch.js";
+import { transformMergedDataToKG as buildKgTriplesFromFactorData } from "./revealMultiQueryWorkflow/revealMqKgTransform.js";
+import {
+    buildRouteEditRowsFromRoutes,
+    getRouteEditRow as findRouteEditRow,
+    patchRoutesFromEditRows,
+} from "./revealMultiQueryWorkflow/revealMqRouteEdit.js";
+import { formatStepElapsedMs, formatLiveStepTime, formatStepTimeLabel } from "./revealMultiQueryWorkflow/revealMqStepTime.js";
+import {
+    applyMultiQueryRevealWorkflowImport,
+    canExportMultiQueryRevealWorkflow,
+    exportMultiQueryRevealWorkflow,
+    parseMultiQueryRevealWorkflowImportFile,
+} from "./revealMultiQueryWorkflow/revealMqWorkflowExport.js";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import "./revealMultiQueryWorkflow/mqSharedStyles.css";
 import { divide } from "lodash";
 
 /**
@@ -2326,9 +312,27 @@ const REVEAL_ROUTE_CATEGORIES = Object.keys(REVEAL_ROUTE_CONSTRAINTS);
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
+Vue.component("factor-base-reveal-heatmap", FactorBaseRevealHeatmap);
+Vue.component("factor-base-reveal-network", FactorBaseRevealNetwork);
 
 export default Vue.component("factor-base-reveal", {
-    components: { FactorBaseRevealNetwork, FactorBaseRevealHeatmap },
+    components: {
+        FactorBaseRevealNetwork,
+        FactorBaseRevealHeatmap,
+        WorkflowHeader,
+        WorkflowOpsMenu,
+        WorkflowQueryBar,
+        WorkflowQueryGuidelinesModal,
+        WorkflowTabBar,
+        WorkflowTermsPanel,
+        WorkflowDataPanel,
+        WorkflowResultsPanel,
+        WorkflowQueryHelperModal,
+        WorkflowNetworkModals,
+    },
+    provide() {
+        return { mqWorkflow: this };
+    },
     props: {},
     data() {
         return {
@@ -2347,7 +351,7 @@ export default Vue.component("factor-base-reveal", {
             /** Avoid pausing rotation from the component's initial programmatic focus(). */
             suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
-            queryGuidelinesExpanded: false,
+            queryGuidelinesOpen: false,
             /** Collapsed by default; explains how extracted terms and data directions were generated. */
             searchTermsExtractionExpanded: false,
             /** Collapsed by default; shows verbose retrieval direction payloads in the Data tab. */
@@ -2563,6 +567,15 @@ export default Vue.component("factor-base-reveal", {
             showTab: 'terms',
             /** After user continues past KG gate, enable the Results tab until the next full reset. */
             revealResultsTabUnlocked: false,
+            /** When true, Continue on the Data-step gate should start hypothesis generation after import. */
+            importedWorkflowPendingHypothesisRun: false,
+            /** When true, Continue on the Search-terms gate should start hybrid retrieval after import. */
+            importedWorkflowPendingResearchRun: false,
+            workflowExportImportBusy: false,
+            /** Bumped on import / new query to ignore stale async workflow callbacks. */
+            workflowRunId: 0,
+            /** Bumped on import so heatmap/network visualizers remount with restored data. */
+            workflowVisualKey: 0,
 
 multiRouteExtractSystemPrompt:`
 You are an expert biomedical bioinformatics routing assistant for CFDE REVEAL.
@@ -3298,11 +1311,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const list = this.steps || [];
             return list.find((s) => s && s.type !== "error" && s.id === "1") || null;
         },
-        /** Only extraction-review substep(s); keeps Search terms tab from showing other step payloads. */
-        revealExtractionSubstepsForTermsTab() {
-            const step = this.revealExtractionStep;
-            if (!step || !Array.isArray(step.substeps)) return [];
-            return step.substeps.filter((s) => s && String(s.id) === "1.1");
+        extractionStepTimeLabel() {
+            return formatStepTimeLabel(this.revealExtractionStep, this.now);
         },
         revealDataSteps() {
             return (this.steps || []).filter(
@@ -3313,13 +1323,31 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (this.loadComplete) return false;
             return (this.steps || []).some((s) => s && s.id === "4");
         },
+        dataVizReady() {
+            return (
+                (this.genesAndFactorValuesLoaded || this.loadComplete) &&
+                (this.factorDataTableRows || []).length > 0
+            );
+        },
+        /** Mount Data panel only while the Data tab is active and Results generation has not started. */
+        showDataTabContent() {
+            return this.showTab === "data" && !this.isMechanismHypothesisLoading;
+        },
+        /** Show Results panel while on Results tab or while hypothesis LLM is running. */
+        showResultsTabContent() {
+            return this.showTab === "results" || this.isMechanismHypothesisLoading;
+        },
         revealHypothesisStep() {
             const list = this.steps || [];
             return list.find((s) => s && s.id === "4") || null;
         },
         revealDataTabEnabled() {
+            if (this.isMechanismHypothesisLoading) return false;
             if (this.searchCriteriaExtractionGateDone) return true;
             return this.revealDataSteps.length > 0;
+        },
+        canExportWorkflow() {
+            return canExportMultiQueryRevealWorkflow(this);
         },
         usePerRouteSearchTermsEditor() {
             return Array.isArray(this.multiQueryRouteEditRows) && this.multiQueryRouteEditRows.length > 0;
@@ -3470,6 +1498,22 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
     },
     watch: {
+        showDataTabContent(visible) {
+            if (!visible) return;
+            this.$nextTick(() => {
+                this.normalizeHeatmapSelectionAfterRegroup();
+                const ref = this.$refs.factorBaseRevealHeatmap;
+                const comp = Array.isArray(ref) ? ref[0] : ref;
+                if (
+                    comp &&
+                    typeof comp.renderFactorBaseRevealHeatmap === "function" &&
+                    comp.heatmapDataFromFactorData &&
+                    comp.heatmapDataFromFactorData.ready
+                ) {
+                    setTimeout(() => comp.renderFactorBaseRevealHeatmap(), 200);
+                }
+            });
+        },
         mechanisms: {
             handler(val) {
                 if (Array.isArray(val) && val.length) {
@@ -3506,9 +1550,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         this.currentPlaceholderIndex = 0;
         this.startPlaceholderRotation();
         this.$nextTick(() => {
-            if (this.$refs.queryInput) {
+            const bar = this.$refs.workflowQueryBar;
+            if (bar && typeof bar.focusQueryInput === "function") {
                 this.suppressNextQueryFocusPause = true;
-                this.$refs.queryInput.focus();
+                bar.focusQueryInput();
             }
         });
     },
@@ -3528,6 +1573,9 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
 			const TAB_WRAPPER = 'rp_tabs';
 			const CONTENT_WRAPPER = 'rp_tabs_contents';
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
+        },
+        onOpsSetMode(mode) {
+            this.hypothesisModeRelaxedSwitch = mode === "relaxed";
         },
         ensureQueryHelperPhenotypeCatalog() {
             if (Array.isArray(this.queryHelperPhenotypeCatalog) && this.queryHelperPhenotypeCatalog.length) return;
@@ -4089,140 +2137,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
         },
         resetWorkflowStateForNewRun() {
-            this.loadComplete = false;
-            this.searchCriteria = null;
-            this.mechanisms = null;
-            this.mechanisms_summary = null;
-            this.mechanismDiagnosticAssessment = null;
-            this.hypothesisLastRunMode = null;
-            this.lastAlternativeQueries = [];
-            this.extractionAmbiguityCheck = null;
-            this.extractionAmbiguityDismissed = false;
-            this.multiQueryRoutes = [];
-            this.multiQueryRouteResults = [];
-            this.multiQueryEvidenceBundles = [];
-            this.multiQueryRouteErrors = [];
-            this.multiQueryRouteEditRows = [];
-            this.multiQueryRouteEditRowsDefault = [];
-            this.routeTermsEditAccordionOpen = {};
-            this.lastExplicitUserGenes = [];
-            this.lastGenesOfInterest = [];
-            this.lastHybridSearchMeta = {};
-            this.lastHybridSearchResponse = null;
-            this.searchCriteriaEditRows = [];
-            this.searchCriteriaEditRowsDefault = [];
-            this.searchCriteriaExtractionGateDone = false;
-            this.dataFetchDirectionsExpanded = false;
-            this.pairSelectionOverrides = {};
-            this.llmFilteredPairKeysBaseline = [];
-            this.expandedFactorRowKeys = {};
-            this.factorConnectivityNetworks = {};
-            this.loadingGenesForFactor = {};
-            this.subtableCurrentPages = {};
-            this.factorConnectivityPopupOpen = false;
-            this.factorConnectivityPopupRow = null;
-            this.factorConnectivityPopupNetwork = null;
-            this.error_search_criteria = false;
-            this.mainTableCurrentPage = 1;
-            this.remainingTableCurrentPage = 1;
-            this.steps = [];
-            this.stepsTime = null;
-            this.stepsTimer = null;
-            this.stepsPausedAt = null;
-            this.now = Date.now();
-            this.switchRevealTab("terms");
-            this.revealResultsTabUnlocked = false;
-            this.get_set_sources = [];
+            resetMqWorkflowSessionForNewRun(this);
         },
-        async startWorkflowFromExtractedTerms({
-            queryText = "",
-            phenotypeTerms = [],
-            mechanismTerms = [],
-            genesOfInterest = [],
-            researchContext = "",
-            alternativeQueries = [],
-            retrievalPhenotypeTerms = null,
-            helperConstraintSpec = null,
-        } = {}) {
-            const q = String(queryText || "").trim();
-            if (!q) return;
-            if (this.stepApprovalGateActive) {
-                this.cancelStepGate(false);
-            }
-            this.userQuery = q;
-            this.resetWorkflowStateForNewRun();
-            this.loading_search_criteria = false;
-            this.allow_retry = true;
-
-            const phen = this.normalizeLlmTermList(phenotypeTerms);
-            const mech = this.normalizeLlmTermList(mechanismTerms);
-            const goi = this.normalizeLlmTermList(genesOfInterest);
-            const alt = this.normalizeAlternativeQueries(alternativeQueries);
-            const ctx = String(researchContext || "").trim();
-            const searchTerms = [...phen, ...mech];
-            const retrievalPhenotypeList = this.normalizeLlmTermList(retrievalPhenotypeTerms);
-
-            this.setStep(
-                {
-                    id: "1",
-                    title: "LLM: Extracting search terms from user query",
-                    substep: {
-                        id: "1.1",
-                        title: q,
-                    },
-                },
-                true
-            );
-            this.searchCriteria = [
-                {
-                    search_criteria: "Search Terms",
-                    values: searchTerms.length ? searchTerms : ["(none extracted)"],
-                    why: "Built from your helper selections.",
-                    purpose:
-                        "These terms will be used to search for related phenotype↔signature associations via semantic search.",
-                },
-                {
-                    search_criteria: "Research Context",
-                    values: ctx || "(none extracted)",
-                    why: "Built from your helper selections.",
-                    purpose:
-                        "This context will be used to tailor mechanistic hypotheses to your research.",
-                },
-            ];
-            this.searchTerm = searchTerms.join(", ");
-            this.lastPhenotypeTerms = phen;
-            this.lastMechanismTerms = mech;
-            this.lastGenesOfInterest = goi;
-            this.lastAlternativeQueries = alt;
-            this.setStep({
-                id: "1",
-                substep: {
-                    id: "1.1",
-                    result: {
-                        title: "Extracted search terms and research context. Review terms, then continue.",
-                        result: {
-                            phenotypeTerms: phen,
-                            mechanismTerms: mech,
-                            genesOfInterest: goi,
-                            researchContext: ctx,
-                            alternativeQueries: alt,
-                        },
-                    },
-                },
-            });
-            this.buildSearchCriteriaEditRows();
-            const approved = await this.waitForStepApproval(
-                "1",
-                "Review terms and continue when ready.",
-                true
-            );
-            if (!approved) return;
-            if (this.searchMode === "auto") {
-                this.onResearch(
-                    retrievalPhenotypeList.length ? retrievalPhenotypeList : undefined,
-                    helperConstraintSpec != null ? { helperConstraintSpec } : undefined
-                );
-            }
+        async startWorkflowFromExtractedTerms(options = {}) {
+            return orchestrateStartFromExtractedTerms(this, options);
         },
         startPlaceholderRotation() {
             if (this.placeholderIntervalId != null) return;
@@ -4261,6 +2179,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
             this.placeholderRotationPaused = false;
             this.startPlaceholderRotation();
+        },
+        onUserQueryUpdate(val) {
+            this.userQuery = val;
+            this.onQueryInput();
         },
         /**
          * CFDE C2M2 provenance API. Returns json.data (array) or null.
@@ -4409,6 +2331,78 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 /* ignore */
             }
         },
+        async exportWorkflowSnapshot() {
+            if (!this.canExportWorkflow || this.workflowExportImportBusy) return;
+            this.workflowExportImportBusy = true;
+            try {
+                const result = await exportMultiQueryRevealWorkflow(this, {
+                    label: this.userQuery,
+                });
+                if (result?.reason === "cancelled") return;
+                if (!result?.ok) {
+                    console.warn("REVEAL workflow export failed", result);
+                }
+            } catch (error) {
+                console.error("REVEAL workflow export failed", error);
+            } finally {
+                this.workflowExportImportBusy = false;
+            }
+        },
+        onWorkflowImportClick() {
+            const bar = this.$refs.workflowQueryBar;
+            if (bar && typeof bar.triggerImportPicker === "function") {
+                bar.triggerImportPicker();
+            }
+        },
+        async onWorkflowImportFile(file) {
+            if (!file) return;
+            if (this.workflowExportImportBusy) return;
+            this.workflowExportImportBusy = true;
+            try {
+                this.bumpWorkflowRunId();
+                this.abortWorkflowClients();
+                if (this.stepApprovalGateActive) {
+                    this.cancelStepGate(false);
+                }
+                const { workflow, label } = await parseMultiQueryRevealWorkflowImportFile(file);
+                const result = applyMultiQueryRevealWorkflowImport(this, workflow, { label });
+                this.workflowVisualKey = (this.workflowVisualKey || 0) + 1;
+                this.$nextTick(() => {
+                    this.normalizeHeatmapSelectionAfterRegroup();
+                });
+                const tabNote = result.hasResults
+                    ? " Open the Results tab to review hypotheses."
+                    : result.hasData
+                        ? " Open the Data tab to review results."
+                        : "";
+                this.setLoadStatus(`Imported workflow "${result.label}".${tabNote}`, true);
+            } catch (error) {
+                console.error("REVEAL workflow import failed", error);
+                const message =
+                    String(error?.message || error) || "Could not import workflow.";
+                this.setLoadStatus(message, true);
+            } finally {
+                this.workflowExportImportBusy = false;
+            }
+        },
+        async onWorkflowImportFileChange(event) {
+            const file = event?.target?.files?.[0];
+            if (event?.target) event.target.value = "";
+            await this.onWorkflowImportFile(file);
+        },
+        resumeImportedWorkflowAfterDataGate() {
+            const kgTriples =
+                Array.isArray(this.lastKgTriples) && this.lastKgTriples.length
+                    ? this.lastKgTriples
+                    : this.transformMergedDataToKG(this.factorData, "factors");
+            this.lastKgTriples = kgTriples;
+            this.setLoadStatus("Generating hypotheses…");
+            this.setStep({
+                id: "4",
+                title: "LLM: Generating mechanistic hypotheses",
+            });
+            this.requestMechanismHypotheses(this.factorData, kgTriples);
+        },
         async downloadReport() {
             if (!this.canDownloadMechanismReport) return;
             const prevTab = this.showTab;
@@ -4454,7 +2448,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @returns {Promise<{ dataUrl: string, format: string, nodeCount: number, edgeCount: number } | null>}
          */
         async exportNetworkImageFromRef(refKey, net) {
-            const compRef = this.$refs[refKey];
+            let compRef = this.$refs[refKey];
+            if (!compRef) {
+                const panelRef = this.$refs.workflowResultsPanel;
+                const panel = Array.isArray(panelRef) ? panelRef[0] : panelRef;
+                compRef = panel && panel.$refs ? panel.$refs[refKey] : null;
+            }
             const comp = Array.isArray(compRef) ? compRef[0] : compRef;
             if (!comp) return null;
             let blob = null;
@@ -5399,15 +3398,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
         },
         formatTime(ms) {
-            if (!ms) return null;
-            const totalSeconds = Math.floor(ms / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            if(seconds<0) return null;
-            return `${String(minutes)}m${String(seconds).padStart(2, '0')}s`;
+            return formatStepElapsedMs(ms);
         },
-        currStepTime(step){
-            return this.formatTime(this.now - step.timeStart);
+        currStepTime(step) {
+            return formatLiveStepTime(step, this.now);
         },
         /**
          * Hypothesis retry: step 4 already exists and setStep(..., true) on completion stopped stepsTimer.
@@ -5499,21 +3493,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     : "";
             const normalizedContext = researchContext === "(none extracted)" ? "" : researchContext;
             if (Array.isArray(this.multiQueryRoutes) && this.multiQueryRoutes.length) {
-                this.multiQueryRouteEditRows = this.multiQueryRoutes.map((route) => {
-                    const extracted = route && route.extracted_terms && typeof route.extracted_terms === "object"
-                        ? route.extracted_terms
-                        : {};
-                    return {
-                        route_id: route.route_id || "",
-                        category: route.category || "",
-                        biological_query_variation: route.biological_query_variation || "",
-                        phenotype_term: this.normalizeLlmTermList(extracted.phenotype_terms).join(", "),
-                        mechanism_term: this.normalizeLlmTermList(extracted.mechanism_terms).join(", "),
-                        genes_of_interest: this.normalizeLlmTermList(extracted.genes_of_interest).join(", "),
-                        tissues: this.normalizeLlmTermList(extracted.tissues).join(", "),
-                        cell_types: this.normalizeLlmTermList(extracted.cell_types).join(", "),
-                    };
-                });
+                this.multiQueryRouteEditRows = buildRouteEditRowsFromRoutes(
+                    this.multiQueryRoutes,
+                    this.normalizeLlmTermList.bind(this)
+                );
                 this.searchCriteriaEditRows = normalizedContext
                     ? [{ type: "Research context", term: normalizedContext }]
                     : [];
@@ -5529,29 +3512,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.searchCriteriaEditRowsDefault = JSON.parse(JSON.stringify(this.searchCriteriaEditRows));
             this.multiQueryRouteEditRowsDefault = JSON.parse(JSON.stringify(this.multiQueryRouteEditRows || []));
         },
-        routeRowEditFields() {
-            return [
-                { type: "Phenotype terms", key: "phenotype_term" },
-                { type: "Mechanism terms", key: "mechanism_term" },
-                { type: "Genes", key: "genes_of_interest" },
-                { type: "Tissues", key: "tissues" },
-                { type: "Cell types", key: "cell_types" },
-            ];
-        },
-        getRouteEditRow(route) {
-            if (!route || route.route_id == null) return null;
-            const routeId = String(route.route_id);
-            return (this.multiQueryRouteEditRows || []).find((row) => row && String(row.route_id) === routeId) || null;
-        },
-        isRouteTermsEditExpanded(routeId) {
-            return !!this.routeTermsEditAccordionOpen[String(routeId || "")];
-        },
         toggleRouteTermsEditAccordion(routeId) {
             const key = String(routeId || "");
             this.$set(this.routeTermsEditAccordionOpen, key, !this.routeTermsEditAccordionOpen[key]);
         },
-        updateRouteEditRowField(route, fieldKey, value) {
-            const row = this.getRouteEditRow(route);
+        onRouteEditFieldUpdate({ route, fieldKey, value }) {
+            const row = findRouteEditRow(route, this.multiQueryRouteEditRows);
             if (!row || !fieldKey) return;
             this.$set(row, fieldKey, value);
         },
@@ -5562,24 +3528,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 .filter(Boolean);
         },
         applyRouteEditRowsToMultiQueryRoutes() {
-            const rows = Array.isArray(this.multiQueryRouteEditRows) ? this.multiQueryRouteEditRows : [];
-            rows.forEach((row, idx) => {
-                if (!row) return;
-                const routeIdx = (this.multiQueryRoutes || []).findIndex((r) => r && r.route_id === row.route_id);
-                const i = routeIdx >= 0 ? routeIdx : idx;
-                if (!(this.multiQueryRoutes || [])[i]) return;
-                const extracted_terms = {
-                    phenotype_terms: this.parseCommaSeparatedTerms(row.phenotype_term),
-                    mechanism_terms: this.parseCommaSeparatedTerms(row.mechanism_term),
-                    genes_of_interest: this.parseCommaSeparatedTerms(row.genes_of_interest),
-                    tissues: this.parseCommaSeparatedTerms(row.tissues),
-                    cell_types: this.parseCommaSeparatedTerms(row.cell_types),
-                };
-                this.$set(this.multiQueryRoutes, i, {
-                    ...this.multiQueryRoutes[i],
-                    extracted_terms,
-                });
-            });
+            this.multiQueryRoutes = patchRoutesFromEditRows(
+                this.multiQueryRoutes,
+                this.multiQueryRouteEditRows
+            );
         },
         syncUnionTermsFromMultiQueryRoutes() {
             const routes = Array.isArray(this.multiQueryRoutes) ? this.multiQueryRoutes : [];
@@ -5835,8 +3787,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.showTab = "terms";
             this.queryParse();
             this.$nextTick(() => {
-                const el = this.$refs.queryInput;
-                if (el) el.focus();
+                const bar = this.$refs.workflowQueryBar;
+                if (bar && typeof bar.focusQueryInput === "function") {
+                    bar.focusQueryInput();
+                }
             });
         },
         cancelStepGate(approved = false) {
@@ -5935,9 +3889,21 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
                 this.switchRevealTab("data");
+                if (this.importedWorkflowPendingResearchRun) {
+                    this.importedWorkflowPendingResearchRun = false;
+                    this.$nextTick(() => {
+                        if (!this.workflowRunIdStale(this.workflowRunId)) {
+                            this.onResearch();
+                        }
+                    });
+                }
             } else if (gateStepId === "2") {
                 this.revealResultsTabUnlocked = true;
                 this.switchRevealTab("results");
+                if (this.importedWorkflowPendingHypothesisRun) {
+                    this.importedWorkflowPendingHypothesisRun = false;
+                    this.resumeImportedWorkflowAfterDataGate();
+                }
             }
             const stepIdx = this.steps.findIndex((s) => s && s.id === gateStepId);
             if (stepIdx !== -1) {
@@ -5953,6 +3919,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         switchRevealTab(tabName) {
             const nextTab = String(tabName || "").trim();
             if (!nextTab || this.showTab === nextTab) return;
+            if (nextTab === "data" && this.isMechanismHypothesisLoading) return;
             const x = typeof window !== "undefined" ? window.scrollX : 0;
             const y = typeof window !== "undefined" ? window.scrollY : 0;
             this.showTab = nextTab;
@@ -7676,257 +5643,52 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (this.stepApprovalGateActive) {
                 this.cancelStepGate(false);
             }
+            this.bumpWorkflowRunId();
             this.resetWorkflowStateForNewRun();
             this.beginFlow();
         },
+        bumpWorkflowRunId() {
+            this.workflowRunId = (this.workflowRunId || 0) + 1;
+        },
+        workflowRunIdStale(runId) {
+            return runId !== this.workflowRunId;
+        },
+        abortWorkflowClients() {
+            try {
+                if (this.llmExtract && typeof this.llmExtract.abort === "function") {
+                    this.llmExtract.abort();
+                }
+            } catch (e) {
+                /* ignore */
+            }
+            try {
+                if (this.llmAnalyze && typeof this.llmAnalyze.abort === "function") {
+                    this.llmAnalyze.abort();
+                }
+            } catch (e) {
+                /* ignore */
+            }
+            this.loading_search_criteria = false;
+        },
         beginFlow() {
-            this.loading_search_criteria = true;
-            this.error_search_criteria = false;
-            this.allow_retry = true;
-            this.setStep({
-                id: "1",
-                title: "LLM: Extracting search terms from user query",
-                substep: {
-                    id: "1.1",
-                    title: `${this.userQuery.trim()}`
-                }
-            }, true);
-            const query = this.userQuery.trim();
-            const maxAttempts = 3;
-            const timeoutMs = 120000;
-            (async () => {
-                let lastError = null;
-                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    const result = await new Promise((resolve) => {
-                        let done = false;
-                        const finish = (payload) => {
-                            if (done) return;
-                            done = true;
-                            clearTimeout(timerId);
-                            resolve(payload);
-                        };
-                        const timerId = setTimeout(() => {
-                            try {
-                                this.llmExtract.abort();
-                            } catch {
-                            }
-                            const timeoutErr = new Error(`Extraction timed out after ${Math.round(timeoutMs / 1000)}s.`);
-                            timeoutErr.status = 504;
-                            finish({
-                                ok: false,
-                                retry: attempt < maxAttempts,
-                                err: timeoutErr,
-                            });
-                        }, timeoutMs);
-                        this.llmExtract.sendPrompt({
-                            userPrompt: query,
-                            onResponse: (resp) => finish({ ok: true, response: resp }),
-                            onError: (err) => {
-                                const retry = this.isExtractionTimeoutError(err) && attempt < maxAttempts;
-                                finish({ ok: false, retry, err });
-                            },
-                            onEnd: () => {
-                                if (done) return;
-                                finish({
-                                    ok: false,
-                                    retry: false,
-                                    err: new Error("Incomplete extraction response."),
-                                });
-                            },
-                            onState: this.onExtractState,
-                        });
-                    });
-                    if (result.ok) {
-                        await this.onExtractResponse(result.response);
-                        return;
-                    }
-                    lastError = result.err || new Error("Extraction failed.");
-                    if (result.retry) {
-                        this.setStep({
-                            type: "info",
-                            title: `Extraction timed out. Retrying (${attempt + 1}/${maxAttempts})…`,
-                        });
-                        continue;
-                    }
-                    break;
-                }
-                this.onExtractError(lastError);
-            })();
+            beginExtractionFlow(this);
         },
         parseLLMResponse(rawString) {
-            const cleanString = (rawString || "")
-                .replace(/```json|```/g, "")
-                .replace(/[\r\n]+/g, " ")
-                .trim();
-            try {
-                return JSON.parse(cleanString);
-            } catch (e) {
+            const result = parseLlmJsonResponse(rawString);
+            if (!result.ok) {
                 this.setStep({
                     type: "error",
-                    title: "Malformed response from LLM"
-                })
+                    title: "Malformed response from LLM",
+                });
                 return null;
             }
+            return result.json;
         },
         async onExtractResponse(response) {
-            this.loading_search_criteria = false;
-            if (!response) return;
-            const json = this.parseLLMResponse(response);
-            if (!json) {
-                this.error_search_criteria = true;
-                this.error_msg_search_criteria = "Could not parse extraction result.";
-                return;
-            }
-            if (json.error) {
-                this.error_search_criteria = true;
-                this.error_msg_search_criteria = json.error;
-                this.allow_retry = false;
-                return;
-            }
-
-            console.log("FactorBaseReveal: extraction LLM raw object", json);
-
-            const phenotypeTerms = this.normalizeLlmTermList(json.phenotype_terms);
-            const mechanismTerms = this.normalizeLlmTermList(json.mechanism_terms);
-            const genesOfInterest = this.normalizeLlmTermList(json.genes_of_interest);
-            const explicitUserGenes = this.normalizeLlmTermList(json.explicit_user_genes);
-            const antiAnchorTermsDetected = this.detectAntiAnchorTerms(this.userQuery);
-            let extractionAmbiguity = this.normalizeExtractionAmbiguity(json.ambiguity_check);
-            let alternativeQueries = this.mergeAlternativeQueries(
-                json.suggested_queries != null
-                    ? json.suggested_queries
-                    : (json.alternative_queries != null
-                        ? json.alternative_queries
-                        : json.alternativeQueries),
-                extractionAmbiguity && extractionAmbiguity.alternative_queries
-            );
-            const antiAnchorTermsFromLlm =
-                extractionAmbiguity && Array.isArray(extractionAmbiguity.anti_anchor_terms)
-                    ? extractionAmbiguity.anti_anchor_terms
-                    : [];
-            const antiAnchorTerms = this.mergeAlternativeQueries(antiAnchorTermsDetected, antiAnchorTermsFromLlm);
-            if (antiAnchorTerms.length && (!extractionAmbiguity || !extractionAmbiguity.has_ambiguity)) {
-                extractionAmbiguity = {
-                    has_ambiguity: true,
-                    warning_message:
-                        "Your query includes an anti-anchor exclusion. Semantic retrieval works better with positive mechanism anchors.",
-                    alternative_queries: [],
-                    anti_anchor_terms: antiAnchorTerms,
-                };
-            }
-
-            if (antiAnchorTerms.length) {
-                const fallbackAntiAnchorAlts = this.buildAntiAnchorFallbackAlternatives({
-                    antiAnchorTerms,
-                    mechanismTerms,
-                    researchContext: typeof json.research_context === "string" ? json.research_context : "",
-                });
-                alternativeQueries = this.mergeAlternativeQueries(alternativeQueries, fallbackAntiAnchorAlts).slice(0, 3);
-                if (extractionAmbiguity) {
-                    extractionAmbiguity.anti_anchor_terms = antiAnchorTerms;
-                    extractionAmbiguity.warning_message = this.ensureAntiAnchorWarningMessage(
-                        extractionAmbiguity.warning_message,
-                        antiAnchorTerms,
-                        alternativeQueries
-                    );
-                }
-            } else {
-                alternativeQueries = alternativeQueries.slice(0, 3);
-            }
-
-            const searchTerms = [...phenotypeTerms, ...mechanismTerms];
-            const selectedRoutes = this.normalizeMultiQueryRoutes(
-                json.selected_routes != null ? json.selected_routes : json.routes,
-                json
-            );
-
-            const researchContext = typeof json.research_context === "string" ? json.research_context : "";
-            const hasMultiRoutes = selectedRoutes.length > 0;
-
-            this.searchCriteria = [
-                {
-                    search_criteria: "Search Terms",
-                    values: hasMultiRoutes
-                        ? ["(per direction — see below)"]
-                        : (searchTerms.length ? searchTerms : ["(none extracted)"]),
-                    why: hasMultiRoutes
-                        ? "Each retrieval direction uses its own extracted terms."
-                        : "We extracted this from your search query.",
-                    purpose: hasMultiRoutes
-                        ? "Route-specific terms drive hybrid search for tissue expression, perturbations, and genetics."
-                        : "These terms will be used to search for related phenotype↔signature associations via semantic search.",
-                },
-                {
-                    search_criteria: "Research Context",
-                    values: researchContext || "(none extracted)",
-                    why: "We inferred this from your search query.",
-                    purpose:
-                        "This context will be used to tailor mechanistic hypotheses to your research.",
-                },
-            ];
-
-            this.searchTerm = hasMultiRoutes
-                ? selectedRoutes.map((r) => r.category).filter(Boolean).join(", ")
-                : searchTerms.join(", ");
-
-            this.lastPhenotypeTerms = phenotypeTerms;
-            this.lastMechanismTerms = mechanismTerms;
-            this.lastExplicitUserGenes = explicitUserGenes.length
-                ? explicitUserGenes
-                : this.inferExplicitUserGenes(genesOfInterest);
-            this.lastGenesOfInterest = genesOfInterest;
-            this.lastAlternativeQueries = alternativeQueries;
-            this.extractionAmbiguityCheck = extractionAmbiguity;
-            this.extractionAmbiguityDismissed = false;
-            this.multiQueryRoutes = selectedRoutes;
-            this.multiQueryRouteResults = [];
-            this.multiQueryEvidenceBundles = [];
-            this.multiQueryRouteErrors = [];
-            if (hasMultiRoutes) {
-                this.syncUnionTermsFromMultiQueryRoutes();
-                if (!this.lastPhenotypeTerms.length && phenotypeTerms.length) {
-                    this.lastPhenotypeTerms = phenotypeTerms;
-                }
-            }
-
-            this.setStep({
-                id: "1",
-                substep: {
-                    id: "1.1",
-                    result: {
-                        title: "Extracted search terms and research context. Review terms, then continue.",
-                        result: {
-                            phenotypeTerms,
-                            mechanismTerms,
-                            genesOfInterest,
-                            researchContext,
-                            alternativeQueries,
-                            selectedRoutes
-                        }
-                    }
-                }
-            })
-            this.buildSearchCriteriaEditRows();
-
-            const approved = await this.waitForStepApproval(
-                "1",
-                "Review terms and continue when ready.",
-                true
-            );
-            if (!approved) return;
-
-            if (this.searchMode === "auto") {
-                this.onResearch();
-            }
+            return processExtractionResponse(this, response);
         },
         onExtractError(err) {
-            this.loading_search_criteria = false;
-            this.error_search_criteria = true;
-            this.error_msg_search_criteria = err && err.message ? err.message : "An error occurred.";
-            this.setStep({
-                type: 'error',
-                title: "Request failed or timed out.",
-            })
+            reportExtractionError(this, err);
         },
         onExtractEnd() {
             this.loading_search_criteria = false;
@@ -7961,42 +5723,17 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 event.target.blur();
             }
         },
-        buildHybridQueryText({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
-            const skip = (s) => !s || s === "(none extracted)";
-            const parts = [...(mechanismTerms || []), ...(phenotypeTerms || []), researchContext]
-                .map((v) => String(v || "").trim())
-                .filter((v) => !skip(v));
-            return parts.join("\n");
+        buildHybridQueryText(opts) {
+            return buildHybridQueryText(opts);
         },
         /**
          * LLM may return null, a string (comma-separated), or an array for term fields.
          */
         normalizeLlmTermList(raw) {
-            if (raw == null) return [];
-            if (Array.isArray(raw)) {
-                return raw
-                    .map((t) => String(t || "").trim())
-                    .filter((t) => t && t !== "(none extracted)");
-            }
-            const s = String(raw).trim();
-            if (!s || s === "(none extracted)") return [];
-            return s
-                .split(/[,;]|\n/)
-                .map((x) => x.trim())
-                .filter(Boolean);
+            return normalizeLlmTermList(raw);
         },
         inferExplicitUserGenes(genesOfInterest = []) {
-            const query = String(this.userQuery || "").toUpperCase();
-            const aliasMap = {
-                ACVR1C: ["ACVR1C", "ALK7"],
-                INHBE: ["INHBE", "ACTIVIN E", "ACTIVIN-E"],
-            };
-            return this.normalizeLlmTermList(genesOfInterest).filter((gene) => {
-                const sym = String(gene || "").trim().toUpperCase();
-                if (!sym) return false;
-                const aliases = aliasMap[sym] || [sym];
-                return aliases.some((alias) => query.includes(String(alias).toUpperCase()));
-            });
+            return inferExplicitUserGenes(this.userQuery, genesOfInterest);
         },
         routingDerivedGenes() {
             const explicit = new Set((this.lastExplicitUserGenes || []).map((g) => String(g).toUpperCase()));
@@ -8175,24 +5912,13 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * (phenotype_terms alone is not enough without embedding when server-side embedding is off).
          */
         prepareHybridSearchRequestFields(phenotypeTerms, mechanismTerms, researchContext, queryEmbedding) {
-            const NONE = "(none extracted)";
-            const phenotype_terms = (phenotypeTerms || [])
-                .map((t) => String(t || "").trim())
-                .filter((t) => t && t !== NONE);
-            let mechanism_terms = (mechanismTerms || [])
-                .map((t) => String(t || "").trim())
-                .filter((t) => t && t !== NONE);
-            let research_context = researchContext != null ? String(researchContext).trim() : "";
-            if (research_context === NONE) research_context = "";
-
-            const hasEmbedding = Array.isArray(queryEmbedding) && queryEmbedding.length > 0;
-            const hasMech = mechanism_terms.length > 0;
-            const hasContext = research_context.length > 0;
-            if (!hasEmbedding && !hasMech && !hasContext) {
-                research_context = `Phenotype-focused retrieval: ${phenotype_terms.join("; ")}.`;
-            }
-
-            return { phenotype_terms, mechanism_terms, research_context };
+            const useClient = !!this.hybridSearchUseClientEmbedding;
+            return prepareHybridSearchRequestFields(
+                phenotypeTerms,
+                mechanismTerms,
+                researchContext,
+                useClient ? queryEmbedding : null
+            );
         },
         buildHybridSearchRequestBody(
             phenotypeTerms,
@@ -8202,29 +5928,15 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             genesOfInterest = null,
             constraintSpec = null
         ) {
-            const useClient = !!this.hybridSearchUseClientEmbedding;
-            const fields = this.prepareHybridSearchRequestFields(
+            return composeHybridSearchRequestBody({
                 phenotypeTerms,
                 mechanismTerms,
                 researchContext,
-                useClient ? queryEmbedding : null
-            );
-            const goi = this.normalizeLlmTermList(genesOfInterest != null ? genesOfInterest : this.lastGenesOfInterest);
-            const body = {
-                phenotype_terms: fields.phenotype_terms,
-                genes_of_interest: goi,
-                mechanism_terms: fields.mechanism_terms,
-                research_context: fields.research_context,
-            };
-            if (useClient && Array.isArray(queryEmbedding) && queryEmbedding.length > 0) {
-                body.query_embedding = queryEmbedding;
-            }
-            if (constraintSpec && typeof constraintSpec === "object") {
-                if (constraintSpec.constraint_mode != null) body.constraint_mode = constraintSpec.constraint_mode;
-                if (constraintSpec.constraint_scope != null) body.constraint_scope = constraintSpec.constraint_scope;
-                if (constraintSpec.constraint_behavior != null) body.constraint_behavior = constraintSpec.constraint_behavior;
-            }
-            return body;
+                queryEmbedding,
+                genesOfInterest: genesOfInterest != null ? genesOfInterest : this.lastGenesOfInterest,
+                constraintSpec,
+                useClientEmbedding: !!this.hybridSearchUseClientEmbedding,
+            });
         },
         async fetchWithTimeout(url, options = {}, timeoutMs) {
             const ms = timeoutMs != null ? timeoutMs : this.hybridSearchTimeoutMs;
@@ -8237,24 +5949,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             }
         },
         hybridSearchErrorMessage(status, json) {
-            if (json == null || typeof json !== "object") {
-                return `HTTP ${status}`;
-            }
-            if (typeof json.message === "string" && json.message.trim()) return json.message.trim();
-            if (typeof json.detail === "string" && json.detail.trim()) return json.detail.trim();
-            if (json.detail != null && typeof json.detail === "object") {
-                try {
-                    return JSON.stringify(json.detail);
-                } catch (e) {
-                    return String(json.detail);
-                }
-            }
-            if (typeof json.error === "string" && json.error.trim()) return json.error.trim();
-            try {
-                return JSON.stringify(json);
-            } catch (e) {
-                return `HTTP ${status}`;
-            }
+            return formatHybridSearchErrorMessage(status, json);
         },
         async fetchHybridQueryEmbedding(queryText) {
             const text = String(queryText || "").trim();
@@ -8344,88 +6039,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             throw new Error(`Hybrid search failed at ${url}: ${resp.status} ${detail}`);
         },
         normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms = []) {
-            const out = {};
-            const data = hybridJson && hybridJson.data ? hybridJson.data : {};
-            const factors = Array.isArray(data.factors) ? data.factors : [];
-            const fallbackPhenotype = data.phenotype != null
-                ? String(data.phenotype).trim()
-                : ((phenotypeTerms && phenotypeTerms[0]) ? String(phenotypeTerms[0]).trim() : "");
-
-            factors.forEach((item, idx) => {
-                const phenotype = item && item.phenotype != null && String(item.phenotype).trim() !== ""
-                    ? String(item.phenotype).trim()
-                    : fallbackPhenotype;
-                if (!phenotype) return;
-                if (!out[phenotype]) out[phenotype] = { genes: {}, factors: [], allFactors: [] };
-
-                const factorId = item && item.factor_id != null && String(item.factor_id).trim() !== ""
-                    ? String(item.factor_id).trim()
-                    : `factor${idx + 1}`;
-                const explicitApiLabel = item && item.label != null && String(item.label).trim() !== ""
-                    ? String(item.label).trim()
-                    : "";
-                const factorLabel = explicitApiLabel || factorId;
-                const topGeneSets = Array.isArray(item && item.top_gene_sets)
-                    ? item.top_gene_sets.map((s) => String(s || "").trim()).filter(Boolean)
-                    : (item && item.top_gene_sets != null ? String(item.top_gene_sets).split(/[;,]/).map((s) => s.trim()).filter(Boolean) : []);
-                const geneSetPrograms = Array.isArray(item && item.gene_set_programs)
-                    ? item.gene_set_programs.map((s) => String(s || "").trim()).filter(Boolean)
-                    : (item && item.gene_set_program != null ? String(item.gene_set_program).split(/\s*\|\s*/).map((s) => s.trim()).filter(Boolean) : []);
-
-                const factorObj = {
-                    factor: factorId,
-                    label: factorLabel,
-                    labelFromApi: explicitApiLabel !== "" ? explicitApiLabel : null,
-                    top_gene_sets: topGeneSets.join(";"),
-                    gene_set_description: "",
-                    gene_set_program: geneSetPrograms.join(" | "),
-                    genes: {},
-                    geneSets: {},
-                };
-
-                topGeneSets.forEach((gs) => {
-                    factorObj.geneSets[gs] = { genes: [] };
-                });
-
-                const genes = Array.isArray(item && item.genes) ? item.genes : [];
-                genes.forEach((g) => {
-                    const gene = g && g.gene != null ? String(g.gene).trim() : "";
-                    if (!gene) return;
-                    const rel = g && g.relevance != null && !isNaN(Number(g.relevance)) ? Number(g.relevance) : null;
-                    const includedFromRequest = g && g.included_from_request === true;
-                    const geneSetIds = Array.isArray(g && g.gene_set_ids)
-                        ? g.gene_set_ids.map((x) => String(x || "").trim()).filter(Boolean)
-                        : (g && g.gene_set_ids != null
-                            ? String(g.gene_set_ids).split(/[;,]/).map((x) => x.trim()).filter(Boolean)
-                            : []);
-                    factorObj.genes[gene] = {
-                        factorRelevance: rel != null ? rel : 1,
-                        factor_value: rel,
-                        includedFromRequest,
-                        geneSetIds,
-                    };
-                    geneSetIds.forEach((gs) => {
-                        if (!factorObj.geneSets[gs]) factorObj.geneSets[gs] = { genes: [] };
-                        const members = Array.isArray(factorObj.geneSets[gs].genes) ? factorObj.geneSets[gs].genes : [];
-                        if (!members.includes(gene)) members.push(gene);
-                        factorObj.geneSets[gs].genes = members;
-                    });
-                    if (out[phenotype].genes[gene] == null) {
-                        out[phenotype].genes[gene] = {
-                            combined: g && g.combined_score != null ? g.combined_score : null,
-                            gwasSupport: g && g.gwas_support != null ? g.gwas_support : null,
-                            geneSetSupport: g && g.functional_support != null ? g.functional_support : null,
-                        };
-                    }
-                });
-
-                out[phenotype].factors.push(factorObj);
-            });
-
-            Object.keys(out).forEach((p) => {
-                out[p].allFactors = [...(out[p].factors || [])];
-            });
-            return out;
+            return mapHybridFactorsToFactorData(hybridJson, phenotypeTerms);
         },
         async runHybridRetrievalWorkflow({
             phenotypeTerms = [],
@@ -8958,6 +6572,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Body: phenotype_terms, genes_of_interest, mechanism_terms, research_context; optional query_embedding if VUE_APP_HYBRID_CLIENT_EMBEDDING=true.
          */
         async onResearch(phenotypeTermsFromExtract, options = {}) {
+            const runId = this.workflowRunId;
             const opts = options && typeof options === "object" ? options : {};
             const rawPhenotype = phenotypeTermsFromExtract != null
                 ? phenotypeTermsFromExtract
@@ -8993,10 +6608,12 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         researchContext,
                         constraintSpec: opts.helperConstraintSpec != null ? opts.helperConstraintSpec : null,
                     });
+                if (this.workflowRunIdStale(runId)) return;
                 if (!usedHybrid) {
                     throw new Error("Hybrid retrieval returned no phenotype–factor results.");
                 }
             } catch (err) {
+                if (this.workflowRunIdStale(runId)) return;
                 const msg = err && err.message ? String(err.message) : "";
                 const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(msg);
                 const isValidation = /(^|\s)422(\s|$)/.test(msg);
@@ -9110,14 +6727,11 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.error_msg_mechanisms = "";
             this.mechanismDiagnosticAssessment = null;
             this.setLoadStatus("Generating hypotheses…");
-            this.loadComplete = false;
-            this.showTab = "results";
-            this.revealResultsTabUnlocked = true;
+            this.beginMechanismHypothesisGeneration();
             this.setStep({
                 id: "4",
                 title: "LLM: Generating mechanistic hypotheses",
             });
-            this.restartMechanismHypothesisStepTimer();
             const triples = this.lastKgTriples && this.lastKgTriples.length
                 ? this.lastKgTriples
                 : this.transformMergedDataToKG(this.factorData, 'factors');
@@ -9128,16 +6742,6 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Treat as timeout/retriable: 504, Gateway Timeout, or network/CORS errors that often accompany backend timeout.
          */
         isMechanismTimeoutError(err) {
-            if (!err) return false;
-            const status = err.status;
-            if (status === 504) return true;
-            const msg = (err.message || "").toString();
-            return /504|Gateway Timeout|timeout|Timeout|Failed to fetch|Load failed|net::ERR_FAILED|CORS|Access-Control/i.test(msg);
-        },
-        /**
-         * Treat extraction timeout/network as retriable, mirroring hypothesis generation retry behavior.
-         */
-        isExtractionTimeoutError(err) {
             if (!err) return false;
             const status = err.status;
             if (status === 504) return true;
@@ -9193,7 +6797,16 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Single-pass mechanism generation: generate hypotheses directly from the hybrid KG package.
          * No factor filtering, semantic grouping, or per-group generation phases.
          */
+        beginMechanismHypothesisGeneration() {
+            this.revealResultsTabUnlocked = true;
+            this.loadComplete = false;
+            this.switchRevealTab("results");
+            if (typeof this.restartMechanismHypothesisStepTimer === "function") {
+                this.restartMechanismHypothesisStepTimer();
+            }
+        },
         requestMechanismHypotheses(factorData, kgTriples, routeEvidenceBundles = null) {
+            this.beginMechanismHypothesisGeneration();
             this.error_mechanisms = false;
             this.error_msg_mechanisms = "";
             this.mechanismDiagnosticAssessment = null;
@@ -10111,143 +7724,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @returns {Array<{ subject, predicate, object, context }>}
          */
         transformMergedDataToKG(mergedData, factorsKey) {
-            const triples = [];
-            const seenPhenoGs = new Set();
-            const phenoGeneTriple = new Map();
-            const seenGeneGs = new Set();
-
-            Object.keys(mergedData || {}).forEach((phenotypeName) => {
-                const pData = mergedData[phenotypeName];
-                if (!pData || !Array.isArray(pData[factorsKey])) return;
-
-                pData[factorsKey].forEach((factorObj) => {
-                    const geneSets = (typeof factorObj.top_gene_sets === "string" && factorObj.top_gene_sets)
-                        ? factorObj.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
-                        : [];
-
-                    geneSets.forEach((gsName) => {
-                        const pgKey = `${phenotypeName}\u0000${gsName}`;
-                        if (seenPhenoGs.has(pgKey)) return;
-                        seenPhenoGs.add(pgKey);
-                        triples.push({
-                            subject: phenotypeName,
-                            predicate: "associated_with",
-                            object: gsName,
-                            context: { type: "PhenotypeToGeneSet" },
-                        });
-                    });
-
-                    const factorGenes = factorObj.genes || {};
-                    const genesInFactor = Object.keys(factorGenes)
-                        .map((gName) => ({
-                            name: gName,
-                            relevance: factorGenes[gName] && factorGenes[gName].factorRelevance != null
-                                ? factorGenes[gName].factorRelevance
-                                : 0,
-                            includedFromRequest: !!(factorGenes[gName] && factorGenes[gName].includedFromRequest),
-                        }))
-                        .sort((a, b) => {
-                            if (b.includedFromRequest !== a.includedFromRequest) {
-                                return (b.includedFromRequest ? 1 : 0) - (a.includedFromRequest ? 1 : 0);
-                            }
-                            return Math.abs(b.relevance) - Math.abs(a.relevance);
-                        });
-
-                    const globalGenes = pData.genes || {};
-
-                    genesInFactor.forEach((gene) => {
-                        const globalGeneStats = globalGenes[gene.name] || {};
-                        const gwasSupport = globalGeneStats.gwasSupport;
-                        const geneSetSupport = globalGeneStats.geneSetSupport;
-                        const category = (gwasSupport != null && geneSetSupport != null && gwasSupport > geneSetSupport)
-                            ? "Genetic (Established)"
-                            : "Functional (Novel)";
-
-                        const newCtx = {
-                            type: "PhenotypeToGene",
-                            factor_relevance: gene.relevance,
-                            combined_score: globalGeneStats.combined,
-                            gwas_support: gwasSupport,
-                            functional_support: geneSetSupport,
-                            category,
-                            included_from_request: gene.includedFromRequest === true,
-                        };
-                        const gKey = `${phenotypeName}\u0000${gene.name}`;
-                        const existing = phenoGeneTriple.get(gKey);
-                        const scoreNew = newCtx.combined_score != null && !isNaN(Number(newCtx.combined_score))
-                            ? Number(newCtx.combined_score)
-                            : -Infinity;
-                        const scoreOld = existing && existing.context.combined_score != null
-                            ? Number(existing.context.combined_score)
-                            : -Infinity;
-                        if (!existing) {
-                            const t = {
-                                subject: phenotypeName,
-                                predicate: "contains_gene",
-                                object: gene.name,
-                                context: newCtx,
-                            };
-                            phenoGeneTriple.set(gKey, t);
-                            triples.push(t);
-                        } else if (scoreNew > scoreOld) {
-                            existing.context = newCtx;
-                        }
-
-                        const factorGeneSets = factorObj.geneSets || {};
-                        let geneLinkedToSomePathway = false;
-                        geneSets.forEach((gsName) => {
-                            const members = factorGeneSets[gsName] && Array.isArray(factorGeneSets[gsName].genes)
-                                ? factorGeneSets[gsName].genes
-                                : [];
-                            if (!members.includes(gene.name)) return;
-                            geneLinkedToSomePathway = true;
-                            const ggKey = `${gene.name}\u0000${gsName}`;
-                            if (seenGeneGs.has(ggKey)) return;
-                            seenGeneGs.add(ggKey);
-                            triples.push({
-                                subject: gene.name,
-                                predicate: "contributes_to_pathway",
-                                object: gsName,
-                                context: {
-                                    type: "GeneToPathway",
-                                    context_phenotype: phenotypeName,
-                                },
-                            });
-                        });
-                        if (!geneLinkedToSomePathway && geneSets.length > 0) {
-                            const fallbackGs = geneSets[0];
-                            if (!factorObj.geneSets) {
-                                this.$set(factorObj, "geneSets", {});
-                            }
-                            if (!factorObj.geneSets[fallbackGs]) {
-                                this.$set(factorObj.geneSets, fallbackGs, { genes: [] });
-                            }
-                            const gsEntry = factorObj.geneSets[fallbackGs];
-                            const gens = Array.isArray(gsEntry.genes) ? [...gsEntry.genes] : [];
-                            if (!gens.includes(gene.name)) {
-                                gens.push(gene.name);
-                                this.$set(gsEntry, "genes", gens);
-                            }
-                            const ggKey = `${gene.name}\u0000${fallbackGs}`;
-                            if (!seenGeneGs.has(ggKey)) {
-                                seenGeneGs.add(ggKey);
-                                triples.push({
-                                    subject: gene.name,
-                                    predicate: "contributes_to_pathway",
-                                    object: fallbackGs,
-                                    context: {
-                                        type: "GeneToPathway",
-                                        context_phenotype: phenotypeName,
-                                        linkage_fallback: true,
-                                    },
-                                });
-                            }
-                        }
-                    });
-                });
-            });
-
-            return triples;
+            return buildKgTriplesFromFactorData(mergedData, factorsKey);
         },
         /**
          * Normalize factor id for matching API response rows to factor objects. API may return

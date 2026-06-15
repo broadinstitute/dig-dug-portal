@@ -1,5 +1,8 @@
 module.exports = {
-    testMatch: ["**/revealKgWorkspace/__tests__/**/*.test.js"],
+    testMatch: [
+        "**/revealKgWorkspace/__tests__/**/*.test.js",
+        "**/revealMultiQueryWorkflow/__tests__/**/*.test.js",
+    ],
     transform: {
         "^.+\\.js$": "babel-jest",
     },
