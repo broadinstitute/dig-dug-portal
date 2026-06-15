@@ -6,13 +6,18 @@ Technical overview of **CFDE REVEAL Multi Query** in dig-dug-portal. For UI conv
 
 Multi Query REVEAL is a **linear three-tab workflow**: Search terms → Data → Results. Users enter a research question, review LLM-extracted terms and retrieval directions, inspect hybrid-search evidence, then generate mechanistic hypotheses.
 
-The root shell is **`multiQueriesReveal.vue`** (registered as `factor-base-reveal`). It owns workflow state and composes components under `revealMultiQueryWorkflow/`.
+The root shell is **`multiQueriesReveal.vue`** (registered as `factor-base-reveal`). It owns workflow session state and composes components under `revealMultiQueryWorkflow/`. Orchestration lives in dedicated JS modules; the shell delegates via thin method wrappers.
 
 ```mermaid
 flowchart TB
     subgraph shell ["multiQueriesReveal.vue"]
         Session[(workflow session)]
-        Orchestrator[revealMqWorkflowOrchestrator.js]
+    end
+
+    subgraph orchestrators ["Orchestrators"]
+        ExtractOrch[revealMqWorkflowOrchestrator.js]
+        RetrievalOrch[revealMqRetrievalOrchestrator.js]
+        HypothesisOrch[revealMqHypothesisOrchestrator.js]
     end
 
     subgraph modals ["Modals"]
@@ -32,38 +37,44 @@ flowchart TB
         Results[WorkflowResultsPanel]
     end
 
-    subgraph gates ["Gates"]
-        StepGate[WorkflowStepGate]
-    end
-
     subgraph utils ["revealMultiQueryWorkflow/*.js"]
         Extract[revealMqExtraction.js]
         Hybrid[revealMqHybridSearch.js]
+        HybridApi[revealMqHybridSearchApi.js]
+        MultiRoute[revealMqMultiRoute.js]
         KG[revealMqKgTransform.js]
         Export[revealMqWorkflowExport.js]
     end
 
     shell --> chrome
     shell --> tabs
-    Orchestrator --> utils
+    shell --> orchestrators
+    ExtractOrch --> Extract
+    RetrievalOrch --> Hybrid
+    RetrievalOrch --> HybridApi
+    RetrievalOrch --> MultiRoute
+    HypothesisOrch --> KG
 ```
 
-## Directory layout (current)
+## Directory layout
 
 | Category | Files | Role |
 |----------|-------|------|
-| **Shell** | `../multiQueriesReveal.vue` | Session, workflow orchestration, tab routing |
-| **Chrome** | `WorkflowHeader.vue`, `WorkflowQueryBar.vue`, `WorkflowTabBar.vue` | Intro, query input, export/import, tab bar |
-| **Modals** | `WorkflowQueryHelperModal.vue`, `WorkflowNetworkModals.vue` | Guided query builder; network popups |
+| **Shell** | `../multiQueriesReveal.vue` | Session state, thin orchestrator delegates, tab routing |
+| **Chrome** | `WorkflowHeader.vue`, `WorkflowQueryBar.vue`, `WorkflowTabBar.vue`, `WorkflowOpsMenu.vue` | Intro, query input, export/import, tab bar |
+| **Modals** | `WorkflowQueryHelperModal.vue`, `WorkflowNetworkModals.vue`, `WorkflowQueryGuidelinesModal.vue`, `WorkflowSearchTermsExtractionModal.vue` | Guided query builder; network popups; query guidelines; extraction help |
 | **Panels** | `WorkflowTermsPanel.vue`, `WorkflowDataPanel.vue`, `WorkflowResultsPanel.vue`, `WorkflowStepGate.vue` | Tab content; reusable Continue gate |
-| **Utils** | `revealMqExtraction.js`, `revealMqHybridSearch.js`, `revealMqKgTransform.js`, `revealMqStepGates.js`, `revealMqStepTime.js`, `revealMqRouteEdit.js`, `revealMqWorkflowExport.js`, `revealMqWorkflowSession.js`, `revealMqWorkflowOrchestrator.js` | Pure logic + extraction orchestration |
+| **Orchestrators** | `revealMqWorkflowOrchestrator.js`, `revealMqRetrievalOrchestrator.js`, `revealMqHypothesisOrchestrator.js` | Extraction, hybrid retrieval, mechanism LLM phases |
+| **Utils** | `revealMqExtraction.js`, `revealMqHybridSearch.js`, `revealMqHybridSearchApi.js`, `revealMqMultiRoute.js`, `revealMqKgTransform.js`, `revealMqStepGates.js`, `revealMqStepTime.js`, `revealMqRouteEdit.js`, `revealMqWorkflowExport.js`, `revealMqWorkflowSession.js` | Pure logic, HTTP, session export |
 | **Styles** | `mqSharedStyles.css` | Shared tab, gate, alt-query styles |
 | **Shared viz** | `../FactorBaseRevealHeatmap2.vue`, `../FactorBaseRevealNetwork2.vue` | Heatmap + network (outside folder) |
 | **Tests** | `__tests__/*.test.js` | Unit tests |
 
 ## Session model
 
-The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflowSession.js`. Tab panels receive state via **`provide('mqWorkflow')`** during the gradual refactor (panels use `inject` + `w` alias); Terms panel uses explicit props/events.
+The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflowSession.js`.
+
+**Panel wiring:** Tab panels use explicit **props + events** (like Terms). State is passed via `v-bind="dataPanelProps"` / `v-bind="resultsPanelProps"`; read-only formatters and row accessors are bundled in a **`helpers`** prop object from shell computed properties (`dataPanelHelpers`, `resultsPanelHelpers`). Modals still use `:shell="mqShell"` until migrated.
 
 | Group | Fields |
 |-------|--------|
@@ -73,7 +84,7 @@ The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflow
 | **Workflow** | `steps`, `showTab`, `workflowRunId`, gate flags |
 | **Results** | `mechanisms`, `mechanismDiagnosticAssessment` |
 
-**Export / Import:** `revealMqWorkflowExport.js` snapshots session through the Data step (`kind: reveal-mq-workflow-export`).
+**Export / Import:** `revealMqWorkflowExport.js` snapshots full session including Results (`kind: reveal-mq-workflow-export`, schema v2).
 
 ## Workflow steps
 
@@ -83,11 +94,23 @@ The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflow
 | `2` | Data | Review phenotypes / gene sets → continue to hypotheses |
 | `4` | Results | Mechanism LLM (no gate) |
 
-## Migration phases
+## Orchestration flow
 
-1. **Done:** Utils extraction, session scaffold, chrome + tab panels, modals, extraction orchestrator
-2. **Next:** Move hybrid-search + hypothesis orchestration into `revealMqWorkflowOrchestrator.js`; replace panel `inject` with props/events
-3. **Last:** Consolidate `hybridSearchReveal.vue` fork
+1. **Extraction** — `beginExtractionFlow` / `startWorkflowFromExtractedTerms` in `revealMqWorkflowOrchestrator.js`
+2. **Retrieval** — `onResearch` → single-route `runHybridRetrievalWorkflow` or multi-route `runMultiQueryRetrievalWorkflow` in `revealMqRetrievalOrchestrator.js`
+3. **Hypotheses** — `requestMechanismHypotheses` in `revealMqHypothesisOrchestrator.js` after step-2 gate approval
+
+## Migration status
+
+| Phase | Status |
+|-------|--------|
+| Utils + session scaffold | Done |
+| Chrome, tab panels, modals | Done |
+| Extraction / retrieval / hypothesis orchestrators | Done |
+| Shell `:shell` prop (replacing provide/inject) | Done |
+| Multi-route helpers + hybrid HTTP API modules | Done |
+| Fine-grained Data/Results panel props | Done — props/events + `helpers` bundle |
+| `hybridSearchReveal.vue` fork consolidation | Out of scope — separate portal section component |
 
 ## External dependencies
 

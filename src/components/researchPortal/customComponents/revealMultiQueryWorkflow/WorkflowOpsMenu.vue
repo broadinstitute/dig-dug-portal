@@ -67,12 +67,16 @@
                 text="Help"
                 size="sm"
                 variant="link"
+                right
                 class="reveal-ops-menu"
                 toggle-class="reveal-ops-menu-toggle"
                 menu-class="reveal-ops-menu-list"
             >
-                <b-dropdown-item link-class="reveal-ops-menu-item" disabled>
-                    More help coming soon
+                <b-dropdown-item
+                    link-class="reveal-ops-menu-item"
+                    @click="$emit('open-search-terms-extraction')"
+                >
+                    How search terms are extracted
                 </b-dropdown-item>
             </b-dropdown>
         </div>

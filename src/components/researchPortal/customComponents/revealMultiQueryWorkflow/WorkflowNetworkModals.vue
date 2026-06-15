@@ -105,12 +105,12 @@ import FactorBaseRevealNetwork from "../FactorBaseRevealNetwork2.vue";
 export default {
     name: "WorkflowNetworkModals",
     components: { FactorBaseRevealNetwork },
-    inject: {
-        mqWorkflow: { default: null },
+    props: {
+        shell: { type: Object, default: null },
     },
     computed: {
         w() {
-            return this.mqWorkflow;
+            return this.shell;
         },
     },
 };

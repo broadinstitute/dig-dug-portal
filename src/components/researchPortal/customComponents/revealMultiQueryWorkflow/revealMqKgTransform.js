@@ -152,4 +152,56 @@ function transformMergedDataToKG(mergedData, factorsKey) {
     return triples;
 }
 
-export { transformMergedDataToKG };
+/**
+ * Flattens KG triples into tabular rows (id, subject, predicate, object, context_*).
+ * @param {Array} data - Array of { subject, predicate, object, context? } triples.
+ * @returns {Array<Object>}
+ */
+function flattenKGData(data) {
+    return (data || []).map((entry, index) => {
+        const flattened = {
+            id: index,
+            subject: entry.subject ?? "",
+            predicate: entry.predicate ?? "",
+            object: entry.object ?? "",
+        };
+        if (entry.context && typeof entry.context === "object") {
+            Object.keys(entry.context).forEach((key) => {
+                const v = entry.context[key];
+                flattened[`context_${key}`] =
+                    v != null && typeof v === "object" ? JSON.stringify(v) : v != null ? String(v) : "";
+            });
+        }
+        return flattened;
+    });
+}
+
+/**
+ * Converts flattened KG rows to a CSV string (header + rows, quoted as needed).
+ * @param {Array<Object>} flattened
+ * @returns {string}
+ */
+function flattenedKGToCSV(flattened) {
+    if (!flattened || flattened.length === 0) return "";
+    const escape = (val) => {
+        const s = val == null ? "" : String(val);
+        if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+        return s;
+    };
+    const keys = Object.keys(flattened[0]);
+    const header = keys.map(escape).join(",");
+    const rows = flattened.map((row) => keys.map((k) => escape(row[k])).join(","));
+    return [header, ...rows].join("\n");
+}
+
+/** Shared KG + phenotype/gene/gene-set summary block for mechanism hypothesis LLM prompts. */
+function buildMechanismLlmContextBlock(kgBlock, phenoGeneSetSummary, researchContext) {
+    return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Phenotype / genes / gene sets (from hybrid; clusters are not separate graph nodes):**\n\`\`\`json\n${phenoGeneSetSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+}
+
+export {
+    buildMechanismLlmContextBlock,
+    flattenKGData,
+    flattenedKGToCSV,
+    transformMergedDataToKG,
+};

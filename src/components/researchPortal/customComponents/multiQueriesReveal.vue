@@ -14,6 +14,7 @@
                         @import-workflow-file="onWorkflowImportFile"
                         @open-query-builder="openQueryHelperModal"
                         @open-query-guidelines="queryGuidelinesOpen = true"
+                        @open-search-terms-extraction="searchTermsExtractionOpen = true"
                     />
                     <workflow-query-bar
                         ref="workflowQueryBar"
@@ -151,7 +152,6 @@
                             :search-criteria-edit-rows="searchCriteriaEditRows"
                             :multi-query-route-edit-rows="multiQueryRouteEditRows"
                             :extraction-gate-done="searchCriteriaExtractionGateDone"
-                            :search-terms-extraction-expanded.sync="searchTermsExtractionExpanded"
                             :extraction-ambiguity-check="extractionAmbiguityCheck"
                             :extraction-ambiguity-dismissed="extractionAmbiguityDismissed"
                             :use-per-route-search-terms-editor="usePerRouteSearchTermsEditor"
@@ -170,6 +170,17 @@
                         <workflow-data-panel
                             v-if="showDataTabContent"
                             ref="workflowDataPanel"
+                            v-bind="dataPanelProps"
+                            :helpers="dataPanelHelpers"
+                            @approve-gate="approveStepGate"
+                            @update:dataFetchDirectionsExpanded="dataFetchDirectionsExpanded = $event"
+                            @download-raw-json="downloadLastHybridSearchRawJson"
+                            @pair-included-toggle="onPairIncludedToggle"
+                            @toggle-factor-row="toggleFactorGenesRow"
+                            @open-factor-connectivity="openFactorConnectivityPopup"
+                            @gene-set-row-toggle="onGeneSetRowToggled"
+                            @update:mainTableCurrentPage="mainTableCurrentPage = $event"
+                            @update:subtable-page="onSubtablePageUpdate"
                         >
                             <template #data-viz>
                                 <factor-base-reveal-heatmap
@@ -187,6 +198,25 @@
                         <workflow-results-panel
                             v-if="showResultsTabContent"
                             ref="workflowResultsPanel"
+                            v-bind="resultsPanelProps"
+                            :helpers="resultsPanelHelpers"
+                            @retry-hypotheses="retryMechanismHypotheses"
+                            @retry-hypotheses-relaxed="retryMechanismHypothesesRelaxed"
+                            @download-report="downloadReport"
+                            @apply-suggested-query="applySuggestedOptimizedQuery"
+                            @update:displayMechanisms="display_mechanisms = $event"
+                            @set-mechanism-map-view="setMechanismMapViewMode"
+                            @open-network-popup="openNetworkPopup"
+                            @open-design-protocol="openDesignProtocolForMechanism"
+                            @select-alternative-query="onAlternativeQuerySelected"
+                            @copy-mechanism-for-llm="copyMechanismForLlm"
+                            @download-mechanism-handoff="downloadMechanismHandoffPackage"
+                            @toggle-factor-row="toggleFactorGenesRow"
+                            @generate-remaining-pair="generateHypothesisForRemainingPair"
+                            @open-factor-connectivity="openFactorConnectivityPopup"
+                            @gene-set-row-toggle="onGeneSetRowToggled"
+                            @update:remainingTableCurrentPage="remainingTableCurrentPage = $event"
+                            @update:subtable-page="onSubtablePageUpdate"
                         />
                     </div>
                 </div>
@@ -203,9 +233,10 @@
             </div>
         </div>
 
-        <workflow-query-helper-modal />
+        <workflow-query-helper-modal :shell="mqShell" />
         <workflow-query-guidelines-modal :open.sync="queryGuidelinesOpen" />
-        <workflow-network-modals />
+        <workflow-search-terms-extraction-modal :open.sync="searchTermsExtractionOpen" />
+        <workflow-network-modals :shell="mqShell" />
 
     </div>
 </template>
@@ -236,6 +267,7 @@ import WorkflowTermsPanel from "./revealMultiQueryWorkflow/WorkflowTermsPanel.vu
 import WorkflowDataPanel from "./revealMultiQueryWorkflow/WorkflowDataPanel.vue";
 import WorkflowResultsPanel from "./revealMultiQueryWorkflow/WorkflowResultsPanel.vue";
 import WorkflowQueryGuidelinesModal from "./revealMultiQueryWorkflow/WorkflowQueryGuidelinesModal.vue";
+import WorkflowSearchTermsExtractionModal from "./revealMultiQueryWorkflow/WorkflowSearchTermsExtractionModal.vue";
 import WorkflowQueryHelperModal from "./revealMultiQueryWorkflow/WorkflowQueryHelperModal.vue";
 import WorkflowNetworkModals from "./revealMultiQueryWorkflow/WorkflowNetworkModals.vue";
 import {
@@ -245,6 +277,38 @@ import {
     resetWorkflowStateForNewRun as resetMqWorkflowSessionForNewRun,
     startWorkflowFromExtractedTerms as orchestrateStartFromExtractedTerms,
 } from "./revealMultiQueryWorkflow/revealMqWorkflowOrchestrator.js";
+import {
+    beginMechanismHypothesisGeneration as startMechanismHypothesisGeneration,
+    requestMechanismHypotheses as orchestrateMechanismHypotheses,
+    resumeImportedWorkflowAfterDataGate as orchestrateResumeImportedAfterDataGate,
+    retryMechanismHypotheses as orchestrateRetryMechanismHypotheses,
+    retryMechanismHypothesesRelaxed as orchestrateRetryMechanismHypothesesRelaxed,
+} from "./revealMultiQueryWorkflow/revealMqHypothesisOrchestrator.js";
+import {
+    onResearch as orchestrateOnResearch,
+    runHybridRetrievalWorkflow as orchestrateHybridRetrieval,
+    runMultiQueryRetrievalWorkflow as orchestrateMultiQueryRetrieval,
+} from "./revealMultiQueryWorkflow/revealMqRetrievalOrchestrator.js";
+import {
+    annotateFactorDataWithFetchedDirection as annotateRouteFactorData,
+    buildCompactRouteEvidence as buildRouteEvidenceBundle,
+    factorMatchesEvidenceHit as routeFactorMatchesHit,
+    filterRouteFactorDataToEvidenceHits as filterRouteFactorDataByHits,
+    isConstraintValidationError as isHybridConstraintValidationError,
+    mergeRouteFactorData as mergeMultiRouteFactorData,
+    resolveHybridPhenotypeFilterTerms as resolveHybridPhenotypeTerms,
+    resolveMultiRouteHybridPhenotypeFilterTerms as resolveMultiRoutePhenotypeTerms,
+    routeFactorSupportScore as scoreRouteFactorSupport,
+    routeGenesOfInterestForFetch as genesOfInterestForRouteFetch,
+    routeResearchContextForFetch as researchContextForRouteFetch,
+    sanitizeEmbeddingText as sanitizeHybridEmbeddingText,
+    setMultiQueryRouteStatus as updateMultiQueryRouteStatus,
+} from "./revealMultiQueryWorkflow/revealMqMultiRoute.js";
+import {
+    callHybridRevealSearch as postHybridRevealSearch,
+    fetchHybridQueryEmbedding as fetchClientHybridEmbedding,
+    fetchWithTimeout as fetchUrlWithTimeout,
+} from "./revealMultiQueryWorkflow/revealMqHybridSearchApi.js";
 import WorkflowStepGate from "./revealMultiQueryWorkflow/WorkflowStepGate.vue";
 import {
     buildHybridQueryText,
@@ -258,7 +322,12 @@ import {
     normalizeHybridFactorsToFactorData as mapHybridFactorsToFactorData,
     prepareHybridSearchRequestFields,
 } from "./revealMultiQueryWorkflow/revealMqHybridSearch.js";
-import { transformMergedDataToKG as buildKgTriplesFromFactorData } from "./revealMultiQueryWorkflow/revealMqKgTransform.js";
+import {
+    buildMechanismLlmContextBlock,
+    flattenKGData,
+    flattenedKGToCSV,
+    transformMergedDataToKG as buildKgTriplesFromFactorData,
+} from "./revealMultiQueryWorkflow/revealMqKgTransform.js";
 import {
     buildRouteEditRowsFromRoutes,
     getRouteEditRow as findRouteEditRow,
@@ -323,15 +392,13 @@ export default Vue.component("factor-base-reveal", {
         WorkflowOpsMenu,
         WorkflowQueryBar,
         WorkflowQueryGuidelinesModal,
+        WorkflowSearchTermsExtractionModal,
         WorkflowTabBar,
         WorkflowTermsPanel,
         WorkflowDataPanel,
         WorkflowResultsPanel,
         WorkflowQueryHelperModal,
         WorkflowNetworkModals,
-    },
-    provide() {
-        return { mqWorkflow: this };
     },
     props: {},
     data() {
@@ -352,8 +419,7 @@ export default Vue.component("factor-base-reveal", {
             suppressNextQueryFocusPause: false,
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesOpen: false,
-            /** Collapsed by default; explains how extracted terms and data directions were generated. */
-            searchTermsExtractionExpanded: false,
+            searchTermsExtractionOpen: false,
             /** Collapsed by default; shows verbose retrieval direction payloads in the Data tab. */
             dataFetchDirectionsExpanded: false,
             /** Toggle to show the Query helper link (temporarily off for release). */
@@ -1046,6 +1112,124 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         };
     },
     computed: {
+        /** Explicit shell reference for tab panels and modals (replaces provide/inject). */
+        mqShell() {
+            return this;
+        },
+        dataPanelProps() {
+            const rowCount = this.isPhenotypePath
+                ? (this.factorDataTableRowsWithRationaleMeta || []).length
+                : (this.factorDataTableRows || []).length;
+            return {
+                showFactorTable:
+                    (this.genesAndFactorValuesLoaded || this.loadComplete) &&
+                    (this.factorDataTableRows || []).length > 0,
+                gateActive: this.stepApprovalGateActive,
+                gateStepId: this.stepApprovalGateStepId,
+                phenotypeCount: this.phenotypeCount,
+                factorCount: this.factorCount,
+                hybridSearchMetaSummaryLines: this.hybridSearchMetaSummaryLines,
+                revealDataSteps: this.revealDataSteps,
+                dataFetchDirectionsExpanded: this.dataFetchDirectionsExpanded,
+                isPhenotypePath: this.isPhenotypePath,
+                phenotypeRationaleList: this.phenotypeRationaleList,
+                mainFactorTableRowsPaged: this.mainFactorTableRowsPaged,
+                factorTableRowCount: rowCount,
+                mainTablePerPage: this.mainTablePerPage,
+                mainTableCurrentPage: this.mainTableCurrentPage,
+                subtablePerPage: this.subtablePerPage,
+                subtableCurrentPages: this.subtableCurrentPages,
+                loadingGenesForFactor: this.loadingGenesForFactor,
+                geneSetSources: this.gene_set_sources,
+            };
+        },
+        dataPanelHelpers() {
+            const vm = this;
+            return {
+                dataStepShowsSpinner: (step) => vm.dataStepShowsSpinner(step),
+                dataStepShowsGatePause: (step) => vm.dataStepShowsGatePause(step),
+                formatTime: (t) => vm.formatTime(t),
+                currStepTime: (step) => vm.currStepTime(step),
+                getPhenotypeDisplay: (p) => vm.getPhenotypeDisplay(p),
+                getFetchDirectionDisplay: (row) => vm.getFetchDirectionDisplay(row),
+                getGeneSetCountForRow: (row) => vm.getGeneSetCountForRow(row),
+                getGeneCountForRow: (row) => vm.getGeneCountForRow(row),
+                isPairIncluded: (row) => vm.isPairIncluded(row),
+                isFactorRowExpanded: (row) => vm.isFactorRowExpanded(row),
+                getFactorConnectivityNetwork: (row) => vm.getFactorConnectivityNetwork(row),
+                getGenesetForFactor: (...args) => vm.getGenesetForFactor(...args),
+                getGenesForFactor: (...args) => vm.getGenesForFactor(...args),
+                cfdeExploreAssociationHref: (...args) => vm.cfdeExploreAssociationHref(...args),
+                getSubtableCurrentPage: (row) => vm.getSubtableCurrentPage(row),
+                getRowKey: (row) => vm.getRowKey(row),
+            };
+        },
+        resultsPanelProps() {
+            const remainingTableRowCount = this.isPhenotypePath
+                ? (this.remainingFactorDataTableRowsWithRationaleMeta || []).length
+                : (this.remainingGeneSetClusterRows || []).length;
+            return {
+                isMechanismHypothesisLoading: this.isMechanismHypothesisLoading,
+                revealHypothesisStep: this.revealHypothesisStep,
+                errorMechanisms: this.error_mechanisms,
+                errorMsgMechanisms: this.error_msg_mechanisms,
+                showMechanismResultsPanel: this.showMechanismResultsPanel,
+                mechanisms: this.mechanisms || [],
+                canDownloadMechanismReport: this.canDownloadMechanismReport,
+                mechanismDiagnosticAssessment: this.mechanismDiagnosticAssessment,
+                hypothesisGenerationMode: this.hypothesisGenerationMode,
+                mechanismResultsDetailVisible: this.mechanismResultsDetailVisible,
+                displayMechanisms: this.display_mechanisms,
+                researchContext: this.sharedResearchContextTerm,
+                reportSessionSummary: this.getReportSessionSummary(),
+                hypothesisLastRunMode: this.hypothesisLastRunMode,
+                remainingRows: this.remainingGeneSetClusterRows || [],
+                remainingFactorTableRowsPaged: this.remainingFactorTableRowsPaged,
+                remainingTableRowCount,
+                remainingPairGenerateError: this.remainingPairGenerateError,
+                generatingRemainingRowKey: this.generatingRemainingRowKey,
+                handoffCopiedMechanismIndex: this.handoffCopiedMechanismIndex,
+                isPhenotypePath: this.isPhenotypePath,
+                mainTablePerPage: this.mainTablePerPage,
+                remainingTableCurrentPage: this.remainingTableCurrentPage,
+                subtablePerPage: this.subtablePerPage,
+                subtableCurrentPages: this.subtableCurrentPages,
+                loadingGenesForFactor: this.loadingGenesForFactor,
+                geneSetSources: this.gene_set_sources,
+                nodeColors: this.NODE_COLORS,
+            };
+        },
+        resultsPanelHelpers() {
+            const vm = this;
+            return {
+                formatTime: (t) => vm.formatTime(t),
+                currStepTime: (step) => vm.currStepTime(step),
+                formatCellularAssignmentDisplay: (v) => vm.formatCellularAssignmentDisplay(v),
+                formatDepotContrastDisplay: (v) => vm.formatDepotContrastDisplay(v),
+                isMechanismUsingBiolinkMap: (m) => vm.isMechanismUsingBiolinkMap(m),
+                hasMechanismBiolinkNetwork: (m) => vm.hasMechanismBiolinkNetwork(m),
+                candidateInventoryRows: (inv) => vm.candidateInventoryRows(inv),
+                mechanismGeneGroupPillStyle: (g) => vm.mechanismGeneGroupPillStyle(g),
+                getGeneConnectionForMechanism: (m, g) => vm.getGeneConnectionForMechanism(m, g),
+                getRelevantPhenotypesDisplay: (p) => vm.getRelevantPhenotypesDisplay(p),
+                getPhenotypeDisplay: (p) => vm.getPhenotypeDisplay(p),
+                getFactorClusterDisplayString: (f) => vm.getFactorClusterDisplayString(f),
+                formatRelevantGeneSetsForDisplay: (s) => vm.formatRelevantGeneSetsForDisplay(s),
+                cfdeExploreGeneSetHref: (...args) => vm.cfdeExploreGeneSetHref(...args),
+                c2m2GeneSetDownloadNodes: (gs) => vm.c2m2GeneSetDownloadNodes(gs),
+                c2m2ProvenanceEntry: (gs) => vm.c2m2ProvenanceEntry(gs),
+                isNextStepExperimentalValidation: (s) => vm.isNextStepExperimentalValidation(s),
+                getRowKey: (row) => vm.getRowKey(row),
+                getFactorClusterDisplay: (row) => vm.getFactorClusterDisplay(row),
+                isFactorRowExpanded: (row) => vm.isFactorRowExpanded(row),
+                getFactorConnectivityNetwork: (row) => vm.getFactorConnectivityNetwork(row),
+                getGenesetForFactor: (...args) => vm.getGenesetForFactor(...args),
+                getGenesForFactor: (...args) => vm.getGenesForFactor(...args),
+                cfdeExploreAssociationHref: (...args) => vm.cfdeExploreAssociationHref(...args),
+                getSubtableCurrentPage: (row) => vm.getSubtableCurrentPage(row),
+                formatRemainingGenerateElapsed: () => vm.formatRemainingGenerateElapsed(),
+            };
+        },
         searchInputPlaceholder() {
             const list = Array.isArray(this.placeholderExamples) ? this.placeholderExamples : [];
             if (!list.length) return "Describe what you're researching or curious about...";
@@ -2391,17 +2575,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             await this.onWorkflowImportFile(file);
         },
         resumeImportedWorkflowAfterDataGate() {
-            const kgTriples =
-                Array.isArray(this.lastKgTriples) && this.lastKgTriples.length
-                    ? this.lastKgTriples
-                    : this.transformMergedDataToKG(this.factorData, "factors");
-            this.lastKgTriples = kgTriples;
-            this.setLoadStatus("Generating hypotheses…");
-            this.setStep({
-                id: "4",
-                title: "LLM: Generating mechanistic hypotheses",
-            });
-            this.requestMechanismHypotheses(this.factorData, kgTriples);
+            orchestrateResumeImportedAfterDataGate(this);
         },
         async downloadReport() {
             if (!this.canDownloadMechanismReport) return;
@@ -5332,6 +5506,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             const direction = item.fetched_direction || item.fetchDirection || item.route_category || "";
             return `${item.phenotype}|${item.factor}|${direction}`;
         },
+        onSubtablePageUpdate({ rowKey, page }) {
+            if (!rowKey) return;
+            this.$set(this.subtableCurrentPages, rowKey, page);
+        },
         getSubtableCurrentPage(item) {
             const key = this.getRowKey(item);
             return (this.subtableCurrentPages || {})[key] || 1;
@@ -5746,16 +5924,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             `;
         },
         sanitizeEmbeddingText(text) {
-            if (!text) return "";
-            const patterns = [
-                { regex: /\b(gtex|lincs|cmdkp|hubmap|motrpac|dcc)\b/gi, replacement: "" },
-                { regex: /\b(data\s+portal|database|repository|portal)\b/gi, replacement: "" },
-            ];
-            let cleaned = String(text);
-            patterns.forEach((p) => {
-                cleaned = cleaned.replace(p.regex, p.replacement);
-            });
-            return cleaned.replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+            return sanitizeHybridEmbeddingText(text);
         },
         normalizeRouteCategory(category, index = 0) {
             const raw = String(category || "").trim();
@@ -5847,65 +6016,24 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return spec ? JSON.parse(JSON.stringify(spec)) : null;
         },
         isConstraintValidationError(err) {
-            const msg = err && err.message ? String(err.message) : "";
-            return /(^|\s)422(\s|$)|constraint_scope\.associations|constraint_mode|Value error/i.test(msg);
+            return isHybridConstraintValidationError(err);
         },
-        /**
-         * Backend requires non-empty phenotype_terms (hard filter). Derive from mechanisms, context, or the raw user query when the LLM left phenotypes empty.
-         */
         resolveHybridPhenotypeFilterTerms(phenotypeTerms, mechanismTerms, researchContext) {
-            const NONE = "(none extracted)";
-            const trimmedP = (phenotypeTerms || [])
-                .map((t) => String(t || "").trim())
-                .filter((t) => t && t !== NONE);
-            if (trimmedP.length) return trimmedP;
-            const m = Array.isArray(mechanismTerms) ? mechanismTerms : [];
-            if (m.length) return [...m];
-            let ctx = researchContext != null ? String(researchContext).trim() : "";
-            if (ctx === NONE) ctx = "";
-            if (ctx.length) {
-                const first = ctx.split(/[.;\n]/)[0].trim();
-                if (first) return [first.slice(0, 256)];
-            }
-            const q = String(this.userQuery || "").trim();
-            if (q) return [q.slice(0, 256)];
-            return [];
+            return resolveHybridPhenotypeTerms(
+                phenotypeTerms,
+                mechanismTerms,
+                researchContext,
+                this.userQuery
+            );
         },
-        /**
-         * Multi-route retrieval: use route-specific phenotype terms only; optional top-level union fallback.
-         * Does not substitute mechanism terms or the raw user query as phenotype hard filters.
-         */
         resolveMultiRouteHybridPhenotypeFilterTerms(route, topLevelPhenotypeTerms = []) {
-            const terms = route && route.extracted_terms && typeof route.extracted_terms === "object"
-                ? route.extracted_terms
-                : {};
-            const routePhenos = this.normalizeLlmTermList(terms.phenotype_terms);
-            if (routePhenos.length) return routePhenos;
-            const topP = this.normalizeLlmTermList(topLevelPhenotypeTerms);
-            if (topP.length) return topP;
-            return [];
+            return resolveMultiRoutePhenotypeTerms(route, topLevelPhenotypeTerms);
         },
         routeGenesOfInterestForFetch(route) {
-            const terms = route && route.extracted_terms ? route.extracted_terms : {};
-            const routeGenes = this.normalizeLlmTermList(terms.genes_of_interest);
-            const explicit = this.normalizeLlmTermList(this.lastExplicitUserGenes);
-            const merged = [...routeGenes];
-            explicit.forEach((gene) => {
-                if (!merged.some((g) => String(g).toUpperCase() === String(gene).toUpperCase())) {
-                    merged.push(gene);
-                }
-            });
-            return merged;
+            return genesOfInterestForRouteFetch(route, this.lastExplicitUserGenes);
         },
         routeResearchContextForFetch(route, sharedResearchContext = "") {
-            const routeText = route && (route.sanitized_query || route.biological_query_variation)
-                ? String(route.sanitized_query || route.biological_query_variation).trim()
-                : "";
-            const shared = sharedResearchContext != null ? String(sharedResearchContext).trim() : "";
-            const NONE = "(none extracted)";
-            const sharedClean = shared === NONE ? "" : shared;
-            const parts = [routeText, sharedClean].filter(Boolean);
-            return this.sanitizeEmbeddingText(parts.join("\n"));
+            return researchContextForRouteFetch(route, sharedResearchContext);
         },
         /**
          * Server rule: need query_embedding OR non-empty mechanism_terms OR non-whitespace research_context
@@ -5939,632 +6067,50 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             });
         },
         async fetchWithTimeout(url, options = {}, timeoutMs) {
-            const ms = timeoutMs != null ? timeoutMs : this.hybridSearchTimeoutMs;
-            const controller = new AbortController();
-            const tid = setTimeout(() => controller.abort(), ms);
-            try {
-                return await fetch(url, { ...options, signal: controller.signal });
-            } finally {
-                clearTimeout(tid);
-            }
+            return fetchUrlWithTimeout(url, options, timeoutMs != null ? timeoutMs : this.hybridSearchTimeoutMs);
         },
         hybridSearchErrorMessage(status, json) {
             return formatHybridSearchErrorMessage(status, json);
         },
         async fetchHybridQueryEmbedding(queryText) {
-            const text = String(queryText || "").trim();
-            if (!text) throw new Error("Client embedding requires non-empty query text for embedding.");
-            const embResp = await this.fetchWithTimeout(
-                this.ollamaEmbedUrl,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        model: this.hybridEmbedModel,
-                        input: text,
-                    }),
-                },
-                this.hybridSearchTimeoutMs
-            );
-            const embJson = await embResp.json().catch(() => ({}));
-            const embedding = embJson && Array.isArray(embJson.embeddings) ? embJson.embeddings[0] : null;
-            if (!embResp.ok) {
-                throw new Error(`Embedding API failed: ${embResp.status} ${JSON.stringify(embJson)}`);
-            }
-            const dim = this.hybridEmbedExpectedDim;
-            if (!Array.isArray(embedding) || embedding.length !== dim) {
-                throw new Error(`Invalid embedding from Ollama: expected ${dim} floats (${this.hybridEmbedModel}).`);
-            }
-            return embedding;
+            return fetchClientHybridEmbedding(this, queryText);
         },
-        async callHybridRevealSearch({
-            queryEmbedding,
-            phenotypeTerms,
-            mechanismTerms,
-            researchContext,
-            genesOfInterest,
-            constraintSpec = null,
-        }) {
-            const configured =
-                this.hybridSearchEndpointUrl != null && String(this.hybridSearchEndpointUrl).trim() !== "";
-            const url = configured
-                ? String(this.hybridSearchEndpointUrl).trim().replace(/\/$/, "")
-                : `${String(this.hybridSearchBaseUrl || "").replace(/\/$/, "")}/api/reveal/hybrid-search`;
-            const body = this.buildHybridSearchRequestBody(
-                phenotypeTerms,
-                mechanismTerms,
-                researchContext,
-                queryEmbedding,
-                genesOfInterest,
-                constraintSpec
-            );
-            if (!body.phenotype_terms.length) {
-                throw new Error("422 phenotype_terms is required and must be non-empty.");
-            }
-            let resp;
-            try {
-                resp = await this.fetchWithTimeout(
-                    url,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(body),
-                    },
-                    this.hybridSearchTimeoutMs
-                );
-            } catch (err) {
-                if (err && err.name === "AbortError") {
-                    throw new Error("504 Hybrid search request timed out. Try again or increase hybridSearchTimeoutMs.");
-                }
-                throw err;
-            }
-            const json = await resp.json().catch(() => ({}));
-            if (resp.ok && json && json.status === "success") {
-                console.log("FactorBaseReveal: hybrid search raw response", json);
-                return json;
-            }
-            const detail = this.hybridSearchErrorMessage(resp.status, json);
-            if (resp.status === 404) {
-                throw new Error(`404 ${detail}`);
-            }
-            if (resp.status === 422) {
-                throw new Error(`422 ${detail}`);
-            }
-            if (resp.status === 504) {
-                throw new Error(`504 ${detail || "Hybrid search timed out."}`);
-            }
-            if (resp.status >= 500) {
-                throw new Error(`500 ${detail}`);
-            }
-            throw new Error(`Hybrid search failed at ${url}: ${resp.status} ${detail}`);
+        async callHybridRevealSearch(params) {
+            return postHybridRevealSearch(this, params);
         },
         normalizeHybridFactorsToFactorData(hybridJson, phenotypeTerms = []) {
             return mapHybridFactorsToFactorData(hybridJson, phenotypeTerms);
         },
-        async runHybridRetrievalWorkflow({
-            phenotypeTerms = [],
-            mechanismTerms = [],
-            researchContext = "",
-            constraintSpec = null,
-        } = {}) {
-            const NONE = "(none extracted)";
-            let ctx = researchContext != null ? String(researchContext).trim() : "";
-            if (ctx === NONE) ctx = "";
-
-            const rawPhenos = this.normalizeLlmTermList(phenotypeTerms);
-            const mechs = this.normalizeLlmTermList(mechanismTerms);
-
-            const phenos = this.resolveHybridPhenotypeFilterTerms(rawPhenos, mechs, ctx);
-            if (!phenos.length) return false;
-
-            this.setStep({
-                id: "2",
-                title: "Retrieving data",
-            });
-
-            let queryEmbedding = null;
-            if (this.hybridSearchUseClientEmbedding) {
-                let queryText = this.buildHybridQueryText({
-                    phenotypeTerms: phenos,
-                    mechanismTerms: mechs,
-                    researchContext: ctx,
-                });
-                if (!queryText) queryText = String(this.userQuery || "").trim();
-                if (!queryText) return false;
-                this.setLoadStatus("Hybrid retrieval: generating embedding (client)…");
-                queryEmbedding = await this.fetchHybridQueryEmbedding(queryText);
-                this.setStep({
-                    id: "2",
-                    substep: {
-                        id: "2.h1",
-                        title: "Client embedding",
-                        result: {
-                            result: {
-                                dims: queryEmbedding.length,
-                                model: this.hybridEmbedModel,
-                                embedding_provider_used: "client",
-                            },
-                        },
-                    },
-                });
-            } else {
-                this.setLoadStatus("Hybrid retrieval: calling API (server-side embedding)…");
-            }
-
-            this.setLoadStatus("Hybrid retrieval: searching factors and gene sets…");
-            const hybridJson = await this.callHybridRevealSearch({
-                queryEmbedding,
-                phenotypeTerms: phenos,
-                mechanismTerms: mechs,
-                researchContext: ctx,
-                genesOfInterest: this.normalizeLlmTermList(this.lastGenesOfInterest),
-                constraintSpec,
-            });
-            const normalized = this.normalizeHybridFactorsToFactorData(hybridJson, phenos);
-            const phenotypes = Object.keys(normalized).filter((p) => (normalized[p].factors || []).length > 0);
-            if (!phenotypes.length) return false;
-
-            this.factorData = normalized;
-            const data = hybridJson && hybridJson.data ? hybridJson.data : {};
-            const meta = hybridJson && hybridJson.meta ? hybridJson.meta : {};
-            this.lastHybridSearchMeta = meta && typeof meta === "object" ? { ...meta } : {};
-            this.lastHybridSearchResponse =
-                hybridJson != null && typeof hybridJson === "object"
-                    ? JSON.parse(JSON.stringify(hybridJson))
-                    : null;
-            this.setStep({
-                id: "2",
-                substep: {
-                    id: "2.h2",
-                    title: "Retrieved result",
-                    result: {
-                        result: {
-                            phenotype: data.phenotype != null ? data.phenotype : phenotypes[0],
-                            queried_phenotypes: data.queried_phenotypes,
-                            phenotype_count: phenotypes.length,
-                            factor_count: phenotypes.reduce((acc, p) => acc + ((normalized[p].factors || []).length), 0),
-                            meta,
-                        },
-                    },
-                },
-            });
-
-            this.snapshotFilteredSelectionBaseline();
-            this.genesAndFactorValuesLoaded = true;
-            this.setLoadStatus("Building knowledge graph from hybrid results…");
-            const kgTriples = this.transformMergedDataToKG(this.factorData, "factors");
-            this.lastKgTriples = kgTriples;
-            const approved = await this.waitForStepApproval(
-                "2",
-                "Knowledge graph is ready. Continue to generate mechanistic hypotheses?",
-                true
-            );
-            if (!approved) return false;
-            this.setLoadStatus("Generating hypotheses…");
-            this.setStep({
-                id: "4",
-                title: "LLM: Generating mechanistic hypotheses",
-            });
-            this.requestMechanismHypotheses(this.factorData, kgTriples);
-            return true;
+        async runHybridRetrievalWorkflow(options = {}) {
+            return orchestrateHybridRetrieval(this, options);
         },
         setMultiQueryRouteStatus(routeId, status, patch = {}) {
-            const idx = (this.multiQueryRoutes || []).findIndex((r) => r && r.route_id === routeId);
-            if (idx === -1) return;
-            this.$set(this.multiQueryRoutes, idx, {
-                ...this.multiQueryRoutes[idx],
-                ...patch,
-                status,
-            });
+            updateMultiQueryRouteStatus(this, routeId, status, patch);
         },
         routeFactorSupportScore(factor = {}, phenotypeData = {}) {
-            const genes = factor && factor.genes && typeof factor.genes === "object" ? factor.genes : {};
-            const globalGenes = phenotypeData && phenotypeData.genes && typeof phenotypeData.genes === "object"
-                ? phenotypeData.genes
-                : {};
-            let best = null;
-            Object.keys(genes).forEach((gene) => {
-                const local = genes[gene] || {};
-                const global = globalGenes[gene] || {};
-                const raw =
-                    global.combined != null
-                        ? global.combined
-                        : (local.factorRelevance != null ? local.factorRelevance : local.factor_value);
-                const score = Number(raw);
-                if (!Number.isFinite(score)) return;
-                if (best == null || score > best) best = score;
-            });
-            return best;
+            return scoreRouteFactorSupport(factor, phenotypeData);
         },
         factorMatchesEvidenceHit(factor = {}, hit = {}) {
-            const factorId = factor.factor != null ? String(factor.factor).trim() : "";
-            const factorLabel = factor.label != null ? String(factor.label).trim() : "";
-            const hitFactorId = hit.factor_id != null ? String(hit.factor_id).trim() : "";
-            const hitFactor = hit.factor != null ? String(hit.factor).trim() : "";
-            return (
-                (hitFactorId && hitFactorId === factorId) ||
-                (hitFactor && (hitFactor === factorLabel || hitFactor === factorId))
-            );
+            return routeFactorMatchesHit(factor, hit);
         },
         filterRouteFactorDataToEvidenceHits(routeResult = {}) {
-            const factorData = routeResult.factorData || {};
-            const hits = routeResult.evidenceBundle && Array.isArray(routeResult.evidenceBundle.top_hits)
-                ? routeResult.evidenceBundle.top_hits
-                : [];
-            if (!hits.length) return factorData;
-
-            const filtered = {};
-            Object.keys(factorData).forEach((phenotype) => {
-                const pData = factorData[phenotype] || {};
-                const phenotypeHits = hits.filter((hit) => String(hit.phenotype || "") === String(phenotype));
-                if (!phenotypeHits.length) return;
-                const factors = (pData.factors || []).filter((factor) =>
-                    phenotypeHits.some((hit) => this.factorMatchesEvidenceHit(factor, hit))
-                );
-                if (!factors.length) return;
-                filtered[phenotype] = {
-                    ...pData,
-                    factors,
-                    allFactors: factors,
-                };
-            });
-            return filtered;
+            return filterRouteFactorDataByHits(routeResult);
         },
         annotateFactorDataWithFetchedDirection(factorData = {}, route = {}) {
-            const fetchedDirection = route && route.category != null ? String(route.category).trim() : "";
-            const fetchedDirectionId = route && route.route_id != null ? String(route.route_id).trim() : "";
-            const fetchedQuery = route && (route.sanitized_query || route.biological_query_variation)
-                ? String(route.sanitized_query || route.biological_query_variation).trim()
-                : "";
-            const annotated = {};
-            Object.keys(factorData || {}).forEach((phenotype) => {
-                const src = factorData[phenotype] || {};
-                const annotateFactor = (factor) => ({
-                    ...factor,
-                    fetched_direction: fetchedDirection,
-                    fetched_direction_id: fetchedDirectionId,
-                    fetched_query: fetchedQuery,
-                    route_category: fetchedDirection,
-                    route_query: fetchedQuery,
-                    route_categories: fetchedDirection ? [fetchedDirection] : [],
-                    route_queries: fetchedQuery ? [fetchedQuery] : [],
-                });
-                annotated[phenotype] = {
-                    ...src,
-                    factors: (src.factors || []).map(annotateFactor),
-                    allFactors: (src.allFactors || src.factors || []).map(annotateFactor),
-                };
-            });
-            return annotated;
+            return annotateRouteFactorData(factorData, route);
         },
         mergeRouteFactorData(routeResults) {
-            const merged = {};
-            (routeResults || []).forEach((result) => {
-                const route = result.route || {};
-                const data = result.factorData || {};
-                Object.keys(data).forEach((phenotype) => {
-                    const src = data[phenotype] || {};
-                    if (!merged[phenotype]) {
-                        merged[phenotype] = {
-                            genes: {},
-                            factors: [],
-                            allFactors: [],
-                            filterRationale: "",
-                        };
-                    }
-                    merged[phenotype].genes = {
-                        ...(merged[phenotype].genes || {}),
-                        ...(src.genes || {}),
-                    };
-                    const factorMergeKey = (factor) => {
-                        const direction = factor.fetched_direction || factor.route_category || "";
-                        return `${String(factor.factor)}||${String(factor.label || "")}||${String(direction)}`;
-                    };
-                    const seenFactors = new Set((merged[phenotype].factors || []).map(factorMergeKey));
-                    (src.factors || []).forEach((factor) => {
-                        const key = factorMergeKey(factor);
-                        const routeCategory = factor.fetched_direction || route.category || "";
-                        const routeId = factor.fetched_direction_id || route.route_id || "";
-                        const routeQuery = factor.fetched_query || route.sanitized_query || route.biological_query_variation || "";
-                        const routeScore = this.routeFactorSupportScore(factor, src);
-                        if (seenFactors.has(key)) {
-                            const existing = (merged[phenotype].factors || []).find(
-                                (f) => factorMergeKey(f) === key
-                            );
-                            if (existing) {
-                                const categories = Array.isArray(existing.route_categories)
-                                    ? existing.route_categories.slice()
-                                    : [];
-                                if (routeCategory && !categories.includes(routeCategory)) categories.push(routeCategory);
-                                existing.route_categories = categories;
-                                const queries = Array.isArray(existing.route_queries)
-                                    ? existing.route_queries.slice()
-                                    : [];
-                                if (routeQuery && !queries.includes(routeQuery)) queries.push(routeQuery);
-                                existing.route_queries = queries;
-                                const existingScore =
-                                    existing.route_support_score != null && Number.isFinite(Number(existing.route_support_score))
-                                        ? Number(existing.route_support_score)
-                                        : null;
-                                if (routeScore != null && (existingScore == null || routeScore > existingScore)) {
-                                    Object.assign(existing, {
-                                        ...factor,
-                                        fetched_direction: routeCategory,
-                                        fetched_direction_id: routeId,
-                                        fetched_query: routeQuery,
-                                        route_category: routeCategory,
-                                        route_query: routeQuery,
-                                        route_categories: categories,
-                                        route_queries: queries,
-                                        route_support_score: routeScore,
-                                    });
-                                }
-                            }
-                            return;
-                        }
-                        seenFactors.add(key);
-                        merged[phenotype].factors.push({
-                            ...factor,
-                            fetched_direction: routeCategory,
-                            fetched_direction_id: routeId,
-                            fetched_query: routeQuery,
-                            route_category: routeCategory,
-                            route_categories: routeCategory ? [routeCategory] : [],
-                            route_query: routeQuery,
-                            route_queries: routeQuery ? [routeQuery] : [],
-                            route_support_score: routeScore,
-                        });
-                    });
-                    merged[phenotype].allFactors = merged[phenotype].factors;
-                });
-            });
-            return merged;
+            return mergeMultiRouteFactorData(routeResults);
         },
-        buildCompactRouteEvidence({ route, factorData, hybridJson } = {}) {
-            const limits = this.multiQueryEvidenceLimits || {};
-            const maxPairs = Math.max(1, Number(limits.maxPairsPerRoute) || 5);
-            const maxGenes = Math.max(1, Number(limits.maxGenesPerFactor) || 5);
-            const maxGenesOfInterest = Math.max(0, Number(limits.maxGenesOfInterestPerFactor ?? 5) || 0);
-            const maxGeneSets = Math.max(1, Number(limits.maxGeneSetsPerFactor) || 3);
-            const routeGenesOfInterest = this.normalizeLlmTermList(
-                route && route.extracted_terms ? route.extracted_terms.genes_of_interest : []
-            );
-            const genesOfInterestSet = new Set(
-                this.normalizeLlmTermList([
-                    ...routeGenesOfInterest,
-                    ...(this.lastExplicitUserGenes || []),
-                ]).map((g) => String(g).toUpperCase())
-            );
-            const explicitUserGeneSet = new Set((this.lastExplicitUserGenes || []).map((g) => String(g).toUpperCase()));
-            const hits = [];
-            Object.keys(factorData || {}).forEach((phenotype) => {
-                const pData = factorData[phenotype] || {};
-                (pData.factors || []).forEach((factor) => {
-                    const allGeneRows = Object.keys(factor.genes || {})
-                        .map((gene) => {
-                            const local = factor.genes[gene] || {};
-                            const global = (pData.genes && pData.genes[gene]) || {};
-                            const geneKey = String(gene).toUpperCase();
-                            const score = Number(
-                                global.combined != null
-                                    ? global.combined
-                                    : (local.factor_value != null ? local.factor_value : local.factorRelevance)
-                            );
-                            return {
-                                gene,
-                                score: Number.isFinite(score) ? score : null,
-                                gwas_support: global.gwasSupport != null ? global.gwasSupport : null,
-                                functional_support: global.geneSetSupport != null ? global.geneSetSupport : null,
-                                included_because: "top_score",
-                                explicit_user_gene: explicitUserGeneSet.has(geneKey),
-                                gene_of_interest: genesOfInterestSet.has(geneKey),
-                            };
-                        })
-                        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
-                    const topGeneRows = allGeneRows.slice(0, maxGenes);
-                    const topGeneKeys = new Set(topGeneRows.map((g) => String(g.gene).toUpperCase()));
-                    const pinnedGeneRows = allGeneRows
-                        .filter((g) => genesOfInterestSet.has(String(g.gene).toUpperCase()))
-                        .filter((g) => !topGeneKeys.has(String(g.gene).toUpperCase()))
-                        .slice(0, maxGenesOfInterest)
-                        .map((g) => ({
-                            ...g,
-                            included_because: g.explicit_user_gene ? "explicit_user_gene" : "gene_of_interest",
-                        }));
-                    const geneRows = [...topGeneRows, ...pinnedGeneRows];
-                    const geneSets = typeof factor.top_gene_sets === "string"
-                        ? factor.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean).slice(0, maxGeneSets)
-                        : [];
-                    hits.push({
-                        phenotype,
-                        factor: factor.label || factor.factor,
-                        factor_id: factor.factor,
-                        top_gene_sets: geneSets,
-                        gene_set_programs: typeof factor.gene_set_program === "string"
-                            ? factor.gene_set_program.split("|").map((s) => s.trim()).filter(Boolean)
-                            : [],
-                        genes: geneRows,
-                    });
-                });
+        buildCompactRouteEvidence(opts = {}) {
+            return buildRouteEvidenceBundle({
+                ...opts,
+                evidenceLimits: this.multiQueryEvidenceLimits,
+                lastExplicitUserGenes: this.lastExplicitUserGenes,
             });
-            return {
-                route_id: route && route.route_id,
-                category: route && route.category,
-                biological_query_variation: route && route.biological_query_variation,
-                sanitized_query: route && route.sanitized_query,
-                extracted_terms: route && route.extracted_terms,
-                constraint_mode: route && route.constraint_spec ? route.constraint_spec.constraint_mode : null,
-                top_hits: hits.slice(0, maxPairs),
-                meta: hybridJson && hybridJson.meta ? hybridJson.meta : {},
-            };
-        },
-        async fetchMultiQueryRouteEvidence(route, index) {
-            const routeId = route.route_id || `route-${index + 1}`;
-            this.setMultiQueryRouteStatus(routeId, "loading");
-            const terms = route.extracted_terms || {};
-            const phenotypeTerms = this.normalizeLlmTermList(terms.phenotype_terms);
-            const mechanismTerms = this.normalizeLlmTermList(terms.mechanism_terms);
-            const tissueTerms = this.normalizeLlmTermList(terms.tissues);
-            const cellTypeTerms = this.normalizeLlmTermList(terms.cell_types);
-            const sharedResearchContext =
-                this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-            const ctx = this.routeResearchContextForFetch(route, sharedResearchContext);
-            const phenos = this.resolveMultiRouteHybridPhenotypeFilterTerms(route, this.lastPhenotypeTerms);
-            if (!phenos.length) {
-                throw new Error(
-                    `No phenotype terms for ${route.category || routeId}. Add route-specific phenotype terms before retrieval.`
-                );
-            }
-            const genesOfInterest = this.routeGenesOfInterestForFetch(route);
-
-            let queryEmbedding = null;
-            if (this.hybridSearchUseClientEmbedding) {
-                let queryText = this.buildHybridQueryText({
-                    phenotypeTerms: phenos,
-                    mechanismTerms: [...mechanismTerms, ...tissueTerms, ...cellTypeTerms],
-                    researchContext: ctx,
-                });
-                queryText = this.sanitizeEmbeddingText(queryText || ctx);
-                queryEmbedding = await this.fetchHybridQueryEmbedding(queryText);
-            }
-
-            let constraintUsed = route.constraint_spec || null;
-            let hybridJson;
-            const mechanismForFetch = [...mechanismTerms, ...tissueTerms, ...cellTypeTerms];
-            try {
-                hybridJson = await this.callHybridRevealSearch({
-                    queryEmbedding,
-                    phenotypeTerms: phenos,
-                    mechanismTerms: mechanismForFetch,
-                    researchContext: ctx,
-                    genesOfInterest,
-                    constraintSpec: constraintUsed,
-                });
-            } catch (err) {
-                if (!constraintUsed || !this.isConstraintValidationError(err)) throw err;
-                constraintUsed = null;
-                hybridJson = await this.callHybridRevealSearch({
-                    queryEmbedding,
-                    phenotypeTerms: phenos,
-                    mechanismTerms: mechanismForFetch,
-                    researchContext: ctx,
-                    genesOfInterest,
-                    constraintSpec: null,
-                });
-            }
-            const routeForEvidence = { ...route, constraint_spec: constraintUsed };
-            const factorData = this.annotateFactorDataWithFetchedDirection(
-                this.normalizeHybridFactorsToFactorData(hybridJson, phenos),
-                routeForEvidence
-            );
-            const phenotypes = Object.keys(factorData).filter((p) => (factorData[p].factors || []).length > 0);
-            if (!phenotypes.length) {
-                throw new Error(`No phenotype-factor results for ${route.category || routeId}.`);
-            }
-            const evidenceBundle = this.buildCompactRouteEvidence({ route: routeForEvidence, factorData, hybridJson });
-            this.setMultiQueryRouteStatus(routeId, "complete", {
-                phenotype_count: phenotypes.length,
-                factor_count: phenotypes.reduce((acc, p) => acc + ((factorData[p].factors || []).length), 0),
-            });
-            this.setStep({
-                id: "2",
-                substep: {
-                    id: `2.${routeId}`,
-                    title: `${route.category || routeId}: retrieved ${evidenceBundle.top_hits.length} evidence hit${evidenceBundle.top_hits.length !== 1 ? "s" : ""}`,
-                    result: {
-                        result: {
-                            query: route.sanitized_query,
-                            phenotype_terms: phenos,
-                            mechanism_terms: mechanismForFetch,
-                            genes_of_interest: genesOfInterest,
-                            research_context: ctx,
-                            phenotype_count: phenotypes.length,
-                            factor_count: phenotypes.reduce((acc, p) => acc + ((factorData[p].factors || []).length), 0),
-                            constraint_mode: constraintUsed && constraintUsed.constraint_mode,
-                            constraint_fallback: route.constraint_spec && !constraintUsed ? "retried_without_constraint_after_422" : null,
-                        },
-                    },
-                },
-            });
-            return { route: routeForEvidence, factorData, hybridJson, evidenceBundle };
         },
         async runMultiQueryRetrievalWorkflow(routes = []) {
-            if (this.usePerRouteSearchTermsEditor) {
-                this.applyRouteEditRowsToMultiQueryRoutes();
-            }
-            const routeList = (Array.isArray(this.multiQueryRoutes) && this.multiQueryRoutes.length
-                ? this.multiQueryRoutes
-                : routes
-            ).slice(0, this.multiQueryEvidenceLimits.maxRoutes || 3);
-            if (!routeList.length) return false;
-            this.setStep({
-                id: "2",
-                title: "Retrieving data across selected directions",
-            });
-            this.setLoadStatus("Hybrid retrieval: searching selected biological directions…");
-            const successes = [];
-            const errors = [];
-            for (let idx = 0; idx < routeList.length; idx += 1) {
-                const route = routeList[idx] || {};
-                try {
-                    const result = await this.fetchMultiQueryRouteEvidence(route, idx);
-                    successes.push(result);
-                } catch (err) {
-                    const message = err && err.message ? err.message : "Route retrieval failed.";
-                    errors.push({ route_id: route.route_id, category: route.category, message });
-                    this.setMultiQueryRouteStatus(route.route_id, "error", { error: message });
-                    this.setStep({
-                        id: "2",
-                        substep: {
-                            id: `2.${route.route_id || idx}.error`,
-                            title: `${route.category || "Route"} failed: ${message}`,
-                        },
-                    });
-                }
-            }
-            this.multiQueryRouteResults = successes;
-            this.multiQueryRouteErrors = errors;
-            this.multiQueryEvidenceBundles = successes.map((r) => r.evidenceBundle);
-            if (!successes.length) return false;
-
-            this.factorData = this.mergeRouteFactorData(successes);
-            this.lastHybridSearchMeta = {
-                routes: successes.map((r) => ({
-                    route_id: r.route.route_id,
-                    category: r.route.category,
-                    meta: r.hybridJson && r.hybridJson.meta ? r.hybridJson.meta : {},
-                })),
-                failed_routes: errors,
-            };
-            this.lastHybridSearchResponse = {
-                routes: successes.map((r) => ({
-                    route_id: r.route.route_id,
-                    category: r.route.category,
-                    response: r.hybridJson,
-                })),
-                failed_routes: errors,
-            };
-
-            this.snapshotFilteredSelectionBaseline();
-            this.genesAndFactorValuesLoaded = true;
-            this.setLoadStatus("Building knowledge graph from multi-route hybrid results…");
-            const kgTriples = this.transformMergedDataToKG(this.factorData, "factors");
-            this.lastKgTriples = kgTriples;
-            const approved = await this.waitForStepApproval(
-                "2",
-                "Multi-route evidence is ready. Continue to generate mechanistic hypotheses?",
-                true
-            );
-            if (!approved) return false;
-            this.setLoadStatus("Generating hypotheses from compact route evidence…");
-            this.setStep({
-                id: "4",
-                title: "LLM: Generating mechanistic hypotheses",
-            });
-            this.requestMechanismHypotheses(this.factorData, kgTriples, this.multiQueryEvidenceBundles);
-            return true;
+            return orchestrateMultiQueryRetrieval(this, routes);
         },
         /**
          * Hybrid-only retrieval path:
@@ -6572,79 +6118,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Body: phenotype_terms, genes_of_interest, mechanism_terms, research_context; optional query_embedding if VUE_APP_HYBRID_CLIENT_EMBEDDING=true.
          */
         async onResearch(phenotypeTermsFromExtract, options = {}) {
-            const runId = this.workflowRunId;
-            const opts = options && typeof options === "object" ? options : {};
-            const rawPhenotype = phenotypeTermsFromExtract != null
-                ? phenotypeTermsFromExtract
-                : this.lastPhenotypeTerms && this.lastPhenotypeTerms.length
-                    ? this.lastPhenotypeTerms
-                    : (this.searchCriteria && this.searchCriteria[0] && this.searchCriteria[0].values)
-                        ? this.searchCriteria[0].values.filter((v) => v && String(v) !== "(none extracted)")
-                        : [];
-            const phenotypeTerms = this.normalizeLlmTermList(rawPhenotype);
-            try {
-                this.genesAndFactorValuesLoaded = false;
-                this.factorData = {};
-                this.lastHybridSearchMeta = {};
-                this.lastHybridSearchResponse = null;
-                this.lastKgTriples = [];
-                this.mechanisms = null;
-                this.mechanismDiagnosticAssessment = null;
-                this.hypothesisLastRunMode = null;
-                this.phenotypeDescriptionById = {};
-                this.lastRunUsedHardConstraint = !!opts.helperConstraintSpec;
-                if (!this.lastRunUsedHardConstraint) {
-                    this.lastHardConstraintFactorLabelByPair = {};
-                }
-                const researchContext = (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values != null)
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-                const useMultiRoute = Array.isArray(this.multiQueryRoutes) && this.multiQueryRoutes.length > 1 && opts.helperConstraintSpec == null;
-                const usedHybrid = useMultiRoute
-                    ? await this.runMultiQueryRetrievalWorkflow(this.multiQueryRoutes)
-                    : await this.runHybridRetrievalWorkflow({
-                        phenotypeTerms,
-                        mechanismTerms: this.normalizeLlmTermList(this.lastMechanismTerms),
-                        researchContext,
-                        constraintSpec: opts.helperConstraintSpec != null ? opts.helperConstraintSpec : null,
-                    });
-                if (this.workflowRunIdStale(runId)) return;
-                if (!usedHybrid) {
-                    throw new Error("Hybrid retrieval returned no phenotype–factor results.");
-                }
-            } catch (err) {
-                if (this.workflowRunIdStale(runId)) return;
-                const msg = err && err.message ? String(err.message) : "";
-                const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(msg);
-                const isValidation = /(^|\s)422(\s|$)/.test(msg);
-                const isTimeout = /(^|\s)504(\s|$)|timed out|AbortError/i.test(msg);
-                if (isNoResults) {
-                    this.setLoadStatus("No exact matches found for those terms.", true);
-                    this.setStep({
-                        type: "error",
-                        title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms."
-                    });
-                } else if (isValidation) {
-                    this.setLoadStatus("Request could not be validated. Check phenotype terms and research context.", true);
-                    this.setStep({
-                        type: "error",
-                        title: msg.replace(/^\s*422\s*/, "") || "Invalid hybrid search request (422)."
-                    });
-                } else if (isTimeout) {
-                    this.setLoadStatus("Hybrid search timed out. Try again in a moment.", true);
-                    this.setStep({
-                        type: "error",
-                        title: "Hybrid search timed out (504). The database or embedding service may be busy."
-                    });
-                } else {
-                    this.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
-                    this.setStep({
-                        type: "error",
-                        title: "Hybrid retrieval failed due to a server error."
-                    });
-                }
-                this.loadComplete = true;
-            }
+            return orchestrateOnResearch(this, phenotypeTermsFromExtract, options);
         },
         /**
          * Kept as an alias for callers that used the mechanism-only hybrid path; resolution of empty phenotype_terms happens inside runHybridRetrievalWorkflow.
@@ -6719,276 +6193,25 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
 
         retryMechanismHypothesesRelaxed() {
-            this.hypothesisGenerationMode = "relaxed";
-            this.retryMechanismHypotheses();
+            orchestrateRetryMechanismHypothesesRelaxed(this);
         },
         retryMechanismHypotheses() {
-            this.error_mechanisms = false;
-            this.error_msg_mechanisms = "";
-            this.mechanismDiagnosticAssessment = null;
-            this.setLoadStatus("Generating hypotheses…");
-            this.beginMechanismHypothesisGeneration();
-            this.setStep({
-                id: "4",
-                title: "LLM: Generating mechanistic hypotheses",
-            });
-            const triples = this.lastKgTriples && this.lastKgTriples.length
-                ? this.lastKgTriples
-                : this.transformMergedDataToKG(this.factorData, 'factors');
-            if (triples.length) this.lastKgTriples = triples;
-            this.requestMechanismHypotheses(this.factorData, triples, this.multiQueryEvidenceBundles);
+            orchestrateRetryMechanismHypotheses(this);
         },
-        /**
-         * Treat as timeout/retriable: 504, Gateway Timeout, or network/CORS errors that often accompany backend timeout.
-         */
-        isMechanismTimeoutError(err) {
-            if (!err) return false;
-            const status = err.status;
-            if (status === 504) return true;
-            const msg = (err.message || "").toString();
-            return /504|Gateway Timeout|timeout|Timeout|Failed to fetch|Load failed|net::ERR_FAILED|CORS|Access-Control/i.test(msg);
-        },
-        /**
-         * Flattens KG triples into tabular rows (id, subject, predicate, object, context_*).
-         * Used to produce CSV for the LLM prompt to save tokens.
-         * @param {Array} data - Array of { subject, predicate, object, context? } triples.
-         * @returns {Array} - Flat objects ready for CSV.
-         */
         flattenKGData(data) {
-            return (data || []).map((entry, index) => {
-                const flattened = {
-                    id: index,
-                    subject: entry.subject ?? "",
-                    predicate: entry.predicate ?? "",
-                    object: entry.object ?? "",
-                };
-                if (entry.context && typeof entry.context === "object") {
-                    Object.keys(entry.context).forEach((key) => {
-                        const v = entry.context[key];
-                        flattened[`context_${key}`] =
-                            v != null && typeof v === "object" ? JSON.stringify(v) : (v != null ? String(v) : "");
-                    });
-                }
-                return flattened;
-            });
+            return flattenKGData(data);
         },
-        /**
-         * Converts flattened KG rows to a CSV string (header + rows, quoted as needed).
-         * @param {Array} flattened - Array of flat objects from flattenKGData.
-         * @returns {string} - CSV string.
-         */
         flattenedKGToCSV(flattened) {
-            if (!flattened || flattened.length === 0) return "";
-            const escape = (val) => {
-                const s = val == null ? "" : String(val);
-                if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-                return s;
-            };
-            const keys = Object.keys(flattened[0]);
-            const header = keys.map(escape).join(",");
-            const rows = flattened.map((row) => keys.map((k) => escape(row[k])).join(","));
-            return [header, ...rows].join("\n");
+            return flattenedKGToCSV(flattened);
         },
-        /** Shared KG + phenotype/gene/gene-set summary for mechanism hypothesis LLM calls (no gene-set-cluster layer in KG). */
         buildMechanismLlmContextBlock(kgBlock, phenoGeneSetSummary, researchContext) {
-            return `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Phenotype / genes / gene sets (from hybrid; clusters are not separate graph nodes):**\n\`\`\`json\n${phenoGeneSetSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+            return buildMechanismLlmContextBlock(kgBlock, phenoGeneSetSummary, researchContext);
         },
-        /**
-         * Single-pass mechanism generation: generate hypotheses directly from the hybrid KG package.
-         * No factor filtering, semantic grouping, or per-group generation phases.
-         */
         beginMechanismHypothesisGeneration() {
-            this.revealResultsTabUnlocked = true;
-            this.loadComplete = false;
-            this.switchRevealTab("results");
-            if (typeof this.restartMechanismHypothesisStepTimer === "function") {
-                this.restartMechanismHypothesisStepTimer();
-            }
+            startMechanismHypothesisGeneration(this);
         },
         requestMechanismHypotheses(factorData, kgTriples, routeEvidenceBundles = null) {
-            this.beginMechanismHypothesisGeneration();
-            this.error_mechanisms = false;
-            this.error_msg_mechanisms = "";
-            this.mechanismDiagnosticAssessment = null;
-
-            const researchContext =
-                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-            const flattened = this.flattenKGData(kgTriples);
-            this.lastFlattenedKG = flattened;
-            const kgBlock = this.flattenedKGToCSV(flattened);
-            const phenoSummary = this.serializeFactorDataForPrompt(factorData);
-            const baseContextSuffix = this.buildMechanismLlmContextBlock(kgBlock, phenoSummary, researchContext);
-            const selectedPairs = (this.factorDataTableRowsFiltered || []).map((r) => ({
-                phenotype: String(r.phenotype || "").trim(),
-                factor: String((r.factorLabel != null && String(r.factorLabel).trim() !== "") ? r.factorLabel : r.factor || "").trim(),
-            })).filter((p) => p.phenotype && p.factor);
-            const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
-            const routeEvidenceJson = Array.isArray(routeEvidenceBundles) && routeEvidenceBundles.length
-                ? JSON.stringify(routeEvidenceBundles, null, 2)
-                : "";
-            const routeEvidenceBlock = routeEvidenceJson
-                ? `\n\n**Compact multi-direction evidence bundles (use these to compare retrieval directions; do not assume omitted raw rows are negative evidence):**\n\`\`\`json\n${routeEvidenceJson}\n\`\`\`\n`
-                : "";
-            const routeCount = Array.isArray(routeEvidenceBundles) ? routeEvidenceBundles.length : 0;
-            const multiRouteInstruction =
-                routeCount >= 3
-                    ? `\n\n**Multi-route requirement:** ${routeCount} route bundles are attached. You MUST populate a non-null \`cross_route_crosstalk_model\` on each hypothesis comparing the route axes. Also populate \`overall_summary\` at the top level.\n`
-                    : routeCount >= 2
-                      ? `\n\n**Multi-route note:** ${routeCount} route bundles are attached. Compare route axes in \`cross_route_crosstalk_model\` when supported.\n`
-                      : "";
-            const modeLine =
-                this.hypothesisGenerationMode === "relaxed"
-                    ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply the relaxed overrides in your system prompt; set diagnostic_assessment.exploratory_mode to true.\n"
-                    : "";
-            const hypothesesUserPrompt = `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n${routeEvidenceBlock}${multiRouteInstruction}${baseContextSuffix}\n${modeLine}\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment and overall_summary. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
-            const maxAttempts = 3;
-            const systemPromptForRun = this.mechanismHypothesisSystemPromptEffective;
-
-            (async () => {
-                let parsed = null;
-                let lastFailed = null;
-                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                    this.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${maxAttempts})`);
-                    const res = await new Promise((resolve) => {
-                        let done = false;
-                        const finish = (payload) => {
-                            if (done) return;
-                            done = true;
-                            resolve(payload);
-                        };
-                        this.llmAnalyze.sendPrompt({
-                            systemPrompt: systemPromptForRun,
-                            userPrompt: hypothesesUserPrompt,
-                            onResponse: (response) => {
-                                console.log("FactorBaseReveal: hypotheses LLM raw response", response);
-                                const json = this.parseLLMResponse(response);
-                                if (!json) {
-                                    finish({ retry: false, failed: true, err: new Error("Could not parse LLM JSON.") });
-                                    return;
-                                }
-                                finish({ retry: false, failed: false, err: null, json });
-                            },
-                            onError: (err) => {
-                                const isTimeout = this.isMechanismTimeoutError(err);
-                                if (isTimeout && attempt < maxAttempts) {
-                                    finish({ retry: true, failed: false, err });
-                                } else {
-                                    finish({ retry: false, failed: true, err });
-                                }
-                            },
-                            onEnd: () => {
-                                if (done) return;
-                                finish({ retry: false, failed: true, err: new Error("Incomplete LLM response.") });
-                            },
-                        });
-                    });
-                    if (res.retry) continue;
-                    if (res.failed) {
-                        lastFailed = res.err;
-                        break;
-                    }
-                    parsed = res.json;
-                    break;
-                }
-
-                if (!parsed) {
-                    this.hypothesisLastRunMode = null;
-                    this.error_mechanisms = true;
-                    this.error_msg_mechanisms =
-                        lastFailed && lastFailed.message
-                            ? lastFailed.message
-                            : "Mechanistic hypothesis generation failed.";
-                    this.setStep({
-                        type: "error",
-                        title: "Mechanistic hypothesis generation failed.",
-                    });
-                    this.setLoadStatus("Ready", true);
-                    this.loadComplete = true;
-                    return;
-                }
-
-                const modeSnapshot = this.hypothesisGenerationMode;
-                this.hypothesisLastRunMode = modeSnapshot;
-
-                const diag =
-                    parsed.diagnostic_assessment != null && typeof parsed.diagnostic_assessment === "object"
-                        ? parsed.diagnostic_assessment
-                        : null;
-                this.mechanismDiagnosticAssessment = diag;
-
-                if (parsed && typeof parsed.overall_summary === "string") {
-                    this.mechanisms_summary = parsed.overall_summary;
-                } else {
-                    this.mechanisms_summary = null;
-                }
-                const hypotheses = Array.isArray(parsed.hypotheses)
-                    ? parsed.hypotheses
-                    : (parsed.hypothesis && typeof parsed.hypothesis === "object" ? [parsed.hypothesis] : []);
-                if (!hypotheses.length) {
-                    if (diag && diag.can_generate_hypothesis === false) {
-                        this.mechanisms = [];
-                        if (!this.mechanisms_summary && typeof diag.rejection_reason === "string" && diag.rejection_reason.trim()) {
-                            this.mechanisms_summary = diag.rejection_reason.trim();
-                        }
-                        if (!this.mechanisms_summary) {
-                            this.mechanisms_summary = this.getReportSessionSummary();
-                        }
-                        this.setLoadStatus("Ready", true);
-                        this.setStep(
-                            {
-                                id: "4",
-                                substep: {
-                                    id: "4.9",
-                                    title: "Complete (no hypothesis; diagnostics).",
-                                },
-                            },
-                            true
-                        );
-                        this.loadComplete = true;
-                        this.showTab = "results";
-                        return;
-                    }
-                    this.error_mechanisms = true;
-                    this.error_msg_mechanisms = "No hypotheses were returned.";
-                    this.setStep({
-                        type: "error",
-                        title: "No mechanistic hypotheses returned.",
-                    });
-                    this.setLoadStatus("Ready", true);
-                    this.loadComplete = true;
-                    return;
-                }
-
-                this.mechanisms = this.normalizeMechanismHypotheses(hypotheses);
-                if (this.multiQueryEvidenceBundles.length >= 2) {
-                    this.mechanisms = this.mechanisms.map((m) => {
-                        if (m.cross_route_crosstalk_model) return m;
-                        const fb = this.buildCrossRouteCrosstalkFallback(this.multiQueryEvidenceBundles);
-                        return fb ? { ...m, cross_route_crosstalk_model: fb } : m;
-                    });
-                }
-                if (!this.mechanisms_summary) {
-                    this.mechanisms_summary = this.getReportSessionSummary();
-                }
-                this.$nextTick(() => {
-                    void this.autoMapAllMechanismsToBiolink();
-                });
-                this.setLoadStatus("Ready", true);
-                this.setStep(
-                    {
-                        id: "4",
-                        substep: {
-                            id: "4.9",
-                            title: "Complete.",
-                        },
-                    },
-                    true
-                );
-                this.loadComplete = true;
-                this.showTab = "results";
-            })();
+            orchestrateMechanismHypotheses(this, factorData, kgTriples, routeEvidenceBundles);
         },
         /**
          * Build factorData containing only one (phenotype, factor) for ad-hoc mechanism generation.

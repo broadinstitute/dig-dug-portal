@@ -296,12 +296,12 @@
 <script>
 export default {
     name: "WorkflowQueryHelperModal",
-    inject: {
-        mqWorkflow: { default: null },
+    props: {
+        shell: { type: Object, default: null },
     },
     computed: {
         w() {
-            return this.mqWorkflow;
+            return this.shell;
         },
     },
 };
