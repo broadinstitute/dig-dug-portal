@@ -56,11 +56,13 @@ body.kp-default{
         border-radius: .5em;
         padding: .5em .8em;
     }
+    /*
     select:hover{
         background: var(--cfde-lite-blue);
         cursor: pointer;
         color:white;
     }
+    */
 
     button.lg,
     input.lg,
