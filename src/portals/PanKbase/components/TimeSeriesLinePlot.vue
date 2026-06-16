@@ -138,7 +138,7 @@ export default Vue.component("time-series-line-plot", {
             if (this.donorMetadata === null){
                 return "";
             }
-            let htmlOutput = `${this.donorMetadata.Accession}`;
+            let htmlOutput = `<strong>${this.donorMetadata.Accession}</strong>`;
             let categories = [
                 {
                     key: "Age (years)",
@@ -160,7 +160,7 @@ export default Vue.component("time-series-line-plot", {
             categories.forEach(c => {
                 let dataPoint = this.donorMetadata[c.key];
                 let categoryDiv = 
-                    `\n${c.label}: ${dataPoint}`;
+                    `<div><strong>${c.label}</strong>: ${dataPoint}</div>`;
                 htmlOutput = htmlOutput.concat(categoryDiv);
             });
             return htmlOutput;
@@ -515,28 +515,27 @@ export default Vue.component("time-series-line-plot", {
                 }
                 this.drawHighlightedDonor(c);
             }
-            
+
             let mouseEvent = d3.event;
             let plot = d3.select(`#${this.plotId}`);
             plot.selectAll(".tooltip").remove();
             
-            let xcoord = mouseEvent.layerX;
-            let ycoord = mouseEvent.clientY;
+            let xcoord = mouseEvent.layerX - 75;
+            let ycoord = mouseEvent.layerY - this.innerHeight;
 
             this.tooltip = plot.append("div")
-                .style("position", "absolute")
+                .style("position", "relative")
                 .style("top", `${ycoord}px`)
                 .style("left", `${xcoord}px`)
                 .attr("class", "tooltip")
                 .style("background-color", "white")
                 .style("border", "2px solid gray")
                 .style("padding", "5px")
+                .style("max-width", "250px")
                 .style("border-radius", "5px")
                 .style("font-size", "smaller")
-                .text(this.tooltipDonorData);
+                .html(this.tooltipDonorData);
 
-            //this.tooltip.style.top = `${ycoord}px`;
-            //this.tooltip.style.left = `${xcoord}px`;
             this.tooltip.style("opacity", 1);
         },
     },
