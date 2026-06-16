@@ -420,6 +420,9 @@ new Vue({
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
         },
+        toggleContent(showHide){
+            this.showContent = showHide;
+        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;

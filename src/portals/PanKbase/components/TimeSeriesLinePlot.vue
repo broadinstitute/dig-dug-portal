@@ -5,6 +5,26 @@
             <label>
                 <input
                     type="radio"
+                    name="showContent"
+                    :value="false"
+                    v-model="showContent"
+                />
+                View by IEQ
+            </label>
+            <label>
+                <input
+                    type="radio"
+                    name="showContent"
+                    :value="true"
+                    v-model="showContent"
+                />
+                View by content
+            </label>
+        </div>
+        <div class="radio-labels">
+            <label>
+                <input
+                    type="radio"
                     value="some"
                     :name="`${plotId}confidence`"
                     v-model="showConfidence"
@@ -84,6 +104,7 @@ export default Vue.component("time-series-line-plot", {
             xAxisLabel: "Time (min)",
             highlightedDonor: null,
             showConfidence: "some",
+            showContent: false
         };
     },
     mounted() {
@@ -549,6 +570,9 @@ export default Vue.component("time-series-line-plot", {
         showConfidence() {
             this.drawLines();
         },
+        showContent(){
+            this.$emit("showContent", this.showContent);
+        }
     },
 });
 </script>

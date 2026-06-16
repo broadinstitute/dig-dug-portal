@@ -187,30 +187,6 @@
                                             >
                                                 Copy link to results
                                             </button>
-                                            <div class="radio-labels">
-                                                <label>
-                                                    <input
-                                                        type="radio"
-                                                        name="showContent"
-                                                        :value="false"
-                                                        v-model="
-                                                            $parent.showContent
-                                                        "
-                                                    />
-                                                    View by IEQ
-                                                </label>
-                                                <label>
-                                                    <input
-                                                        type="radio"
-                                                        name="showContent"
-                                                        :value="true"
-                                                        v-model="
-                                                            $parent.showContent
-                                                        "
-                                                    />
-                                                    View by content
-                                                </label>
-                                            </div>
                                             <b-tabs>
                                                 <b-tab title="Islet insulin secretion">
                                                     <div class="insulin-plot line-plot">
@@ -240,6 +216,7 @@
                                                                     ? '% content min'
                                                                     : 'Insulin secretion\n(ng/100 IEQs/min)'
                                                             "
+                                                            @showContent="c => $parent.toggleContent(c)"
                                                         >
                                                         </time-series-line-plot>
                                                         <div
@@ -287,6 +264,7 @@
                                                                     ? '% content min'
                                                                     : 'Glucagon secretion\n(pg/100 IEQs/min)'
                                                             "
+                                                            @showContent="c => $parent.toggleContent(c)"
                                                         >
                                                         </time-series-line-plot>
                                                         <div
@@ -677,10 +655,6 @@
     text-align: right;
     padding-top: 10px;
     margin-right: 50px;
-}
-.line-plots {
-    margin-top: 20px;
-    margin-left: 20px;
 }
 div.line-plot {
     margin: 10px;
