@@ -324,7 +324,8 @@
                                                         .length > 0
                                                 "
                                             >
-                                                <strong
+                                                <div v-if="$parent.functionalTrait !== null">
+                                                    <strong
                                                     >Insulin secretion traits
                                                     ({{
                                                         $parent
@@ -338,6 +339,8 @@
                                                     }}
                                                     donors)</strong
                                                 >
+                                                </div>
+                                                <div v-else>Select a trait to view functional secretion data by category.</div>
                                                 <div class="vlnPlots row">
                                                     <div
                                                         v-for="(
@@ -375,20 +378,22 @@
                                                         </functional-violin-plot>
                                                     </div>
                                                 </div>
-                                                <strong
-                                                    >Glucagon secretion traits
-                                                    ({{
-                                                        $parent
-                                                            .filteredAccession
-                                                            .length
-                                                    }}
-                                                    /
-                                                    {{
-                                                        $parent.filteredMetadata
-                                                            .length
-                                                    }}
-                                                    donors)</strong
-                                                >
+                                                <div v-if="$parent.functionalTrait !== null">
+                                                    <strong
+                                                        >Glucagon secretion traits
+                                                        ({{
+                                                            $parent
+                                                                .filteredAccession
+                                                                .length
+                                                        }}
+                                                        /
+                                                        {{
+                                                            $parent.filteredMetadata
+                                                                .length
+                                                        }}
+                                                        donors)</strong
+                                                    >
+                                                </div>
                                                 <div
                                                     class="vlnPlots row"
                                                     v-if="
