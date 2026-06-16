@@ -56,7 +56,7 @@
                 donors meeting filter criteria
                 <button
                     class="btn btn-secondary btn-sm"
-                    @click="$parent.copyResults()"
+                    @click="copyResults()"
                 >
                     Copy link to results
                 </button>
@@ -200,6 +200,10 @@ export default Vue.component("time-series-line-plot", {
         }
     },
     methods: {
+        copyResults(){
+            window.navigator.clipboard.writeText(window.location);
+            console.log(window.location);
+        },
         extractTimepoints(data, xScale, yScale) {
             // This assumes all timepoints have a condition listed i.e. none are skipped.
 
@@ -552,23 +556,31 @@ export default Vue.component("time-series-line-plot", {
             let mouseEvent = d3.event;
             let plot = d3.select(`#${this.plotId}`);
             plot.selectAll(".tooltip").remove();
+            plot.selectAll(".testdiv").remove();
+
+            let boundingRect = document.getElementById(this.plotId)
+                .getBoundingClientRect();
+
+            let tooltipWidth = 250;
+            let tooltipHeight = 75;
+
+            let xcoord = mouseEvent.clientX - boundingRect.x - tooltipWidth;
+            let ycoord = mouseEvent.clientY - tooltipHeight;
+
             
-            let xcoord = mouseEvent.layerX - 75;
-            let ycoord = mouseEvent.layerY - this.innerHeight;
-
             this.tooltip = plot.append("div")
-                .style("position", "relative")
-                .style("top", `${ycoord}px`)
-                .style("left", `${xcoord}px`)
-                .attr("class", "tooltip")
-                .style("background-color", "white")
-                .style("border", "2px solid gray")
-                .style("padding", "5px")
-                .style("max-width", "250px")
-                .style("border-radius", "5px")
-                .style("font-size", "smaller")
-                .html(this.tooltipDonorData);
-
+                 .style("position", "absolute")
+                 .style("top", `${ycoord}px`)
+                 .style("left", `${xcoord}px`)
+                 .attr("class", "tooltip")
+                 .style("background-color", "white")
+                 .style("border", "2px solid gray")
+                 .style("padding", "5px")
+                 .style("max-width", `${tooltipWidth}px`)
+                 .style("max-height", `${tooltipHeight}px`)
+                 .style("border-radius", "5px")
+                 .style("font-size", "smaller")
+                 .html(this.tooltipDonorData);
             this.tooltip.style("opacity", 1);
         },
     },
