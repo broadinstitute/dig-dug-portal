@@ -276,7 +276,8 @@ new Vue({
             functionalAssocTrait: null,
             vlnConditions: [],
             showContent: false,
-            assocTraits: []
+            assocTraits: [],
+            isletTab: 0
         };
     },
     async created() {
@@ -520,6 +521,9 @@ new Vue({
         replaceFieldNames(names){
             return names.replaceAll("Gender", "Reported gender")
                 .replaceAll("Derived", "HbA1c-derived");
+        },
+        tabIslet(tab){
+            this.isletTab = tab;
         }
     },
     watch: {

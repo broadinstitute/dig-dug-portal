@@ -1,11 +1,11 @@
 <template>
-    <div>
+    <div class="line-plot">
         <h5>{{ plotTitle }}</h5>
         <div class="radio-labels">
             <label>
                 <input
                     type="radio"
-                    name="showContent"
+                    :name="`${plotId}showContent`"
                     :value="false"
                     v-model="showContent"
                 />
@@ -14,7 +14,7 @@
             <label>
                 <input
                     type="radio"
-                    name="showContent"
+                    :name="`${plotId}showContent`"
                     :value="true"
                     v-model="showContent"
                 />
@@ -99,6 +99,7 @@ export default Vue.component("time-series-line-plot", {
         "timepoints",
         "yAxisLabel",
         "plotTitle",
+        "isletTab"
     ],
     data() {
         return {
@@ -315,6 +316,7 @@ export default Vue.component("time-series-line-plot", {
                 left: 55,
             };
             let elementWidth = this.chart.clientWidth;
+            console.log("width:", elementWidth);
             let height = this.chartHeight - margin.top - margin.bottom;
             this.innerHeight = height;
 
@@ -595,6 +597,9 @@ export default Vue.component("time-series-line-plot", {
         },
         showContent(){
             this.$emit("showContent", this.showContent);
+        },
+        isletTab(){
+            this.drawChart();
         }
     },
 });
@@ -605,8 +610,11 @@ export default Vue.component("time-series-line-plot", {
     margin-right: 15px;
     margin-bottom: 15px;
     background-color: white;
+    width: 100%;
 }
-
+.line-plot {
+    width: 100%;
+}
 .download-images-setting {
     display: inline;
 }
