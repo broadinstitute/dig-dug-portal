@@ -1,6 +1,5 @@
 <template>
     <div class="line-plot">
-        <h5>{{ plotTitle }}</h5>
         <div class="radio-labels">
             <label>
                 <input
@@ -98,7 +97,6 @@ export default Vue.component("time-series-line-plot", {
         "plotId",
         "timepoints",
         "yAxisLabel",
-        "plotTitle",
         "isletTab"
     ],
     data() {
