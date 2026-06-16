@@ -49,6 +49,18 @@
                 />
                 Individual donors
             </label>
+            <div v-if="false">
+                {{
+                    $parent.filteredAccession.length
+                }}
+                donors meeting filter criteria
+                <button
+                    class="btn btn-secondary btn-sm"
+                    @click="$parent.copyResults()"
+                >
+                    Copy link to results
+                </button>
+            </div>
         </div>
         <div class="download-images-setting">
             <div>

@@ -177,16 +177,6 @@
                                         class="line-plot-tab"
                                     >
                                         <div class="line-plots">
-                                            {{
-                                                $parent.filteredAccession.length
-                                            }}
-                                            donors meeting filter criteria
-                                            <button
-                                                class="btn btn-secondary btn-sm"
-                                                @click="$parent.copyResults()"
-                                            >
-                                                Copy link to results
-                                            </button>
                                             <b-tabs>
                                                 <b-tab title="Islet insulin secretion">
                                                     <div class="insulin-plot line-plot">
@@ -447,7 +437,7 @@
                                         </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Functional trait associations"
+                                        title="Functional trait associations (all donors)"
                                         @click="$parent.populateAssoc()"
                                     >
                                         <div class="functional-select">
