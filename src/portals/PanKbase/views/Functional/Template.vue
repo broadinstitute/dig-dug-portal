@@ -530,7 +530,6 @@
                                                 <template #row-details="r">
                                                     <div
                                                         style="
-                                                            background-color: #efefef;
                                                             text-align: right;
                                                         "
                                                     >
@@ -627,7 +626,6 @@
 .toc-item {
     padding: 10px;
     margin-bottom: 5px;
-    background-color: #efefef;
     border: 1px solid #dddddd;
     border-radius: 5px;
 }
@@ -678,9 +676,6 @@
     margin-top: 20px;
     margin-left: 20px;
 }
-.line-plot-tab {
-    background-color: #efefef;
-}
 div.line-plot {
     margin: 10px;
     margin-top: 20px;
@@ -700,10 +695,6 @@ div.line-plot {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
 }
-.vln-plot,
-.vlnPlots {
-    background-color: #efefef !important;
-}
 .functional-select {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -715,7 +706,6 @@ div.line-plot {
     overflow-x: scroll;
 }
 .color-legend {
-    background-color: #efefef;
     padding: 10px;
     width: fit-content;
     border-radius: 5px;
