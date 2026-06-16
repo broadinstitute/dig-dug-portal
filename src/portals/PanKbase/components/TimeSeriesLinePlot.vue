@@ -354,8 +354,11 @@ export default Vue.component("time-series-line-plot", {
                 .select(`#${this.plotId}`)
                 .append("div")
                 .style("opacity", 0)
+                .style("position", "absolute")
                 .attr("class", "tooltip")
                 .style("background-color", "white")
+                .style("width", "50px")
+                .style("height", "25px")
                 .style("border", "2px solid gray")
                 .style("padding", "5px")
                 .style("border-radius", "5px")
@@ -504,9 +507,7 @@ export default Vue.component("time-series-line-plot", {
         },
         resetTooltip() {
             this.highlightedDonor = null;
-            if (!!this.tooltip) {
-                this.tooltip.style("opacity", 0);
-            }
+            this.svg.selectAll(".tooltip").remove();
             this.drawLines();
         },
         downloadImage(ID, NAME, TYPE) {
@@ -520,6 +521,28 @@ export default Vue.component("time-series-line-plot", {
             this.drawChart();
         },
         showTooltip(c) {
+            let plot = d3.select(`#${this.plotId}`);
+            plot.selectAll(".tooltip").remove();
+            let xcoord = d3.event.layerX;
+            let ycoord = d3.event.layerY;
+
+            this.tooltip = plot.append("div")
+                .style("opacity", 0)
+                .style("position", "absolute")
+                .style("top", `${ycoord}px`)
+                .style("left", `${xcoord}px`)
+                .attr("class", "tooltip")
+                .style("background-color", "white")
+                .style("width", "50px")
+                .style("height", "25px")
+                .style("border", "2px solid gray")
+                .style("padding", "5px")
+                .style("border-radius", "5px")
+                .style("font-size", "smaller");
+
+            //this.tooltip.style.top = `${ycoord}px`;
+            //this.tooltip.style.left = `${xcoord}px`;
+            this.tooltip.style("opacity", 1);
             let donor = c[0].donor;
             if (this.highlightedDonor !== donor) {
                 this.highlightedDonor = donor;
