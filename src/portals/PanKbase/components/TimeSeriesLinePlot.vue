@@ -564,12 +564,12 @@ export default Vue.component("time-series-line-plot", {
             let tooltipWidth = 250;
             let tooltipHeight = 75;
 
-            let xcoord = mouseEvent.clientX - boundingRect.x - tooltipWidth;
+            let xcoord = mouseEvent.clientX - tooltipWidth;
             let ycoord = mouseEvent.clientY - tooltipHeight;
 
             
             this.tooltip = plot.append("div")
-                 .style("position", "absolute")
+                 .style("position", "fixed")
                  .style("top", `${ycoord}px`)
                  .style("left", `${xcoord}px`)
                  .attr("class", "tooltip")
@@ -577,7 +577,6 @@ export default Vue.component("time-series-line-plot", {
                  .style("border", "2px solid gray")
                  .style("padding", "5px")
                  .style("max-width", `${tooltipWidth}px`)
-                 .style("max-height", `${tooltipHeight}px`)
                  .style("border-radius", "5px")
                  .style("font-size", "smaller")
                  .html(this.tooltipDonorData);
