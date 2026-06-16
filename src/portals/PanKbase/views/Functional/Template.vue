@@ -330,7 +330,7 @@
                                                 </select>
                                             </div>
                                             <div
-                                                v-if="!!$parent.functionalTrait"
+                                                v-if="$parent.functionalTrait === 'Isolation_center'"
                                                 class="color-legend"
                                             >
                                                 <div
