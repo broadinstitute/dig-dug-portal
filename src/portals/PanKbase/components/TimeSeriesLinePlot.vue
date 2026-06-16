@@ -48,37 +48,6 @@
         <div :id="plotId" class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
-        <div class="donorData">
-            <div v-if="donorMetadata !== null">
-                <div class="donorLabel">
-                    <strong>Highlighted donor:</strong>
-                    {{ donorMetadata.Accession }}
-                </div>
-                <div>
-                    <table>
-                        <tr>
-                            <td class="leftTable">
-                                <strong>Age:</strong>
-                                {{ donorMetadata["Age (years)"] }}
-                            </td>
-                            <td>
-                                <strong>Reported gender:</strong>
-                                {{ donorMetadata.Gender }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="leftTable">
-                                <strong>BMI:</strong> {{ donorMetadata.BMI }}
-                            </td>
-                            <td>
-                                <strong>Derived diabetes status:</strong>
-                                {{ donorMetadata["Derived diabetes status"] }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 <script>
@@ -165,6 +134,37 @@ export default Vue.component("time-series-line-plot", {
                 (d) => d.Accession === this.highlightedDonor
             );
         },
+        tooltipDonorData(){
+            if (this.donorMetadata === null){
+                return "";
+            }
+            let htmlOutput = `${this.donorMetadata.Accession}`;
+            let categories = [
+                {
+                    key: "Age (years)",
+                    label: "Age"
+                },
+                {
+                    key: "Gender",
+                    label: "Reported gender"
+                },
+                {
+                    key:  "BMI",
+                    label: "BMI"
+                },
+                {
+                    key: "Derived diabetes status",
+                    label: "Derived diabetes status"
+                }
+            ];
+            categories.forEach(c => {
+                let dataPoint = this.donorMetadata[c.key];
+                let categoryDiv = 
+                    `\n${c.label}: ${dataPoint}`;
+                htmlOutput = htmlOutput.concat(categoryDiv);
+            });
+            return htmlOutput;
+        }
     },
     methods: {
         extractTimepoints(data, xScale, yScale) {
@@ -507,30 +507,6 @@ export default Vue.component("time-series-line-plot", {
             this.drawChart();
         },
         showTooltip(c) {
-            let mouseEvent = d3.event;
-            let plot = d3.select(`#${this.plotId}`);
-            plot.selectAll(".tooltip").remove();
-            
-            let xcoord = mouseEvent.layerX;
-            let ycoord = mouseEvent.clientY;
-
-            this.tooltip = plot.append("div")
-                .style("opacity", 0)
-                .style("position", "absolute")
-                .style("top", `${ycoord}px`)
-                .style("left", `${xcoord}px`)
-                .attr("class", "tooltip")
-                .style("background-color", "white")
-                .style("width", "50px")
-                .style("height", "25px")
-                .style("border", "2px solid gray")
-                .style("padding", "5px")
-                .style("border-radius", "5px")
-                .style("font-size", "smaller");
-
-            //this.tooltip.style.top = `${ycoord}px`;
-            //this.tooltip.style.left = `${xcoord}px`;
-            this.tooltip.style("opacity", 1);
             let donor = c[0].donor;
             if (this.highlightedDonor !== donor) {
                 this.highlightedDonor = donor;
@@ -539,6 +515,29 @@ export default Vue.component("time-series-line-plot", {
                 }
                 this.drawHighlightedDonor(c);
             }
+            
+            let mouseEvent = d3.event;
+            let plot = d3.select(`#${this.plotId}`);
+            plot.selectAll(".tooltip").remove();
+            
+            let xcoord = mouseEvent.layerX;
+            let ycoord = mouseEvent.clientY;
+
+            this.tooltip = plot.append("div")
+                .style("position", "absolute")
+                .style("top", `${ycoord}px`)
+                .style("left", `${xcoord}px`)
+                .attr("class", "tooltip")
+                .style("background-color", "white")
+                .style("border", "2px solid gray")
+                .style("padding", "5px")
+                .style("border-radius", "5px")
+                .style("font-size", "smaller")
+                .text(this.tooltipDonorData);
+
+            //this.tooltip.style.top = `${ycoord}px`;
+            //this.tooltip.style.left = `${xcoord}px`;
+            this.tooltip.style("opacity", 1);
         },
     },
     watch: {
