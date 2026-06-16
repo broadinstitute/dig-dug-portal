@@ -350,20 +350,6 @@ export default Vue.component("time-series-line-plot", {
                             : t.condition
                     );
             });
-            this.tooltip = d3
-                .select(`#${this.plotId}`)
-                .append("div")
-                .style("opacity", 0)
-                .style("position", "absolute")
-                .attr("class", "tooltip")
-                .style("background-color", "white")
-                .style("width", "50px")
-                .style("height", "25px")
-                .style("border", "2px solid gray")
-                .style("padding", "5px")
-                .style("border-radius", "5px")
-                .style("font-size", "smaller");
-
             //Labels
             this.svg
                 .append("text")
@@ -507,7 +493,7 @@ export default Vue.component("time-series-line-plot", {
         },
         resetTooltip() {
             this.highlightedDonor = null;
-            this.svg.selectAll(".tooltip").remove();
+            d3.select(`#${this.plotId}`).selectAll(".tooltip").remove();
             this.drawLines();
         },
         downloadImage(ID, NAME, TYPE) {
@@ -521,10 +507,12 @@ export default Vue.component("time-series-line-plot", {
             this.drawChart();
         },
         showTooltip(c) {
+            let mouseEvent = d3.event;
             let plot = d3.select(`#${this.plotId}`);
             plot.selectAll(".tooltip").remove();
-            let xcoord = d3.event.layerX;
-            let ycoord = d3.event.layerY;
+            
+            let xcoord = mouseEvent.layerX;
+            let ycoord = mouseEvent.clientY;
 
             this.tooltip = plot.append("div")
                 .style("opacity", 0)
