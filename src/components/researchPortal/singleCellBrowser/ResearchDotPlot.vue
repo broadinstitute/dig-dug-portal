@@ -44,6 +44,11 @@
             type: String,
             required: true,
         },
+        xDomain: {
+            type: Array,
+            required: false,
+            default: null,
+        },
         xLabel:{
             type: String,
             required: false,
@@ -268,7 +273,9 @@
 
             const xKey = this.xKey;
             const yKey = this.yKey;
-            const xKeyLabels = Array.from(new Set(this.data.map(d => d[xKey])));
+            const xKeyLabels = Array.isArray(this.xDomain) && this.xDomain.length
+                ? this.xDomain
+                : Array.from(new Set(this.data.map(d => d[xKey])));
             const yKeyLabels = Array.from(new Set(this.data.map(d => d[yKey])));
             const fillKey = this.fillKey;
             const sizeKey = this.sizeKey;
