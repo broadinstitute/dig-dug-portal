@@ -561,7 +561,7 @@
                                     />
                                 </div>
                                 <div>
-                                    <div style="font-size: 12px; opacity:0.5">Ranked by {{markersHaveZscores ? 'z-score' : 'mean expression'}}</div>
+                                    <div style="font-size: 12px; opacity:0.5">Ranked by {{ markerRankingLabel }}</div>
                                     <div style="font-size: 13px;">Select a type to view its full marker profile.</div>
                                 </div>
                                 
@@ -609,6 +609,7 @@
                                     data-blah="pct_cells_expression"
                                     :yKey="markerFile.markerKey"
                                     xKey="gene"
+                                    :xDomain="markerGeneOrder"
                                     :yLabel="markerFile.markerKeyLabel"
                                     xLabel="Gene"
                                     fillKey="mean_expression"
@@ -863,7 +864,7 @@
                                     <div style="display:flex; justify-content: space-between;">
                                         <div style="display:flex; flex-direction: column;">
                                             <strong style="font-size: 16px;">{{ dotPlotCellType!=""?`Marker Genes for ${dotPlotCellType}` : 'Top Marker Genes by Cell Type' }}</strong>
-                                            <div  style="font-size:12px; opacity:0.5">Ranked by {{markersHaveZscores ? 'z-score' : 'mean expression'}}</div>
+                                            <div  style="font-size:12px; opacity:0.5">Ranked by {{ markerRankingLabel }}</div>
                                         </div>
                                         <div style="display:flex; gap:20px">
                                             <download-chart 
@@ -881,6 +882,7 @@
                                         data-blah="pct_cells_expression"
                                         :yKey="markerFile.markerKey"
                                         xKey="gene"
+                                        :xDomain="markerGeneOrder"
                                         :yLabel="markerFile.markerKeyLabel"
                                         xLabel="Gene"
                                         fillKey="mean_expression"
@@ -943,23 +945,55 @@
         ///
             (optional) formatting params
             can be applied to all datasets in a bioindex
-            and/or a specific dataset
-            TODO: add a dataset specific example
+            and/or overridden for a specific datasetId
+
+            Available format options:
+            - stratifyPlotType
+                default: "violin"
+                options: "violin", "combined", "dot"
+                controls the initial expression plot shown when a categorical stratify field is active
+            - expressionColorScale
+                default: "blue"
+                options: "blue", "red"
+                sets the color palette used by expression dot plots
+            - dotPlotColorScaleMode
+                default: "raw"
+                options: "raw", "scaled-per-gene"
+                "raw" colors dots by absolute mean expression
+                "scaled-per-gene" rescales each gene independently from 0 to 1 before coloring
+            - preserveMarkerGeneOrder
+                default: false
+                options: true, false
+                if true, marker-gene dot plots keep the gene order from the marker file instead of ranking by z-score or mean expression
+            - displayMap
+                default: null
+                maps raw metadata field names to display labels in the UI
+            - groups
+                default: null
+                hints which metadata fields should be treated as cell type, cell subtype, donors, and samples
         ///
         "format":{
             //"default" formatting for all datasets in a bioindex
             "default":{
                 ///
+                    optional rendering params
+                    values shown here are examples, not required values
+                ///
+                "stratifyPlotType": "dot",
+                "expressionColorScale": "red",
+                "dotPlotColorScaleMode": "scaled-per-gene",
+                "preserveMarkerGeneOrder": true,
+                ///
                     displayMap allows you to define user readable labels 
-                        for your dataset column names
+                    for your dataset column names
                     each key in displayMap should match a key in fields.metadata_labels
-                        from the fields enpoint of your bioindex
+                        from the fields endpoint of your bioindex
                     the value of each key should be the desired label to display
                     otherwise the key name will be used for display
                 ///
                 "displayMap":{
                     "biosample_id": "Biosample ID",
-                    this.donorsField: "Donor ID",
+                    "donor_id": "Donor ID",
                     "disease__ontology_label": "Disease",
                     "cell_type__author": "Cell Type",
                     "bmi": "BMI",
@@ -976,18 +1010,23 @@
                     used for selecting the appropriate fields for display and visualizations
                 ///
                 "groups":{
-                    "cellType": "cell_type__author",
+                    "cellType": ["cell_type__author"],
                     "cellSubType": "custom__author_cell_substype",
-                    "donors": this.donorsField,
+                    "donors": "donor_id",
                     "samples": "biosample_id"
                 }
-            }
+            },
             ///
                 in addition to default settings, you can specify same settings per datasetId
+                dataset-level values override format.default
             ///
             "<some_dataset_ID>":{
+                "stratifyPlotType": "combined",
+                "expressionColorScale": "blue",
+                "dotPlotColorScaleMode": "raw",
+                "preserveMarkerGeneOrder": false,
                 "displayMap": {},
-                "annotationGroups": {},    
+                "groups": {}
             }
         }
     }
@@ -1104,6 +1143,7 @@
                 expressionColorScaleOptions: ["red", "blue"],
 
                 dotPlotColorScaleMode: null,
+                preserveMarkerGeneOrder: false,
 
                 displayFields: null,
                 displayGroups: null,
@@ -1159,6 +1199,7 @@
                 markerCellTypes: null,
                 markerGenes: null,
                 markerGenesTable: null,
+                markerGeneOrder: [],
                 markersByGene: null,
                 markersByCellType: null,
                 markerGenesMaxMean: 3.0,
@@ -1389,6 +1430,12 @@
             },
             markerDotPlotTitle() {
                 return `Top Marker Genes for ${this.dotPlotCellType || 'All'} (${this.markerFile?.markerKeyLabel || 'Cell Types'})`;
+            },
+            markerRankingLabel() {
+                if (this.preserveMarkerGeneOrder) {
+                    return 'file order';
+                }
+                return this.markersHaveZscores ? 'z-score' : 'mean expression';
             },
             expressionDownloadChartId() {
                 if(this.contExprResults){
@@ -1672,6 +1719,11 @@
                 if(format_dataset?.dotPlotColorScaleMode){
                     this.dotPlotColorScaleMode = format_dataset.dotPlotColorScaleMode;
                 }
+                if(typeof format_dataset?.preserveMarkerGeneOrder === 'boolean'){
+                    this.preserveMarkerGeneOrder = format_dataset.preserveMarkerGeneOrder;
+                }else if(typeof format_default?.preserveMarkerGeneOrder === 'boolean'){
+                    this.preserveMarkerGeneOrder = format_default.preserveMarkerGeneOrder;
+                }
 
                 //get format options
                 if(format_dataset){
@@ -1758,17 +1810,19 @@
                 this.markerFile = this.BImarkersDefaultFile;
                 //some datasets have multiple marker gene files
                 //check if dataset_metadata contains a list of available marker files
-                if(this.metadata?.marker_gene_files?.length>1){
-                    //add to list of marker gene files
-                    this.markerFileOptions = this.metadata.marker_gene_files;
-                    this.markerFileOptions.forEach(f => {
+                if(this.metadata?.marker_gene_files?.length){
+                    const configuredMarkerFiles = this.metadata.marker_gene_files.map(file => ({ ...file }));
+                    configuredMarkerFiles.forEach(f => {
                         const s = f.marker_gene_level.toLowerCase();
                         const markersKeyIsCellType = s.includes("cell") && s.includes("type") && !s.includes("sub")
                         f.markerKey = markersKeyIsCellType ? 'cell_type' : f.marker_gene_level
                         f.markerKeyLabel = markersKeyIsCellType ? 'Cell Type' : f.marker_gene_level
-                    })
+                    });
 
-                    this.markerFile = this.markerFileOptions[0];
+                    if (configuredMarkerFiles.length > 1) {
+                        this.markerFileOptions = configuredMarkerFiles;
+                    }
+                    this.markerFile = configuredMarkerFiles[0];
                 }
 
 
@@ -1961,6 +2015,7 @@
                             this.geneNames = this.markersList;
                             this.markerGenes = markersMatrix;
                             this.markerGenesTable = markersTable;
+                            this.markerGeneOrder = this.getMarkerGeneOrder(markersTable);
                             this.markerGenesMaxMean = d3.max(this.markerGenes.map(d => d.mean_expression)).toFixed(1);
                             this.markerTableColumns = this.markerDesiredColumns.filter(f =>
                                 this.markerGenes.some(row => row[f.key] !== null && row[f.key] !== undefined)
@@ -2130,6 +2185,9 @@
                     return rawLabel;
                 }
             },
+            getMarkerGeneOrder(markersTable){
+                return Array.from(new Set((markersTable || []).map(row => row.gene)));
+            },
             topNmarkersByCellType(topN, cellTypeName=null){
                 const markersMatrix = [];
                 const markersTable = [];
@@ -2144,12 +2202,16 @@
                         if(!cellTypeName || (cellTypeName && cellType===cellTypeName)){
                             console.log(cellType, genes);
                             if(genes){
-                                if (genes.every(gene => gene.z_score != null)) {
-                                    topGenes = genes
+                                if (this.preserveMarkerGeneOrder) {
+                                    topGenes = genes.filter(gene =>
+                                        gene.z_score != null ? gene.z_score > 0 : gene.mean_expression > 0
+                                    );
+                                } else if (genes.every(gene => gene.z_score != null)) {
+                                    topGenes = [...genes]
                                         .sort((a, b) => b.z_score - a.z_score)
                                         .filter(a => a.z_score > 0)
                                 }else{
-                                    topGenes = genes
+                                    topGenes = [...genes]
                                         .sort((a, b) => b.mean_expression - a.mean_expression)
                                         .filter(a => a.mean_expression > 0);
                                 }
@@ -2306,10 +2368,12 @@
                     const {markersMatrix, markersTable} = this.topNmarkersByCellType(80, cellType);
                     this.markerGenes = markersMatrix;
                     this.markerGenesTable = markersTable;
+                    this.markerGeneOrder = this.getMarkerGeneOrder(markersTable);
                 }else{
                     const {markersMatrix, markersTable} = this.topNmarkersByCellType(80 / this.markerCellTypes.length);
                     this.markerGenes = markersMatrix;
                     this.markerGenesTable = markersTable;
+                    this.markerGeneOrder = this.getMarkerGeneOrder(markersTable);
                 }
             },
             selectBioIndex(bi){
