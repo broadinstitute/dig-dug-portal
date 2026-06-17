@@ -28,7 +28,7 @@
                     :name="`${plotId}confidence`"
                     v-model="showConfidence"
                 />
-                95% confidence (filtered donors)
+                95% confidence ({{donors.length}} filtered donors)
             </label>
             <label>
                 <input
@@ -46,7 +46,7 @@
                     :name="`${plotId}confidence`"
                     v-model="showConfidence"
                 />
-                Individual donors
+                {{donors.length}} individual donors
             </label>
             <div v-if="false">
                 {{
