@@ -304,9 +304,9 @@
                                             </div>
                                             <div
                                                 v-if="$parent.functionalTrait === 'Isolation_center'"
-                                                class="color-legend"
+                                                class="color-legend row"
                                             >
-                                                <div
+                                                <div class="legend-item col-md-6"
                                                     v-for="item in Object.keys(
                                                         $parent.functionalColorMap
                                                     )"
@@ -674,14 +674,12 @@
 #functional-assoc-table {
     overflow-x: scroll;
 }
-.color-legend {
-    padding: 10px;
-    width: fit-content;
-    border-radius: 5px;
-}
 .color-legend-block {
     width: 10px;
     height: 10px;
     display: inline-block;
+}
+.color-legend {
+    margin-bottom: 10px;
 }
 </style>
