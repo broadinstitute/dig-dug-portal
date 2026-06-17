@@ -1,7 +1,7 @@
 import userUtils from "@/utils/userUtils";
 
 const REVEAL_MQ_WORKFLOW_EXPORT_KIND = "reveal-mq-workflow-export";
-const REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION = 2;
+const REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION = 5;
 
 function cloneJson(value, fallback) {
     try {
@@ -115,6 +115,9 @@ function collectMultiQueryRevealWorkflowState(vm) {
         pairSelectionOverrides: cloneJson(vm.pairSelectionOverrides, {}),
         llmFilteredPairKeysBaseline: cloneJson(vm.llmFilteredPairKeysBaseline, []),
         adHocCoveredRowKeys: cloneJson(vm.adHocCoveredRowKeys, []),
+        heatmapSelectedNodes: cloneJson(vm.heatmapSelectedNodes, []),
+        selectedNodesExplanations: cloneJson(vm.selectedNodesExplanations, []),
+        selectedNodesProvenanceRuns: cloneJson(vm.selectedNodesProvenanceRuns, []),
         lastKgTriples: cloneJson(vm.lastKgTriples, []),
         lastFlattenedKG: cloneJson(vm.lastFlattenedKG, null),
         genesAndFactorValuesLoaded: !!vm.genesAndFactorValuesLoaded,
@@ -333,6 +336,9 @@ const WORKFLOW_IMPORT_FIELDS = [
     "pairSelectionOverrides",
     "llmFilteredPairKeysBaseline",
     "adHocCoveredRowKeys",
+    "heatmapSelectedNodes",
+    "selectedNodesExplanations",
+    "selectedNodesProvenanceRuns",
     "lastKgTriples",
     "lastFlattenedKG",
     "genesAndFactorValuesLoaded",

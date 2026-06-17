@@ -1,0 +1,27 @@
+---
+description: Keep assistant replies compact and concise
+alwaysApply: true
+---
+
+# Concise Responses
+
+Default to short, direct answers. Match response length to task complexity.
+
+## Do
+
+- Lead with the answer or outcome, then only essential detail.
+- Use bullets or short paragraphs; skip preamble and recap unless asked.
+- For feasibility or design questions: verdict first, gaps second, options last (brief).
+- For completed work: what changed, where, how to verify — no walkthrough of every file.
+
+## Do Not
+
+- Repeat the user's question or summarize the conversation.
+- Pad with optional follow-ups, engagement bait, or "let me know if…" unless blocked.
+- Use large tables or long architecture essays when a few sentences suffice.
+
+## Scale by task
+
+- Simple fix or yes/no → 1–3 short paragraphs max.
+- Multi-file feature → tight summary + key files; skip line-by-line narration.
+- User asks for depth → expand only then.

@@ -57,6 +57,16 @@
                 </template>
             </div>
         </div>
+        <workflow-heatmap-node-action-menu
+            v-if="nodeSelectionEnabled"
+            :open="networkNodeMenuOpen"
+            :target="networkNodeMenuTarget"
+            :is-selected="networkNodeMenuIsSelected"
+            :left="networkNodeMenuLeft"
+            :top="networkNodeMenuTop"
+            @close="closeNetworkNodeMenu"
+            @toggle-select="onNetworkNodeMenuToggle"
+        />
     </div>
 </template>
 
@@ -65,8 +75,18 @@ import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
 import { colorForGeneRole, compareGeneRoleLegend, DEFAULT_GENE_NODE_COLOR } from "@/utils/factorRevealGeneColors";
+import WorkflowHeatmapNodeActionMenu from "./revealMultiQueryWorkflow/WorkflowHeatmapNodeActionMenu.vue";
+import {
+    SELECTION_HIGHLIGHT_ORANGE,
+    buildNetworkEdgeSelectionNode,
+    buildNetworkNodeSelectionNode,
+    isNetworkEdgeHighlighted,
+    isNetworkNodeHighlighted,
+    isSelectionNodeSelected,
+    toggleSelectionNode,
+} from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
 
-const DATA_TAB_GENE_COLOR = { background: "#f5a623", border: "#d68910" };
+const DATA_TAB_GENE_COLOR = { background: DEFAULT_GENE_NODE_COLOR, border: "#7a3d82" };
 
 const NODE_COLORS = {
     Phenotype: "#e41a1c",
@@ -119,6 +139,7 @@ const DEFAULT_GENE_COLOR = DEFAULT_GENE_NODE_COLOR;
 
 export default {
     name: "FactorBaseRevealNetwork",
+    components: { WorkflowHeatmapNodeActionMenu },
     props: {
         network: {
             type: Object,
@@ -145,6 +166,10 @@ export default {
         geneColorByGwasSupport: { type: Boolean, default: false },
         /** Optional: map edge distance from this numeric metadata key (e.g., "functional_support"). */
         edgeDistanceMetricKey: { type: String, default: "" },
+        /** Shared heatmap/network selected nodes (shell-owned). */
+        selectedNodes: { type: Array, default: () => [] },
+        /** Enable click-to-select UX (data-tab graph only). */
+        nodeSelectionEnabled: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -162,9 +187,23 @@ export default {
                 y: 0,
                 content: "",
             },
+            baseVisNodeStyles: {},
+            baseVisEdgeStyles: {},
+            networkNodeMenuOpen: false,
+            networkNodeMenuLeft: 0,
+            networkNodeMenuTop: 0,
+            networkNodeMenuTarget: null,
+            lastNetworkSignature: "",
+            pendingSelectionNodes: null,
+            selectionRefreshRafId: null,
         };
     },
     computed: {
+        networkNodeMenuIsSelected() {
+            const sel = this.networkNodeMenuTarget && this.networkNodeMenuTarget.node;
+            if (!sel) return false;
+            return isSelectionNodeSelected(this.selectedNodes, sel);
+        },
         geneNameToGroup() {
             const map = {};
             (this.genes || []).forEach((g) => {
@@ -233,7 +272,10 @@ export default {
     },
     watch: {
         network: {
-            handler() {
+            handler(newVal) {
+                const sig = this.networkSignature(newVal);
+                if (sig === this.lastNetworkSignature) return;
+                this.lastNetworkSignature = sig;
                 this.$nextTick(() => this.render());
             },
             deep: true,
@@ -252,6 +294,13 @@ export default {
         },
         geneColorByGwasSupport() {
             this.$nextTick(() => this.render());
+        },
+        selectedNodes: {
+            handler(next) {
+                this.pendingSelectionNodes = next;
+                this.$nextTick(() => this.applySelectionHighlights(next));
+            },
+            deep: true,
         },
     },
     mounted() {
@@ -276,6 +325,8 @@ export default {
         },
         async exportSvg() {
             if (!this.visNetwork || !this.nodesDataSet || !this.edgesDataSet) return null;
+            const selectedNodes = this.pendingSelectionNodes || this.selectedNodes || [];
+            const orange = SELECTION_HIGHLIGHT_ORANGE;
             const nodeIds = this.nodesDataSet.getIds();
             if (!nodeIds || !nodeIds.length) return null;
             const positions = this.visNetwork.getPositions(nodeIds);
@@ -312,7 +363,11 @@ export default {
                     const p1 = project(fromPos);
                     const p2 = project(toPos);
                     const title = e.title || "";
-                    return `<g class="edge"><line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#999" stroke-width="1.5" stroke-opacity="0.6" />${
+                    const selected = isNetworkEdgeHighlighted(e, selectedNodes);
+                    const stroke = selected ? orange.edge : "#999";
+                    const strokeWidth = selected ? 3 : 1.5;
+                    const strokeOpacity = selected ? 1 : 0.6;
+                    return `<g class="edge"><line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />${
                         title
                             ? `<title>${String(title).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</title>`
                             : ""
@@ -327,13 +382,24 @@ export default {
                     if (!node || !pos) return "";
                     const p = project(pos);
                     const r = (node.size || 18) * 1.1;
-                    const fill = node.color && node.color.background ? node.color.background : "#999";
-                    const stroke = node.color && node.color.border ? node.color.border : "#ffffff";
+                    const highlighted = isNetworkNodeHighlighted(id, selectedNodes);
+                    const base = this.baseVisNodeStyles[id] || {};
+                    const fill = highlighted
+                        ? orange.nodeBackground
+                        : node.color && node.color.background
+                          ? node.color.background
+                          : "#999";
+                    const stroke = highlighted
+                        ? orange.nodeBorder
+                        : node.color && node.color.border
+                          ? node.color.border
+                          : "#ffffff";
+                    const labelColor = highlighted ? orange.label : "#333";
                     const label = node.label || node.id || "";
                     const safeLabel = String(label).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-                    return `<g class="node"><circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" /><text x="${
+                    return `<g class="node"><circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${highlighted ? 2.5 : 1.5}" /><text x="${
                         p.x
-                    }" y="${p.y - r - 4}" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="#333">${safeLabel}</text></g>`;
+                    }" y="${p.y - r - 4}" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="12" fill="${labelColor}">${safeLabel}</text></g>`;
                 })
                 .join("");
 
@@ -353,6 +419,13 @@ export default {
         async exportPng(scale = 2) {
             const container = this.$refs.container;
             if (!container) return null;
+            if (this.nodeSelectionEnabled) {
+                this.applySelectionHighlights();
+                if (this.visNetwork) this.visNetwork.redraw();
+                await new Promise((resolve) => {
+                    requestAnimationFrame(() => requestAnimationFrame(resolve));
+                });
+            }
             const canvas = container.querySelector("canvas");
             if (!canvas) return null;
             const srcWidth = canvas.width;
@@ -374,13 +447,165 @@ export default {
             });
         },
         cleanup() {
+            if (this.selectionRefreshRafId != null && typeof cancelAnimationFrame === "function") {
+                cancelAnimationFrame(this.selectionRefreshRafId);
+            }
+            this.selectionRefreshRafId = null;
             if (this.visNetwork) {
                 this.visNetwork.destroy();
                 this.visNetwork = null;
             }
             this.nodesDataSet = null;
             this.edgesDataSet = null;
+            this.baseVisNodeStyles = {};
+            this.baseVisEdgeStyles = {};
+            this.closeNetworkNodeMenu();
             this.hideHoverTooltip();
+        },
+        refreshSelectionStylesSoon() {
+            if (!this.nodeSelectionEnabled) return;
+            if (this.selectionRefreshRafId != null && typeof cancelAnimationFrame === "function") {
+                cancelAnimationFrame(this.selectionRefreshRafId);
+            }
+            this.selectionRefreshRafId = requestAnimationFrame(() => {
+                this.selectionRefreshRafId = null;
+                this.applySelectionHighlights();
+            });
+        },
+        closeNetworkNodeMenu() {
+            this.networkNodeMenuOpen = false;
+            this.networkNodeMenuTarget = null;
+        },
+        openNetworkNodeMenu(clickParams, selectionNode) {
+            if (!selectionNode || !this.nodeSelectionEnabled) return;
+            let left = 0;
+            let top = 0;
+            const native =
+                clickParams && clickParams.event
+                    ? clickParams.event.srcEvent || clickParams.event
+                    : null;
+            if (native && native.clientX != null) {
+                left = native.clientX;
+                top = native.clientY;
+            } else if (
+                clickParams &&
+                clickParams.pointer &&
+                clickParams.pointer.DOM &&
+                this.$refs.container
+            ) {
+                const rect = this.$refs.container.getBoundingClientRect();
+                left = rect.left + clickParams.pointer.DOM.x;
+                top = rect.top + clickParams.pointer.DOM.y;
+            }
+            this.networkNodeMenuTarget = { node: selectionNode };
+            this.networkNodeMenuLeft = left;
+            this.networkNodeMenuTop = top;
+            this.$nextTick(() => {
+                this.networkNodeMenuOpen = true;
+            });
+        },
+        onNetworkNodeMenuToggle(target) {
+            const node = target && target.node;
+            if (!node) return;
+            const next = toggleSelectionNode(this.selectedNodes, node);
+            this.pendingSelectionNodes = next;
+            this.$emit("update:selectedNodes", next);
+            this.applySelectionHighlights(next);
+        },
+        applySelectionHighlights(selectedNodes = this.pendingSelectionNodes || this.selectedNodes) {
+            if (!this.nodesDataSet || !this.edgesDataSet || !this.nodeSelectionEnabled) return;
+            const orange = SELECTION_HIGHLIGHT_ORANGE;
+            const orangeEdgeColor = {
+                color: orange.edge,
+                highlight: orange.edge,
+                hover: orange.edge,
+                inherit: false,
+                opacity: 1,
+            };
+            const nodeUpdates = [];
+            this.nodesDataSet.getIds().forEach((id) => {
+                const base = this.baseVisNodeStyles[id];
+                if (!base) return;
+                if (isNetworkNodeHighlighted(id, selectedNodes)) {
+                    nodeUpdates.push({
+                        id,
+                        color: {
+                            background: orange.nodeBackground,
+                            border: orange.nodeBorder,
+                            highlight: { background: orange.nodeBackground, border: orange.nodeBorder },
+                        },
+                        borderWidth: 2.5,
+                        font: { ...(base.font || {}), color: orange.label },
+                    });
+                } else {
+                    nodeUpdates.push({
+                        id,
+                        color: base.color,
+                        borderWidth: base.borderWidth,
+                        font: base.font,
+                    });
+                }
+            });
+            if (nodeUpdates.length) this.nodesDataSet.update(nodeUpdates);
+
+            const edgeUpdates = [];
+            this.edgesDataSet.getIds().forEach((id) => {
+                const edge = this.edgesDataSet.get(id);
+                const base = this.baseVisEdgeStyles[id];
+                if (!edge || !base) return;
+                if (isNetworkEdgeHighlighted(edge, selectedNodes)) {
+                    edgeUpdates.push({
+                        id,
+                        color: orangeEdgeColor,
+                        width: Math.max(3, (base.width || 1.5) + 1),
+                    });
+                } else {
+                    edgeUpdates.push({
+                        id,
+                        color: base.color,
+                        width: base.width,
+                    });
+                }
+            });
+            if (edgeUpdates.length) this.edgesDataSet.update(edgeUpdates);
+
+            this.syncVisEdgeSelection(selectedNodes);
+            if (this.visNetwork) this.visNetwork.redraw();
+        },
+        networkSignature(net) {
+            const nodes = (net && net.nodes ? net.nodes : [])
+                .map((n) => (n && n.id != null ? String(n.id) : ""))
+                .filter(Boolean)
+                .sort()
+                .join(",");
+            const edges = (net && net.edges ? net.edges : [])
+                .map((e) => `${e && e.source}|${e && e.target}`)
+                .sort()
+                .join(",");
+            return `${nodes}::${edges}`;
+        },
+        syncVisEdgeSelection(selectedNodes) {
+            if (!this.visNetwork || !this.edgesDataSet || !this.nodeSelectionEnabled) return;
+            const edgeIds = [];
+            this.edgesDataSet.getIds().forEach((id) => {
+                const edge = this.edgesDataSet.get(id);
+                if (edge && isNetworkEdgeHighlighted(edge, selectedNodes)) {
+                    edgeIds.push(id);
+                }
+            });
+            if (!edgeIds.length) {
+                try {
+                    this.visNetwork.unselectAll();
+                } catch (err) {
+                    // Ignore during teardown.
+                }
+                return;
+            }
+            try {
+                this.visNetwork.setSelection({ edges: edgeIds, nodes: [] });
+            } catch (err) {
+                // Ignore stale edge ids during re-render.
+            }
         },
         escapeHtml(raw) {
             return String(raw == null ? "" : raw)
@@ -595,7 +820,8 @@ export default {
                     to,
                     title: action,
                     width: 1.5,
-                    color: { color: "#999", opacity: 0.6 },
+                    selectable: !!this.nodeSelectionEnabled,
+                    color: { color: "#999", opacity: 0.6, inherit: false },
                     smooth: { type: "continuous", roundness: 0.5 },
                     arrows: {
                         to: {
@@ -650,6 +876,23 @@ export default {
             const visNodes = this.buildVisNodes(nodes);
             const visEdges = this.buildVisEdges(edges);
 
+            this.baseVisNodeStyles = {};
+            visNodes.forEach((vn) => {
+                this.baseVisNodeStyles[vn.id] = {
+                    color: vn.color,
+                    borderWidth: vn.borderWidth,
+                    font: vn.font,
+                };
+            });
+            this.baseVisEdgeStyles = {};
+            visEdges.forEach((ve) => {
+                this.baseVisEdgeStyles[ve.id] = {
+                    color: ve.color,
+                    width: ve.width,
+                    arrows: ve.arrows,
+                };
+            });
+
             this.nodesDataSet = new DataSet(visNodes);
             this.edgesDataSet = new DataSet(visEdges);
 
@@ -666,6 +909,18 @@ export default {
                 },
                 edges: {
                     shadow: false,
+                    ...(this.nodeSelectionEnabled
+                        ? {
+                              color: {
+                                  color: "#999",
+                                  opacity: 0.6,
+                                  highlight: SELECTION_HIGHLIGHT_ORANGE.edge,
+                                  hover: "#bbbbbb",
+                                  inherit: false,
+                              },
+                              selectionWidth: 2,
+                          }
+                        : {}),
                     ...(this.isMechanismFlowMap
                         ? {
                               font: { size: 11, color: "#444", strokeWidth: 0 },
@@ -696,24 +951,42 @@ export default {
                     zoomView: false,
                     zoomSpeed: 1,
                     navigationButtons: false,
+                    selectConnectedEdges: false,
+                    hoverConnectedEdges: !this.nodeSelectionEnabled,
                 },
             };
 
             this.visNetwork = new Network(container, data, options);
-            this.visNetwork.on("hoverNode", (params) => this.showHoverTooltip(params));
-            this.visNetwork.on("blurNode", () => this.hideHoverTooltip());
-            this.visNetwork.on("dragStart", () => this.hideHoverTooltip());
-            this.visNetwork.on("zoom", (params) => this.moveHoverTooltip(params));
-            this.visNetwork.on("dragging", (params) => this.moveHoverTooltip(params));
-
-            this.visNetwork.on("stabilizationIterationsDone", () => {
+            let readyEmitted = false;
+            const emitNetworkReady = () => {
+                if (readyEmitted || !this.visNetwork) return;
+                readyEmitted = true;
                 this.visNetwork.setOptions({ physics: false });
                 const scale = this.visNetwork.getScale();
                 if (typeof scale === "number" && !Number.isNaN(scale)) {
                     this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));
                 }
+                this.applySelectionHighlights();
                 this.$emit("network-ready");
-            });
+            };
+
+            this.visNetwork.on("hoverNode", (params) => this.showHoverTooltip(params));
+            this.visNetwork.on("blurNode", () => this.hideHoverTooltip());
+            this.visNetwork.on("dragStart", () => this.hideHoverTooltip());
+            this.visNetwork.on("zoom", (params) => this.moveHoverTooltip(params));
+            this.visNetwork.on("dragging", (params) => this.moveHoverTooltip(params));
+            this.visNetwork.on("selectEdge", () => this.refreshSelectionStylesSoon());
+            this.visNetwork.on("deselectEdge", () => this.refreshSelectionStylesSoon());
+            this.visNetwork.on("selectNode", () => this.refreshSelectionStylesSoon());
+            this.visNetwork.on("deselectNode", () => this.refreshSelectionStylesSoon());
+
+            if (this.nodeSelectionEnabled) {
+                this.visNetwork.on("click", (params) => this.onNetworkClick(params));
+            }
+
+            this.visNetwork.on("stabilizationIterationsDone", emitNetworkReady);
+            this.visNetwork.on("stabilized", emitNetworkReady);
+            setTimeout(emitNetworkReady, 2500);
 
             this.visNetwork.fit({
                 animation: {
@@ -721,6 +994,25 @@ export default {
                     easingFunction: "easeInOutQuad",
                 },
             });
+        },
+        onNetworkClick(params) {
+            if (!this.nodeSelectionEnabled || !params) return;
+            this.hideHoverTooltip();
+            this.closeNetworkNodeMenu();
+            const native = params.event ? params.event.srcEvent || params.event : null;
+            if (native && typeof native.stopPropagation === "function") {
+                native.stopPropagation();
+            }
+            let selectionNode = null;
+            if (params.edges && params.edges.length) {
+                const visEdge = this.edgesDataSet.get(params.edges[0]);
+                if (visEdge) selectionNode = buildNetworkEdgeSelectionNode(visEdge, this.nodeMap);
+            } else if (params.nodes && params.nodes.length) {
+                const graphNode = this.nodeMap[params.nodes[0]];
+                if (graphNode) selectionNode = buildNetworkNodeSelectionNode(graphNode);
+            }
+            if (selectionNode) this.openNetworkNodeMenu(params, selectionNode);
+            this.refreshSelectionStylesSoon();
         },
         applyZoom() {
             if (this.visNetwork && typeof this.zoomLevel === "number") {

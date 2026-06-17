@@ -22,6 +22,9 @@ function makeVm(overrides = {}) {
         genesAndFactorValuesLoaded: true,
         pairSelectionOverrides: {},
         llmFilteredPairKeysBaseline: [],
+        heatmapSelectedNodes: [],
+        selectedNodesExplanations: [],
+        selectedNodesProvenanceRuns: [],
         steps: [
             { id: "1", title: "Extract" },
             { id: "2", title: "Data" },
@@ -90,7 +93,10 @@ describe("revealMqWorkflowExport", () => {
     });
 
     test("collect and build export bundle includes Results / hypotheses", () => {
-        const vm = makeVm({ loadComplete: true });
+        const vm = makeVm({
+            loadComplete: true,
+            heatmapSelectedNodes: [{ key: "gene:APOE", kind: "gene", label: "APOE", gene: "APOE" }],
+        });
         const snapshot = collectMultiQueryRevealWorkflowState(vm);
         expect(snapshot.pendingStepGate).toBeNull();
         expect(snapshot.userQuery).toBe("TREM2 microglia");
@@ -100,13 +106,42 @@ describe("revealMqWorkflowExport", () => {
         expect(snapshot.mechanisms[0].hypothesis).toBe("Test hypothesis");
         expect(snapshot.mechanisms_summary).toBe("Session summary");
         expect(snapshot.hypothesisGenerationMode).toBe("strict");
+        expect(snapshot.heatmapSelectedNodes).toHaveLength(1);
+        expect(snapshot.heatmapSelectedNodes[0].key).toBe("gene:APOE");
 
         const built = buildMultiQueryRevealExportBundle(vm);
         expect(built.bundle.kind).toBe(REVEAL_MQ_WORKFLOW_EXPORT_KIND);
         expect(built.bundle.schemaVersion).toBe(REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION);
         expect(built.bundle.workflow.factorData.pheno1).toBeDefined();
         expect(built.bundle.workflow.mechanisms).toHaveLength(1);
+        expect(built.bundle.workflow.heatmapSelectedNodes).toHaveLength(1);
         expect(built.filename).toMatch(/reveal-mq-workflow-.+\.json$/);
+    });
+
+    test("collect and export include saved selected-node explanations", () => {
+        const explanations = [
+            {
+                id: "exp-1",
+                savedAt: "2026-06-16T12:00:00.000Z",
+                context: "LDL biology",
+                selectedNodes: [{ key: "gene:APOE", kind: "gene", label: "APOE" }],
+                entry: {
+                    id: "exp-1",
+                    status: "success",
+                    interpretation: "Known APOE link.",
+                    scope_node_labels: ["APOE"],
+                },
+            },
+        ];
+        const vm = makeVm({ selectedNodesExplanations: explanations });
+        const snapshot = collectMultiQueryRevealWorkflowState(vm);
+        expect(snapshot.selectedNodesExplanations).toHaveLength(1);
+        expect(snapshot.selectedNodesExplanations[0].id).toBe("exp-1");
+
+        const built = buildMultiQueryRevealExportBundle(vm);
+        expect(built.bundle.schemaVersion).toBe(5);
+        expect(built.bundle.workflow.selectedNodesExplanations).toHaveLength(1);
+        expect(built.bundle.workflow.selectedNodesExplanations[0].entry.interpretation).toContain("APOE");
     });
 
     test("hasWorkflowResults detects completed and diagnostic-only Results", () => {
@@ -133,7 +168,7 @@ describe("revealMqWorkflowExport", () => {
     });
 
     test("apply import restores full Results state and opens Results tab", () => {
-        const vm = makeVm({ loadComplete: true, mechanisms: [{ x: 1 }] });
+        const vm = makeVm({ loadComplete: true, mechanisms: [{ x: 1 }], heatmapSelectedNodes: [] });
         const built = buildMultiQueryRevealExportBundle(vm);
         const workflow = built.bundle.workflow;
 
@@ -144,10 +179,51 @@ describe("revealMqWorkflowExport", () => {
         expect(vm.loadComplete).toBe(true);
         expect(vm.mechanisms).toHaveLength(1);
         expect(vm.mechanisms_summary).toBe("Session summary");
+        expect(vm.heatmapSelectedNodes).toEqual(workflow.heatmapSelectedNodes);
         expect(vm.showTab).toBe("results");
         expect(vm.steps.map((s) => s.id)).toEqual(["1", "2", "4"]);
         expect(vm.stepApprovalGateActive).toBe(false);
         expect(vm.importedWorkflowPendingHypothesisRun).toBe(false);
+    });
+
+    test("apply import restores saved selected-node explanations", () => {
+        const explanations = [
+            {
+                id: "exp-1",
+                savedAt: "2026-06-16T12:00:00.000Z",
+                context: "LDL biology",
+                selectedNodes: [{ key: "gene:APOE", kind: "gene", label: "APOE" }],
+                entry: {
+                    id: "exp-1",
+                    status: "success",
+                    interpretation: "Known APOE link.",
+                    scope_node_labels: ["APOE"],
+                },
+            },
+        ];
+        const vm = makeVm({ loadComplete: true, selectedNodesExplanations: [] });
+        const built = buildMultiQueryRevealExportBundle(makeVm({ selectedNodesExplanations: explanations }));
+        applyMultiQueryRevealWorkflowImport(vm, built.bundle.workflow);
+        expect(vm.selectedNodesExplanations).toHaveLength(1);
+        expect(vm.selectedNodesExplanations[0].id).toBe("exp-1");
+        expect(vm.selectedNodesExplanations[0].entry.interpretation).toContain("APOE");
+    });
+
+    test("apply import restores saved provenance runs", () => {
+        const runs = [
+            {
+                id: "prov-1",
+                savedAt: "2026-06-16T12:00:00.000Z",
+                geneSetIds: ["GS_1"],
+                selectedNodes: [{ key: "geneset:GS_1", kind: "gene_set", label: "GS_1" }],
+                items: [{ geneSetId: "GS_1", status: "ok", nodes: [{ id: "drc-1", dcc_url: "https://example.com" }] }],
+            },
+        ];
+        const vm = makeVm({ loadComplete: true, selectedNodesProvenanceRuns: [] });
+        const built = buildMultiQueryRevealExportBundle(makeVm({ selectedNodesProvenanceRuns: runs }));
+        applyMultiQueryRevealWorkflowImport(vm, built.bundle.workflow);
+        expect(vm.selectedNodesProvenanceRuns).toHaveLength(1);
+        expect(vm.selectedNodesProvenanceRuns[0].geneSetIds).toEqual(["GS_1"]);
     });
 
     test("apply import restores Data-step pause for exports without Results", () => {

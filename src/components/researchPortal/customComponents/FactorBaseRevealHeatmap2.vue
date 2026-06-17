@@ -1,7 +1,10 @@
 <template>
   <div
     class="factors-viz-container"
-    :class="{ 'factors-viz-container--network': useFactorBaseRevealData && dataVizTab === 'network' }"
+    :class="{
+      'factors-viz-container--network': useFactorBaseRevealData && dataVizTab === 'network',
+      'factors-viz-container--factor-data': useFactorBaseRevealData && heatmapPairCount,
+    }"
     :style="containerStyle"
   >
     <div v-if="error" class="error-alert">
@@ -67,11 +70,29 @@
             Graph network
           </button>
         </div>
+        <workflow-viz-toolbar-menus
+          v-if="showWorkflowSelectionChrome"
+          :selected-nodes="selectedNodes"
+          :saved-explanations="savedExplanations"
+          :saved-dataset-runs="savedDatasetRuns"
+          @analyze-explain="$emit('analyze-explain')"
+          @analyze-provenance="$emit('analyze-provenance')"
+          @open-saved-explanation="$emit('open-saved-explanation', $event)"
+          @open-saved-dataset="$emit('open-saved-dataset', $event)"
+        />
       </div>
       <div
         :class="useFactorBaseRevealData && heatmapPairCount ? 'fbr-data-viz-panel' : ''"
       >
-    <div v-show="!useFactorBaseRevealData || dataVizTab === 'heatmap'">
+        <workflow-viz-selected-node-chips
+          v-if="showWorkflowSelectionChrome"
+          :selected-nodes="selectedNodes"
+          @remove="onRemoveSelectedNode"
+        />
+    <div
+      v-show="!useFactorBaseRevealData || dataVizTab === 'heatmap'"
+      class="fbr-data-viz-heatmap-pane"
+    >
     <div class="viz-legend" v-if="!loading && (useFactorBaseRevealData ? (heatmapDataFromFactorData && heatmapDataFromFactorData.ready) : (heatmapData && heatmapData.genes && heatmapData.genes.length > 0))">
       <div class="legend-content">
         <div class="legend-item">
@@ -164,8 +185,11 @@
           :network="dataViewNetwork"
           :genes="dataViewNetworkGenes"
           :height="dataViewNetworkHeight"
+          :selected-nodes="selectedNodes"
+          @update:selectedNodes="$emit('update:selectedNodes', $event)"
           gene-node-metric-key="combined_score"
           gene-color-by-gwas-support
+          :node-selection-enabled="true"
           @network-ready="onDataViewNetworkReady"
         />
       </div>
@@ -173,6 +197,16 @@
     </div>
     </div>
     <div v-if="loading" class="loading">Loading visualization...</div>
+    <workflow-heatmap-node-action-menu
+      v-if="useFactorBaseRevealData"
+      :open="heatmapNodeMenuOpen"
+      :target="heatmapNodeMenuTarget"
+      :is-selected="heatmapNodeMenuIsSelected"
+      :left="heatmapNodeMenuLeft"
+      :top="heatmapNodeMenuTop"
+      @close="closeHeatmapNodeMenu"
+      @toggle-select="onHeatmapNodeMenuToggle"
+    />
   </div>
 </template>
 <script>
@@ -180,13 +214,33 @@ import Vue from "vue";
 import JSZip from "jszip";
 import { resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
+import WorkflowHeatmapNodeActionMenu from "./revealMultiQueryWorkflow/WorkflowHeatmapNodeActionMenu.vue";
+import WorkflowVizToolbarMenus from "./revealMultiQueryWorkflow/WorkflowVizToolbarMenus.vue";
+import WorkflowVizSelectedNodeChips from "./revealMultiQueryWorkflow/WorkflowVizSelectedNodeChips.vue";
 import {
   buildMergedFactorDataNetwork,
   genesFromFactorDataNetwork,
 } from "./factorRevealDataNetwork.js";
+import {
+  buildCrossingSelectionNode,
+  buildGeneSelectionNode,
+  buildGeneSetSelectionNode,
+  buildRowSelectionNode,
+  isHeatmapCellHighlighted,
+  isHeatmapColHighlighted,
+  isHeatmapRowHighlighted,
+  isSelectionNodeSelected,
+  removeSelectionNode,
+  toggleSelectionNode,
+} from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
 
 export default Vue.component("pigean-factors-viz", {
-  components: { FactorBaseRevealNetwork },
+  components: {
+    FactorBaseRevealNetwork,
+    WorkflowHeatmapNodeActionMenu,
+    WorkflowVizToolbarMenus,
+    WorkflowVizSelectedNodeChips,
+  },
   props: {
     pigeanFactorData: {
       type: Array,
@@ -222,12 +276,34 @@ export default Vue.component("pigean-factors-viz", {
     phenotypeDescriptionById: {
       type: Object,
       default: () => ({})
-    }
+    },
+    /** Canvas-style selected heatmap nodes (traits, gene sets, genes, crossings). */
+    selectedNodes: {
+      type: Array,
+      default: () => [],
+    },
+    /** Multi Query workflow: Analyze / Explanations / Datasets menus in viz tab bar. */
+    showWorkflowSelectionChrome: {
+      type: Boolean,
+      default: false,
+    },
+    savedExplanations: {
+      type: Array,
+      default: () => [],
+    },
+    savedDatasetRuns: {
+      type: Array,
+      default: () => [],
+    },
   },
   data() {
     return {
       loading: false,
       error: null,
+      heatmapNodeMenuOpen: false,
+      heatmapNodeMenuLeft: 0,
+      heatmapNodeMenuTop: 0,
+      heatmapNodeMenuTarget: null,
       /** phenotype | direction | all — controls heatmap row grouping. */
       heatmapGroupMode: "phenotype",
       /** Selected phenotype id or data category label for the active group mode (unused when Group by is Show all). */
@@ -279,7 +355,7 @@ export default Vue.component("pigean-factors-viz", {
       return genesFromFactorDataNetwork(this.dataViewNetwork);
     },
     dataViewNetworkHeight() {
-      return 600;
+      return 450;
     },
     dataViewNetworkKey() {
       return [
@@ -288,6 +364,11 @@ export default Vue.component("pigean-factors-viz", {
         this.pairsInView.length,
         (this.dataViewNetwork.nodes || []).length,
       ].join("|");
+    },
+    heatmapNodeMenuIsSelected() {
+      const node = this.heatmapNodeMenuTarget && this.heatmapNodeMenuTarget.node;
+      if (!node) return false;
+      return isSelectionNodeSelected(this.selectedNodes, node);
     },
     /** Sorted selector options for the active group-by mode. */
     heatmapGroupOptions() {
@@ -476,6 +557,7 @@ export default Vue.component("pigean-factors-viz", {
       const legendHeight = 60;
       const scrollbarHeight = 30;
       const extraPadding = 70;
+      const ledgerChromeHeight = this.useFactorBaseRevealData && this.heatmapPairCount ? 120 : 0;
       const parsedHeight = parseInt(this.height);
       const minHeight = Number.isFinite(parsedHeight) ? parsedHeight : 0;
       const maxHeight = 2000;
@@ -486,7 +568,7 @@ export default Vue.component("pigean-factors-viz", {
         const gridRows = (this.heatmapDataFromFactorData.data && this.heatmapDataFromFactorData.data.length) || 0;
         const totalRows = headerRows + gridRows;
         const calculatedHeight =
-          headerRows * cellHeight + gridRows * rowCellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight + extraPadding;
+          headerRows * cellHeight + gridRows * rowCellHeight + margin.top + margin.bottom + legendHeight + scrollbarHeight + extraPadding + ledgerChromeHeight;
         dynamicHeight = Math.min(Math.max(calculatedHeight, minHeight), maxHeight) + "px";
       } else if (this.heatmapData && this.heatmapData.factors && this.heatmapData.factors.length > 0) {
         const numSpecialRows = 3;
@@ -496,6 +578,14 @@ export default Vue.component("pigean-factors-viz", {
         dynamicHeight = Math.min(Math.max(calculatedHeight, minHeight), maxHeight) + "px";
       } else if (!Number.isFinite(parsedHeight)) {
         dynamicHeight = "260px";
+      }
+
+      if (this.useFactorBaseRevealData && this.heatmapPairCount) {
+        return {
+          ...base,
+          height: "auto",
+          minHeight: dynamicHeight,
+        };
       }
 
       return {
@@ -645,6 +735,20 @@ export default Vue.component("pigean-factors-viz", {
         }, 100);
       });
     },
+    selectedNodes: {
+      handler() {
+        if (!this.useFactorBaseRevealData) return;
+        this.cleanupTooltips();
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
+              this.renderFactorBaseRevealHeatmap();
+            }
+          }, 50);
+        });
+      },
+      deep: true,
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -759,6 +863,51 @@ export default Vue.component("pigean-factors-viz", {
         });
       return pairs;
     },
+    closeHeatmapNodeMenu() {
+      this.heatmapNodeMenuOpen = false;
+      this.heatmapNodeMenuTarget = null;
+    },
+    openHeatmapNodeMenu(event, node) {
+      if (!node) return;
+      if (event && typeof event.preventDefault === "function") event.preventDefault();
+      if (event && typeof event.stopPropagation === "function") event.stopPropagation();
+      this.heatmapNodeMenuTarget = { node };
+      this.heatmapNodeMenuLeft = event && event.clientX != null ? event.clientX : 0;
+      this.heatmapNodeMenuTop = event && event.clientY != null ? event.clientY : 0;
+      this.heatmapNodeMenuOpen = true;
+    },
+    onHeatmapNodeMenuToggle(target) {
+      const node = target && target.node;
+      if (!node) return;
+      const next = toggleSelectionNode(this.selectedNodes, node);
+      this.$emit("update:selectedNodes", next);
+    },
+    onRemoveSelectedNode(key) {
+      const next = removeSelectionNode(this.selectedNodes, key);
+      this.$emit("update:selectedNodes", next);
+    },
+    applyHeatmapCrossingCellHighlight(rect, highlighted) {
+      if (!rect || !highlighted) return;
+      rect.setAttribute("fill", "#ff6600");
+      rect.setAttribute("stroke", "#fff");
+      rect.setAttribute("stroke-width", "1");
+    },
+    applyHeatmapRowLabelHighlight(textEl, highlighted) {
+      if (!textEl) return;
+      if (highlighted) {
+        textEl.classList.add("heatmap-label-selected");
+      } else {
+        textEl.classList.remove("heatmap-label-selected");
+      }
+    },
+    applyHeatmapColLabelHighlight(textEl, highlighted) {
+      this.applyHeatmapRowLabelHighlight(textEl, highlighted);
+    },
+    attachHeatmapSelectClick(el, node) {
+      if (!el || !node) return;
+      el.style.cursor = "pointer";
+      el.addEventListener("click", (event) => this.openHeatmapNodeMenu(event, node));
+    },
     cleanupTooltips() {
       // Remove any orphaned tooltips from the DOM
       const existingTooltips = document.querySelectorAll('.heatmap-tooltip');
@@ -851,6 +1000,9 @@ export default Vue.component("pigean-factors-viz", {
         if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
         tooltipParts.push(`Phenotype: ${pFull}`);
         phen.setAttribute("title", tooltipParts.join(" · "));
+        const rowNode = buildRowSelectionNode(rowMeta);
+        this.applyHeatmapRowLabelHighlight(phen, isHeatmapRowHighlighted(rowMeta, this.selectedNodes));
+        this.attachHeatmapSelectClick(phen, rowNode);
         labelsG.appendChild(phen);
       });
       labelsSvg.appendChild(labelsG);
@@ -866,6 +1018,16 @@ export default Vue.component("pigean-factors-viz", {
       columnLabels.forEach((colLabel, colIndex) => {
         const labelX = colIndex * cellWidth + 2;
         const labelY = 0 + cellHeight / 2;
+        const isGeneSetCol = colIndex < geneSetCount;
+        const colNode = isGeneSetCol
+          ? buildGeneSetSelectionNode(colLabel)
+          : buildGeneSelectionNode(colLabel);
+        const colHighlighted = isHeatmapColHighlighted(
+          colLabel,
+          colIndex,
+          geneSetCount,
+          this.selectedNodes
+        );
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x", labelX);
         text.setAttribute("y", labelY);
@@ -877,6 +1039,8 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute("transform", `rotate(-45, ${labelX}, ${labelY})`);
         text.textContent = this.truncateLabel(colLabel, 14);
         if (colLabel.length > 14) text.setAttribute("title", colLabel);
+        this.applyHeatmapColLabelHighlight(text, colHighlighted);
+        this.attachHeatmapSelectClick(text, colNode);
         g.appendChild(text);
       });
 
@@ -962,6 +1126,17 @@ export default Vue.component("pigean-factors-viz", {
           const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
           const rowLine = `${directionTag}${rowMeta.phenotypeDisplay}`;
           const colLabel = columnLabels[c];
+          const isGeneSetCol = c < geneSetCount;
+          const cellHighlighted = isHeatmapCellHighlighted(
+            rowMeta,
+            colLabel,
+            c,
+            geneSetCount,
+            this.selectedNodes
+          );
+          this.applyHeatmapCrossingCellHighlight(rect, cellHighlighted);
+          const crossingNode = buildCrossingSelectionNode(rowMeta, colLabel, isGeneSetCol);
+          this.attachHeatmapSelectClick(rect, crossingNode);
           const showTooltip = (event) => {
             this.cleanupTooltips();
             const tip = document.createElement("div");
@@ -2388,9 +2563,14 @@ export default Vue.component("pigean-factors-viz", {
   overflow: hidden;
 }
 
+.factors-viz-container.factors-viz-container--factor-data,
 .factors-viz-container.factors-viz-container--network {
   overflow: visible;
   height: auto !important;
+}
+
+.factors-viz-container.factors-viz-container--network {
+  min-height: 0;
 }
 
 .fbr-heatmap-toolbar {
@@ -2421,12 +2601,14 @@ export default Vue.component("pigean-factors-viz", {
 
 .fbr-data-viz-ledger {
   min-width: 0;
+  max-width: 100%;
 }
 
 .fbr-data-viz-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
+  justify-content: space-between;
   gap: 0.5rem 0.75rem;
   padding: 0.4rem 0.55rem 0;
   background: #e8e3da;
@@ -2486,6 +2668,13 @@ export default Vue.component("pigean-factors-viz", {
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
   background: #fff;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.fbr-data-viz-heatmap-pane {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .fbr-data-network-panel {
@@ -2494,7 +2683,7 @@ export default Vue.component("pigean-factors-viz", {
 
 .fbr-network-viz-wrap {
   position: relative;
-  min-height: 600px;
+  min-height: 450px;
 }
 
 .fbr-network-loading-overlay {
@@ -2505,6 +2694,7 @@ export default Vue.component("pigean-factors-viz", {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.78);
+  pointer-events: none;
 }
 
 .heatmap-tabs {
@@ -2634,17 +2824,20 @@ export default Vue.component("pigean-factors-viz", {
 
 .heatmap-container {
   padding: 20px;
-  overflow: visible; /* Changed from hidden to visible to allow scrollbars */
-  /* Removed max-height to allow dynamic sizing */
+  overflow: visible;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .heatmap-scrollable-wrapper {
   display: flex;
   position: relative;
-  overflow-y: auto; /* Only vertical scrolling on wrapper */
-  /* Removed max-height to allow dynamic sizing based on container */
-  scrollbar-width: thin; /* Firefox - make scrollbar visible */
-  scrollbar-color: #888 #f1f1f1; /* Firefox - thumb and track colors */
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) - make scrollbar visible */
@@ -2773,6 +2966,11 @@ export default Vue.component("pigean-factors-viz", {
 }
 
 #factor-base-reveal-heatmap-wrapper .heatmap-label-score-row {
+  font-weight: 700 !important;
+}
+
+#factor-base-reveal-heatmap-wrapper .heatmap-label.heatmap-label-selected {
+  fill: #ff6600 !important;
   font-weight: 700 !important;
 }
 

@@ -173,7 +173,6 @@
                             v-bind="dataPanelProps"
                             :helpers="dataPanelHelpers"
                             @approve-gate="approveStepGate"
-                            @update:dataFetchDirectionsExpanded="dataFetchDirectionsExpanded = $event"
                             @download-raw-json="downloadLastHybridSearchRawJson"
                             @pair-included-toggle="onPairIncludedToggle"
                             @toggle-factor-row="toggleFactorGenesRow"
@@ -190,7 +189,15 @@
                                     :factor-data="factorData"
                                     :factor-data-table-rows="factorDataTableRowsFiltered"
                                     :phenotype-description-by-id="phenotypeDescriptionById"
+                                    :selected-nodes.sync="heatmapSelectedNodes"
+                                    show-workflow-selection-chrome
+                                    :saved-explanations="savedSelectedNodesExplainMenuItems"
+                                    :saved-dataset-runs="savedSelectedNodesProvenanceMenuItems"
                                     height="auto"
+                                    @analyze-explain="onAnalyzeSelectedNodesExplain"
+                                    @analyze-provenance="onAnalyzeSelectedNodesProvenance"
+                                    @open-saved-explanation="onOpenSavedSelectedNodesExplanation"
+                                    @open-saved-dataset="onOpenSavedSelectedNodesProvenance"
                                 />
                             </template>
                         </workflow-data-panel>
@@ -238,6 +245,30 @@
         <workflow-search-terms-extraction-modal :open.sync="searchTermsExtractionOpen" />
         <workflow-network-modals :shell="mqShell" />
 
+        <workspace-explain-graph-modal
+            :open="selectedNodesExplainOpen"
+            :entry="selectedNodesExplainEntry"
+            :scope="selectedNodesExplainScope"
+            :helper-text="selectedNodesExplainHelperText"
+            :loading="selectedNodesExplainLoading"
+            :llm-available="true"
+            :key-node-count="heatmapSelectedNodes.length"
+            :node-count="selectedNodesExplainNodeCount"
+            :edge-count="selectedNodesExplainEdgeCount"
+            :scope-locked="true"
+            @close="closeSelectedNodesExplain"
+            @run="runSelectedNodesExplanationModal"
+            @update-entry="onSelectedNodesExplainEntryPatch"
+            @update:scope="selectedNodesExplainScope = $event"
+        />
+
+        <workflow-selected-nodes-provenance-modal
+            :open="selectedNodesProvenanceOpen"
+            :gene-set-ids="selectedNodesProvenanceGeneSetIds"
+            :items="selectedNodesProvenanceItems"
+            @close="selectedNodesProvenanceOpen = false"
+        />
+
     </div>
 </template>
 
@@ -270,6 +301,23 @@ import WorkflowQueryGuidelinesModal from "./revealMultiQueryWorkflow/WorkflowQue
 import WorkflowSearchTermsExtractionModal from "./revealMultiQueryWorkflow/WorkflowSearchTermsExtractionModal.vue";
 import WorkflowQueryHelperModal from "./revealMultiQueryWorkflow/WorkflowQueryHelperModal.vue";
 import WorkflowNetworkModals from "./revealMultiQueryWorkflow/WorkflowNetworkModals.vue";
+import WorkflowSelectedNodesProvenanceModal from "./revealMultiQueryWorkflow/WorkflowSelectedNodesProvenanceModal.vue";
+import WorkspaceExplainGraphModal from "./revealKgWorkspace/WorkspaceExplainGraphModal.vue";
+import { EXPLAIN_SCOPE, patchExplanationEntry } from "./revealKgWorkspace/revealKgExplainUtils.js";
+import {
+    appendSavedSelectedNodesExplanation,
+    appendSavedSelectedNodesProvenanceRun,
+    buildSavedSelectedNodesExplanation,
+    buildSavedSelectedNodesProvenanceRun,
+    buildSelectedNodesExplanationDraft,
+    findSavedSelectedNodesExplanation,
+    findSavedSelectedNodesProvenanceRun,
+    geneSetIdsFromSelectedNodes,
+    runSelectedNodesExplanation,
+    savedSelectedNodesExplanationMenuItems,
+    savedSelectedNodesProvenanceMenuItems,
+    selectedNodesExplainHelperText,
+} from "./revealMultiQueryWorkflow/revealMqSelectedNodesAnalyze.js";
 import {
     beginExtractionFlow,
     handleExtractionError as reportExtractionError,
@@ -289,6 +337,9 @@ import {
     runHybridRetrievalWorkflow as orchestrateHybridRetrieval,
     runMultiQueryRetrievalWorkflow as orchestrateMultiQueryRetrieval,
 } from "./revealMultiQueryWorkflow/revealMqRetrievalOrchestrator.js";
+import {
+    filterTableRowsByHeatmapSelection,
+} from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
 import {
     annotateFactorDataWithFetchedDirection as annotateRouteFactorData,
     buildCompactRouteEvidence as buildRouteEvidenceBundle,
@@ -399,6 +450,8 @@ export default Vue.component("factor-base-reveal", {
         WorkflowResultsPanel,
         WorkflowQueryHelperModal,
         WorkflowNetworkModals,
+        WorkspaceExplainGraphModal,
+        WorkflowSelectedNodesProvenanceModal,
     },
     props: {},
     data() {
@@ -420,8 +473,17 @@ export default Vue.component("factor-base-reveal", {
             /** Collapsed by default; expands query-building documentation below the search box. */
             queryGuidelinesOpen: false,
             searchTermsExtractionOpen: false,
-            /** Collapsed by default; shows verbose retrieval direction payloads in the Data tab. */
-            dataFetchDirectionsExpanded: false,
+            /** Heatmap-selected traits, gene sets, genes, and crossings for scoped hypothesis generation. */
+            heatmapSelectedNodes: [],
+            selectedNodesExplanations: [],
+            selectedNodesProvenanceRuns: [],
+            selectedNodesExplainOpen: false,
+            selectedNodesExplainEntry: null,
+            selectedNodesExplainScope: EXPLAIN_SCOPE.KEY_NODES,
+            selectedNodesExplainLoading: false,
+            selectedNodesProvenanceOpen: false,
+            selectedNodesProvenanceGeneSetIds: [],
+            selectedNodesProvenanceItems: [],
             /** Toggle to show the Query helper link (temporarily off for release). */
             queryHelperLinkVisible: true,
             queryHelperOpen: false,
@@ -1129,8 +1191,6 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 phenotypeCount: this.phenotypeCount,
                 factorCount: this.factorCount,
                 hybridSearchMetaSummaryLines: this.hybridSearchMetaSummaryLines,
-                revealDataSteps: this.revealDataSteps,
-                dataFetchDirectionsExpanded: this.dataFetchDirectionsExpanded,
                 isPhenotypePath: this.isPhenotypePath,
                 phenotypeRationaleList: this.phenotypeRationaleList,
                 mainFactorTableRowsPaged: this.mainFactorTableRowsPaged,
@@ -1146,10 +1206,6 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         dataPanelHelpers() {
             const vm = this;
             return {
-                dataStepShowsSpinner: (step) => vm.dataStepShowsSpinner(step),
-                dataStepShowsGatePause: (step) => vm.dataStepShowsGatePause(step),
-                formatTime: (t) => vm.formatTime(t),
-                currStepTime: (step) => vm.currStepTime(step),
                 getPhenotypeDisplay: (p) => vm.getPhenotypeDisplay(p),
                 getFetchDirectionDisplay: (row) => vm.getFetchDirectionDisplay(row),
                 getGeneSetCountForRow: (row) => vm.getGeneSetCountForRow(row),
@@ -1443,6 +1499,26 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         factorDataTableRowsFiltered() {
             return (this.factorDataTableRows || []).filter((r) => r.isFiltered);
+        },
+        /** Table rows scoped by heatmap node selection when the user has selected any nodes. */
+        factorDataTableRowsHeatmapScoped() {
+            const base = this.factorDataTableRowsFiltered || [];
+            return filterTableRowsByHeatmapSelection(base, this.heatmapSelectedNodes, this.factorData);
+        },
+        selectedNodesExplainHelperText() {
+            return selectedNodesExplainHelperText(this.heatmapSelectedNodes.length);
+        },
+        savedSelectedNodesExplainMenuItems() {
+            return savedSelectedNodesExplanationMenuItems(this.selectedNodesExplanations);
+        },
+        savedSelectedNodesProvenanceMenuItems() {
+            return savedSelectedNodesProvenanceMenuItems(this.selectedNodesProvenanceRuns);
+        },
+        selectedNodesExplainNodeCount() {
+            return (this.selectedNodesExplainEntry?.graph_nodes || []).length;
+        },
+        selectedNodesExplainEdgeCount() {
+            return (this.selectedNodesExplainEntry?.graph_edges || []).length;
         },
         mainFactorTableRowsPaged() {
             const rows = this.isPhenotypePath
@@ -3989,6 +4065,138 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             if (!key) return;
             this.$set(this.pairSelectionOverrides, key, !!checked);
         },
+        getDataViewNetworkForAnalyze() {
+            const heatmapRef = this.$refs.factorBaseRevealHeatmap;
+            const network = heatmapRef && heatmapRef.dataViewNetwork;
+            if (network && Array.isArray(network.nodes) && network.nodes.length) {
+                return network;
+            }
+            return { nodes: [], edges: [] };
+        },
+        onAnalyzeSelectedNodesExplain() {
+            if (!(this.heatmapSelectedNodes || []).length) {
+                this.setLoadStatus("Select at least one node before explaining.", true);
+                return;
+            }
+            try {
+                const network = this.getDataViewNetworkForAnalyze();
+                const draft = buildSelectedNodesExplanationDraft(
+                    network,
+                    this.heatmapSelectedNodes,
+                    { context: this.sharedResearchContextTerm || this.userQuery || "" }
+                );
+                this.selectedNodesExplainEntry = draft;
+                this.selectedNodesExplainScope = EXPLAIN_SCOPE.KEY_NODES;
+                this.selectedNodesExplainOpen = true;
+            } catch (error) {
+                this.setLoadStatus(String(error?.message || error) || "Could not start explanation.", true);
+            }
+        },
+        closeSelectedNodesExplain() {
+            if (this.selectedNodesExplainLoading) return;
+            this.selectedNodesExplainOpen = false;
+        },
+        onSelectedNodesExplainEntryPatch(patch) {
+            if (!this.selectedNodesExplainEntry) return;
+            this.selectedNodesExplainEntry = patchExplanationEntry(this.selectedNodesExplainEntry, patch);
+        },
+        async runSelectedNodesExplanationModal() {
+            if (this.selectedNodesExplainLoading || !this.selectedNodesExplainEntry) return;
+            this.selectedNodesExplainLoading = true;
+            this.selectedNodesExplainEntry = patchExplanationEntry(this.selectedNodesExplainEntry, {
+                status: "loading",
+                error: "",
+            });
+            try {
+                const { entry } = await runSelectedNodesExplanation({
+                    network: this.getDataViewNetworkForAnalyze(),
+                    selectedNodes: this.heatmapSelectedNodes,
+                    context: this.sharedResearchContextTerm || this.userQuery || "",
+                    entry: this.selectedNodesExplainEntry,
+                    llmClient: this.llmAnalyze,
+                });
+                this.selectedNodesExplainEntry = entry;
+                const saved = buildSavedSelectedNodesExplanation({
+                    entry,
+                    selectedNodes: this.heatmapSelectedNodes,
+                    context: this.sharedResearchContextTerm || this.userQuery || "",
+                });
+                if (saved) {
+                    this.selectedNodesExplanations = appendSavedSelectedNodesExplanation(
+                        this.selectedNodesExplanations,
+                        saved
+                    );
+                }
+            } catch (error) {
+                this.selectedNodesExplainEntry = patchExplanationEntry(this.selectedNodesExplainEntry, {
+                    status: "error",
+                    error: String(error?.message || error) || "Explanation failed.",
+                });
+            } finally {
+                this.selectedNodesExplainLoading = false;
+            }
+        },
+        onOpenSavedSelectedNodesExplanation(id) {
+            const saved = findSavedSelectedNodesExplanation(this.selectedNodesExplanations, id);
+            if (!saved || !saved.entry) return;
+            this.selectedNodesExplainEntry = JSON.parse(JSON.stringify(saved.entry));
+            this.selectedNodesExplainScope = EXPLAIN_SCOPE.KEY_NODES;
+            this.selectedNodesExplainOpen = true;
+        },
+        async onAnalyzeSelectedNodesProvenance() {
+            const geneSetIds = geneSetIdsFromSelectedNodes(this.heatmapSelectedNodes);
+            if (!geneSetIds.length) {
+                this.setLoadStatus("Select a gene set to find dataset provenance.", true);
+                return;
+            }
+            this.selectedNodesProvenanceGeneSetIds = geneSetIds;
+            this.selectedNodesProvenanceItems = geneSetIds.map((geneSetId) => ({
+                geneSetId,
+                status: "loading",
+                nodes: [],
+            }));
+            this.selectedNodesProvenanceOpen = true;
+            await Promise.all(
+                geneSetIds.map(async (geneSetId) => {
+                    await this.ensureC2m2ProvenanceForGeneSet(geneSetId);
+                    const nodes = this.c2m2GeneSetDownloadNodes(geneSetId);
+                    const entry = this.c2m2ProvenanceEntry(geneSetId);
+                    const status =
+                        nodes.length > 0
+                            ? "ok"
+                            : entry && entry.status === "error"
+                              ? "error"
+                              : "empty";
+                    const idx = this.selectedNodesProvenanceItems.findIndex(
+                        (item) => item.geneSetId === geneSetId
+                    );
+                    if (idx < 0) return;
+                    this.$set(this.selectedNodesProvenanceItems, idx, {
+                        geneSetId,
+                        status,
+                        nodes,
+                    });
+                })
+            );
+            const saved = buildSavedSelectedNodesProvenanceRun({
+                geneSetIds,
+                items: this.selectedNodesProvenanceItems,
+                selectedNodes: this.heatmapSelectedNodes,
+            });
+            if (saved) {
+                this.selectedNodesProvenanceRuns = appendSavedSelectedNodesProvenanceRun(
+                    this.selectedNodesProvenanceRuns,
+                    saved
+                );
+            }
+        },
+        onOpenSavedSelectedNodesProvenance(id) {
+            const saved = findSavedSelectedNodesProvenanceRun(this.selectedNodesProvenanceRuns, id);
+            if (!saved) return;
+            this.selectedNodesProvenanceGeneSetIds = [...(saved.geneSetIds || [])];
+            this.selectedNodesProvenanceItems = JSON.parse(JSON.stringify(saved.items || []));
+            this.selectedNodesProvenanceOpen = true;
+        },
         snapshotFilteredSelectionBaseline() {
             const currentRows = this.factorDataTableRows || [];
             const nextOverrides = {};
@@ -4045,16 +4253,6 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         globalStepIndexForStep(step) {
             return (this.steps || []).findIndex((s) => s === step);
-        },
-        dataStepShowsSpinner(step) {
-            const idx = this.globalStepIndexForStep(step);
-            if (idx < 0) return false;
-            return idx === this.steps.length - 1 && !this.loadComplete && !this.stepApprovalGateActive;
-        },
-        dataStepShowsGatePause(step) {
-            const idx = this.globalStepIndexForStep(step);
-            if (idx < 0) return false;
-            return idx === this.steps.length - 1 && !this.loadComplete && this.stepApprovalGateActive;
         },
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;

@@ -32,7 +32,7 @@
             </header>
 
             <div class="wkb-explain-body">
-            <fieldset v-if="!isViewMode" class="wkb-explain-scope" :disabled="loading">
+            <fieldset v-if="!isViewMode && !scopeLocked" class="wkb-explain-scope" :disabled="loading">
                 <legend class="wkb-explain-scope-legend">Explain scope</legend>
                 <label class="wkb-explain-scope-option">
                     <input
@@ -255,6 +255,11 @@ export default {
         keyNodeIds: {
             type: Array,
             default: () => [],
+        },
+        /** When true, hide scope radios (selected-nodes-only workflows). */
+        scopeLocked: {
+            type: Boolean,
+            default: false,
         },
     },
     data() {

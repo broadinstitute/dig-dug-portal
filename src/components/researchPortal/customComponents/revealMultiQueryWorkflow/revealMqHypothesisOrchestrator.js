@@ -30,7 +30,11 @@ function getResearchContextFromSession(vm) {
 
 function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext, routeEvidenceBundles = null }) {
     const baseContextSuffix = buildMechanismLlmContextBlock(kgBlock, phenoSummary, researchContext);
-    const selectedPairs = (vm.factorDataTableRowsFiltered || [])
+    const hasHeatmapScope = Array.isArray(vm.heatmapSelectedNodes) && vm.heatmapSelectedNodes.length > 0;
+    const scopeRows = hasHeatmapScope
+        ? vm.factorDataTableRowsHeatmapScoped || []
+        : vm.factorDataTableRowsFiltered || [];
+    const selectedPairs = scopeRows
         .map((r) => ({
             phenotype: String(r.phenotype || "").trim(),
             factor: String(

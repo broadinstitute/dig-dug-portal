@@ -20,48 +20,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-for="step in revealDataSteps" :key="'reveal-data-' + step.id" class="status">
-                                <div style="display:flex; gap: 5px; align-items: center;">
-                                    <b-spinner v-if="helpers.dataStepShowsSpinner(step)" small></b-spinner>
-                                    <span v-else-if="helpers.dataStepShowsGatePause(step)">▶</span>
-                                    <span v-else-if="step.substeps && step.substeps.length">{{ dataFetchDirectionsExpanded ? '▼' : '▶' }}</span>
-                                    <span v-else>♦</span>
-                                    <button
-                                        type="button"
-                                        class="btn btn-link p-0 text-left font-weight-bold"
-                                        :aria-expanded="dataFetchDirectionsExpanded ? 'true' : 'false'"
-                                        aria-controls="data-fetch-directions-content"
-                                        @click="dataFetchDirectionsExpanded = !dataFetchDirectionsExpanded"
-                                    >
-                                        {{ step.title }}
-                                    </button>
-                                    <span>{{ helpers.formatTime(step.time) || helpers.currStepTime(step) }}</span>
-                                </div>
-                                <div
-                                    v-if="dataFetchDirectionsExpanded"
-                                    id="data-fetch-directions-content"
-                                    class="sub-status mt-1"
-                                    style="display:flex; flex-direction: column; padding-left: 18px;"
-                                >
-                                    <div
-                                        v-for="(substep, ii) in (step.substeps || [])"
-                                        :key="'ds-' + step.id + '-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
-                                        class="mb-2"
-                                    >
-                                        <div class="small font-weight-bold mb-1">{{ substep.title }}</div>
-                                        <div
-                                            v-if="substep.result && (substep.result.title || (substep.id !== '2.h2' && substep.result.result != null))"
-                                            style="padding-left: 8px;"
-                                        >
-                                            <div v-if="substep.result.title" v-html="substep.result.title"></div>
-                                            <pre
-                                                v-if="substep.id !== '2.h2' && substep.result.result != null"
-                                                class="reveal-data-step-pre"
-                                            >{{ substep.result.result }}</pre>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         <div v-if="showFactorTable">
                             <!--
                             <div class="section-header d-flex justify-content-between align-items-start mb-2" @click="display_phenotypes_factors = !display_phenotypes_factors">
@@ -479,8 +437,6 @@ export default {
         phenotypeCount: { type: Number, default: 0 },
         factorCount: { type: Number, default: 0 },
         hybridSearchMetaSummaryLines: { type: Array, default: () => [] },
-        revealDataSteps: { type: Array, default: () => [] },
-        dataFetchDirectionsExpanded: { type: Boolean, default: false },
         isPhenotypePath: { type: Boolean, default: false },
         phenotypeRationaleList: { type: Array, default: () => [] },
         mainFactorTableRowsPaged: { type: Array, default: () => [] },

@@ -40,7 +40,9 @@ function resetWorkflowStateForNewRun(vm) {
     vm.searchCriteriaEditRows = [];
     vm.searchCriteriaEditRowsDefault = [];
     vm.searchCriteriaExtractionGateDone = false;
-    vm.dataFetchDirectionsExpanded = false;
+    vm.heatmapSelectedNodes = [];
+    vm.selectedNodesExplanations = [];
+    vm.selectedNodesProvenanceRuns = [];
     vm.pairSelectionOverrides = {};
     vm.llmFilteredPairKeysBaseline = [];
     vm.expandedFactorRowKeys = {};
