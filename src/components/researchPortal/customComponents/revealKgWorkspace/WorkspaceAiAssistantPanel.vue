@@ -62,7 +62,8 @@
                 plan, then runs those steps for you.
             </p>
             <p v-else class="wkb-assistant-intro">
-                Actions you can ask for in plain language. Switch to Request to try an example.
+                What you can ask for on the Request tab. Type similar requests in your own words —
+                this list does not run actions directly.
             </p>
         </header>
 
@@ -107,6 +108,16 @@
                         }}
                     </span>
                     <p>{{ entry.text }}</p>
+                    <p v-if="entry.workflowLink" class="wkb-assistant-workflow-cta">
+                        <a
+                            class="wkb-assistant-workflow-link"
+                            :href="entry.workflowLink.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open {{ entry.workflowLink.label }}
+                        </a>
+                    </p>
                 </div>
 
                 <p v-if="planning" class="wkb-assistant-status" role="status">
@@ -145,45 +156,127 @@
                             {{ suggestion }}
                         </li>
                     </ul>
+                    <p v-if="clarification.workflowLink" class="wkb-assistant-workflow-cta">
+                        <a
+                            class="wkb-assistant-workflow-link"
+                            :href="clarification.workflowLink.href"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open {{ clarification.workflowLink.label }}
+                        </a>
+                    </p>
                 </div>
 
                 <div v-if="plan && plan.steps.length" class="wkb-assistant-plan">
-                    <button
-                        ref="executeAllButton"
-                        type="button"
-                        class="wkb-assistant-execute-all"
-                        :disabled="!canExecuteAll"
-                        @click="onExecuteAll"
-                        @keydown.enter.prevent="onExecuteAll"
-                    >
-                        Execute all
-                    </button>
-                    <ol class="wkb-assistant-steps">
-                        <li
-                            v-for="(step, index) in plan.steps"
-                            :key="step.id"
-                            class="wkb-assistant-step"
+                    <p v-if="plan.panelShortcuts?.overflowNote" class="wkb-assistant-overflow-note">
+                        {{ plan.panelShortcuts.overflowNote }}
+                    </p>
+                    <template v-if="plan.panelShortcuts">
+                        <button
+                            ref="executeAllButton"
+                            type="button"
+                            class="wkb-assistant-execute-all"
+                            :disabled="!canExecuteAll"
+                            @click="onExecuteAll"
+                            @keydown.enter.prevent="onExecuteAll"
                         >
-                            <div class="wkb-assistant-step-main">
-                                <span
-                                    class="wkb-assistant-step-status"
-                                    :class="`is-${stepStatus(step.id)}`"
-                                    :aria-label="stepStatusLabel(step.id)"
-                                />
-                                <span class="wkb-assistant-step-label">
-                                    {{ index + 1 }}. {{ step.label }}
-                                </span>
-                            </div>
+                            {{ plan.panelShortcuts.executeLabel }}
+                        </button>
+                        <ol class="wkb-assistant-steps">
+                            <li
+                                v-for="(step, index) in plan.steps"
+                                :key="step.id"
+                                class="wkb-assistant-step"
+                            >
+                                <div class="wkb-assistant-step-main">
+                                    <span
+                                        class="wkb-assistant-step-status"
+                                        :class="`is-${stepStatus(step.id)}`"
+                                        :aria-label="stepStatusLabel(step.id)"
+                                    />
+                                    <span class="wkb-assistant-step-label">
+                                        {{ index + 1 }}. {{ step.label }}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="wkb-assistant-step-run"
+                                    :disabled="planning || executing || stepStatus(step.id) === 'done'"
+                                    @click="$emit('execute-step', step.id)"
+                                >
+                                    Run
+                                </button>
+                            </li>
+                        </ol>
+                        <section
+                            v-if="plan.panelShortcuts.hasOverflow"
+                            class="wkb-assistant-choice-section"
+                        >
+                            <p class="wkb-assistant-choice-note">
+                                {{ plan.panelShortcuts.workflowNote }}
+                            </p>
+                            <a
+                                class="wkb-assistant-choice-link"
+                                :href="plan.panelShortcuts.workflowLink.href"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Open {{ plan.panelShortcuts.workflowLink.label }}
+                            </a>
+                        </section>
+                        <section class="wkb-assistant-choice-section">
+                            <p class="wkb-assistant-choice-note">
+                                {{ plan.panelShortcuts.panelNote }}
+                            </p>
                             <button
                                 type="button"
-                                class="wkb-assistant-step-run"
-                                :disabled="planning || executing || stepStatus(step.id) === 'done'"
-                                @click="$emit('execute-step', step.id)"
+                                class="wkb-assistant-choice-panel"
+                                :disabled="planning || executing"
+                                @click="onOpenPlanPanel"
                             >
-                                Run
+                                {{ plan.panelShortcuts.panelLabel }}
                             </button>
-                        </li>
-                    </ol>
+                        </section>
+                    </template>
+                    <template v-else>
+                        <button
+                            ref="executeAllButton"
+                            type="button"
+                            class="wkb-assistant-execute-all"
+                            :disabled="!canExecuteAll"
+                            @click="onExecuteAll"
+                            @keydown.enter.prevent="onExecuteAll"
+                        >
+                            Execute all
+                        </button>
+                        <ol class="wkb-assistant-steps">
+                            <li
+                                v-for="(step, index) in plan.steps"
+                                :key="step.id"
+                                class="wkb-assistant-step"
+                            >
+                                <div class="wkb-assistant-step-main">
+                                    <span
+                                        class="wkb-assistant-step-status"
+                                        :class="`is-${stepStatus(step.id)}`"
+                                        :aria-label="stepStatusLabel(step.id)"
+                                    />
+                                    <span class="wkb-assistant-step-label">
+                                        {{ index + 1 }}. {{ step.label }}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="wkb-assistant-step-run"
+                                    :disabled="planning || executing || stepStatus(step.id) === 'done'"
+                                    @click="$emit('execute-step', step.id)"
+                                >
+                                    Run
+                                </button>
+                            </li>
+                        </ol>
+                    </template>
                 </div>
             </div>
         </div>
@@ -207,23 +300,16 @@
                         :key="action.id"
                         class="wkb-assistant-action-item"
                     >
-                        <div class="wkb-assistant-action-head">
-                            <span class="wkb-assistant-action-label">{{ action.label }}</span>
-                            <button
-                                type="button"
-                                class="wkb-assistant-action-try"
-                                :disabled="planning || executing"
-                                @click="tryExample(action.examples[0])"
-                            >
-                                Try
-                            </button>
-                        </div>
+                        <span class="wkb-assistant-action-label">{{ action.label }}</span>
                         <p class="wkb-assistant-action-desc">{{ action.description }}</p>
-                        <ul v-if="action.examples.length" class="wkb-assistant-action-examples">
-                            <li v-for="(example, index) in action.examples" :key="`${action.id}-${index}`">
-                                {{ example }}
-                            </li>
-                        </ul>
+                        <template v-if="action.examples.length">
+                            <p class="wkb-assistant-action-examples-label">Example requests</p>
+                            <ul class="wkb-assistant-action-examples">
+                                <li v-for="(example, index) in action.examples" :key="`${action.id}-${index}`">
+                                    {{ example }}
+                                </li>
+                            </ul>
+                        </template>
                     </li>
                 </ul>
             </section>
@@ -415,7 +501,10 @@ export default {
                 return;
             }
             this.activeTab = "request";
-            this.replacePendingAssistantMessage(nextClarification.message, { isClarify: true });
+            this.replacePendingAssistantMessage(nextClarification.message, {
+                isClarify: true,
+                workflowLink: nextClarification.workflowLink || null,
+            });
             this.restoreDraftToInput(
                 nextClarification.restoreQuery || this.lastSubmittedQuery
             );
@@ -489,6 +578,16 @@ export default {
                 return;
             }
             this.$emit("execute-all");
+        },
+        onOpenPlanPanel() {
+            const shortcuts = this.plan?.panelShortcuts;
+            if (!shortcuts) {
+                return;
+            }
+            this.$emit("open-panel", {
+                target: shortcuts.panelTarget,
+                expandPanelTab: shortcuts.expandPanelTab,
+            });
         },
         closeAutocomplete() {
             this.autocompleteSuggestions = [];
@@ -603,19 +702,6 @@ export default {
                 this.updateAutocomplete();
             });
         },
-        tryExample(example) {
-            const text = String(example || "").trim();
-            if (!text || this.planning || this.executing) {
-                return;
-            }
-            this.activeTab = "request";
-            this.draft = text;
-            this.closeAutocomplete();
-            this.$nextTick(() => {
-                const input = this.getRequestInput();
-                input?.focus();
-            });
-        },
         buildThreadHistory() {
             return this.threadEntries
                 .filter((entry) => !entry.pending && String(entry.text || "").trim())
@@ -625,7 +711,7 @@ export default {
                 }))
                 .slice(-12);
         },
-        appendStepResult(text) {
+        appendStepResult(text, { workflowLink = null } = {}) {
             const message = String(text || "").trim();
             if (!message) {
                 return;
@@ -638,11 +724,12 @@ export default {
                     role: "assistant",
                     text: message,
                     isStepResult: true,
+                    ...(workflowLink ? { workflowLink } : {}),
                 },
             ];
             this.scrollMessagePanelToEnd();
         },
-        replacePendingAssistantMessage(text, { isClarify = false } = {}) {
+        replacePendingAssistantMessage(text, { isClarify = false, workflowLink = null } = {}) {
             const last = this.threadEntries[this.threadEntries.length - 1];
             if (last?.role === "assistant" && last.pending) {
                 this.threadEntries = [
@@ -652,6 +739,7 @@ export default {
                         text,
                         pending: false,
                         isClarify,
+                        ...(workflowLink ? { workflowLink } : {}),
                     },
                 ];
                 this.scrollMessagePanelToEnd();
@@ -665,6 +753,7 @@ export default {
                     role: "assistant",
                     text,
                     isClarify,
+                    ...(workflowLink ? { workflowLink } : {}),
                 },
             ];
             this.scrollMessagePanelToEnd();
@@ -940,10 +1029,41 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
+.wkb-assistant-workflow-cta {
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.wkb-assistant-workflow-link {
+    color: var(--cfde-blue, #2c5c97);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.wkb-assistant-workflow-link:hover {
+    text-decoration: underline;
+}
+
 .wkb-assistant-plan {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+}
+
+.wkb-assistant-choice-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.wkb-assistant-choice-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b7280);
 }
 
 .wkb-assistant-execute-all {
@@ -956,6 +1076,52 @@ export default {
     padding: 9px 14px;
     border-radius: 8px;
     cursor: pointer;
+}
+
+.wkb-assistant-overflow-note {
+    margin: 0 0 10px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-assistant-choice-link,
+.wkb-assistant-choice-panel {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.wkb-assistant-choice-link {
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    background: #ffffff;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.wkb-assistant-choice-link:hover {
+    background: #f8f7f4;
+}
+
+.wkb-assistant-choice-panel {
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    background: #ffffff;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-assistant-choice-panel:hover:not(:disabled) {
+    background: #f8f7f4;
+}
+
+.wkb-assistant-choice-panel:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .wkb-assistant-execute-all:hover:not(:disabled) {
@@ -1201,40 +1367,21 @@ export default {
     background: #faf9f7;
 }
 
-.wkb-assistant-action-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
 .wkb-assistant-action-label {
+    display: block;
     font-size: 13px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+    margin-bottom: 4px;
 }
 
-.wkb-assistant-action-try {
-    flex-shrink: 0;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    background: #ffffff;
-    color: var(--cfde-blue, #2c5c97);
-    font-size: 12px;
+.wkb-assistant-action-examples-label {
+    margin: 8px 0 4px;
+    font-size: 11px;
     font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.wkb-assistant-action-try:hover:not(:disabled) {
-    background: var(--cfde-blue, #2c5c97);
-    color: #ffffff;
-    border-color: var(--cfde-blue, #2c5c97);
-}
-
-.wkb-assistant-action-try:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--cfde-muted, #6b7280);
 }
 
 .wkb-assistant-action-desc {

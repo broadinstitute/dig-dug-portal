@@ -156,6 +156,17 @@
                             Max neighbors to add. AI classification often stops early once this many
                             pass your filters.
                         </small>
+                        <p v-if="showBulkWorkflowHint" class="wkb-expand-workflow-hint" role="status">
+                            Need more than {{ expandMaxNeighbors }} neighbors at once?
+                            <a
+                                class="wkb-expand-workflow-link"
+                                :href="workflowUrl"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >Open {{ workflowTitle }}</a>
+                            for bulk discovery of genes, gene sets, and traits from your research
+                            intention.
+                        </p>
                     </label>
                 </div>
 
@@ -292,6 +303,13 @@
                 role="tabpanel"
                 :aria-labelledby="tabButtonId('manual')"
             >
+                <WorkspaceExpandIntentAdd
+                    :llm-available="llmAvailable"
+                    :busy="intentAddBusy || manualAddBusy"
+                    :status-message="intentAddStatus"
+                    :last-explanation="intentAddExplanation"
+                    @run="$emit('intent-add-nodes', $event)"
+                />
                 <WorkspaceExpandManualAdd
                     :api-client="apiClient"
                     :llm-available="llmAvailable"
@@ -331,6 +349,7 @@
 
 <script>
 import WorkspaceExpressionFilterControls from "./WorkspaceExpressionFilterControls.vue";
+import WorkspaceExpandIntentAdd from "./WorkspaceExpandIntentAdd.vue";
 import WorkspaceExpandManualAdd from "./WorkspaceExpandManualAdd.vue";
 import WorkspaceExpandHistoryPanel from "./WorkspaceExpandHistoryPanel.vue";
 import {
@@ -338,6 +357,11 @@ import {
     MATCH_REDUCER_HELP,
     MATCH_REQUIREMENT_OPTIONS,
 } from "./revealKgGraphFilterUtils.js";
+import {
+    CANVAS_EXPAND_MAX_NEIGHBORS,
+    REVEAL_WORKFLOW_TITLE,
+    REVEAL_WORKFLOW_URL,
+} from "./revealKgBulkWorkflowGuidance.js";
 
 let expandPanelIdCounter = 0;
 
@@ -351,6 +375,7 @@ export default {
     name: "WorkspaceExpandGraphPanel",
     components: {
         WorkspaceExpressionFilterControls,
+        WorkspaceExpandIntentAdd,
         WorkspaceExpandManualAdd,
         WorkspaceExpandHistoryPanel,
     },
@@ -366,6 +391,18 @@ export default {
         manualAddBusy: {
             type: Boolean,
             default: false,
+        },
+        intentAddBusy: {
+            type: Boolean,
+            default: false,
+        },
+        intentAddStatus: {
+            type: String,
+            default: "",
+        },
+        intentAddExplanation: {
+            type: String,
+            default: "",
         },
         filters: {
             type: Object,
@@ -415,6 +452,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        initialTab: {
+            type: String,
+            default: "",
+        },
     },
     data() {
         expandPanelIdCounter += 1;
@@ -422,9 +463,19 @@ export default {
             panelId: `wkb-expand-panel-${expandPanelIdCounter}`,
             expandFilterType: "intent",
             activeTab: "discover",
+            showBulkWorkflowHint: false,
         };
     },
     computed: {
+        expandMaxNeighbors() {
+            return CANVAS_EXPAND_MAX_NEIGHBORS;
+        },
+        workflowUrl() {
+            return REVEAL_WORKFLOW_URL;
+        },
+        workflowTitle() {
+            return REVEAL_WORKFLOW_TITLE;
+        },
         expandFilterTypeOptions() {
             return EXPAND_FILTER_TYPE_OPTIONS;
         },
@@ -442,6 +493,21 @@ export default {
         },
         expansionHistoryCount() {
             return (this.expansionHistoryEntries || []).length;
+        },
+    },
+    watch: {
+        open(isOpen) {
+            if (!isOpen) {
+                return;
+            }
+            const tab = String(this.initialTab || "").trim();
+            if (tab === "manual" || tab === "discover" || tab === "history") {
+                this.activeTab = tab;
+                return;
+            }
+            if (!this.expandSeedSummary && !this.expandFromSingleNode && !this.expandFromEdge) {
+                this.activeTab = "manual";
+            }
         },
     },
     mounted() {
@@ -493,7 +559,12 @@ export default {
         },
         onLimitChange(event) {
             const limit = Number(event.target.value) || 15;
-            this.$emit("patch-controls", { limit: Math.min(20, Math.max(1, limit)) });
+            if (limit > CANVAS_EXPAND_MAX_NEIGHBORS) {
+                this.showBulkWorkflowHint = true;
+            }
+            this.$emit("patch-controls", {
+                limit: Math.min(CANVAS_EXPAND_MAX_NEIGHBORS, Math.max(1, limit)),
+            });
         },
         onTargetTypeChange(event) {
             this.$emit("patch-controls", { targetType: event.target.value });
@@ -710,6 +781,23 @@ export default {
     font-size: 12px;
     color: var(--cfde-muted, #6b6b6b);
     line-height: 1.45;
+}
+
+.wkb-expand-workflow-hint {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-expand-workflow-link {
+    color: var(--cfde-blue, #2c5c97);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.wkb-expand-workflow-link:hover {
+    text-decoration: underline;
 }
 
 .wkb-expand-option-head {

@@ -1,11 +1,12 @@
 /** Bootstrap workspace graph from interactive anchor / connection APIs. */
 
-import { starterItemsFromBuckets } from "./revealKgEntityUtils.js";
+import { emptyStarterBuckets, starterItemsFromBuckets } from "./revealKgEntityUtils.js";
 import {
     ledgerEntryFromGraphNode,
     markGraphNodesShownInLedger,
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
+import { isGeneSetRow, logGeneSetAdd } from "./revealKgGeneSetDebug.js";
 
 const NEIGHBOR_TARGET_ORDER = ["gene", "gene_set", "trait", "factor"];
 
@@ -643,10 +644,27 @@ export async function addNodesToWorkspaceGraph(apiClient, session, rows = []) {
         return session;
     }
 
+    const geneSetItems = items.filter(isGeneSetRow);
+    if (geneSetItems.length) {
+        logGeneSetAdd("node-links request", {
+            inputRows: geneSetItems,
+            extra: {
+                existing_node_ids: (session.graphNodes || []).map((node) => node.id),
+            },
+        });
+    }
+
     const payload = await apiClient.getInteractiveSessionNodeLinks({
         existing_node_ids: (session.graphNodes || []).map((node) => node.id),
         new_items: items,
     });
+
+    if (geneSetItems.length) {
+        logGeneSetAdd("node-links response", {
+            nodeLinksPayload: payload,
+            mergedNodes: (payload.nodes || []).filter(isGeneSetRow),
+        });
+    }
 
     const { graphNodes, graphEdges } = mergeGraphPayload(
         session.graphNodes || [],
@@ -761,4 +779,42 @@ export function findSessionEdge(session, edgeId, sourceId, targetId) {
         );
     }
     return null;
+}
+
+/** Empty canvas session — add nodes via Expand KG or the assistant. */
+export function createBlankCanvasSession({ label = "Blank canvas" } = {}) {
+    const buckets = emptyStarterBuckets();
+    return {
+        label,
+        blankCanvas: true,
+        graphNodes: [],
+        graphEdges: [],
+        contextualEdges: [],
+        contextualEdgeSignature: "",
+        retrievalLedger: {},
+        highlighted: [],
+        nodeConnectionEvidenceCache: {},
+        nodeExpressionProfileCache: {},
+        nodeExpressionReferenceById: {},
+        nodeSigChainPacketCache: {},
+        nodeFactorLoadingsCache: {},
+        edgeProvenanceById: {},
+        graphInterpretations: [],
+        graphInterpretation: null,
+        graphInterpretationLoading: false,
+        sigChainRuns: [],
+        sigChainRun: null,
+        sigChainLoading: false,
+        datasetRuns: [],
+        datasetRun: null,
+        datasetLoading: false,
+        context: "",
+        starterBuckets: buckets,
+        anchorItems: [],
+        addNeighboringNodes: false,
+        graphFilterCache: {},
+        visibilityFilterLayers: [],
+        pendingNodeAdds: [],
+        pendingGraphRebuild: false,
+    };
 }

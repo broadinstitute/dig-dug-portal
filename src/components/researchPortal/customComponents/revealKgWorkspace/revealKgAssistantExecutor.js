@@ -1,8 +1,14 @@
 /** Execute validated canvas assistant plans (v2). */
 
 import {
+    detectBulkCanvasOverflow,
+    bulkWorkflowStepNote,
+    revealWorkflowLink,
+} from "./revealKgBulkWorkflowGuidance.js";
+import {
     addKeyNodesBatch,
     addNodesToGraphLocally,
+    addNodesToWorkspaceGraph,
     canRemoveGraphNode,
     isKeyNode,
     keyNodeItemsFromSession,
@@ -40,6 +46,7 @@ import {
 import { getAssistantActionDefinition } from "./revealKgAssistantTools.js";
 import { toggleVisibilityFilterLayer, collectInvisibleNodeIds } from "./revealKgVisibilityFilterUtils.js";
 import { resolveAssistantAddNodeRows } from "./revealKgAssistantAddNode.js";
+import { resolveIntentAddNodes } from "./revealKgIntentAddNodes.js";
 import { resolveAssistantLibraryGraph } from "./revealKgAssistantLibraryResolve.js";
 import {
     resolveAssistantGeneNodes,
@@ -90,6 +97,17 @@ function graphFiltersPatchFromOptions(options = {}) {
         relevanceMode: options.relevance_mode || "llm",
         noveltyKnown: options.novelty_known === true,
         noveltyNovel: options.novelty_novel === true,
+    };
+}
+
+function bulkWorkflowMeta(runtime = {}) {
+    const overflow = detectBulkCanvasOverflow(runtime.userQuery || "");
+    if (!overflow) {
+        return {};
+    }
+    return {
+        bulkWorkflowNote: bulkWorkflowStepNote(overflow),
+        bulkWorkflowLink: revealWorkflowLink(),
     };
 }
 
@@ -293,9 +311,11 @@ async function runAssistantAction(session, step, runtime) {
         case "add_node": {
             onProgress?.("Adding node…");
             const rows = await resolveAssistantAddNodeRows(session, target, options, runtime);
+            const existingIds = new Set((session.graphNodes || []).map((node) => node.id));
+            const rowsToAdd = rows.filter((row) => row?.node_id && !existingIds.has(row.node_id));
             const previousCount = session.graphNodes?.length || 0;
             let nextSession = session;
-            for (const row of rows) {
+            for (const row of rowsToAdd) {
                 nextSession = addNodesToGraphLocally(nextSession, [row]);
             }
             const addedCount = Math.max(
@@ -310,10 +330,56 @@ async function runAssistantAction(session, step, runtime) {
                         : "Those nodes are already on the graph."
                 );
             }
-            runtime.onGraphNodesAddedLocally?.(addedCount);
             return {
                 session: nextSession,
-                meta: { addedCount, labels: rows.map((row) => row.label) },
+                meta: {
+                    addedCount,
+                    skippedCount: Math.max(0, rows.length - rowsToAdd.length),
+                    labels: rowsToAdd.map((row) => row.label),
+                    ...bulkWorkflowMeta(runtime),
+                },
+            };
+        }
+        case "add_nodes_by_intent": {
+            if (!interactiveLlmAvailable) {
+                throw new Error("Intention-based add requires an LLM backend.");
+            }
+            const intention = String(
+                options.research_intent || runtime.userQuery || ""
+            ).trim();
+            if (!intention) {
+                throw new Error("add_nodes_by_intent requires a research intention.");
+            }
+            onProgress?.("Planning catalog searches…");
+            const result = await resolveIntentAddNodes(intention, session, {
+                apiClient,
+                sessionContext: session.context || "",
+                nodeTypes: options.node_types,
+                userQuery: runtime.userQuery || "",
+                onProgress,
+            });
+            const previousCount = session.graphNodes?.length || 0;
+            const nextSession = await addNodesToWorkspaceGraph(
+                apiClient,
+                session,
+                result.rows
+            );
+            const addedCount = Math.max(
+                0,
+                (nextSession.graphNodes?.length || 0) - previousCount
+            );
+            if (!addedCount) {
+                throw new Error("Matching nodes are already on the graph.");
+            }
+            return {
+                session: nextSession,
+                meta: {
+                    addedCount,
+                    labels: result.rows.map((row) => row.label),
+                    explanation: result.plan.explanation,
+                    geneGuidance: result.gene_guidance,
+                    searchCount: result.searchLog.length,
+                },
             };
         }
         case "open_filter_panel":
@@ -391,7 +457,10 @@ async function runAssistantAction(session, step, runtime) {
             );
             return {
                 session: sessionWithHistory,
-                meta: { addedCount: result.addedCount || 0 },
+                meta: {
+                    addedCount: result.addedCount || 0,
+                    ...bulkWorkflowMeta(runtime),
+                },
             };
         }
         case "filter_graph": {

@@ -66,7 +66,7 @@ describe("formatAssistantStepSummary", () => {
                 { action: "add_node", label: "Add TP53" },
                 { addedCount: 1 }
             )
-        ).toBe("Added 1 node to the graph.");
+        ).toBe("Added 1 node to the graph; rebuilding edges…");
     });
 
     it("summarizes library actions", () => {

@@ -8,6 +8,13 @@ import {
     DEFAULT_ASSISTANT_TARGET,
     validateAssistantTarget,
 } from "./revealKgAssistantTarget.js";
+import {
+    CANVAS_ASSISTANT_PER_STEP_MAX,
+    REVEAL_WORKFLOW_TITLE,
+    REVEAL_WORKFLOW_URL,
+    workflowGuidanceNote,
+    panelGuidanceNoteForTarget,
+} from "./revealKgBulkWorkflowGuidance.js";
 
 export function parseAssistantLlmJson(rawString) {
     const cleanString = String(rawString || "")
@@ -42,6 +49,10 @@ function validateNodeTypes(value, fieldName) {
     return value;
 }
 
+function assistantPerStepMax() {
+    return CANVAS_ASSISTANT_PER_STEP_MAX;
+}
+
 function validateStepOptions(action, options = {}) {
     const next = { ...(options || {}) };
     switch (action) {
@@ -52,7 +63,10 @@ function validateStepOptions(action, options = {}) {
                     : "all";
             }
             if (next.count !== undefined) {
-                next.count = Math.min(20, Math.max(1, Number(next.count) || 15));
+                next.count = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.count) || 15)
+                );
             }
             if (next.connection_scope !== undefined) {
                 next.connection_scope =
@@ -164,7 +178,10 @@ function validateStepOptions(action, options = {}) {
                 next.clear = Boolean(next.clear);
             }
             if (next.limit !== undefined) {
-                next.limit = Math.min(50, Math.max(1, Number(next.limit) || 1));
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
             }
             if (next.rank_by !== undefined) {
                 next.rank_by =
@@ -188,7 +205,10 @@ function validateStepOptions(action, options = {}) {
                 next.clear = Boolean(next.clear);
             }
             if (next.limit !== undefined) {
-                next.limit = Math.min(50, Math.max(1, Number(next.limit) || 1));
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
             }
             break;
         case "unselect_nodes":
@@ -202,7 +222,10 @@ function validateStepOptions(action, options = {}) {
                 next.visible = Boolean(next.visible);
             }
             if (next.limit !== undefined) {
-                next.limit = Math.min(50, Math.max(1, Number(next.limit) || 1));
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
             }
             break;
         case "focus_graph_view":
@@ -221,6 +244,26 @@ function validateStepOptions(action, options = {}) {
             if (next.search_label) {
                 next.search_label = String(next.search_label).trim();
             }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
+            }
+            if (next.count !== undefined) {
+                next.count = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.count) || 1)
+                );
+            }
+            break;
+        case "add_nodes_by_intent":
+            if (next.research_intent) {
+                next.research_intent = String(next.research_intent).trim();
+            }
+            if (next.node_types !== undefined) {
+                next.node_types = validateNodeTypes(next.node_types, "node_types");
+            }
             break;
         case "open_library_graph":
             if (next.graph_id) {
@@ -236,6 +279,7 @@ function validateStepOptions(action, options = {}) {
         case "open_my_library":
         case "unselect_nodes":
         case "open_expand_panel":
+        case "focus_graph_view":
         case "find_datasets":
         case "export_graph":
         case "import_graph":
@@ -266,12 +310,26 @@ export function validateAssistantClarification(raw) {
     if (!message) {
         throw new Error('Clarification response missing "message".');
     }
+    const workflowLink = normalizeWorkflowLink(raw.workflow_link);
     return {
         type: "clarify",
         message,
         issues: normalizeStringList(raw.issues),
         suggestions: normalizeStringList(raw.suggestions),
+        ...(workflowLink ? { workflowLink } : {}),
     };
+}
+
+function normalizeWorkflowLink(raw) {
+    if (!raw || typeof raw !== "object") {
+        return null;
+    }
+    const href = String(raw.href || "").trim();
+    const label = String(raw.label || "").trim();
+    if (!href || !label) {
+        return null;
+    }
+    return { href, label };
 }
 
 export function validateAssistantPlan(rawPlan) {
@@ -304,7 +362,56 @@ export function validateAssistantPlan(rawPlan) {
         const options = validateStepOptions(action, step.options || step.params || {});
         return { id, action, label, target, options };
     });
-    return { type: "plan", summary, steps };
+    const panelShortcuts = normalizePanelShortcuts(rawPlan.panel_shortcuts);
+    return {
+        type: "plan",
+        summary,
+        steps,
+        ...(panelShortcuts ? { panelShortcuts } : {}),
+    };
+}
+
+function normalizePanelShortcuts(raw) {
+    if (!raw || typeof raw !== "object") {
+        return null;
+    }
+    const workflowLink = normalizeWorkflowLink(raw.workflowLink || raw.workflow_link);
+    const panelTarget = String(raw.panelTarget || raw.panel_target || "expand").trim();
+    const executeLabel = String(raw.executeLabel || raw.execute_label || "Execute all").trim();
+    const panelLabel = String(
+        raw.panelLabel || raw.panel_label || "Open panel"
+    ).trim();
+    const cap = Number(raw.cap) || CANVAS_ASSISTANT_PER_STEP_MAX;
+    const hasOverflow = Boolean(raw.hasOverflow ?? raw.has_overflow);
+    return {
+        cap,
+        requested: Number.isFinite(Number(raw.requested)) ? Number(raw.requested) : null,
+        hasOverflow,
+        executeLabel,
+        overflowNote: String(raw.overflowNote || raw.overflow_note || "").trim(),
+        panelTarget: ["expand", "add", "filter"].includes(panelTarget)
+            ? panelTarget
+            : "expand",
+        panelLabel,
+        expandPanelTab:
+            raw.expandPanelTab === "manual" || raw.expand_panel_tab === "manual"
+                ? "manual"
+                : "discover",
+        workflowNote: hasOverflow
+            ? String(raw.workflowNote || raw.workflow_note || workflowGuidanceNote()).trim()
+            : "",
+        panelNote: String(
+            raw.panelNote ||
+                raw.panel_note ||
+                panelGuidanceNoteForTarget(panelTarget)
+        ).trim(),
+        workflowLink: hasOverflow
+            ? workflowLink || {
+                  href: REVEAL_WORKFLOW_URL,
+                  label: REVEAL_WORKFLOW_TITLE,
+              }
+            : null,
+    };
 }
 
 export function initialAssistantStepStates(steps = []) {
@@ -374,6 +481,14 @@ export function assistantActionPostEffects(action, options = {}) {
                 remindAfterMutation: true,
                 forceContextualRefetch: false,
             };
+        case "add_nodes_by_intent":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: false,
+                remindAfterMutation: true,
+                forceContextualRefetch: true,
+            };
         case "open_library_graph":
             return {
                 graphLoading: false,
@@ -384,6 +499,8 @@ export function assistantActionPostEffects(action, options = {}) {
             };
         case "open_filter_panel":
         case "open_my_library":
+        case "open_expand_panel":
+        case "focus_graph_view":
         case "explain_graph":
         case "build_hypotheses":
         case "find_datasets":

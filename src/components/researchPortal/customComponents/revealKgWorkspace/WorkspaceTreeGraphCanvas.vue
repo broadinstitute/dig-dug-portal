@@ -4,7 +4,9 @@
             {{ hoverTooltip.text }}
         </div>
         <svg ref="svg" class="wkb-tree-graph-svg" aria-label="Knowledge graph tree view" />
-        <p v-if="!graphNodes.length" class="wkb-tree-graph-empty">No nodes to display.</p>
+        <p v-if="showEmptyMessage && !graphNodes.length" class="wkb-tree-graph-empty">
+            No nodes to display.
+        </p>
     </div>
 </template>
 
@@ -325,6 +327,10 @@ export default {
             default: true,
         },
         hideJumpingEdges: {
+            type: Boolean,
+            default: true,
+        },
+        showEmptyMessage: {
             type: Boolean,
             default: true,
         },

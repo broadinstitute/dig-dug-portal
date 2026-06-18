@@ -249,17 +249,22 @@ const TRAIT_LAYER = 3;
 
 /**
  * Cumulative vertical offset for a row at `compactIndex` among populated rows.
- * Gap after row 0 → 1 uses firstGap; later gaps use defaultGap.
+ * Uses `firstGap` only between Genes (layer 0) and Gene sets (layer 1); all other gaps use `defaultGap`.
  */
-export function treeRowYOffset(compactIndex, rowGaps = {}) {
+export function treeRowYOffset(compactIndex, rowGaps = {}, populatedLayerIndices = []) {
   if (compactIndex <= 0) {
     return 0;
   }
   const firstGap = rowGaps.firstGap ?? 100;
   const defaultGap = rowGaps.defaultGap ?? 200;
+  const layers = populatedLayerIndices || [];
   let offset = 0;
   for (let i = 0; i < compactIndex; i += 1) {
-    offset += i === 0 ? firstGap : defaultGap;
+    const fromLayer = layers[i];
+    const toLayer = layers[i + 1];
+    const gap =
+      fromLayer === GENE_LAYER && toLayer === GENE_SET_LAYER ? firstGap : defaultGap;
+    offset += gap;
   }
   return offset;
 }
@@ -273,7 +278,7 @@ export function treeRowY(layer, marginTop, rowHeight, populatedLayerIndices, row
     const fallbackGap = gaps.defaultGap ?? rowHeight ?? 200;
     return marginTop + layer * fallbackGap;
   }
-  return marginTop + treeRowYOffset(compactIndex, gaps);
+  return marginTop + treeRowYOffset(compactIndex, gaps, populated);
 }
 
 /**
@@ -386,7 +391,11 @@ export function buildRowLayout(visibleNodes, visibleEdges, options = {}) {
     marginLeft + Math.max(maxRowSpan, useFixedSpacing ? fixedNodeHorizontalGap : nodeHorizontalGap) + 160;
   const populatedRowCount = Math.max(populatedLayerIndices.length, 1);
   const rowSpan = rowGaps
-    ? treeRowYOffset(Math.max(populatedLayerIndices.length - 1, 0), rowGaps)
+    ? treeRowYOffset(
+        Math.max(populatedLayerIndices.length - 1, 0),
+        rowGaps,
+        populatedLayerIndices
+      )
     : rowHeight * (populatedRowCount - 1);
   const contentHeight = marginTop + rowSpan + 40;
 

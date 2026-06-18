@@ -7,7 +7,8 @@ export const ASSISTANT_ACTION_CATALOG = [
             {
                 id: "expand_graph",
                 label: "Expand graph",
-                description: "Fetch and add neighbor nodes from selected seeds or a named node.",
+                description:
+                    "Fetch and add up to 20 neighbor nodes per step from selected seeds or a named node.",
                 examples: [
                     "Expand from selected genes",
                     "Add 10 neighbor mechanisms to BRCA1",
@@ -66,7 +67,8 @@ export const ASSISTANT_ACTION_CATALOG = [
             {
                 id: "select_nodes",
                 label: "Select nodes",
-                description: "Mark nodes as selected (blue) on the canvas, including top-N picks.",
+                description:
+                    "Mark nodes as selected (blue) on the canvas, including top-N picks (up to 20 per step).",
                 examples: [
                     "Select top 5 genes connected to Type 2 diabetes",
                     "Clear selected nodes",
@@ -90,8 +92,24 @@ export const ASSISTANT_ACTION_CATALOG = [
             {
                 id: "add_node",
                 label: "Add node",
-                description: "Search the catalog and add a specific node without expanding neighbors.",
-                examples: ["Add TP53 to the graph", "Add gene BRCA1"],
+                description:
+                    "Search the catalog and add up to 20 nodes per step. Nodes appear first; edges are rebuilt automatically.",
+                examples: [
+                    "Add TP53 to the graph",
+                    "Add 5 gene sets matching insulin signaling",
+                    "Add 10 traits matching type 2 diabetes",
+                    "Add 5 mechanisms matching insulin resistance",
+                ],
+            },
+            {
+                id: "add_nodes_by_intent",
+                label: "Add nodes by intention",
+                description:
+                    "Describe a research goal; the assistant plans catalog searches and adds up to 20 gene sets, mechanisms, and traits per step.",
+                examples: [
+                    "Find a glycosylation mechanism that could alter lipoprotein handling and coagulation",
+                    "Add nodes related to adipose expansion and adverse metabolic outcomes",
+                ],
             },
             {
                 id: "open_filter_panel",
@@ -215,6 +233,10 @@ export const ASSISTANT_ACTION_CATALOG = [
     },
 ];
 
+export function catalogActionIds(catalog = ASSISTANT_ACTION_CATALOG) {
+    return (catalog || []).flatMap((group) => group.actions.map((action) => action.id));
+}
+
 export function defaultProgressMessageForAction(action) {
     switch (action) {
         case "expand_graph":
@@ -239,6 +261,8 @@ export function defaultProgressMessageForAction(action) {
             return "Adjusting graph view…";
         case "add_node":
             return "Adding node…";
+        case "add_nodes_by_intent":
+            return "Finding nodes from your intention…";
         case "remove_node":
             return "Removing nodes…";
         case "remove_invisible_nodes":

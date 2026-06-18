@@ -8,6 +8,8 @@
  * See KgWorkspaceApis.rtf for full backend catalog.
  */
 
+import { logGeneSetAdd } from "../components/researchPortal/customComponents/revealKgWorkspace/revealKgGeneSetDebug.js";
+
 const INTERACTIVE_API_PREFIX = "/api/interactive";
 
 /** Default request timeout (ms). */
@@ -239,13 +241,25 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
                 limit: cappedTopK,
             }),
         });
-        return normalizeGeneSetSearchResponse(payload);
+        const normalized = normalizeGeneSetSearchResponse(payload);
+        logGeneSetAdd("gene-set/search", {
+            query: q,
+            searchPayload: payload,
+            searchItems: normalized.items,
+        });
+        return normalized;
     } catch (primaryError) {
         const message = String(primaryError?.message || primaryError);
         if (!message.includes("404") && !message.includes("Method Not Allowed")) {
             throw primaryError;
         }
-        return searchInteractiveCatalog("gene_set", q, cappedTopK);
+        const catalogPayload = await searchInteractiveCatalog("gene_set", q, cappedTopK);
+        logGeneSetAdd("catalog fallback (gene_set)", {
+            query: q,
+            searchPayload: catalogPayload,
+            searchItems: catalogPayload.items,
+        });
+        return catalogPayload;
     }
 }
 

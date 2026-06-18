@@ -1,5 +1,7 @@
 /** Canvas assistant action catalog (v2 planner). */
 
+import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
+
 export const ASSISTANT_NODE_TYPES = ["gene", "gene_set", "factor", "trait"];
 
 /**
@@ -17,12 +19,26 @@ export const ASSISTANT_ACTIONS = [
     {
         action: "add_node",
         description:
-            "Add a specific gene, trait, mechanism, or gene set to the graph by catalog search (does not fetch neighbors — use expand_graph for that).",
+            "Add gene(s), trait(s), mechanism(s), or gene set(s) by catalog search. Places nodes on the canvas first; structural edges are built in a follow-up rebuild step. Does not fetch expansion neighbors — use expand_graph for that.",
         has_options: true,
         options: {
             node_type: "gene | gene_set | factor | trait (default gene when adding by label)",
-            search_label: "optional label when target does not name a node already on the graph",
+            search_label: "catalog query or exact label to search for",
+            limit: `optional number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} — add top N catalog matches (phrase search for gene sets, traits, mechanisms; genes when limit > 1 or multi-word query)`,
         },
+    },
+    {
+        action: "add_nodes_by_intent",
+        description:
+            "Add gene sets, mechanisms, and traits by describing research intention in plain language. LLM plans catalog search phrases and adds up to 20 total matches per step (does not add genes — use expand_graph from added nodes for genes).",
+        has_options: true,
+        options: {
+            research_intent:
+                "full scientific question or goal (defaults to the user query when omitted)",
+            node_types:
+                "optional [gene_set, factor, trait] — when set, only those types are added; otherwise inferred from phrases like \"add gene set nodes\"",
+        },
+        requires_interactive_llm: true,
     },
     {
         action: "remove_invisible_nodes",
@@ -78,7 +94,7 @@ export const ASSISTANT_ACTIONS = [
         has_options: true,
         options: {
             target_type: "all | gene | gene_set | factor | trait",
-            count: "number 1–20 (neighbors to add)",
+            count: `number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} (neighbors to add per step)`,
             connection_scope: "direct | two_hop",
             reducer: "max (any) | mean (balanced) | min (all)",
             filter_type: "none | intent | novelty | expression",
@@ -227,7 +243,7 @@ export const ASSISTANT_ACTIONS = [
         options: {
             replace: "boolean — clear existing selection first",
             clear: "boolean — remove all selected nodes (ignores visibility)",
-            limit: "optional number — select at most N visible nodes (alphabetical by label)",
+            limit: `optional number — select at most N visible nodes (1–${CANVAS_ASSISTANT_PER_STEP_MAX}, alphabetical by label)`,
         },
     },
     {
@@ -238,7 +254,7 @@ export const ASSISTANT_ACTIONS = [
         options: {
             replace: "boolean — clear existing selection first",
             clear: "boolean — remove all selected nodes (ignores target)",
-            limit: "number — keep only top N matches",
+            limit: `number — keep only top N matches (1–${CANVAS_ASSISTANT_PER_STEP_MAX})`,
             rank_by: "relevance | connection",
             match: "pass | fail when using last_filter_pass/fail target",
             connected_to_label: "trait/mechanism label for connection ranking",

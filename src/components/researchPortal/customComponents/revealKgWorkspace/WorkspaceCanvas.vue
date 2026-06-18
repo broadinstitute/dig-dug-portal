@@ -7,7 +7,7 @@
         <div v-else-if="graphError" class="wkb-canvas-status wkb-canvas-status--error">
             {{ graphError }}
         </div>
-        <template v-else-if="hasGraph">
+        <template v-else-if="showCanvasWorkspace">
             <div class="wkb-canvas-toolbar">
                 <div class="wkb-canvas-legend" aria-label="Tree view legend">
                     <span class="wkb-canvas-legend-item">
@@ -51,6 +51,13 @@
                 />
             </div>
             <div class="wkb-canvas-graph-wrap" @click="onGraphViewerClick">
+                <div v-if="!hasGraph" class="wkb-canvas-empty" role="status">
+                    <p class="wkb-canvas-empty-title">Blank canvas</p>
+                    <p class="wkb-canvas-empty-sub">
+                        Use <strong>Expand KG → Add nodes</strong> or the
+                        <strong>AI assistant</strong> to place entities on the graph.
+                    </p>
+                </div>
                 <WorkspaceGraphReminder
                     v-if="graphReminder && !graphLoading"
                     :reminder="graphReminder"
@@ -59,6 +66,7 @@
                 />
                 <WorkspaceTreeGraphCanvas
                     ref="treeGraph"
+                    :show-empty-message="false"
                     :graph-nodes="graphNodes"
                     :graph-edges="graphEdges"
                     :contextual-edges="contextualEdges"
@@ -250,6 +258,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        canvasActive: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
@@ -263,6 +275,9 @@ export default {
     computed: {
         hasGraph() {
             return (this.graphNodes || []).length > 0;
+        },
+        showCanvasWorkspace() {
+            return this.canvasActive || this.hasGraph;
         },
         activeVisibilityFilterCount() {
             return getEnabledVisibilityFilterLayers(
@@ -375,6 +390,34 @@ export default {
     position: relative;
     flex: 1;
     min-height: 0;
+}
+
+.wkb-canvas-empty {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.wkb-canvas-empty-title {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-canvas-empty-sub {
+    margin: 0;
+    max-width: 360px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-canvas-legend {

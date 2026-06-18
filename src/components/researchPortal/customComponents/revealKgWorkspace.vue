@@ -56,6 +56,7 @@
                     :inspector-content-key="inspectorContentKey"
                     :graph-reminder="graphReminder"
                     :ai-assistant-open="aiAssistantOpen"
+                    :canvas-active="Boolean(activeSession)"
                     @node-menu-open="onNodeMenuOpen"
                     @edge-menu-open="onEdgeMenuOpen"
                     @toggle-inspector="onToggleInspector"
@@ -84,8 +85,12 @@
             </div>
             <WorkspaceExpandGraphPanel
                 :open="expandGraphOpen"
+                :initial-tab="expandPanelInitialTab"
                 :loading="expandGraphLoading"
                 :manual-add-busy="expandManualAddBusy"
+                :intent-add-busy="expandIntentAddBusy"
+                :intent-add-status="expandIntentAddStatus"
+                :intent-add-explanation="expandIntentAddExplanation"
                 :filters="expandFilters"
                 :controls="expandControls"
                 :expand-seed-summary="expandSeedSummary"
@@ -104,6 +109,7 @@
                 @toggle-novelty="onExpandToggleNovelty"
                 @expand="runExpandGraph"
                 @add-manual-node="onExpandManualAddNode"
+                @intent-add-nodes="onExpandIntentAddNodes"
                 @manual-add-error="onExpandManualAddError"
                 @remove-history-entry="onRemoveExpansionHistoryEntry"
             />
@@ -122,6 +128,7 @@
                 @plan-request="onAssistantPlanRequest"
                 @execute-all="onAssistantExecuteAll"
                 @execute-step="onAssistantExecuteStep"
+                @open-panel="onAssistantOpenPanel"
                 @error-acknowledged="assistantError = ''"
             />
             <WorkspaceVisibilityFilterPanel
@@ -213,6 +220,7 @@
             :canvas-open-count="canvasOpenCount"
             :learn-companion-max-opens="learnCompanionMaxOpens"
             @create="onWelcomeCreate"
+            @blank-canvas="onWelcomeBlankCanvas"
             @load-library="onWelcomeLoadLibrary"
             @import-graph="onWelcomeImportGraph"
             @close="closeWelcome"
@@ -399,6 +407,7 @@ import {
     removeVisibilityFilterLayer,
     toggleVisibilityFilterLayer,
 } from "./revealKgWorkspace/revealKgVisibilityFilterUtils.js";
+import { resolveIntentAddNodes } from "./revealKgWorkspace/revealKgIntentAddNodes.js";
 import WorkspaceExplanationBubble from "./revealKgWorkspace/WorkspaceExplanationBubble.vue";
 import WorkspaceHypothesesBubble from "./revealKgWorkspace/WorkspaceHypothesesBubble.vue";
 import WorkspaceDatasetsBubble from "./revealKgWorkspace/WorkspaceDatasetsBubble.vue";
@@ -411,6 +420,7 @@ import {
     addNodesToWorkspaceGraph,
     anchorItemsFromBuckets,
     buildInitialGraphFromAnchors,
+    createBlankCanvasSession,
     getAvailableConnectionTargetTypes,
     findGraphNode,
     graphNodeToAnchorItem,
@@ -442,6 +452,7 @@ import {
     isTraitInspectorNode,
     nodeIdsWithInspectorEvidence,
 } from "./revealKgWorkspace/revealKgInspectorUtils.js";
+import { logGeneSetInspect } from "./revealKgWorkspace/revealKgGeneSetDebug.js";
 import {
     buildGraphSigChainForFactor,
     buildGraphSigChainForTrait,
@@ -596,10 +607,14 @@ export default Vue.component("reveal-kg-workspace", {
             graphFilterLoading: false,
             graphFilterProgress: "",
             expandGraphOpen: false,
+            expandPanelInitialTab: "",
             expandGraphLoading: false,
             expandGraphProgress: "",
             expandBatchProgress: null,
             expandManualAddBusy: false,
+            expandIntentAddBusy: false,
+            expandIntentAddStatus: "",
+            expandIntentAddExplanation: "",
             expandSeedNodeIds: [],
             aiAssistantOpen: false,
             assistantPlanning: false,
@@ -612,6 +627,7 @@ export default Vue.component("reveal-kg-workspace", {
             assistantClarification: null,
             assistantStepStates: {},
             assistantError: "",
+            assistantUserQuery: "",
         };
     },
     computed: {
@@ -740,7 +756,7 @@ export default Vue.component("reveal-kg-workspace", {
             );
         },
         canDismissWelcome() {
-            return Boolean(this.activeSession?.graphNodes?.length);
+            return Boolean(this.activeSession);
         },
         learnCompanionMaxOpens() {
             return userUtils.REVEAL_KG_LEARN_COMPANION_MAX_OPENS;
@@ -828,6 +844,7 @@ export default Vue.component("reveal-kg-workspace", {
                 this.graphLoading ||
                 this.expandGraphLoading ||
                 this.expandManualAddBusy ||
+                this.expandIntentAddBusy ||
                 this.tableAddBusy ||
                 this.assistantPlanning ||
                 this.assistantExecuting
@@ -1250,6 +1267,33 @@ export default Vue.component("reveal-kg-workspace", {
             this.clearDuplicateFlow();
             this.openInitialGraphSetup({ reset: true });
         },
+        onWelcomeBlankCanvas() {
+            this.clearDuplicateFlow();
+            this.welcomeOpen = false;
+            this.initialGraphOpen = false;
+            this.libraryOpen = false;
+            this.resetStarterBuilder();
+            this.closeNodeActionMenu();
+            this.closeEdgeActionMenu();
+            this.selectedNodeId = null;
+            this.selectedEdgeId = null;
+            this.selectedEdgeRef = null;
+            this.edgeProvenanceLoadingId = null;
+            this.inspectorInspectSeq += 1;
+            this.loadedSavedGraphId = null;
+            this.graphError = "";
+            this.graphLoading = false;
+            this.activeSession = ensureSessionFilterState(
+                withNormalizedKeyNodes(createBlankCanvasSession()),
+                this.expressionOptions
+            );
+            this.contextualFetchSignature = "";
+            this.resetGraphReminders(`blank-${Date.now()}`);
+            this.showStatus(
+                "Blank canvas ready. Use Expand KG → Add nodes to place entities.",
+                3600
+            );
+        },
         clearDuplicateFlow() {
             this.duplicateFlowActive = false;
             this.duplicateSourceLabel = "";
@@ -1433,7 +1477,16 @@ export default Vue.component("reveal-kg-workspace", {
             this.selectedNodeId = node.nodeId;
             this.inspectorOpen = true;
             const graphNode = findGraphNode(this.activeSession, node.nodeId);
-            if (graphNode && isTraitInspectorNode(graphNode)) {
+            if (graphNode && isGeneSetInspectorNode(graphNode)) {
+                logGeneSetInspect("open inspector", {
+                    graphNode,
+                    extra: {
+                        connectionCache:
+                            this.activeSession?.nodeConnectionEvidenceCache?.[graphNode.id] ||
+                            {},
+                    },
+                });
+            } else if (graphNode && isTraitInspectorNode(graphNode)) {
                 void this.loadTraitSigChainPacket(graphNode);
             } else if (graphNode && isMechanismInspectorNode(graphNode)) {
                 void this.loadMechanismSigChainPacket(graphNode);
@@ -1766,8 +1819,8 @@ export default Vue.component("reveal-kg-workspace", {
                 this.closeAiAssistant();
                 return;
             }
-            if (!this.activeSession?.graphNodes?.length) {
-                this.showStatus("Build a graph before using the canvas assistant.", 3200);
+            if (!this.activeSession) {
+                this.showStatus("Start a canvas session before using the canvas assistant.", 3200);
                 return;
             }
             this.expandGraphOpen = false;
@@ -1874,6 +1927,9 @@ export default Vue.component("reveal-kg-workspace", {
             if (effects.remindAfterMutation) {
                 this.maybeRemindAfterGraphMutation(previousNodeCount);
             }
+            if (this.activeSession?.pendingNodeAdds?.length) {
+                this.showGraphRebuildReminder();
+            }
             this.applyAssistantStepUiEffects(step, meta);
         },
         applyAssistantStepUiEffects(step, meta = {}) {
@@ -1905,8 +1961,9 @@ export default Vue.component("reveal-kg-workspace", {
             if (!query) {
                 return;
             }
-            if (!this.activeSession?.graphNodes?.length) {
-                this.assistantError = "Build a graph before planning canvas actions.";
+            this.assistantUserQuery = query;
+            if (!this.activeSession) {
+                this.assistantError = "Start a canvas session before planning canvas actions.";
                 return;
             }
             if (this.assistantPlanning || this.assistantExecuting) {
@@ -1946,6 +2003,17 @@ export default Vue.component("reveal-kg-workspace", {
             }
             await this.runAssistantPlanSteps(this.assistantPlan.steps, { startIndex: 0 });
         },
+        onAssistantOpenPanel({ target = "expand", expandPanelTab = "discover" } = {}) {
+            if (target === "filter") {
+                this.openFilterGraph();
+                return;
+            }
+            const seedNodeIds = normalizeKeyNodeIds(this.activeSession);
+            this.openExpandGraphPanel({
+                seedNodeIds,
+                tab: expandPanelTab === "manual" ? "manual" : "discover",
+            });
+        },
         async onAssistantExecuteStep(stepId) {
             if (!this.assistantPlan?.steps?.length || this.assistantExecuting) {
                 return;
@@ -1983,6 +2051,7 @@ export default Vue.component("reveal-kg-workspace", {
                         apiClient: this.apiClient,
                         expressionOptions: this.expressionOptions,
                         interactiveLlmAvailable: this.llmAvailable,
+                        userQuery: this.assistantUserQuery,
                         anchorItems: this.canvasAnchorItems,
                         savedLibraryGraphs: this.savedGraphs,
                         setGraphViewOptions: (options) => {
@@ -2022,9 +2091,6 @@ export default Vue.component("reveal-kg-workspace", {
                             });
                             return this.activeSession;
                         },
-                        onGraphNodesAddedLocally: () => {
-                            this.showGraphRebuildReminder();
-                        },
                         focusGraphView: (options) =>
                             this.$refs.workspaceCanvas?.focusGraphView?.(options),
                         onProgress: (update) => {
@@ -2046,7 +2112,9 @@ export default Vue.component("reveal-kg-workspace", {
                             );
                             stepPreviousNodeCount = workingSession?.graphNodes?.length || 0;
                             const summary = formatAssistantStepSummary(step, meta);
-                            this.$refs.aiAssistantPanel?.appendStepResult?.(summary);
+                            this.$refs.aiAssistantPanel?.appendStepResult?.(summary, {
+                                workflowLink: meta?.bulkWorkflowLink || null,
+                            });
                         },
                         onStepError: (step) => {
                             this.endAssistantStepProgress(step);
@@ -2065,6 +2133,10 @@ export default Vue.component("reveal-kg-workspace", {
                 this.clearAssistantStepProgress();
                 if (postEffects.graphLoading) {
                     this.graphLoading = false;
+                }
+                if (this.activeSession?.pendingNodeAdds?.length) {
+                    this.clearGraphRebuildTimer();
+                    void this.runPendingGraphRebuild();
                 }
             }
         },
@@ -2100,17 +2172,19 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.openExpandGraphPanel({ seedNodeIds: nodeIds });
         },
-        openExpandGraphPanel({ seedNodeIds = [] } = {}) {
-            if (!this.activeSession?.graphNodes?.length) {
-                this.showStatus("Build a graph before expanding.", 3200);
+        openExpandGraphPanel({ seedNodeIds = [], tab = "" } = {}) {
+            if (!this.activeSession) {
+                this.showStatus("Start a canvas session before expanding.", 3200);
                 return;
             }
             const normalizedSeedIds = (seedNodeIds || []).filter(Boolean);
-            if (!normalizedSeedIds.length && !keyNodeItemsFromSession(this.activeSession).length) {
-                this.showStatus(
-                    "Mark at least one selected node before expanding from the toolbar.",
-                    3200
-                );
+            this.expandPanelInitialTab =
+                tab === "manual" || tab === "discover" || tab === "history" ? tab : "";
+            if (!this.activeSession.graphNodes?.length) {
+                this.filterGraphOpen = false;
+                this.aiAssistantOpen = false;
+                this.expandSeedNodeIds = [];
+                this.expandGraphOpen = true;
                 return;
             }
             for (const nodeId of normalizedSeedIds) {
@@ -2129,10 +2203,11 @@ export default Vue.component("reveal-kg-workspace", {
             this.expandGraphOpen = true;
         },
         closeExpandGraph() {
-            if (this.expandGraphLoading || this.expandManualAddBusy) {
+            if (this.expandGraphLoading || this.expandManualAddBusy || this.expandIntentAddBusy) {
                 return;
             }
             this.expandGraphOpen = false;
+            this.expandPanelInitialTab = "";
             this.expandSeedNodeIds = [];
         },
         onRemoveExpansionHistoryEntry(entryId) {
@@ -2177,9 +2252,60 @@ export default Vue.component("reveal-kg-workspace", {
         onExpandManualAddError(message) {
             this.showStatus(String(message || "Could not search for that node."), 3200);
         },
+        async onExpandIntentAddNodes({ intention } = {}) {
+            const text = String(intention || "").trim();
+            if (!text || !this.activeSession) {
+                return;
+            }
+            if (!this.llmAvailable) {
+                this.showStatus("Intention-based add requires an LLM backend.", 3200);
+                return;
+            }
+            this.expandIntentAddBusy = true;
+            this.expandIntentAddStatus = "Planning catalog searches…";
+            this.expandIntentAddExplanation = "";
+            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            try {
+                const result = await resolveIntentAddNodes(text, this.activeSession, {
+                    apiClient: this.apiClient,
+                    sessionContext: this.activeSession.context || "",
+                    onProgress: (message) => {
+                        this.expandIntentAddStatus = message;
+                    },
+                });
+                this.expandIntentAddExplanation = result.plan.explanation || "";
+                const nextSession = await addNodesToWorkspaceGraph(
+                    this.apiClient,
+                    this.activeSession,
+                    result.rows
+                );
+                this.activeSession = withNormalizedKeyNodes(nextSession);
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.maybeRemindAfterGraphMutation(previousNodeCount);
+                const addedCount = Math.max(
+                    0,
+                    (this.activeSession.graphNodes?.length || 0) - previousNodeCount
+                );
+                const geneHint =
+                    " Expand from added mechanisms or inspect gene sets to add genes.";
+                this.showStatus(
+                    `Added ${addedCount} node${addedCount === 1 ? "" : "s"} from your intention.${geneHint}`,
+                    5200
+                );
+            } catch (error) {
+                this.showStatus(
+                    String(error?.message || error) || "Could not add nodes from that intention.",
+                    3600
+                );
+            } finally {
+                this.expandIntentAddBusy = false;
+                this.expandIntentAddStatus = "";
+            }
+        },
         async onExpandManualAddNode(row) {
-            if (!this.activeSession?.graphNodes?.length) {
-                this.showStatus("Build a graph before adding nodes.", 3200);
+            if (!this.activeSession) {
+                this.showStatus("Start a canvas session before adding nodes.", 3200);
                 return;
             }
             if (!row?.node_id) {

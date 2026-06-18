@@ -2,6 +2,7 @@
 
 import { assistantActionsForPrompt } from "./revealKgAssistantTools.js";
 import { ASSISTANT_TARGET_SCOPES, DEFAULT_ASSISTANT_TARGET } from "./revealKgAssistantTarget.js";
+import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
 
 export function buildAssistantSystemPrompt() {
     const actionsJson = JSON.stringify(assistantActionsForPrompt(), null, 2);
@@ -30,8 +31,9 @@ Use target.node_types when the user names a node type (e.g. selected genes → s
 Put only user-mentioned settings in \`options\` (use {} otherwise). Do not invent values.
 
 ## Action semantics
-- expand_graph — fetch and add neighbors (not for showing/hiding edges). Seeds may be selected nodes, a named node, or both endpoints of an edge (target.scope edge + sample_edges).
-- add_node — add a catalog node by label without fetching neighbors (use expand_graph for neighbors). Set options.search_label to the catalog label; target.scope all is fine — do not target all nodes on the graph.
+- expand_graph — fetch and add neighbors (not for showing/hiding edges). Seeds may be selected nodes, a named node, or both endpoints of an edge (target.scope edge + sample_edges). Max ${CANVAS_ASSISTANT_PER_STEP_MAX} neighbors per step.
+- add_node — add catalog node(s) by label or phrase search without fetching expansion neighbors (use expand_graph for neighbors). Set options.search_label to the catalog label or biology phrase; set options.limit when adding multiple best matches. Phrase/ranked search applies to gene sets, traits, and mechanisms; for genes use limit > 1 or a multi-word phrase (single gene symbols stay exact-match). Nodes appear immediately; structural edges are rebuilt afterward. target.scope all is fine — do not target all nodes on the graph.
+- add_nodes_by_intent — add gene sets, mechanisms, and/or traits from a research question (options.research_intent or the user query). CRITICAL: only add node types the user explicitly names (e.g. "find me gene sets …" → gene_set only; never add mechanisms or traits unless the user asked for those types). Set options.node_types from the user message when types are explicit. Adds at most ${CANVAS_ASSISTANT_PER_STEP_MAX} total nodes per step. Does not add genes.
 - remove_node — delete node(s) in one step. Target by name (target.scope node + node_labels) or selected_nodes. Do not prepend select_nodes to clear selection — removal auto-unmarks the nodes being deleted.
 - remove_invisible_nodes — permanently delete all nodes hidden by visibility filters.
 - open_filter_panel — open the visibility filter UI without building a filter.
@@ -56,6 +58,8 @@ Explain vs expand:
 - User explicitly asks to fetch/add neighbors (then optionally explain) → expand_graph first; if they want the explanation to include new neighbors, follow with explain_graph options.scope entire_graph (new neighbors are not selected automatically).
 
 Selection: "top N" that replaces the current pick → select_nodes options.replace true. Ambiguous "top genes" with no N, rank, or filter → clarify.
+
+Bulk limits: The canvas adds at most ${CANVAS_ASSISTANT_PER_STEP_MAX} nodes per step for expand neighbors, add_node catalog matches, add_nodes_by_intent totals, or select top N. If the user asks for more than ${CANVAS_ASSISTANT_PER_STEP_MAX} in one step, still return a plan with options.count or options.limit capped at ${CANVAS_ASSISTANT_PER_STEP_MAX} — the UI will offer execute-with-cap plus Open Add/Expand/Filter panel, and REVEAL Workflow only when the request exceeds the cap. Do not return clarify solely for bulk counts on add/expand/filter plans.
 
 Remove: "Remove BRCA1" → one remove_node step with target.scope node and node_labels ["BRCA1"]. Never add a separate clear-selection step before named removals.
 

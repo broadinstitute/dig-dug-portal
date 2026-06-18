@@ -81,13 +81,22 @@
                                 traits. Use conceptual search when you have a topic but not a
                                 specific entity.
                             </span>
-                            <button
-                                type="button"
-                                class="wkb-welcome-action wkb-welcome-action-primary"
-                                @click="$emit('create')"
-                            >
-                                Create
-                            </button>
+                            <div class="wkb-welcome-action-row">
+                                <button
+                                    type="button"
+                                    class="wkb-welcome-action wkb-welcome-action-primary"
+                                    @click="$emit('create')"
+                                >
+                                    Create
+                                </button>
+                                <button
+                                    type="button"
+                                    class="wkb-welcome-action"
+                                    @click="$emit('blank-canvas')"
+                                >
+                                    Start a blank canvas
+                                </button>
+                            </div>
                         </div>
 
                         <div class="wkb-welcome-option">
@@ -388,6 +397,13 @@ export default {
     padding: 7px 16px;
     border-radius: 6px;
     cursor: pointer;
+}
+
+.wkb-welcome-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
 }
 
 .wkb-welcome-action-primary {

@@ -119,6 +119,29 @@ describe("prepareAssistantPlannerJson", () => {
         expect(result.json.steps[0].options.limit).toBe(5);
     });
 
+    it("adds expand count from queries like expand 50 gene nodes", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Expand genes",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "expand_graph",
+                        label: "Expand gene neighbors",
+                        target: { scope: "selected_nodes", node_types: ["gene"] },
+                        options: {},
+                    },
+                ],
+            },
+            "Expand 50 gene nodes",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.count).toBe(20);
+        expect(result.json.panel_shortcuts.hasOverflow).toBe(true);
+    });
+
     it("repairs edge inspect targets from sample_edges", () => {
         const result = prepareAssistantPlannerJson(
             {
@@ -241,6 +264,54 @@ describe("prepareAssistantPlannerJson", () => {
         expect(result.type).toBe("plan");
         expect(result.json.steps[0].options.search_label).toBe("SLC30A8");
         expect(result.json.steps[0].options.node_type).toBe("gene");
+    });
+
+    it("repairs add_node phrase search and limit from the query", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Add insulin signaling gene sets",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_node",
+                        label: "Add matching gene sets",
+                        target: { scope: "all" },
+                        options: { node_type: "gene_set" },
+                    },
+                ],
+            },
+            'search the catalog for gene sets globally that match the phrase "insulin signaling" and add 15 best matching nodes.',
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.search_label).toBe("insulin signaling");
+        expect(result.json.steps[0].options.node_type).toBe("gene_set");
+        expect(result.json.steps[0].options.limit).toBe(15);
+    });
+
+    it("repairs add_node trait phrase search from the query", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Add diabetes traits",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_node",
+                        label: "Add traits",
+                        target: { scope: "all" },
+                        options: {},
+                    },
+                ],
+            },
+            'add 5 traits matching "type 2 diabetes"',
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.search_label).toBe("type 2 diabetes");
+        expect(result.json.steps[0].options.node_type).toBe("trait");
+        expect(result.json.steps[0].options.limit).toBe(5);
     });
 
     it("repairs unselect visible genes from the query", () => {

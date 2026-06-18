@@ -1,5 +1,14 @@
 /** Short user-facing summaries after an assistant step completes. */
 
+function withBulkWorkflowNote(message, meta = {}) {
+    const note = String(meta.bulkWorkflowNote || "").trim();
+    if (!note) {
+        return message;
+    }
+    const base = String(message || "").trim();
+    return base ? `${base} ${note}` : note;
+}
+
 export function formatAssistantStepSummary(step, meta = {}) {
     const action = step?.action;
     const label = String(step?.label || "").trim();
@@ -8,11 +17,17 @@ export function formatAssistantStepSummary(step, meta = {}) {
         case "expand_graph": {
             const count = Number(meta.addedCount);
             if (Number.isFinite(count) && count >= 0) {
-                return count
-                    ? `Added ${count} node${count === 1 ? "" : "s"} to the graph.`
-                    : "Expansion finished — no new nodes were added.";
+                return withBulkWorkflowNote(
+                    count
+                        ? `Added ${count} node${count === 1 ? "" : "s"} to the graph.`
+                        : "Expansion finished — no new nodes were added.",
+                    meta
+                );
             }
-            return label ? `Finished: ${label}` : "Graph expansion finished.";
+            return withBulkWorkflowNote(
+                label ? `Finished: ${label}` : "Graph expansion finished.",
+                meta
+            );
         }
         case "filter_graph": {
             if (meta.enabled === true) {
@@ -143,9 +158,23 @@ export function formatAssistantStepSummary(step, meta = {}) {
         case "add_node": {
             const count = Number(meta.addedCount);
             if (Number.isFinite(count) && count > 0) {
-                return `Added ${count} node${count === 1 ? "" : "s"} to the graph.`;
+                return withBulkWorkflowNote(
+                    `Added ${count} node${count === 1 ? "" : "s"} to the graph; rebuilding edges…`,
+                    meta
+                );
             }
-            return label ? `Finished: ${label}` : "Added node to the graph.";
+            return withBulkWorkflowNote(
+                label ? `Finished: ${label}` : "Added node to the graph.",
+                meta
+            );
+        }
+        case "add_nodes_by_intent": {
+            const count = Number(meta.addedCount);
+            const base =
+                Number.isFinite(count) && count > 0
+                    ? `Added ${count} node${count === 1 ? "" : "s"} from your research intention.`
+                    : label || "Added nodes from research intention.";
+            return meta.geneGuidance ? `${base} ${meta.geneGuidance}` : base;
         }
         case "open_filter_panel":
             return "Opened the visibility filter panel.";

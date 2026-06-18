@@ -1,5 +1,12 @@
 /** Repair common planner JSON mistakes using the user query and session context. */
 
+import { parseExplicitIntentNodeTypes } from "./revealKgIntentAddNodes.js";
+import {
+    CANVAS_ASSISTANT_PER_STEP_MAX,
+    parseExpandCountFromUserQuery,
+    preparePlanWithBulkHandling,
+} from "./revealKgBulkWorkflowGuidance.js";
+
 const QUERY_STOP_WORDS = new Set([
     "SELECT",
     "EXPAND",
@@ -124,23 +131,50 @@ function graphEdgesFromContext(sessionContext) {
 }
 
 function parseTopCountFromQuery(userQuery) {
-    const match = String(userQuery || "").match(/\btop\s+(\d{1,2})\b/i);
+    const match = String(userQuery || "").match(/\btop\s+(\d{1,3})\b/i);
     if (!match) {
         return null;
     }
     const value = Number(match[1]);
-    return Number.isFinite(value) ? Math.min(50, Math.max(1, value)) : null;
+    return Number.isFinite(value)
+        ? Math.min(CANVAS_ASSISTANT_PER_STEP_MAX, Math.max(1, value))
+        : null;
 }
 
-function parseNeighborCountFromQuery(userQuery) {
-    const match = String(userQuery || "").match(
-        /\b(?:add|fetch|get|expand(?:\s+with)?)\s+(\d{1,2})\s+(?:neighbor|neighbours|nodes?)\b/i
-    );
-    if (!match) {
-        return null;
+function parseAddCountFromQuery(userQuery) {
+    const query = String(userQuery || "");
+    const cap = CANVAS_ASSISTANT_PER_STEP_MAX;
+    const bestMatch = query.match(/\badd\s+(\d{1,3})\s+(?:best\s+matching|matching)\b/i);
+    if (bestMatch) {
+        return Math.min(cap, Math.max(1, Number(bestMatch[1])));
     }
-    const value = Number(match[1]);
-    return Number.isFinite(value) ? Math.min(20, Math.max(1, value)) : null;
+    const addNodes = query.match(
+        /\badd\s+(\d{1,3})\s+(?:the\s+)?(?:top\s+)?(?:nodes?|gene[\s-]?sets?|traits?|mechanisms?|factors?)\b/i
+    );
+    if (addNodes) {
+        return Math.min(cap, Math.max(1, Number(addNodes[1])));
+    }
+    return parseTopCountFromQuery(query);
+}
+
+function parseCatalogSearchPhrase(userQuery) {
+    const query = String(userQuery || "").trim();
+    const quoted =
+        query.match(/(?:phrase|matching|match|for)\s+["“]([^"”]+)["”]/i) ||
+        query.match(/["“]([^"”]+)["”]/);
+    if (quoted?.[1]) {
+        return quoted[1].trim();
+    }
+    const phrase = query.match(
+        /\bmatch(?:es|ing)?\s+(?:the\s+)?phrase\s+([a-z0-9][a-z0-9\s-]{1,120})/i
+    );
+    if (phrase?.[1]) {
+        return phrase[1].trim();
+    }
+    const thatMatch = query.match(
+        /\bthat\s+match(?:es)?\s+(?:the\s+)?(?:phrase\s+)?([a-z0-9][a-z0-9\s-]{1,120}?)(?:\s+and\b|\s*$)/i
+    );
+    return thatMatch?.[1] ? thatMatch[1].trim() : "";
 }
 
 function wantsEntireGraphScope(userQuery) {
@@ -281,13 +315,13 @@ function parseAddNodeSearchLabel(userQuery) {
 
 function inferAddNodeTypeFromQuery(userQuery) {
     const query = String(userQuery || "");
-    if (/\bgene[\s-]?set\b/i.test(query)) {
+    if (/\bgene[\s-]?sets?\b/i.test(query)) {
         return "gene_set";
     }
-    if (/\btrait\b/i.test(query)) {
+    if (/\btraits?\b/i.test(query)) {
         return "trait";
     }
-    if (/\bmechanism\b/i.test(query) || /\bfactor\b/i.test(query)) {
+    if (/\b(mechanisms?|factors?)\b/i.test(query)) {
         return "factor";
     }
     if (/\bgene\b/i.test(query)) {
@@ -296,19 +330,100 @@ function inferAddNodeTypeFromQuery(userQuery) {
     return "gene";
 }
 
+function looksLikeIntentAddQuery(userQuery) {
+    const query = String(userQuery || "").trim();
+    if (!query) {
+        return false;
+    }
+    if (parseAddNodeSearchLabel(query)) {
+        return false;
+    }
+    if (/\badd\b\s+(?:the\s+)?[A-Za-z0-9-]+\b/i.test(query) && query.length < 48) {
+        return false;
+    }
+    return (
+        /\bfind\b/i.test(query) ||
+        /\badd\b[\s\S]*\b(gene[\s-]?sets?|mechanisms?|factors?|traits?)\b/i.test(query) ||
+        /\b(search|discover|identify)\b[\s\S]*\b(mechanism|pathway|trait|gene[\s-]?set)/i.test(
+            query
+        ) ||
+        (query.length > 36 &&
+            /\b(that could|related to|involving|alter|affect|handling|coagulation)\b/i.test(
+                query
+            ))
+    );
+}
+
+function repairIntentAddStep(step, userQuery) {
+    if (step?.action !== "add_nodes_by_intent") {
+        return step;
+    }
+    const options = { ...(step.options || {}) };
+    const explicitTypes = parseExplicitIntentNodeTypes(userQuery);
+    if (explicitTypes?.length) {
+        options.node_types = explicitTypes;
+        options.research_intent = String(userQuery || "").trim();
+    } else if (!options.research_intent) {
+        options.research_intent = String(userQuery || "").trim();
+    }
+    return { ...step, options };
+}
+
+function repairIntentAddSteps(steps, userQuery) {
+    if (!looksLikeIntentAddQuery(userQuery)) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "add_nodes_by_intent")) {
+        return steps;
+    }
+    const query = String(userQuery || "").trim();
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["add_node", "expand_graph", "filter_graph"].includes(steps[0]?.action));
+    if (!convertible) {
+        return steps;
+    }
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "add_nodes_by_intent",
+            label: "Add nodes from research intention",
+            target: {},
+            options: {
+                research_intent: query,
+                ...(parseExplicitIntentNodeTypes(query)
+                    ? { node_types: parseExplicitIntentNodeTypes(query) }
+                    : {}),
+            },
+        },
+    ];
+}
+
 function repairAddNodeStep(step, userQuery) {
     if (step?.action !== "add_node") {
         return step;
     }
     const options = { ...(step.options || {}) };
     if (!options.search_label) {
-        const label = parseAddNodeSearchLabel(userQuery);
-        if (label) {
-            options.search_label = label;
+        const phrase = parseCatalogSearchPhrase(userQuery);
+        if (phrase) {
+            options.search_label = phrase;
+        } else {
+            const label = parseAddNodeSearchLabel(userQuery);
+            if (label) {
+                options.search_label = label;
+            }
         }
     }
     if (!options.node_type) {
         options.node_type = inferAddNodeTypeFromQuery(userQuery);
+    }
+    if (options.limit === undefined && options.count === undefined) {
+        const count = parseAddCountFromQuery(userQuery);
+        if (count) {
+            options.limit = count;
+        }
     }
     return { ...step, options };
 }
@@ -367,7 +482,7 @@ function repairStepOptions(step, userQuery, sessionContext) {
 
     if (action === "expand_graph") {
         if (options.count === undefined) {
-            const neighborCount = parseNeighborCountFromQuery(query);
+            const neighborCount = parseExpandCountFromUserQuery(query);
             if (neighborCount) {
                 options.count = neighborCount;
             }
@@ -589,16 +704,19 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     }
 
     const repairedSteps = stripRedundantClearBeforeRemove(
-        steps.map((step) =>
-            repairUnselectStep(
-                repairAddNodeStep(
-                    repairRemoveNodeTarget(
-                        repairStepOptions(
-                            repairStepTarget(step, labelsOnGraph),
-                            userQuery,
-                            sessionContext
+        repairIntentAddSteps(steps, userQuery).map((step) =>
+            repairIntentAddStep(
+                repairUnselectStep(
+                    repairAddNodeStep(
+                        repairRemoveNodeTarget(
+                            repairStepOptions(
+                                repairStepTarget(step, labelsOnGraph),
+                                userQuery,
+                                sessionContext
+                            ),
+                            labelsOnGraph,
+                            userQuery
                         ),
-                        labelsOnGraph,
                         userQuery
                     ),
                     userQuery
@@ -626,10 +744,7 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
 
     return {
         type: "plan",
-        json: {
-            ...json,
-            steps: repairedSteps,
-        },
+        json: preparePlanWithBulkHandling(json, userQuery, repairedSteps),
     };
 }
 

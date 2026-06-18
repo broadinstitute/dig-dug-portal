@@ -83,6 +83,7 @@ import {
     mapConnectionCandidatesToRows,
     normalizeInspectorNodeType,
 } from "./revealKgInspectorUtils.js";
+import { logGeneSetInspect } from "./revealKgGeneSetDebug.js";
 
 export default {
     name: "WorkspaceNodeConnectionTabs",
@@ -324,6 +325,13 @@ export default {
                     return;
                 }
                 const candidates = payload.candidates || [];
+                if (normalizeInspectorNodeType(this.node) === "gene_set") {
+                    logGeneSetInspect(`connections:${targetType}`, {
+                        graphNode: this.node,
+                        connectionsPayload: payload,
+                        candidates,
+                    });
+                }
                 this.$set(this.tabCache, targetType, candidates);
                 this.$emit("cache-connections", {
                     nodeId: this.node.id,
