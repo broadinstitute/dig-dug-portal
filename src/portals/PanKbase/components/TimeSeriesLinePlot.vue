@@ -19,6 +19,12 @@
                 />
                 View by content
             </label>
+            <button
+                    class="btn btn-secondary btn-sm"
+                    @click="copyResults()"
+                >
+                    Copy link to results
+                </button>
         </div>
         <div class="radio-labels">
             <label>
@@ -48,18 +54,6 @@
                 />
                 {{donors.length}} individual donors
             </label>
-            <div v-if="false">
-                {{
-                    $parent.filteredAccession.length
-                }}
-                donors meeting filter criteria
-                <button
-                    class="btn btn-secondary btn-sm"
-                    @click="copyResults()"
-                >
-                    Copy link to results
-                </button>
-            </div>
         </div>
         <div class="download-images-setting">
             <div>
