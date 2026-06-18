@@ -1,6 +1,25 @@
 <template>
-    <div>
-        <h5>{{ plotTitle }}</h5>
+    <div class="line-plot">
+        <div class="radio-labels">
+            <label>
+                <input
+                    type="radio"
+                    :name="`${plotId}showContent`"
+                    :value="false"
+                    v-model="showContent"
+                />
+                View by IEQ
+            </label>
+            <label>
+                <input
+                    type="radio"
+                    :name="`${plotId}showContent`"
+                    :value="true"
+                    v-model="showContent"
+                />
+                View by content
+            </label>
+        </div>
         <div class="radio-labels">
             <label>
                 <input
@@ -9,7 +28,7 @@
                     :name="`${plotId}confidence`"
                     v-model="showConfidence"
                 />
-                95% confidence (filtered donors)
+                95% confidence ({{donors.length}} filtered donors)
             </label>
             <label>
                 <input
@@ -27,8 +46,20 @@
                     :name="`${plotId}confidence`"
                     v-model="showConfidence"
                 />
-                Individual donors
+                {{donors.length}} individual donors
             </label>
+            <div v-if="false">
+                {{
+                    $parent.filteredAccession.length
+                }}
+                donors meeting filter criteria
+                <button
+                    class="btn btn-secondary btn-sm"
+                    @click="copyResults()"
+                >
+                    Copy link to results
+                </button>
+            </div>
         </div>
         <div class="download-images-setting">
             <div>
@@ -48,37 +79,6 @@
         <div :id="plotId" class="plot" ref="time-series-line">
             <p>Loading...</p>
         </div>
-        <div class="donorData">
-            <div v-if="donorMetadata !== null">
-                <div class="donorLabel">
-                    <strong>Highlighted donor:</strong>
-                    {{ donorMetadata.Accession }}
-                </div>
-                <div>
-                    <table>
-                        <tr>
-                            <td class="leftTable">
-                                <strong>Age:</strong>
-                                {{ donorMetadata["Age (years)"] }}
-                            </td>
-                            <td>
-                                <strong>Reported gender:</strong>
-                                {{ donorMetadata.Gender }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="leftTable">
-                                <strong>BMI:</strong> {{ donorMetadata.BMI }}
-                            </td>
-                            <td>
-                                <strong>Derived diabetes status:</strong>
-                                {{ donorMetadata["Derived diabetes status"] }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 <script>
@@ -97,7 +97,7 @@ export default Vue.component("time-series-line-plot", {
         "plotId",
         "timepoints",
         "yAxisLabel",
-        "plotTitle",
+        "isletTab"
     ],
     data() {
         return {
@@ -115,6 +115,7 @@ export default Vue.component("time-series-line-plot", {
             xAxisLabel: "Time (min)",
             highlightedDonor: null,
             showConfidence: "some",
+            showContent: false
         };
     },
     mounted() {
@@ -165,8 +166,43 @@ export default Vue.component("time-series-line-plot", {
                 (d) => d.Accession === this.highlightedDonor
             );
         },
+        tooltipDonorData(){
+            if (this.donorMetadata === null){
+                return "";
+            }
+            let htmlOutput = `<strong>${this.donorMetadata.Accession}</strong>`;
+            let categories = [
+                {
+                    key: "Age (years)",
+                    label: "Age"
+                },
+                {
+                    key: "Gender",
+                    label: "Reported gender"
+                },
+                {
+                    key:  "BMI",
+                    label: "BMI"
+                },
+                {
+                    key: "Derived diabetes status",
+                    label: "Derived diabetes status"
+                }
+            ];
+            categories.forEach(c => {
+                let dataPoint = this.donorMetadata[c.key];
+                let categoryDiv = 
+                    `<div><strong>${c.label}</strong>: ${dataPoint}</div>`;
+                htmlOutput = htmlOutput.concat(categoryDiv);
+            });
+            return htmlOutput;
+        }
     },
     methods: {
+        copyResults(){
+            window.navigator.clipboard.writeText(window.location);
+            console.log(window.location);
+        },
         extractTimepoints(data, xScale, yScale) {
             // This assumes all timepoints have a condition listed i.e. none are skipped.
 
@@ -278,6 +314,7 @@ export default Vue.component("time-series-line-plot", {
                 left: 55,
             };
             let elementWidth = this.chart.clientWidth;
+            console.log("width:", elementWidth);
             let height = this.chartHeight - margin.top - margin.bottom;
             this.innerHeight = height;
 
@@ -350,17 +387,6 @@ export default Vue.component("time-series-line-plot", {
                             : t.condition
                     );
             });
-            this.tooltip = d3
-                .select(`#${this.plotId}`)
-                .append("div")
-                .style("opacity", 0)
-                .attr("class", "tooltip")
-                .style("background-color", "white")
-                .style("border", "2px solid gray")
-                .style("padding", "5px")
-                .style("border-radius", "5px")
-                .style("font-size", "smaller");
-
             //Labels
             this.svg
                 .append("text")
@@ -504,9 +530,7 @@ export default Vue.component("time-series-line-plot", {
         },
         resetTooltip() {
             this.highlightedDonor = null;
-            if (!!this.tooltip) {
-                this.tooltip.style("opacity", 0);
-            }
+            d3.select(`#${this.plotId}`).selectAll(".tooltip").remove();
             this.drawLines();
         },
         downloadImage(ID, NAME, TYPE) {
@@ -528,6 +552,35 @@ export default Vue.component("time-series-line-plot", {
                 }
                 this.drawHighlightedDonor(c);
             }
+
+            let mouseEvent = d3.event;
+            let plot = d3.select(`#${this.plotId}`);
+            plot.selectAll(".tooltip").remove();
+            plot.selectAll(".testdiv").remove();
+
+            let boundingRect = document.getElementById(this.plotId)
+                .getBoundingClientRect();
+
+            let tooltipWidth = 250;
+            let tooltipHeight = 75;
+
+            let xcoord = mouseEvent.clientX - tooltipWidth;
+            let ycoord = mouseEvent.clientY - tooltipHeight;
+
+            
+            this.tooltip = plot.append("div")
+                 .style("position", "fixed")
+                 .style("top", `${ycoord}px`)
+                 .style("left", `${xcoord}px`)
+                 .attr("class", "tooltip")
+                 .style("background-color", "white")
+                 .style("border", "2px solid gray")
+                 .style("padding", "5px")
+                 .style("max-width", `${tooltipWidth}px`)
+                 .style("border-radius", "5px")
+                 .style("font-size", "smaller")
+                 .html(this.tooltipDonorData);
+            this.tooltip.style("opacity", 1);
         },
     },
     watch: {
@@ -540,6 +593,12 @@ export default Vue.component("time-series-line-plot", {
         showConfidence() {
             this.drawLines();
         },
+        showContent(){
+            this.$emit("showContent", this.showContent);
+        },
+        isletTab(){
+            this.drawChart();
+        }
     },
 });
 </script>
@@ -549,8 +608,11 @@ export default Vue.component("time-series-line-plot", {
     margin-right: 15px;
     margin-bottom: 15px;
     background-color: white;
+    width: 100%;
 }
-
+.line-plot {
+    width: 100%;
+}
 .download-images-setting {
     display: inline;
 }

@@ -174,44 +174,13 @@
                                 <b-tabs>
                                     <b-tab
                                         title="Perifusion traces"
-                                        class="line-plot-tab"
+                                        class="functional-tab"
                                     >
-                                        <div class="line-plots">
-                                            {{
-                                                $parent.filteredAccession.length
-                                            }}
-                                            donors meeting filter criteria
-                                            <button
-                                                class="btn btn-secondary btn-sm"
-                                                @click="$parent.copyResults()"
-                                            >
-                                                Copy link to results
-                                            </button>
-                                            <div class="radio-labels">
-                                                <label>
-                                                    <input
-                                                        type="radio"
-                                                        name="showContent"
-                                                        :value="false"
-                                                        v-model="
-                                                            $parent.showContent
-                                                        "
-                                                    />
-                                                    View by IEQ
-                                                </label>
-                                                <label>
-                                                    <input
-                                                        type="radio"
-                                                        name="showContent"
-                                                        :value="true"
-                                                        v-model="
-                                                            $parent.showContent
-                                                        "
-                                                    />
-                                                    View by content
-                                                </label>
-                                            </div>
-                                            <div class="insulin-plot line-plot">
+                                        <b-tabs>
+                                            <b-tab title="Islet insulin secretion"
+                                                class="functional-tab"
+                                                @click="$parent.tabIslet(0)">
+                                                <h5>Islet Insulin Secretion</h5>
                                                 <time-series-line-plot
                                                     v-if="
                                                         $parent.insTimepoints
@@ -225,7 +194,6 @@
                                                     :plotData="
                                                         $parent.resultsIns
                                                     "
-                                                    plotTitle="Islet Insulin Secretion"
                                                     :donors="
                                                         $parent.filteredAccession
                                                     "
@@ -235,9 +203,11 @@
                                                     "
                                                     :yAxisLabel="
                                                         $parent.showContent
-                                                            ? '% content min'
+                                                            ? 'Insulin secretion\n% content min'
                                                             : 'Insulin secretion\n(ng/100 IEQs/min)'
                                                     "
+                                                    :isletTab="$parent.isletTab"
+                                                    @showContent="c => $parent.toggleContent(c)"
                                                 >
                                                 </time-series-line-plot>
                                                 <div
@@ -253,10 +223,11 @@
                                                         secretion data...</span
                                                     >
                                                 </div>
-                                            </div>
-                                            <div
-                                                class="glucagon-plot line-plot"
-                                            >
+                                            </b-tab>
+                                            <b-tab title="Islet glucagon secretion"
+                                                class="functional-tab"
+                                                @click="$parent.tabIslet(1)">
+                                                <h5>Islet Glucagon Secretion</h5>
                                                 <time-series-line-plot
                                                     v-if="
                                                         $parent.gcgTimepoints
@@ -270,7 +241,6 @@
                                                     :plotData="
                                                         $parent.resultsGcg
                                                     "
-                                                    plotTitle="Islet Glucagon Secretion"
                                                     :donors="
                                                         $parent.filteredAccession
                                                     "
@@ -280,9 +250,11 @@
                                                     "
                                                     :yAxisLabel="
                                                         $parent.showContent
-                                                            ? '% content min'
+                                                            ? 'Glucagon secretion\n% content min'
                                                             : 'Glucagon secretion\n(pg/100 IEQs/min)'
                                                     "
+                                                    :isletTab="$parent.isletTab"
+                                                    @showContent="c => $parent.toggleContent(c)"
                                                 >
                                                 </time-series-line-plot>
                                                 <div
@@ -298,10 +270,11 @@
                                                         secretion data...</span
                                                     >
                                                 </div>
-                                            </div>
-                                        </div>
+                                            </b-tab>
+                                        </b-tabs>   
                                     </b-tab>
-                                    <b-tab title="Functional data by trait">
+                                    <b-tab title="Functional data by trait"
+                                        class="functional-tab">
                                         <div>
                                             <div class="functional-select">
                                                 <select
@@ -330,10 +303,10 @@
                                                 </select>
                                             </div>
                                             <div
-                                                v-if="!!$parent.functionalTrait"
-                                                class="color-legend"
+                                                v-if="$parent.functionalTrait === 'Isolation_center'"
+                                                class="color-legend row"
                                             >
-                                                <div
+                                                <div class="legend-item col-md-6"
                                                     v-for="item in Object.keys(
                                                         $parent.functionalColorMap
                                                     )"
@@ -351,7 +324,8 @@
                                                         .length > 0
                                                 "
                                             >
-                                                <strong
+                                                <div v-if="$parent.functionalTrait !== null">
+                                                    <strong
                                                     >Insulin secretion traits
                                                     ({{
                                                         $parent
@@ -365,6 +339,8 @@
                                                     }}
                                                     donors)</strong
                                                 >
+                                                </div>
+                                                <div v-else>Select a trait to view functional secretion data by category.</div>
                                                 <div class="vlnPlots row">
                                                     <div
                                                         v-for="(
@@ -402,20 +378,22 @@
                                                         </functional-violin-plot>
                                                     </div>
                                                 </div>
-                                                <strong
-                                                    >Glucagon secretion traits
-                                                    ({{
-                                                        $parent
-                                                            .filteredAccession
-                                                            .length
-                                                    }}
-                                                    /
-                                                    {{
-                                                        $parent.filteredMetadata
-                                                            .length
-                                                    }}
-                                                    donors)</strong
-                                                >
+                                                <div v-if="$parent.functionalTrait !== null">
+                                                    <strong
+                                                        >Glucagon secretion traits
+                                                        ({{
+                                                            $parent
+                                                                .filteredAccession
+                                                                .length
+                                                        }}
+                                                        /
+                                                        {{
+                                                            $parent.filteredMetadata
+                                                                .length
+                                                        }}
+                                                        donors)</strong
+                                                    >
+                                                </div>
                                                 <div
                                                     class="vlnPlots row"
                                                     v-if="
@@ -463,8 +441,9 @@
                                         </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Functional trait associations"
+                                        title="Functional trait associations (all donors)"
                                         @click="$parent.populateAssoc()"
+                                        class="functional-tab"
                                     >
                                         <div class="functional-select">
                                             <select
@@ -530,7 +509,6 @@
                                                 <template #row-details="r">
                                                     <div
                                                         style="
-                                                            background-color: #efefef;
                                                             text-align: right;
                                                         "
                                                     >
@@ -627,7 +605,6 @@
 .toc-item {
     padding: 10px;
     margin-bottom: 5px;
-    background-color: #efefef;
     border: 1px solid #dddddd;
     border-radius: 5px;
 }
@@ -638,9 +615,6 @@
 #stats-header {
     font-size: 2rem;
     margin-right: 10px;
-}
-.line-plot {
-    align-items: center;
 }
 .side-panel {
     display: block !important;
@@ -674,18 +648,8 @@
     padding-top: 10px;
     margin-right: 50px;
 }
-.line-plots {
-    margin-top: 20px;
-    margin-left: 20px;
-}
-.line-plot-tab {
-    background-color: #efefef;
-}
-div.line-plot {
-    margin: 10px;
-    margin-top: 20px;
-    padding: 5px;
-    background-color: white;
+.functional-tab {
+    padding-top: 15px;
 }
 .line-plot-loading {
     display: flex;
@@ -700,10 +664,6 @@ div.line-plot {
     border-right: 3px solid lightgray;
     overflow-y: scroll !important;
 }
-.vln-plot,
-.vlnPlots {
-    background-color: #efefef !important;
-}
 .functional-select {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -714,15 +674,12 @@ div.line-plot {
 #functional-assoc-table {
     overflow-x: scroll;
 }
-.color-legend {
-    background-color: #efefef;
-    padding: 10px;
-    width: fit-content;
-    border-radius: 5px;
-}
 .color-legend-block {
     width: 10px;
     height: 10px;
     display: inline-block;
+}
+.color-legend {
+    margin-bottom: 10px;
 }
 </style>

@@ -276,7 +276,8 @@ new Vue({
             functionalAssocTrait: null,
             vlnConditions: [],
             showContent: false,
-            assocTraits: []
+            assocTraits: [],
+            isletTab: 0
         };
     },
     async created() {
@@ -420,6 +421,9 @@ new Vue({
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
         },
+        toggleContent(showHide){
+            this.showContent = showHide;
+        },
         collateData(data){
             let maxTime = null;
             let maxScore = null;
@@ -514,13 +518,12 @@ new Vue({
             let donorFilters = JSON.stringify(filterParams);
             keyParams.set({donorFilters: donorFilters});
         },
-        copyResults(){
-            window.navigator.clipboard.writeText(window.location);
-            console.log(window.location);
-        },
         replaceFieldNames(names){
             return names.replaceAll("Gender", "Reported gender")
                 .replaceAll("Derived", "HbA1c-derived");
+        },
+        tabIslet(tab){
+            this.isletTab = tab;
         }
     },
     watch: {
