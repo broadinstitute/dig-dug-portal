@@ -120,6 +120,51 @@
             </div>
         </section>
 
+        <section
+            v-if="demoGeneSetProvenance"
+            class="wkb-inspector-panel-block wkb-demo-gene-set-provenance"
+        >
+            <h4 class="wkb-inspector-section-heading">Data provenance</h4>
+            <dl class="wkb-demo-gene-set-provenance-list">
+                <div class="wkb-demo-gene-set-provenance-row">
+                    <dt>Source</dt>
+                    <dd>{{ demoGeneSetProvenance.source_label || "Translator geneset_extractor" }}</dd>
+                </div>
+                <div class="wkb-demo-gene-set-provenance-row">
+                    <dt>Collection</dt>
+                    <dd>{{ demoGeneSetProvenance.collection_name || "—" }}</dd>
+                </div>
+                <div class="wkb-demo-gene-set-provenance-row">
+                    <dt>Standard name</dt>
+                    <dd>{{ demoGeneSetProvenance.standard_name || "—" }}</dd>
+                </div>
+                <div class="wkb-demo-gene-set-provenance-row">
+                    <dt>Gene set ID</dt>
+                    <dd>{{ demoGeneSetProvenance.gene_set_id ?? "—" }}</dd>
+                </div>
+                <div class="wkb-demo-gene-set-provenance-row">
+                    <dt>License</dt>
+                    <dd>{{ demoGeneSetProvenance.license_code || "—" }}</dd>
+                </div>
+                <div v-if="demoGeneSetProvenance.tags" class="wkb-demo-gene-set-provenance-row">
+                    <dt>Tags</dt>
+                    <dd>{{ formatDemoTags(demoGeneSetProvenance.tags) }}</dd>
+                </div>
+                <div v-if="demoGeneSetProvenance.source_url" class="wkb-demo-gene-set-provenance-row">
+                    <dt>Catalog</dt>
+                    <dd>
+                        <a
+                            :href="demoGeneSetProvenance.source_url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open gene set catalog
+                        </a>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
         <WorkspaceNodeConnectionTabs
             :node="node"
             :key-node-items="keyNodeItems"
@@ -137,6 +182,7 @@
 
 <script>
 import { groupedConnectedNeighborsForNode } from "./revealKgInspectorUtils";
+import { demoGeneSetProvenanceForNode } from "./revealKgDemoGeneSets.js";
 import WorkspaceNodeConnectionTabs from "./WorkspaceNodeConnectionTabs.vue";
 
 export default {
@@ -215,8 +261,17 @@ export default {
         hasHeader() {
             return Boolean(this.node?.label || this.node?.id);
         },
+        demoGeneSetProvenance() {
+            return demoGeneSetProvenanceForNode(this.node);
+        },
     },
     methods: {
+        formatDemoTags(tags) {
+            if (Array.isArray(tags)) {
+                return tags.filter(Boolean).join(", ") || "—";
+            }
+            return String(tags || "").trim() || "—";
+        },
         canInspectEdge(neighbor) {
             return Boolean(neighbor?.edgeRef?.inspectable);
         },
@@ -424,5 +479,56 @@ export default {
     font-size: 12px;
     color: var(--cfde-muted, #6b6b6b);
     font-style: italic;
+}
+
+.wkb-inspector-section-heading {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-demo-gene-set-provenance {
+    margin-bottom: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.wkb-demo-gene-set-provenance-list {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.wkb-demo-gene-set-provenance-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.wkb-demo-gene-set-provenance-row dt {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-demo-gene-set-provenance-row dd {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cfde-ink, #33363d);
+    word-break: break-word;
+}
+
+.wkb-demo-gene-set-provenance-row a {
+    color: var(--cfde-blue, #2c5c97);
+    text-decoration: none;
+}
+
+.wkb-demo-gene-set-provenance-row a:hover {
+    text-decoration: underline;
 }
 </style>
