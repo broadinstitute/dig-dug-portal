@@ -299,24 +299,75 @@
             <section
                 v-show="activeTab === 'manual'"
                 :id="tabPanelId('manual')"
-                class="wkb-expand-tab-panel"
+                class="wkb-expand-tab-panel wkb-expand-add-nodes"
                 role="tabpanel"
                 :aria-labelledby="tabButtonId('manual')"
             >
-                <WorkspaceExpandIntentAdd
-                    :llm-available="llmAvailable"
-                    :busy="intentAddBusy || manualAddBusy"
-                    :status-message="intentAddStatus"
-                    :last-explanation="intentAddExplanation"
-                    @run="$emit('intent-add-nodes', $event)"
-                />
-                <WorkspaceExpandManualAdd
-                    :api-client="apiClient"
-                    :llm-available="llmAvailable"
-                    :busy="manualAddBusy"
-                    @add="$emit('add-manual-node', $event)"
-                    @error="$emit('manual-add-error', $event)"
-                />
+                <div class="wkb-add-nodes-accordions">
+                    <div
+                        class="wkb-add-nodes-accordion"
+                        :class="{ 'is-open': addNodesAccordion === 'intent' }"
+                    >
+                        <button
+                            type="button"
+                            class="wkb-add-nodes-accordion-trigger"
+                            :aria-expanded="addNodesAccordion === 'intent' ? 'true' : 'false'"
+                            :aria-controls="addNodesAccordionPanelId('intent')"
+                            :disabled="loading || manualAddBusy"
+                            @click="toggleAddNodesAccordion('intent')"
+                        >
+                            <span>Add nodes with research intention</span>
+                            <span class="wkb-add-nodes-accordion-chevron" aria-hidden="true" />
+                        </button>
+                        <div
+                            v-show="addNodesAccordion === 'intent'"
+                            :id="addNodesAccordionPanelId('intent')"
+                            class="wkb-add-nodes-accordion-panel"
+                            role="region"
+                            :aria-label="'Add nodes with research intention'"
+                        >
+                            <WorkspaceExpandIntentAdd
+                                :llm-available="llmAvailable"
+                                :busy="intentAddBusy || manualAddBusy"
+                                :status-message="intentAddStatus"
+                                :last-explanation="intentAddExplanation"
+                                @run="$emit('intent-add-nodes', $event)"
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        class="wkb-add-nodes-accordion"
+                        :class="{ 'is-open': addNodesAccordion === 'search' }"
+                    >
+                        <button
+                            type="button"
+                            class="wkb-add-nodes-accordion-trigger"
+                            :aria-expanded="addNodesAccordion === 'search' ? 'true' : 'false'"
+                            :aria-controls="addNodesAccordionPanelId('search')"
+                            :disabled="loading || manualAddBusy"
+                            @click="toggleAddNodesAccordion('search')"
+                        >
+                            <span>Add nodes with search</span>
+                            <span class="wkb-add-nodes-accordion-chevron" aria-hidden="true" />
+                        </button>
+                        <div
+                            v-show="addNodesAccordion === 'search'"
+                            :id="addNodesAccordionPanelId('search')"
+                            class="wkb-add-nodes-accordion-panel"
+                            role="region"
+                            :aria-label="'Add nodes with search'"
+                        >
+                            <WorkspaceExpandManualAdd
+                                :api-client="apiClient"
+                                :llm-available="llmAvailable"
+                                :busy="manualAddBusy"
+                                @add="$emit('add-manual-node', $event)"
+                                @error="$emit('manual-add-error', $event)"
+                            />
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section
@@ -463,6 +514,7 @@ export default {
             panelId: `wkb-expand-panel-${expandPanelIdCounter}`,
             expandFilterType: "intent",
             activeTab: "discover",
+            addNodesAccordion: null,
             showBulkWorkflowHint: false,
         };
     },
@@ -498,15 +550,22 @@ export default {
     watch: {
         open(isOpen) {
             if (!isOpen) {
+                this.addNodesAccordion = null;
                 return;
             }
             const tab = String(this.initialTab || "").trim();
             if (tab === "manual" || tab === "discover" || tab === "history") {
                 this.activeTab = tab;
-                return;
+            } else {
+                this.activeTab = "discover";
             }
-            if (!this.expandSeedSummary && !this.expandFromSingleNode && !this.expandFromEdge) {
-                this.activeTab = "manual";
+            if (this.activeTab === "manual") {
+                this.addNodesAccordion = null;
+            }
+        },
+        activeTab(tab) {
+            if (tab === "manual") {
+                this.addNodesAccordion = null;
             }
         },
     },
@@ -522,6 +581,12 @@ export default {
         },
         tabPanelId(name) {
             return `${this.panelId}-panel-${name}`;
+        },
+        addNodesAccordionPanelId(name) {
+            return `${this.panelId}-add-nodes-${name}`;
+        },
+        toggleAddNodesAccordion(section) {
+            this.addNodesAccordion = this.addNodesAccordion === section ? null : section;
         },
         isTargetTypeDisabled(value) {
             if (value === "all") {
@@ -724,6 +789,74 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 14px;
+}
+
+.wkb-expand-add-nodes {
+    gap: 10px;
+}
+
+.wkb-add-nodes-accordions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wkb-add-nodes-accordion {
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 10px;
+    background: #faf9f7;
+    overflow: hidden;
+}
+
+.wkb-add-nodes-accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    background: transparent;
+    color: var(--cfde-ink, #33363d);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+}
+
+.wkb-add-nodes-accordion-trigger:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.wkb-add-nodes-accordion-trigger:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.wkb-add-nodes-accordion.is-open .wkb-add-nodes-accordion-trigger {
+    background: #ffffff;
+    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.wkb-add-nodes-accordion-chevron {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--cfde-muted, #6b6b6b);
+    border-bottom: 2px solid var(--cfde-muted, #6b6b6b);
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+}
+
+.wkb-add-nodes-accordion.is-open .wkb-add-nodes-accordion-chevron {
+    transform: rotate(45deg);
+    margin-top: -4px;
+}
+
+.wkb-add-nodes-accordion-panel {
+    padding: 12px 14px 14px;
+    background: #ffffff;
 }
 
 .wkb-expand-llm-note {

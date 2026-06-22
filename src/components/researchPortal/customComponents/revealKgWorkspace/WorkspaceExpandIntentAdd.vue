@@ -116,9 +116,6 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding-bottom: 14px;
-    margin-bottom: 14px;
-    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
 }
 
 .wkb-expand-intent-intro,
