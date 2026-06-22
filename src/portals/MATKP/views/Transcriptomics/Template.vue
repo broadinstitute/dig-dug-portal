@@ -82,15 +82,26 @@
               <div class="rail-card f-col">
                 <div class="rail-title">Outcomes</div>
                 <div class="outcomes-list">
+                  <div class="outcomes-group-title">Filter</div>
+
                   <div class="outcome-filter-row outcome-filter-row--species">
                     <span class="outcome-filter-spacer" aria-hidden="true"></span>
-                    <span class="outcome-filter-label">Species</span>
+                    <span class="outcome-filter-label">
+                      Species
+                      <span
+                        v-if="$parent.isSpeciesFilterActive()"
+                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
                     <b-dropdown
-                      right
+                      dropright
                       no-caret
                       variant="link"
                       toggle-class="outcome-filter-menu"
                       boundary="viewport"
+                      menu-class="outcome-filter-dropdown-menu"
+                      :popper-opts="$parent.filterDropdownPopperOpts"
                     >
                       <template #button-content>
                         <b-icon icon="three-dots-vertical"></b-icon>
@@ -127,44 +138,204 @@
                     </b-dropdown>
                   </div>
 
-                  <div
-                    v-for="outcome in $parent.outcomes"
-                    :key="outcome.outcome_id"
-                    class="outcome-filter-row"
-                  >
-                    <b-form-checkbox
-                      class="outcome-filter-checkbox"
-                      size="sm"
-                      :checked="$parent.isOutcomeVisible(outcome.outcome_id)"
-                      @change="
-                        $parent.setOutcomeVisibility(
-                          outcome.outcome_id,
-                          $event
-                        )
-                      "
-                    ></b-form-checkbox>
-                    <span class="outcome-filter-label">{{
-                      outcome.outcome_label
-                    }}</span>
+                  <div class="outcome-filter-row outcome-filter-row--species">
+                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
+                    <span class="outcome-filter-label">
+                      Datasets
+                      <span
+                        v-if="$parent.isDatasetFilterActive()"
+                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
                     <b-dropdown
-                      right
+                      dropright
                       no-caret
                       variant="link"
                       toggle-class="outcome-filter-menu"
                       boundary="viewport"
+                      menu-class="outcome-filter-dropdown-menu"
+                      :popper-opts="$parent.filterDropdownPopperOpts"
                     >
                       <template #button-content>
                         <b-icon icon="three-dots-vertical"></b-icon>
                       </template>
                       <b-dropdown-form class="outcome-filter-dropdown">
-                        <div class="outcome-filter-dropdown__title">
-                          {{ outcome.outcome_label }} filters
-                        </div>
-                        <div class="outcome-filter-dropdown__placeholder">
-                          Optional section filters will appear here.
-                        </div>
+                        <b-form-checkbox
+                          v-for="dataset in $parent.datasetOptions"
+                          :key="dataset.id"
+                          size="sm"
+                          :checked="$parent.datasetFilters[dataset.id]"
+                          @change="
+                            $parent.setDatasetFilter(dataset.id, $event)
+                          "
+                        >
+                          {{ dataset.label }}
+                        </b-form-checkbox>
                       </b-dropdown-form>
                     </b-dropdown>
+                  </div>
+
+                  <div class="outcome-filter-row outcome-filter-row--species">
+                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
+                    <span class="outcome-filter-label">
+                      Depot
+                      <span
+                        v-if="$parent.isDepotFilterActive()"
+                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <b-dropdown
+                      dropright
+                      no-caret
+                      variant="link"
+                      toggle-class="outcome-filter-menu"
+                      boundary="viewport"
+                      menu-class="outcome-filter-dropdown-menu"
+                      :popper-opts="$parent.filterDropdownPopperOpts"
+                    >
+                      <template #button-content>
+                        <b-icon icon="three-dots-vertical"></b-icon>
+                      </template>
+                      <b-dropdown-form class="outcome-filter-dropdown">
+                        <b-form-checkbox
+                          v-for="depot in $parent.depotOptions"
+                          :key="depot.id"
+                          size="sm"
+                          :checked="$parent.depotFilters[depot.id]"
+                          @change="
+                            $parent.setDepotFilter(depot.id, $event)
+                          "
+                        >
+                          {{ depot.label }}
+                        </b-form-checkbox>
+                      </b-dropdown-form>
+                    </b-dropdown>
+                  </div>
+
+                  <div class="outcome-filter-row outcome-filter-row--species">
+                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
+                    <span class="outcome-filter-label">
+                      Adj. P-value
+                      <span
+                        v-if="$parent.isAdjPFilterActive()"
+                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
+                        aria-hidden="true"
+                      ></span>
+                    </span>
+                    <b-dropdown
+                      dropright
+                      no-caret
+                      variant="link"
+                      toggle-class="outcome-filter-menu"
+                      boundary="viewport"
+                      menu-class="outcome-filter-dropdown-menu"
+                      :popper-opts="$parent.filterDropdownPopperOpts"
+                    >
+                      <template #button-content>
+                        <b-icon icon="three-dots-vertical"></b-icon>
+                      </template>
+                      <b-dropdown-form class="outcome-filter-dropdown">
+                        <label
+                          class="outcome-filter-input-label"
+                          for="adj-p-value-filter"
+                        >
+                          Adj. P-value &lt;=
+                        </label>
+                        <input
+                          id="adj-p-value-filter"
+                          v-model="$parent.adjPValueInput"
+                          class="outcome-filter-input"
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.001"
+                          placeholder="e.g. 0.05"
+                          @keydown.enter.prevent="$parent.applyAdjPFilter()"
+                          @blur="$parent.applyAdjPFilter()"
+                        />
+                      </b-dropdown-form>
+                    </b-dropdown>
+                  </div>
+
+                  <div class="outcomes-group-title">Show / Hide</div>
+
+                  <div class="outcomes-show-hide">
+                    <div
+                      v-for="outcome in $parent.outcomes"
+                      :key="outcome.outcome_id"
+                      class="outcome-filter-row"
+                      :class="{
+                        'outcome-filter-row--dimmed': !outcome.hasFilteredData,
+                      }"
+                    >
+                      <b-form-checkbox
+                        class="outcome-filter-checkbox"
+                        size="sm"
+                        :checked="
+                          $parent.isOutcomeVisible(outcome.outcome_id)
+                        "
+                        @change="
+                          $parent.setOutcomeVisibility(
+                            outcome.outcome_id,
+                            $event
+                          )
+                        "
+                      ></b-form-checkbox>
+                      <span class="outcome-filter-label">
+                        {{ outcome.outcome_label }}
+                        <span
+                          v-if="
+                            $parent.isOutcomeDatasetFilterActive(
+                              outcome.outcome_id
+                            )
+                          "
+                          class="outcome-filter-active-dot outcome-filter-active-dot--after"
+                          aria-hidden="true"
+                        ></span>
+                      </span>
+                      <b-dropdown
+                        dropright
+                        no-caret
+                        variant="link"
+                        toggle-class="outcome-filter-menu"
+                        boundary="viewport"
+                        menu-class="outcome-filter-dropdown-menu"
+                        :popper-opts="$parent.filterDropdownPopperOpts"
+                      >
+                        <template #button-content>
+                          <b-icon icon="three-dots-vertical"></b-icon>
+                        </template>
+                        <b-dropdown-form class="outcome-filter-dropdown">
+                          <div class="outcome-filter-dropdown__title">
+                            Datasets
+                          </div>
+                          <b-form-checkbox
+                            v-for="dataset in $parent.getOutcomeDatasetOptions(
+                              outcome
+                            )"
+                            :key="dataset.id"
+                            size="sm"
+                            :checked="
+                              $parent.isDatasetVisible(
+                                outcome.outcome_id,
+                                dataset.id
+                              )
+                            "
+                            @change="
+                              $parent.setDatasetVisibility(
+                                outcome.outcome_id,
+                                dataset.id,
+                                $event
+                              )
+                            "
+                          >
+                            {{ dataset.label }}
+                          </b-form-checkbox>
+                        </b-dropdown-form>
+                      </b-dropdown>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -173,7 +344,7 @@
             <div class="sections-column f-col">
               <section
                 v-for="outcome in $parent.outcomes"
-                v-show="$parent.isOutcomeVisible(outcome.outcome_id)"
+                v-show="$parent.isOutcomeSectionVisible(outcome.outcome_id)"
                 :key="outcome.outcome_id"
                 class="outcome-section f-col"
                 :data-outcome-id="outcome.outcome_id"
@@ -471,6 +642,67 @@
   flex-direction: column;
 }
 
+.outcomes-group-title {
+  color: #555555;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 10px 0 4px;
+  text-transform: uppercase;
+}
+
+.outcomes-group-title:first-child {
+  margin-top: 0;
+}
+
+.outcomes-show-hide {
+  padding-left: 12px;
+}
+
+.outcome-filter-input-label {
+  color: #000000;
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.outcome-filter-input {
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.25;
+  padding: 4px 6px;
+  width: 100%;
+}
+
+.outcome-filter-input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.outcome-filter-input[type="number"]::-webkit-outer-spin-button,
+.outcome-filter-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.outcome-filter-active-dot {
+  background: #ff6c02;
+  border-radius: 999px;
+  display: inline-block;
+  height: 6px;
+  margin-right: 5px;
+  vertical-align: middle;
+  width: 6px;
+}
+
+.outcome-filter-active-dot--after {
+  margin-left: 5px;
+  margin-right: 0;
+}
+
 .outcome-filter-row {
   align-items: center;
   background: none;
@@ -486,6 +718,10 @@
 
 .outcome-filter-row--species {
   grid-template-columns: 1.1rem 1fr 1.1rem;
+}
+
+.outcome-filter-row--dimmed {
+  opacity: 0.4;
 }
 
 .outcome-filter-spacer {
@@ -557,6 +793,14 @@
   color: #999999;
 }
 
+.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu),
+.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu .b-icon),
+.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:hover),
+.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:focus),
+.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:active) {
+  color: #ff6c02;
+}
+
 .outcome-filter-row :deep(.dropdown) {
   justify-self: end;
   line-height: 1;
@@ -564,6 +808,16 @@
 
 .outcome-filter-row :deep(.btn-link) {
   border: 0;
+}
+
+:deep(.outcome-filter-dropdown-menu) {
+  border: 1px solid #dddddd;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  margin: 0;
+  max-height: calc(100vh - 16px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
 }
 
 :deep(.outcome-filter-dropdown) {

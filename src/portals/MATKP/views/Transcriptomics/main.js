@@ -23,6 +23,24 @@ const genePayloads = {
     UCP1,
 };
 
+const FILTER_DROPDOWN_POPPER_OPTS = {
+    placement: "right",
+    modifiers: {
+        flip: {
+            enabled: true,
+            behavior: ["right", "right-start", "right-end"],
+            padding: 8,
+        },
+        preventOverflow: {
+            enabled: true,
+            padding: 8,
+        },
+        offset: {
+            offset: "0, 6",
+        },
+    },
+};
+
 new Vue({
     mixins: [matkpMixin],
 
@@ -42,6 +60,12 @@ new Vue({
                 mouse: true,
                 other: true,
             },
+            depotFilters: {},
+            datasetFilters: {},
+            adjPValueMax: "",
+            adjPValueInput: "",
+            datasetRowVisibility: {},
+            filterDropdownPopperOpts: FILTER_DROPDOWN_POPPER_OPTS,
             activeScrolledOutcomeId: null,
             scrollHandler: null,
         };
@@ -70,6 +94,12 @@ new Vue({
         activeOutcomeIds() {
             return this.activeGene ? this.activeGene.supported_outcomes : [];
         },
+        depotOptions() {
+            return this.collectDepotOptions(this.activeGene);
+        },
+        datasetOptions() {
+            return this.collectDatasetOptions(this.activeGene);
+        },
         activeOutcome() {
             return (
                 this.outcomes.find(
@@ -84,7 +114,7 @@ new Vue({
 
             return this.activeGene.outcomes.map((outcome) => {
                 const visibleRows = outcome.rows.filter((row) =>
-                    this.isSpeciesRowVisible(row)
+                    this.isRowFilterVisible(row, outcome.outcome_id)
                 );
                 const domain = this.getOutcomeDomain(visibleRows);
                 const plotRows = visibleRows.map((row) =>
@@ -93,6 +123,7 @@ new Vue({
 
                 return {
                     ...outcome,
+                    hasFilteredData: visibleRows.length > 0,
                     domain,
                     ticks: this.buildTicks(domain),
                     plotRowGroups: this.buildPlotRowGroups(plotRows),
@@ -117,6 +148,9 @@ new Vue({
                 : this.activeOutcomeIds[0];
 
         this.initializeVisibleOutcomes();
+        this.initializeDepotFilters();
+        this.initializeDatasetFilters();
+        this.initializeDatasetVisibility();
         this.syncParams();
     },
     mounted() {
@@ -144,14 +178,288 @@ new Vue({
         isOutcomeVisible(outcomeId) {
             return this.visibleOutcomes[outcomeId] !== false;
         },
+        outcomeHasFilteredData(outcomeId) {
+            const outcome = this.outcomes.find(
+                (item) => item.outcome_id === outcomeId
+            );
+
+            return outcome ? outcome.hasFilteredData : false;
+        },
+        isOutcomeSectionVisible(outcomeId) {
+            return (
+                this.isOutcomeVisible(outcomeId) &&
+                this.outcomeHasFilteredData(outcomeId)
+            );
+        },
         setOutcomeVisibility(outcomeId, isVisible) {
             this.$set(this.visibleOutcomes, outcomeId, isVisible);
+        },
+        getDatasetRowKey(row) {
+            if (row.row_type === "pooled") {
+                return `pooled:${row.comparison_id || row.outcome_id}`;
+            }
+
+            return row.dataset_id || row.display_label_short;
+        },
+        getDatasetVisibilityKey(outcomeId, row) {
+            return `${outcomeId}::${this.getDatasetRowKey(row)}`;
+        },
+        initializeDatasetVisibility() {
+            const visibility = {};
+
+            if (this.activeGene) {
+                this.activeGene.outcomes.forEach((outcome) => {
+                    outcome.rows.forEach((row) => {
+                        visibility[
+                            this.getDatasetVisibilityKey(
+                                outcome.outcome_id,
+                                row
+                            )
+                        ] = true;
+                    });
+                });
+            }
+
+            this.datasetRowVisibility = visibility;
+        },
+        getOutcomeDatasetOptions(outcome) {
+            if (!outcome || !outcome.rows) {
+                return [];
+            }
+
+            return outcome.rows.map((row) => ({
+                id: this.getDatasetRowKey(row),
+                label: row.display_label_short,
+            }));
+        },
+        isDatasetVisible(outcomeId, datasetRowKey) {
+            const key = `${outcomeId}::${datasetRowKey}`;
+
+            return this.datasetRowVisibility[key] !== false;
+        },
+        setDatasetVisibility(outcomeId, datasetRowKey, isVisible) {
+            const key = `${outcomeId}::${datasetRowKey}`;
+
+            this.$set(this.datasetRowVisibility, key, isVisible);
+        },
+        isOutcomeDatasetFilterActive(outcomeId) {
+            const outcome = this.activeGene?.outcomes.find(
+                (item) => item.outcome_id === outcomeId
+            );
+
+            if (!outcome) {
+                return false;
+            }
+
+            return outcome.rows.some((row) => {
+                const key = this.getDatasetVisibilityKey(outcomeId, row);
+
+                return this.datasetRowVisibility[key] === false;
+            });
+        },
+        passesRowGlobalFilters(row) {
+            return (
+                this.isSpeciesRowVisible(row) &&
+                this.isGlobalDatasetRowVisible(row) &&
+                this.isDepotRowVisible(row) &&
+                this.isAdjPRowVisible(row)
+            );
+        },
+        collectDatasetOptions(gene) {
+            if (!gene) {
+                return [];
+            }
+
+            const datasetsByKey = new Map();
+
+            gene.outcomes.forEach((outcome) => {
+                outcome.rows.forEach((row) => {
+                    if (row.row_type === "pooled") {
+                        return;
+                    }
+
+                    const id = this.getDatasetRowKey(row);
+
+                    if (!datasetsByKey.has(id)) {
+                        datasetsByKey.set(id, {
+                            id,
+                            label: row.display_label_short,
+                        });
+                    }
+                });
+            });
+
+            return Array.from(datasetsByKey.values()).sort((a, b) =>
+                a.label.localeCompare(b.label)
+            );
+        },
+        initializeDatasetFilters() {
+            const filters = {};
+
+            this.datasetOptions.forEach((option) => {
+                filters[option.id] = true;
+            });
+
+            this.datasetFilters = filters;
+        },
+        setDatasetFilter(datasetId, isVisible) {
+            this.$set(this.datasetFilters, datasetId, isVisible);
+        },
+        isDatasetFilterActive() {
+            if (!this.datasetOptions.length) {
+                return false;
+            }
+
+            return this.datasetOptions.some(
+                (option) => this.datasetFilters[option.id] === false
+            );
+        },
+        isGlobalDatasetRowVisible(row) {
+            if (row.row_type === "pooled") {
+                return true;
+            }
+
+            const datasetKey = this.getDatasetRowKey(row);
+
+            return this.datasetFilters[datasetKey] !== false;
+        },
+        collectDepotOptions(gene) {
+            if (!gene) {
+                return [];
+            }
+
+            const depotIds = new Set();
+
+            gene.outcomes.forEach((outcome) => {
+                outcome.rows.forEach((row) => {
+                    this.getRowDepotTokens(row).forEach((token) => {
+                        depotIds.add(token);
+                    });
+                });
+            });
+
+            return Array.from(depotIds)
+                .sort((a, b) => {
+                    if (a === "__none__") {
+                        return 1;
+                    }
+
+                    if (b === "__none__") {
+                        return -1;
+                    }
+
+                    return a.localeCompare(b);
+                })
+                .map((id) => ({
+                    id,
+                    label: this.formatDepotLabel(id),
+                }));
+        },
+        formatDepotLabel(depotId) {
+            if (depotId === "__none__") {
+                return "Not specified";
+            }
+
+            return depotId;
+        },
+        getRowDepotTokens(row) {
+            const depot = String(row.depot || "").trim();
+
+            if (!depot) {
+                return ["__none__"];
+            }
+
+            return depot
+                .split(";")
+                .map((part) => part.trim())
+                .filter(Boolean);
+        },
+        initializeDepotFilters() {
+            const filters = {};
+
+            this.depotOptions.forEach((option) => {
+                filters[option.id] = true;
+            });
+
+            this.depotFilters = filters;
+        },
+        isRowFilterVisible(row, outcomeId) {
+            return (
+                this.passesRowGlobalFilters(row) &&
+                this.isDatasetRowVisible(row, outcomeId)
+            );
+        },
+        isDatasetRowVisible(row, outcomeId) {
+            const key = this.getDatasetVisibilityKey(outcomeId, row);
+
+            return this.datasetRowVisibility[key] !== false;
         },
         isSpeciesRowVisible(row) {
             return this.speciesFilters[this.speciesClass(row.species)] !== false;
         },
+        isDepotRowVisible(row) {
+            const enabledDepots = this.depotOptions.filter(
+                (option) => this.depotFilters[option.id] !== false
+            );
+
+            if (enabledDepots.length === 0) {
+                return false;
+            }
+
+            return this.getRowDepotTokens(row).some(
+                (token) => this.depotFilters[token] !== false
+            );
+        },
+        isAdjPRowVisible(row) {
+            const maxValue = String(this.adjPValueMax || "").trim();
+
+            if (!maxValue) {
+                return true;
+            }
+
+            const threshold = Number(maxValue);
+
+            if (Number.isNaN(threshold)) {
+                return true;
+            }
+
+            if (row.p_value_adj === null || row.p_value_adj === undefined) {
+                return false;
+            }
+
+            return row.p_value_adj <= threshold;
+        },
         setSpeciesFilter(speciesClass, isVisible) {
             this.$set(this.speciesFilters, speciesClass, isVisible);
+        },
+        isSpeciesFilterActive() {
+            return ["human", "mouse", "other"].some(
+                (key) => this.speciesFilters[key] === false
+            );
+        },
+        setDepotFilter(depotId, isVisible) {
+            this.$set(this.depotFilters, depotId, isVisible);
+        },
+        isDepotFilterActive() {
+            if (!this.depotOptions.length) {
+                return false;
+            }
+
+            return this.depotOptions.some(
+                (option) => this.depotFilters[option.id] === false
+            );
+        },
+        applyAdjPFilter() {
+            this.adjPValueMax = String(this.adjPValueInput || "").trim();
+        },
+        isAdjPFilterActive() {
+            const maxValue = String(this.adjPValueMax || "").trim();
+
+            if (!maxValue) {
+                return false;
+            }
+
+            return !Number.isNaN(Number(maxValue));
         },
         buildPlotRowGroups(plotRows) {
             const groups = [];
@@ -299,7 +607,12 @@ new Vue({
                 mouse: true,
                 other: true,
             };
+            this.adjPValueMax = "";
+            this.adjPValueInput = "";
             this.initializeVisibleOutcomes();
+            this.initializeDepotFilters();
+            this.initializeDatasetFilters();
+            this.initializeDatasetVisibility();
 
             if (!this.activeOutcomeIds.includes(this.selectedOutcomeId)) {
                 this.selectedOutcomeId = this.activeOutcomeIds[0];
@@ -374,7 +687,7 @@ new Vue({
             const sections = Array.from(
                 document.querySelectorAll("[data-outcome-id]")
             ).filter((section) =>
-                this.isOutcomeVisible(section.dataset.outcomeId)
+                this.isOutcomeSectionVisible(section.dataset.outcomeId)
             );
 
             if (!sections.length) {
