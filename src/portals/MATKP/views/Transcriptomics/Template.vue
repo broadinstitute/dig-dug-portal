@@ -6,14 +6,19 @@
       <div class="mat-body">
         <div class="prototype-page f-col">
           <div class="hero-panel f-col">
-            <div class="eyebrow">MATKP prototype</div>
             <div class="hero-row f-row">
               <div class="hero-copy f-col">
                 <h1>Bulk transcriptomic datasets viewer</h1>
                 <p>
-                  Gene-first prototype for scanning bulk RNA-seq evidence across
+                  Gene-first viewer for scanning bulk RNA-seq evidence across
                   adipose datasets. Each outcome is rendered as a compact forest
-                  plot with a matching evidence table underneath.
+                  plot with a matching evidence table underneath. Read each row
+                  as one dataset. The center line is the null value. Dots to the
+                  right indicate a higher estimate in the named comparison
+                  direction, dots to the left indicate a lower or opposite
+                  estimate, and orange intervals show uncertainty. If an
+                  interval crosses the center line, the row is compatible with
+                  little or no effect.
                 </p>
               </div>
 
@@ -57,26 +62,6 @@
                 </div>
               </div>
             </div>
-
-            <div class="summary-strip">
-              <div
-                v-for="card in $parent.geneSummaryCards"
-                :key="card.label"
-                class="summary-card"
-              >
-                <div class="summary-value">{{ card.value }}</div>
-                <div class="summary-label">{{ card.label }}</div>
-              </div>
-            </div>
-
-            <div class="interpretation-note">
-              Read each row as one dataset. The center line is the null value.
-              Dots to the right indicate a higher estimate in the named
-              comparison direction, dots to the left indicate a lower or
-              opposite estimate, and orange intervals show uncertainty. If an
-              interval crosses the center line, the row is compatible with
-              little or no effect.
-            </div>
           </div>
 
           <div class="content-grid">
@@ -84,28 +69,103 @@
               <div class="rail-card f-col">
                 <div class="rail-title">Selected gene</div>
                 <div class="gene-display">{{ $parent.activeGene.gene }}</div>
-                <div class="rail-copy">
-                  {{ $parent.activeGene.supported_outcome_count }} supported
-                  outcomes across
-                  {{ $parent.activeGene.page_summary.dataset_count }} datasets.
-                </div>
+                <ul class="gene-summary-list">
+                  <li
+                    v-for="item in $parent.geneSummaryList"
+                    :key="item"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
               </div>
 
               <div class="rail-card f-col">
                 <div class="rail-title">Outcomes</div>
                 <div class="outcomes-list">
-                  <button
+                  <div class="outcome-filter-row outcome-filter-row--species">
+                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
+                    <span class="outcome-filter-label">Species</span>
+                    <b-dropdown
+                      right
+                      no-caret
+                      variant="link"
+                      toggle-class="outcome-filter-menu"
+                      boundary="viewport"
+                    >
+                      <template #button-content>
+                        <b-icon icon="three-dots-vertical"></b-icon>
+                      </template>
+                      <b-dropdown-form class="outcome-filter-dropdown">
+                        <b-form-checkbox
+                          size="sm"
+                          :checked="$parent.speciesFilters.human"
+                          @change="
+                            $parent.setSpeciesFilter('human', $event)
+                          "
+                        >
+                          Human
+                        </b-form-checkbox>
+                        <b-form-checkbox
+                          size="sm"
+                          :checked="$parent.speciesFilters.mouse"
+                          @change="
+                            $parent.setSpeciesFilter('mouse', $event)
+                          "
+                        >
+                          Mouse
+                        </b-form-checkbox>
+                        <b-form-checkbox
+                          size="sm"
+                          :checked="$parent.speciesFilters.other"
+                          @change="
+                            $parent.setSpeciesFilter('other', $event)
+                          "
+                        >
+                          Pooled / other
+                        </b-form-checkbox>
+                      </b-dropdown-form>
+                    </b-dropdown>
+                  </div>
+
+                  <div
                     v-for="outcome in $parent.outcomes"
                     :key="outcome.outcome_id"
-                    type="button"
-                    class="outcome-chip"
-                    :class="{
-                      active: $parent.isOutcomeInFocus(outcome.outcome_id),
-                    }"
-                    @click="$parent.selectOutcome(outcome.outcome_id)"
+                    class="outcome-filter-row"
                   >
-                    {{ outcome.outcome_label }}
-                  </button>
+                    <b-form-checkbox
+                      class="outcome-filter-checkbox"
+                      size="sm"
+                      :checked="$parent.isOutcomeVisible(outcome.outcome_id)"
+                      @change="
+                        $parent.setOutcomeVisibility(
+                          outcome.outcome_id,
+                          $event
+                        )
+                      "
+                    ></b-form-checkbox>
+                    <span class="outcome-filter-label">{{
+                      outcome.outcome_label
+                    }}</span>
+                    <b-dropdown
+                      right
+                      no-caret
+                      variant="link"
+                      toggle-class="outcome-filter-menu"
+                      boundary="viewport"
+                    >
+                      <template #button-content>
+                        <b-icon icon="three-dots-vertical"></b-icon>
+                      </template>
+                      <b-dropdown-form class="outcome-filter-dropdown">
+                        <div class="outcome-filter-dropdown__title">
+                          {{ outcome.outcome_label }} filters
+                        </div>
+                        <div class="outcome-filter-dropdown__placeholder">
+                          Optional section filters will appear here.
+                        </div>
+                      </b-dropdown-form>
+                    </b-dropdown>
+                  </div>
                 </div>
               </div>
             </div>
@@ -113,6 +173,7 @@
             <div class="sections-column f-col">
               <section
                 v-for="outcome in $parent.outcomes"
+                v-show="$parent.isOutcomeVisible(outcome.outcome_id)"
                 :key="outcome.outcome_id"
                 class="outcome-section f-col"
                 :data-outcome-id="outcome.outcome_id"
@@ -124,18 +185,34 @@
                       {{ outcome.contrast_label }}
                     </div>
                   </div>
-                  <div class="section-meta f-row">
-                    <div class="meta-chip">
-                      {{ outcome.summary_counts.dataset_count }} datasets
+                  <div class="section-header-meta f-col">
+                    <div class="section-meta">
+                      <span
+                        >{{ outcome.summary_counts.dataset_count }} datasets</span
+                      >
+                      <span
+                        >{{ outcome.summary_counts.species_count }} species</span
+                      >
+                      <span class="section-meta__pooled pooled-emphasis"
+                        >{{
+                          outcome.summary_counts.pooled_row_count || 0
+                        }}
+                        pooled data</span
+                      >
                     </div>
-                    <div class="meta-chip">
-                      {{ outcome.summary_counts.species_count }} species
-                    </div>
-                    <div
-                      v-if="outcome.summary_counts.pooled_row_count"
-                      class="meta-chip pooled-chip"
-                    >
-                      {{ outcome.summary_counts.pooled_row_count }} pooled row
+                    <div class="plot-legend f-row">
+                      <div class="legend-item f-row">
+                        <span class="legend-dot"></span>
+                        <span>estimate</span>
+                      </div>
+                      <div class="legend-item f-row">
+                        <span class="legend-line"></span>
+                        <span>95% CI</span>
+                      </div>
+                      <div class="legend-item f-row">
+                        <span class="legend-null"></span>
+                        <span>null</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -157,89 +234,95 @@
                   </div>
 
                   <div class="plot-rows f-col">
-                    <div
-                      v-for="row in outcome.plotRows"
-                      :key="`${outcome.outcome_id}-${row.display_label_short}-${row.row_type}`"
-                      class="plot-row"
-                      :class="{ pooled: row.row_type === 'pooled' }"
+                    <template
+                      v-for="item in outcome.plotRowGroups"
                     >
-                      <div class="label-rail">
-                        <div class="row-title-row">
+                      <div
+                        v-if="item.type === 'species-header'"
+                        :key="item.key"
+                        class="species-group-header plot-scale-row"
+                      >
+                        <div
+                          class="species-group-header__label"
+                          :class="item.speciesClass"
+                        >
+                          {{ item.label }}
+                        </div>
+                        <div></div>
+                      </div>
+                      <div
+                        v-else
+                        :key="item.key"
+                        class="plot-row"
+                        :class="{ pooled: item.row.row_type === 'pooled' }"
+                      >
+                        <div class="label-rail">
                           <div
                             class="row-title"
-                            v-b-tooltip.html.hover.right="$parent.rowTooltip(row)"
+                            :class="[
+                              $parent.speciesClass(item.row.species),
+                              {
+                                'pooled-emphasis':
+                                  item.row.row_type === 'pooled',
+                              },
+                            ]"
+                            v-b-tooltip.html.hover.right="
+                              $parent.rowTooltip(item.row)
+                            "
                           >
-                            {{
-                              row.row_type === "pooled"
-                                ? row.display_label_short
-                                : row.display_label_short
-                            }}
-                          </div>
-                          <div
-                            class="species-badge compact"
-                            :class="$parent.speciesClass(row.species)"
-                          >
-                            {{ $parent.formatSpeciesLabel(row.species) }}
+                            {{ item.row.display_label_short }}
                           </div>
                         </div>
-                      </div>
 
-                      <div
-                        class="plot-rail"
-                        v-b-tooltip.html.hover.top="$parent.rowTooltip(row)"
-                      >
-                        <div class="rail-line"></div>
-                        <div class="rail-zero"></div>
                         <div
-                          class="ci-line"
-                          :style="{
-                            left: `${row.ciLeft}%`,
-                            width: `${row.ciWidth}%`,
-                          }"
-                        ></div>
-                        <div
-                          class="effect-marker"
-                          :class="{ pooled: row.row_type === 'pooled' }"
-                          :style="{ left: `calc(${row.effectLeft}% - 7px)` }"
-                        ></div>
+                          class="plot-rail"
+                          v-b-tooltip.html.hover.top="
+                            $parent.rowTooltip(item.row)
+                          "
+                        >
+                          <div class="rail-line"></div>
+                          <div class="rail-zero"></div>
+                          <div
+                            class="ci-line"
+                            :style="{
+                              left: `${item.row.ciLeft}%`,
+                              width: `${item.row.ciWidth}%`,
+                            }"
+                          ></div>
+                          <div
+                            class="effect-marker"
+                            :class="{ pooled: item.row.row_type === 'pooled' }"
+                            :style="{
+                              left: `calc(${item.row.effectLeft}% - 7px)`,
+                            }"
+                          ></div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div class="plot-footer f-row">
-                    <div class="plot-legend f-row">
-                      <div class="legend-item f-row">
-                        <span class="legend-dot"></span>
-                        <span>estimate</span>
-                      </div>
-                      <div class="legend-item f-row">
-                        <span class="legend-line"></span>
-                        <span>95% CI</span>
-                      </div>
-                      <div class="legend-item f-row">
-                        <span class="legend-null"></span>
-                        <span>null</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      class="evidence-toggle"
-                      @click="$parent.toggleOutcome(outcome.outcome_id)"
-                    >
-                      {{
-                        $parent.isOutcomeExpanded(outcome.outcome_id)
-                          ? "Hide evidence rows"
-                          : "Show evidence rows"
-                      }}
-                    </button>
+                    </template>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  class="evidence-accordion"
+                  :class="{
+                    expanded: $parent.isOutcomeExpanded(outcome.outcome_id),
+                  }"
+                  :aria-expanded="
+                    $parent.isOutcomeExpanded(outcome.outcome_id)
+                      ? 'true'
+                      : 'false'
+                  "
+                  @click="$parent.toggleOutcome(outcome.outcome_id)"
+                >
+                  <span class="evidence-accordion__caret" aria-hidden="true"></span>
+                  <span class="evidence-accordion__label">Evidence rows</span>
+                </button>
 
                 <div
                   v-if="$parent.isOutcomeExpanded(outcome.outcome_id)"
                   class="details-card f-col"
                 >
-                  <div class="details-title">Evidence rows</div>
                   <div class="table-wrap">
                     <table class="details-table">
                       <thead>
@@ -300,13 +383,6 @@
   padding: 28px;
 }
 
-.eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .hero-row {
   gap: 24px;
   justify-content: space-between;
@@ -351,39 +427,6 @@
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.interpretation-note {
-  background: #fff7d0;
-  font-size: 12px;
-  line-height: 1.45;
-  padding: 12px 14px;
-}
-
-.summary-strip {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.summary-card {
-  background: #fff7d0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-}
-
-.summary-value {
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.summary-label {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .content-grid {
   display: grid;
   gap: 14px;
@@ -415,34 +458,166 @@
   line-height: 1.1;
 }
 
-.rail-copy {
+.gene-summary-list {
   color: #555555;
   font-size: 13px;
   line-height: 1.5;
+  margin: 0;
+  padding-left: 18px;
 }
 
 .outcomes-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-.outcome-chip,
-.action-button,
-.evidence-toggle {
-  background: #ffffff;
-  border: 1px solid #dddddd;
-  border-radius: 5px;
+.outcome-filter-row {
+  align-items: center;
+  background: none;
+  border: none;
+  border-bottom: solid 1px #dddddd;
+  border-radius: 0;
+  display: grid;
+  gap: 0 10px;
+  grid-template-columns: 1.1rem 1fr 1.1rem;
+  min-height: 38px;
+  padding: 0;
+}
+
+.outcome-filter-row--species {
+  grid-template-columns: 1.1rem 1fr 1.1rem;
+}
+
+.outcome-filter-spacer {
+  width: 1.1rem;
+}
+
+.outcome-filter-label {
   color: #000000;
-  cursor: pointer;
   font-size: 12px;
   font-weight: 700;
-  padding: 8px 10px;
-  text-align: left;
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.outcome-chip {
-  width: 100%;
+.outcome-filter-checkbox {
+  justify-self: start;
+  line-height: 1;
+  margin: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.outcome-filter-checkbox :deep(.custom-control) {
+  margin: 0;
+  min-height: 0.64rem;
+  padding-left: 0.64rem;
+}
+
+.outcome-filter-checkbox :deep(.custom-control-label) {
+  min-height: 0.64rem;
+  padding: 0;
+}
+
+.outcome-filter-checkbox :deep(.custom-control-label::before),
+.outcome-filter-checkbox :deep(.custom-control-label::after) {
+  height: 0.64rem;
+  left: -0.64rem;
+  top: 0;
+  width: 0.64rem;
+}
+
+.outcome-filter-menu {
+  align-items: center;
+  color: #999999;
+  display: inline-flex;
+  font-size: 15px;
+  height: 24px;
+  justify-content: center;
+  justify-self: end;
+  line-height: 1;
+  min-width: 24px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.outcome-filter-menu:hover,
+.outcome-filter-menu:focus,
+.outcome-filter-menu:active {
+  background: transparent;
+  box-shadow: none;
+  color: #999999;
+  text-decoration: none;
+}
+
+.outcome-filter-row :deep(.outcome-filter-menu .b-icon) {
+  color: #999999;
+}
+
+.outcome-filter-row :deep(.dropdown) {
+  justify-self: end;
+  line-height: 1;
+}
+
+.outcome-filter-row :deep(.btn-link) {
+  border: 0;
+}
+
+:deep(.outcome-filter-dropdown) {
+  font-size: 13px;
+  line-height: 1.35;
+  min-width: 168px;
+  padding: 6px 10px;
+}
+
+:deep(.outcome-filter-dropdown__title) {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+:deep(.outcome-filter-dropdown__placeholder) {
+  color: #555555;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+:deep(.outcome-filter-dropdown .custom-checkbox) {
+  align-items: center;
+  display: flex;
+  margin-bottom: 10px;
+  min-height: 0;
+  padding-left: calc(0.6rem + 8px);
+}
+
+:deep(.outcome-filter-dropdown .custom-checkbox:last-child) {
+  margin-bottom: 0;
+}
+
+:deep(.outcome-filter-dropdown .custom-control-label) {
+  align-items: center;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0;
+  min-height: 0.6rem;
+  padding-left: 0rem;
+  padding-top: 0;
+  position: relative;
+}
+
+:deep(.outcome-filter-dropdown .custom-control-label::before),
+:deep(.outcome-filter-dropdown .custom-control-label::after) {
+  height: 0.6rem;
+  left: calc(-0.6rem - 8px);
+  margin-top: -0.3rem;
+  top: 50%;
+  width: 0.6rem;
 }
 
 .action-button {
@@ -451,11 +626,6 @@
   padding-left: 14px;
   padding-right: 14px;
   text-align: center;
-}
-
-.outcome-chip.active {
-  background: #ffe514;
-  border-color: #ffe514;
 }
 
 .sections-column {
@@ -487,27 +657,25 @@
   font-weight: 700;
 }
 
-.section-meta {
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+.section-header-meta {
+  align-items: flex-end;
+  gap: 4px;
 }
 
-.meta-chip {
-  background: #f2f2f2;
-  border-radius: 5px;
+.section-meta {
+  color: #555555;
   font-size: 12px;
   font-weight: 700;
-  padding: 6px 8px;
+  text-align: right;
 }
 
-.meta-chip.highlight {
-  background: #ffe514;
+.section-meta span + span::before {
+  content: "|";
+  margin: 0 0.35em;
 }
 
-.pooled-chip {
-  background: #fff7d0;
-  border: 1px solid #ffe514;
+.pooled-emphasis {
+  color: #ff6c02;
 }
 
 .plot-card,
@@ -557,11 +725,51 @@
   min-width: 0;
 }
 
-.row-title-row {
-  align-items: center;
-  display: flex;
-  gap: 6px;
-  justify-content: space-between;
+.species-group-header {
+  margin-top: 4px;
+}
+
+.species-group-header:first-child {
+  margin-top: 0;
+}
+
+.species-group-header__label {
+  border-radius: 999px;
+  color: #000000;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: -10px;
+  padding: 3px 6px;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.species-group-header__label.human {
+  background: #ffe7cf;
+}
+
+.species-group-header__label.mouse {
+  background: #fff7d0;
+}
+
+.species-group-header__label.other {
+  background: #f2f2f2;
+}
+
+.row-title.human {
+  border-left: solid 3px #ffe7cf;
+  padding-left: 5px;
+}
+
+.row-title.mouse {
+  border-left: solid 3px #fff7d0;
+  padding-left: 5px;
+}
+
+.row-title.other {
+  border-left: solid 3px #f2f2f2;
+  padding-left: 5px;
 }
 
 .row-title {
@@ -598,7 +806,8 @@
   bottom: 2px;
   left: 50%;
   top: 2px;
-  width: 2px;
+  transform: translateX(-50%);
+  width: 1px;
 }
 
 .ci-line {
@@ -624,45 +833,13 @@
   border-color: #424242;
 }
 
-.species-badge {
-  align-self: flex-end;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 5px 8px;
-}
-
-.species-badge.human {
-  background: #ffe7cf;
-}
-
-.species-badge.mouse {
-  background: #fff7d0;
-}
-
-.species-badge.other {
-  background: #f2f2f2;
-}
-
-.species-badge.compact {
-  align-self: auto;
-  font-size: 10px;
-  padding: 3px 6px;
-}
-
-.plot-footer {
-  align-items: center;
-  gap: 10px;
-  justify-content: space-between;
-  margin-top: 2px;
-}
-
 .plot-legend {
   align-items: center;
   color: #555555;
   flex-wrap: wrap;
   font-size: 11px;
   gap: 12px;
+  justify-content: flex-end;
 }
 
 .legend-item {
@@ -691,13 +868,47 @@
   background: #424242;
   display: inline-block;
   height: 12px;
-  width: 2px;
+  width: 1px;
 }
 
-.evidence-toggle {
-  background: #ffe514;
-  padding: 6px 10px;
-  white-space: nowrap;
+.evidence-accordion {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: #000000;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+}
+
+.evidence-accordion:hover,
+.evidence-accordion:focus {
+  color: #000000;
+  text-decoration: none;
+}
+
+.evidence-accordion__label {
+  color: #000000;
+}
+
+.evidence-accordion__caret {
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid #ff6c02;
+  border-top: 5px solid transparent;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 0;
+  transition: transform 0.15s ease;
+  width: 0;
+}
+
+.evidence-accordion.expanded .evidence-accordion__caret {
+  transform: rotate(90deg);
 }
 
 :global(.tooltip.b-tooltip .tooltip-inner) {

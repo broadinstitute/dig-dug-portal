@@ -1,5 +1,5 @@
 {
-  "title": "matkp prototype - transcriptomic datasets viewer",
+  "title": "MATKP - transcriptomic datasets viewer",
   "default_gene": "LEP",
   "dataset_count": 47,
   "gene_count": 5,

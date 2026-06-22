@@ -36,6 +36,12 @@ new Vue({
             geneQuery: pageIndex.default_gene,
             selectedOutcomeId: null,
             expandedOutcomes: {},
+            visibleOutcomes: {},
+            speciesFilters: {
+                human: true,
+                mouse: true,
+                other: true,
+            },
             activeScrolledOutcomeId: null,
             scrollHandler: null,
         };
@@ -48,28 +54,17 @@ new Vue({
                 this.genesBySymbol[this.pageIndex.default_gene]
             );
         },
-        geneSummaryCards() {
+        geneSummaryList() {
             if (!this.activeGene) {
                 return [];
             }
 
+            const summary = this.activeGene.page_summary;
+
             return [
-                {
-                    label: "Demo genes",
-                    value: this.pageIndex.gene_count,
-                },
-                {
-                    label: "Datasets represented",
-                    value: this.activeGene.page_summary.dataset_count,
-                },
-                {
-                    label: "Supported outcomes",
-                    value: this.activeGene.page_summary.outcome_count,
-                },
-                {
-                    label: "Pooled outcome sections",
-                    value: this.activeGene.page_summary.pooled_outcome_count,
-                },
+                `${summary.dataset_count} datasets represented`,
+                `${summary.outcome_count} supported outcomes`,
+                `${summary.pooled_outcome_count} pooled outcome sections`,
             ];
         },
         activeOutcomeIds() {
@@ -88,14 +83,19 @@ new Vue({
             }
 
             return this.activeGene.outcomes.map((outcome) => {
-                const domain = this.getOutcomeDomain(outcome.rows);
+                const visibleRows = outcome.rows.filter((row) =>
+                    this.isSpeciesRowVisible(row)
+                );
+                const domain = this.getOutcomeDomain(visibleRows);
+                const plotRows = visibleRows.map((row) =>
+                    this.decorateRowForPlot(row, domain)
+                );
+
                 return {
                     ...outcome,
                     domain,
                     ticks: this.buildTicks(domain),
-                    plotRows: outcome.rows.map((row) =>
-                        this.decorateRowForPlot(row, domain)
-                    ),
+                    plotRowGroups: this.buildPlotRowGroups(plotRows),
                 };
             });
         },
@@ -116,6 +116,7 @@ new Vue({
                 ? requestedOutcome
                 : this.activeOutcomeIds[0];
 
+        this.initializeVisibleOutcomes();
         this.syncParams();
     },
     mounted() {
@@ -131,6 +132,54 @@ new Vue({
     },
 
     methods: {
+        initializeVisibleOutcomes() {
+            const visible = {};
+
+            this.activeOutcomeIds.forEach((outcomeId) => {
+                visible[outcomeId] = true;
+            });
+
+            this.visibleOutcomes = visible;
+        },
+        isOutcomeVisible(outcomeId) {
+            return this.visibleOutcomes[outcomeId] !== false;
+        },
+        setOutcomeVisibility(outcomeId, isVisible) {
+            this.$set(this.visibleOutcomes, outcomeId, isVisible);
+        },
+        isSpeciesRowVisible(row) {
+            return this.speciesFilters[this.speciesClass(row.species)] !== false;
+        },
+        setSpeciesFilter(speciesClass, isVisible) {
+            this.$set(this.speciesFilters, speciesClass, isVisible);
+        },
+        buildPlotRowGroups(plotRows) {
+            const groups = [];
+            let lastSpeciesKey = null;
+
+            plotRows.forEach((row) => {
+                const speciesKey = row.species || "__none__";
+
+                if (speciesKey !== lastSpeciesKey) {
+                    groups.push({
+                        type: "species-header",
+                        key: `header-${speciesKey}-${groups.length}`,
+                        species: row.species,
+                        label: this.formatSpeciesLabel(row.species),
+                        speciesClass: this.speciesClass(row.species),
+                    });
+                    lastSpeciesKey = speciesKey;
+                }
+
+                groups.push({
+                    type: "row",
+                    key: `${row.display_label_short}-${row.row_type}-${groups.length}`,
+                    row,
+                });
+            });
+
+            return groups;
+        },
         buildTicks(domain) {
             return [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
                 const value = domain.min + (domain.max - domain.min) * fraction;
@@ -245,6 +294,12 @@ new Vue({
             this.selectedGene = gene;
             this.geneQuery = gene;
             this.expandedOutcomes = {};
+            this.speciesFilters = {
+                human: true,
+                mouse: true,
+                other: true,
+            };
+            this.initializeVisibleOutcomes();
 
             if (!this.activeOutcomeIds.includes(this.selectedOutcomeId)) {
                 this.selectedOutcomeId = this.activeOutcomeIds[0];
@@ -318,6 +373,8 @@ new Vue({
         refreshScrolledOutcome() {
             const sections = Array.from(
                 document.querySelectorAll("[data-outcome-id]")
+            ).filter((section) =>
+                this.isOutcomeVisible(section.dataset.outcomeId)
             );
 
             if (!sections.length) {
