@@ -91,6 +91,24 @@ new Vue({
                 `${summary.pooled_outcome_count} pooled outcome sections`,
             ];
         },
+        geneSpeciesSymbolLabel() {
+            if (!this.activeGene) {
+                return "";
+            }
+
+            const symbols = this.collectGeneSpeciesSymbols(this.activeGene);
+            const parts = [];
+
+            if (symbols.human) {
+                parts.push(`Human: ${symbols.human}`);
+            }
+
+            if (symbols.mouse) {
+                parts.push(`Mouse: ${symbols.mouse}`);
+            }
+
+            return parts.join(" | ");
+        },
         activeOutcomeIds() {
             return this.activeGene ? this.activeGene.supported_outcomes : [];
         },
@@ -322,6 +340,33 @@ new Vue({
             const datasetKey = this.getDatasetRowKey(row);
 
             return this.datasetFilters[datasetKey] !== false;
+        },
+        collectGeneSpeciesSymbols(gene) {
+            const symbols = {
+                human: null,
+                mouse: null,
+            };
+
+            if (!gene) {
+                return symbols;
+            }
+
+            gene.outcomes.forEach((outcome) => {
+                outcome.rows.forEach((row) => {
+                    const speciesKey = this.speciesClass(row.species);
+                    const geneSymbol = row.gene || gene.gene;
+
+                    if (speciesKey === "human" && !symbols.human) {
+                        symbols.human = geneSymbol;
+                    }
+
+                    if (speciesKey === "mouse" && !symbols.mouse) {
+                        symbols.mouse = geneSymbol;
+                    }
+                });
+            });
+
+            return symbols;
         },
         collectDepotOptions(gene) {
             if (!gene) {

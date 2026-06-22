@@ -67,8 +67,15 @@
           <div class="content-grid">
             <div class="sticky-rail f-col">
               <div class="rail-card f-col">
-                <div class="rail-title">Selected gene</div>
-                <div class="gene-display">{{ $parent.activeGene.gene }}</div>
+                <div class="gene-display-block f-col">
+                  <div class="gene-display">{{ $parent.activeGene.gene }}</div>
+                  <div
+                    v-if="$parent.geneSpeciesSymbolLabel"
+                    class="gene-display__species"
+                  >
+                    ({{ $parent.geneSpeciesSymbolLabel }})
+                  </div>
+                </div>
                 <ul class="gene-summary-list">
                   <li
                     v-for="item in $parent.geneSummaryList"
@@ -79,10 +86,10 @@
                 </ul>
               </div>
 
-              <div class="rail-card f-col">
+              <div class="rail-card rail-card--sticky f-col">
                 <div class="rail-title">Outcomes</div>
                 <div class="outcomes-list">
-                  <div class="outcomes-group-title">Filter</div>
+                  <div class="outcomes-group-title">Filter data</div>
 
                   <div class="outcome-filter-row outcome-filter-row--species">
                     <span class="outcome-filter-spacer" aria-hidden="true"></span>
@@ -259,7 +266,7 @@
                     </b-dropdown>
                   </div>
 
-                  <div class="outcomes-group-title">Show / Hide</div>
+                  <div class="outcomes-group-title">Show/Hide sections</div>
 
                   <div class="outcomes-show-hide">
                     <div
@@ -351,9 +358,15 @@
               >
                 <div class="section-header f-row">
                   <div class="f-col section-heading">
-                    <div class="section-title">{{ outcome.outcome_label }}</div>
-                    <div class="section-subtitle">
-                      {{ outcome.contrast_label }}
+                    <div class="section-title">
+                      <span class="section-title__label">{{
+                        outcome.outcome_label
+                      }}</span>
+                      <small
+                        v-if="outcome.contrast_label"
+                        class="section-title__contrast"
+                        >({{ outcome.contrast_label }})</small
+                      >
                     </div>
                   </div>
                   <div class="section-header-meta f-col">
@@ -606,14 +619,17 @@
 
 .sticky-rail {
   gap: 14px;
-  position: sticky;
-  top: 20px;
-  align-self: start;
 }
 
 .rail-card {
   gap: 10px;
   padding: 16px;
+}
+
+.rail-card--sticky {
+  position: sticky;
+  top: 20px;
+  width: 100%;
 }
 
 .rail-title,
@@ -623,10 +639,22 @@
   font-weight: 700;
 }
 
-.gene-display {
+.gene-display-block {
   font-size: 18px;
   font-weight: 700;
+  gap: 2px;
   line-height: 1.1;
+}
+
+.gene-display {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.gene-display__species {
+  font-size: 0.75em;
+  font-weight: inherit;
 }
 
 .gene-summary-list {
@@ -902,13 +930,28 @@
 }
 
 .section-heading {
-  gap: 4px;
+  min-width: 0;
 }
 
-.section-subtitle {
-  color: #555555;
-  font-size: 12px;
+.section-title {
+  font-size: 18px;
   font-weight: 700;
+  line-height: 1.3;
+  max-width: 100%;
+}
+
+.section-title__label {
+  white-space: nowrap;
+}
+
+.section-title__contrast {
+  color: #555555;
+  display: inline-block;
+  font-size: 0.75em;
+  font-weight: 700;
+  margin-left: 0.3em;
+  max-width: 100%;
+  vertical-align: baseline;
 }
 
 .section-header-meta {
@@ -1242,7 +1285,7 @@
     grid-template-columns: 1fr;
   }
 
-  .sticky-rail {
+  .rail-card--sticky {
     position: static;
   }
 
