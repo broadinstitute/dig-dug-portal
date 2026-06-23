@@ -460,7 +460,7 @@
                                                 </option>
                                             </select>
                                         </div>
-                                        <div id="functional-assoc-table">
+                                        <div id="functional-assoc-table" v-if="!!$parent.functionalAssocTrait">
                                             <b-table
                                                 small
                                                 :fields="
@@ -493,6 +493,9 @@
                                                 :total-rows="$parent.assocTraitData.length"
                                             >
                                             </b-pagination>
+                                        </div>
+                                        <div v-else>
+                                            Select a trait to view functional associations for all donors.
                                         </div>
                                     </b-tab>
                                 </b-tabs>
