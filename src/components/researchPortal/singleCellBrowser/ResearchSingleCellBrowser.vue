@@ -1365,7 +1365,7 @@
             },
             markerGenesSizeKey(){
                 //todo: remove this after marker_genes endpoint data struct is standardized
-                console.log('markerGenesSizeKey', this.markerGenes);
+                //console.log('markerGenesSizeKey', this.markerGenes);
                 if(!this.markerGenes) return null;
                 if(this.markerGenes[0].pct_nz_group) return 'pct_nz_group';
                 if(this.markerGenes[0].pct_cells_expression) return 'pct_cells_expression';
@@ -1979,9 +1979,7 @@
                             //latest markers includes gene stats
                             this.markersList = [...new Set(this.markers.map(x=>x.gene.toUpperCase()))];
                             //this.markerCellTypes = [...new Set(this.markers.map(x=>x[markerFile.markerKey]))];
-                            this.markerCellTypes =
-                                this.fields.metadata_labels_sorted?.[markerFile.marker_gene_level] ||
-                                this.fields.metadata_labels[markerFile.marker_gene_level]
+                            
 
                             /*
                             //sort metadata_labels naturally (alpha/num)
@@ -2008,8 +2006,16 @@
                            this.markersByGene = scUtils.groupByKey(this.markers, 'gene');
                            //this.markersByCellType = scUtils.groupByKey(this.markers, 'cell_type');
                            this.markersByCellType = scUtils.groupByKey(this.markers, markerFile.markerKey);
+                           const markersTypeCount = Object.keys(this.markersByCellType).length;
 
-                           const topN = 80 / this.markerCellTypes.length;
+                           this.markerCellTypes =
+                                this.fields.metadata_labels_sorted?.[markerFile.marker_gene_level] ||
+                                this.fields.metadata_labels[markerFile.marker_gene_level] || 
+                                Object.keys(this.markersByCellType)
+
+                           //console.log('#####', markersTypeCount, this.markersByCellType);
+
+                           const topN = 80 / markersTypeCount;
                            const {markersMatrix, markersTable} = this.topNmarkersByCellType(topN);
 
                             this.geneNames = this.markersList;
@@ -2020,6 +2026,13 @@
                             this.markerTableColumns = this.markerDesiredColumns.filter(f =>
                                 this.markerGenes.some(row => row[f.key] !== null && row[f.key] !== undefined)
                             );
+                            if(!this.markerTableColumns.find(x => x.key === markerFile.markerKey)){
+                                this.markerTableColumns.unshift({
+                                    key: markerFile.markerKey,
+                                    label: markerFile.markerKey
+                                })
+                            }
+                            console.log("%%%%%%", this.markerTableColumns);
                             this.markersHaveZscores = this.markerGenes.some(row => row.z_score !== null && row.z_score !== undefined);
                             llog('markers', {markersByGene:this.markersByGene, markersByCellType:this.markersByCellType, markerGenes:this.markerGenes, markersList:this.markersList});
                             
@@ -2195,12 +2208,13 @@
                 const keys = this.markerCellTypes//Object.keys(this.markersByCellType);
                 //console.log('topNmarkersByCellType', this.markersByCellType, keys, Object.entries(this.markersByCellType));
                 //for (const [cellType, genes] of Object.entries(this.markersByCellType)) {
+                //console.log("$$$$$", keys);
                 for (const key of keys) {
                     const cellType = key;
                     const genes = this.markersByCellType[key];
                     //for (const genes of this.markersByCellType[key]) {
                         if(!cellTypeName || (cellTypeName && cellType===cellTypeName)){
-                            console.log(cellType, genes);
+                            //console.log(cellType, genes);
                             if(genes){
                                 if (this.preserveMarkerGeneOrder) {
                                     topGenes = genes.filter(gene =>
@@ -2353,7 +2367,7 @@
 
             /* handlers */
             handleSampleChange(){
-                console.log('activeGroup', this.activeGroup);
+                //console.log('activeGroup', this.activeGroup);
                 this.cellTypeField = this.activeGroup;
                 this.selectSegmentBy(this.cellTypeField, this.cellCompositionVars.segmentByLabel);
             },
