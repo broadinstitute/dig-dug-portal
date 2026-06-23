@@ -275,7 +275,10 @@ new Vue({
             functionalTrait: null,
             functionalAssocTrait: null,
             vlnConditions: [],
-            showContent: false,
+            showContent: {
+                insulin_ieq: false,
+                glucagon_ieq: false
+            },
             assocTraits: [],
             isletTab: 0
         };
@@ -306,15 +309,21 @@ new Vue({
             };
             return utils;
         },
+        showInsulin(){
+            return this.showContent.insulin_ieq;
+        },
         insData(){
             let sourceData = 
-                this.showContent ? this.$store.state.insContent : 
+                !!this.showInsulin? this.$store.state.insContent : 
                 this.$store.state.ins;
             return this.collateData(sourceData);
         },
+        showGlucagon(){
+            return this.showContent.glucagon_ieq;
+        },
         gcgData(){
             let sourceData = 
-                this.showContent ? this.$store.state.gcgContent : 
+                !!this.showContent.glucagon_ieq ? this.$store.state.gcgContent : 
                 this.$store.state.gcg;
             return this.collateData(sourceData);
         },
@@ -421,8 +430,8 @@ new Vue({
             entries = entries.map(e => e.match(donorIdFinder)[0]);
             this.selectedDonorList = entries;
         },
-        toggleContent(showHide){
-            this.showContent = showHide;
+        toggleContent(plotId, showHide){
+            this.showContent[plotId] = showHide;
         },
         collateData(data){
             let maxTime = null;
