@@ -267,6 +267,8 @@ new Vue({
             },
             perPage: 10,
             currentPage: 1,
+            assocPerPage: 10,
+            assocPage: 1,
             selectedDonors: "",
             selectedDonorList: [],
             useSelected: false,

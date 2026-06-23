@@ -468,6 +468,8 @@
                                                 "
                                                 :items="$parent.assocTraitData"
                                                 :sortable="true"
+                                                :per-page="$parent.assocPerPage"
+                                                :current-page="$parent.assocPage"
                                             >
                                                 <template #cell(predictor)="r">
                                                     {{
@@ -484,6 +486,13 @@
                                                     }}
                                                 </template>
                                             </b-table>
+                                            <b-pagination
+                                                class="pagination-md justify-content-center"
+                                                v-model="$parent.assocPage"
+                                                :per-page="$parent.assocPerPage"
+                                                :total-rows="$parent.assocTraitData.length"
+                                            >
+                                            </b-pagination>
                                         </div>
                                     </b-tab>
                                 </b-tabs>
