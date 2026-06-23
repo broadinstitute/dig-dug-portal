@@ -460,7 +460,7 @@
                                                 </option>
                                             </select>
                                         </div>
-                                        <div id="functional-assoc-table">
+                                        <div id="functional-assoc-table" v-if="!!$parent.functionalAssocTrait">
                                             <b-table
                                                 small
                                                 :fields="
@@ -468,6 +468,8 @@
                                                 "
                                                 :items="$parent.assocTraitData"
                                                 :sortable="true"
+                                                :per-page="$parent.assocPerPage"
+                                                :current-page="$parent.assocPage"
                                             >
                                                 <template #cell(predictor)="r">
                                                     {{
@@ -483,34 +485,21 @@
                                                         )
                                                     }}
                                                 </template>
-                                                <template #cell(covariates)="r">
-                                                    <button
-                                                        class="btn btn-sm btn-secondary"
-                                                        @click="
-                                                            r.toggleDetails()
-                                                        "
-                                                    >
-                                                        {{
-                                                            r.detailsShowing
-                                                                ? "Hide"
-                                                                : "Show"
-                                                        }}
-                                                    </button>
-                                                </template>
-                                                <template #row-details="r">
-                                                    <div v-for="cv in r.item.covariates.split(';')"
-                                                        class="covariates">
-                                                        {{cv}}
-                                                    </div>
-                                                    </template>
                                             </b-table>
+                                            <b-pagination
+                                                class="pagination-md justify-content-center"
+                                                v-model="$parent.assocPage"
+                                                :per-page="$parent.assocPerPage"
+                                                :total-rows="$parent.assocTraitData.length"
+                                            >
+                                            </b-pagination>
+                                        </div>
+                                        <div v-else>
+                                            Select a trait to view functional associations for all donors.
                                         </div>
                                     </b-tab>
                                 </b-tabs>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
+                                <div>
                         <div class="download-button">
                             <data-download
                                 :data="$parent.filteredDonors"
@@ -543,6 +532,10 @@
                         >
                         </b-pagination>
                     </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -642,8 +635,8 @@
     font-style: italic;
 }
 .side-panel-filters {
-    max-height: 900px;
     overflow-y: scroll !important;
+    max-height: 1800px;
 }
 .functional-select {
     margin-top: 10px;
@@ -662,8 +655,5 @@
 }
 .color-legend {
     margin-bottom: 10px;
-}
-.covariates {
-    text-align: right;
 }
 </style>
