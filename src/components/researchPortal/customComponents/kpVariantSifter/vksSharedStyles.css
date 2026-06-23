@@ -1,0 +1,19 @@
+/* Shared Variant Sifter workspace tokens (CFDE Knowledge Center palette). */
+.kp-variant-sifter-workspace {
+    --cfde-orange: #e07b39;
+    --cfde-orange-dark: #c2662b;
+    --cfde-orange-soft: #fbeee3;
+    --cfde-blue: #2c5c97;
+    --cfde-border: #e6e1d6;
+    --cfde-bg: #f6f5f2;
+    --cfde-ink: #33363d;
+    --cfde-muted: #6b6b6b;
+    --vks-toolbar-row: 28px;
+    --vks-toolbar-gap: 12px;
+    --vks-toolbar-icon: 17px;
+    --vks-drawer-open-width: 75vw;
+    --vks-drawer-tab-width: 30px;
+    --vks-side-panel-inset: 12px;
+    --vks-side-panel-top: var(--vks-side-panel-inset);
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
