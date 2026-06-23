@@ -498,7 +498,8 @@
                                                     </button>
                                                 </template>
                                                 <template #row-details="r">
-                                                    <div v-for="cv in r.item.covariates.split(';')">
+                                                    <div v-for="cv in r.item.covariates.split(';')"
+                                                        class="covariates">
                                                         {{cv}}
                                                     </div>
                                                     </template>
@@ -661,5 +662,8 @@
 }
 .color-legend {
     margin-bottom: 10px;
+}
+.covariates {
+    text-align: right;
 }
 </style>
