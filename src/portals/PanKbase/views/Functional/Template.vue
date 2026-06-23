@@ -507,10 +507,7 @@
                                         </div>
                                     </b-tab>
                                 </b-tabs>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
+                                <div>
                         <div class="download-button">
                             <data-download
                                 :data="$parent.filteredDonors"
@@ -543,6 +540,10 @@
                         >
                         </b-pagination>
                     </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -642,7 +643,6 @@
     font-style: italic;
 }
 .side-panel-filters {
-    max-height: 900px;
     overflow-y: scroll !important;
 }
 .functional-select {
