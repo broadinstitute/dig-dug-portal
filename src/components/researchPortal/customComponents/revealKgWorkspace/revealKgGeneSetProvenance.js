@@ -182,13 +182,22 @@ function buildEdgeDetail(edge, nodeById) {
 function isSummaryAnalysisNode(node) {
     const id = String(node?.id || "");
     const name = String(node?.name || "");
-    return id.includes("scrna_liger_prepare") || name === "prepare_prepare_summary";
+    return (
+        id.includes("gtex_aging_signatures") ||
+        id.includes("scrna_liger_prepare") ||
+        name === "prepare_deg_long" ||
+        name === "prepare_prepare_summary"
+    );
 }
 
 function isGeneSetAnalysisNode(node) {
     const id = String(node?.id || "");
     const name = String(node?.name || "");
-    return id.includes("rna_sc_programs") || name.startsWith("generate_");
+    return (
+        id.includes("rna_deg_multi") ||
+        id.includes("rna_sc_programs") ||
+        name.startsWith("generate_")
+    );
 }
 
 function nodeIdsForAnalysis(nodes, edges, analysisMatcher) {
