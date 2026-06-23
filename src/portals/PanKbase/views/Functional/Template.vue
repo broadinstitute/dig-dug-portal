@@ -483,26 +483,6 @@
                                                         )
                                                     }}
                                                 </template>
-                                                <template #cell(covariates)="r">
-                                                    <button
-                                                        class="btn btn-sm btn-secondary"
-                                                        @click="
-                                                            r.toggleDetails()
-                                                        "
-                                                    >
-                                                        {{
-                                                            r.detailsShowing
-                                                                ? "Hide"
-                                                                : "Show"
-                                                        }}
-                                                    </button>
-                                                </template>
-                                                <template #row-details="r">
-                                                    <div v-for="cv in r.item.covariates.split(';')"
-                                                        class="covariates">
-                                                        {{cv}}
-                                                    </div>
-                                                    </template>
                                             </b-table>
                                         </div>
                                     </b-tab>
@@ -663,8 +643,5 @@
 }
 .color-legend {
     margin-bottom: 10px;
-}
-.covariates {
-    text-align: right;
 }
 </style>

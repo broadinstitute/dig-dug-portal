@@ -386,8 +386,8 @@ new Vue({
             let fields = Object.keys(this.assocTraitData[0]);
             let lastField = "covariates";
             if (fields.includes(lastField)){
+                // No longer showing covariates.
                 fields = fields.filter(f => f !== lastField);
-                fields.push(lastField);
             }
             return fields.map(f => {
                 let definition = {
