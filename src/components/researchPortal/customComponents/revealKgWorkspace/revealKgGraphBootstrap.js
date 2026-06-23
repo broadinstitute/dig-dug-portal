@@ -7,6 +7,7 @@ import {
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
 import { isGeneSetRow, logGeneSetAdd } from "./revealKgGeneSetDebug.js";
+import { isDemoGeneSetAnchorItem } from "./revealKgDemoGeneSets.js";
 
 const NEIGHBOR_TARGET_ORDER = ["gene", "gene_set", "trait", "factor"];
 
@@ -157,6 +158,7 @@ export function anchorItemsFromBuckets(buckets) {
         label: item.label,
         subtitle: item.subtitle || "",
         node_type: item.node_type || item.type,
+        ...(item.demo_gene_set ? { demo_gene_set: item.demo_gene_set } : {}),
     }));
 }
 
@@ -197,30 +199,35 @@ export async function buildInitialGraphFromAnchors({
     let graphNodes = starterGraphNodesFromAnchorItems(anchorItems);
     let graphEdges = [];
 
-    const anchorPayload = await apiClient.getInteractiveAnchorLinks({ anchor_items: anchorItems });
-    ({ graphNodes, graphEdges } = mergeGraphPayload(
-        graphNodes,
-        graphEdges,
-        anchorPayload.nodes || [],
-        anchorPayload.edges || [],
-        "anchor"
-    ));
+    const catalogAnchorItems = anchorItems.filter((item) => !isDemoGeneSetAnchorItem(item));
+    if (catalogAnchorItems.length) {
+        const anchorPayload = await apiClient.getInteractiveAnchorLinks({
+            anchor_items: catalogAnchorItems,
+        });
+        ({ graphNodes, graphEdges } = mergeGraphPayload(
+            graphNodes,
+            graphEdges,
+            anchorPayload.nodes || [],
+            anchorPayload.edges || [],
+            "anchor"
+        ));
+    }
 
     let retrievalLedger = {};
     const allConnectionCandidates = [];
 
-    if (addNeighboringNodes && apiClient.getInteractiveConnections) {
-        const targetTypes = getAvailableConnectionTargetTypes(anchorItems, "direct");
+    if (addNeighboringNodes && apiClient.getInteractiveConnections && catalogAnchorItems.length) {
+        const targetTypes = getAvailableConnectionTargetTypes(catalogAnchorItems, "direct");
         const candidateLanes = {};
         for (const targetType of targetTypes) {
             const payload = await apiClient.getInteractiveConnections({
-                anchor_items: anchorItems,
+                anchor_items: catalogAnchorItems,
                 context: (context || "").trim(),
                 target_type: targetType,
                 reducer: "mean",
                 connection_scope: "direct",
                 limit: 100,
-                exclude_node_ids: anchorItems.map((item) => item.node_id),
+                exclude_node_ids: catalogAnchorItems.map((item) => item.node_id),
             });
             const lane = payload.candidates || [];
             candidateLanes[targetType] = lane;

@@ -12,9 +12,6 @@ export const DEMO_GENE_SET_QUERY_PREFIX = "demo:";
 
 const DEMO_GENE_SET_NODE_ID_PATTERN = /^gene_set:demo:\d+$/i;
 
-let catalogCache = null;
-let catalogPromise = null;
-
 export function parseDemoGeneSetSearchTerm(query) {
     const trimmed = String(query || "").trim();
     const lower = trimmed.toLowerCase();
@@ -46,35 +43,17 @@ function normalizeCatalogRecord(row) {
     };
 }
 
-export async function fetchDemoGeneSetsCatalog({ forceRefresh = false } = {}) {
-    if (!forceRefresh && catalogCache) {
-        return catalogCache;
+export async function fetchDemoGeneSetsCatalog() {
+    const response = await fetch(DEMO_GENE_SET_API_URL, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+    });
+    if (!response.ok) {
+        throw new Error(`Demo gene set catalog request failed (${response.status}).`);
     }
-    if (!forceRefresh && catalogPromise) {
-        return catalogPromise;
-    }
-    catalogPromise = (async () => {
-        const response = await fetch(DEMO_GENE_SET_API_URL, {
-            headers: { Accept: "application/json" },
-        });
-        if (!response.ok) {
-            throw new Error(`Demo gene set catalog request failed (${response.status}).`);
-        }
-        const payload = await response.json();
-        const rows = Array.isArray(payload) ? payload : payload?.items || [];
-        catalogCache = rows.map(normalizeCatalogRecord).filter(Boolean);
-        return catalogCache;
-    })();
-    try {
-        return await catalogPromise;
-    } catch (error) {
-        catalogPromise = null;
-        throw error;
-    } finally {
-        if (catalogCache) {
-            catalogPromise = null;
-        }
-    }
+    const payload = await response.json();
+    const rows = Array.isArray(payload) ? payload : payload?.items || [];
+    return rows.map(normalizeCatalogRecord).filter(Boolean);
 }
 
 export function filterDemoGeneSets(records, searchTerm, limit = 8) {
@@ -128,6 +107,13 @@ export function isDemoGeneSetGraphNode(node) {
     return DEMO_GENE_SET_NODE_ID_PATTERN.test(String(node?.id || node?.node_id || ""));
 }
 
+export function isDemoGeneSetAnchorItem(item) {
+    if (Number.isFinite(Number(item?.demo_gene_set?.gene_set_id))) {
+        return true;
+    }
+    return DEMO_GENE_SET_NODE_ID_PATTERN.test(String(item?.node_id || item?.id || ""));
+}
+
 export function demoGeneSetProvenanceForNode(node) {
     if (node?.demo_gene_set?.standard_name) {
         return node.demo_gene_set;
@@ -136,12 +122,15 @@ export function demoGeneSetProvenanceForNode(node) {
     if (!match) {
         return null;
     }
-    const geneSetId = Number(match[1]);
-    if (!Number.isFinite(geneSetId) || !catalogCache) {
-        return null;
-    }
-    const record = catalogCache.find((row) => row.gene_set_id === geneSetId);
-    return record ? demoGeneSetProvenanceFromRecord(record) : null;
+    return {
+        gene_set_id: Number(match[1]),
+        standard_name: "",
+        collection_name: "",
+        license_code: "",
+        tags: null,
+        source_url: DEMO_GENE_SET_API_URL,
+        source_label: "Translator geneset_extractor",
+    };
 }
 
 function mergeOriginTags(existing, additions) {

@@ -211,6 +211,13 @@ import {
     interactiveEntityKey,
     normalizeInteractiveSemanticMatchRows,
 } from "./revealKgEntityUtils.js";
+import {
+    demoGeneSetCatalogItem,
+    fetchDemoGeneSetsCatalog,
+    filterDemoGeneSets,
+    isDemoGeneSetSearchQuery,
+    parseDemoGeneSetSearchTerm,
+} from "./revealKgDemoGeneSets.js";
 
 export default {
     name: "WorkspaceEntityColumn",
@@ -271,7 +278,7 @@ export default {
         },
         searchPlaceholder() {
             if (this.entityType === "gene_set") {
-                return "Search by name or describe a biology question";
+                return "Search by name, describe a biology question, or try demo:bladder";
             }
             return `Search ${this.title.toLowerCase()}`;
         },
@@ -399,6 +406,17 @@ export default {
         },
         async runCatalogSearch(query, requestId) {
             try {
+                if (this.entityType === "gene_set" && isDemoGeneSetSearchQuery(query)) {
+                    const demoTerm = parseDemoGeneSetSearchTerm(query);
+                    const records = await fetchDemoGeneSetsCatalog();
+                    if (requestId !== this.catalogRequestId) {
+                        return;
+                    }
+                    this.autocompleteSuggestions = filterDemoGeneSets(records, demoTerm, 8).map(
+                        demoGeneSetCatalogItem
+                    );
+                    return;
+                }
                 const payload =
                     this.entityType === "gene_set"
                         ? await this.apiClient.searchInteractiveGeneSets(query, 8)
@@ -457,7 +475,10 @@ export default {
                 this.showSelectedFeedback("Already selected");
                 return;
             }
-            this.$emit("add", item);
+            this.$emit("add", {
+                ...item,
+                demo_gene_set: item.demo_gene_set || null,
+            });
             this.showSelectedFeedback("Selected term added");
             const query = this.autocompleteQuery.trim();
             if (query) {
