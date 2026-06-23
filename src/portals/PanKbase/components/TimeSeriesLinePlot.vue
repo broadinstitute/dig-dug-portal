@@ -90,7 +90,7 @@ export default Vue.component("time-series-line-plot", {
         "donors",
         "plotId",
         "timepoints",
-        "yAxisLabel",
+        "yAxisLabels",
         "isletTab"
     ],
     data() {
@@ -190,6 +190,9 @@ export default Vue.component("time-series-line-plot", {
                 htmlOutput = htmlOutput.concat(categoryDiv);
             });
             return htmlOutput;
+        },
+        yAxisLabel(){
+            return this.showContent ? this.yAxisLabels.content : this.yAxisLabels.ieq;
         }
     },
     methods: {

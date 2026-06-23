@@ -176,102 +176,93 @@
                                         title="Perifusion traces"
                                         class="functional-tab"
                                     >
-                                        <b-tabs>
-                                            <b-tab title="Islet insulin secretion"
-                                                class="functional-tab"
-                                                @click="$parent.tabIslet(0)">
-                                                <h5>Islet Insulin Secretion</h5>
-                                                <time-series-line-plot
-                                                    v-if="
-                                                        $parent.insTimepoints
-                                                            .length > 0 &&
-                                                        Array.isArray(
-                                                            $parent.resultsIns
-                                                        ) &&
+                                        <div class="functional-tab">
+                                            <h5>Islet Insulin Secretion</h5>
+                                            <time-series-line-plot
+                                                v-if="
+                                                    $parent.insTimepoints
+                                                        .length > 0 &&
+                                                    Array.isArray(
                                                         $parent.resultsIns
-                                                            .length > 0
-                                                    "
-                                                    :plotData="
-                                                        $parent.resultsIns
-                                                    "
-                                                    :donors="
-                                                        $parent.filteredAccession
-                                                    "
-                                                    :plotId="`insulin_ieq`"
-                                                    :timepoints="
-                                                        $parent.insTimepoints
-                                                    "
-                                                    :yAxisLabel="
-                                                        $parent.showContent
-                                                            ? 'Insulin secretion\n% content min'
-                                                            : 'Insulin secretion\n(ng/100 IEQs/min)'
-                                                    "
-                                                    :isletTab="$parent.isletTab"
-                                                    @showContent="c => $parent.toggleContent(c)"
+                                                    ) &&
+                                                    $parent.resultsIns
+                                                        .length > 0
+                                                "
+                                                :plotData="
+                                                    $parent.resultsIns
+                                                "
+                                                :donors="
+                                                    $parent.filteredAccession
+                                                "
+                                                :plotId="`insulin_ieq`"
+                                                :timepoints="
+                                                    $parent.insTimepoints
+                                                "
+                                                :yAxisLabels="{
+                                                    content: 'Insulin secretion\n% content min',
+                                                    ieq: 'Insulin secretion\n(ng/100 IEQs/min)'
+                                                }"
+                                                @showContent="sc => $parent.toggleContent('insulin_ieq', sc)"
+                                            >
+                                            </time-series-line-plot>
+                                            <div
+                                                v-else
+                                                class="line-plot-loading"
+                                            >
+                                                <b-spinner
+                                                    small
+                                                    variant="secondary"
+                                                ></b-spinner>
+                                                <span
+                                                    >Loading insulin
+                                                    secretion data...</span
                                                 >
-                                                </time-series-line-plot>
-                                                <div
-                                                    v-else
-                                                    class="line-plot-loading"
-                                                >
-                                                    <b-spinner
-                                                        small
-                                                        variant="secondary"
-                                                    ></b-spinner>
-                                                    <span
-                                                        >Loading insulin
-                                                        secretion data...</span
-                                                    >
-                                                </div>
-                                            </b-tab>
-                                            <b-tab title="Islet glucagon secretion"
-                                                class="functional-tab"
-                                                @click="$parent.tabIslet(1)">
-                                                <h5>Islet Glucagon Secretion</h5>
-                                                <time-series-line-plot
-                                                    v-if="
-                                                        $parent.gcgTimepoints
-                                                            .length > 0 &&
-                                                        Array.isArray(
-                                                            $parent.resultsGcg
-                                                        ) &&
+                                            </div>
+                                        </div>
+                                        <div class="functional-tab">
+                                            <h5>Islet Glucagon Secretion</h5>
+                                            <time-series-line-plot
+                                                v-if="
+                                                    $parent.gcgTimepoints
+                                                        .length > 0 &&
+                                                    Array.isArray(
                                                         $parent.resultsGcg
-                                                            .length > 0
-                                                    "
-                                                    :plotData="
-                                                        $parent.resultsGcg
-                                                    "
-                                                    :donors="
-                                                        $parent.filteredAccession
-                                                    "
-                                                    :plotId="`glucagon_ieq`"
-                                                    :timepoints="
-                                                        $parent.gcgTimepoints
-                                                    "
-                                                    :yAxisLabel="
-                                                        $parent.showContent
-                                                            ? 'Glucagon secretion\n% content min'
-                                                            : 'Glucagon secretion\n(pg/100 IEQs/min)'
-                                                    "
-                                                    :isletTab="$parent.isletTab"
-                                                    @showContent="c => $parent.toggleContent(c)"
+                                                    ) &&
+                                                    $parent.resultsGcg
+                                                        .length > 0
+                                                "
+                                                :plotData="
+                                                    $parent.resultsGcg
+                                                "
+                                                :donors="
+                                                    $parent.filteredAccession
+                                                "
+                                                :plotId="`glucagon_ieq`"
+                                                :timepoints="
+                                                    $parent.gcgTimepoints
+                                                "
+                                                :yAxisLabels="{
+                                                    content: 'Glucagon secretion\n% content min',
+                                                    ieq: 'Glucagon secretion\n(pg/100 IEQs/min)'
+                                                }"
+                                                @showContent="sc => $parent.toggleContent('glucagon_ieq', sc)"
+                                            >
+                                            </time-series-line-plot>
+                                            <div
+                                                v-else
+                                                class="line-plot-loading"
+                                            >
+                                                <b-spinner
+                                                    small
+                                                    variant="secondary"
+                                                ></b-spinner>
+                                                <span
+                                                    >Loading glucagon
+                                                    secretion data...</span
                                                 >
-                                                </time-series-line-plot>
-                                                <div
-                                                    v-else
-                                                    class="line-plot-loading"
-                                                >
-                                                    <b-spinner
-                                                        small
-                                                        variant="secondary"
-                                                    ></b-spinner>
-                                                    <span
-                                                        >Loading glucagon
-                                                        secretion data...</span
-                                                    >
-                                                </div>
-                                            </b-tab>
-                                        </b-tabs>   
+                                            </div>
+                                        </div>
+                                           
                                     </b-tab>
                                     <b-tab title="Functional data by trait"
                                         class="functional-tab">
