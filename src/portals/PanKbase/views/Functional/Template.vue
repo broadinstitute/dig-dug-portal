@@ -652,7 +652,7 @@
     font-style: italic;
 }
 .side-panel-filters {
-    border-right: 3px solid lightgray;
+    max-height: 900px;
     overflow-y: scroll !important;
 }
 .functional-select {
