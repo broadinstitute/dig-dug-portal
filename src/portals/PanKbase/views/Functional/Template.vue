@@ -644,6 +644,7 @@
 }
 .side-panel-filters {
     overflow-y: scroll !important;
+    max-height: 1800px;
 }
 .functional-select {
     margin-top: 10px;
