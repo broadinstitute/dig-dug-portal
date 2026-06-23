@@ -498,21 +498,10 @@
                                                     </button>
                                                 </template>
                                                 <template #row-details="r">
-                                                    <div
-                                                        style="
-                                                            text-align: right;
-                                                        "
-                                                    >
-                                                        {{
-                                                            $parent.replaceFieldNames(
-                                                                r.item.covariates.replaceAll(
-                                                                    ";",
-                                                                    ", "
-                                                                )
-                                                            )
-                                                        }}
+                                                    <div v-for="cv in r.item.covariates.split(';')">
+                                                        {{cv}}
                                                     </div>
-                                                </template>
+                                                    </template>
                                             </b-table>
                                         </div>
                                     </b-tab>

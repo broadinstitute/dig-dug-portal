@@ -275,7 +275,10 @@ new Vue({
             functionalTrait: null,
             functionalAssocTrait: null,
             vlnConditions: [],
-            showContent: {},
+            showContent: {
+                insulin_ieq: false,
+                glucagon_ieq: false
+            },
             assocTraits: [],
             isletTab: 0
         };
@@ -306,11 +309,17 @@ new Vue({
             };
             return utils;
         },
+        showInsulin(){
+            return this.showContent.insulin_ieq;
+        },
         insData(){
             let sourceData = 
-                !!this.showContent.insulin_ieq ? this.$store.state.insContent : 
+                !!this.showInsulin? this.$store.state.insContent : 
                 this.$store.state.ins;
             return this.collateData(sourceData);
+        },
+        showGlucagon(){
+            return this.showContent.glucagon_ieq;
         },
         gcgData(){
             let sourceData = 
