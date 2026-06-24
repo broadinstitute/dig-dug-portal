@@ -40,3 +40,31 @@ public/data/
 # meta-harness
 .agents/
 .codex/
+
+# pb_Gene local-only / scratch / build artifacts
+/_workspace/
+*.bak
+src/views/KrPublicFront/
+src/views/KrPublicGene/
+src/views/KrPublicPhenotype/
+scripts/add_exon_sequences.py
+scripts/build_gene_basic_info.R
+scripts/export_portal_gene_fixture.R
+scripts/fetch_gene_exon_coords.R
+scripts/fetch_gene_exon_coords.py
+scripts/pb_gene_fixture_server.js
+src/views/PbGene/portalGeneData.generated.js
+docs/*.pdf
+/docs/current_mockup_screenshots/
+/docs/engineer_screenshots/
+
+# pb_Gene local reference/cache data not shared in the UI branch
+/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+/Homo_sapiens.GRCh38.dna.primary_assembly.fa.fai
+/data/reference_db/_ensembl.gtf.gz
+/data/reference_db/crdc_diagnosed_20240716.tsv
+/data/reference_db/gene_basic_info.rds
+/data/reference_db/gene_basic_info.tsv
+/data/reference_db/gene_exon_coords.example.tsv
+/data/reference_db/gene_exon_coords.tsv
+/data/reference_db/hgnc_complete_set.txt

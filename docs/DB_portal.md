@@ -1,6 +1,6 @@
 # CRDC Rare Disease Portal DB Guide
 
-Date: 2026-05-29
+Date: 2026-06-24
 Repository: `dig-dug-portal`
 
 This document explains the data model behind the current four promoted clinical browser pages:
@@ -24,6 +24,7 @@ The portal data model has two layers.
 
 ```text
 Layer 1. Shared reference database
+  HGNC / NCBI gene basics
   HPO ontology
   MONDO ontology
   disease-HPO profiles
@@ -47,6 +48,13 @@ Layer 2. CRDC cohort database
 
 The reference database is sample-free. CRDC samples are attached later.
 
+The shared reference database is materialized in the development/server-side
+data area under `data/reference_db/` or an equivalent production reference
+database. Engineers should use those prepared tables as the source of truth. Do
+not add browser-side download logic for HGNC, NCBI, HPO, DDG2P, PanelApp,
+pathway, Ensembl, FASTA/GTF, BED, or coordinate resources. Large or sensitive
+raw/cache files do not need to be committed to the shared UI branch.
+
 ---
 
 ## 2. Reference Database
@@ -66,6 +74,8 @@ data/reference_db/crdc_reference_db_tables.rds
 Important table files:
 
 ```text
+gene_basic_info.rds / gene_basic_info.tsv
+hgnc_complete_set.txt
 hpo_term.rds / hpo_term.tsv
 hpo_edge.rds / hpo_edge.tsv
 hpo_ancestor.rds / hpo_ancestor.tsv
@@ -81,10 +91,23 @@ ddg2p_gene_summary.rds / ddg2p_gene_summary.tsv
 panelapp_gene_summary.rds / panelapp_gene_summary.tsv
 gene_pathway_summary.rds / gene_pathway_summary.tsv
 gene_annotation_summary.rds / gene_annotation_summary.tsv
+gene_exon_coords.tsv
+_ensembl.gtf.gz
+crdc_diagnosed_20240716.tsv
 reference_source_manifest.rds / reference_source_manifest.tsv
 ```
 
 The UI does not read RDS files directly. Exporters or backend endpoints should transform these tables into the page contracts below.
+
+Reference availability notes:
+
+- `gene_basic_info` contains HGNC approved symbol/name, HGNC cytogenetic location, NCBI Gene ID, Ensembl Gene ID, and a deterministic one- or two-sentence NCBI Gene summary.
+- `gene_annotation_summary` is the collapsed DDG2P / PanelApp / Reactome / WikiPathways reference table.
+- `hpo_term`, `hpo_edge`, and `hpo_ancestor` are present and should be used for HPO labels, ancestor traversal, broad-root exclusion, and root-category grouping.
+- `gene_exon_coords.tsv` is present and should be used for gene locus range, exon model, and base-level reference sequence display.
+- `_ensembl.gtf.gz` is a local Ensembl GTF cache used by reference-build scripts.
+- `crdc_diagnosed_20240716.tsv` is present and should be used for sample-level GenDx diagnosis detail display.
+- WES capture BED or coverage resources, when used, belong in the same server-side reference layer. They should not be requested by the browser.
 
 ---
 
@@ -172,6 +195,7 @@ They should not be counted as key terms, phenotype profile evidence, root-catego
 
 | Table | Use |
 |---|---|
+| `gene_basic_info` | HGNC approved gene name, cytogenetic location, NCBI Gene summary |
 | `hpo_gene_annotation` | Gene-HPO annotation |
 | `hpo_gene_disease` | Gene-disease links |
 | `gene_annotation_summary` | Collapsed gene reference support |
@@ -180,6 +204,18 @@ They should not be counted as key terms, phenotype profile evidence, root-catego
 | `gene_pathway_summary` | Reactome/WikiPathways support |
 
 When annotation is unavailable, API payloads should return an empty array or explicit unavailable status. UI should display `-` or `n/a`.
+
+Gene identity source policy:
+
+| Field | Source |
+|---|---|
+| Gene symbol | HGNC approved symbol |
+| Gene name | HGNC approved name in `gene_basic_info.gene_name` |
+| Cytogenetic location | HGNC `location` in `gene_basic_info.cytogenetic_location` |
+| Short gene description | NCBI Gene ESummary summary in `gene_basic_info.gene_description` |
+
+OMIM can be shown as an ID or link when available, but OMIM prose should not be
+used as the basic gene description.
 
 ---
 
@@ -200,6 +236,8 @@ Minimum useful fields:
 | `sample_id` | Stable sample identifier |
 | `sex` or `gender` | Source sex value |
 | `age_at_enrollment` | Display and filtering age |
+| `age_for_portal` | Preferred display age when prepared for portal use |
+| `age_at_analysis` | Fallback display age when `age_for_portal` is missing |
 | `investigator` | Investigator/cohort |
 | `affected` or `affected_status` | Affected flag |
 | `Proband` or `proband_status` | Proband flag |
@@ -208,10 +246,48 @@ Minimum useful fields:
 
 Rules:
 
-- Use `age_at_enrollment` when present.
+- For `pb_Gene` carrier sample rows, use `age_for_portal` first, then
+  `age_at_analysis`, then `-`.
 - Do not derive display age from `birth_year` when `age_at_enrollment` is missing.
 - Preserve known sex values.
 - Use `n/a` only for absent or unknown sex.
+
+### 5.1.1 GenDx Diagnosis Detail
+
+The sample metadata diagnosis flag and diagnosis detail file serve different
+purposes.
+
+| Source | Purpose |
+|---|---|
+| `sample.diagnosed_flag` | Source of truth for GenDx diagnosed counts |
+| `data/reference_db/crdc_diagnosed_20240716.tsv` | Sample-level diagnosis detail text |
+
+Expected detail fields:
+
+| Field | Meaning |
+|---|---|
+| `sample_id` | Join key to sample metadata and carrier rows |
+| `gene_symbol` | Diagnosed gene displayed in detail column |
+| `diagnosed_interpretation` | Diagnosis interpretation displayed in parentheses |
+| `cdna`, `protein`, `transcript_nm` | Optional detailed diagnosis payload |
+
+For `pb_Gene`, carrier membership is determined by the searched gene's observed
+variants, not by the diagnosis file. Diagnosis detail is joined by `sample_id`.
+Do not filter diagnosis detail to the searched gene. A carrier in `DNAH14` can
+legitimately display a GenDx diagnosis in `ALDOA` or another gene.
+
+Consistency display rules:
+
+| Metadata `diagnosed_flag` | Diagnosis detail row | Display |
+|---|---:|---|
+| yes | present | `GENE(INTERP)` |
+| yes | absent | `Yes*` |
+| no | present | `GENE(INTERP)*` |
+| no | absent | `-` |
+
+The `*` means the metadata flag and detail file disagree or one source is stale.
+It is a review flag only. It should not change cohort carrier membership or the
+metadata-based GenDx diagnosed count.
 
 ### 5.2 Sample HPO Terms
 
@@ -245,6 +321,10 @@ Derived concepts:
 | `root_category_profile` | HPO terms grouped under broad root categories |
 
 Phenotype overlap should exclude `HP:0000001` and `HP:0000118`.
+Carrier phenotype profiles should use the active carrier set as denominator:
+gene carriers for gene-level profiles and selected variant carriers for
+variant-level profiles. If no non-broad HPO terms remain after excluding broad
+anchors, return an empty profile rather than a null-valued category row.
 
 ### 5.3 Sample Variants
 
@@ -277,6 +357,16 @@ Useful annotation fields:
 
 The current fixture is rare/damaging-enriched. Do not imply that it contains all VCF calls unless the production backend provides all calls.
 
+For VEP-annotated VCF input:
+
+- Use VCF core fields for `chrom`, `pos`, `ref`, and `alt`.
+- Use per-sample `FORMAT/GT` for carrier genotype.
+- `FORMAT/GQ`, `FORMAT/DP`, and `FORMAT/AD` are optional backend QA fields; the current browser does not require them.
+- Use `INFO/AF` as CRDC/internal VCF allele frequency.
+- Use `CSQ/gnomADe_AF` as external gnomAD exome AF.
+- Do not use `INFO/AF` as gnomAD AF.
+- Use `CSQ/SYMBOL`, `CSQ/Consequence`, `CSQ/HGVSp`, `CSQ/LoF`, `CSQ/am_pathogenicity`, `CSQ/REVEL`, and ClinVar fields for variant annotation.
+
 ---
 
 ## 6. Sample Page Data Contracts
@@ -289,7 +379,7 @@ The Sample page Overview renders this payload as line-separated metadata and ana
 
 ```json
 {
-  "sample_id": "BCH-22-44945-01",
+  "sample_id": "PB-SYN-025",
   "sex": "female",
   "age_at_enrollment": 16,
   "investigator": "benjamin_raby",
@@ -321,7 +411,7 @@ Example:
 
 ```json
 {
-  "sample_id": "BCH-21-49631-01",
+  "sample_id": "PB-SYN-020",
   "phenotype_profile_similarity": 0.504,
   "shared_hpo_count": 79,
   "shared_hpo_denominator": 129,
@@ -336,7 +426,7 @@ Used by the Sample page query builder.
 
 ```json
 {
-  "sample_id": "BCH-22-44945-01",
+  "sample_id": "PB-SYN-025",
   "query_options": [
     {
       "gene_symbol": "LCA5",
@@ -382,7 +472,7 @@ Same gene row:
 ```json
 {
   "group": "same_gene",
-  "sample_id": "BCH-21-49631-01",
+  "sample_id": "PB-SYN-020",
   "shared_gene": "MAML3",
   "phenotype_overlap": {
     "count": 79,
@@ -405,7 +495,7 @@ Important distinction:
 - Same gene rows should update when the selected gene changes.
 - `shared_hpo_terms` drives the phenotype-overlap popover.
 - If `phenotype_overlap.count` is 0, the API should still make clear whether the compared sample has no HPO terms, only broad excluded HPO terms, or no overlap after broad-term exclusion.
-- In the current test DB, `BCH-17-02291-01` has one raw `sample_hpo` row and zero non-broad HPO terms after excluding `HP:0000001` and `HP:0000118`; therefore its overlap with `BCH-21-24935-01` is displayed as 0 in the current fixture. If production data has more HPO terms for that sample, the source export must be corrected before UI display.
+- In the current test DB, `PB-SYN-011` has one raw `sample_hpo` row and zero non-broad HPO terms after excluding `HP:0000001` and `HP:0000118`; therefore its overlap with `PB-SYN-018` is displayed as 0 in the current fixture. If production data has more HPO terms for that sample, the source export must be corrected before UI display.
 
 ---
 
@@ -426,7 +516,7 @@ Matched sample row:
 
 ```json
 {
-  "sample_id": "BCH-19-90796-01",
+  "sample_id": "PB-SYN-016",
   "sex": "Female",
   "age_at_enrollment": 16,
   "investigator": "clinical_sequencing",
@@ -447,7 +537,7 @@ Use actual `age_at_enrollment` when present. Do not display old coarse bins as t
 
 ```json
 {
-  "sample_id": "BCH-18-97460-03",
+  "sample_id": "PB-SYN-013",
   "age_at_enrollment": 48,
   "sex": "Male",
   "genotype": "1/1",
@@ -514,7 +604,7 @@ Example:
   "gene_symbol": "ARMC9",
   "carrier_count": 6,
   "carrier_denominator": 6,
-  "carrier_sample_ids": ["BCH-19-13617-02", "BCH-21-43457-02"],
+  "carrier_sample_ids": ["PB-SYN-015", "PB-SYN-019"],
   "gene_disease_overlap": [
     {
       "source": "ORPHA",
@@ -574,6 +664,7 @@ Fixture size guidance:
 
 The exporter or API should own:
 
+- loading prepared reference DB files from `data/reference_db/`
 - sample metadata joins
 - known sex preservation
 - `age_at_enrollment` preservation
@@ -585,6 +676,8 @@ The exporter or API should own:
 - carrier phenotype profile calculations
 - co-carrier gene calculations
 - disease-gene overlap and secondary annotation
+- gene identity mapping from HGNC/NCBI `gene_basic_info`
+- variant severity score calculation using `LoFTEE HC -> AlphaMissense -> REVEL`
 
 The Vue page layer should own:
 
@@ -616,6 +709,10 @@ Production API responsibilities:
 - Do not mix exact variant carrier counts with same-gene carrier counts.
 - Do not count broad HPO anchors as evidence.
 - Do not use variant-position evidence as a required column for same-gene rows.
+- Do not use ClinVar in the numeric variant severity score.
+- Do not multiply genotype dosage into the displayed variant severity score.
+- Do not use VCF `INFO/AF` as gnomAD AF.
+- Do not make the frontend download reference resources that are already in `data/reference_db/`.
 - Do not expose ignored `docs/not_share/` files as shared docs.
 
 ---

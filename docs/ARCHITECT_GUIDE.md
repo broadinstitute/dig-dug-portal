@@ -1,17 +1,19 @@
 # CRDC Rare Disease Portal Architect Guide
 
-Date: 2026-05-29
+Date: 2026-06-24
 Repository: `dig-dug-portal`
 
 This document is the shared architecture guide for the current clinical database search browser mockup. It is written for teammates who need to understand the promoted UI, the generated fixture bridge, and the future API boundary.
 
-The active product surface is the four promoted Korean rare-disease pages:
+The active product surface includes the promoted Korean rare-disease pages plus
+the newer gene-first evidence page:
 
 ```text
 /krFront.html
 /krSample.html
 /krPhenotype.html
 /krVariant.html
+/pb_Gene.html
 ```
 
 For table-level database meaning, read this together with `docs/DB_portal.md`.
@@ -26,6 +28,7 @@ For table-level database meaning, read this together with `docs/DB_portal.md`.
 | Sample search | `/krSample.html` | `src/views/KrSample/main.js` | `src/views/KrSample/Template.vue` | `src/views/KrSample/pageModel.js` | `src/views/KrSample/mockData.js` |
 | Phenotype search | `/krPhenotype.html` | `src/views/KrPhenotype/main.js` | `src/views/KrPhenotype/Template.vue` | `src/views/KrPhenotype/pageModel.js` | `src/views/KrPhenotype/mockData.js` |
 | Variant / gene search | `/krVariant.html` | `src/views/KrVariant/main.js` | `src/views/KrVariant/Template.vue` | `src/views/KrVariant/pageModel.js` | `src/views/KrVariant/mockData.js` |
+| Gene evidence search | `/pb_Gene.html` | `src/views/PbGene/main.js` | `src/views/PbGene/Template.vue` | `src/views/PbGene/pageModel.js` | `src/views/PbGene/mockData.js` + `fixturePipeline.js` |
 
 The old `_reframe` page set is no longer part of the shared source tree or default build. It is retained only in ignored local archive storage:
 
@@ -237,7 +240,7 @@ Minimum summary payload:
 
 ```json
 {
-  "sample_id": "BCH-22-44945-01",
+  "sample_id": "PB-SYN-025",
   "sex": "female",
   "age_at_enrollment": 16,
   "investigator": "benjamin_raby",
@@ -253,7 +256,7 @@ Genotype query option payload:
 
 ```json
 {
-  "sample_id": "BCH-22-44945-01",
+  "sample_id": "PB-SYN-025",
   "query_options": [
     {
       "gene_symbol": "MAML3",
@@ -270,13 +273,13 @@ Genotype similarity response:
 
 ```json
 {
-  "sample_id": "BCH-22-44945-01",
+  "sample_id": "PB-SYN-025",
   "selected_queries": [
     { "gene_symbol": "MAML3", "variant_id": "chr4:139889981:T:G" }
   ],
   "same_variant_rows": [
     {
-      "sample_id": "BCH-21-49631-01",
+      "sample_id": "PB-SYN-020",
       "shared_gene": "MAML3",
       "query_variant": "chr4:139889981:T:G",
       "matched_variant": "chr4:139889981:T:G",
@@ -288,7 +291,7 @@ Genotype similarity response:
   ],
   "same_gene_rows": [
     {
-      "sample_id": "BCH-21-49631-01",
+      "sample_id": "PB-SYN-020",
       "shared_gene": "MAML3",
       "phenotype_overlap": { "count": 79, "denominator": 129 },
       "phenotype_profile_similarity": 0.504,
@@ -427,6 +430,103 @@ Carrier-set request shape:
 
 ---
 
+### 5.5 pb_Gene Page
+
+Files:
+
+```text
+src/views/PbGene/main.js
+src/views/PbGene/Template.vue
+src/views/PbGene/pageModel.js
+src/views/PbGene/mockData.js
+src/views/PbGene/fixturePipeline.js
+src/views/PbGene/portalGeneData.generated.js  (optional local-only fixture; ignored)
+src/views/PbGene/style.css
+scripts/export_portal_gene_fixture.R
+scripts/pb_gene_fixture_server.js
+```
+
+Route registration:
+
+```text
+vue.config.js -> pbGene -> /pb_Gene.html
+```
+
+Core question:
+
+```text
+For one searched gene, what CRDC cohort evidence, carrier phenotypes,
+variant-level evidence, and diagnosis context are visible?
+```
+
+Current behavior:
+
+- The page is gene-first. The top block identifies the searched gene, HGNC name,
+  NCBI description, locus, reference annotation, carrier counts, carrier burden,
+  and most severe observed variant.
+- The default generated fixture is `PGD`, but production behavior must use the
+  requested HGNC symbol.
+- The shared branch uses `mockData.js` fallback by default. A local
+  `portalGeneData.generated.js` can be generated for private testing, but it is
+  ignored and should not be pushed.
+- Gene identity fields come from prepared reference data:
+  `gene_basic_info`, `gene_annotation_summary`, and `gene_exon_coords`.
+- The locus block shows the searched gene's exon model and observed variant
+  positions. Zoom and pan are client display state; the backend should return
+  enough coordinate data for the current query.
+- The bottom block starts in gene mode, then switches to variant mode when a
+  variant row is selected.
+- Carrier sample table columns are:
+
+```text
+Sample | Age | Sex | GT | HPO | Co-genes | Investigator | Affected | GenDx
+```
+
+Important semantics:
+
+- Carrier means the sample has an observed qualifying variant in the searched
+  gene or selected variant. Carrier status is not diagnosis status.
+- `GenDx diagnosed` top metric counts `sample.diagnosed_flag` among current
+  gene carriers.
+- Carrier table `GenDx` detail is joined by `sample_id` from
+  `data/reference_db/crdc_diagnosed_20240716.tsv`. Do not filter it to the
+  searched gene; a carrier in `DNAH14` can have a GenDx diagnosis in another
+  gene.
+- If metadata and diagnosis-detail TSV disagree, show `*` on the carrier row
+  and explain the mismatch in hover text. Do not change the top metric.
+- Carrier phenotype profiles exclude broad HPO anchors `HP:0000001` and
+  `HP:0000118`.
+- Gene-level phenotype percentages use the gene carrier count as denominator.
+  Variant-level phenotype percentages use the selected variant carrier count as
+  denominator.
+- If no non-broad HPO terms remain for a selected carrier set, return an empty
+  category array and show an explicit empty state, not a blank row.
+- Variant severity score is annotation-only:
+  `LoFTEE HC -> AlphaMissense -> REVEL`. It does not use ClinVar and is not
+  multiplied by genotype.
+- Mean carrier burden is carrier-level max gene burden averaged among carriers.
+  Match score remains unavailable until a real phenotype or outcome context is
+  provided.
+
+Supporting docs:
+
+```text
+docs/pb_gene_blueprint.md
+docs/pb_gene_engineer_guide.md
+docs/DB_portal.md
+```
+
+Suggested API:
+
+```text
+GET /api/pb-gene?gene={HGNC_SYMBOL}
+GET /api/pb-gene/{gene_symbol}/variants
+GET /api/pb-gene/{gene_symbol}/carrier-summary
+GET /api/pb-gene/{gene_symbol}/variant/{variant_id}/carrier-summary
+```
+
+---
+
 ## 6. Backend API Principles
 
 When replacing fixtures with backend endpoints, return page-shaped DTOs rather than raw tables.
@@ -463,7 +563,7 @@ Recommended response pattern:
 
 ```json
 {
-  "query": { "sample_id": "BCH-22-44945-01" },
+  "query": { "sample_id": "PB-SYN-025" },
   "total_available": 23842,
   "filtered_total": 614,
   "page": { "limit": 25, "offset": 0, "sort": "phenotype_profile_similarity:desc" },
@@ -504,13 +604,22 @@ git diff --check
 
 Do not start a separate Python static server for this project. Use the existing `localhost:8090` dev server for rendering checks.
 
+### 7.1 Typography / Readability Minimum (non-negotiable)
+
+Pages must be legible for a low-vision reader (target ~0.7 acuity). Per the design reference in `docs/not_share/portal_new_preview_description.md` (§5.3 / §5.6):
+
+- Table/body values: ~17px (≈1.05rem); never below 15px.
+- Table/section headers and uppercase labels: ~15px (≈0.95rem).
+- Hard floor: no rendered text below ~13.6px (0.85rem), including captions, axis ticks, chips, and badges.
+- Do not reintroduce sub-0.85rem `font-size` values when compacting layouts; scroll or wrap instead of shrinking text.
+
 ---
 
 ## 8. Review Checklist
 
 Before sharing changes:
 
-- Default promoted pages are still `/krFront.html`, `/krSample.html`, `/krPhenotype.html`, `/krVariant.html`.
+- Promoted clinical pages still build: `/krFront.html`, `/krSample.html`, `/krPhenotype.html`, `/krVariant.html`, and `/pb_Gene.html`.
 - `_reframe` and private comparison files are not part of the shared source tree.
 - Generated fixtures are not hand-edited for UI display fixes.
 - Sample page Shared genes are individual gene links.
@@ -527,5 +636,10 @@ Before sharing changes:
 - Phenotype overlap excludes broad HPO anchors.
 - Variant carrier sample summary, phenotype profile, and genotype profile use the same carrier filter denominator.
 - `age_at_enrollment` and sex values are preserved from source data.
+- `pb_Gene.html` is registered in `vue.config.js` and loads `src/views/PbGene/main.js`.
+- pb_Gene carrier table shows `Affected` and `GenDx`; `Proband` remains available for metrics/filters but is not the displayed final column.
+- pb_Gene top `GenDx diagnosed` metric uses `sample.diagnosed_flag`, while carrier row `GenDx` detail comes from `crdc_diagnosed_20240716.tsv`.
+- pb_Gene diagnosis metadata/detail conflicts show `*` with hover text and do not change top metrics.
+- pb_Gene variant-level HPO percentages use selected variant carriers as denominator and show an explicit empty state when no non-broad HPO terms exist.
 - `git diff --check` passes.
 - `npm run build` passes.
