@@ -23,14 +23,43 @@
               </div>
 
               <div class="hero-controls f-col">
-                <label for="gene-search">Gene</label>
+                <div class="gene-search-header f-row">
+                  <span
+                    id="gene-search-label"
+                    class="helper-copy gene-search-header__label"
+                    >Gene:</span
+                  >
+                  <div
+                    class="gene-search-species"
+                    role="radiogroup"
+                    aria-labelledby="gene-search-label"
+                  >
+                    <label class="gene-search-species__option">
+                      <input
+                        v-model="$parent.geneSearchSpecies"
+                        type="radio"
+                        name="gene-search-species"
+                        value="human"
+                      />
+                      Human
+                    </label>
+                    <label class="gene-search-species__option">
+                      <input
+                        v-model="$parent.geneSearchSpecies"
+                        type="radio"
+                        name="gene-search-species"
+                        value="mouse"
+                      />
+                      Mouse
+                    </label>
+                  </div>
+                </div>
                 <div class="gene-search-row">
                   <input
                     id="gene-search"
                     v-model="$parent.geneQuery"
                     type="text"
-                    list="matkp-gene-options"
-                    placeholder="Type a gene symbol"
+                    :placeholder="$parent.geneSearchPlaceholder"
                     @keydown.enter.prevent="$parent.loadGene()"
                   />
                   <button
@@ -41,15 +70,8 @@
                     Search
                   </button>
                 </div>
-                <datalist id="matkp-gene-options">
-                  <option
-                    v-for="item in $parent.geneIndex"
-                    :key="item.gene"
-                    :value="item.gene"
-                  ></option>
-                </datalist>
                 <div class="helper-copy">
-                  Demo genes:
+                  Examples:
                   <span
                     v-for="(item, index) in $parent.geneIndex"
                     :key="item.gene"
@@ -68,15 +90,26 @@
             <div class="sticky-rail f-col">
               <div class="rail-card f-col">
                 <div class="gene-display-block f-col">
-                  <div class="gene-display">{{ $parent.activeGene.gene }}</div>
                   <div
-                    v-if="$parent.geneSpeciesSymbolLabel"
+                    class="gene-display"
+                    :class="{ 'gene-display--empty': $parent.geneNotFound }"
+                  >
+                    {{
+                      $parent.geneNotFound
+                        ? "No data found"
+                        : $parent.activeGene.gene
+                    }}
+                  </div>
+                  <div
+                    v-if="
+                      !$parent.geneNotFound && $parent.geneSpeciesSymbolLabel
+                    "
                     class="gene-display__species"
                   >
                     ({{ $parent.geneSpeciesSymbolLabel }})
                   </div>
                 </div>
-                <ul class="gene-summary-list">
+                <ul v-if="!$parent.geneNotFound" class="gene-summary-list">
                   <li
                     v-for="item in $parent.geneSummaryList"
                     :key="item"
@@ -168,6 +201,17 @@
                         <b-icon icon="three-dots-vertical"></b-icon>
                       </template>
                       <b-dropdown-form class="outcome-filter-dropdown">
+                        <b-form-checkbox
+                          size="sm"
+                          class="outcome-filter-dropdown__select-all"
+                          :checked="$parent.areAllDatasetsSelected()"
+                          :indeterminate="
+                            $parent.isDatasetFilterIndeterminate()
+                          "
+                          @change="$parent.setAllDatasetFilters($event)"
+                        >
+                          Select all
+                        </b-form-checkbox>
                         <b-form-checkbox
                           v-for="dataset in $parent.datasetOptions"
                           :key="dataset.id"
@@ -269,6 +313,22 @@
                   <div class="outcomes-group-title">Show/Hide sections</div>
 
                   <div class="outcomes-show-hide">
+                    <div class="outcome-filter-row outcome-filter-row--select-all">
+                      <b-form-checkbox
+                        class="outcome-filter-checkbox"
+                        size="sm"
+                        :checked="$parent.areAllOutcomesSelected()"
+                        :indeterminate="
+                          $parent.isOutcomeVisibilityIndeterminate()
+                        "
+                        @change="$parent.setAllOutcomeVisibility($event)"
+                      ></b-form-checkbox>
+                      <span class="outcome-filter-label">Select all</span>
+                      <span
+                        class="outcome-filter-spacer"
+                        aria-hidden="true"
+                      ></span>
+                    </div>
                     <div
                       v-for="outcome in $parent.outcomes"
                       :key="outcome.outcome_id"
@@ -349,9 +409,18 @@
             </div>
 
             <div class="sections-column f-col">
+              <div
+                v-if="$parent.geneNotFound"
+                class="no-gene-data-panel"
+              >
+                No data found
+              </div>
               <section
                 v-for="outcome in $parent.outcomes"
-                v-show="$parent.isOutcomeSectionVisible(outcome.outcome_id)"
+                v-show="
+                  !$parent.geneNotFound &&
+                  $parent.isOutcomeSectionVisible(outcome.outcome_id)
+                "
                 :key="outcome.outcome_id"
                 class="outcome-section f-col"
                 :data-outcome-id="outcome.outcome_id"
@@ -591,9 +660,41 @@
 }
 
 .hero-controls {
-  gap: 8px;
+  gap: 6px;
   min-width: 340px;
   width: 340px;
+}
+
+.gene-search-header {
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  margin-bottom: -12px;
+}
+
+.gene-search-header__label {
+  margin: 0;
+}
+
+.gene-search-species {
+  display: flex;
+  gap: 14px;
+}
+
+.gene-search-species__option {
+  align-items: center;
+  color: #000000;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.gene-search-species__option input {
+  margin: 0;
 }
 
 .helper-copy {
@@ -609,6 +710,11 @@
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0;
+}
+
+.hero-controls > .helper-copy {
+  margin: 0;
 }
 
 .content-grid {
@@ -655,6 +761,10 @@
 .gene-display__species {
   font-size: 0.75em;
   font-weight: inherit;
+}
+
+.gene-display--empty {
+  color: #555555;
 }
 
 .gene-summary-list {
@@ -912,6 +1022,18 @@
 
 .sections-column {
   gap: 14px;
+}
+
+.no-gene-data-panel {
+  align-items: center;
+  background: #ffffffcc;
+  color: #555555;
+  display: flex;
+  font-size: 18px;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 120px;
+  padding: 28px;
 }
 
 .outcome-section {

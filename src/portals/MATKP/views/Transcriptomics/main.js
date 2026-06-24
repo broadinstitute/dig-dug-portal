@@ -5,6 +5,10 @@ import "../../assets/matkp-styles.css";
 
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import keyParams from "@/utils/keyParams";
+import {
+    resolveCanonicalHumanGene,
+    resolveHumanMouseSymbols,
+} from "../../utils/gprofilerOrth.js";
 
 import pageIndex from "../../data/transcriptomicPrototype/index.json";
 import geneIndex from "../../data/transcriptomicPrototype/genes_index.json";
@@ -52,6 +56,12 @@ new Vue({
             genesBySymbol: genePayloads,
             selectedGene: pageIndex.default_gene,
             geneQuery: pageIndex.default_gene,
+            geneSearchSpecies: "human",
+            geneOrthologSymbols: {
+                human: null,
+                mouse: null,
+            },
+            geneNotFound: false,
             selectedOutcomeId: null,
             expandedOutcomes: {},
             visibleOutcomes: {},
@@ -73,6 +83,10 @@ new Vue({
 
     computed: {
         activeGene() {
+            if (this.geneNotFound) {
+                return null;
+            }
+
             return (
                 this.genesBySymbol[this.selectedGene] ||
                 this.genesBySymbol[this.pageIndex.default_gene]
@@ -92,11 +106,7 @@ new Vue({
             ];
         },
         geneSpeciesSymbolLabel() {
-            if (!this.activeGene) {
-                return "";
-            }
-
-            const symbols = this.collectGeneSpeciesSymbols(this.activeGene);
+            const symbols = this.geneOrthologSymbols;
             const parts = [];
 
             if (symbols.human) {
@@ -108,6 +118,11 @@ new Vue({
             }
 
             return parts.join(" | ");
+        },
+        geneSearchPlaceholder() {
+            return this.geneSearchSpecies === "mouse"
+                ? "Type a mouse gene symbol"
+                : "Type a human gene symbol";
         },
         activeOutcomeIds() {
             return this.activeGene ? this.activeGene.supported_outcomes : [];
@@ -170,6 +185,7 @@ new Vue({
         this.initializeDatasetFilters();
         this.initializeDatasetVisibility();
         this.syncParams();
+        this.refreshGeneOrthologSymbols(this.selectedGene);
     },
     mounted() {
         this.$nextTick(() => {
@@ -211,6 +227,44 @@ new Vue({
         },
         setOutcomeVisibility(outcomeId, isVisible) {
             this.$set(this.visibleOutcomes, outcomeId, isVisible);
+        },
+        areAllOutcomesSelected() {
+            if (!this.activeGene) {
+                return true;
+            }
+
+            return this.activeGene.outcomes.every(
+                (outcome) =>
+                    this.visibleOutcomes[outcome.outcome_id] !== false
+            );
+        },
+        isOutcomeVisibilityIndeterminate() {
+            if (!this.activeGene) {
+                return false;
+            }
+
+            const selectedCount = this.activeGene.outcomes.filter(
+                (outcome) =>
+                    this.visibleOutcomes[outcome.outcome_id] !== false
+            ).length;
+
+            return (
+                selectedCount > 0 &&
+                selectedCount < this.activeGene.outcomes.length
+            );
+        },
+        setAllOutcomeVisibility(isVisible) {
+            if (!this.activeGene) {
+                return;
+            }
+
+            this.activeGene.outcomes.forEach((outcome) => {
+                this.$set(
+                    this.visibleOutcomes,
+                    outcome.outcome_id,
+                    isVisible
+                );
+            });
         },
         getDatasetRowKey(row) {
             if (row.row_type === "pooled") {
@@ -323,6 +377,34 @@ new Vue({
         setDatasetFilter(datasetId, isVisible) {
             this.$set(this.datasetFilters, datasetId, isVisible);
         },
+        areAllDatasetsSelected() {
+            if (!this.datasetOptions.length) {
+                return true;
+            }
+
+            return this.datasetOptions.every(
+                (option) => this.datasetFilters[option.id] !== false
+            );
+        },
+        isDatasetFilterIndeterminate() {
+            if (!this.datasetOptions.length) {
+                return false;
+            }
+
+            const selectedCount = this.datasetOptions.filter(
+                (option) => this.datasetFilters[option.id] !== false
+            ).length;
+
+            return (
+                selectedCount > 0 &&
+                selectedCount < this.datasetOptions.length
+            );
+        },
+        setAllDatasetFilters(isVisible) {
+            this.datasetOptions.forEach((option) => {
+                this.$set(this.datasetFilters, option.id, isVisible);
+            });
+        },
         isDatasetFilterActive() {
             if (!this.datasetOptions.length) {
                 return false;
@@ -367,6 +449,25 @@ new Vue({
             });
 
             return symbols;
+        },
+        async refreshGeneOrthologSymbols(humanCanonical) {
+            const fallback = this.collectGeneSpeciesSymbols(
+                this.genesBySymbol[humanCanonical]
+            );
+
+            this.geneOrthologSymbols = {
+                human: fallback.human || humanCanonical,
+                mouse: fallback.mouse || humanCanonical,
+            };
+
+            const symbols = await resolveHumanMouseSymbols(
+                humanCanonical,
+                "human"
+            );
+
+            if (symbols.human) {
+                this.geneOrthologSymbols = symbols;
+            }
         },
         collectDepotOptions(gene) {
             if (!gene) {
@@ -627,25 +728,55 @@ new Vue({
                 this.outcomeIndex.find((item) => item.outcome_id === outcomeId) || null
             );
         },
-        loadGene() {
-            const normalizedGene = String(this.geneQuery || "")
-                .trim()
-                .toUpperCase();
+        async loadGene() {
+            const query = String(this.geneQuery || "").trim();
 
-            if (!this.genesBySymbol[normalizedGene]) {
+            if (!query) {
                 this.geneQuery = this.selectedGene;
                 return;
             }
 
-            this.onGeneChange(normalizedGene);
+            const canonicalGene = await resolveCanonicalHumanGene(
+                query,
+                this.geneSearchSpecies
+            );
+
+            if (!canonicalGene || !this.genesBySymbol[canonicalGene]) {
+                this.geneNotFound = true;
+                this.geneOrthologSymbols = {
+                    human: null,
+                    mouse: null,
+                };
+                return;
+            }
+
+            this.geneNotFound = false;
+            const symbols = await resolveHumanMouseSymbols(
+                query,
+                this.geneSearchSpecies
+            );
+
+            this.geneOrthologSymbols = {
+                human: canonicalGene,
+                mouse: symbols.mouse || query,
+            };
+            this.onGeneChange(canonicalGene, { updateQuery: false });
+            this.geneQuery =
+                this.geneSearchSpecies === "mouse"
+                    ? this.geneOrthologSymbols.mouse
+                    : canonicalGene;
         },
-        onGeneChange(gene) {
+        onGeneChange(gene, options = {}) {
             if (!this.genesBySymbol[gene]) {
                 return;
             }
 
             this.selectedGene = gene;
-            this.geneQuery = gene;
+            this.geneNotFound = false;
+
+            if (options.updateQuery !== false) {
+                this.geneQuery = gene;
+            }
             this.expandedOutcomes = {};
             this.speciesFilters = {
                 human: true,
