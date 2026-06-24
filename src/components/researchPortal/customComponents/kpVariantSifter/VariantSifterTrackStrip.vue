@@ -9,6 +9,13 @@
                 <p class="vks-track-placeholder-text">
                     {{ section.label }} visualizer will render here.
                 </p>
+                <p v-if="searchSession" class="vks-track-session-note">
+                    {{ searchSession.phenotype.description }}
+                    <span v-if="searchSession.ancestry">
+                        · {{ searchSession.ancestry }}
+                    </span>
+                    · {{ searchSession.regionLabel }}
+                </p>
             </div>
         </div>
     </section>
@@ -25,6 +32,10 @@ export default {
         zoomLevel: {
             type: Number,
             default: 1,
+        },
+        searchSession: {
+            type: Object,
+            default: null,
         },
     },
     computed: {
@@ -94,5 +105,13 @@ export default {
     margin: 0;
     font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-track-session-note {
+    margin: 8px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-blue, #2c5c97);
+    font-weight: 600;
 }
 </style>

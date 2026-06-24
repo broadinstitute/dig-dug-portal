@@ -1,6 +1,14 @@
 <template>
     <div class="vks-canvas">
         <div class="vks-canvas-viewport" :style="viewportStyle">
+            <VariantSifterWelcomePanel
+                v-if="welcomeOpen"
+                :phenotypes="phenotypes"
+                :ancestries="ancestries"
+                :utils="utils"
+                :initial-values="welcomeInitialValues"
+                @start-search="$emit('start-search', $event)"
+            />
             <div
                 v-if="canvasActive"
                 class="vks-canvas-tracks"
@@ -11,6 +19,7 @@
                     :key="section.id"
                     :section="section"
                     :zoom-level="zoomLevel"
+                    :search-session="searchSession"
                 />
             </div>
             <VariantSifterSectionDrawers
@@ -30,6 +39,7 @@
 import VariantSifterTrackStrip from "./VariantSifterTrackStrip.vue";
 import VariantSifterSectionDrawers from "./VariantSifterSectionDrawers.vue";
 import VariantSifterDataTableModal from "./VariantSifterDataTableModal.vue";
+import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight } from "./variantSifterSections.js";
 
 export default {
@@ -38,6 +48,7 @@ export default {
         VariantSifterTrackStrip,
         VariantSifterSectionDrawers,
         VariantSifterDataTableModal,
+        VariantSifterWelcomePanel,
     },
     props: {
         sections: {
@@ -47,6 +58,30 @@ export default {
         canvasActive: {
             type: Boolean,
             default: false,
+        },
+        welcomeOpen: {
+            type: Boolean,
+            default: true,
+        },
+        phenotypes: {
+            type: Array,
+            default: () => [],
+        },
+        ancestries: {
+            type: Array,
+            default: () => [],
+        },
+        utils: {
+            type: Object,
+            default: null,
+        },
+        welcomeInitialValues: {
+            type: Object,
+            default: null,
+        },
+        searchSession: {
+            type: Object,
+            default: null,
         },
         zoomLevel: {
             type: Number,

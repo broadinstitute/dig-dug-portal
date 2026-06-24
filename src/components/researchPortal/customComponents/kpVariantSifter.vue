@@ -20,11 +20,18 @@
             <VariantSifterCanvas
                 :sections="sections"
                 :canvas-active="canvasActive"
+                :welcome-open="welcomeOpen"
+                :phenotypes="phenotypes"
+                :ancestries="ancestryOptions"
+                :utils="utilsBox"
+                :welcome-initial-values="welcomeInitialValues"
+                :search-session="searchSession"
                 :zoom-level="zoomLevel"
                 :data-table-open="dataTableOpen"
                 :open-drawer-id="openDrawerId"
                 @update:openDrawerId="openDrawerId = $event"
                 @close-data-table="dataTableOpen = false"
+                @start-search="onStartSearch"
             />
             <VariantSifterAiAssistantPanel
                 :open="aiAssistantOpen"
@@ -43,6 +50,7 @@ import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewpo
 import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
 import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
+import { parseRegionParam, formatRegion } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
 Vue.use(BootstrapVue);
@@ -60,17 +68,115 @@ export default Vue.component("kp-variant-sifter", {
         return {
             sections: VARIANT_SIFTER_SECTIONS,
             canvasActive: false,
+            welcomeOpen: true,
+            searchSession: null,
+            welcomeInitialValues: null,
             zoomLevel: 1,
             dataTableOpen: false,
             aiAssistantOpen: false,
             openDrawerId: null,
         };
     },
+    computed: {
+        phenotypes() {
+            return this.phenotypesInUse || [];
+        },
+        ancestryOptions() {
+            const datasets = this.$store?.state?.bioPortal?.datasets || [];
+            return datasets
+                .map((dataset) => dataset.ancestry)
+                .filter((ancestry) => ancestry && ancestry !== "Mixed");
+        },
+    },
+    mounted() {
+        this.applyUrlSearchParams();
+    },
+    watch: {
+        phenotypes() {
+            this.applyUrlSearchParams();
+        },
+    },
     methods: {
         onMenuAction(payload) {
             if (payload.action === "downloadTable") {
                 this.dataTableOpen = true;
+                return;
             }
+            if (payload.action === "newSearch") {
+                this.openWelcomePanel();
+            }
+        },
+        openWelcomePanel() {
+            if (this.searchSession) {
+                this.welcomeInitialValues = {
+                    phenotype: this.searchSession.phenotype.name,
+                    ancestry: this.searchSession.ancestry || "",
+                    geneOrVariantQuery: this.searchSession.geneOrVariantQuery,
+                    regionExpandBp: this.searchSession.regionExpandBp,
+                };
+            }
+            this.welcomeOpen = true;
+            this.canvasActive = false;
+            this.openDrawerId = null;
+        },
+        onStartSearch(session) {
+            this.searchSession = session;
+            this.canvasActive = true;
+            this.welcomeOpen = false;
+            this.syncUrlSearchParams(session);
+        },
+        applyUrlSearchParams() {
+            if (this.canvasActive || this.searchSession) {
+                return;
+            }
+
+            const params = this.utilsBox?.keyParams;
+            if (!params?.phenotype || !params?.region) {
+                return;
+            }
+
+            const region = parseRegionParam(params.region);
+            if (!region) {
+                return;
+            }
+
+            const phenotype = (this.phenotypes || []).find(
+                (entry) => entry.name === params.phenotype
+            );
+            if (!phenotype) {
+                this.welcomeInitialValues = {
+                    phenotype: params.phenotype,
+                    ancestry: params.ancestry || "",
+                    geneOrVariantQuery: params.region,
+                };
+                return;
+            }
+
+            this.onStartSearch({
+                phenotype,
+                ancestry: params.ancestry || null,
+                region,
+                regionLabel: formatRegion(region),
+                geneOrVariantQuery: params.region,
+                regionExpandBp: null,
+            });
+        },
+        syncUrlSearchParams(session) {
+            if (!this.utilsBox?.keyParams || !session?.phenotype || !session?.regionLabel) {
+                return;
+            }
+
+            const nextParams = {
+                phenotype: session.phenotype.name,
+                region: session.regionLabel,
+            };
+            if (session.ancestry) {
+                nextParams.ancestry = session.ancestry;
+            } else {
+                nextParams.ancestry = undefined;
+            }
+
+            this.utilsBox.keyParams.set(nextParams);
         },
     },
 });
