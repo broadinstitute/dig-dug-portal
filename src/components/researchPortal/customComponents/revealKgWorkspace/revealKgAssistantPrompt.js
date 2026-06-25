@@ -45,12 +45,14 @@ Put only user-mentioned settings in \`options\` (use {} otherwise). Do not inven
 - filter_graph — build or toggle visibility filters.
 - build_hypotheses — rank gene→mechanism→trait pathways.
 - find_datasets — CFDE gene sets from selected genes (target should include node_types ["gene"]).
+- map_genes — map genes shared across selected gene sets; opens a membership table (target should include node_types ["gene_set"]). Requires selected gene sets on the canvas.
+- open_provenance_explorer — gather gene set provenance details for selected gene sets, copy them to the clipboard, and open the provenance explorer (target should include node_types ["gene_set"]). Requires selected gene sets on the canvas.
 - select_visible_nodes — mark all currently visible canvas nodes as selected (blue); use after filter_graph when user wants everything shown, or target.node_types ["gene"] for visible genes only. Prefer over select_nodes when the user says "visible" or "on screen".
 - unselect_nodes — remove nodes from selection (unmark blue) without deleting from graph. "Unselect all" → options.clear true. "Unselect visible genes" → options.visible true + target.node_types ["gene"]. Never use select_nodes replace/inverse workarounds to deselect.
 - set_*_edges_visible / toggle_data_table / inspect / select_nodes — UI actions as named.
 
 ## Composing steps
-Order by dependency: filter_graph before select_visible_nodes or select_nodes from filter results; select before expand/explain/hypotheses/datasets when seeds are required.
+Order by dependency: filter_graph before select_visible_nodes or select_nodes from filter results; select before expand/explain/hypotheses/datasets/map_genes/open_provenance_explorer when seeds are required.
 
 Intent bulk select: filter_graph (intent) → select_visible_nodes (target.node_types as needed, options.replace true) → filter_graph (mode disable) to restore full graph with selection kept. Use select_visible_nodes when matching what is shown; use select_nodes target last_filter_pass when selecting by filter scores without requiring nodes to stay visible.
 

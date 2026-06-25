@@ -4,6 +4,10 @@ import {
     buildProvenanceNetwork,
     buildProvenanceGeneRows,
     buildProvenanceGraphTableRows,
+    formatGeneSetInformationForClipboard,
+    formatSelectedGeneSetsInformationForClipboard,
+    geneSetDetailUrl,
+    mentionsOpenProvenanceExplorerInQuery,
     mergeDuplicateProvenanceFileNodes,
     parseGeneSetProvenancePayload,
     resolveGeneSetIdForProvenance,
@@ -211,6 +215,55 @@ describe("revealKgGeneSetProvenance", () => {
             "prepare_deg_long",
             "generate_a8837b7d30de6203bcead87f",
         ]);
+    });
+
+    it("formats gene set information for clipboard copy", () => {
+        const text = formatGeneSetInformationForClipboard({
+            geneSetId: 20,
+            standardName: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
+            collectionName: "GTEx",
+            assistantIntention: "add Type 2 diabetes related gene sets from demo gene sets.",
+        });
+        expect(text).toContain(geneSetDetailUrl(20));
+        expect(text).toContain("Gene set ID: 20");
+        expect(text).toContain("User intention: add Type 2 diabetes related gene sets");
+    });
+
+    it("formats selected gene sets for clipboard copy", () => {
+        const nodes = [
+            {
+                id: "gene_set:demo:20",
+                label: "GTEx adipose aging",
+                node_type: "gene_set",
+                demo_gene_set: {
+                    gene_set_id: 20,
+                    standard_name: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
+                    collection_name: "GTEx",
+                    assistant_intention: "add aging gene sets from demo gene sets.",
+                },
+            },
+            {
+                id: "gene_set:demo:21",
+                label: "GTEx liver aging",
+                node_type: "gene_set",
+                demo_gene_set: {
+                    gene_set_id: 21,
+                    standard_name: "GTEx__liver__GTEx_aging_Liver_20-29_50-59_dn",
+                    collection_name: "GTEx",
+                },
+            },
+        ];
+        const text = formatSelectedGeneSetsInformationForClipboard(nodes);
+        expect(text).toContain("Gene set 1: GTEx adipose aging");
+        expect(text).toContain("Gene set 2: GTEx liver aging");
+        expect(text).toContain("Gene set ID: 20");
+        expect(text).toContain("Gene set ID: 21");
+        expect(text).toContain("User intention: add aging gene sets");
+    });
+
+    it("detects provenance explorer requests in assistant queries", () => {
+        expect(mentionsOpenProvenanceExplorerInQuery("Open provenance explorer")).toBe(true);
+        expect(mentionsOpenProvenanceExplorerInQuery("copy gene set information")).toBe(false);
     });
 
     it("parses full provenance payload", () => {

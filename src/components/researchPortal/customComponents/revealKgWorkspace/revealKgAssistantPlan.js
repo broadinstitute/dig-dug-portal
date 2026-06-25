@@ -298,6 +298,8 @@ function validateStepOptions(action, options = {}) {
         case "open_expand_panel":
         case "focus_graph_view":
         case "find_datasets":
+        case "map_genes":
+        case "open_provenance_explorer":
         case "export_graph":
         case "import_graph":
         case "save_graph":
@@ -529,6 +531,8 @@ export function assistantActionPostEffects(action, options = {}) {
         case "explain_graph":
         case "build_hypotheses":
         case "find_datasets":
+        case "map_genes":
+        case "open_provenance_explorer":
         case "export_graph":
         case "import_graph":
         case "save_graph":

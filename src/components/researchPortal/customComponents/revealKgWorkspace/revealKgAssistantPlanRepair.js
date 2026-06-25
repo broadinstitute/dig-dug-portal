@@ -5,6 +5,8 @@ import {
     mentionsDemoGeneSetsInQuery,
     parseDemoGeneSetTopicFromQuery,
 } from "./revealKgDemoGeneSets.js";
+import { mentionsMapGenesInQuery } from "./revealKgMapGenesUtils.js";
+import { mentionsOpenProvenanceExplorerInQuery } from "./revealKgGeneSetProvenance.js";
 import {
     CANVAS_ASSISTANT_PER_STEP_MAX,
     parseExpandCountFromUserQuery,
@@ -429,8 +431,75 @@ function repairDemoGeneSetSteps(steps, userQuery) {
     ];
 }
 
+function repairProvenanceExplorerSteps(steps, userQuery) {
+    if (!mentionsOpenProvenanceExplorerInQuery(userQuery)) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "open_provenance_explorer")) {
+        return steps;
+    }
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["explain_graph", "find_datasets", "build_hypotheses", "filter_graph", "map_genes"].includes(
+                steps[0]?.action
+            ));
+    if (!convertible) {
+        return steps;
+    }
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "open_provenance_explorer",
+            label: "Open provenance explorer for selected gene sets",
+            target: {
+                scope: "selected_nodes",
+                node_types: ["gene_set"],
+            },
+            options: {},
+        },
+    ];
+}
+
+function repairMapGenesSteps(steps, userQuery) {
+    if (mentionsOpenProvenanceExplorerInQuery(userQuery)) {
+        return steps;
+    }
+    if (!mentionsMapGenesInQuery(userQuery)) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "map_genes")) {
+        return steps;
+    }
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["explain_graph", "find_datasets", "build_hypotheses", "filter_graph"].includes(
+                steps[0]?.action
+            ));
+    if (!convertible) {
+        return steps;
+    }
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "map_genes",
+            label: "Map genes across selected gene sets",
+            target: {
+                scope: "selected_nodes",
+                node_types: ["gene_set"],
+            },
+            options: {},
+        },
+    ];
+}
+
 function repairIntentAddSteps(steps, userQuery) {
-    if (mentionsDemoGeneSetsInQuery(userQuery)) {
+    if (
+        mentionsDemoGeneSetsInQuery(userQuery) ||
+        mentionsMapGenesInQuery(userQuery) ||
+        mentionsOpenProvenanceExplorerInQuery(userQuery)
+    ) {
         return steps;
     }
     if (!looksLikeIntentAddQuery(userQuery)) {
@@ -591,6 +660,32 @@ function repairStepOptions(step, userQuery, sessionContext) {
             target: {
                 scope: "selected_nodes",
                 node_types: ["gene"],
+            },
+        };
+    }
+
+    if (
+        action === "map_genes" &&
+        (!step.target?.scope || step.target.scope === "all")
+    ) {
+        step = {
+            ...step,
+            target: {
+                scope: "selected_nodes",
+                node_types: ["gene_set"],
+            },
+        };
+    }
+
+    if (
+        action === "open_provenance_explorer" &&
+        (!step.target?.scope || step.target.scope === "all")
+    ) {
+        step = {
+            ...step,
+            target: {
+                scope: "selected_nodes",
+                node_types: ["gene_set"],
             },
         };
     }
@@ -767,7 +862,13 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     }
 
     const repairedSteps = stripRedundantClearBeforeRemove(
-        repairDemoGeneSetSteps(repairIntentAddSteps(steps, userQuery), userQuery).map((step) =>
+        repairProvenanceExplorerSteps(
+            repairMapGenesSteps(
+                repairDemoGeneSetSteps(repairIntentAddSteps(steps, userQuery), userQuery),
+                userQuery
+            ),
+            userQuery
+        ).map((step) =>
             repairDemoGeneSetStep(
                 repairIntentAddStep(
                     repairUnselectStep(

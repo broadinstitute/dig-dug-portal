@@ -58,6 +58,16 @@ describe("revealKgDemoGeneSets", () => {
         expect(isDemoGeneSetGraphNode(next.graphNodes[0])).toBe(true);
     });
 
+    it("stores assistant intention when demo gene sets are added", () => {
+        const item = demoGeneSetCatalogItem(SAMPLE_RECORD);
+        const next = addDemoGeneSetsToGraphLocally({ graphNodes: [] }, [item], {
+            assistantIntention: "add bladder gene sets from demo gene sets.",
+        });
+        expect(next.graphNodes[0].demo_gene_set.assistant_intention).toBe(
+            "add bladder gene sets from demo gene sets."
+        );
+    });
+
     it("detects demo gene set mentions in assistant queries", () => {
         expect(
             mentionsDemoGeneSetsInQuery(

@@ -51,6 +51,13 @@ import {
     addDemoGeneSetsToGraphLocally,
     resolveDemoGeneSetsForAssistant,
 } from "./revealKgDemoGeneSets.js";
+import {
+    buildMapGenesMatrixForSession,
+    buildMapGenesRun,
+    getSelectedGeneSetGraphNodesFromSession,
+    getSelectedGeneSetNodesFromSession,
+} from "./revealKgMapGenesUtils.js";
+import { gatherCopyAndOpenProvenanceExplorer } from "./revealKgGeneSetProvenance.js";
 import { resolveAssistantLibraryGraph } from "./revealKgAssistantLibraryResolve.js";
 import {
     resolveAssistantGeneNodes,
@@ -399,7 +406,12 @@ async function runAssistantAction(session, step, runtime) {
                 );
             }
             const previousCount = session.graphNodes?.length || 0;
-            const nextSession = addDemoGeneSetsToGraphLocally(session, rows);
+            const assistantIntention = String(
+                runtime.userQuery || options.search_term || ""
+            ).trim();
+            const nextSession = addDemoGeneSetsToGraphLocally(session, rows, {
+                assistantIntention,
+            });
             const addedCount = Math.max(
                 0,
                 (nextSession.graphNodes?.length || 0) - previousCount
@@ -670,6 +682,53 @@ async function runAssistantAction(session, step, runtime) {
                 meta: {
                     openDatasets: true,
                     datasetCount: nextRun.payload?.datasets?.length || 0,
+                },
+            };
+        }
+        case "map_genes": {
+            onProgress?.("Mapping shared genes…");
+            const geneSetNodes = getSelectedGeneSetNodesFromSession(session);
+            if (!geneSetNodes.length) {
+                throw new Error(
+                    "Mark one or more gene sets as selected on the canvas before mapping genes."
+                );
+            }
+            const result = await buildMapGenesMatrixForSession(session);
+            if (result.error && !result.columns?.length) {
+                throw new Error(result.error);
+            }
+            const run = buildMapGenesRun(result, geneSetNodes);
+            return {
+                session: {
+                    ...session,
+                    mapGenesRun: run,
+                },
+                meta: {
+                    openMapGenes: true,
+                    mapGenesColumns: run.columns,
+                    mapGenesRows: run.rows,
+                    mapGenesSkippedGeneSets: run.skippedGeneSets,
+                    mapGenesError: run.error,
+                    geneSetCount: geneSetNodes.length,
+                    sharedGeneCount: run.rows?.length || 0,
+                },
+            };
+        }
+        case "open_provenance_explorer": {
+            onProgress?.("Opening provenance explorer…");
+            const geneSetNodes = getSelectedGeneSetGraphNodesFromSession(session);
+            if (!geneSetNodes.length) {
+                throw new Error(
+                    "Mark one or more gene sets as selected on the canvas before opening the provenance explorer."
+                );
+            }
+            const result = await gatherCopyAndOpenProvenanceExplorer(geneSetNodes);
+            return {
+                session,
+                meta: {
+                    openProvenanceExplorer: true,
+                    geneSetCount: result.geneSetCount,
+                    provenanceExplorerUrl: result.url,
                 },
             };
         }

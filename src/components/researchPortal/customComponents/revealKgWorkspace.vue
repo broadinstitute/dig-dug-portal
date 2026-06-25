@@ -316,6 +316,25 @@
             @add-gene-set="onAddCfdeGeneSet"
             @remove-gene-set="onRemoveCfdeGeneSet"
         />
+        <WorkspaceMapGenesModal
+            :open="mapGenesOpen"
+            :loading="mapGenesLoading"
+            :error="mapGenesError"
+            :selected-gene-set-count="selectedGeneSetCount"
+            :columns="mapGenesColumns"
+            :rows="mapGenesRows"
+            :skipped-gene-sets="mapGenesSkippedGeneSets"
+            :graph-gene-ids="canvasGraphNodeIds"
+            :adding-gene="mapGenesAddingGene"
+            @close="closeMapGenes"
+            @add-gene="onMapGenesAddGene"
+        />
+        <WorkspaceProvenanceExplorerModal
+            :open="provenanceExplorerOpen"
+            :gene-set-nodes="selectedGeneSetGraphNodes"
+            @close="closeProvenanceExplorer"
+            @open-explorer="onProvenanceExplorerOpened"
+        />
         <input
             ref="graphImportFileInput"
             type="file"
@@ -353,6 +372,8 @@ import WorkspaceExportGraphModal from "./revealKgWorkspace/WorkspaceExportGraphM
 import WorkspaceExplainGraphModal from "./revealKgWorkspace/WorkspaceExplainGraphModal.vue";
 import WorkspaceBuildHypothesesModal from "./revealKgWorkspace/WorkspaceBuildHypothesesModal.vue";
 import WorkspaceFindRelatedDatasetsModal from "./revealKgWorkspace/WorkspaceFindRelatedDatasetsModal.vue";
+import WorkspaceMapGenesModal from "./revealKgWorkspace/WorkspaceMapGenesModal.vue";
+import WorkspaceProvenanceExplorerModal from "./revealKgWorkspace/WorkspaceProvenanceExplorerModal.vue";
 import WorkspaceVisibilityFilterPanel from "./revealKgWorkspace/WorkspaceVisibilityFilterPanel.vue";
 import WorkspaceExpandGraphPanel from "./revealKgWorkspace/WorkspaceExpandGraphPanel.vue";
 import WorkspaceAiAssistantPanel from "./revealKgWorkspace/WorkspaceAiAssistantPanel.vue";
@@ -491,6 +512,15 @@ import {
     successfulCfdeDatasetRuns,
 } from "./revealKgWorkspace/revealKgCfdeDatasetUtils.js";
 import {
+    buildMapGenesMatrixForSession,
+    buildMapGenesRun,
+    getMapGenesActiveSetKey,
+    getSelectedGeneSetGraphNodesFromSession,
+    getSelectedGeneSetNodesFromSession,
+    mapGenesRunMatchesActiveSet,
+    mapGeneNodeId,
+} from "./revealKgWorkspace/revealKgMapGenesUtils.js";
+import {
     REMINDER_ACTION,
     REMINDER_ID,
     NODES_ADDED_SAVE_THRESHOLD,
@@ -529,6 +559,8 @@ export default Vue.component("reveal-kg-workspace", {
         WorkspaceExplainGraphModal,
         WorkspaceBuildHypothesesModal,
         WorkspaceFindRelatedDatasetsModal,
+        WorkspaceMapGenesModal,
+        WorkspaceProvenanceExplorerModal,
         WorkspaceVisibilityFilterPanel,
         WorkspaceExpandGraphPanel,
         WorkspaceAiAssistantPanel,
@@ -607,6 +639,14 @@ export default Vue.component("reveal-kg-workspace", {
             hypothesesOpen: false,
             relatedDatasetsOpen: false,
             datasetForceSearchForm: false,
+            mapGenesOpen: false,
+            mapGenesLoading: false,
+            mapGenesError: "",
+            mapGenesColumns: [],
+            mapGenesRows: [],
+            mapGenesSkippedGeneSets: [],
+            mapGenesAddingGene: "",
+            provenanceExplorerOpen: false,
             filterGraphOpen: false,
             graphFilterLoading: false,
             graphFilterProgress: "",
@@ -810,6 +850,12 @@ export default Vue.component("reveal-kg-workspace", {
         },
         selectedGeneCount() {
             return this.cfdeActiveSetNodes.length;
+        },
+        selectedGeneSetCount() {
+            return getSelectedGeneSetNodesFromSession(this.activeSession).length;
+        },
+        selectedGeneSetGraphNodes() {
+            return getSelectedGeneSetGraphNodesFromSession(this.activeSession);
         },
         cfdeActiveSetKey() {
             return getCfdeActiveSetKey(this.cfdeActiveSetNodes);
@@ -1977,6 +2023,25 @@ export default Vue.component("reveal-kg-workspace", {
                 this.relatedDatasetsOpen = true;
                 this.datasetForceSearchForm = false;
             }
+            if (meta.openMapGenes) {
+                this.applyMapGenesFromRun({
+                    columns: meta.mapGenesColumns,
+                    rows: meta.mapGenesRows,
+                    skippedGeneSets: meta.mapGenesSkippedGeneSets,
+                    error: meta.mapGenesError,
+                });
+                this.mapGenesLoading = false;
+                this.mapGenesOpen = true;
+            }
+        },
+        applyMapGenesFromRun(run) {
+            if (!run) {
+                return;
+            }
+            this.mapGenesColumns = run.columns || [];
+            this.mapGenesRows = run.rows || [];
+            this.mapGenesSkippedGeneSets = run.skippedGeneSets || [];
+            this.mapGenesError = run.error || "";
         },
         async onAssistantPlanRequest(payload) {
             const query = String(
@@ -3450,6 +3515,119 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.relatedDatasetsOpen = false;
         },
+        triggerMapGenes() {
+            this.startMapGenes();
+        },
+        triggerProvenanceExplorer() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before opening the provenance explorer.", 3200);
+                return;
+            }
+            this.provenanceExplorerOpen = true;
+        },
+        closeProvenanceExplorer() {
+            this.provenanceExplorerOpen = false;
+        },
+        onProvenanceExplorerOpened(payload = {}) {
+            const count = Number(payload.geneSetCount);
+            const detail =
+                Number.isFinite(count) && count > 0
+                    ? ` for ${count} gene set${count === 1 ? "" : "s"}`
+                    : "";
+            this.showStatus(`Opened provenance explorer${detail}.`, 3200);
+        },
+        async startMapGenes() {
+            if (!this.activeSession?.graphNodes?.length) {
+                this.showStatus("Build a graph before mapping genes.", 3200);
+                return;
+            }
+            if (!this.selectedGeneSetCount) {
+                this.showStatus(
+                    "Mark one or more gene sets as selected on the canvas before mapping genes.",
+                    3200
+                );
+                return;
+            }
+            const geneSetNodes = getSelectedGeneSetNodesFromSession(this.activeSession);
+            const activeSetKey = getMapGenesActiveSetKey(geneSetNodes);
+            const cached = this.activeSession?.mapGenesRun;
+            if (cached && mapGenesRunMatchesActiveSet(cached, activeSetKey)) {
+                this.applyMapGenesFromRun(cached);
+                this.mapGenesOpen = true;
+                return;
+            }
+            this.mapGenesOpen = true;
+            await this.runMapGenesSearch();
+        },
+        async runMapGenesSearch() {
+            if (this.mapGenesLoading) {
+                return;
+            }
+            this.mapGenesLoading = true;
+            this.mapGenesError = "";
+            try {
+                const geneSetNodes = getSelectedGeneSetNodesFromSession(this.activeSession);
+                const result = await buildMapGenesMatrixForSession(this.activeSession);
+                const run = buildMapGenesRun(result, geneSetNodes);
+                this.activeSession = {
+                    ...this.activeSession,
+                    mapGenesRun: run,
+                };
+                this.applyMapGenesFromRun(run);
+            } catch (error) {
+                this.mapGenesColumns = [];
+                this.mapGenesRows = [];
+                this.mapGenesSkippedGeneSets = [];
+                this.mapGenesError = String(error?.message || error || "Could not map genes.");
+            } finally {
+                this.mapGenesLoading = false;
+            }
+        },
+        closeMapGenes() {
+            if (this.mapGenesLoading) {
+                return;
+            }
+            this.mapGenesOpen = false;
+        },
+        async onMapGenesAddGene(symbol) {
+            const label = String(symbol || "").trim().toUpperCase();
+            const nodeId = mapGeneNodeId(label);
+            if (!label || !nodeId || !this.activeSession) {
+                return;
+            }
+            if ((this.activeSession.graphNodes || []).some((node) => node.id === nodeId)) {
+                this.showStatus(`${label} is already on the graph.`, 2800);
+                return;
+            }
+            if (this.mapGenesAddingGene) {
+                return;
+            }
+            this.mapGenesAddingGene = label;
+            const previousNodeCount = this.activeSession.graphNodes?.length || 0;
+            try {
+                const nextSession = await addNodesToWorkspaceGraph(this.apiClient, this.activeSession, [
+                    {
+                        node_id: nodeId,
+                        node_type: "gene",
+                        type: "gene",
+                        label,
+                    },
+                ]);
+                if ((nextSession.graphNodes?.length || 0) <= previousNodeCount) {
+                    this.showStatus(`${label} is already on the graph.`, 2800);
+                    return;
+                }
+                this.activeSession = withNormalizedKeyNodes(nextSession);
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
+                this.maybeRemindAfterGraphMutation(previousNodeCount);
+                this.showStatus(`Added ${label} to the graph.`, 2800);
+            } catch (error) {
+                this.showStatus(String(error?.message || error) || `Could not add ${label}.`, 3200);
+            } finally {
+                this.mapGenesAddingGene = "";
+            }
+        },
         onDatasetSearchAgain() {
             this.datasetForceSearchForm = true;
         },
@@ -3668,6 +3846,14 @@ export default Vue.component("reveal-kg-workspace", {
             }
             if (payload.menu === "analyze" && payload.action === "dataProvenance") {
                 this.triggerFindRelatedDatasets();
+                return;
+            }
+            if (payload.menu === "analyze" && payload.action === "mapGenes") {
+                this.triggerMapGenes();
+                return;
+            }
+            if (payload.menu === "analyze" && payload.action === "provenanceExplorer") {
+                this.triggerProvenanceExplorer();
                 return;
             }
             this.showStatus(`Triggered: ${payload.label}`);

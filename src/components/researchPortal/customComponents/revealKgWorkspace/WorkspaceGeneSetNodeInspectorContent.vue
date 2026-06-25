@@ -120,7 +120,10 @@
             </div>
         </section>
 
-        <WorkspaceGeneSetProvenancePanel :gene-set-id="geneSetIdForProvenance" />
+        <WorkspaceGeneSetProvenancePanel
+            :gene-set-id="geneSetIdForProvenance"
+            :gene-set-node="node"
+        />
 
         <WorkspaceNodeConnectionTabs
             :node="node"

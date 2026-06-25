@@ -175,6 +175,26 @@ export const ASSISTANT_ACTION_CATALOG = [
                 description: "Search CFDE gene sets from selected genes.",
                 examples: ["Find related datasets", "Find CFDE gene sets for selected genes"],
             },
+            {
+                id: "map_genes",
+                label: "Map genes",
+                description:
+                    "Show genes shared across selected gene sets in a membership table.",
+                examples: [
+                    "Map genes across selected gene sets",
+                    "Show shared genes in selected gene sets",
+                ],
+            },
+            {
+                id: "open_provenance_explorer",
+                label: "Open provenance explorer",
+                description:
+                    "Copy provenance details for selected gene sets and open the provenance explorer.",
+                examples: [
+                    "Open provenance explorer for selected gene sets",
+                    "Copy gene set information and open provenance explorer",
+                ],
+            },
         ],
     },
     {
@@ -259,6 +279,10 @@ export function defaultProgressMessageForAction(action) {
             return "Ranking pathways…";
         case "find_datasets":
             return "Finding related datasets…";
+        case "map_genes":
+            return "Mapping shared genes…";
+        case "open_provenance_explorer":
+            return "Opening provenance explorer…";
         case "select_nodes":
             return "Updating selected nodes…";
         case "select_visible_nodes":
@@ -301,5 +325,7 @@ export function assistantActionShowsProgressOverlay(action, options = {}) {
         "explain_graph",
         "build_hypotheses",
         "find_datasets",
+        "map_genes",
+        "open_provenance_explorer",
     ].includes(action);
 }

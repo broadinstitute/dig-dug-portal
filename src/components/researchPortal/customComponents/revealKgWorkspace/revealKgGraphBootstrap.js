@@ -815,6 +815,7 @@ export function createBlankCanvasSession({ label = "Blank canvas" } = {}) {
         datasetRuns: [],
         datasetRun: null,
         datasetLoading: false,
+        mapGenesRun: null,
         context: "",
         starterBuckets: buckets,
         anchorItems: [],

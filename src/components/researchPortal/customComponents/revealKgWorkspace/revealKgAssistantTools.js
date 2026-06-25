@@ -173,6 +173,20 @@ export const ASSISTANT_ACTIONS = [
         options: {},
     },
     {
+        action: "map_genes",
+        description:
+            "Map genes shared across selected gene sets. Opens a membership table of genes that appear in more than two selected gene sets.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "open_provenance_explorer",
+        description:
+            "Gather provenance details for selected gene sets, copy them to the clipboard, and open the provenance explorer.",
+        has_options: false,
+        options: {},
+    },
+    {
         action: "export_graph",
         description: "Export the current graph workflow JSON file.",
         has_options: false,

@@ -60,9 +60,14 @@ export default {
                     id: "analyze",
                     label: "Analyze",
                     items: [
-                        { id: "explain", label: "Explain graph" },
-                        { id: "hypotheses", label: "Build hypotheses" },
-                        { id: "dataProvenance", label: "Find related datasets" },
+                        { id: "explain", label: "Explain graph (selected or all nodes)" },
+                        { id: "hypotheses", label: "Build hypotheses (selected nodes)" },
+                        { id: "dataProvenance", label: "Find related datasets (selected genes)" },
+                        { id: "mapGenes", label: "Map genes (selected gene sets)" },
+                        {
+                            id: "provenanceExplorer",
+                            label: "Open provenance explorer (selected gene sets)",
+                        },
                     ],
                 },
                 {

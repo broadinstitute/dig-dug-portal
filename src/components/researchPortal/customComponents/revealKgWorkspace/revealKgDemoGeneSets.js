@@ -194,8 +194,10 @@ function normalizeDemoGraphNode(raw) {
 
 /**
  * Place demo gene sets on the graph without node-links API (not in REVEAL catalog).
+ * @param {{ assistantIntention?: string }} [options]
  */
-export function addDemoGeneSetsToGraphLocally(session, rows = []) {
+export function addDemoGeneSetsToGraphLocally(session, rows = [], options = {}) {
+    const assistantIntention = String(options.assistantIntention || "").trim();
     const items = (rows || [])
         .map((row) => ({
             node_id: row.node_id || row.id,
@@ -203,7 +205,10 @@ export function addDemoGeneSetsToGraphLocally(session, rows = []) {
             type: "gene_set",
             label: row.label || row.node_id,
             subtitle: row.subtitle || "Demo gene set",
-            demo_gene_set: row.demo_gene_set || null,
+            demo_gene_set: {
+                ...(row.demo_gene_set || {}),
+                ...(assistantIntention ? { assistant_intention: assistantIntention } : {}),
+            },
         }))
         .filter((item) => item.node_id && item.demo_gene_set?.standard_name);
 

@@ -101,6 +101,23 @@
 
                     <button
                         type="button"
+                        class="wkb-gene-set-regenerate-copy-btn"
+                        :disabled="!canCopyGeneSetInformation"
+                        title="Copy gene set provenance URL and assistant intention"
+                        @click="onCopyGeneSetInformation"
+                    >
+                        Copy gene set information
+                    </button>
+                    <p
+                        v-if="copyFeedback"
+                        class="wkb-gene-set-regenerate-copy-feedback"
+                        role="status"
+                    >
+                        {{ copyFeedback }}
+                    </p>
+
+                    <button
+                        type="button"
                         class="wkb-gene-set-regenerate-open"
                         :disabled="!canOpenProvenanceExplorer"
                         :title="provenanceExplorerButtonTitle"
@@ -141,9 +158,12 @@
 <script>
 import {
     fetchGeneSetProvenanceDetail,
+    formatGeneSetInformationForClipboard,
     GENE_SET_PROVENANCE_EXPLORER_URL,
     parseGeneSetProvenancePayload,
+    resolveAssistantIntentionForGeneSet,
 } from "./revealKgGeneSetProvenance.js";
+import { demoGeneSetProvenanceForNode } from "./revealKgDemoGeneSets.js";
 import WorkspaceEvidenceTable from "./WorkspaceEvidenceTable.vue";
 import WorkspaceGeneSetProvenanceViz from "./WorkspaceGeneSetProvenanceViz.vue";
 
@@ -160,6 +180,10 @@ export default {
             type: Number,
             default: null,
         },
+        geneSetNode: {
+            type: Object,
+            default: null,
+        },
         provenanceExplorerUrl: {
             type: String,
             default: GENE_SET_PROVENANCE_EXPLORER_URL,
@@ -174,6 +198,8 @@ export default {
             error: "",
             parsed: null,
             requestId: 0,
+            copyFeedback: "",
+            copyFeedbackTimer: null,
         };
     },
     computed: {
@@ -208,6 +234,23 @@ export default {
             return this.canOpenProvenanceExplorer
                 ? "Open the gene set provenance explorer"
                 : "Provenance explorer URL is not configured yet";
+        },
+        geneSetInformationClipboardText() {
+            const demoMeta = demoGeneSetProvenanceForNode(this.geneSetNode) || {};
+            const context = this.downloadRegenerate;
+            return formatGeneSetInformationForClipboard({
+                geneSetId: this.geneSetId || context.geneSetId,
+                standardName:
+                    context.standardName ||
+                    demoMeta.standard_name ||
+                    this.geneSetNode?.label ||
+                    "",
+                collectionName: context.collectionName || demoMeta.collection_name || "",
+                assistantIntention: resolveAssistantIntentionForGeneSet(this.geneSetNode),
+            });
+        },
+        canCopyGeneSetInformation() {
+            return Boolean(this.geneSetInformationClipboardText);
         },
         provenanceVizHeight() {
             const nodeCount = this.parsed?.provenanceNetwork?.nodes?.length || 0;
@@ -249,6 +292,11 @@ export default {
                 value: row.value,
             }));
         },
+    },
+    beforeDestroy() {
+        if (this.copyFeedbackTimer) {
+            clearTimeout(this.copyFeedbackTimer);
+        }
     },
     watch: {
         geneSetId: {
@@ -311,6 +359,40 @@ export default {
                 url,
             });
             window.open(url, "_blank", "noopener,noreferrer");
+        },
+        async onCopyGeneSetInformation() {
+            const text = this.geneSetInformationClipboardText;
+            if (!text) {
+                return;
+            }
+            try {
+                if (navigator?.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = document.createElement("textarea");
+                    textarea.value = text;
+                    textarea.setAttribute("readonly", "");
+                    textarea.style.position = "absolute";
+                    textarea.style.left = "-9999px";
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textarea);
+                }
+                this.setCopyFeedback("Copied to clipboard.");
+            } catch (error) {
+                this.setCopyFeedback("Could not copy to clipboard.");
+            }
+        },
+        setCopyFeedback(message) {
+            this.copyFeedback = message;
+            if (this.copyFeedbackTimer) {
+                clearTimeout(this.copyFeedbackTimer);
+            }
+            this.copyFeedbackTimer = setTimeout(() => {
+                this.copyFeedback = "";
+                this.copyFeedbackTimer = null;
+            }, 2500);
         },
     },
 };
@@ -396,6 +478,33 @@ export default {
     font-size: 12px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);
+}
+
+.wkb-gene-set-regenerate-copy-btn {
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--cfde-blue, #2c5c97);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    cursor: pointer;
+}
+
+.wkb-gene-set-regenerate-copy-btn:hover:not(:disabled) {
+    background: #eef4fb;
+}
+
+.wkb-gene-set-regenerate-copy-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wkb-gene-set-regenerate-copy-feedback {
+    margin: -6px 0 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-gene-set-regenerate-footnote {

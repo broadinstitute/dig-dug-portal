@@ -58,6 +58,128 @@ export function resolveGeneSetIdForProvenance(node) {
     return Number.isFinite(generic) ? generic : null;
 }
 
+export function formatGeneSetInformationForClipboard({
+    geneSetId,
+    standardName = "",
+    collectionName = "",
+    assistantIntention = "",
+} = {}) {
+    const id = Number(geneSetId);
+    const lines = [];
+    const provenanceUrl = geneSetDetailUrl(id);
+    if (provenanceUrl) {
+        lines.push(`Gene set provenance URL: ${provenanceUrl}`);
+    }
+    if (Number.isFinite(id)) {
+        lines.push(`Gene set ID: ${id}`);
+    }
+    if (String(standardName || "").trim()) {
+        lines.push(`Standard name: ${String(standardName).trim()}`);
+    }
+    if (String(collectionName || "").trim()) {
+        lines.push(`Collection: ${String(collectionName).trim()}`);
+    }
+    if (String(assistantIntention || "").trim()) {
+        lines.push(`User intention: ${String(assistantIntention).trim()}`);
+    }
+    return lines.join("\n").trim();
+}
+
+export function resolveAssistantIntentionForGeneSet(node) {
+    return String(node?.demo_gene_set?.assistant_intention || "").trim();
+}
+
+export function geneSetInformationEntryFromNode(node) {
+    const demoMeta = node?.demo_gene_set || {};
+    const geneSetId = resolveGeneSetIdForProvenance(node);
+    return {
+        nodeId: node?.id || node?.node_id || "",
+        label: String(node?.label || "").trim(),
+        geneSetId: Number.isFinite(geneSetId) ? geneSetId : null,
+        standardName: String(demoMeta.standard_name || node?.label || "").trim(),
+        collectionName: String(demoMeta.collection_name || "").trim(),
+        assistantIntention: resolveAssistantIntentionForGeneSet(node),
+    };
+}
+
+export function formatSelectedGeneSetsInformationForClipboard(nodes = []) {
+    const entries = (nodes || [])
+        .map(geneSetInformationEntryFromNode)
+        .filter((entry) => Number.isFinite(entry.geneSetId));
+    if (!entries.length) {
+        return "";
+    }
+    return entries
+        .map((entry, index) => {
+            const header =
+                entries.length > 1
+                    ? `Gene set ${index + 1}: ${entry.label || entry.standardName || entry.geneSetId}`
+                    : "";
+            const body = formatGeneSetInformationForClipboard(entry);
+            return header ? `${header}\n${body}` : body;
+        })
+        .join("\n\n")
+        .trim();
+}
+
+export function mentionsOpenProvenanceExplorerInQuery(query) {
+    const text = String(query || "");
+    return (
+        /\bopen\b[\s\S]{0,40}\bprovenance\s+explorer\b/i.test(text) ||
+        /\bprovenance\s+explorer\b/i.test(text)
+    );
+}
+
+export async function copyTextToClipboard(text) {
+    const value = String(text || "").trim();
+    if (!value) {
+        throw new Error("Nothing to copy.");
+    }
+    if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+}
+
+export function openProvenanceExplorerWindow(url = GENE_SET_PROVENANCE_EXPLORER_URL) {
+    const resolved = String(url || "").trim();
+    if (!resolved) {
+        return false;
+    }
+    window.open(resolved, "_blank", "noopener,noreferrer");
+    return true;
+}
+
+export async function gatherCopyAndOpenProvenanceExplorer(nodes = [], url = GENE_SET_PROVENANCE_EXPLORER_URL) {
+    const entries = (nodes || [])
+        .map(geneSetInformationEntryFromNode)
+        .filter((entry) => Number.isFinite(entry.geneSetId));
+    if (!entries.length) {
+        throw new Error(
+            "Selected gene sets need catalog ids (for example demo gene sets added via the assistant)."
+        );
+    }
+    const clipboardText = formatSelectedGeneSetsInformationForClipboard(nodes);
+    await copyTextToClipboard(clipboardText);
+    if (!openProvenanceExplorerWindow(url)) {
+        throw new Error("Provenance explorer URL is not configured.");
+    }
+    return {
+        geneSetCount: entries.length,
+        clipboardText,
+        url: String(url || "").trim(),
+    };
+}
+
 export async function fetchGeneSetProvenanceDetail(geneSetId) {
     const id = Number(geneSetId);
     if (!Number.isFinite(id)) {

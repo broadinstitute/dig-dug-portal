@@ -45,6 +45,23 @@ export const ASSISTANT_ACTION_VERBS = [
  */
 export const ASSISTANT_ACTION_PHRASES = [
     {
+        phrase: "map genes",
+        label: "Map genes",
+        actionId: "map_genes",
+        keywords: ["map genes", "map gene", "gene membership", "shared genes"],
+    },
+    {
+        phrase: "provenance explorer",
+        label: "Open provenance explorer",
+        actionId: "open_provenance_explorer",
+        keywords: [
+            "provenance explorer",
+            "open provenance explorer",
+            "gene set provenance",
+            "copy gene set information",
+        ],
+    },
+    {
         phrase: "jumping edges",
         label: "Jumping edges",
         actionId: "set_jumping_edges_visible",

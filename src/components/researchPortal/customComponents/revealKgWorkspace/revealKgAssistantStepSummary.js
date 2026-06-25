@@ -98,6 +98,22 @@ export function formatAssistantStepSummary(step, meta = {}) {
             }
             return "Related dataset search finished.";
         }
+        case "map_genes": {
+            const count = Number(meta.sharedGeneCount);
+            if (Number.isFinite(count)) {
+                return count
+                    ? `Mapped ${count} shared gene${count === 1 ? "" : "s"} across selected gene sets.`
+                    : "Gene mapping finished — no genes appear in more than two selected gene sets.";
+            }
+            return "Opened gene membership mapping.";
+        }
+        case "open_provenance_explorer": {
+            const count = Number(meta.geneSetCount);
+            if (Number.isFinite(count) && count > 0) {
+                return `Copied ${count} gene set${count === 1 ? "" : "s"} to the clipboard and opened the provenance explorer.`;
+            }
+            return "Opened the provenance explorer.";
+        }
         case "open_expand_panel": {
             const count = Number(meta.seedCount);
             if (Number.isFinite(count) && count > 0) {
