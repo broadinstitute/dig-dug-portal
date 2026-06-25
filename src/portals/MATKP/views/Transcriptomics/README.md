@@ -17,19 +17,19 @@ This folder contains the MATKP bulk transcriptomic prototype page that was built
 
 ## What It Currently Does
 
-- Loads a default gene on first visit.
-- Supports a small local demo set of genes: `LEP`, `ADIPOQ`, `UCP1`, `PPARG`, and `PLIN1`.
+- Loads a default gene on first visit from the MATKP forest API.
+- Accepts any gene symbol supported by the live index (e.g. `LEP`, `DBI`).
+- Keeps a small **Examples** list in the search UI for quick demo access.
 - Accepts `gene` and `outcome` query params and syncs them back into the URL.
 - Renders one section per supported outcome for the active gene.
-- Draws compact forest-plot rows from the local JSON payloads.
+- Draws compact forest-plot rows from the live `single-cell-forest` BioIndex query.
 - Shows full study details, dataset IDs, and labeled effect/CI values in tooltips.
 - Keeps evidence rows collapsed by default and lets the user expand them per outcome.
 - Highlights the current outcome in the sidebar as the user scrolls.
 
 ## What Is Still Left To Do
 
-- Replace the local demo gene lookup with the real API-backed search flow.
-- Define the final data-loading contract once backend payloads are available.
+- Replace the QA API host with environment-specific BioIndex configuration when promoted beyond QA.
 - Confirm the final interpretation copy and tooltip content with domain stakeholders.
 - Refine responsive behavior if this page needs to work below the current desktop-first assumption.
 - Decide whether the forest plot should gain richer legends, filtering, sorting, or download/export behavior.
@@ -37,5 +37,7 @@ This folder contains the MATKP bulk transcriptomic prototype page that was built
 
 ## Main Files
 
-- `main.js`: data wiring, URL params, scroll tracking, and plot preparation
+- `main.js`: API fetch, ortholog resolution, URL params, scroll tracking, and plot preparation
+- `../../utils/forestGeneApi.js`: BioIndex forest query client
+- `../../utils/buildForestGenePayload.js`: API row → page payload adapter
 - `Template.vue`: page layout, controls, forest plot UI, tooltips, and evidence table presentation

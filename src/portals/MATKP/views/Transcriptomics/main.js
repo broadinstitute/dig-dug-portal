@@ -9,23 +9,11 @@ import {
     resolveCanonicalHumanGene,
     resolveHumanMouseSymbols,
 } from "../../utils/gprofilerOrth.js";
+import { fetchForestGenePayload } from "../../utils/buildForestGenePayload.js";
 
 import pageIndex from "../../data/transcriptomicPrototype/index.json";
 import geneIndex from "../../data/transcriptomicPrototype/genes_index.json";
 import outcomeIndex from "../../data/transcriptomicPrototype/outcomes_index.json";
-import ADIPOQ from "../../data/transcriptomicPrototype/genes/ADIPOQ.json";
-import LEP from "../../data/transcriptomicPrototype/genes/LEP.json";
-import PLIN1 from "../../data/transcriptomicPrototype/genes/PLIN1.json";
-import PPARG from "../../data/transcriptomicPrototype/genes/PPARG.json";
-import UCP1 from "../../data/transcriptomicPrototype/genes/UCP1.json";
-
-const genePayloads = {
-    ADIPOQ,
-    LEP,
-    PLIN1,
-    PPARG,
-    UCP1,
-};
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
     placement: "right",
@@ -53,10 +41,14 @@ new Vue({
             pageIndex,
             geneIndex,
             outcomeIndex,
-            genesBySymbol: genePayloads,
-            selectedGene: pageIndex.default_gene,
-            geneQuery: pageIndex.default_gene,
+            activeGenePayload: null,
+            showGeneResults: false,
+            selectedGene: null,
+            geneQuery: "",
             geneSearchSpecies: "human",
+            geneLoading: false,
+            pendingOutcomeId: null,
+            urlOutcomeFilter: null,
             geneOrthologSymbols: {
                 human: null,
                 mouse: null,
@@ -83,14 +75,11 @@ new Vue({
 
     computed: {
         activeGene() {
-            if (this.geneNotFound) {
+            if (this.geneNotFound || !this.activeGenePayload) {
                 return null;
             }
 
-            return (
-                this.genesBySymbol[this.selectedGene] ||
-                this.genesBySymbol[this.pageIndex.default_gene]
-            );
+            return this.activeGenePayload;
         },
         geneSummaryList() {
             if (!this.activeGene) {
@@ -169,27 +158,25 @@ new Vue({
         const requestedGene = keyParams.gene;
         const requestedOutcome = keyParams.outcome;
 
-        if (requestedGene && this.genesBySymbol[requestedGene]) {
-            this.selectedGene = requestedGene;
-            this.geneQuery = requestedGene;
+        this.showGeneResults = !!requestedGene;
+        this.pendingOutcomeId = requestedOutcome
+            ? String(requestedOutcome).trim()
+            : null;
+
+        if (requestedGene) {
+            this.selectedGene = String(requestedGene).trim().toUpperCase();
+            this.geneQuery = this.selectedGene;
         }
-
-        this.selectedOutcomeId =
-            requestedOutcome &&
-            this.activeOutcomeIds.includes(requestedOutcome)
-                ? requestedOutcome
-                : this.activeOutcomeIds[0];
-
-        this.initializeVisibleOutcomes();
-        this.initializeDepotFilters();
-        this.initializeDatasetFilters();
-        this.initializeDatasetVisibility();
-        this.syncParams();
-        this.refreshGeneOrthologSymbols(this.selectedGene);
     },
     mounted() {
-        this.$nextTick(() => {
-            this.setupScrollTracking();
+        if (!this.showGeneResults) {
+            return;
+        }
+
+        this.bootstrapGene().then(() => {
+            this.$nextTick(() => {
+                this.setupScrollTracking();
+            });
         });
     },
     beforeDestroy() {
@@ -209,6 +196,32 @@ new Vue({
 
             this.visibleOutcomes = visible;
         },
+        applyOutcomeVisibilityFilter(outcomeId) {
+            const visible = {};
+
+            this.activeOutcomeIds.forEach((id) => {
+                visible[id] = id === outcomeId;
+            });
+
+            this.visibleOutcomes = visible;
+        },
+        applyUrlOutcomeFilter() {
+            const outcomeId = this.pendingOutcomeId;
+
+            if (
+                outcomeId &&
+                this.activeOutcomeIds.includes(outcomeId)
+            ) {
+                this.urlOutcomeFilter = outcomeId;
+                this.applyOutcomeVisibilityFilter(outcomeId);
+                this.selectedOutcomeId = outcomeId;
+                return;
+            }
+
+            this.urlOutcomeFilter = null;
+            this.initializeVisibleOutcomes();
+            this.selectedOutcomeId = this.activeOutcomeIds[0] || null;
+        },
         isOutcomeVisible(outcomeId) {
             return this.visibleOutcomes[outcomeId] !== false;
         },
@@ -227,6 +240,8 @@ new Vue({
         },
         setOutcomeVisibility(outcomeId, isVisible) {
             this.$set(this.visibleOutcomes, outcomeId, isVisible);
+            this.refreshUrlOutcomeFilter();
+            this.syncParams();
         },
         areAllOutcomesSelected() {
             if (!this.activeGene) {
@@ -265,6 +280,12 @@ new Vue({
                     isVisible
                 );
             });
+
+            if (isVisible) {
+                this.urlOutcomeFilter = null;
+            }
+
+            this.syncParams();
         },
         getDatasetRowKey(row) {
             if (row.row_type === "pooled") {
@@ -299,10 +320,22 @@ new Vue({
                 return [];
             }
 
-            return outcome.rows.map((row) => ({
-                id: this.getDatasetRowKey(row),
-                label: row.display_label_short,
-            }));
+            const datasetsByKey = new Map();
+
+            outcome.rows.forEach((row) => {
+                const id = this.getDatasetRowKey(row);
+
+                if (!datasetsByKey.has(id)) {
+                    datasetsByKey.set(id, {
+                        id,
+                        label: row.display_label_short,
+                    });
+                }
+            });
+
+            return Array.from(datasetsByKey.values()).sort((a, b) =>
+                a.label.localeCompare(b.label)
+            );
         },
         isDatasetVisible(outcomeId, datasetRowKey) {
             const key = `${outcomeId}::${datasetRowKey}`;
@@ -451,9 +484,7 @@ new Vue({
             return symbols;
         },
         async refreshGeneOrthologSymbols(humanCanonical) {
-            const fallback = this.collectGeneSpeciesSymbols(
-                this.genesBySymbol[humanCanonical]
-            );
+            const fallback = this.collectGeneSpeciesSymbols(this.activeGenePayload);
 
             this.geneOrthologSymbols = {
                 human: fallback.human || humanCanonical,
@@ -468,6 +499,48 @@ new Vue({
             if (symbols.human) {
                 this.geneOrthologSymbols = symbols;
             }
+        },
+        async fetchGenePayload(canonicalGene) {
+            this.geneLoading = true;
+
+            try {
+                const payload = await fetchForestGenePayload(canonicalGene);
+
+                if (!payload || !payload.outcomes.length) {
+                    this.activeGenePayload = null;
+                    this.geneNotFound = true;
+                    return false;
+                }
+
+                this.activeGenePayload = payload;
+                this.geneNotFound = false;
+                return true;
+            } catch (error) {
+                console.error(error);
+                this.activeGenePayload = null;
+                this.geneNotFound = true;
+                return false;
+            } finally {
+                this.geneLoading = false;
+            }
+        },
+        initializeGeneState() {
+            this.applyUrlOutcomeFilter();
+            this.initializeDepotFilters();
+            this.initializeDatasetFilters();
+            this.initializeDatasetVisibility();
+            this.syncParams();
+        },
+        async bootstrapGene() {
+            const loaded = await this.fetchGenePayload(this.selectedGene);
+
+            if (!loaded) {
+                this.syncParams();
+                return;
+            }
+
+            this.initializeGeneState();
+            await this.refreshGeneOrthologSymbols(this.selectedGene);
         },
         collectDepotOptions(gene) {
             if (!gene) {
@@ -585,6 +658,33 @@ new Vue({
         },
         setDepotFilter(depotId, isVisible) {
             this.$set(this.depotFilters, depotId, isVisible);
+        },
+        areAllDepotsSelected() {
+            if (!this.depotOptions.length) {
+                return true;
+            }
+
+            return this.depotOptions.every(
+                (option) => this.depotFilters[option.id] !== false
+            );
+        },
+        isDepotFilterIndeterminate() {
+            if (!this.depotOptions.length) {
+                return false;
+            }
+
+            const selectedCount = this.depotOptions.filter(
+                (option) => this.depotFilters[option.id] !== false
+            ).length;
+
+            return (
+                selectedCount > 0 && selectedCount < this.depotOptions.length
+            );
+        },
+        setAllDepotFilters(isVisible) {
+            this.depotOptions.forEach((option) => {
+                this.$set(this.depotFilters, option.id, isVisible);
+            });
         },
         isDepotFilterActive() {
             if (!this.depotOptions.length) {
@@ -732,7 +832,6 @@ new Vue({
             const query = String(this.geneQuery || "").trim();
 
             if (!query) {
-                this.geneQuery = this.selectedGene;
                 return;
             }
 
@@ -741,16 +840,31 @@ new Vue({
                 this.geneSearchSpecies
             );
 
-            if (!canonicalGene || !this.genesBySymbol[canonicalGene]) {
+            if (!canonicalGene) {
+                this.showGeneResults = true;
                 this.geneNotFound = true;
+                this.activeGenePayload = null;
+                this.selectedGene = query.toUpperCase();
                 this.geneOrthologSymbols = {
                     human: null,
                     mouse: null,
                 };
+                this.syncParams();
                 return;
             }
 
-            this.geneNotFound = false;
+            const loaded = await this.fetchGenePayload(canonicalGene);
+
+            if (!loaded) {
+                this.showGeneResults = true;
+                this.selectedGene = canonicalGene;
+                this.syncParams();
+                return;
+            }
+
+            this.showGeneResults = true;
+            this.selectedGene = canonicalGene;
+
             const symbols = await resolveHumanMouseSymbols(
                 query,
                 this.geneSearchSpecies
@@ -767,10 +881,6 @@ new Vue({
                     : canonicalGene;
         },
         onGeneChange(gene, options = {}) {
-            if (!this.genesBySymbol[gene]) {
-                return;
-            }
-
             this.selectedGene = gene;
             this.geneNotFound = false;
 
@@ -785,19 +895,29 @@ new Vue({
             };
             this.adjPValueMax = "";
             this.adjPValueInput = "";
-            this.initializeVisibleOutcomes();
+            this.applyUrlOutcomeFilter();
             this.initializeDepotFilters();
             this.initializeDatasetFilters();
             this.initializeDatasetVisibility();
-
-            if (!this.activeOutcomeIds.includes(this.selectedOutcomeId)) {
-                this.selectedOutcomeId = this.activeOutcomeIds[0];
-            }
 
             this.syncParams();
             this.$nextTick(() => {
                 this.setupScrollTracking();
             });
+        },
+        refreshUrlOutcomeFilter() {
+            const visibleIds = this.activeOutcomeIds.filter(
+                (id) => this.visibleOutcomes[id] !== false
+            );
+
+            if (
+                visibleIds.length === 1 &&
+                visibleIds[0] === this.urlOutcomeFilter
+            ) {
+                return;
+            }
+
+            this.urlOutcomeFilter = null;
         },
         scaleValue(value, domain) {
             if (domain.max === domain.min) {
@@ -925,10 +1045,31 @@ new Vue({
             return "other";
         },
         syncParams() {
-            keyParams.set({
-                gene: this.selectedGene,
-                outcome: this.selectedOutcomeId,
-            });
+            if (!this.showGeneResults) {
+                keyParams.set({
+                    gene: undefined,
+                    outcome: undefined,
+                });
+                return;
+            }
+
+            const params = {
+                gene: this.selectedGene || undefined,
+                outcome: undefined,
+            };
+            const visibleIds = this.activeOutcomeIds.filter(
+                (id) => this.visibleOutcomes[id] !== false
+            );
+
+            if (
+                this.urlOutcomeFilter &&
+                visibleIds.length === 1 &&
+                visibleIds[0] === this.urlOutcomeFilter
+            ) {
+                params.outcome = this.urlOutcomeFilter;
+            }
+
+            keyParams.set(params);
         },
     },
 

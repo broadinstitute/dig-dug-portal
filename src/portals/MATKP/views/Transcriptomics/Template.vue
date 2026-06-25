@@ -65,6 +65,7 @@
                   <button
                     type="button"
                     class="action-button"
+                    :disabled="$parent.geneLoading"
                     @click="$parent.loadGene()"
                   >
                     Search
@@ -86,7 +87,7 @@
             </div>
           </div>
 
-          <div class="content-grid">
+          <div v-if="$parent.showGeneResults" class="content-grid">
             <div class="sticky-rail f-col">
               <div class="rail-card f-col">
                 <div class="gene-display-block f-col">
@@ -95,21 +96,28 @@
                     :class="{ 'gene-display--empty': $parent.geneNotFound }"
                   >
                     {{
-                      $parent.geneNotFound
-                        ? "No data found"
-                        : $parent.activeGene.gene
+                      $parent.geneLoading
+                        ? "Loading..."
+                        : $parent.geneNotFound
+                          ? "No data found"
+                          : ($parent.activeGene && $parent.activeGene.gene) || ""
                     }}
                   </div>
                   <div
                     v-if="
-                      !$parent.geneNotFound && $parent.geneSpeciesSymbolLabel
+                      !$parent.geneNotFound &&
+                      !$parent.geneLoading &&
+                      $parent.geneSpeciesSymbolLabel
                     "
                     class="gene-display__species"
                   >
                     ({{ $parent.geneSpeciesSymbolLabel }})
                   </div>
                 </div>
-                <ul v-if="!$parent.geneNotFound" class="gene-summary-list">
+                <ul
+                  v-if="!$parent.geneNotFound && !$parent.geneLoading"
+                  class="gene-summary-list"
+                >
                   <li
                     v-for="item in $parent.geneSummaryList"
                     :key="item"
@@ -250,6 +258,15 @@
                         <b-icon icon="three-dots-vertical"></b-icon>
                       </template>
                       <b-dropdown-form class="outcome-filter-dropdown">
+                        <b-form-checkbox
+                          size="sm"
+                          class="outcome-filter-dropdown__select-all"
+                          :checked="$parent.areAllDepotsSelected()"
+                          :indeterminate="$parent.isDepotFilterIndeterminate()"
+                          @change="$parent.setAllDepotFilters($event)"
+                        >
+                          Select all
+                        </b-form-checkbox>
                         <b-form-checkbox
                           v-for="depot in $parent.depotOptions"
                           :key="depot.id"
