@@ -95,21 +95,21 @@
                     :aria-labelledby="tabButtonId('download_regenerate')"
                 >
                     <p class="wkb-gene-set-regenerate-copy">
-                        Open the workflow studio to download provenance files, rerun the pipeline
+                        Open the provenance explorer to download source files, rerun the pipeline
                         with the same inputs, or tweak parameters to build a custom gene set.
                     </p>
 
                     <button
                         type="button"
                         class="wkb-gene-set-regenerate-open"
-                        :disabled="!canOpenWorkflowStudio"
-                        :title="workflowStudioButtonTitle"
-                        @click="onOpenWorkflowStudio"
+                        :disabled="!canOpenProvenanceExplorer"
+                        :title="provenanceExplorerButtonTitle"
+                        @click="onOpenProvenanceExplorer"
                     >
-                        Open workflow studio
+                        Open provenance explorer
                     </button>
-                    <p v-if="!canOpenWorkflowStudio" class="wkb-gene-set-regenerate-footnote">
-                        Workflow studio integration is coming soon.
+                    <p v-if="!canOpenProvenanceExplorer" class="wkb-gene-set-regenerate-footnote">
+                        Provenance explorer link is not configured yet.
                     </p>
                 </div>
 
@@ -141,6 +141,7 @@
 <script>
 import {
     fetchGeneSetProvenanceDetail,
+    GENE_SET_PROVENANCE_EXPLORER_URL,
     parseGeneSetProvenancePayload,
 } from "./revealKgGeneSetProvenance.js";
 import WorkspaceEvidenceTable from "./WorkspaceEvidenceTable.vue";
@@ -159,9 +160,9 @@ export default {
             type: Number,
             default: null,
         },
-        workflowStudioUrl: {
+        provenanceExplorerUrl: {
             type: String,
-            default: "",
+            default: GENE_SET_PROVENANCE_EXPLORER_URL,
         },
     },
     data() {
@@ -197,13 +198,16 @@ export default {
                 }
             );
         },
-        canOpenWorkflowStudio() {
-            return Boolean(String(this.workflowStudioUrl || "").trim());
+        resolvedProvenanceExplorerUrl() {
+            return String(this.provenanceExplorerUrl || "").trim();
         },
-        workflowStudioButtonTitle() {
-            return this.canOpenWorkflowStudio
-                ? "Open this gene set in the workflow studio"
-                : "Workflow studio URL is not configured yet";
+        canOpenProvenanceExplorer() {
+            return Boolean(this.resolvedProvenanceExplorerUrl);
+        },
+        provenanceExplorerButtonTitle() {
+            return this.canOpenProvenanceExplorer
+                ? "Open the gene set provenance explorer"
+                : "Provenance explorer URL is not configured yet";
         },
         provenanceVizHeight() {
             const nodeCount = this.parsed?.provenanceNetwork?.nodes?.length || 0;
@@ -291,8 +295,9 @@ export default {
                 }
             }
         },
-        onOpenWorkflowStudio() {
-            if (!this.canOpenWorkflowStudio) {
+        onOpenProvenanceExplorer() {
+            const url = this.resolvedProvenanceExplorerUrl;
+            if (!url) {
                 return;
             }
             const context = this.downloadRegenerate;
@@ -303,9 +308,9 @@ export default {
                 sourceFiles: context.sourceFiles,
                 workflowSteps: context.workflowSteps,
                 converterCommand: context.converterCommand,
-                url: this.workflowStudioUrl,
+                url,
             });
-            window.open(this.workflowStudioUrl, "_blank", "noopener,noreferrer");
+            window.open(url, "_blank", "noopener,noreferrer");
         },
     },
 };
