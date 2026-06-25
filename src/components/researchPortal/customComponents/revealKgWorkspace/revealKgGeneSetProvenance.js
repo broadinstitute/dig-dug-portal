@@ -10,6 +10,7 @@ import {
     classifyProvenanceNodeRoles,
     createProvenanceCtxRenderer,
     labelPlacementForRole,
+    provenanceDisplayLabel,
     provenanceNodeDimensions,
 } from "./revealKgGeneSetProvenanceViz.js";
 
@@ -86,10 +87,113 @@ export function extractProvenanceGraphBundle(payload) {
     const first = Object.values(graphMap).find(
         (entry) => Array.isArray(entry?.nodes) && Array.isArray(entry?.edges)
     );
-    return {
-        nodes: first?.nodes || [],
-        edges: first?.edges || [],
-    };
+    return mergeDuplicateProvenanceFileNodes(first?.nodes || [], first?.edges || []);
+}
+
+function mergeDuplicateNodeMetadata(primary, duplicate) {
+    const merged = { ...primary };
+    for (const key of [
+        "dcc_url",
+        "drc_url",
+        "primary_access_url",
+        "description",
+        "c2m2_properties",
+        "analysis",
+    ]) {
+        if (
+            (merged[key] == null || merged[key] === "") &&
+            duplicate[key] != null &&
+            duplicate[key] !== ""
+        ) {
+            merged[key] = duplicate[key];
+        }
+    }
+    return merged;
+}
+
+function pickCanonicalDuplicateFileNode(group, edges) {
+    const ids = new Set(group.map((node) => node.id));
+    const scores = new Map(group.map((node) => [node.id, 0]));
+    for (const edge of edges || []) {
+        if (ids.has(edge.source)) {
+            scores.set(edge.source, (scores.get(edge.source) || 0) + 1);
+        }
+        if (ids.has(edge.target)) {
+            scores.set(edge.target, (scores.get(edge.target) || 0) + 1);
+        }
+    }
+    return group
+        .slice()
+        .sort((left, right) => (scores.get(right.id) || 0) - (scores.get(left.id) || 0))[0];
+}
+
+/**
+ * Backend provenance sometimes emits the same file twice with different ids (e.g. prepare
+ * output and generate input). Merge by display name so the pipeline renders as one graph.
+ */
+export function mergeDuplicateProvenanceFileNodes(nodes = [], edges = []) {
+    const nodeList = [...nodes];
+    const edgeList = [...edges];
+    const fileNodesByName = new Map();
+
+    for (const node of nodeList) {
+        if (String(node?.type || "").trim() !== "File") {
+            continue;
+        }
+        const name = nodeDisplayName(node);
+        if (!name) {
+            continue;
+        }
+        if (!fileNodesByName.has(name)) {
+            fileNodesByName.set(name, []);
+        }
+        fileNodesByName.get(name).push(node);
+    }
+
+    const idRemap = new Map();
+    const mergedNodesById = new Map(nodeList.map((node) => [node.id, { ...node }]));
+
+    for (const group of fileNodesByName.values()) {
+        if (group.length < 2) {
+            continue;
+        }
+        const canonical = pickCanonicalDuplicateFileNode(group, edgeList);
+        let mergedCanonical = { ...canonical };
+        for (const node of group) {
+            if (node.id === canonical.id) {
+                continue;
+            }
+            mergedCanonical = mergeDuplicateNodeMetadata(mergedCanonical, node);
+            idRemap.set(node.id, canonical.id);
+        }
+        mergedNodesById.set(canonical.id, mergedCanonical);
+    }
+
+    if (!idRemap.size) {
+        return { nodes: nodeList, edges: edgeList };
+    }
+
+    const mergedNodes = nodeList
+        .filter((node) => !idRemap.has(node.id))
+        .map((node) => mergedNodesById.get(node.id) || node);
+
+    const mergedEdges = [];
+    const edgeKeys = new Set();
+    for (const edge of edgeList) {
+        const source = idRemap.get(edge.source) || edge.source;
+        const target = idRemap.get(edge.target) || edge.target;
+        if (source === target) {
+            continue;
+        }
+        const key = `${source}|${target}|${edge.label || ""}`;
+        if (edgeKeys.has(key)) {
+            continue;
+        }
+        edgeKeys.add(key);
+        mergedEdges.push({ ...edge, source, target });
+    }
+
+    return { nodes: mergedNodes, edges: mergedEdges };
 }
 
 function nodeDisplayName(node) {
@@ -222,6 +326,7 @@ function nodeIdsForAnalysis(nodes, edges, analysisMatcher) {
 }
 
 function visNodeStyle(node, fullLabel, labelPlacement) {
+    const displayLabel = provenanceDisplayLabel(fullLabel, labelPlacement);
     const type = String(node?.type || "").trim();
     const dimensions = provenanceNodeDimensions(fullLabel, labelPlacement, PROVENANCE_NODE_SIZE);
     const base = {
@@ -231,6 +336,7 @@ function visNodeStyle(node, fullLabel, labelPlacement) {
         height: dimensions.height,
         label: "",
         fullLabel,
+        displayLabel,
         labelPlacement,
         font: {
             color: "#33363d",
@@ -254,6 +360,7 @@ function visNodeStyle(node, fullLabel, labelPlacement) {
             },
             ctxRenderer: createProvenanceCtxRenderer({
                 fullLabel,
+                displayLabel,
                 labelPlacement,
                 backgroundColor: colors.background,
                 borderColor: colors.border,
@@ -275,6 +382,7 @@ function visNodeStyle(node, fullLabel, labelPlacement) {
             },
             ctxRenderer: createProvenanceCtxRenderer({
                 fullLabel,
+                displayLabel,
                 labelPlacement,
                 backgroundColor: colors.background,
                 borderColor: colors.border,
@@ -295,6 +403,7 @@ function visNodeStyle(node, fullLabel, labelPlacement) {
         },
         ctxRenderer: createProvenanceCtxRenderer({
             fullLabel,
+            displayLabel,
             labelPlacement,
             backgroundColor: colors.background,
             borderColor: colors.border,
@@ -336,6 +445,11 @@ export function buildProvenanceVisNetwork(nodes, edges) {
     return { nodes: visNodes, edges: visEdges };
 }
 
+export function buildProvenanceNetwork(payload) {
+    const { nodes, edges } = extractProvenanceGraphBundle(payload);
+    return buildProvenanceVisNetwork(nodes, edges);
+}
+
 export function buildSummaryPathNetwork(payload) {
     const { nodes, edges } = extractProvenanceGraphBundle(payload);
     const ids = nodeIdsForAnalysis(nodes, edges, isSummaryAnalysisNode);
@@ -367,31 +481,6 @@ function httpDownloadUrl(node) {
     return "";
 }
 
-function downloadUrlForEdge(edge, nodeById) {
-    const source = nodeById[edge.source];
-    const target = nodeById[edge.target];
-    const label = String(edge.label || "").toLowerCase();
-    if (label.includes("input") && source?.type === "File") {
-        return httpDownloadUrl(source);
-    }
-    if (label.includes("output") && target?.type === "File") {
-        return httpDownloadUrl(target);
-    }
-    if (source?.type === "File") {
-        return httpDownloadUrl(source);
-    }
-    if (target?.type === "File") {
-        return httpDownloadUrl(target);
-    }
-    if (source?.type === "AnalysisType") {
-        return httpDownloadUrl(source);
-    }
-    if (target?.type === "GeneSet") {
-        return httpDownloadUrl(target);
-    }
-    return "";
-}
-
 export function buildProvenanceGraphTableRows(payload) {
     const { nodes, edges } = extractProvenanceGraphBundle(payload);
     const nodeById = Object.fromEntries(nodes.map((node) => [node.id, node]));
@@ -404,9 +493,87 @@ export function buildProvenanceGraphTableRows(payload) {
             source_type: sourceNode?.type || "",
             target: nodeDisplayName(targetNode),
             edge_name: edge.label || "",
-            download_url: downloadUrlForEdge(edge, nodeById),
         };
     });
+}
+
+function fileAccessForNode(node) {
+    const httpUrl = httpDownloadUrl(node);
+    if (httpUrl) {
+        return { url: httpUrl, access: "direct" };
+    }
+    const storageUrl = [node?.dcc_url, node?.drc_url, node?.c2m2_properties?.local_id]
+        .map((value) => String(value || "").trim())
+        .find((value) => /^s3:\/\//i.test(value));
+    if (storageUrl) {
+        return { url: storageUrl, access: "workflow" };
+    }
+    return { url: "", access: "none" };
+}
+
+export function buildDownloadRegenerateContext(payload) {
+    const { nodes, edges } = extractProvenanceGraphBundle(payload);
+    const nodeById = Object.fromEntries(nodes.map((node) => [node.id, node]));
+    const workflowOutputFileIds = new Set();
+    for (const edge of edges || []) {
+        const source = nodeById[edge.source];
+        const target = nodeById[edge.target];
+        if (source?.type === "AnalysisType" && target?.type === "File") {
+            workflowOutputFileIds.add(target.id);
+        }
+    }
+    const sourceFiles = [];
+    const seenFileIds = new Set();
+
+    for (const edge of edges || []) {
+        const label = String(edge.label || "").toLowerCase();
+        const source = nodeById[edge.source];
+        const target = nodeById[edge.target];
+        if (
+            source?.type !== "File" ||
+            target?.type !== "AnalysisType" ||
+            (!label.includes("input") && !label.includes("metadata")) ||
+            workflowOutputFileIds.has(source.id)
+        ) {
+            continue;
+        }
+        if (seenFileIds.has(source.id)) {
+            continue;
+        }
+        seenFileIds.add(source.id);
+        const access = fileAccessForNode(source);
+        sourceFiles.push({
+            id: source.id,
+            name: nodeDisplayName(source),
+            edge_label: edge.label || "",
+            download_url: access.access === "direct" ? access.url : "",
+            storage_url: access.url,
+            access: access.access,
+        });
+    }
+
+    const workflowSteps = (nodes || [])
+        .filter((node) => String(node?.type || "").trim() === "AnalysisType")
+        .map((node) => ({
+            id: node.id,
+            name: nodeDisplayName(node),
+            command: String(node?.analysis?.command || "").trim(),
+        }));
+
+    const converterCommand = String(
+        payload?.geneset_metadata?.converter?.execution?.command?.join?.(" ") ||
+            payload?.geneset_metadata?.converter?.execution?.entrypoint ||
+            ""
+    ).trim();
+
+    return {
+        geneSetId: payload?.gene_set_id ?? null,
+        standardName: payload?.standard_name || "",
+        collectionName: payload?.collection_name || "",
+        sourceFiles,
+        workflowSteps,
+        converterCommand,
+    };
 }
 
 export function buildProvenanceGeneRows(payload) {
@@ -421,12 +588,13 @@ export function buildProvenanceGeneRows(payload) {
 }
 
 export function parseGeneSetProvenancePayload(payload) {
+    const provenanceNetwork = buildProvenanceNetwork(payload);
     return {
-        summaryNetwork: buildSummaryPathNetwork(payload),
-        geneSetNetwork: buildGeneSetPathNetwork(payload),
+        provenanceNetwork,
         graphTableRows: buildProvenanceGraphTableRows(payload),
         geneRows: buildProvenanceGeneRows(payload),
         biologyContext: buildBiologyContext(payload),
+        downloadRegenerate: buildDownloadRegenerateContext(payload),
         standardName: payload?.standard_name || "",
         collectionName: payload?.collection_name || "",
         geneSetId: payload?.gene_set_id ?? null,

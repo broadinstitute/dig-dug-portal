@@ -156,7 +156,7 @@
             <span class="wkb-gene-set-prov-viz-tooltip-label">{{ hoverTooltip.text }}</span>
             <span class="wkb-gene-set-prov-viz-tooltip-hint">Click for details</span>
         </div>
-        <p v-if="!hasGraph" class="wkb-gene-set-prov-viz-empty">No graph data for this path.</p>
+        <p v-if="!hasGraph" class="wkb-gene-set-prov-viz-empty">No provenance graph data available.</p>
     </div>
 </template>
 

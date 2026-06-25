@@ -1,6 +1,7 @@
 import {
     classifyProvenanceNodeRoles,
     labelPlacementForRole,
+    provenanceDisplayLabel,
     provenanceLayoutSpacing,
     provenanceNodeDimensions,
 } from "../revealKgGeneSetProvenanceViz.js";
@@ -29,6 +30,7 @@ describe("revealKgGeneSetProvenanceViz", () => {
     it("maps roles to label placement", () => {
         expect(labelPlacementForRole("source")).toBe("left");
         expect(labelPlacementForRole("analysis")).toBe("below");
+        expect(labelPlacementForRole("bridge")).toBe("below");
         expect(labelPlacementForRole("output")).toBe("right");
     });
 
@@ -39,5 +41,13 @@ describe("revealKgGeneSetProvenanceViz", () => {
 
     it("tightens spacing for larger graphs", () => {
         expect(provenanceLayoutSpacing(9).nodeSpacing).toBeLessThan(provenanceLayoutSpacing(3).nodeSpacing);
+        expect(provenanceLayoutSpacing(3).nodeSpacing).toBe(45);
+        expect(provenanceLayoutSpacing(14).nodeSpacing).toBe(27);
+    });
+
+    it("truncates middle-step labels more aggressively than side labels", () => {
+        const longName = "generate_8d7e23421926852cf326309c";
+        expect(provenanceDisplayLabel(longName, "below")).toBe("generate_8d7e234219…");
+        expect(provenanceDisplayLabel(longName, "left").length).toBe(28);
     });
 });

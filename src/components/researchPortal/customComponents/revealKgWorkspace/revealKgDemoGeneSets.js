@@ -4,6 +4,7 @@ import {
     markGraphNodesShownInLedger,
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
+import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
 
 export const DEMO_GENE_SET_API_URL =
     "https://translator.broadinstitute.org/genetics_provider/geneset_extractor/gene-sets";
@@ -23,6 +24,41 @@ export function parseDemoGeneSetSearchTerm(query) {
 
 export function isDemoGeneSetSearchQuery(query) {
     return parseDemoGeneSetSearchTerm(query) !== null;
+}
+
+export function mentionsDemoGeneSetsInQuery(query) {
+    return /\bdemo\s+gene\s+sets?\b/i.test(String(query || ""));
+}
+
+export function parseDemoGeneSetTopicFromQuery(query) {
+    let text = String(query || "").trim();
+    if (!mentionsDemoGeneSetsInQuery(text)) {
+        return "";
+    }
+    text = text
+        .replace(/\bfrom\s+(?:the\s+)?demo\s+gene\s+sets?\s+catalog\b/gi, "")
+        .replace(/\bin\s+(?:the\s+)?demo\s+gene\s+sets?\s+catalog\b/gi, "")
+        .replace(/\bfrom\s+demo\s+gene\s+sets?\b/gi, "")
+        .replace(/\bin\s+demo\s+gene\s+sets?\b/gi, "")
+        .replace(/\bdemo\s+gene\s+sets?\s+catalog\b/gi, "")
+        .replace(/\bdemo\s+gene\s+sets?\b/gi, "");
+    text = text
+        .replace(/^(?:please\s+)?add\b/i, "")
+        .replace(/\bgene[\s-]?sets?\b/gi, "")
+        .replace(/\brelated\b/gi, "")
+        .replace(/\bassociated\s+with\b/gi, "")
+        .trim()
+        .replace(/^[,.:\s-]+|[,.:\s-]+$/g, "");
+    return text;
+}
+
+export async function resolveDemoGeneSetsForAssistant(searchTerm = "", limit = 8) {
+    const records = await fetchDemoGeneSetsCatalog();
+    const cappedLimit = Math.min(
+        CANVAS_ASSISTANT_PER_STEP_MAX,
+        Math.max(1, Number(limit) || 8)
+    );
+    return filterDemoGeneSets(records, searchTerm, cappedLimit).map(demoGeneSetCatalogItem);
 }
 
 function normalizeCatalogRecord(row) {

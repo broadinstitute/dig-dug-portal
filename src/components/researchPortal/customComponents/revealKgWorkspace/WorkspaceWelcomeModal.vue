@@ -76,25 +76,32 @@
                     <div class="wkb-welcome-options">
                         <div class="wkb-welcome-option wkb-welcome-option-primary">
                             <span class="wkb-welcome-option-title">Create a new graph</span>
-                            <span class="wkb-welcome-option-desc">
-                                Search and select starting genes, gene sets, mechanisms, and
-                                traits. Use conceptual search when you have a topic but not a
-                                specific entity.
-                            </span>
-                            <div class="wkb-welcome-action-row">
+
+                            <div class="wkb-welcome-create-path">
+                                <span class="wkb-welcome-create-path-desc">
+                                    Find genes, gene sets, mechanisms, and traits one at a time
+                                    and choose what to start with.
+                                </span>
                                 <button
                                     type="button"
                                     class="wkb-welcome-action wkb-welcome-action-primary"
                                     @click="$emit('create')"
                                 >
-                                    Create
+                                    Search catalog
                                 </button>
+                            </div>
+
+                            <div class="wkb-welcome-create-path">
+                                <span class="wkb-welcome-create-path-desc">
+                                    Tell the AI assistant what you want to explore; it finds
+                                    relevant nodes and adds them to your graph.
+                                </span>
                                 <button
                                     type="button"
-                                    class="wkb-welcome-action"
-                                    @click="$emit('blank-canvas')"
+                                    class="wkb-welcome-action wkb-welcome-action-primary"
+                                    @click="$emit('create-with-assistant')"
                                 >
-                                    Start a blank canvas
+                                    Describe with AI
                                 </button>
                             </div>
                         </div>
@@ -397,6 +404,20 @@ export default {
     padding: 7px 16px;
     border-radius: 6px;
     cursor: pointer;
+}
+
+.wkb-welcome-create-path {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    width: 100%;
+}
+
+.wkb-welcome-create-path-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
 }
 
 .wkb-welcome-action-row {

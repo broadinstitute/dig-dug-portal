@@ -47,6 +47,10 @@ import { getAssistantActionDefinition } from "./revealKgAssistantTools.js";
 import { toggleVisibilityFilterLayer, collectInvisibleNodeIds } from "./revealKgVisibilityFilterUtils.js";
 import { resolveAssistantAddNodeRows } from "./revealKgAssistantAddNode.js";
 import { resolveIntentAddNodes } from "./revealKgIntentAddNodes.js";
+import {
+    addDemoGeneSetsToGraphLocally,
+    resolveDemoGeneSetsForAssistant,
+} from "./revealKgDemoGeneSets.js";
 import { resolveAssistantLibraryGraph } from "./revealKgAssistantLibraryResolve.js";
 import {
     resolveAssistantGeneNodes,
@@ -379,6 +383,36 @@ async function runAssistantAction(session, step, runtime) {
                     explanation: result.plan.explanation,
                     geneGuidance: result.gene_guidance,
                     searchCount: result.searchLog.length,
+                },
+            };
+        }
+        case "add_demo_gene_sets": {
+            onProgress?.("Finding demo gene sets…");
+            const searchTerm = String(options.search_term || "").trim();
+            const limit = options.limit ?? options.count ?? 8;
+            const rows = await resolveDemoGeneSetsForAssistant(searchTerm, limit);
+            if (!rows.length) {
+                throw new Error(
+                    searchTerm
+                        ? `No demo gene sets matched "${searchTerm}".`
+                        : "No demo gene sets found in the catalog."
+                );
+            }
+            const previousCount = session.graphNodes?.length || 0;
+            const nextSession = addDemoGeneSetsToGraphLocally(session, rows);
+            const addedCount = Math.max(
+                0,
+                (nextSession.graphNodes?.length || 0) - previousCount
+            );
+            if (!addedCount) {
+                throw new Error("Those demo gene sets are already on the graph.");
+            }
+            return {
+                session: nextSession,
+                meta: {
+                    addedCount,
+                    labels: rows.map((row) => row.label),
+                    ...bulkWorkflowMeta(runtime),
                 },
             };
         }

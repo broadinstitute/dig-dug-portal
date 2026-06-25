@@ -41,6 +41,17 @@ export const ASSISTANT_ACTIONS = [
         requires_interactive_llm: true,
     },
     {
+        action: "add_demo_gene_sets",
+        description:
+            "Add gene sets from the Translator demo gene set catalog when the user mentions demo gene set(s). Filter by topic keywords in standard_name; does not use REVEAL catalog search.",
+        has_options: true,
+        options: {
+            search_term:
+                "optional topic filter (e.g. type 2 diabetes, adipose); empty matches any demo gene set",
+            limit: `optional number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} — default 8`,
+        },
+    },
+    {
         action: "remove_invisible_nodes",
         description:
             "Permanently delete all nodes currently hidden by visibility filters from the graph.",

@@ -265,6 +265,23 @@ function validateStepOptions(action, options = {}) {
                 next.node_types = validateNodeTypes(next.node_types, "node_types");
             }
             break;
+        case "add_demo_gene_sets":
+            if (next.search_term !== undefined) {
+                next.search_term = String(next.search_term).trim();
+            }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
+            }
+            if (next.count !== undefined) {
+                next.count = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.count) || 1)
+                );
+            }
+            break;
         case "open_library_graph":
             if (next.graph_id) {
                 next.graph_id = String(next.graph_id).trim();
@@ -488,6 +505,14 @@ export function assistantActionPostEffects(action, options = {}) {
                 clearHiddenSelection: false,
                 remindAfterMutation: true,
                 forceContextualRefetch: true,
+            };
+        case "add_demo_gene_sets":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: false,
+                remindAfterMutation: true,
+                forceContextualRefetch: false,
             };
         case "open_library_graph":
             return {

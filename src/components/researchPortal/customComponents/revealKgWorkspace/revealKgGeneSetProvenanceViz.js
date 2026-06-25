@@ -44,21 +44,59 @@ export function classifyProvenanceNodeRoles(nodes, edges) {
         }
     }
 
+    for (const node of nodes || []) {
+        if (String(node?.type || "").trim() !== "File") {
+            continue;
+        }
+        const incomingFromAnalysis = (edges || []).some(
+            (edge) =>
+                edge.target === node.id && nodeById[edge.source]?.type === "AnalysisType"
+        );
+        const outgoingToAnalysis = (edges || []).some(
+            (edge) =>
+                edge.source === node.id && nodeById[edge.target]?.type === "AnalysisType"
+        );
+        if (incomingFromAnalysis && outgoingToAnalysis) {
+            roles[node.id] = "bridge";
+        }
+    }
+
     return roles;
 }
 
+export const PROVENANCE_LABEL_MAX_LENGTH = 28;
+export const PROVENANCE_MIDDLE_LABEL_MAX_LENGTH = 20;
+
+export function truncateProvenanceDisplayLabel(text, max = PROVENANCE_LABEL_MAX_LENGTH) {
+    const value = String(text || "");
+    if (value.length <= max) {
+        return value;
+    }
+    return `${value.slice(0, max - 1)}…`;
+}
+
+export function provenanceDisplayLabel(fullLabel, labelPlacement) {
+    if (labelPlacement === "below") {
+        return truncateProvenanceDisplayLabel(fullLabel, PROVENANCE_MIDDLE_LABEL_MAX_LENGTH);
+    }
+    return truncateProvenanceDisplayLabel(fullLabel, PROVENANCE_LABEL_MAX_LENGTH);
+}
+
 export function provenanceLayoutSpacing(nodeCount = 0) {
+    if (nodeCount >= 14) {
+        return { levelSeparation: 150, nodeSpacing: 27 };
+    }
     if (nodeCount >= 8) {
-        return { levelSeparation: 180, nodeSpacing: 30 };
+        return { levelSeparation: 180, nodeSpacing: 35 };
     }
     if (nodeCount >= 5) {
-        return { levelSeparation: 190, nodeSpacing: 34 };
+        return { levelSeparation: 190, nodeSpacing: 39 };
     }
-    return { levelSeparation: 200, nodeSpacing: 40 };
+    return { levelSeparation: 200, nodeSpacing: 45 };
 }
 
 export function labelPlacementForRole(role) {
-    if (role === "analysis") {
+    if (role === "analysis" || role === "bridge") {
         return "below";
     }
     if (role === "output") {
@@ -69,6 +107,7 @@ export function labelPlacementForRole(role) {
 
 export function createProvenanceCtxRenderer({
     fullLabel,
+    displayLabel,
     labelPlacement,
     backgroundColor,
     borderColor,
@@ -78,6 +117,7 @@ export function createProvenanceCtxRenderer({
     const fontSize = PROVENANCE_LABEL_FONT_SIZE;
     const font = `${fontSize}px system-ui, -apple-system, "Segoe UI", sans-serif`;
     const dimensions = provenanceNodeDimensions(fullLabel, labelPlacement, size);
+    const canvasLabel = displayLabel || fullLabel;
 
     return function provenanceCtxRenderer({ ctx, x, y, state }) {
         const radius = size;
@@ -93,7 +133,7 @@ export function createProvenanceCtxRenderer({
                 ctx.stroke();
             },
             drawExternalLabel() {
-                if (!fullLabel) {
+                if (!canvasLabel) {
                     return;
                 }
                 ctx.font = font;
@@ -101,18 +141,18 @@ export function createProvenanceCtxRenderer({
                 if (labelPlacement === "left") {
                     ctx.textAlign = "right";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(fullLabel, x - radius - gap, y);
+                    ctx.fillText(canvasLabel, x - radius - gap, y);
                     return;
                 }
                 if (labelPlacement === "right") {
                     ctx.textAlign = "left";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(fullLabel, x + radius + gap, y);
+                    ctx.fillText(canvasLabel, x + radius + gap, y);
                     return;
                 }
                 ctx.textAlign = "center";
                 ctx.textBaseline = "top";
-                ctx.fillText(fullLabel, x, y + radius + gap);
+                ctx.fillText(canvasLabel, x, y + radius + gap);
             },
         };
     };

@@ -176,6 +176,15 @@ export function formatAssistantStepSummary(step, meta = {}) {
                     : label || "Added nodes from research intention.";
             return meta.geneGuidance ? `${base} ${meta.geneGuidance}` : base;
         }
+        case "add_demo_gene_sets": {
+            const count = Number(meta.addedCount);
+            return withBulkWorkflowNote(
+                Number.isFinite(count) && count > 0
+                    ? `Added ${count} demo gene set${count === 1 ? "" : "s"} to the graph.`
+                    : label || "Added demo gene sets to the graph.",
+                meta
+            );
+        }
         case "open_filter_panel":
             return "Opened the visibility filter panel.";
         case "open_my_library":

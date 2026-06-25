@@ -112,6 +112,16 @@ export const ASSISTANT_ACTION_CATALOG = [
                 ],
             },
             {
+                id: "add_demo_gene_sets",
+                label: "Add demo gene sets",
+                description:
+                    "Add gene sets from the Translator demo catalog when you mention demo gene set(s).",
+                examples: [
+                    "Add Type 2 diabetes related gene sets from demo gene sets",
+                    "Add bladder gene sets from demo gene sets",
+                ],
+            },
+            {
                 id: "open_filter_panel",
                 label: "Open filter panel",
                 description: "Open the visibility filter panel without running a filter.",
@@ -263,6 +273,8 @@ export function defaultProgressMessageForAction(action) {
             return "Adding node…";
         case "add_nodes_by_intent":
             return "Finding nodes from your intention…";
+        case "add_demo_gene_sets":
+            return "Adding demo gene sets…";
         case "remove_node":
             return "Removing nodes…";
         case "remove_invisible_nodes":

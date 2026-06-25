@@ -1,9 +1,10 @@
 import {
     buildBiologyContext,
-    buildGeneSetPathNetwork,
+    buildDownloadRegenerateContext,
+    buildProvenanceNetwork,
     buildProvenanceGeneRows,
     buildProvenanceGraphTableRows,
-    buildSummaryPathNetwork,
+    mergeDuplicateProvenanceFileNodes,
     parseGeneSetProvenancePayload,
     resolveGeneSetIdForProvenance,
     truncateProvenanceLabel,
@@ -39,8 +40,14 @@ const SAMPLE_PAYLOAD = {
                     name: "GTEx_Analysis_gene_reads.gct.gz",
                     type: "File",
                     description: "File node for GTEx_Analysis_gene_reads.gct.gz (role: expression_gct)",
+                    dcc_url: "s3://dig-gene-set-data/GTEx/input/GTEx_Analysis_gene_reads.gct.gz",
                 },
-                { id: "file:human_gene_info:2", name: "human_gene_info", type: "File" },
+                {
+                    id: "file:human_gene_info:2",
+                    name: "human_gene_info",
+                    type: "File",
+                    dcc_url: "s3://dig-gene-set-data/GTEx/input/human_gene_info",
+                },
                 {
                     id: "analysis:gtex_aging_signatures:1",
                     name: "prepare_deg_long",
@@ -126,47 +133,32 @@ describe("revealKgGeneSetProvenance", () => {
         expect(truncateProvenanceLabel(longName).endsWith("…")).toBe(true);
     });
 
-    it("splits summary and gene set path networks", () => {
-        const summary = buildSummaryPathNetwork(SAMPLE_PAYLOAD);
-        const geneSet = buildGeneSetPathNetwork(SAMPLE_PAYLOAD);
-        const summaryLabels = summary.nodes.map((node) => node.fullLabel);
-        const geneSetLabels = geneSet.nodes.map((node) => node.fullLabel);
+    it("builds a merged provenance network across workflow stages", () => {
+        const network = buildProvenanceNetwork(SAMPLE_PAYLOAD);
+        const labels = network.nodes.map((node) => node.fullLabel);
 
-        expect(summaryLabels).toEqual(
+        expect(network.nodes).toHaveLength(8);
+        expect(network.edges).toHaveLength(7);
+        expect(labels).toEqual(
             expect.arrayContaining([
                 "prepare_deg_long",
+                "generate_a8837b7d30de6203bcead87f",
                 "GTEx_Analysis_gene_reads.gct.gz",
-                "human_gene_info",
                 "deg_long.tsv",
                 "comparison_manifest.tsv",
-            ])
-        );
-        expect(geneSetLabels).toEqual(
-            expect.arrayContaining([
-                "generate_a8837b7d30de6203bcead87f",
-                "deg_long.tsv",
                 "GTEx_aging_AdiposeTissue_20-29_50-59",
                 "geneset.tsv",
             ])
         );
-        expect(summaryLabels).not.toContain("generate_a8837b7d30de6203bcead87f");
-        expect(summaryLabels).not.toContain("geneset.tsv");
-        expect(geneSetLabels).not.toContain("GTEx_Analysis_gene_reads.gct.gz");
-        expect(geneSetLabels).not.toContain("prepare_deg_long");
 
-        const summaryByLabel = Object.fromEntries(
-            summary.nodes.map((node) => [node.fullLabel, node.labelPlacement])
+        const byLabel = Object.fromEntries(
+            network.nodes.map((node) => [node.fullLabel, node.labelPlacement])
         );
-        expect(summaryByLabel["GTEx_Analysis_gene_reads.gct.gz"]).toBe("left");
-        expect(summaryByLabel["prepare_deg_long"]).toBe("below");
-        expect(summaryByLabel["deg_long.tsv"]).toBe("right");
-
-        const geneSetByLabel = Object.fromEntries(
-            geneSet.nodes.map((node) => [node.fullLabel, node.labelPlacement])
-        );
-        expect(geneSetByLabel["deg_long.tsv"]).toBe("left");
-        expect(geneSetByLabel["generate_a8837b7d30de6203bcead87f"]).toBe("below");
-        expect(geneSetByLabel["GTEx_aging_AdiposeTissue_20-29_50-59"]).toBe("right");
+        expect(byLabel["GTEx_Analysis_gene_reads.gct.gz"]).toBe("left");
+        expect(byLabel["prepare_deg_long"]).toBe("below");
+        expect(byLabel["deg_long.tsv"]).toBe("below");
+        expect(byLabel["generate_a8837b7d30de6203bcead87f"]).toBe("below");
+        expect(byLabel["GTEx_aging_AdiposeTissue_20-29_50-59"]).toBe("right");
     });
 
     it("builds graph table rows and gene rows", () => {
@@ -200,18 +192,93 @@ describe("revealKgGeneSetProvenance", () => {
     });
 
     it("attaches node and edge detail payloads for viz clicks", () => {
-        const summary = buildSummaryPathNetwork(SAMPLE_PAYLOAD);
-        const fileNode = summary.nodes.find((node) => node.fullLabel.includes("gene_reads"));
-        const edge = summary.edges[0];
+        const network = buildProvenanceNetwork(SAMPLE_PAYLOAD);
+        const fileNode = network.nodes.find((node) => node.fullLabel.includes("gene_reads"));
+        const edge = network.edges[0];
         expect(fileNode.detail.description).toContain("expression_gct");
         expect(edge.detail.description).toContain("data input");
+    });
+
+    it("builds download and regenerate context from provenance inputs", () => {
+        const context = buildDownloadRegenerateContext(SAMPLE_PAYLOAD);
+        expect(context.geneSetId).toBe(20);
+        expect(context.sourceFiles).toHaveLength(2);
+        expect(context.sourceFiles[0]).toMatchObject({
+            name: "GTEx_Analysis_gene_reads.gct.gz",
+            access: "workflow",
+        });
+        expect(context.workflowSteps.map((step) => step.name)).toEqual([
+            "prepare_deg_long",
+            "generate_a8837b7d30de6203bcead87f",
+        ]);
     });
 
     it("parses full provenance payload", () => {
         const parsed = parseGeneSetProvenancePayload(SAMPLE_PAYLOAD);
         expect(parsed.geneSetId).toBe(20);
+        expect(parsed.provenanceNetwork.nodes).toHaveLength(8);
         expect(parsed.graphTableRows.length).toBe(7);
         expect(parsed.geneRows.length).toBe(2);
         expect(parsed.biologyContext.length).toBeGreaterThan(0);
+        expect(parsed.downloadRegenerate.sourceFiles).toHaveLength(2);
+    });
+
+    it("merges duplicate file nodes so multi-stage pipelines render as one graph", () => {
+        const nodes = [
+            { id: "file:in:1", name: "gene_attribute_matrix.txt.gz", type: "File" },
+            { id: "file:in:2", name: "human_gene_info", type: "File" },
+            { id: "analysis:prepare:1", name: "prepare_hubmap_unsigned_term_gene", type: "AnalysisType" },
+            {
+                id: "file:bridge:out",
+                name: "hubmap_unsigned_term_gene.tsv",
+                type: "File",
+            },
+            {
+                id: "file:bridge:in",
+                name: "hubmap_unsigned_term_gene.tsv",
+                type: "File",
+            },
+            { id: "analysis:generate:1", name: "generate_32775607f3", type: "AnalysisType" },
+            {
+                id: "geneset:1",
+                name: "unsigned_term_gene:32775607",
+                type: "GeneSet",
+            },
+        ];
+        const edges = [
+            { id: "e1", source: "file:in:1", target: "analysis:prepare:1", label: "data input" },
+            { id: "e2", source: "file:in:2", target: "analysis:prepare:1", label: "data input" },
+            {
+                id: "e3",
+                source: "analysis:prepare:1",
+                target: "file:bridge:out",
+                label: "data output",
+            },
+            {
+                id: "e4",
+                source: "file:bridge:in",
+                target: "analysis:generate:1",
+                label: "data input",
+            },
+            {
+                id: "e5",
+                source: "analysis:generate:1",
+                target: "geneset:1",
+                label: "data output",
+            },
+        ];
+
+        const merged = mergeDuplicateProvenanceFileNodes(nodes, edges);
+        expect(merged.nodes).toHaveLength(6);
+        expect(merged.edges).toHaveLength(5);
+
+        const prepareOut = merged.edges.find(
+            (edge) => edge.source === "analysis:prepare:1" && edge.label === "data output"
+        );
+        const generateIn = merged.edges.find(
+            (edge) => edge.target === "analysis:generate:1" && edge.label === "data input"
+        );
+        expect(prepareOut?.target).toBeTruthy();
+        expect(prepareOut.target).toBe(generateIn?.source);
     });
 });

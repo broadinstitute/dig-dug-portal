@@ -6,7 +6,9 @@ import {
     formatDemoGeneSetLabel,
     isDemoGeneSetGraphNode,
     isDemoGeneSetSearchQuery,
+    mentionsDemoGeneSetsInQuery,
     parseDemoGeneSetSearchTerm,
+    parseDemoGeneSetTopicFromQuery,
 } from "../revealKgDemoGeneSets.js";
 
 const SAMPLE_RECORD = {
@@ -54,5 +56,25 @@ describe("revealKgDemoGeneSets", () => {
         expect(next.graphNodes[0].id).toBe("gene_set:demo:146");
         expect(next.graphNodes[0].demo_gene_set.collection_name).toBe("GTEx");
         expect(isDemoGeneSetGraphNode(next.graphNodes[0])).toBe(true);
+    });
+
+    it("detects demo gene set mentions in assistant queries", () => {
+        expect(
+            mentionsDemoGeneSetsInQuery(
+                "add Type 2 diabetes related gene sets from demo gene sets."
+            )
+        ).toBe(true);
+        expect(mentionsDemoGeneSetsInQuery("add bladder gene sets")).toBe(false);
+    });
+
+    it("parses topic from demo gene set assistant queries", () => {
+        expect(
+            parseDemoGeneSetTopicFromQuery(
+                "add Type 2 diabetes related gene sets from demo gene sets."
+            )
+        ).toBe("Type 2 diabetes");
+        expect(parseDemoGeneSetTopicFromQuery("add bladder gene sets from demo gene sets")).toBe(
+            "bladder"
+        );
     });
 });

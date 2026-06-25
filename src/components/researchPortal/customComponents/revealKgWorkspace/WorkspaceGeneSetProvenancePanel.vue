@@ -40,28 +40,16 @@
                 </div>
 
                 <div
-                    v-if="activeTab === 'gene_set'"
-                    :id="tabPanelId('gene_set')"
+                    v-if="activeTab === 'provenance'"
+                    :id="tabPanelId('provenance')"
                     class="wkb-gene-set-provenance-panel"
                     role="tabpanel"
-                    :aria-labelledby="tabButtonId('gene_set')"
+                    :aria-labelledby="tabButtonId('provenance')"
                 >
                     <WorkspaceGeneSetProvenanceViz
-                        :network="parsed.geneSetNetwork"
-                        aria-label="Gene set extraction path"
-                    />
-                </div>
-
-                <div
-                    v-if="activeTab === 'summary'"
-                    :id="tabPanelId('summary')"
-                    class="wkb-gene-set-provenance-panel"
-                    role="tabpanel"
-                    :aria-labelledby="tabButtonId('summary')"
-                >
-                    <WorkspaceGeneSetProvenanceViz
-                        :network="parsed.summaryNetwork"
-                        aria-label="Gene set summary preparation path"
+                        :network="parsed.provenanceNetwork"
+                        :height="provenanceVizHeight"
+                        aria-label="Gene set provenance graph"
                     />
                 </div>
 
@@ -79,28 +67,7 @@
                         :bordered="false"
                         empty-note="No provenance edges found."
                         pagination-label="Provenance graph pages"
-                    >
-                        <template #download="{ row }">
-                            <a
-                                v-if="row.download_url"
-                                :href="row.download_url"
-                                class="wkb-gene-set-provenance-download"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Download
-                            </a>
-                            <button
-                                v-else
-                                type="button"
-                                class="wkb-gene-set-provenance-download wkb-gene-set-provenance-download--placeholder"
-                                disabled
-                                title="Download link not available"
-                            >
-                                Download
-                            </button>
-                        </template>
-                    </WorkspaceEvidenceTable>
+                    />
                 </div>
 
                 <div
@@ -118,6 +85,32 @@
                         empty-note="No genes listed for this gene set."
                         pagination-label="Gene list pages"
                     />
+                </div>
+
+                <div
+                    v-show="activeTab === 'download_regenerate'"
+                    :id="tabPanelId('download_regenerate')"
+                    class="wkb-gene-set-provenance-panel wkb-gene-set-regenerate-panel"
+                    role="tabpanel"
+                    :aria-labelledby="tabButtonId('download_regenerate')"
+                >
+                    <p class="wkb-gene-set-regenerate-copy">
+                        Open the workflow studio to download provenance files, rerun the pipeline
+                        with the same inputs, or tweak parameters to build a custom gene set.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="wkb-gene-set-regenerate-open"
+                        :disabled="!canOpenWorkflowStudio"
+                        :title="workflowStudioButtonTitle"
+                        @click="onOpenWorkflowStudio"
+                    >
+                        Open workflow studio
+                    </button>
+                    <p v-if="!canOpenWorkflowStudio" class="wkb-gene-set-regenerate-footnote">
+                        Workflow studio integration is coming soon.
+                    </p>
                 </div>
 
                 <div
@@ -166,12 +159,16 @@ export default {
             type: Number,
             default: null,
         },
+        workflowStudioUrl: {
+            type: String,
+            default: "",
+        },
     },
     data() {
         panelIdCounter += 1;
         return {
             panelId: `wkb-gene-set-prov-${panelIdCounter}`,
-            activeTab: "gene_set",
+            activeTab: "provenance",
             loading: false,
             error: "",
             parsed: null,
@@ -181,12 +178,42 @@ export default {
     computed: {
         tabs() {
             return [
-                { id: "gene_set", label: "Gene set" },
-                { id: "summary", label: "Summary" },
+                { id: "provenance", label: "Provenance" },
                 { id: "graph_table", label: "Graph table" },
                 { id: "genes", label: "Genes" },
+                { id: "download_regenerate", label: "Reproduce / Extend" },
                 { id: "biology", label: "Biology context" },
             ];
+        },
+        downloadRegenerate() {
+            return (
+                this.parsed?.downloadRegenerate || {
+                    geneSetId: null,
+                    standardName: "",
+                    collectionName: "",
+                    sourceFiles: [],
+                    workflowSteps: [],
+                    converterCommand: "",
+                }
+            );
+        },
+        canOpenWorkflowStudio() {
+            return Boolean(String(this.workflowStudioUrl || "").trim());
+        },
+        workflowStudioButtonTitle() {
+            return this.canOpenWorkflowStudio
+                ? "Open this gene set in the workflow studio"
+                : "Workflow studio URL is not configured yet";
+        },
+        provenanceVizHeight() {
+            const nodeCount = this.parsed?.provenanceNetwork?.nodes?.length || 0;
+            if (nodeCount >= 14) {
+                return 480;
+            }
+            if (nodeCount >= 8) {
+                return 400;
+            }
+            return 340;
         },
         graphTableColumns() {
             return [
@@ -194,7 +221,6 @@ export default {
                 { key: "source_type", label: "Source type" },
                 { key: "target", label: "Target", wrap: true },
                 { key: "edge_name", label: "Edge name" },
-                { key: "download", label: "Download", slot: "download" },
             ];
         },
         geneTableColumns() {
@@ -247,7 +273,7 @@ export default {
             this.loading = true;
             this.error = "";
             this.parsed = null;
-            this.activeTab = "gene_set";
+            this.activeTab = "provenance";
             try {
                 const payload = await fetchGeneSetProvenanceDetail(geneSetId);
                 if (requestId !== this.requestId) {
@@ -264,6 +290,22 @@ export default {
                     this.loading = false;
                 }
             }
+        },
+        onOpenWorkflowStudio() {
+            if (!this.canOpenWorkflowStudio) {
+                return;
+            }
+            const context = this.downloadRegenerate;
+            this.$emit("open-workflow-studio", {
+                geneSetId: context.geneSetId,
+                standardName: context.standardName,
+                collectionName: context.collectionName,
+                sourceFiles: context.sourceFiles,
+                workflowSteps: context.workflowSteps,
+                converterCommand: context.converterCommand,
+                url: this.workflowStudioUrl,
+            });
+            window.open(this.workflowStudioUrl, "_blank", "noopener,noreferrer");
         },
     },
 };
@@ -336,26 +378,45 @@ export default {
     padding-top: 4px;
 }
 
-.wkb-gene-set-provenance-download {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 6px;
-    background: #ffffff;
-    color: var(--cfde-blue, #2c5c97);
+.wkb-gene-set-regenerate-panel {
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 4px 8px;
+    text-align: left;
+}
+
+.wkb-gene-set-regenerate-copy {
+    margin: 0;
+    max-width: 36em;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-gene-set-regenerate-footnote {
+    margin: 0;
     font-size: 11px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-gene-set-regenerate-open {
+    border: 1px solid var(--cfde-orange, #e07b39);
+    border-radius: 6px;
+    background: var(--cfde-orange, #e07b39);
+    color: #fff;
+    font-size: 13px;
     font-weight: 600;
-    text-decoration: none;
+    padding: 9px 20px;
     cursor: pointer;
 }
 
-.wkb-gene-set-provenance-download:hover:not(:disabled) {
-    background: #eef4fb;
+.wkb-gene-set-regenerate-open:hover:not(:disabled) {
+    background: var(--cfde-orange-dark, #c2662b);
 }
 
-.wkb-gene-set-provenance-download--placeholder {
-    opacity: 0.45;
+.wkb-gene-set-regenerate-open:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 </style>

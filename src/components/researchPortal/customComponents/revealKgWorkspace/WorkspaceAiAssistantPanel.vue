@@ -49,7 +49,10 @@
                     Actions
                 </button>
             </div>
-            <p v-if="activeTab === 'request'" class="wkb-assistant-autocomplete-hint">
+            <p
+                v-if="activeTab === 'request' && !hasThread"
+                class="wkb-assistant-autocomplete-hint"
+            >
                 Suggestions appear as you type. Use
                 <kbd class="wkb-assistant-kbd">↑</kbd><kbd class="wkb-assistant-kbd">↓</kbd>
                 to move,
@@ -57,7 +60,7 @@
                 <kbd class="wkb-assistant-kbd">Enter</kbd> to accept,
                 <kbd class="wkb-assistant-kbd">Esc</kbd> to close.
             </p>
-            <p v-if="activeTab === 'request'" class="wkb-assistant-intro">
+            <p v-if="activeTab === 'request' && !hasThread" class="wkb-assistant-intro">
                 Describe graph changes in plain language. The assistant builds a step-by-step
                 plan, then runs those steps for you.
             </p>
@@ -78,10 +81,9 @@
             <div v-if="!hasThread" class="wkb-assistant-welcome">
                 <p class="wkb-assistant-welcome-lead">You can ask things like:</p>
                 <ul class="wkb-assistant-examples">
-                    <li>Explain selected nodes</li>
-                    <li>Select top 5 genes connected to Type 2 diabetes</li>
-                    <li>Filter genes related to insulin resistance, then expand from selected nodes</li>
-                    <li>Show jumping edges on the graph</li>
+                    <li v-for="(example, index) in welcomeExamples" :key="`welcome-example-${index}`">
+                        {{ example }}
+                    </li>
                 </ul>
             </div>
 
@@ -120,12 +122,6 @@
                     </p>
                 </div>
 
-                <p v-if="planning" class="wkb-assistant-status" role="status">
-                    Planning canvas actions…
-                </p>
-                <p v-if="executing && executingStepLabel" class="wkb-assistant-status" role="status">
-                    Running: {{ executingStepLabel }}
-                </p>
                 <p v-if="showStandaloneError" class="wkb-assistant-error" role="alert">{{ error }}</p>
 
                 <div
@@ -209,35 +205,57 @@
                                 </button>
                             </li>
                         </ol>
-                        <section
-                            v-if="plan.panelShortcuts.hasOverflow"
-                            class="wkb-assistant-choice-section"
+                        <p
+                            v-if="plan.panelShortcuts"
+                            class="wkb-assistant-other-options-toggle"
+                            role="button"
+                            tabindex="0"
+                            :aria-expanded="otherOptionsOpen ? 'true' : 'false'"
+                            @click="toggleOtherOptions"
+                            @keydown.enter.prevent="toggleOtherOptions"
+                            @keydown.space.prevent="toggleOtherOptions"
                         >
-                            <p class="wkb-assistant-choice-note">
-                                {{ plan.panelShortcuts.workflowNote }}
-                            </p>
-                            <a
-                                class="wkb-assistant-choice-link"
-                                :href="plan.panelShortcuts.workflowLink.href"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <span
+                                class="wkb-assistant-other-options-caret"
+                                :class="{ 'is-open': otherOptionsOpen }"
+                                aria-hidden="true"
+                            />
+                            Other options
+                        </p>
+                        <div
+                            v-if="plan.panelShortcuts && otherOptionsOpen"
+                            class="wkb-assistant-other-options-body"
+                        >
+                            <section
+                                v-if="plan.panelShortcuts.hasOverflow"
+                                class="wkb-assistant-choice-section"
                             >
-                                Open {{ plan.panelShortcuts.workflowLink.label }}
-                            </a>
-                        </section>
-                        <section class="wkb-assistant-choice-section">
-                            <p class="wkb-assistant-choice-note">
-                                {{ plan.panelShortcuts.panelNote }}
-                            </p>
-                            <button
-                                type="button"
-                                class="wkb-assistant-choice-panel"
-                                :disabled="planning || executing"
-                                @click="onOpenPlanPanel"
-                            >
-                                {{ plan.panelShortcuts.panelLabel }}
-                            </button>
-                        </section>
+                                <p class="wkb-assistant-choice-note">
+                                    {{ plan.panelShortcuts.workflowNote }}
+                                </p>
+                                <a
+                                    class="wkb-assistant-choice-link"
+                                    :href="plan.panelShortcuts.workflowLink.href"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open {{ plan.panelShortcuts.workflowLink.label }}
+                                </a>
+                            </section>
+                            <section class="wkb-assistant-choice-section">
+                                <p class="wkb-assistant-choice-note">
+                                    {{ plan.panelShortcuts.panelNote }}
+                                </p>
+                                <button
+                                    type="button"
+                                    class="wkb-assistant-choice-panel"
+                                    :disabled="planning || executing"
+                                    @click="onOpenPlanPanel"
+                                >
+                                    {{ plan.panelShortcuts.panelLabel }}
+                                </button>
+                            </section>
+                        </div>
                     </template>
                     <template v-else>
                         <button
@@ -315,6 +333,23 @@
             </section>
         </div>
 
+        <div
+            v-if="activeTab === 'request' && showExecutionProgress"
+            class="wkb-assistant-execution-progress"
+            role="status"
+            aria-live="polite"
+        >
+            <p class="wkb-assistant-execution-progress-label">{{ executionProgressLabel }}</p>
+            <div
+                class="wkb-assistant-execution-progress-track"
+                role="progressbar"
+                aria-busy="true"
+                :aria-label="executionProgressLabel"
+            >
+                <span class="wkb-assistant-execution-progress-fill" aria-hidden="true" />
+            </div>
+        </div>
+
         <footer v-if="activeTab === 'request'" class="wkb-assistant-footer">
             <label class="wkb-assistant-input-label" for="wkb-assistant-input">
                 Your request
@@ -327,7 +362,7 @@
                     class="wkb-assistant-input"
                     rows="3"
                     :disabled="planning || executing"
-                    placeholder="e.g. Explain selected nodes"
+                    :placeholder="requestPlaceholder"
                     autocomplete="off"
                     autocorrect="off"
                     autocapitalize="off"
@@ -448,6 +483,7 @@ export default {
             suggestHighlight: -1,
             suggestTokenStart: 0,
             suggestTokenEnd: 0,
+            otherOptionsOpen: false,
         };
     },
     computed: {
@@ -476,6 +512,43 @@ export default {
                 !this.executing
             );
         },
+        isEmptyGraph() {
+            return !this.graphNodes.length;
+        },
+        requestPlaceholder() {
+            if (this.isEmptyGraph) {
+                return "e.g. Find gene sets related to adipose tissue aging";
+            }
+            return "e.g. Explain selected nodes";
+        },
+        welcomeExamples() {
+            if (this.isEmptyGraph) {
+                return [
+                    "Find gene sets about adipose tissue aging",
+                    "Add mechanisms related to insulin resistance",
+                    "Add traits connected to type 2 diabetes",
+                ];
+            }
+            return [
+                "Explain selected nodes",
+                "Select top 5 genes connected to Type 2 diabetes",
+                "Filter genes related to insulin resistance, then expand from selected nodes",
+                "Show jumping edges on the graph",
+            ];
+        },
+        showExecutionProgress() {
+            return this.planning || this.executing;
+        },
+        executionProgressLabel() {
+            if (this.planning) {
+                return "Planning canvas actions…";
+            }
+            if (this.executing) {
+                const label = String(this.executingStepLabel || "").trim();
+                return label ? `Running: ${label}` : "Running assistant action…";
+            }
+            return "";
+        },
     },
     watch: {
         open(isOpen) {
@@ -488,6 +561,7 @@ export default {
             }
         },
         plan(nextPlan) {
+            this.otherOptionsOpen = false;
             if (nextPlan?.summary) {
                 this.replacePendingAssistantMessage(nextPlan.summary);
                 this.scrollMessagePanelToEnd();
@@ -557,6 +631,13 @@ export default {
         getRequestInput() {
             return this.$refs.requestInput || null;
         },
+        focusRequestInput() {
+            this.activeTab = "request";
+            this.$nextTick(() => {
+                const input = this.getRequestInput();
+                input?.focus();
+            });
+        },
         getExecuteAllButton() {
             return this.$refs.executeAllButton || null;
         },
@@ -578,6 +659,9 @@ export default {
                 return;
             }
             this.$emit("execute-all");
+        },
+        toggleOtherOptions() {
+            this.otherOptionsOpen = !this.otherOptionsOpen;
         },
         onOpenPlanPanel() {
             const shortcuts = this.plan?.panelShortcuts;
@@ -1056,7 +1140,52 @@ export default {
     flex-direction: column;
     gap: 6px;
     padding-top: 4px;
+}
+
+.wkb-assistant-other-options-body .wkb-assistant-choice-section + .wkb-assistant-choice-section {
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.wkb-assistant-other-options-toggle {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cfde-blue, #2c5c97);
+    cursor: pointer;
+    user-select: none;
+}
+
+.wkb-assistant-other-options-toggle:focus-visible {
+    outline: 2px solid var(--cfde-blue, #2c5c97);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.wkb-assistant-other-options-caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 6px solid currentColor;
+    transition: transform 0.15s ease;
+}
+
+.wkb-assistant-other-options-caret.is-open {
+    transform: rotate(90deg);
+}
+
+.wkb-assistant-other-options-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 4px;
 }
 
 .wkb-assistant-choice-note {
@@ -1204,6 +1333,46 @@ export default {
 .wkb-assistant-step-run:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+}
+
+.wkb-assistant-execution-progress {
+    flex-shrink: 0;
+    padding: 10px 18px 12px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+    background: #fdfaf6;
+}
+
+.wkb-assistant-execution-progress-label {
+    margin: 0 0 8px;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-assistant-execution-progress-track {
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(224, 123, 57, 0.18);
+}
+
+.wkb-assistant-execution-progress-fill {
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--cfde-orange, #e07b39);
+    animation: wkb-assistant-execution-progress-slide 1.25s ease-in-out infinite;
+}
+
+@keyframes wkb-assistant-execution-progress-slide {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(320%);
+    }
 }
 
 .wkb-assistant-footer {

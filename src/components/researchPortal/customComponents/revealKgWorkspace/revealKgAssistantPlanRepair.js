@@ -2,6 +2,10 @@
 
 import { parseExplicitIntentNodeTypes } from "./revealKgIntentAddNodes.js";
 import {
+    mentionsDemoGeneSetsInQuery,
+    parseDemoGeneSetTopicFromQuery,
+} from "./revealKgDemoGeneSets.js";
+import {
     CANVAS_ASSISTANT_PER_STEP_MAX,
     parseExpandCountFromUserQuery,
     preparePlanWithBulkHandling,
@@ -369,7 +373,66 @@ function repairIntentAddStep(step, userQuery) {
     return { ...step, options };
 }
 
+function repairDemoGeneSetStep(step, userQuery) {
+    if (step?.action !== "add_demo_gene_sets") {
+        return step;
+    }
+    const options = { ...(step.options || {}) };
+    const query = String(userQuery || "").trim();
+    if (options.search_term === undefined || options.search_term === "") {
+        const topic = parseDemoGeneSetTopicFromQuery(query);
+        if (topic) {
+            options.search_term = topic;
+        }
+    } else {
+        options.search_term = String(options.search_term).trim();
+    }
+    if (options.limit === undefined && options.count === undefined) {
+        const count = parseAddCountFromQuery(query);
+        if (count) {
+            options.limit = count;
+        }
+    }
+    return { ...step, options };
+}
+
+function repairDemoGeneSetSteps(steps, userQuery) {
+    if (!mentionsDemoGeneSetsInQuery(userQuery)) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "add_demo_gene_sets")) {
+        return (steps || []).map((step) => repairDemoGeneSetStep(step, userQuery));
+    }
+    const query = String(userQuery || "").trim();
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["add_node", "add_nodes_by_intent", "expand_graph", "filter_graph"].includes(
+                steps[0]?.action
+            ));
+    if (!convertible) {
+        return steps;
+    }
+    const topic = parseDemoGeneSetTopicFromQuery(query);
+    const count = parseAddCountFromQuery(query);
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "add_demo_gene_sets",
+            label: "Add demo gene sets",
+            target: {},
+            options: {
+                ...(topic ? { search_term: topic } : {}),
+                ...(count ? { limit: count } : {}),
+            },
+        },
+    ];
+}
+
 function repairIntentAddSteps(steps, userQuery) {
+    if (mentionsDemoGeneSetsInQuery(userQuery)) {
+        return steps;
+    }
     if (!looksLikeIntentAddQuery(userQuery)) {
         return steps;
     }
@@ -704,17 +767,20 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     }
 
     const repairedSteps = stripRedundantClearBeforeRemove(
-        repairIntentAddSteps(steps, userQuery).map((step) =>
-            repairIntentAddStep(
-                repairUnselectStep(
-                    repairAddNodeStep(
-                        repairRemoveNodeTarget(
-                            repairStepOptions(
-                                repairStepTarget(step, labelsOnGraph),
-                                userQuery,
-                                sessionContext
+        repairDemoGeneSetSteps(repairIntentAddSteps(steps, userQuery), userQuery).map((step) =>
+            repairDemoGeneSetStep(
+                repairIntentAddStep(
+                    repairUnselectStep(
+                        repairAddNodeStep(
+                            repairRemoveNodeTarget(
+                                repairStepOptions(
+                                    repairStepTarget(step, labelsOnGraph),
+                                    userQuery,
+                                    sessionContext
+                                ),
+                                labelsOnGraph,
+                                userQuery
                             ),
-                            labelsOnGraph,
                             userQuery
                         ),
                         userQuery

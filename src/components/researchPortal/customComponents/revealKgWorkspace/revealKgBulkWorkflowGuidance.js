@@ -158,6 +158,12 @@ export function detectBulkCanvasOverflowFromPlan(steps = []) {
                 return { kind: "add", requested, cap };
             }
         }
+        if (action === "add_demo_gene_sets") {
+            const requested = finiteCount(options.limit ?? options.count);
+            if (requested && requested > cap) {
+                return { kind: "add", requested, cap };
+            }
+        }
         if (action === "select_nodes" || action === "select_visible_nodes") {
             const requested = finiteCount(options.limit);
             if (requested && requested > cap) {
@@ -254,6 +260,7 @@ export const PANEL_SHORTCUT_ACTIONS = new Set([
     "expand_graph",
     "add_node",
     "add_nodes_by_intent",
+    "add_demo_gene_sets",
     "filter_graph",
 ]);
 
@@ -266,7 +273,7 @@ export function resolvePanelTargetFromSteps(steps = []) {
     if (actions.includes("filter_graph")) {
         return "filter";
     }
-    if (actions.includes("add_nodes_by_intent") || actions.includes("add_node")) {
+    if (actions.includes("add_nodes_by_intent") || actions.includes("add_node") || actions.includes("add_demo_gene_sets")) {
         return "add";
     }
     return "expand";
@@ -318,6 +325,9 @@ export function capPlanStepsForBulkOverflow(steps = [], cap = CANVAS_ASSISTANT_P
             options.count = capCountOption(options.count, cap);
         }
         if (step.action === "add_node") {
+            options.limit = capCountOption(options.limit ?? options.count, cap);
+        }
+        if (step.action === "add_demo_gene_sets") {
             options.limit = capCountOption(options.limit ?? options.count, cap);
         }
         if (step.action === "select_nodes" || step.action === "select_visible_nodes") {

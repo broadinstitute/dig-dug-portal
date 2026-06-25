@@ -220,6 +220,7 @@
             :canvas-open-count="canvasOpenCount"
             :learn-companion-max-opens="learnCompanionMaxOpens"
             @create="onWelcomeCreate"
+            @create-with-assistant="onWelcomeCreateWithAssistant"
             @blank-canvas="onWelcomeBlankCanvas"
             @load-library="onWelcomeLoadLibrary"
             @import-graph="onWelcomeImportGraph"
@@ -1270,7 +1271,13 @@ export default Vue.component("reveal-kg-workspace", {
             this.clearDuplicateFlow();
             this.openInitialGraphSetup({ reset: true });
         },
+        onWelcomeCreateWithAssistant() {
+            this.bootstrapEmptyCanvas({ openAssistant: true });
+        },
         onWelcomeBlankCanvas() {
+            this.bootstrapEmptyCanvas();
+        },
+        bootstrapEmptyCanvas({ openAssistant = false } = {}) {
             this.clearDuplicateFlow();
             this.welcomeOpen = false;
             this.initialGraphOpen = false;
@@ -1291,7 +1298,18 @@ export default Vue.component("reveal-kg-workspace", {
                 this.expressionOptions
             );
             this.contextualFetchSignature = "";
-            this.resetGraphReminders(`blank-${Date.now()}`);
+            this.resetGraphReminders(
+                openAssistant ? `assistant-bootstrap-${Date.now()}` : `blank-${Date.now()}`
+            );
+            if (openAssistant) {
+                this.expandGraphOpen = false;
+                this.filterGraphOpen = false;
+                this.aiAssistantOpen = true;
+                this.$nextTick(() => {
+                    this.$refs.aiAssistantPanel?.focusRequestInput?.();
+                });
+                return;
+            }
             this.showStatus(
                 "Blank canvas ready. Use Expand KG → Add nodes to place entities.",
                 3600
@@ -1893,12 +1911,19 @@ export default Vue.component("reveal-kg-workspace", {
                     this.onExpandProgress(update);
                     return;
                 }
-                this.expandGraphProgress = String(update || this.expandGraphProgress);
+                const expandMessage = String(update || this.expandGraphProgress || "").trim();
+                this.expandGraphProgress = expandMessage;
+                if (expandMessage && this.assistantExecuting) {
+                    this.assistantExecutingStepLabel = expandMessage;
+                }
                 return;
             }
             const message = String(update || "").trim();
             if (!message) {
                 return;
+            }
+            if (this.assistantExecuting) {
+                this.assistantExecutingStepLabel = message;
             }
             if (step && assistantActionShowsProgressOverlay(step.action, step.options || {})) {
                 this.assistantActionProgressMessage = message;
