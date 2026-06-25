@@ -1,5 +1,5 @@
 const FOREST_GENE_API_URL =
-    "http://bioindex-qa.hugeampkpnbi.org/matkp/api/bio/query/single-cell-forest";
+    "https://bioindex-qa.hugeampkpnbi.org/matkp/api/bio/query/single-cell-forest";
 
 export async function fetchForestGeneRows(geneSymbol) {
     const query = String(geneSymbol || "").trim();
