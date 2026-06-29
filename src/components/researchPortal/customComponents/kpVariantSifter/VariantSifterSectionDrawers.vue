@@ -30,6 +30,7 @@
                         :utils="utils"
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
+                        :plot-overlays-state="plotOverlaysState"
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
                     />
                     <template v-else>
@@ -96,6 +97,16 @@ export default {
                 index: null,
                 query: null,
                 filtersIndex: null,
+            }),
+        },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
             }),
         },
         utils: {

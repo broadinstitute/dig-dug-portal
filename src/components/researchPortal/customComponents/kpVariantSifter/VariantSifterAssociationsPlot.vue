@@ -18,13 +18,14 @@
                     :search-session="searchSession"
                     :region-zoom="regionZoom"
                     :region-view-area="regionViewArea"
+                    :plot-overlays-state="plotOverlaysState"
                     :plot-margin="plotMargin"
                     :utils="utils"
                     @update:regionViewArea="$emit('update:regionViewArea', $event)"
                 />
                 <ResearchGenesTrack
                     :region="regionString"
-                    :genes-data="null"
+                    :genes-data="genesTrackData"
                     :plot-config="renderConfig"
                     plot-type="region plot"
                     :plot-margin="plotMargin"
@@ -86,6 +87,25 @@ export default {
             type: Number,
             default: 0,
         },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
+            }),
+        },
+        genesState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                data: null,
+            }),
+        },
         utils: {
             type: Object,
             default: null,
@@ -106,6 +126,9 @@ export default {
         },
         plotMargin() {
             return VARIANT_SIFTER_PLOT_MARGIN;
+        },
+        genesTrackData() {
+            return this.genesState?.data || null;
         },
         metaLabel() {
             if (!this.searchSession) {

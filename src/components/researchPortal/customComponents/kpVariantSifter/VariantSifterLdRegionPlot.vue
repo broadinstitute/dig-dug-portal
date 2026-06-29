@@ -46,6 +46,16 @@ export default {
             type: Object,
             default: null,
         },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
+            }),
+        },
         utils: {
             type: Object,
             default: null,
@@ -85,6 +95,12 @@ export default {
             },
             deep: true,
         },
+        plotOverlaysState: {
+            handler() {
+                this.refreshPlot();
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.refreshPlot();
@@ -108,6 +124,17 @@ export default {
         async refreshPlot() {
             if (!this.plotRows?.length || !this.searchSession?.region) {
                 this.clearCanvas();
+                return;
+            }
+
+            if (this.plotOverlaysState?.ready) {
+                this.applySnapshotOverlays();
+                return;
+            }
+
+            if (this.plotOverlaysState?.loading) {
+                this.loading = true;
+                this.error = null;
                 return;
             }
 
@@ -146,6 +173,23 @@ export default {
                     }, 300);
                 });
             }
+        },
+        applySnapshotOverlays() {
+            this.loading = false;
+            this.error = this.plotOverlaysState.error || null;
+            this.ldScoreMap = new Map();
+            const leadRow = pickLeadVariantRow(this.plotRows);
+            this.refVariant =
+                this.plotOverlaysState.refVariant || rowToLdVariant(leadRow);
+            this.$nextTick(() => {
+                this.renderPlot();
+                if (this.renderRetryTimer) {
+                    clearTimeout(this.renderRetryTimer);
+                }
+                this.renderRetryTimer = window.setTimeout(() => {
+                    this.renderPlot();
+                }, 300);
+            });
         },
         onResize() {
             this.renderPlot();

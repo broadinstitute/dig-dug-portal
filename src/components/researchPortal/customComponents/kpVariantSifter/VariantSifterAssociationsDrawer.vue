@@ -13,6 +13,7 @@
             <VariantSifterAssociationsLdPlot
                 :rows="filteredRows"
                 :search-session="searchSession"
+                :plot-overlays-state="plotOverlaysState"
                 :utils="utils"
             />
 
@@ -210,6 +211,16 @@ export default {
         searchSession: {
             type: Object,
             default: null,
+        },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
+            }),
         },
         utils: {
             type: Object,

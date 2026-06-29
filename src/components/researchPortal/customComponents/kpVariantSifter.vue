@@ -39,6 +39,8 @@
                 :data-table-open="dataTableOpen"
                 :open-drawer-id="openDrawerId"
                 :associations-state="associationsState"
+                :genes-state="genesState"
+                :plot-overlays-state="plotOverlaysState"
                 @update:openDrawerId="openDrawerId = $event"
                 @update:regionViewArea="regionViewArea = $event"
                 @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
@@ -87,6 +89,13 @@ import {
     saveJsonBundle,
 } from "./kpVariantSifter/variantSifterSession.js";
 import { clampRegionZoom } from "./kpVariantSifter/variantSifterRegionZoom.js";
+import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
+import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
+import {
+    pickLeadVariantRow,
+    rowToLdVariant,
+} from "./kpVariantSifter/variantSifterLdServer.js";
+import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
 function emptyAssociationsState() {
@@ -99,6 +108,25 @@ function emptyAssociationsState() {
         index: null,
         query: null,
         filtersIndex: createFiltersIndex(),
+    };
+}
+
+function emptyGenesState() {
+    return {
+        ready: false,
+        loading: false,
+        error: null,
+        data: null,
+    };
+}
+
+function emptyPlotOverlaysState() {
+    return {
+        ready: false,
+        loading: false,
+        error: null,
+        recombData: null,
+        refVariant: null,
     };
 }
 
@@ -127,7 +155,11 @@ export default Vue.component("kp-variant-sifter", {
             aiAssistantOpen: false,
             openDrawerId: null,
             associationsState: emptyAssociationsState(),
+            genesState: emptyGenesState(),
+            plotOverlaysState: emptyPlotOverlaysState(),
             associationsRequestToken: 0,
+            genesRequestToken: 0,
+            plotOverlaysRequestToken: 0,
             exportSessionOpen: false,
             exportSessionBusy: false,
         };
@@ -150,14 +182,17 @@ export default Vue.component("kp-variant-sifter", {
             const filterCount = countActiveAssociationFilters(
                 this.associationsState.filtersIndex
             );
-            if (!filterCount) {
-                return `${rows.toLocaleString()} association rows`;
+            const geneCount = this.genesState?.data?.length || 0;
+            const parts = [`${rows.toLocaleString()} association rows`];
+            if (geneCount > 0) {
+                parts.push(`${geneCount.toLocaleString()} genes`);
             }
-            const filterLabel =
-                filterCount === 1
-                    ? "1 active filter"
-                    : `${filterCount} active filters`;
-            return `${rows.toLocaleString()} association rows · ${filterLabel}`;
+            if (filterCount) {
+                parts.push(
+                    filterCount === 1 ? "1 active filter" : `${filterCount} active filters`
+                );
+            }
+            return parts.join(" · ");
         },
     },
     mounted() {
@@ -202,9 +237,12 @@ export default Vue.component("kp-variant-sifter", {
                 exportVariantSifterSession({
                     searchSession: this.searchSession,
                     associationsState: this.associationsState,
+                    genesState: this.genesState,
+                    plotOverlaysState: this.plotOverlaysState,
                     regionZoom: this.regionZoom,
                     regionViewArea: this.regionViewArea,
                     openDrawerId: this.openDrawerId,
+                    dataTableOpen: this.dataTableOpen,
                 });
                 this.exportSessionOpen = true;
             } catch (error) {
@@ -220,9 +258,12 @@ export default Vue.component("kp-variant-sifter", {
                 const payload = exportVariantSifterSession({
                     searchSession: this.searchSession,
                     associationsState: this.associationsState,
+                    genesState: this.genesState,
+                    plotOverlaysState: this.plotOverlaysState,
                     regionZoom: this.regionZoom,
                     regionViewArea: this.regionViewArea,
                     openDrawerId: this.openDrawerId,
+                    dataTableOpen: this.dataTableOpen,
                 });
                 this.exportSessionBusy = true;
                 const result = await saveJsonBundle(filename, payload);
@@ -260,15 +301,20 @@ export default Vue.component("kp-variant-sifter", {
         },
         applyImportedSession(restored) {
             this.associationsRequestToken += 1;
+            this.genesRequestToken += 1;
+            this.plotOverlaysRequestToken += 1;
             this.searchSession = restored.searchSession;
             this.associationsState = restored.associationsState;
+            this.genesState = restored.genesState || emptyGenesState();
+            this.plotOverlaysState =
+                restored.plotOverlaysState || emptyPlotOverlaysState();
             this.regionZoom = restored.regionZoom ?? 0;
             this.regionViewArea = restored.regionViewArea ?? 0;
             this.openDrawerId = restored.openDrawerId;
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.welcomeInitialValues = null;
-            this.dataTableOpen = false;
+            this.dataTableOpen = restored.dataTableOpen ?? false;
             this.syncUrlSearchParams(restored.searchSession);
         },
         openWelcomePanel() {
@@ -287,10 +333,81 @@ export default Vue.component("kp-variant-sifter", {
         onStartSearch(session) {
             this.searchSession = session;
             this.resetRegionViewport();
+            this.genesState = emptyGenesState();
+            this.plotOverlaysState = emptyPlotOverlaysState();
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
             this.loadAssociations(session);
+            this.loadGenesTrack(session);
+        },
+        async loadGenesTrack(session) {
+            const token = ++this.genesRequestToken;
+            this.genesState = {
+                ...emptyGenesState(),
+                loading: true,
+            };
+
+            try {
+                const plotConfig = buildAssociationsRegionPlotConfig(session);
+                const data = await fetchGenesTrackData(
+                    session.region,
+                    plotConfig["genome reference"]
+                );
+                if (token !== this.genesRequestToken) {
+                    return;
+                }
+                this.genesState = {
+                    ready: true,
+                    loading: false,
+                    error: data.length ? null : "No genes found for this locus.",
+                    data: data.length ? data : null,
+                };
+            } catch (error) {
+                if (token !== this.genesRequestToken) {
+                    return;
+                }
+                console.warn("Variant Sifter genes track load failed", error);
+                this.genesState = {
+                    ...emptyGenesState(),
+                    error: "Failed to load genes track for this locus.",
+                };
+            }
+        },
+        async loadPlotOverlays(session, rows) {
+            const token = ++this.plotOverlaysRequestToken;
+            this.plotOverlaysState = {
+                ...emptyPlotOverlaysState(),
+                loading: true,
+            };
+
+            try {
+                const recombData = await fetchRecombinationRate(session.region);
+                if (token !== this.plotOverlaysRequestToken) {
+                    return;
+                }
+                const leadRow = pickLeadVariantRow(rows);
+                this.plotOverlaysState = {
+                    ready: true,
+                    loading: false,
+                    error: null,
+                    recombData,
+                    refVariant: rowToLdVariant(leadRow),
+                };
+            } catch (error) {
+                if (token !== this.plotOverlaysRequestToken) {
+                    return;
+                }
+                console.warn("Variant Sifter plot overlays load failed", error);
+                const leadRow = pickLeadVariantRow(rows);
+                this.plotOverlaysState = {
+                    ready: true,
+                    loading: false,
+                    error: "Recombination overlay could not be loaded for this locus.",
+                    recombData: null,
+                    refVariant: rowToLdVariant(leadRow),
+                };
+            }
         },
         async loadAssociations(session) {
             const token = ++this.associationsRequestToken;
@@ -339,6 +456,7 @@ export default Vue.component("kp-variant-sifter", {
                         ldLoading: false,
                         rows: rowsWithLd,
                     };
+                    this.loadPlotOverlays(session, rowsWithLd);
                 } catch (ldError) {
                     if (token !== this.associationsRequestToken) {
                         return;
@@ -349,6 +467,7 @@ export default Vue.component("kp-variant-sifter", {
                         ldLoading: false,
                         ldError: "LD scores could not be loaded for this locus.",
                     };
+                    this.loadPlotOverlays(session, formattedRows);
                 }
             } catch (error) {
                 if (token !== this.associationsRequestToken) {

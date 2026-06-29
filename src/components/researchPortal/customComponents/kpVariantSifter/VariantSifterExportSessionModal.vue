@@ -15,9 +15,10 @@
             <header class="vks-export-head">
                 <h2 id="vks-export-title">Export session</h2>
                 <p class="vks-export-intro">
-                    Save a workflow file with search parameters, association rows,
-                    LD scores, and active filters so you can restore this session
-                    later with <strong>Import / Export → Import session</strong>.
+                    Save a complete snapshot of your current view — search parameters,
+                    association rows with LD scores, genes track, plot overlays, filters,
+                    zoom, and open panels — so you can restore it later without network
+                    access using <strong>Import / Export → Import session</strong>.
                 </p>
             </header>
 

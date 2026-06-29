@@ -60,14 +60,15 @@ export function clampRegionViewArea(value) {
 }
 
 /**
- * Shift pan position from horizontal drag (pixels). Drag right increases view area.
+ * Shift pan position from horizontal drag (pixels).
+ * Drag right moves plot content right (reveals lower coordinates on the left).
  */
 export function panRegionViewAreaFromDrag(currentViewArea, deltaXPixels, plotWidthPx) {
     if (!plotWidthPx || !Number.isFinite(deltaXPixels)) {
         return clampRegionViewArea(currentViewArea);
     }
     const delta = (deltaXPixels / plotWidthPx) * 200;
-    return clampRegionViewArea(currentViewArea + delta);
+    return clampRegionViewArea(currentViewArea - delta);
 }
 
 export function formatVisibleRegionLabel(searchRegion, visibleRegion) {

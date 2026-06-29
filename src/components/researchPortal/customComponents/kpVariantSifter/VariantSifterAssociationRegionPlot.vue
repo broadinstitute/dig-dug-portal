@@ -90,6 +90,16 @@ export default {
             type: Number,
             default: 0,
         },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
+            }),
+        },
         utils: {
             type: Object,
             default: null,
@@ -156,6 +166,12 @@ export default {
         regionViewArea() {
             this.renderPlot();
         },
+        plotOverlaysState: {
+            handler() {
+                this.refreshPlot();
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.refreshPlot();
@@ -177,6 +193,17 @@ export default {
         async refreshPlot() {
             if (!this.plotRows?.length || !this.region) {
                 this.clearCanvas();
+                return;
+            }
+
+            if (this.plotOverlaysState?.ready) {
+                this.applySnapshotOverlays();
+                return;
+            }
+
+            if (this.plotOverlaysState?.loading) {
+                this.loading = true;
+                this.error = null;
                 return;
             }
 
@@ -213,6 +240,18 @@ export default {
                     this.renderPlot();
                 });
             }
+        },
+        applySnapshotOverlays() {
+            this.loading = false;
+            this.error = this.plotOverlaysState.error || null;
+            this.recombData = this.plotOverlaysState.recombData;
+            this.ldScoreMap = new Map();
+            const leadRow = pickLeadVariantRow(this.plotRows);
+            this.refVariant =
+                this.plotOverlaysState.refVariant || rowToLdVariant(leadRow);
+            this.$nextTick(() => {
+                this.renderPlot();
+            });
         },
         onResize() {
             this.renderPlot();

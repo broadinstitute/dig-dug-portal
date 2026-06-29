@@ -3,6 +3,7 @@
         <VariantSifterLdRegionPlot
             :plot-rows="plotData"
             :search-session="searchSession"
+            :plot-overlays-state="plotOverlaysState"
             :plot-margin="plotMargin"
             :utils="utils"
         />
@@ -27,6 +28,16 @@ export default {
         searchSession: {
             type: Object,
             default: null,
+        },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
+            }),
         },
         utils: {
             type: Object,

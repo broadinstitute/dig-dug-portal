@@ -1,24 +1,70 @@
 import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociationsFilters.js";
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
 
-export const VKS_SESSION_VERSION = 1;
+export const VKS_SESSION_VERSION = 2;
 export const VKS_SESSION_APP = "kp-variant-sifter";
+
+const SUPPORTED_SESSION_VERSIONS = [1, 2];
+
+function emptyPlotOverlaysSnapshot() {
+    return {
+        recombData: null,
+        refVariant: null,
+    };
+}
+
+/**
+ * Ensure the workspace has finished loading everything visible before export.
+ */
+export function validateSessionExportReady({
+    associationsState,
+    genesState,
+    plotOverlaysState,
+}) {
+    if (associationsState?.loading) {
+        throw new Error("Association data is still loading. Wait before exporting.");
+    }
+    if (associationsState?.ldLoading) {
+        throw new Error("LD scores are still loading. Wait before exporting.");
+    }
+    if (!associationsState?.rows?.length) {
+        throw new Error("No association data to export. Wait for data to load first.");
+    }
+    if (genesState?.loading) {
+        throw new Error("Genes track is still loading. Wait before exporting.");
+    }
+    if (!genesState?.data?.length) {
+        throw new Error(
+            "Genes track is not ready. Wait for the genes track to finish loading before exporting."
+        );
+    }
+    if (plotOverlaysState?.loading) {
+        throw new Error("Plot overlays are still loading. Wait before exporting.");
+    }
+}
 
 /**
  * Build a portable JSON snapshot of the Variant Sifter workspace.
+ * Includes every data layer needed to restore the current view without API calls.
  */
 export function exportVariantSifterSession({
     searchSession,
     associationsState,
+    genesState = null,
+    plotOverlaysState = null,
     regionZoom = 0,
     regionViewArea = 0,
     openDrawerId = null,
+    dataTableOpen = false,
 }) {
+    validateSessionExportReady({
+        associationsState,
+        genesState,
+        plotOverlaysState,
+    });
+
     if (!searchSession?.phenotype || !searchSession?.region) {
         throw new Error("No active search session to export.");
-    }
-    if (!associationsState?.rows?.length) {
-        throw new Error("No association data to export. Wait for data to load first.");
     }
 
     return {
@@ -47,10 +93,18 @@ export function exportVariantSifterSession({
                 associationsState.filtersIndex || createFiltersIndex()
             ),
         },
+        genesTrack: {
+            data: genesState.data,
+        },
+        plotOverlays: {
+            recombData: plotOverlaysState?.recombData ?? null,
+            refVariant: plotOverlaysState?.refVariant ?? null,
+        },
         ui: {
             regionZoom,
             regionViewArea,
             openDrawerId,
+            dataTableOpen: Boolean(dataTableOpen),
         },
     };
 }
@@ -162,8 +216,33 @@ function normalizeFiltersIndex(filtersIndex) {
     return cloneFiltersIndex(filtersIndex);
 }
 
+function normalizePlotOverlaysState(payload) {
+    const exported = payload?.plotOverlays || emptyPlotOverlaysSnapshot();
+    return {
+        ready: true,
+        loading: false,
+        error: null,
+        recombData: exported.recombData ?? null,
+        refVariant: exported.refVariant ?? null,
+    };
+}
+
+function normalizeGenesState(payload) {
+    const exportedGenes = payload?.genesTrack?.data;
+    return {
+        ready: true,
+        loading: false,
+        error:
+            Array.isArray(exportedGenes) && exportedGenes.length
+                ? null
+                : "Session file did not include genes track data.",
+        data: Array.isArray(exportedGenes) && exportedGenes.length ? exportedGenes : null,
+    };
+}
+
 /**
  * Restore workspace state from an exported session file payload.
+ * Does not require network access when the export includes all snapshot fields.
  */
 export function importVariantSifterSession(payload, phenotypes = []) {
     if (!payload || typeof payload !== "object") {
@@ -172,9 +251,9 @@ export function importVariantSifterSession(payload, phenotypes = []) {
     if (payload.app !== VKS_SESSION_APP) {
         throw new Error("This file is not a Variant Sifter session export.");
     }
-    if (payload.version !== VKS_SESSION_VERSION) {
+    if (!SUPPORTED_SESSION_VERSIONS.includes(payload.version)) {
         throw new Error(
-            `Unsupported session version (${payload.version}). Expected ${VKS_SESSION_VERSION}.`
+            `Unsupported session version (${payload.version}). Expected ${SUPPORTED_SESSION_VERSIONS.join(" or ")}.`
         );
     }
 
@@ -217,6 +296,8 @@ export function importVariantSifterSession(payload, phenotypes = []) {
     return {
         searchSession,
         associationsState,
+        genesState: normalizeGenesState(payload),
+        plotOverlaysState: normalizePlotOverlaysState(payload),
         regionZoom:
             typeof ui.regionZoom === "number"
                 ? clampRegionZoom(ui.regionZoom)
@@ -226,6 +307,8 @@ export function importVariantSifterSession(payload, phenotypes = []) {
                 ? clampRegionViewArea(ui.regionViewArea)
                 : 0,
         openDrawerId: ui.openDrawerId ?? null,
+        dataTableOpen: Boolean(ui.dataTableOpen),
+        importedFromSnapshot: true,
     };
 }
 

@@ -21,6 +21,8 @@
                         :search-session="searchSession"
                         :region-zoom="regionZoom"
                         :region-view-area="regionViewArea"
+                        :genes-state="genesState"
+                        :plot-overlays-state="plotOverlaysState"
                         :utils="utils"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                     />
@@ -37,6 +39,7 @@
                 :open-drawer-id="openDrawerId"
                 :search-session="searchSession"
                 :associations-state="associationsState"
+                :plot-overlays-state="plotOverlaysState"
                 :utils="utils"
                 @toggle-drawer="onToggleDrawer"
                 @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
@@ -123,6 +126,25 @@ export default {
                 index: null,
                 query: null,
                 filtersIndex: null,
+            }),
+        },
+        genesState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                data: null,
+            }),
+        },
+        plotOverlaysState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                recombData: null,
+                refVariant: null,
             }),
         },
     },
