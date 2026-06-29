@@ -1,7 +1,7 @@
 <template>
     <div class="vks-viewport-controls" role="toolbar" aria-label="Canvas controls">
         <div class="vks-zoom-group">
-            <label class="vks-zoom-label" :for="zoomInputId">Zoom</label>
+            <label class="vks-zoom-label" :for="zoomInputId">Region zoom</label>
             <input
                 :id="zoomInputId"
                 v-model.number="localZoom"
@@ -10,9 +10,11 @@
                 :min="zoomMin"
                 :max="zoomMax"
                 :step="zoomStep"
-                aria-label="Track zoom"
+                :aria-valuetext="zoomAriaText"
+                aria-label="Region zoom"
                 @input="onZoomInput"
             />
+            <span v-if="zoomHint" class="vks-zoom-hint">{{ zoomHint }}</span>
         </div>
         <div class="vks-viewport-actions">
             <button
@@ -42,26 +44,24 @@
 </template>
 
 <script>
+import {
+    VKS_REGION_ZOOM_MIN,
+    VKS_REGION_ZOOM_MAX,
+    VKS_REGION_ZOOM_STEP,
+} from "./variantSifterRegionZoom.js";
+
 let zoomInputCounter = 0;
 
 export default {
     name: "VariantSifterViewportControls",
     props: {
-        zoomLevel: {
+        regionZoom: {
             type: Number,
-            default: 1,
+            default: VKS_REGION_ZOOM_MIN,
         },
-        zoomMin: {
+        regionViewArea: {
             type: Number,
-            default: 0.5,
-        },
-        zoomMax: {
-            type: Number,
-            default: 2,
-        },
-        zoomStep: {
-            type: Number,
-            default: 0.05,
+            default: 0,
         },
         dataTableOpen: {
             type: Boolean,
@@ -76,11 +76,32 @@ export default {
         zoomInputCounter += 1;
         return {
             zoomInputId: `vks-zoom-${zoomInputCounter}`,
-            localZoom: this.zoomLevel,
+            localZoom: this.regionZoom,
         };
     },
+    computed: {
+        zoomMin() {
+            return VKS_REGION_ZOOM_MIN;
+        },
+        zoomMax() {
+            return VKS_REGION_ZOOM_MAX;
+        },
+        zoomStep() {
+            return VKS_REGION_ZOOM_STEP;
+        },
+        zoomHint() {
+            if (this.regionZoom <= 0) {
+                return "Full locus";
+            }
+            const visiblePct = 100 - this.regionZoom;
+            return `${visiblePct}% visible`;
+        },
+        zoomAriaText() {
+            return this.zoomHint;
+        },
+    },
     watch: {
-        zoomLevel(value) {
+        regionZoom(value) {
             this.localZoom = value;
         },
     },
@@ -88,10 +109,10 @@ export default {
         onZoomInput() {
             const next = Math.max(
                 this.zoomMin,
-                Math.min(this.zoomMax, Number(this.localZoom) || 1)
+                Math.min(this.zoomMax, Math.round(Number(this.localZoom) || 0))
             );
             this.localZoom = next;
-            this.$emit("update:zoomLevel", next);
+            this.$emit("update:regionZoom", next);
         },
     },
 };
@@ -128,6 +149,12 @@ export default {
     margin: 0;
     accent-color: var(--cfde-blue, #2c5c97);
     cursor: pointer;
+}
+
+.vks-zoom-hint {
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+    white-space: nowrap;
 }
 
 .vks-viewport-actions {

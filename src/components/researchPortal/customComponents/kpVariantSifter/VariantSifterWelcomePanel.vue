@@ -63,13 +63,12 @@
                             v-model="selectedAncestry"
                             class="vks-welcome-select"
                         >
-                            <option value="">All ancestries</option>
                             <option
                                 v-for="ancestry in ancestryOptions"
                                 :key="ancestry"
                                 :value="ancestry"
                             >
-                                {{ formatAncestry(ancestry) }}
+                                {{ ancestryLabel(ancestry) }}
                             </option>
                         </select>
                     </div>
@@ -78,13 +77,40 @@
                         <label class="vks-welcome-label" :for="locusInputId">
                             Gene or variant
                         </label>
-                        <input
-                            :id="locusInputId"
-                            v-model="geneOrVariantQuery"
-                            type="text"
-                            class="vks-welcome-input"
-                            placeholder="e.g. PCSK9, rs11716727, chr1:100000-200000"
-                        />
+                        <div class="vks-welcome-typeahead">
+                            <input
+                                :id="locusInputId"
+                                v-model="geneOrVariantQuery"
+                                type="text"
+                                class="vks-welcome-input"
+                                autocomplete="off"
+                                placeholder="e.g. PCSK9, rs11716727, chr1:100000-200000"
+                                @focus="onGeneOrVariantFocus"
+                                @input="onGeneOrVariantInput"
+                            />
+                            <div
+                                v-if="geneListOpen && geneSuggestions.length"
+                                class="vks-welcome-suggestions"
+                                role="listbox"
+                                aria-label="Gene suggestions"
+                            >
+                                <button
+                                    v-for="gene in geneSuggestions"
+                                    :key="gene"
+                                    type="button"
+                                    class="vks-welcome-suggestion vks-welcome-suggestion--gene"
+                                    role="option"
+                                    @mousedown.prevent="selectGene(gene)"
+                                >
+                                    <span class="vks-welcome-suggestion-label">
+                                        {{ gene }}
+                                    </span>
+                                    <span class="vks-welcome-suggestion-meta">
+                                        Gene
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
                         <p class="vks-welcome-hint">
                             Genes and variants are converted to a genomic region for
                             the locus view. You can also enter a region directly as
@@ -123,6 +149,13 @@
 
                 <footer class="vks-welcome-footer">
                     <button
+                        type="button"
+                        class="vks-welcome-import"
+                        @click="$emit('import-session')"
+                    >
+                        Import session
+                    </button>
+                    <button
                         type="submit"
                         class="vks-welcome-submit"
                         :disabled="submitting"
@@ -136,24 +169,24 @@
 </template>
 
 <script>
-import Formatters from "@/utils/formatters";
 import {
     REGION_EXPAND_OPTIONS,
+    VARIANT_SIFTER_ANCESTRY_OPTIONS,
+    ancestryLabel,
     filterPhenotypes,
     formatRegion,
+    isGeneLookupQuery,
+    lookupGeneMatches,
     resolveGeneOrVariantToRegion,
 } from "./variantSifterSearchUtils.js";
 
 let welcomeFieldCounter = 0;
+const GENE_LOOKUP_DEBOUNCE_MS = 200;
 
 export default {
     name: "VariantSifterWelcomePanel",
     props: {
         phenotypes: {
-            type: Array,
-            default: () => [],
-        },
-        ancestries: {
             type: Array,
             default: () => [],
         },
@@ -176,25 +209,24 @@ export default {
             expandSelectId: `vks-welcome-expand-${suffix}`,
             phenotypeQuery: "",
             selectedPhenotype: null,
-            selectedAncestry: "",
+            selectedAncestry: "Mixed",
             geneOrVariantQuery: "",
             regionExpandBp: null,
             phenotypeListOpen: false,
+            geneListOpen: false,
+            geneSuggestions: [],
+            geneLookupToken: 0,
+            geneLookupTimer: null,
             errorMessage: "",
             submitting: false,
             resolvedRegionLabel: "",
             regionExpandOptions: REGION_EXPAND_OPTIONS,
+            ancestryOptions: VARIANT_SIFTER_ANCESTRY_OPTIONS,
         };
     },
     computed: {
         phenotypeSuggestions() {
             return filterPhenotypes(this.phenotypes, this.phenotypeQuery);
-        },
-        ancestryOptions() {
-            const values = (this.ancestries || []).filter(
-                (ancestry) => ancestry && ancestry !== "Mixed"
-            );
-            return [...new Set(values)].sort();
         },
     },
     watch: {
@@ -210,6 +242,7 @@ export default {
         geneOrVariantQuery() {
             this.resolvedRegionLabel = "";
             this.errorMessage = "";
+            this.scheduleGeneLookup();
         },
     },
     mounted() {
@@ -217,9 +250,12 @@ export default {
     },
     beforeDestroy() {
         document.removeEventListener("click", this.onDocumentClick);
+        if (this.geneLookupTimer) {
+            clearTimeout(this.geneLookupTimer);
+        }
     },
     methods: {
-        formatAncestry: Formatters.ancestryFormatter,
+        ancestryLabel,
         applyInitialValues(values) {
             if (values.phenotype) {
                 const match = (this.phenotypes || []).find(
@@ -231,7 +267,7 @@ export default {
                     this.phenotypeQuery = values.phenotype;
                 }
             }
-            if (values.ancestry != null) {
+            if (values.ancestry != null && values.ancestry !== "") {
                 this.selectedAncestry = values.ancestry;
             }
             if (values.geneOrVariantQuery) {
@@ -244,7 +280,55 @@ export default {
         onDocumentClick(event) {
             if (!this.$el.contains(event.target)) {
                 this.phenotypeListOpen = false;
+                this.geneListOpen = false;
             }
+        },
+        onGeneOrVariantFocus() {
+            if (isGeneLookupQuery(this.geneOrVariantQuery)) {
+                this.geneListOpen = true;
+                this.scheduleGeneLookup();
+            }
+        },
+        onGeneOrVariantInput() {
+            this.geneListOpen = isGeneLookupQuery(this.geneOrVariantQuery);
+            this.scheduleGeneLookup();
+        },
+        scheduleGeneLookup() {
+            if (this.geneLookupTimer) {
+                clearTimeout(this.geneLookupTimer);
+            }
+
+            if (!isGeneLookupQuery(this.geneOrVariantQuery)) {
+                this.geneSuggestions = [];
+                this.geneListOpen = false;
+                return;
+            }
+
+            this.geneLookupTimer = setTimeout(() => {
+                this.fetchGeneSuggestions();
+            }, GENE_LOOKUP_DEBOUNCE_MS);
+        },
+        async fetchGeneSuggestions() {
+            const query = this.geneOrVariantQuery.trim();
+            if (!isGeneLookupQuery(query)) {
+                this.geneSuggestions = [];
+                return;
+            }
+
+            const token = ++this.geneLookupToken;
+            const matches = await lookupGeneMatches(query);
+            if (token !== this.geneLookupToken) {
+                return;
+            }
+
+            this.geneSuggestions = matches;
+            this.geneListOpen = matches.length > 0;
+        },
+        selectGene(gene) {
+            this.geneOrVariantQuery = gene;
+            this.geneSuggestions = [];
+            this.geneListOpen = false;
+            this.errorMessage = "";
         },
         onPhenotypeInput() {
             this.phenotypeListOpen = true;
@@ -481,19 +565,35 @@ export default {
 
 .vks-welcome-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
     margin-top: 18px;
+}
+
+.vks-welcome-import,
+.vks-welcome-submit {
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.vks-welcome-import {
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    background: #ffffff;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-welcome-import:hover {
+    background: var(--cfde-orange-soft, #fbeee3);
 }
 
 .vks-welcome-submit {
     border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
     background: var(--cfde-blue, #2c5c97);
     color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
 }
 
 .vks-welcome-submit:hover:not(:disabled) {

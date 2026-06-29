@@ -4,28 +4,42 @@
             <VariantSifterWelcomePanel
                 v-if="welcomeOpen"
                 :phenotypes="phenotypes"
-                :ancestries="ancestries"
                 :utils="utils"
                 :initial-values="welcomeInitialValues"
                 @start-search="$emit('start-search', $event)"
+                @import-session="$emit('import-session')"
             />
-            <div
-                v-if="canvasActive"
-                class="vks-canvas-tracks"
-                :style="tracksStyle"
-            >
-                <VariantSifterTrackStrip
-                    v-for="section in sections"
-                    :key="section.id"
-                    :section="section"
-                    :zoom-level="zoomLevel"
-                    :search-session="searchSession"
-                />
+            <div v-if="canvasActive" class="vks-canvas-tracks">
+                <template v-for="section in sections">
+                    <VariantSifterAssociationsPlot
+                        v-if="section.id === 'associations'"
+                        :key="section.id"
+                        :rows="associationPlotRows"
+                        :loading="associationsState.loading"
+                        :ld-loading="associationsState.ldLoading"
+                        :error="associationsState.error"
+                        :search-session="searchSession"
+                        :region-zoom="regionZoom"
+                        :region-view-area="regionViewArea"
+                        :utils="utils"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                    />
+                    <VariantSifterTrackStrip
+                        v-else
+                        :key="section.id + '-strip'"
+                        :section="section"
+                        :search-session="searchSession"
+                    />
+                </template>
             </div>
             <VariantSifterSectionDrawers
                 :sections="sections"
                 :open-drawer-id="openDrawerId"
+                :search-session="searchSession"
+                :associations-state="associationsState"
+                :utils="utils"
                 @toggle-drawer="onToggleDrawer"
+                @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
             />
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
@@ -37,15 +51,18 @@
 
 <script>
 import VariantSifterTrackStrip from "./VariantSifterTrackStrip.vue";
+import VariantSifterAssociationsPlot from "./VariantSifterAssociationsPlot.vue";
 import VariantSifterSectionDrawers from "./VariantSifterSectionDrawers.vue";
 import VariantSifterDataTableModal from "./VariantSifterDataTableModal.vue";
 import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight } from "./variantSifterSections.js";
+import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 
 export default {
     name: "VariantSifterCanvas",
     components: {
         VariantSifterTrackStrip,
+        VariantSifterAssociationsPlot,
         VariantSifterSectionDrawers,
         VariantSifterDataTableModal,
         VariantSifterWelcomePanel,
@@ -67,10 +84,6 @@ export default {
             type: Array,
             default: () => [],
         },
-        ancestries: {
-            type: Array,
-            default: () => [],
-        },
         utils: {
             type: Object,
             default: null,
@@ -83,9 +96,13 @@ export default {
             type: Object,
             default: null,
         },
-        zoomLevel: {
+        regionZoom: {
             type: Number,
-            default: 1,
+            default: 0,
+        },
+        regionViewArea: {
+            type: Number,
+            default: 0,
         },
         dataTableOpen: {
             type: Boolean,
@@ -95,19 +112,33 @@ export default {
             type: String,
             default: null,
         },
+        associationsState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                ldLoading: false,
+                error: null,
+                ldError: null,
+                rows: [],
+                index: null,
+                query: null,
+                filtersIndex: null,
+            }),
+        },
     },
     computed: {
+        associationPlotRows() {
+            const { rows, filtersIndex } = this.associationsState;
+            if (!rows?.length) {
+                return [];
+            }
+            return applyAssociationsFilters(rows, filtersIndex);
+        },
         viewportStyle() {
             return {
                 minHeight: `${drawerRailMinHeight(this.sections)}px`,
                 height: "auto",
                 maxHeight: "none",
-            };
-        },
-        tracksStyle() {
-            return {
-                transform: `scale(${this.zoomLevel})`,
-                transformOrigin: "top center",
             };
         },
     },

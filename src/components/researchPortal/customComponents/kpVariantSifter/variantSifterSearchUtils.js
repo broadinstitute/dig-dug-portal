@@ -1,5 +1,40 @@
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, match } from "@/utils/bioIndexUtils";
 import variantUtils from "@/utils/variantUtils";
+
+export const VARIANT_SIFTER_ANCESTRY_OPTIONS = [
+    "Mixed",
+    "EU",
+    "EA",
+    "SA",
+    "AA",
+    "HS",
+    "SSAF",
+];
+
+export const VARIANT_SIFTER_ANCESTRY_LABELS = {
+    ABA: "Aboriginal Australian",
+    AA: "African American or Afro-Caribbean",
+    AF: "African unspecified",
+    SSAF: "Sub-Saharan African",
+    ASUN: "Asian unspecified",
+    CA: "Central Asian",
+    EA: "East Asian",
+    SA: "South Asian",
+    SEA: "South East Asian",
+    EU: "European",
+    GME: "Greater Middle Eastern (Middle Eastern, North African, or Persian)",
+    HS: "Hispanic or Latin American",
+    NAM: "Native American",
+    NR: "Not reported",
+    OC: "Oceanian",
+    OTH: "Other",
+    OAD: "Other admixed ancestry",
+    Mixed: "Mixed ancestry",
+};
+
+export function ancestryLabel(code) {
+    return VARIANT_SIFTER_ANCESTRY_LABELS[code] || code;
+}
 
 export const REGION_EXPAND_OPTIONS = [
     { value: null, label: "Gene / variant bounds only" },
@@ -22,6 +57,31 @@ function isVariantQuery(query) {
         variantUtils.parseVariant(trimmed) != null ||
         (/[:_]/.test(trimmed) && /\d/.test(trimmed) && !isRegionRangeQuery(trimmed))
     );
+}
+
+/** True when the locus field should offer gene symbol autocomplete. */
+export function isGeneLookupQuery(query) {
+    const trimmed = String(query || "").trim();
+    if (trimmed.length < 2) {
+        return false;
+    }
+    return !isRegionRangeQuery(trimmed) && !isVariantQuery(trimmed);
+}
+
+/** Gene symbol autocomplete via BioIndex `/api/bio/match/gene`. */
+export async function lookupGeneMatches(query, limit = 10) {
+    const trimmed = String(query || "").trim();
+    if (!isGeneLookupQuery(trimmed)) {
+        return [];
+    }
+
+    try {
+        const matches = await match("gene", trimmed, { limit });
+        return Array.isArray(matches) ? matches : [];
+    } catch (error) {
+        console.warn("Variant Sifter gene lookup failed", error);
+        return [];
+    }
 }
 
 async function lookupVariantPosition(variantQuery) {

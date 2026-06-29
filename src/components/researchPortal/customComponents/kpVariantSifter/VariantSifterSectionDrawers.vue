@@ -18,10 +18,26 @@
                     </button>
                 </header>
                 <div class="vks-section-drawer-body">
-                    <p class="vks-section-drawer-note">{{ openSection.description }}</p>
-                    <p class="vks-section-drawer-note">
-                        Search and filter UI for this section will appear here.
-                    </p>
+                    <VariantSifterAssociationsDrawer
+                        v-if="openSection.id === 'associations'"
+                        :rows="associationsState.rows"
+                        :filters-index="associationsState.filtersIndex"
+                        :loading="associationsState.loading"
+                        :error="associationsState.error"
+                        :index-name="associationsState.index"
+                        :query-string="associationsState.query"
+                        :search-session="searchSession"
+                        :utils="utils"
+                        :ld-loading="associationsState.ldLoading"
+                        :ld-error="associationsState.ldError"
+                        @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
+                    />
+                    <template v-else>
+                        <p class="vks-section-drawer-note">{{ openSection.description }}</p>
+                        <p class="vks-section-drawer-note">
+                            Search and filter UI for this section will appear here.
+                        </p>
+                    </template>
                 </div>
             </template>
         </aside>
@@ -49,9 +65,13 @@
 
 <script>
 import { drawerTabLabel, drawerTabHeight, sectionById } from "./variantSifterSections.js";
+import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.vue";
 
 export default {
     name: "VariantSifterSectionDrawers",
+    components: {
+        VariantSifterAssociationsDrawer,
+    },
     props: {
         sections: {
             type: Array,
@@ -59,6 +79,27 @@ export default {
         },
         openDrawerId: {
             type: String,
+            default: null,
+        },
+        searchSession: {
+            type: Object,
+            default: null,
+        },
+        associationsState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                ldLoading: false,
+                error: null,
+                ldError: null,
+                rows: [],
+                index: null,
+                query: null,
+                filtersIndex: null,
+            }),
+        },
+        utils: {
+            type: Object,
             default: null,
         },
     },

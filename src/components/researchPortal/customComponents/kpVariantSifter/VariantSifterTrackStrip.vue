@@ -29,10 +29,6 @@ export default {
             type: Object,
             required: true,
         },
-        zoomLevel: {
-            type: Number,
-            default: 1,
-        },
         searchSession: {
             type: Object,
             default: null,
@@ -41,7 +37,7 @@ export default {
     computed: {
         trackBodyStyle() {
             return {
-                minHeight: `${Math.round(120 * this.zoomLevel)}px`,
+                minHeight: "120px",
             };
         },
     },
