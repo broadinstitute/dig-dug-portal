@@ -34,8 +34,9 @@
 
                 <template v-else>
                     <p class="wkb-provenance-explorer-copy">
-                        Open the provenance explorer to download source files, rerun the pipeline
-                        with the same inputs, or tweak parameters to build a custom gene set.
+                        Taking you to our agentic workspace. It's preloaded with the source files
+                        and analyses behind these gene sets, so you can reproduce them and trace
+                        their provenance alongside an AI agent.
                     </p>
 
                     <p class="wkb-provenance-explorer-helper">
