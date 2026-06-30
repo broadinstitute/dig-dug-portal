@@ -31,7 +31,9 @@
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
                         :plot-overlays-state="plotOverlaysState"
+                        :starred-variant-ids="starredVariantIds"
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
                     />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>
@@ -113,8 +115,20 @@ export default {
             type: Object,
             default: null,
         },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
+            }),
+        },
     },
     computed: {
+        starredVariantIds() {
+            return (this.plotMarkers?.starredVariants || []).map(
+                (entry) => entry.variantId
+            );
+        },
         openSection() {
             return sectionById(this.openDrawerId);
         },

@@ -10,11 +10,9 @@
                 :min="zoomMin"
                 :max="zoomMax"
                 :step="zoomStep"
-                :aria-valuetext="zoomAriaText"
                 aria-label="Region zoom"
                 @input="onZoomInput"
             />
-            <span v-if="zoomHint" class="vks-zoom-hint">{{ zoomHint }}</span>
         </div>
         <div class="vks-viewport-actions">
             <button
@@ -89,16 +87,6 @@ export default {
         zoomStep() {
             return VKS_REGION_ZOOM_STEP;
         },
-        zoomHint() {
-            if (this.regionZoom <= 0) {
-                return "Full locus";
-            }
-            const visiblePct = 100 - this.regionZoom;
-            return `${visiblePct}% visible`;
-        },
-        zoomAriaText() {
-            return this.zoomHint;
-        },
     },
     watch: {
         regionZoom(value) {
@@ -149,12 +137,6 @@ export default {
     margin: 0;
     accent-color: var(--cfde-blue, #2c5c97);
     cursor: pointer;
-}
-
-.vks-zoom-hint {
-    font-size: 12px;
-    color: var(--cfde-muted, #6b6b6b);
-    white-space: nowrap;
 }
 
 .vks-viewport-actions {

@@ -1,4 +1,4 @@
-import { clampRegionZoom } from "./variantSifterRegionZoom.js";
+import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
 
 /**
  * Visible window width (bp) for a genomic region at the given zoom level.
@@ -55,7 +55,12 @@ export function computeActiveRegion(searchRegion, regionShiftBp = 0) {
 /**
  * Genomic window on screen. Zoom magnifies within the active (shifted) search region.
  */
-export function computeViewRegion(searchRegion, regionShiftBp = 0, regionZoom = 0) {
+export function computeViewRegion(
+    searchRegion,
+    regionShiftBp = 0,
+    regionZoom = 0,
+    regionViewArea = 0
+) {
     const activeRegion = computeActiveRegion(searchRegion, regionShiftBp);
     if (!activeRegion) {
         return null;
@@ -66,13 +71,18 @@ export function computeViewRegion(searchRegion, regionShiftBp = 0, regionZoom = 
         return activeRegion;
     }
 
-    const visibleWidth = computeVisibleWindowWidth(activeRegion, zoom);
-    const center = (activeRegion.start + activeRegion.end) / 2;
+    const start = Number(activeRegion.start);
+    const end = Number(activeRegion.end);
+    const distance = end - start;
+    const zoomNum = Math.round(distance * (zoom / 200));
+    const viewPointShift = Math.round(
+        zoomNum * (clampRegionViewArea(regionViewArea) / 100)
+    );
 
     return {
         chr: activeRegion.chr,
-        start: Math.round(center - visibleWidth / 2),
-        end: Math.round(center + visibleWidth / 2),
+        start: Math.round(start + zoomNum + viewPointShift),
+        end: Math.round(end - zoomNum + viewPointShift),
     };
 }
 

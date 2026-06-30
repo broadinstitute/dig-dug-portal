@@ -15,6 +15,7 @@ When adding a new visualizer or track to KP Variant Sifter, **create a new compo
 - Wire the new visualizer in `variantSifterSections.js` and parent layout (`VariantSifterCanvas.vue`, `VariantSifterAssociationsPlot.vue`, etc.)
 - Reuse shared VS utilities: `variantSifterPlotShared.js`, `variantSifterRegionZoom.js`, `VARIANT_SIFTER_PLOT_MARGIN`
 - Accept `sharedCanvasWidth` from the plot stack so x-axis alignment stays correct
+- Accept `plotMarkers` (`starredVariants`, `positionMarkers`) and call `renderPlotMarkerLines()` from `variantSifterPlotMarkers.js` after the main draw so stars and position pins align across tracks
 
 ## Do not
 

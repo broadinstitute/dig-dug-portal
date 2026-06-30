@@ -105,6 +105,22 @@ export function pickLeadVariantRow(rows) {
     return lead;
 }
 
+export function findAssociationRefRow(rows, refVariant) {
+    if (!rows?.length) {
+        return null;
+    }
+    if (refVariant) {
+        const match = rows.find(
+            (row) =>
+                row["Variant ID"] === refVariant || rowToLdVariant(row) === refVariant
+        );
+        if (match) {
+            return match;
+        }
+    }
+    return pickLeadVariantRow(rows);
+}
+
 export function buildLdScoresUrl({
     population,
     refVariant,
@@ -167,7 +183,18 @@ export async function fetchLdScoreMap(rows, session) {
     }
 
     const leadRow = pickLeadVariantRow(rows);
-    const refVariant = rowToLdVariant(leadRow);
+    return fetchLdScoreMapForRefRow(leadRow, session, session.region);
+}
+
+/**
+ * Fetch LD r² scores for a locus relative to a user-selected reference variant.
+ */
+export async function fetchLdScoreMapForRefRow(refRow, session, region) {
+    if (!refRow || !session || !region) {
+        return { scoreMap: new Map(), refVariant: null };
+    }
+
+    const refVariant = rowToLdVariant(refRow);
     if (!refVariant) {
         return { scoreMap: new Map(), refVariant: null };
     }
@@ -176,7 +203,7 @@ export async function fetchLdScoreMap(rows, session) {
     const ldUrl = buildLdScoresUrl({
         population,
         refVariant,
-        region: session.region,
+        region,
     });
 
     const ldJson = await fetch(ldUrl).then((response) => response.json());
@@ -194,6 +221,32 @@ export async function fetchLdScoreMap(rows, session) {
         scoreMap: buildLdScoreMap(ldJson),
         refVariant,
     };
+}
+
+export async function enrichAssociationRowsWithLdScoresForRef(rows, session, refRow, region) {
+    if (!Array.isArray(rows) || !rows.length || !refRow) {
+        return rows;
+    }
+
+    const { scoreMap } = await fetchLdScoreMapForRefRow(
+        refRow,
+        session,
+        region || session.region
+    );
+    if (!scoreMap.size) {
+        return rows;
+    }
+
+    return rows.map((row) => {
+        const ldScore = lookupLdScore(scoreMap, row);
+        if (ldScore == null) {
+            return { ...row, LDS: null };
+        }
+        return {
+            ...row,
+            LDS: ldScore,
+        };
+    });
 }
 
 /**

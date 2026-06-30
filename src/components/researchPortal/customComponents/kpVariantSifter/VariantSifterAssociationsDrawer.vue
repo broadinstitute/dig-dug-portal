@@ -226,6 +226,10 @@ export default {
             type: Object,
             default: null,
         },
+        starredVariantIds: {
+            type: Array,
+            default: () => [],
+        },
     },
     data() {
         const topRows = ASSOCIATIONS_TABLE_FORMAT["top rows"];
@@ -244,7 +248,6 @@ export default {
             currentPage: 1,
             sortKey: null,
             sortDirection: "asc",
-            starredIds: [],
             showStarredOnly: false,
         };
     },
@@ -335,7 +338,7 @@ export default {
             }
 
             return this.sortedRows.filter((row) =>
-                this.starredIds.includes(row[this.starColumn])
+                this.starredVariantIds.includes(row[this.starColumn])
             );
         },
         pagedRows() {
@@ -396,15 +399,10 @@ export default {
             this.currentPage = 1;
         },
         isStarred(row) {
-            return this.starredIds.includes(row[this.starColumn]);
+            return this.starredVariantIds.includes(row[this.starColumn]);
         },
         toggleStar(row) {
-            const id = row[this.starColumn];
-            if (this.isStarred(row)) {
-                this.starredIds = this.starredIds.filter((value) => value !== id);
-            } else {
-                this.starredIds = [...this.starredIds, id];
-            }
+            this.$emit("toggle-star-variant", row);
         },
         toggleStarredOnly() {
             this.showStarredOnly = !this.showStarredOnly;

@@ -1,7 +1,9 @@
-/** Region zoom: 0 = full searched locus; 90 = 10% of locus width visible (GEM parity). */
+import { normalizePlotMargin } from "./variantSifterPlotShared.js";
+
+/** Region zoom: 0 = full searched locus; 99 = 1% of locus width visible. */
 export const VKS_REGION_ZOOM_MIN = 0;
-export const VKS_REGION_ZOOM_MAX = 90;
-export const VKS_REGION_ZOOM_STEP = 10;
+export const VKS_REGION_ZOOM_MAX = 99;
+export const VKS_REGION_ZOOM_STEP = 1;
 
 export const VKS_REGION_VIEW_AREA_MIN = -100;
 export const VKS_REGION_VIEW_AREA_MAX = 100;
@@ -82,4 +84,66 @@ export function formatVisibleRegionLabel(searchRegion, visibleRegion) {
     }
     const pct = Math.round((visibleWidth / searchWidth) * 100);
     return `${pct}% of locus (${visibleRegion.start.toLocaleString()}–${visibleRegion.end.toLocaleString()})`;
+}
+
+/** Map zoom-center marker position (0–1 across plot width) to regionViewArea. */
+export function regionViewAreaFromPlotFraction(fraction) {
+    return clampRegionViewArea(Math.round((Number(fraction) - 0.5) * 200));
+}
+
+/** Map regionViewArea (-100…100) to marker position (0–1 across plot width). */
+export function plotFractionFromRegionViewArea(regionViewArea) {
+    return 0.5 + clampRegionViewArea(regionViewArea) / 200;
+}
+
+/**
+ * Layout for the draggable zoom-center triangle in CSS pixels.
+ * Canvas uses 2× internal pixels; containerWidthPx is the display width.
+ */
+export function computeZoomCenterMarkerLayout(containerWidthPx, plotMargin, regionViewArea) {
+    const margin = normalizePlotMargin(plotMargin);
+    const left = margin.left / 2;
+    const right = margin.right / 2;
+    const plotWidth = Math.max(0, Number(containerWidthPx) - left - right);
+    const fraction = plotFractionFromRegionViewArea(regionViewArea);
+    return {
+        marginLeftPx: left,
+        plotWidthPx: plotWidth,
+        markerXPx: left + plotWidth * fraction,
+    };
+}
+
+export function regionViewAreaFromClientX(clientX, trackRect, plotMargin) {
+    const layout = computeZoomCenterMarkerLayout(
+        trackRect.width,
+        plotMargin,
+        0
+    );
+    const relativeX = clientX - trackRect.left;
+    const fraction =
+        layout.plotWidthPx > 0
+            ? (relativeX - layout.marginLeftPx) / layout.plotWidthPx
+            : 0.5;
+    return regionViewAreaFromPlotFraction(fraction);
+}
+
+/** Display height of the zoom-center triangle (CSS px). */
+export const VKS_ZOOM_CENTER_MARKER_HEIGHT_PX = 11;
+
+/** Gap between triangle tip and the recomb axis “100” tick label (CSS px). */
+export const VKS_ZOOM_CENTER_MARKER_GAP_ABOVE_RECOMB_100_PX = 10;
+
+/**
+ * Vertical position (CSS px from canvas top) for the zoom-center triangle.
+ * Aligns the tip 10px above the right-axis “100” recomb tick (renderPlotAxis).
+ */
+export function computeZoomCenterMarkerTopPx(plotMargin) {
+    const margin = normalizePlotMargin(plotMargin);
+    const recomb100TickInternalY = margin.top + 5;
+    const recomb100TickDisplayY = recomb100TickInternalY / 2;
+    return (
+        recomb100TickDisplayY -
+        VKS_ZOOM_CENTER_MARKER_GAP_ABOVE_RECOMB_100_PX -
+        VKS_ZOOM_CENTER_MARKER_HEIGHT_PX
+    );
 }

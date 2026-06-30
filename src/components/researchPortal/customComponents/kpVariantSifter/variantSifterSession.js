@@ -1,11 +1,12 @@
 import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociationsFilters.js";
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
 import { regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
+import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
 
-export const VKS_SESSION_VERSION = 3;
+export const VKS_SESSION_VERSION = 4;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -53,6 +54,7 @@ export function exportVariantSifterSession({
     associationsState,
     genesState = null,
     plotOverlaysState = null,
+    plotMarkersState = null,
     regionZoom = 0,
     regionViewArea = 0,
     viewOffsetBp = 0,
@@ -103,6 +105,10 @@ export function exportVariantSifterSession({
         plotOverlays: {
             recombData: plotOverlaysState?.recombData ?? null,
             refVariant: plotOverlaysState?.refVariant ?? null,
+        },
+        plotMarkers: {
+            starredVariants: plotMarkersState?.starredVariants ?? [],
+            positionMarkers: plotMarkersState?.positionMarkers ?? [],
         },
         ui: {
             regionZoom,
@@ -235,6 +241,21 @@ function normalizeFiltersIndex(filtersIndex) {
     return cloneFiltersIndex(filtersIndex);
 }
 
+function normalizePlotMarkersState(payload) {
+    const exported = payload?.plotMarkers;
+    if (!exported) {
+        return emptyPlotMarkersState();
+    }
+    return {
+        starredVariants: Array.isArray(exported.starredVariants)
+            ? exported.starredVariants
+            : [],
+        positionMarkers: Array.isArray(exported.positionMarkers)
+            ? exported.positionMarkers
+            : [],
+    };
+}
+
 function normalizePlotOverlaysState(payload) {
     const exported = payload?.plotOverlays || emptyPlotOverlaysSnapshot();
     return {
@@ -341,6 +362,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         associationsState,
         genesState: normalizeGenesState(payload),
         plotOverlaysState: normalizePlotOverlaysState(payload),
+        plotMarkersState: normalizePlotMarkersState(payload),
         regionZoom,
         regionViewArea,
         regionShiftBp,

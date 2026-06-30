@@ -17,6 +17,7 @@ import {
     layoutGenesInLanes,
     renderGenesTrack,
 } from "./variantSifterGenesTrackRender.js";
+import { renderPlotMarkerLines } from "./variantSifterPlotMarkers.js";
 
 export default {
     name: "VariantSifterGenesTrack",
@@ -44,6 +45,13 @@ export default {
         sharedCanvasWidth: {
             type: Number,
             default: null,
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
+            }),
         },
     },
     computed: {
@@ -81,6 +89,12 @@ export default {
         },
         sharedCanvasWidth() {
             this.renderTrack();
+        },
+        plotMarkers: {
+            handler() {
+                this.renderTrack();
+            },
+            deep: true,
         },
     },
     mounted() {
@@ -153,6 +167,17 @@ export default {
                 visibleRegion,
                 margin,
                 canvasWidth,
+                canvasHeight,
+            });
+
+            const plotHeight = canvasHeight - margin.top - margin.bottom;
+            renderPlotMarkerLines(ctx, {
+                starredVariants: this.plotMarkers?.starredVariants || [],
+                positionMarkers: this.plotMarkers?.positionMarkers || [],
+                visibleRegion,
+                margin,
+                plotWidth,
+                plotHeight,
                 canvasHeight,
             });
         },

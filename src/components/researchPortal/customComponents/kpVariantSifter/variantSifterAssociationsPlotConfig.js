@@ -2,8 +2,8 @@ import { KP_ANCESTRY_LD_POPULATIONS, resolveLdPopulation } from "./variantSifter
 
 export const VARIANT_SIFTER_PLOT_MARGIN = {
     leftMargin: 150,
-    rightMargin: 40,
-    topMargin: 20,
+    rightMargin: 80,
+    topMargin: 50,
     bottomMargin: 100,
     bump: 11,
 };

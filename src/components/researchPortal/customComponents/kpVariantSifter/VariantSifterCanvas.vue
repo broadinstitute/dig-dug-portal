@@ -21,13 +21,19 @@
                         :search-session="searchSession"
                         :region-zoom="regionZoom"
                         :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
                         :view-region="viewRegion"
                         :region-data-loading="regionDataLoading"
                         :genes-state="genesState"
                         :plot-overlays-state="plotOverlaysState"
+                        :plot-markers="plotMarkers"
                         :utils="utils"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
                     <VariantSifterTrackStrip
                         v-else
@@ -43,9 +49,11 @@
                 :search-session="searchSession"
                 :associations-state="associationsState"
                 :plot-overlays-state="plotOverlaysState"
+                :plot-markers="plotMarkers"
                 :utils="utils"
                 @toggle-drawer="onToggleDrawer"
                 @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
+                @toggle-star-variant="$emit('toggle-star-variant', $event)"
             />
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
@@ -160,6 +168,13 @@ export default {
                 error: null,
                 recombData: null,
                 refVariant: null,
+            }),
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
             }),
         },
     },

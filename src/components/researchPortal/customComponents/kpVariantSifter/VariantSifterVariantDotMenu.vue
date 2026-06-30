@@ -1,0 +1,97 @@
+<template>
+    <div
+        v-if="open"
+        class="vks-variant-dot-menu"
+        :style="menuStyle"
+        role="menu"
+        @mousedown.stop
+    >
+        <p class="vks-variant-dot-menu-title">{{ variantId }}</p>
+        <button type="button" class="vks-variant-dot-menu-btn" @click="$emit('set-reference')">
+            Set as reference variant
+        </button>
+        <button type="button" class="vks-variant-dot-menu-btn" @click="$emit('toggle-star')">
+            {{ isStarred ? "Unstar variant" : "Star variant" }}
+        </button>
+    </div>
+</template>
+
+<script>
+export default {
+    name: "VariantSifterVariantDotMenu",
+    props: {
+        open: {
+            type: Boolean,
+            default: false,
+        },
+        variantId: {
+            type: String,
+            default: "",
+        },
+        isStarred: {
+            type: Boolean,
+            default: false,
+        },
+        anchorX: {
+            type: Number,
+            default: 0,
+        },
+        anchorY: {
+            type: Number,
+            default: 0,
+        },
+    },
+    computed: {
+        menuStyle() {
+            return {
+                left: `${this.anchorX}px`,
+                top: `${this.anchorY}px`,
+            };
+        },
+    },
+};
+</script>
+
+<style scoped>
+.vks-variant-dot-menu {
+    position: absolute;
+    z-index: 8;
+    min-width: 200px;
+    padding: 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(20, 22, 30, 0.12);
+}
+
+.vks-variant-dot-menu-title {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
+    word-break: break-all;
+}
+
+.vks-variant-dot-menu-btn {
+    display: block;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 7px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--cfde-ink, #33363d);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.vks-variant-dot-menu-btn:last-child {
+    margin-bottom: 0;
+}
+
+.vks-variant-dot-menu-btn:hover {
+    background: var(--cfde-orange-soft, #fbeee3);
+    border-color: var(--cfde-orange, #e07b39);
+}
+</style>

@@ -18,13 +18,19 @@
                     :search-session="searchSession"
                     :region-zoom="regionZoom"
                     :region-shift-bp="regionShiftBp"
+                    :region-view-area="regionViewArea"
                     :view-region="viewRegion"
                     :plot-overlays-state="plotOverlaysState"
                     :plot-margin="plotMargin"
                     :shared-canvas-width="stackCanvasWidth"
+                    :plot-markers="plotMarkers"
                     :utils="utils"
                     @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                    @update:regionViewArea="$emit('update:regionViewArea', $event)"
                     @pan-end="$emit('pan-end')"
+                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                    @set-reference-variant="$emit('set-reference-variant', $event)"
                 />
                 <VariantSifterGenesTrack
                     :key="genesTrackKey"
@@ -34,6 +40,7 @@
                     :plot-margin="plotMargin"
                     :region-zoom="regionZoom"
                     :shared-canvas-width="stackCanvasWidth"
+                    :plot-markers="plotMarkers"
                 />
             </div>
             <p v-if="regionDataLoading" class="vks-associations-plot-note">
@@ -102,6 +109,10 @@ export default {
             type: Number,
             default: 0,
         },
+        regionViewArea: {
+            type: Number,
+            default: 0,
+        },
         viewRegion: {
             type: Object,
             default: null,
@@ -118,6 +129,13 @@ export default {
                 error: null,
                 recombData: null,
                 refVariant: null,
+            }),
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
             }),
         },
         genesState: {

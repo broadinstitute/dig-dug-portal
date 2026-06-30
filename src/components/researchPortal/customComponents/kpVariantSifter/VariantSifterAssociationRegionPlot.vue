@@ -1,30 +1,66 @@
 <template>
     <div ref="container" class="vks-association-region-plot">
         <div class="vks-association-region-plot-legend">
-            <span class="plot-legend-dot" style="background-color: #824099cc"></span>
-            <span>Reference variant</span>
-            <span class="plot-legend-dot" style="background-color: #d0363360"></span>
-            <span>1 &gt; r2 &gt;= 0.8</span>
-            <span class="plot-legend-dot" style="background-color: #ee982d50"></span>
-            <span>0.8 &gt; r2 &gt;= 0.6</span>
-            <span class="plot-legend-dot" style="background-color: #4db05240"></span>
-            <span>0.6 &gt; r2 &gt;= 0.4</span>
-            <span class="plot-legend-dot" style="background-color: #32afd530"></span>
-            <span>0.4 &gt; r2 &gt;= 0.2</span>
-            <span class="plot-legend-dot" style="background-color: #2074b620"></span>
-            <span>0.2 &gt; r2 &gt; 0</span>
-            <span class="plot-legend-dot" style="background-color: #33333320"></span>
-            <span>No data</span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #824099cc"></span>
+                <span>Reference variant</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #d0363360"></span>
+                <span>1 &gt; r2 &gt;= 0.8</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #ee982d50"></span>
+                <span>0.8 &gt; r2 &gt;= 0.6</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #4db05240"></span>
+                <span>0.6 &gt; r2 &gt;= 0.4</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #32afd530"></span>
+                <span>0.4 &gt; r2 &gt;= 0.2</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #2074b620"></span>
+                <span>0.2 &gt; r2 &gt; 0</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #33333320"></span>
+                <span>No data</span>
+            </span>
         </div>
-        <canvas
-            ref="canvas"
-            class="vks-association-region-plot-canvas"
-            :class="{ 'is-pannable': canPan }"
-            @mousedown="onMouseDown"
-            @mousemove="onMouseMove"
-            @mouseout="onMouseOut"
-            @mouseup="onMouseUp"
-        ></canvas>
+        <div class="vks-association-region-plot-canvas-wrap">
+            <canvas
+                ref="canvas"
+                class="vks-association-region-plot-canvas"
+                :class="{
+                    'is-pannable': canPan,
+                    'is-x-axis-hover': xAxisBandHover,
+                    'is-dot-hover': dotHover,
+                }"
+                @mousedown="onMouseDown"
+                @mousemove="onMouseMove"
+                @mouseout="onMouseOut"
+                @mouseup="onMouseUp"
+                @click="onCanvasClick"
+            ></canvas>
+            <VariantSifterZoomCenterMarker
+                :region-view-area="regionViewArea"
+                :region-zoom="regionZoom"
+                :plot-margin="plotMargin"
+                @update:regionViewArea="$emit('update:regionViewArea', $event)"
+            />
+        </div>
+        <VariantSifterVariantDotMenu
+            :open="dotMenuOpen"
+            :variant-id="dotMenuVariantId"
+            :is-starred="dotMenuIsStarred"
+            :anchor-x="dotMenuX"
+            :anchor-y="dotMenuY"
+            @set-reference="onDotMenuSetReference"
+            @toggle-star="onDotMenuToggleStar"
+        />
         <div
             ref="tooltip"
             class="vks-association-region-plot-tooltip hidden"
@@ -40,6 +76,18 @@
 
 <script>
 import { fetchLdScoreMap, pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
+import {
+    canvasXToGenomicPosition,
+    genomicPositionToCanvasX,
+    isCanvasPointInXAxisInteractionZone,
+    isVariantStarred,
+    renderLivePositionGuideline,
+    renderPlotMarkerLines,
+    renderStarDot,
+    renderXAxisBandHoverHighlight,
+} from "./variantSifterPlotMarkers.js";
+import VariantSifterVariantDotMenu from "./VariantSifterVariantDotMenu.vue";
+import VariantSifterZoomCenterMarker from "./VariantSifterZoomCenterMarker.vue";
 import {
     computeViewRegion,
     computeVisibleWindowWidth,
@@ -66,6 +114,10 @@ import {
 
 export default {
     name: "VariantSifterAssociationRegionPlot",
+    components: {
+        VariantSifterVariantDotMenu,
+        VariantSifterZoomCenterMarker,
+    },
     props: {
         plotRows: {
             type: Array,
@@ -95,6 +147,10 @@ export default {
             type: Number,
             default: 0,
         },
+        regionViewArea: {
+            type: Number,
+            default: 0,
+        },
         plotOverlaysState: {
             type: Object,
             default: () => ({
@@ -103,6 +159,13 @@ export default {
                 error: null,
                 recombData: null,
                 refVariant: null,
+            }),
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
             }),
         },
         utils: {
@@ -123,9 +186,32 @@ export default {
             isPanning: false,
             panStartX: 0,
             panStartRegionShiftBp: 0,
+            panMoved: false,
+            dotMenuOpen: false,
+            dotMenuRow: null,
+            dotMenuX: 0,
+            dotMenuY: 0,
+            livePositionMarkerX: null,
+            xAxisBandHover: false,
+            dotHover: false,
         };
     },
     computed: {
+        activeRefVariant() {
+            return this.plotOverlaysState?.refVariant || this.refVariant;
+        },
+        starredVariants() {
+            return this.plotMarkers?.starredVariants || [];
+        },
+        positionMarkers() {
+            return this.plotMarkers?.positionMarkers || [];
+        },
+        dotMenuVariantId() {
+            return this.dotMenuRow?.["Variant ID"] || "";
+        },
+        dotMenuIsStarred() {
+            return isVariantStarred(this.starredVariants, this.dotMenuVariantId);
+        },
         margin() {
             return normalizePlotMargin(this.plotMargin);
         },
@@ -139,7 +225,8 @@ export default {
             return computeViewRegion(
                 this.region,
                 this.regionShiftBp,
-                this.regionZoom
+                this.regionZoom,
+                this.regionViewArea
             );
         },
         visibleWidthBp() {
@@ -178,6 +265,9 @@ export default {
         regionShiftBp() {
             this.renderPlot();
         },
+        regionViewArea() {
+            this.renderPlot();
+        },
         sharedCanvasWidth() {
             this.renderPlot();
         },
@@ -187,10 +277,17 @@ export default {
             },
             deep: true,
         },
+        plotMarkers: {
+            handler() {
+                this.renderPlot();
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.refreshPlot();
         window.addEventListener("resize", this.onResize);
+        document.addEventListener("mousedown", this.onDocumentMouseDown);
         this.resizeObserver = attachPlotResizeObserver(this, "container", () => {
             if (this.plotRows?.length && !this.loading) {
                 this.renderPlot();
@@ -199,6 +296,7 @@ export default {
     },
     beforeDestroy() {
         window.removeEventListener("resize", this.onResize);
+        document.removeEventListener("mousedown", this.onDocumentMouseDown);
         this.endPanListeners();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
@@ -349,7 +447,8 @@ export default {
                 const ldScore = resolveRowLdScore(row, this.ldScoreMap);
                 const dotColor = getLdDotColor(ldScore);
                 const variantId = row["Variant ID"];
-                const isRef = variantId === this.refVariant;
+                const isRef = variantId === this.activeRefVariant;
+                const isStarred = isVariantStarred(this.starredVariants, variantId);
 
                 this.dotPositions.push({
                     x: xPos,
@@ -360,22 +459,185 @@ export default {
 
                 if (isRef) {
                     renderDiamond(ctx, xPos, yPos, dotColor);
+                } else if (isStarred) {
+                    renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {
                     renderPlotDot(ctx, xPos, yPos, dotColor);
                 }
             });
 
+            renderPlotMarkerLines(ctx, {
+                starredVariants: this.starredVariants,
+                positionMarkers: this.positionMarkers,
+                visibleRegion,
+                margin,
+                plotWidth,
+                plotHeight,
+                canvasHeight,
+            });
+
+            if (this.xAxisBandHover && this.livePositionMarkerX != null) {
+                renderXAxisBandHoverHighlight(ctx, {
+                    margin,
+                    plotWidth,
+                    plotHeight,
+                    canvasHeight,
+                });
+                renderLivePositionGuideline(ctx, this.livePositionMarkerX, {
+                    margin,
+                    plotHeight,
+                });
+            }
+
             this.canvasWidth = canvasWidth;
             this.plotWidth = plotWidth;
+        },
+        isInXAxisInteractionZone(x, y, canvasWidth, canvasHeight) {
+            return isCanvasPointInXAxisInteractionZone(
+                x,
+                y,
+                canvasWidth,
+                canvasHeight,
+                this.margin,
+                this.plotHeight
+            );
+        },
+        clearXAxisHover() {
+            const hadHover = this.xAxisBandHover || this.livePositionMarkerX != null;
+            this.xAxisBandHover = false;
+            this.livePositionMarkerX = null;
+            if (hadHover) {
+                this.renderPlot();
+            }
+        },
+        setDotHover(isHovering) {
+            if (this.dotHover !== isHovering) {
+                this.dotHover = isHovering;
+            }
+        },
+        updateXAxisHover(x, canvasWidth) {
+            const visibleRegion = this.visibleRegion || this.region;
+            const position = canvasXToGenomicPosition(
+                x,
+                canvasWidth,
+                this.margin,
+                visibleRegion
+            );
+            if (position == null) {
+                this.clearXAxisHover();
+                return;
+            }
+            const nextX = genomicPositionToCanvasX(
+                position,
+                visibleRegion,
+                this.margin,
+                this.plotWidth || canvasWidth - this.margin.left * 2
+            );
+            if (this.livePositionMarkerX === nextX && this.xAxisBandHover) {
+                return;
+            }
+            this.xAxisBandHover = true;
+            this.livePositionMarkerX = nextX;
+            this.renderPlot();
+        },
+        findDotAtCanvasPoint(x, y) {
+            return this.dotPositions.find(
+                (dot) => Math.hypot(dot.x - x, dot.y - y) <= VKS_DEFAULT_DOT_RADIUS + 4
+            );
+        },
+        closeDotMenu() {
+            this.dotMenuOpen = false;
+            this.dotMenuRow = null;
+        },
+        onDocumentMouseDown(event) {
+            if (!this.dotMenuOpen) {
+                return;
+            }
+            const menu = this.$el?.querySelector(".vks-variant-dot-menu");
+            if (menu?.contains(event.target)) {
+                return;
+            }
+            this.closeDotMenu();
+        },
+        onCanvasClick(event) {
+            const canvas = this.$refs.canvas;
+            if (!canvas || !this.region) {
+                return;
+            }
+
+            const { x, y } = canvasPointerPosition(event, canvas);
+            const hit = this.findDotAtCanvasPoint(x, y);
+            if (hit) {
+                this.panMoved = false;
+                this.openDotMenu(hit.row, event.offsetX, event.offsetY);
+                return;
+            }
+
+            if (this.panMoved) {
+                return;
+            }
+
+            const margin = this.margin;
+            const canvasHeight = this.plotHeight + margin.top + margin.bottom;
+            if (!this.isInXAxisInteractionZone(x, y, this.canvasWidth, canvasHeight)) {
+                return;
+            }
+
+            const visibleRegion = this.visibleRegion || this.region;
+            const position = canvasXToGenomicPosition(
+                x,
+                this.canvasWidth,
+                margin,
+                visibleRegion
+            );
+            if (position == null) {
+                return;
+            }
+            this.$emit("toggle-position-marker", position);
+        },
+        openDotMenu(row, anchorX, anchorY) {
+            this.dotMenuRow = row;
+            this.dotMenuX = anchorX + 12;
+            this.dotMenuY = anchorY + 12;
+            this.dotMenuOpen = true;
+        },
+        onDotMenuSetReference() {
+            const row = this.dotMenuRow;
+            this.closeDotMenu();
+            if (row) {
+                this.$emit("set-reference-variant", row);
+            }
+        },
+        onDotMenuToggleStar() {
+            const row = this.dotMenuRow;
+            this.closeDotMenu();
+            if (row) {
+                this.$emit("toggle-star-variant", row);
+            }
         },
         onMouseDown(event) {
             if (!this.canPan || event.button !== 0) {
                 return;
             }
+            const canvas = this.$refs.canvas;
+            if (canvas) {
+                const { x, y } = canvasPointerPosition(event, canvas);
+                if (this.findDotAtCanvasPoint(x, y)) {
+                    this.panMoved = false;
+                    return;
+                }
+                const margin = this.margin;
+                const canvasHeight = this.plotHeight + margin.top + margin.bottom;
+                if (this.isInXAxisInteractionZone(x, y, this.canvasWidth, canvasHeight)) {
+                    return;
+                }
+            }
             this.isPanning = true;
+            this.panMoved = false;
             this.panStartX = event.clientX;
             this.panStartRegionShiftBp = this.regionShiftBp;
             this.hideTooltip();
+            this.closeDotMenu();
             document.addEventListener("mousemove", this.onDocumentMouseMove);
             document.addEventListener("mouseup", this.onDocumentMouseUp);
         },
@@ -384,6 +646,9 @@ export default {
                 return;
             }
             const deltaX = event.clientX - this.panStartX;
+            if (Math.abs(deltaX) > 3) {
+                this.panMoved = true;
+            }
             const nextShiftBp = panRegionShiftFromDrag(
                 this.panStartRegionShiftBp,
                 deltaX,
@@ -403,6 +668,7 @@ export default {
                 return;
             }
             this.isPanning = false;
+            this.panMoved = false;
             this.endPanListeners();
             this.$emit("pan-end");
         },
@@ -417,6 +683,8 @@ export default {
             if (event.relatedTarget && this.$refs.container?.contains(event.relatedTarget)) {
                 return;
             }
+            this.clearXAxisHover();
+            this.setDotHover(false);
             this.hideTooltip();
         },
         onMouseMove(event) {
@@ -424,18 +692,35 @@ export default {
                 return;
             }
             const canvas = this.$refs.canvas;
-            const tooltip = this.$refs.tooltip;
-            if (!canvas || !tooltip || !this.dotPositions.length) {
+            if (!canvas || !this.region) {
                 return;
             }
 
             const { x, y } = canvasPointerPosition(event, canvas);
-            const hit = this.dotPositions.find(
-                (dot) => Math.hypot(dot.x - x, dot.y - y) <= VKS_DEFAULT_DOT_RADIUS + 4
-            );
+            const margin = this.margin;
+            const canvasWidth =
+                this.canvasWidth ||
+                this.sharedCanvasWidth ||
+                measureAssociationCanvasWidth(this.$refs.container);
+            const canvasHeight = this.plotHeight + margin.top + margin.bottom;
 
-            if (!hit) {
+            if (this.isInXAxisInteractionZone(x, y, canvasWidth, canvasHeight)) {
+                this.setDotHover(false);
                 this.hideTooltip();
+                this.updateXAxisHover(x, canvasWidth);
+                return;
+            }
+
+            this.clearXAxisHover();
+
+            const hit = this.findDotAtCanvasPoint(x, y);
+            this.setDotHover(Boolean(hit));
+
+            const tooltip = this.$refs.tooltip;
+            if (!tooltip || !this.dotPositions.length || !hit) {
+                if (!hit) {
+                    this.hideTooltip();
+                }
                 return;
             }
 
@@ -468,16 +753,26 @@ export default {
     position: relative;
 }
 
+.vks-association-region-plot-canvas-wrap {
+    position: relative;
+}
+
 .vks-association-region-plot-legend {
     text-align: center;
-    padding: 4px 0 8px;
+    padding: 4px 0 20px;
     font-size: 12px;
     color: #333333;
 }
 
-.vks-association-region-plot-legend span {
-    display: inline-block;
-    margin-right: 5px;
+.vks-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px;
+}
+
+.vks-legend-item:last-child {
+    margin-right: 0;
 }
 
 .plot-legend-dot {
@@ -485,7 +780,7 @@ export default {
     width: 12px;
     height: 12px;
     border-radius: 0;
-    margin-right: 4px;
+    flex-shrink: 0;
     vertical-align: middle;
 }
 
@@ -497,6 +792,14 @@ export default {
 .vks-association-region-plot-canvas.is-pannable {
     cursor: grab;
     user-select: none;
+}
+
+.vks-association-region-plot-canvas.is-x-axis-hover {
+    cursor: crosshair;
+}
+
+.vks-association-region-plot-canvas.is-dot-hover {
+    cursor: default;
 }
 
 .vks-association-region-plot-canvas.is-pannable:active {
