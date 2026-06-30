@@ -1,10 +1,11 @@
 import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociationsFilters.js";
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
+import { regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 
-export const VKS_SESSION_VERSION = 2;
+export const VKS_SESSION_VERSION = 3;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -54,6 +55,9 @@ export function exportVariantSifterSession({
     plotOverlaysState = null,
     regionZoom = 0,
     regionViewArea = 0,
+    viewOffsetBp = 0,
+    regionShiftBp = viewOffsetBp,
+    dataRegion = null,
     openDrawerId = null,
     dataTableOpen = false,
 }) {
@@ -103,6 +107,15 @@ export function exportVariantSifterSession({
         ui: {
             regionZoom,
             regionViewArea,
+            viewOffsetBp: regionShiftBp,
+            regionShiftBp,
+            dataRegion: dataRegion
+                ? {
+                      chr: dataRegion.chr,
+                      start: Number(dataRegion.start),
+                      end: Number(dataRegion.end),
+                  }
+                : null,
             openDrawerId,
             dataTableOpen: Boolean(dataTableOpen),
         },
@@ -298,20 +311,41 @@ export function importVariantSifterSession(payload, phenotypes = []) {
     };
 
     const ui = payload.ui || {};
+    const regionZoom =
+        typeof ui.regionZoom === "number" ? clampRegionZoom(ui.regionZoom) : 0;
+    const regionViewArea =
+        typeof ui.regionViewArea === "number"
+            ? clampRegionViewArea(ui.regionViewArea)
+            : 0;
+    const regionShiftBp =
+        typeof ui.regionShiftBp === "number"
+            ? ui.regionShiftBp
+            : typeof ui.viewOffsetBp === "number"
+            ? ui.viewOffsetBp
+            : regionShiftBpFromLegacyViewArea(
+                  searchSession.region,
+                  regionZoom,
+                  regionViewArea
+              );
+    const dataRegion =
+        ui.dataRegion?.chr != null
+            ? {
+                  chr: ui.dataRegion.chr,
+                  start: Number(ui.dataRegion.start),
+                  end: Number(ui.dataRegion.end),
+              }
+            : { ...searchSession.region };
 
     return {
         searchSession,
         associationsState,
         genesState: normalizeGenesState(payload),
         plotOverlaysState: normalizePlotOverlaysState(payload),
-        regionZoom:
-            typeof ui.regionZoom === "number"
-                ? clampRegionZoom(ui.regionZoom)
-                : 0,
-        regionViewArea:
-            typeof ui.regionViewArea === "number"
-                ? clampRegionViewArea(ui.regionViewArea)
-                : 0,
+        regionZoom,
+        regionViewArea,
+        regionShiftBp,
+        viewOffsetBp: regionShiftBp,
+        dataRegion,
         openDrawerId: ui.openDrawerId ?? null,
         dataTableOpen: Boolean(ui.dataTableOpen),
         importedFromSnapshot: true,

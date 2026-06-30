@@ -10,7 +10,7 @@
                 @import-session="$emit('import-session')"
             />
             <div v-if="canvasActive" class="vks-canvas-tracks">
-                <template v-for="section in sections">
+                <template v-for="section in canvasTrackSections">
                     <VariantSifterAssociationsPlot
                         v-if="section.id === 'associations'"
                         :key="section.id"
@@ -20,14 +20,17 @@
                         :error="associationsState.error"
                         :search-session="searchSession"
                         :region-zoom="regionZoom"
-                        :region-view-area="regionViewArea"
+                        :region-shift-bp="regionShiftBp"
+                        :view-region="viewRegion"
+                        :region-data-loading="regionDataLoading"
                         :genes-state="genesState"
                         :plot-overlays-state="plotOverlaysState"
                         :utils="utils"
-                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @pan-end="$emit('pan-end')"
                     />
                     <VariantSifterTrackStrip
-                        v-else-if="shouldShowTrackStrip(section)"
+                        v-else
                         :key="section.id + '-strip'"
                         :section="section"
                         :search-session="searchSession"
@@ -58,7 +61,7 @@ import VariantSifterAssociationsPlot from "./VariantSifterAssociationsPlot.vue";
 import VariantSifterSectionDrawers from "./VariantSifterSectionDrawers.vue";
 import VariantSifterDataTableModal from "./VariantSifterDataTableModal.vue";
 import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
-import { drawerRailMinHeight } from "./variantSifterSections.js";
+import { drawerRailMinHeight, sectionHasCanvasTrack } from "./variantSifterSections.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 
 export default {
@@ -106,6 +109,18 @@ export default {
         regionViewArea: {
             type: Number,
             default: 0,
+        },
+        regionShiftBp: {
+            type: Number,
+            default: 0,
+        },
+        viewRegion: {
+            type: Object,
+            default: null,
+        },
+        regionDataLoading: {
+            type: Boolean,
+            default: false,
         },
         dataTableOpen: {
             type: Boolean,
@@ -167,14 +182,15 @@ export default {
             const { rows, loading } = this.associationsState;
             return !loading && Array.isArray(rows) && rows.length > 0;
         },
+        canvasTrackSections() {
+            return this.sections.filter((section) =>
+                sectionHasCanvasTrack(section, {
+                    hasAssociationData: this.hasAssociationData,
+                })
+            );
+        },
     },
     methods: {
-        shouldShowTrackStrip(section) {
-            if (!section?.trackImplemented || !this.hasAssociationData) {
-                return false;
-            }
-            return true;
-        },
         onToggleDrawer(sectionId) {
             const nextId = this.openDrawerId === sectionId ? null : sectionId;
             this.$emit("update:openDrawerId", nextId);
@@ -191,7 +207,7 @@ export default {
 
 .vks-canvas-viewport {
     position: relative;
-    background: var(--cfde-bg, #f6f5f2);
+    background: #ffffff;
     height: auto;
     max-height: none;
 }

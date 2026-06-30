@@ -41,9 +41,10 @@
 <script>
 import { fetchLdScoreMap, pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
 import {
-    computeVisibleRegion,
-    panRegionViewAreaFromDrag,
-} from "./variantSifterRegionZoom.js";
+    computeViewRegion,
+    computeVisibleWindowWidth,
+    panRegionShiftFromDrag,
+} from "./variantSifterRegionPan.js";
 import {
     VKS_PLOT_DISPLAY_HEIGHT,
     attachPlotResizeObserver,
@@ -82,11 +83,15 @@ export default {
             type: Object,
             default: null,
         },
+        sharedCanvasWidth: {
+            type: Number,
+            default: null,
+        },
         regionZoom: {
             type: Number,
             default: 0,
         },
-        regionViewArea: {
+        regionShiftBp: {
             type: Number,
             default: 0,
         },
@@ -117,7 +122,7 @@ export default {
             plotWidth: 0,
             isPanning: false,
             panStartX: 0,
-            panStartViewArea: 0,
+            panStartRegionShiftBp: 0,
         };
     },
     computed: {
@@ -131,14 +136,21 @@ export default {
             return computeNegLog10Extents(this.plotRows);
         },
         visibleRegion() {
-            return computeVisibleRegion(
+            return computeViewRegion(
                 this.region,
-                this.regionZoom,
-                this.regionViewArea
+                this.regionShiftBp,
+                this.regionZoom
             );
         },
+        visibleWidthBp() {
+            const view = this.visibleRegion;
+            if (view) {
+                return Math.max(1, view.end - view.start);
+            }
+            return computeVisibleWindowWidth(this.region, this.regionZoom);
+        },
         canPan() {
-            return this.regionZoom > 0;
+            return Boolean(this.region && this.plotRows?.length);
         },
     },
     watch: {
@@ -163,7 +175,10 @@ export default {
         regionZoom() {
             this.renderPlot();
         },
-        regionViewArea() {
+        regionShiftBp() {
+            this.renderPlot();
+        },
+        sharedCanvasWidth() {
             this.renderPlot();
         },
         plotOverlaysState: {
@@ -273,7 +288,8 @@ export default {
             }
 
             const margin = this.margin;
-            const canvasWidth = measureAssociationCanvasWidth(container);
+            const canvasWidth =
+                this.sharedCanvasWidth ?? measureAssociationCanvasWidth(container);
             if (!canvasWidth) {
                 return;
             }
@@ -358,7 +374,7 @@ export default {
             }
             this.isPanning = true;
             this.panStartX = event.clientX;
-            this.panStartViewArea = this.regionViewArea;
+            this.panStartRegionShiftBp = this.regionShiftBp;
             this.hideTooltip();
             document.addEventListener("mousemove", this.onDocumentMouseMove);
             document.addEventListener("mouseup", this.onDocumentMouseUp);
@@ -368,12 +384,13 @@ export default {
                 return;
             }
             const deltaX = event.clientX - this.panStartX;
-            const nextViewArea = panRegionViewAreaFromDrag(
-                this.panStartViewArea,
+            const nextShiftBp = panRegionShiftFromDrag(
+                this.panStartRegionShiftBp,
                 deltaX,
-                this.plotWidth
+                this.plotWidth,
+                this.visibleWidthBp
             );
-            this.$emit("update:regionViewArea", nextViewArea);
+            this.$emit("update:regionShiftBp", nextShiftBp);
         },
         onDocumentMouseUp() {
             this.stopPanning();
@@ -387,6 +404,7 @@ export default {
             }
             this.isPanning = false;
             this.endPanListeners();
+            this.$emit("pan-end");
         },
         endPanListeners() {
             document.removeEventListener("mousemove", this.onDocumentMouseMove);
@@ -448,7 +466,6 @@ export default {
 <style scoped>
 .vks-association-region-plot {
     position: relative;
-    padding: 0 8px;
 }
 
 .vks-association-region-plot-legend {

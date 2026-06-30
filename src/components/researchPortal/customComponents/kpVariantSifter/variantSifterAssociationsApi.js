@@ -36,3 +36,13 @@ export async function fetchAssociations(session, host) {
 
     return { index, q, rows };
 }
+
+export async function fetchAssociationsForRegion(session, region, host) {
+    return fetchAssociations(
+        {
+            ...session,
+            region,
+        },
+        host
+    );
+}

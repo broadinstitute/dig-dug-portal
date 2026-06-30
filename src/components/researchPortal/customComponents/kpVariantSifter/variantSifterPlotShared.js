@@ -79,6 +79,15 @@ export function measureAssociationCanvasWidth(containerEl) {
     return measurePlotCanvasWidth(containerEl);
 }
 
+/** Shared stack width: retina internal pixels from the plot stack container. */
+export function measureVksPlotStackCanvasWidth(containerEl) {
+    const displayWidth = containerEl?.clientWidth || 0;
+    if (displayWidth < VKS_MIN_PLOT_CONTAINER_WIDTH) {
+        return null;
+    }
+    return displayWidth * 2;
+}
+
 export function measureLdCanvasWidth(containerEl) {
     return measurePlotCanvasWidth(containerEl);
 }

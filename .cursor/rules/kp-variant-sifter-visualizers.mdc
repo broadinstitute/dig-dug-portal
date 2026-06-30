@@ -1,0 +1,39 @@
+---
+description: Variant Sifter visualizers — always create new components
+globs: src/components/researchPortal/customComponents/kpVariantSifter/**
+alwaysApply: false
+---
+
+# Variant Sifter visualizers
+
+When adding a new visualizer or track to KP Variant Sifter, **create a new component** instead of modifying existing portal components or shared research visualizers.
+
+## Do
+
+- Add a new `VariantSifter*.vue` component under `kpVariantSifter/`
+- Extract canvas/render logic into a sibling `variantSifter*.js` module when non-trivial
+- Wire the new visualizer in `variantSifterSections.js` and parent layout (`VariantSifterCanvas.vue`, `VariantSifterAssociationsPlot.vue`, etc.)
+- Reuse shared VS utilities: `variantSifterPlotShared.js`, `variantSifterRegionZoom.js`, `VARIANT_SIFTER_PLOT_MARGIN`
+- Accept `sharedCanvasWidth` from the plot stack so x-axis alignment stays correct
+
+## Do not
+
+- Modify `ResearchGenesTrack.vue`, `ResearchRegionPlot.vue`, or other legacy `researchPortal/` visualizers for VS features
+- Add VS-specific props or layout hacks to shared portal components
+- Fork behavior inside an existing VS visualizer when the feature is a distinct track/section — give it its own component
+
+## Examples
+
+```text
+# Good
+kpVariantSifter/VariantSifterCredibleSetsTrack.vue
+kpVariantSifter/variantSifterCredibleSetsRender.js
+
+# Avoid
+Editing ResearchCredibleSets.vue to add VS behavior
+Adding VS-only props to VariantSifterAssociationRegionPlot.vue for a new section
+```
+
+## Reference pattern
+
+Follow `VariantSifterGenesTrack.vue` + `variantSifterGenesTrackRender.js`: thin Vue shell, pure render module, parent-owned data fetching, shared plot stack width.

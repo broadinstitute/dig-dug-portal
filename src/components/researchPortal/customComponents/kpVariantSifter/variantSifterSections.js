@@ -45,6 +45,23 @@ export function sectionById(sectionId) {
     return VARIANT_SIFTER_SECTIONS.find((s) => s.id === sectionId) || null;
 }
 
+/**
+ * Whether a section should appear in the main canvas track stack.
+ * Associations always shows once a search is active; other tracks only when implemented.
+ */
+export function sectionHasCanvasTrack(section, { hasAssociationData = false } = {}) {
+    if (!section) {
+        return false;
+    }
+    if (section.id === "associations") {
+        return true;
+    }
+    if (section.trackImplemented !== true) {
+        return false;
+    }
+    return Boolean(hasAssociationData);
+}
+
 export function drawerTabLabel(section, maxLen = 16) {
     const label = section.drawerLabel || section.label;
     if (label.length <= maxLen) {
