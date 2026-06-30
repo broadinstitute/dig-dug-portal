@@ -18,7 +18,7 @@ export const GENE_SET_DETAIL_API_URL =
     "https://translator.broadinstitute.org/genetics_provider/geneset_extractor/gene-set";
 
 export const GENE_SET_PROVENANCE_EXPLORER_URL =
-    "https://staging.akleao.com/projects/a293978b-bf4e-42d0-bbee-5dd8533f48e5?note=154003ab-0bd7-495b-87d1-4cb7fcdc1884";
+    "https://staging.akleao.com/fork/cfde-geneset-reproducer";
 
 const GENE_SET_NODE_COLOR = ACTIVE_SET_NODE_COLOR;
 const ANALYSIS_COLOR = TREE_VIEW_KEY_NODE_COLOR;

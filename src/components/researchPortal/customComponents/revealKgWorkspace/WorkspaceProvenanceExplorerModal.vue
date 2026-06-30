@@ -38,6 +38,12 @@
                         and analyses behind these gene sets, so you can reproduce them and trace
                         their provenance alongside an AI agent.
                     </p>
+                    <p class="wkb-provenance-explorer-copy">
+                        <strong>Open provenance explorer</strong> opens that workspace in a new
+                        tab. First, use <strong>Copy gene set information</strong> below, then
+                        paste it into the workspace after you are redirected—the agent needs those
+                        details to know which gene sets you are working with.
+                    </p>
 
                     <p class="wkb-provenance-explorer-helper">
                         {{ selectedGeneSetCount }} selected gene set{{
@@ -261,7 +267,6 @@ export default {
 
 .wkb-provenance-explorer-copy {
     margin: 0;
-    max-width: 36em;
     font-size: 12px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);

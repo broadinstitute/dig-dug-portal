@@ -96,8 +96,14 @@
                 >
                     <p class="wkb-gene-set-regenerate-copy">
                         Taking you to our agentic workspace. It's preloaded with the source files
-                        and analyses behind these gene sets, so you can reproduce them and trace
-                        their provenance alongside an AI agent.
+                        and analyses behind this gene set, so you can reproduce it and trace its
+                        provenance alongside an AI agent.
+                    </p>
+                    <p class="wkb-gene-set-regenerate-copy">
+                        <strong>Open provenance explorer</strong> opens that workspace in a new
+                        tab. First, use <strong>Copy gene set information</strong> below, then
+                        paste it into the workspace after you are redirected—the agent needs those
+                        details to know which gene set you are working with.
                     </p>
 
                     <button
@@ -475,7 +481,6 @@ export default {
 
 .wkb-gene-set-regenerate-copy {
     margin: 0;
-    max-width: 36em;
     font-size: 12px;
     line-height: 1.5;
     color: var(--cfde-ink, #33363d);

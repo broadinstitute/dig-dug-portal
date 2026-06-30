@@ -1,4 +1,4 @@
-import * as showdown from "showdown";
+import showdown from "showdown";
 
 function findTemplateTagsFromContent(content) {
     let regexp = /{{([A-Za-z]+)}}/g;
