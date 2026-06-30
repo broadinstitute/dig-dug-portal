@@ -35,6 +35,14 @@
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                     />
+                    <VariantSifterCredibleSetsDrawer
+                        v-else-if="openSection.id === 'credible-sets'"
+                        :credible-sets-state="credibleSetsState"
+                        :color-by-set-id="credibleSetColors"
+                        :utils="utils"
+                        @add-set="$emit('add-credible-set', $event)"
+                        @remove-set="$emit('remove-credible-set', $event)"
+                    />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>
                         <p class="vks-section-drawer-note">
@@ -70,10 +78,13 @@
 import { drawerTabLabel, drawerTabHeight, sectionById } from "./variantSifterSections.js";
 import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.vue";
 
+import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
+
 export default {
     name: "VariantSifterSectionDrawers",
     components: {
         VariantSifterAssociationsDrawer,
+        VariantSifterCredibleSetsDrawer,
     },
     props: {
         sections: {
@@ -121,6 +132,22 @@ export default {
                 starredVariants: [],
                 positionMarkers: [],
             }),
+        },
+        credibleSetsState: {
+            type: Object,
+            default: () => ({
+                listLoading: false,
+                listError: null,
+                available: [],
+                selectedIds: [],
+                variantsBySet: {},
+                variantsLoading: false,
+                variantsError: null,
+            }),
+        },
+        credibleSetColors: {
+            type: Object,
+            default: () => ({}),
         },
     },
     computed: {

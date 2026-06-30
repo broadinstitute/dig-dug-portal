@@ -13,7 +13,7 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "Cred. sets",
         shortLabel: "CS",
         description: "Fine-mapped credible set membership filters.",
-        trackImplemented: false,
+        trackImplemented: true,
     },
     {
         id: "global-enrichment",
@@ -49,12 +49,18 @@ export function sectionById(sectionId) {
  * Whether a section should appear in the main canvas track stack.
  * Associations always shows once a search is active; other tracks only when implemented.
  */
-export function sectionHasCanvasTrack(section, { hasAssociationData = false } = {}) {
+export function sectionHasCanvasTrack(
+    section,
+    { hasAssociationData = false, hasSelectedCredibleSets = false } = {}
+) {
     if (!section) {
         return false;
     }
     if (section.id === "associations") {
         return true;
+    }
+    if (section.id === "credible-sets") {
+        return section.trackImplemented === true && hasSelectedCredibleSets;
     }
     if (section.trackImplemented !== true) {
         return false;

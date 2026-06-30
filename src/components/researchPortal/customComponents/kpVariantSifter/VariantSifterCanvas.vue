@@ -35,6 +35,15 @@
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
+                    <VariantSifterCredibleSetsPlot
+                        v-else-if="section.id === 'credible-sets'"
+                        :key="section.id"
+                        :selected-sets="credibleSetsTrackData"
+                        :color-by-set-id="credibleSetColors"
+                        :search-session="searchSession"
+                        :view-region="viewRegion"
+                        :plot-markers="plotMarkers"
+                    />
                     <VariantSifterTrackStrip
                         v-else
                         :key="section.id + '-strip'"
@@ -50,14 +59,23 @@
                 :associations-state="associationsState"
                 :plot-overlays-state="plotOverlaysState"
                 :plot-markers="plotMarkers"
+                :credible-sets-state="credibleSetsState"
+                :credible-set-colors="credibleSetColors"
                 :utils="utils"
                 @toggle-drawer="onToggleDrawer"
                 @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
                 @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                @add-credible-set="$emit('add-credible-set', $event)"
+                @remove-credible-set="$emit('remove-credible-set', $event)"
             />
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
+                :association-rows="associationsState.rows"
+                :credible-sets-state="credibleSetsState"
+                :utils="utils"
+                :starred-variant-ids="starredVariantIds"
                 @close="$emit('close-data-table')"
+                @toggle-star-variant="$emit('toggle-star-variant', $event)"
             />
         </div>
     </div>
@@ -72,11 +90,14 @@ import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight, sectionHasCanvasTrack } from "./variantSifterSections.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 
+import VariantSifterCredibleSetsPlot from "./VariantSifterCredibleSetsPlot.vue";
+
 export default {
     name: "VariantSifterCanvas",
     components: {
         VariantSifterTrackStrip,
         VariantSifterAssociationsPlot,
+        VariantSifterCredibleSetsPlot,
         VariantSifterSectionDrawers,
         VariantSifterDataTableModal,
         VariantSifterWelcomePanel,
@@ -177,8 +198,29 @@ export default {
                 positionMarkers: [],
             }),
         },
+        credibleSetsState: {
+            type: Object,
+            default: () => ({
+                listLoading: false,
+                listError: null,
+                available: [],
+                selectedIds: [],
+                variantsBySet: {},
+                variantsLoading: false,
+                variantsError: null,
+            }),
+        },
+        credibleSetColors: {
+            type: Object,
+            default: () => ({}),
+        },
     },
     computed: {
+        starredVariantIds() {
+            return (this.plotMarkers?.starredVariants || []).map(
+                (entry) => entry.variantId
+            );
+        },
         associationPlotRows() {
             const { rows, filtersIndex } = this.associationsState;
             if (!rows?.length) {
@@ -197,10 +239,22 @@ export default {
             const { rows, loading } = this.associationsState;
             return !loading && Array.isArray(rows) && rows.length > 0;
         },
+        hasSelectedCredibleSets() {
+            return (this.credibleSetsState?.selectedIds || []).length > 0;
+        },
+        credibleSetsTrackData() {
+            return (this.credibleSetsState?.selectedIds || []).map((credibleSetId) => ({
+                credibleSetId,
+                variants:
+                    this.credibleSetsState?.variantsBySet?.[credibleSetId]?.rawVariants ||
+                    [],
+            }));
+        },
         canvasTrackSections() {
             return this.sections.filter((section) =>
                 sectionHasCanvasTrack(section, {
                     hasAssociationData: this.hasAssociationData,
+                    hasSelectedCredibleSets: this.hasSelectedCredibleSets,
                 })
             );
         },

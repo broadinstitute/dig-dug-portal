@@ -45,6 +45,8 @@
                 :genes-state="genesState"
                 :plot-overlays-state="plotOverlaysState"
                 :plot-markers="plotMarkersState"
+                :credible-sets-state="credibleSetsState"
+                :credible-set-colors="credibleSetColors"
                 @update:openDrawerId="openDrawerId = $event"
                 @update:regionShiftBp="onRegionShiftBpUpdate"
                 @update:regionViewArea="onRegionViewAreaUpdate"
@@ -53,6 +55,8 @@
                 @toggle-star-variant="onToggleStarVariant"
                 @set-reference-variant="onSetReferenceVariant"
                 @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
+                @add-credible-set="onAddCredibleSet"
+                @remove-credible-set="onRemoveCredibleSet"
                 @close-data-table="dataTableOpen = false"
                 @start-search="onStartSearch"
                 @import-session="openSessionImport"
@@ -124,6 +128,15 @@ import {
     rowToLdVariant,
 } from "./kpVariantSifter/variantSifterLdServer.js";
 import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
+import {
+    fetchCredibleSetsList,
+    fetchCredibleSetVariants,
+} from "./kpVariantSifter/variantSifterCredibleSetsApi.js";
+import {
+    credibleSetOptionLabel,
+    formatCredibleVariantRows,
+} from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
+import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
 function emptyAssociationsState() {
@@ -155,6 +168,18 @@ function emptyPlotOverlaysState() {
         error: null,
         recombData: null,
         refVariant: null,
+    };
+}
+
+function emptyCredibleSetsState() {
+    return {
+        listLoading: false,
+        listError: null,
+        available: [],
+        selectedIds: [],
+        variantsBySet: {},
+        variantsLoading: false,
+        variantsError: null,
     };
 }
 
@@ -191,9 +216,11 @@ export default Vue.component("kp-variant-sifter", {
             genesState: emptyGenesState(),
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
+            credibleSetsState: emptyCredibleSetsState(),
             associationsRequestToken: 0,
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
+            credibleSetsRequestToken: 0,
             exportSessionOpen: false,
             exportSessionBusy: false,
         };
@@ -246,6 +273,12 @@ export default Vue.component("kp-variant-sifter", {
                 this.regionShiftBp,
                 this.regionZoom,
                 this.regionViewArea
+            );
+        },
+        credibleSetColors() {
+            return buildCredibleSetColorMap(
+                this.credibleSetsState.available,
+                this.credibleSetsState.selectedIds
             );
         },
     },
@@ -566,6 +599,7 @@ export default Vue.component("kp-variant-sifter", {
                     genesState: this.genesState,
                     plotOverlaysState: this.plotOverlaysState,
                     plotMarkersState: this.plotMarkersState,
+                    credibleSetsState: this.credibleSetsState,
                     regionZoom: this.regionZoom,
                     regionViewArea: this.regionViewArea,
                     regionShiftBp: this.regionShiftBp,
@@ -590,6 +624,7 @@ export default Vue.component("kp-variant-sifter", {
                     genesState: this.genesState,
                     plotOverlaysState: this.plotOverlaysState,
                     plotMarkersState: this.plotMarkersState,
+                    credibleSetsState: this.credibleSetsState,
                     regionZoom: this.regionZoom,
                     regionViewArea: this.regionViewArea,
                     regionShiftBp: this.regionShiftBp,
@@ -635,6 +670,7 @@ export default Vue.component("kp-variant-sifter", {
             this.associationsRequestToken += 1;
             this.genesRequestToken += 1;
             this.plotOverlaysRequestToken += 1;
+            this.credibleSetsRequestToken += 1;
             this.searchSession = restored.searchSession;
             this.associationsState = restored.associationsState;
             this.genesState = restored.genesState || emptyGenesState();
@@ -642,6 +678,8 @@ export default Vue.component("kp-variant-sifter", {
                 restored.plotOverlaysState || emptyPlotOverlaysState();
             this.plotMarkersState =
                 restored.plotMarkersState || emptyPlotMarkersState();
+            this.credibleSetsState =
+                restored.credibleSetsState || emptyCredibleSetsState();
             this.regionZoom = restored.regionZoom ?? 0;
             this.regionViewArea = restored.regionViewArea ?? 0;
             this.regionShiftBp = restored.regionShiftBp ?? restored.viewOffsetBp ?? 0;
@@ -659,11 +697,13 @@ export default Vue.component("kp-variant-sifter", {
             this.associationsRequestToken += 1;
             this.genesRequestToken += 1;
             this.plotOverlaysRequestToken += 1;
+            this.credibleSetsRequestToken += 1;
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
             this.genesState = emptyGenesState();
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
+            this.credibleSetsState = emptyCredibleSetsState();
             this.dataRegion = null;
             this.regionShiftBp = 0;
             this.regionDataLoading = false;
@@ -694,11 +734,131 @@ export default Vue.component("kp-variant-sifter", {
             this.genesState = emptyGenesState();
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
+            this.credibleSetsState = emptyCredibleSetsState();
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
             this.loadAssociations(session);
             this.loadGenesTrack(session);
+            this.loadCredibleSetsList(session);
+        },
+        async loadCredibleSetsList(session) {
+            const token = ++this.credibleSetsRequestToken;
+            this.credibleSetsState = {
+                ...emptyCredibleSetsState(),
+                listLoading: true,
+            };
+
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            if (!host) {
+                if (token !== this.credibleSetsRequestToken) {
+                    return;
+                }
+                this.credibleSetsState = {
+                    ...emptyCredibleSetsState(),
+                    listError: "BioIndex host is not available.",
+                };
+                return;
+            }
+
+            try {
+                const available = await fetchCredibleSetsList(session, host);
+                if (token !== this.credibleSetsRequestToken) {
+                    return;
+                }
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    listLoading: false,
+                    listError: null,
+                    available,
+                };
+            } catch (error) {
+                if (token !== this.credibleSetsRequestToken) {
+                    return;
+                }
+                console.warn("Variant Sifter credible sets list failed", error);
+                this.credibleSetsState = {
+                    ...emptyCredibleSetsState(),
+                    listError: "Failed to load credible sets for this locus.",
+                };
+            }
+        },
+        async onAddCredibleSet({ credibleSetId, phenotype }) {
+            if (!credibleSetId || !this.searchSession) {
+                return;
+            }
+            if (this.credibleSetsState.selectedIds.includes(credibleSetId)) {
+                return;
+            }
+
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            if (!host) {
+                return;
+            }
+
+            const availableEntry = this.credibleSetsState.available.find(
+                (entry) => entry.credibleSetId === credibleSetId
+            );
+            const resolvedPhenotype = phenotype || availableEntry?.phenotype || null;
+
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                selectedIds: [...this.credibleSetsState.selectedIds, credibleSetId],
+                variantsLoading: true,
+                variantsError: null,
+            };
+
+            try {
+                const rawVariants = await fetchCredibleSetVariants(
+                    this.searchSession,
+                    credibleSetId,
+                    host
+                );
+                const formattedVariants = formatCredibleVariantRows(rawVariants);
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    variantsLoading: false,
+                    variantsBySet: {
+                        ...this.credibleSetsState.variantsBySet,
+                        [credibleSetId]: {
+                            meta: {
+                                credibleSetId,
+                                phenotype: resolvedPhenotype,
+                                label: credibleSetOptionLabel(
+                                    availableEntry || { credibleSetId }
+                                ),
+                            },
+                            rawVariants,
+                            formattedVariants,
+                        },
+                    },
+                };
+            } catch (error) {
+                console.warn("Variant Sifter credible variants load failed", error);
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    variantsLoading: false,
+                    variantsError: "Failed to load credible variants for this set.",
+                    selectedIds: this.credibleSetsState.selectedIds.filter(
+                        (id) => id !== credibleSetId
+                    ),
+                };
+            }
+        },
+        onRemoveCredibleSet(credibleSetId) {
+            if (!credibleSetId) {
+                return;
+            }
+            const nextVariantsBySet = { ...this.credibleSetsState.variantsBySet };
+            delete nextVariantsBySet[credibleSetId];
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                selectedIds: this.credibleSetsState.selectedIds.filter(
+                    (id) => id !== credibleSetId
+                ),
+                variantsBySet: nextVariantsBySet,
+                variantsError: null,
+            };
         },
         async loadGenesTrack(session) {
             const token = ++this.genesRequestToken;

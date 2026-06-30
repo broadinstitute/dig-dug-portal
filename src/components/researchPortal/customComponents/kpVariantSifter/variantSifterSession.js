@@ -3,10 +3,10 @@ import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.
 import { regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
 
-export const VKS_SESSION_VERSION = 4;
+export const VKS_SESSION_VERSION = 5;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -55,6 +55,7 @@ export function exportVariantSifterSession({
     genesState = null,
     plotOverlaysState = null,
     plotMarkersState = null,
+    credibleSetsState = null,
     regionZoom = 0,
     regionViewArea = 0,
     viewOffsetBp = 0,
@@ -110,6 +111,13 @@ export function exportVariantSifterSession({
             starredVariants: plotMarkersState?.starredVariants ?? [],
             positionMarkers: plotMarkersState?.positionMarkers ?? [],
         },
+        credibleSets: credibleSetsState
+            ? {
+                  available: credibleSetsState.available ?? [],
+                  selectedIds: credibleSetsState.selectedIds ?? [],
+                  variantsBySet: credibleSetsState.variantsBySet ?? {},
+              }
+            : null,
         ui: {
             regionZoom,
             regionViewArea,
@@ -280,6 +288,33 @@ function normalizeGenesState(payload) {
     };
 }
 
+function normalizeCredibleSetsState(payload) {
+    const exported = payload?.credibleSets;
+    if (!exported) {
+        return {
+            listLoading: false,
+            listError: null,
+            available: [],
+            selectedIds: [],
+            variantsBySet: {},
+            variantsLoading: false,
+            variantsError: null,
+        };
+    }
+    return {
+        listLoading: false,
+        listError: null,
+        available: Array.isArray(exported.available) ? exported.available : [],
+        selectedIds: Array.isArray(exported.selectedIds) ? exported.selectedIds : [],
+        variantsBySet:
+            exported.variantsBySet && typeof exported.variantsBySet === "object"
+                ? exported.variantsBySet
+                : {},
+        variantsLoading: false,
+        variantsError: null,
+    };
+}
+
 /**
  * Restore workspace state from an exported session file payload.
  * Does not require network access when the export includes all snapshot fields.
@@ -363,6 +398,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         genesState: normalizeGenesState(payload),
         plotOverlaysState: normalizePlotOverlaysState(payload),
         plotMarkersState: normalizePlotMarkersState(payload),
+        credibleSetsState: normalizeCredibleSetsState(payload),
         regionZoom,
         regionViewArea,
         regionShiftBp,

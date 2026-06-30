@@ -20,22 +20,67 @@
                 </button>
             </header>
             <div class="vks-data-table-body">
-                <p class="vks-data-table-note">
-                    Cross-mapped variant rows from all active section filters will
-                    appear here.
-                </p>
+                <VariantSifterDataTableView
+                    :rows="tableView.rows"
+                    :top-rows="tableView.topRows"
+                    :table-format="tableView.tableFormat"
+                    :utils="utils"
+                    :starred-variant-ids="starredVariantIds"
+                    :show-star-column="true"
+                    :note="tableNote"
+                    empty-message="No variant rows match the current filters."
+                    :default-per-page="20"
+                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                />
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import VariantSifterDataTableView from "./VariantSifterDataTableView.vue";
+import { buildVariantDataTableView } from "./variantSifterVariantDataTable.js";
+
 export default {
     name: "VariantSifterDataTableModal",
+    components: {
+        VariantSifterDataTableView,
+    },
     props: {
         open: {
             type: Boolean,
             default: false,
+        },
+        associationRows: {
+            type: Array,
+            default: () => [],
+        },
+        credibleSetsState: {
+            type: Object,
+            default: () => ({
+                selectedIds: [],
+                variantsBySet: {},
+            }),
+        },
+        utils: {
+            type: Object,
+            default: null,
+        },
+        starredVariantIds: {
+            type: Array,
+            default: () => [],
+        },
+    },
+    computed: {
+        tableView() {
+            return buildVariantDataTableView(this.associationRows, this.credibleSetsState);
+        },
+        tableNote() {
+            if (!this.tableView.filteredByCredibleSets) {
+                return "All loaded association variants. Select credible sets to filter rows to set membership and add PPA columns.";
+            }
+            const setCount = this.credibleSetsState?.selectedIds?.length || 0;
+            return `Showing ${this.tableView.rows.length.toLocaleString()} variant(s) that overlap selected credible set membership and loaded associations (${setCount} set${setCount === 1 ? "" : "s"}).`;
         },
     },
 };
@@ -59,7 +104,7 @@ export default {
     display: flex;
     flex-direction: column;
     background: #ffffff;
-    border-radius: 12px 12px 8px 8px;
+    border-radius: 12px 12px 0 0;
     box-shadow: 0 12px 40px rgba(20, 22, 30, 0.18);
     overflow: hidden;
 }
@@ -93,12 +138,5 @@ export default {
 .vks-data-table-body {
     overflow: auto;
     padding: 14px 16px 18px;
-}
-
-.vks-data-table-note {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--cfde-muted, #6b6b6b);
 }
 </style>
