@@ -36,7 +36,7 @@
                 type="text"
                 class="vks-export-input"
                 maxlength="160"
-                placeholder="vks_session_T2D_3-12228867-12575855.json"
+                placeholder="T2D_Mixed_3-12228867-12575855.json"
                 @keydown.enter.prevent="onExport"
             />
 

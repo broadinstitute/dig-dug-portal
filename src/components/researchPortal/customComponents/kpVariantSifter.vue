@@ -224,6 +224,10 @@ export default Vue.component("kp-variant-sifter", {
                 this.openWelcomePanel();
                 return;
             }
+            if (payload.action === "resetSearch") {
+                this.resetSearch();
+                return;
+            }
             if (payload.action === "exportSession") {
                 this.exportSession();
                 return;
@@ -329,6 +333,32 @@ export default Vue.component("kp-variant-sifter", {
             this.welcomeOpen = true;
             this.canvasActive = false;
             this.openDrawerId = null;
+        },
+        resetSearch() {
+            this.associationsRequestToken += 1;
+            this.genesRequestToken += 1;
+            this.plotOverlaysRequestToken += 1;
+            this.searchSession = null;
+            this.associationsState = emptyAssociationsState();
+            this.genesState = emptyGenesState();
+            this.plotOverlaysState = emptyPlotOverlaysState();
+            this.resetRegionViewport();
+            this.openDrawerId = null;
+            this.dataTableOpen = false;
+            this.welcomeInitialValues = null;
+            this.welcomeOpen = true;
+            this.canvasActive = false;
+            this.clearUrlSearchParams();
+        },
+        clearUrlSearchParams() {
+            if (!this.utilsBox?.keyParams) {
+                return;
+            }
+            this.utilsBox.keyParams.set({
+                phenotype: undefined,
+                region: undefined,
+                ancestry: undefined,
+            });
         },
         onStartSearch(session) {
             this.searchSession = session;

@@ -27,7 +27,7 @@
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                     />
                     <VariantSifterTrackStrip
-                        v-else
+                        v-else-if="shouldShowTrackStrip(section)"
                         :key="section.id + '-strip'"
                         :section="section"
                         :search-session="searchSession"
@@ -163,8 +163,18 @@ export default {
                 maxHeight: "none",
             };
         },
+        hasAssociationData() {
+            const { rows, loading } = this.associationsState;
+            return !loading && Array.isArray(rows) && rows.length > 0;
+        },
     },
     methods: {
+        shouldShowTrackStrip(section) {
+            if (!section?.trackImplemented || !this.hasAssociationData) {
+                return false;
+            }
+            return true;
+        },
         onToggleDrawer(sectionId) {
             const nextId = this.openDrawerId === sectionId ? null : sectionId;
             this.$emit("update:openDrawerId", nextId);

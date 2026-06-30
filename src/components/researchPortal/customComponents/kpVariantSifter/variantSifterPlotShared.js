@@ -191,6 +191,15 @@ export function renderRecombinationLine(ctx, margin, plotWidth, plotHeight, regi
 
     const xPixel = plotWidth / (region.end - region.start);
     const yPixel = plotHeight / 100;
+    const plotLeft = margin.left;
+    const plotTop = margin.top;
+    const regionStart = region.start;
+    const regionEnd = region.end;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(plotLeft, plotTop, plotWidth, plotHeight);
+    ctx.clip();
 
     ctx.beginPath();
     ctx.lineWidth = 1;
@@ -200,20 +209,27 @@ export function renderRecombinationLine(ctx, margin, plotWidth, plotHeight, regi
         if (index >= recombData.position.length - 1) {
             return;
         }
-        const x1 = margin.left + (xPos - region.start) * xPixel;
-        const y1 = margin.top + plotHeight - recombData.recomb_rate[index] * yPixel;
-        const x2 =
-            margin.left +
-            (recombData.position[index + 1] - region.start) * xPixel;
+
+        const nextX = recombData.position[index + 1];
+        if (nextX < regionStart && xPos < regionStart) {
+            return;
+        }
+        if (xPos > regionEnd && nextX > regionEnd) {
+            return;
+        }
+
+        const x1 = plotLeft + (xPos - regionStart) * xPixel;
+        const y1 = plotTop + plotHeight - recombData.recomb_rate[index] * yPixel;
+        const x2 = plotLeft + (nextX - regionStart) * xPixel;
         const y2 =
-            margin.top +
-            plotHeight -
-            recombData.recomb_rate[index + 1] * yPixel;
+            plotTop + plotHeight - recombData.recomb_rate[index + 1] * yPixel;
 
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
     });
+
+    ctx.restore();
 }
 
 function formatAxisTickValue(value, decimalPlaces, utils) {

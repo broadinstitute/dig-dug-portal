@@ -13,6 +13,7 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "Cred. sets",
         shortLabel: "CS",
         description: "Fine-mapped credible set membership filters.",
+        trackImplemented: false,
     },
     {
         id: "global-enrichment",
@@ -20,6 +21,7 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "Global enrich.",
         shortLabel: "Enrich.",
         description: "Regulatory annotation enrichment across broad tissue categories.",
+        trackImplemented: false,
     },
     {
         id: "variant-to-gene-links",
@@ -27,6 +29,7 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "Var-to-gene",
         shortLabel: "V2G",
         description: "Tissue-specific variant-to-gene linking evidence.",
+        trackImplemented: false,
     },
     {
         id: "snp2gene-links",
@@ -34,6 +37,7 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "SNP 2 gene",
         shortLabel: "S2G",
         description: "SNP-to-gene link scores for the locus.",
+        trackImplemented: false,
     },
 ];
 

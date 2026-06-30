@@ -234,6 +234,7 @@ export default {
             immediate: true,
             handler(values) {
                 if (!values) {
+                    this.resetFormFields();
                     return;
                 }
                 this.applyInitialValues(values);
@@ -256,6 +257,18 @@ export default {
     },
     methods: {
         ancestryLabel,
+        resetFormFields() {
+            this.phenotypeQuery = "";
+            this.selectedPhenotype = null;
+            this.selectedAncestry = "Mixed";
+            this.geneOrVariantQuery = "";
+            this.regionExpandBp = null;
+            this.phenotypeListOpen = false;
+            this.geneListOpen = false;
+            this.geneSuggestions = [];
+            this.errorMessage = "";
+            this.resolvedRegionLabel = "";
+        },
         applyInitialValues(values) {
             if (values.phenotype) {
                 const match = (this.phenotypes || []).find(

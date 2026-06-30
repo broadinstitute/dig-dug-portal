@@ -109,13 +109,19 @@ export function exportVariantSifterSession({
     };
 }
 
+function sanitizeFilenamePart(value, fallback) {
+    const text = String(value ?? "").trim();
+    if (!text) {
+        return fallback;
+    }
+    return text.replace(/[^\w.-]+/g, "_");
+}
+
 export function buildSessionExportFilename(searchSession) {
-    const phenotype = searchSession?.phenotype?.name || "session";
-    const region = (searchSession?.regionLabel || "locus").replace(/[^\w.-]+/g, "_");
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
-    return normalizeExportFilename(
-        `vks_session_${phenotype}_${region}_${stamp}.json`
-    );
+    const traitId = sanitizeFilenamePart(searchSession?.phenotype?.name, "session");
+    const ancestry = sanitizeFilenamePart(searchSession?.ancestry || "Mixed", "Mixed");
+    const region = sanitizeFilenamePart(searchSession?.regionLabel, "locus");
+    return normalizeExportFilename(`${traitId}_${ancestry}_${region}.json`);
 }
 
 export function normalizeExportFilename(filename) {

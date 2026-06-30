@@ -32,6 +32,7 @@ export default {
                     label: "Search",
                     items: [
                         { id: "newSearch", label: "New search…" },
+                        { id: "resetSearch", label: "Reset search" },
                         { id: "recentSearches", label: "Recent searches" },
                     ],
                 },
