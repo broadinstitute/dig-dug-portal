@@ -19,6 +19,16 @@ if (!!document.cookie) {
 export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
 export const BIO_INDEX_HOST_PRIVATE = "SERVER_IP_PRIVATE";
 
+function bioIndexHost(query_private = false) {
+    if (query_private && typeof window !== "undefined" && window.BIOINDEX_HOST_PRIVATE_OVERRIDE) {
+        return window.BIOINDEX_HOST_PRIVATE_OVERRIDE;
+    }
+    if (!query_private && typeof window !== "undefined" && window.BIOINDEX_HOST_OVERRIDE) {
+        return window.BIOINDEX_HOST_OVERRIDE;
+    }
+    return query_private ? BIO_INDEX_HOST_PRIVATE : BIO_INDEX_HOST;
+}
+
 /* Returns the path for any BioIndex API end-point.
  */
 export function apiUrl(path, query_private = false) {
@@ -28,10 +38,10 @@ export function apiUrl(path, query_private = false) {
 
     if (query_private) {
         //console.log("query_private:", query_private, path);
-        return `${BIO_INDEX_HOST_PRIVATE}/${path}`;
+        return `${bioIndexHost(true)}/${path}`;
     } else {
         //console.log("query_private is false:", query_private, path);
-        return `${BIO_INDEX_HOST}/${path}`;
+        return `${bioIndexHost(false)}/${path}`;
     }
 }
 

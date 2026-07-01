@@ -1,0 +1,4722 @@
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+.pbg-page {
+    padding: 1.25rem 1rem 2.5rem;
+    background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 50%, #f7f9fc 100%);
+}
+
+.pbg-shell {
+    max-width: 1380px;
+    margin: 0 auto;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.pbg-toolbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-live-data-status {
+    margin: -0.35rem 0 0.9rem;
+    color: #4b5563;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.pbg-live-data-status--error {
+    color: #b91c1c;
+}
+
+.pbg-toolbar-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #52657f;
+}
+
+.pbg-breadcrumb-link {
+    color: #0b66d8;
+    font-size: 1.08rem;
+    font-weight: 800;
+}
+
+.pbg-breadcrumb-sep {
+    color: #8aa0b6;
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.pbg-breadcrumb-current {
+    color: #334155;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.pbg-gene-search-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.pbg-gene-search-input {
+    width: 7.5rem;
+    min-height: 2rem;
+    border: 2px solid #b9cbe0;
+    border-radius: 0.22rem;
+    background: #fff;
+    color: #1f2937;
+    font-size: 1.02rem;
+    font-weight: 900;
+    line-height: 1.1;
+    padding: 0.22rem 0.45rem;
+    text-transform: uppercase;
+}
+
+.pbg-gene-search-input:focus {
+    border-color: #0b66d8;
+    box-shadow: 0 0 0 2px rgba(11, 102, 216, 0.14);
+    outline: none;
+}
+
+.pbg-gene-search-submit {
+    min-height: 2rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.35rem;
+    background: #fff;
+    color: #0b66d8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 900;
+    padding: 0.2rem 0.55rem;
+}
+
+.pbg-gene-search-submit:hover,
+.pbg-gene-search-submit:focus-visible {
+    border-color: #0b66d8;
+    background: #eef6ff;
+    outline: none;
+}
+
+.pbg-gene-search-submit:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.pbg-gene-search-error {
+    color: #b91c1c;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.2;
+    max-width: 30rem;
+}
+
+.pbg-workflow-label {
+    font-size: 1.12rem;
+    font-weight: 500;
+}
+
+.pbg-workflow-title {
+    color: #162033;
+    font-size: clamp(1.5rem, 2vw, 1.95rem);
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.pbg-workflow-title em {
+    margin-left: 0.3rem;
+    color: #52657f;
+    font-size: 0.62em;
+    font-style: normal;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.pbg-toolbar-right {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.pbg-nav-link {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.4rem;
+    background: #fff;
+    color: #174a7c;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.pbg-nav-link:hover { background: #eef3f8; }
+
+/* ── Shared card base ────────────────────────────────────────────────────── */
+.pbg-hero-card,
+.pbg-locus-card,
+.pbg-variants-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.88);
+    margin-bottom: 1rem;
+}
+
+/* ── Section label ───────────────────────────────────────────────────────── */
+.pbg-section-label {
+    display: block;
+    margin: 0 0 0.3rem;
+    color: #47637d;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.pbg-section-label--mt { margin-top: 1rem; }
+
+.pbg-note-inline {
+    font-size: 0.95rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #94a3b8;
+    font-style: italic;
+    margin-left: 0.3rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BLOCK 1 — Gene hero
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-hero-card {
+    display: grid;
+    grid-template-columns: minmax(30rem, 1fr) minmax(38rem, 1.22fr);
+    gap: 0.85rem;
+    padding: 1.4rem 1.6rem;
+}
+
+.pbg-hero-identity,
+.pbg-hero-summary {
+    min-width: 0;
+}
+
+/* Gene identity */
+.pbg-gene-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.pbg-gene-symbol {
+    margin: 0;
+    color: #14213d;
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.pbg-gene-fullname {
+    margin: 0.45rem 0 0.1rem;
+    color: #374151;
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+.pbg-gene-fullname span,
+.pbg-gene-description span {
+    color: #94a3b8;
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.pbg-gene-description {
+    max-width: 64rem;
+    margin: 0.35rem 0 0.45rem;
+    color: #475569;
+    font-size: 1.02rem;
+    line-height: 1.45;
+}
+
+.pbg-gene-location {
+    margin: 0 0 0.5rem;
+    color: #526071;
+    font-size: 1.05rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+.pbg-gene-location span {
+    color: #94a3b8;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.pbg-gene-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.55rem;
+}
+
+.pbg-meta-pill {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid #dde5ef;
+    border-radius: 100px;
+    background: #f8fafc;
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* ── Variant stats row (CRDC cohort source) ─────────────────────────────── */
+.pbg-variant-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-crdc-badge {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.3rem;
+    background: #14213d;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.pbg-meta-pill--crdc {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.pbg-meta-pill--lof {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+/* ── Reference annotation TABLE ─────────────────────────────────────────── */
+.pbg-ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    overflow: hidden;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+}
+
+.pbg-ref-table tr {
+    border-bottom: 1px solid #edf2f7;
+}
+
+.pbg-ref-table tr:last-child {
+    border-bottom: none;
+}
+
+.pbg-ref-table td {
+    padding: 0.4rem 0.6rem;
+    vertical-align: top;
+    line-height: 1.4;
+}
+
+.pbg-ref-source {
+    width: 5rem;
+    min-width: 5rem;
+    background: #f1f5f9;
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.pbg-ref-val { color: #1f2937; }
+
+.pbg-ref-val--pos { color: #166534; }
+
+.pbg-ref-val--none {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.pbg-ref-more {
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0.1rem 0.35rem;
+    border: 0;
+    border-radius: 100px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.pbg-ref-more:hover {
+    background: #dbeafe;
+    color: #0b66d8;
+}
+
+.pbg-ref-val--pathway {
+    display: block;
+}
+
+.pbg-pathway-list {
+    display: grid;
+    gap: 0.28rem;
+    margin-top: 0.5rem;
+    padding: 0.55rem;
+    border: 1px solid #dbe4ef;
+    border-radius: 0.38rem;
+    background: #f8fbff;
+}
+
+.pbg-pathway-item {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.28rem 0;
+    border-bottom: 1px solid #e8eef6;
+}
+
+.pbg-pathway-item:last-child {
+    border-bottom: 0;
+}
+
+.pbg-pathway-item span {
+    color: #64748b;
+    font-size: 0.86rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pbg-pathway-item strong {
+    min-width: 0;
+    color: #1f2937;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.pbg-ref-source-note {
+    margin: 0.25rem 0 0;
+    color: #94a3b8;
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+.pbg-hero-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.pbg-metric-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    overflow: hidden;
+}
+
+.pbg-metric-item {
+    min-width: 0;
+    padding: 0.95rem 0.6rem;
+    border-right: 1px solid #e2e8f0;
+    color: #14213d;
+    text-align: center;
+}
+
+.pbg-metric-item:last-child {
+    border-right: 0;
+}
+
+.pbg-metric-icon {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.34rem;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.pbg-metric-item strong {
+    display: inline-block;
+    color: #0b66d8;
+    font-size: clamp(1.55rem, 2.2vw, 2.05rem);
+    font-weight: 900;
+    line-height: 1;
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-metric-item em {
+    display: block;
+    margin-top: 0.45rem;
+    color: #14213d;
+    font-size: 0.95rem;
+    font-style: normal;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.pbg-mini-card-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.pbg-mini-card {
+    min-width: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+}
+
+.pbg-mini-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-mini-card-head h2 {
+    margin: 0;
+    color: #334155;
+    font-size: 1.05rem;
+    font-weight: 900;
+    line-height: 1.15;
+}
+
+.pbg-mini-card-head > span:not(.pbg-crdc-badge) {
+    color: #7a8da3;
+    font-size: 0.9rem;
+    font-style: italic;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pbg-pheno-spotlight {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.72rem 0.8rem;
+    border-radius: 0.45rem;
+    background: #f3f8ff;
+    box-shadow: inset 0 0 0 1px #dbeafe;
+}
+
+.pbg-pheno-spotlight strong {
+    color: #0b66d8;
+    font-size: 2rem;
+    font-weight: 950;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-pheno-spotlight span {
+    display: block;
+    color: #14213d;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+}
+
+.pbg-pheno-spotlight em {
+    display: block;
+    margin-top: 0.12rem;
+    color: #64748b;
+    font-size: 0.88rem;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.pbg-pheno-rank-list {
+    margin-top: 0.65rem;
+}
+
+.pbg-pheno-rank-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.38rem 0;
+    border-top: 1px solid #edf2f7;
+}
+
+.pbg-pheno-rank-row span {
+    min-width: 0;
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.pbg-pheno-rank-row strong {
+    color: #0b66d8;
+    font-size: 1.05rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-pheno-rank-row em {
+    color: #64748b;
+    font-size: 0.84rem;
+    font-style: normal;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pbg-score-spotlights {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-score-spotlights > div {
+    padding: 0.72rem 0.78rem;
+    border-radius: 0.45rem;
+    background: #fff8e5;
+    box-shadow: inset 0 0 0 1px #fde2a5;
+}
+
+.pbg-score-spotlights span {
+    display: block;
+    color: #526071;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pbg-score-spotlights strong {
+    display: block;
+    margin-top: 0.18rem;
+    color: #b45309;
+    font-size: 1.78rem;
+    font-weight: 950;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-score-spotlights em {
+    display: block;
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.pbg-top-variant-line {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: baseline;
+    padding: 0.35rem 0;
+    border-top: 1px solid #edf2f7;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.pbg-top-variant-line span {
+    color: #526071;
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.pbg-top-variant-line a {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-score-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.65rem;
+}
+
+.pbg-score-chip-row > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.25rem 0.45rem;
+    border-radius: 100px;
+    background: #f3f6fa;
+    color: #526071;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.pbg-score-chip-row strong {
+    color: #0b66d8;
+    font-weight: 950;
+}
+
+@media (max-width: 1120px) {
+    .pbg-hero-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .pbg-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pbg-metric-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pbg-metric-item {
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pbg-metric-item:nth-child(2n) {
+        border-right: 0;
+    }
+
+    .pbg-mini-card-grid,
+    .pbg-score-spotlights {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pbg-carrier-snapshot {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pbg-carrier-snapshot-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.45rem;
+}
+
+.pbg-carrier-snapshot-head .pbg-section-label {
+    margin-bottom: 0;
+}
+
+.pbg-carrier-counts {
+    width: 100%;
+}
+
+.pbg-carrier-snapshot-head > span {
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pbg-carrier-snapshot-grid {
+    display: grid;
+    grid-template-columns: minmax(20rem, 1.2fr) minmax(12rem, 0.8fr);
+    gap: 0.9rem;
+    align-items: start;
+}
+
+.pbg-age-snapshot-row {
+    display: grid;
+    grid-template-columns: 3.8rem 1fr 2rem;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 1.55rem;
+    color: #374151;
+    font-size: 0.98rem;
+}
+
+.pbg-age-snapshot-row span {
+    color: #526071;
+    font-weight: 600;
+}
+
+.pbg-age-snapshot-row strong {
+    text-align: right;
+    color: #14213d;
+    font-size: 0.98rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-age-snapshot-bar-wrap {
+    height: 0.45rem;
+    border-radius: 100px;
+    background: #e9eef5;
+    overflow: hidden;
+}
+
+.pbg-age-snapshot-bar {
+    height: 100%;
+    border-radius: 100px;
+    background: #3b82f6;
+}
+
+/* ── CRDC kv table (Burden match + Top variant signal) ──────────────────── */
+.pbg-crdc-kv-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+    overflow: hidden;
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
+}
+
+.pbg-crdc-kv-table tr {
+    border-bottom: 1px solid #edf2f7;
+}
+
+.pbg-crdc-kv-table tr:last-child {
+    border-bottom: none;
+}
+
+.pbg-crdc-kv-key {
+    padding: 0.45rem 0.7rem;
+    background: #f1f5f9;
+    color: #526071;
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    width: 10rem;
+}
+
+.pbg-crdc-kv-score {
+    padding: 0.45rem 0.8rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-align: right;
+    line-height: 1.2;
+}
+
+.pbg-crdc-kv-score .pbg-kv-sub {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #64748b;
+    font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+/* ── CRDC evidence — compact kv panel ───────────────────────────────────── */
+.pbg-hero-evidence {
+    padding-left: 1rem;
+    border-left: 2px solid #e2e8f0;
+}
+
+.pbg-ev-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.85rem;
+}
+
+.pbg-ev-summary-strip div {
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.35rem;
+    background: #f8fbff;
+}
+
+.pbg-ev-summary-strip span {
+    display: block;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pbg-ev-summary-strip strong {
+    display: block;
+    margin-top: 0.1rem;
+    color: #14213d;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.pbg-crdc-stat-head {
+    margin: 0 0 0.75rem;
+    color: #374151;
+    font-size: 1.1rem;
+    line-height: 1.55;
+}
+
+.pbg-crdc-stat-head strong {
+    color: #14213d;
+    font-size: 1rem;
+}
+
+.pbg-crdc-stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.1rem;
+    margin-bottom: 0.85rem;
+}
+
+.pbg-crdc-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.pbg-crdc-stat-label {
+    color: #526071;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pbg-crdc-stat-item strong {
+    color: #14213d;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.pbg-crdc-kv-list {
+    border-top: 1px solid #e2e8f0;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-crdc-kv-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 1.05rem;
+    color: #526071;
+}
+
+.pbg-crdc-kv-row strong {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.pbg-kv-sub {
+    display: block;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    text-align: right;
+}
+
+/* ── Top carrier HPO terms mini bar table ────────────────────────────────── */
+.pbg-carrier-terms {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pbg-carrier-term-row {
+    display: grid;
+    grid-template-columns: 7rem 1fr 2.5rem 3.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.02rem;
+}
+
+.pbg-ct-label {
+    color: #374151;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-ct-bar-wrap {
+    height: 0.45rem;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.pbg-ct-bar {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 100px;
+}
+
+.pbg-ct-pct {
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: right;
+}
+
+.pbg-ct-count {
+    color: #526071;
+    font-size: 0.98rem;
+    text-align: right;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BLOCK 2 — Locus / genomic window
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-locus-card {
+    padding: 1.1rem 1.4rem 1.2rem;
+}
+
+.pbg-locus-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+}
+
+.pbg-locus-header strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: #162033;
+    font-size: 1.12rem;
+}
+
+.pbg-axis-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 3.5rem 0 4.5rem;
+    color: #7a92a8;
+    font-size: 0.98rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    margin-bottom: 0.3rem;
+}
+
+/* Shared track row layout */
+.pbg-exon-track-wrap,
+.pbg-marker-track-wrap,
+.pbg-density-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.pbg-track-label-col {
+    width: 4rem;
+    flex-shrink: 0;
+    color: #526071;
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-align: right;
+    line-height: 1.3;
+}
+
+/* Exon track */
+.pbg-exon-track {
+    position: relative;
+    flex: 1;
+    height: 2.4rem;
+}
+
+.pbg-intron-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #94afc5;
+    transform: translateY(-50%);
+}
+
+.pbg-exon-block {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 1.5rem;
+    border-radius: 3px;
+    background: #174a7c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-width: 7px;
+}
+
+.pbg-exon-block span {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 0 3px;
+}
+
+.pbg-locus-card .pbg-exon-block span {
+    display: none;
+}
+
+/* Marker track — taller to accommodate staggered vertical offsets */
+.pbg-marker-track {
+    position: relative;
+    flex: 1;
+    height: 15rem;
+}
+
+.pbg-marker {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(-50%);
+    cursor: default;
+}
+
+.pbg-marker--clickable {
+    cursor: pointer;
+}
+
+.pbg-marker--clickable:hover .pbg-marker-shape {
+    opacity: 0.75;
+    transform: scale(1.15);
+}
+
+.pbg-marker-shape {
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: transform 0.1s, opacity 0.1s;
+}
+
+.pbg-marker--focal .pbg-marker-shape  { color: #b91c1c; }
+.pbg-marker--nearby .pbg-marker-shape { color: #64748b; font-size: 1.08rem; }
+
+.pbg-marker-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #374151;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.85);
+    padding: 0 0.15rem;
+    border-radius: 0.2rem;
+}
+
+.pbg-marker-count {
+    display: inline-block;
+    padding: 0.05rem 0.3rem;
+    border-radius: 100px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.pbg-marker--focal .pbg-marker-count {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Density track */
+.pbg-density-wrap { align-items: flex-start; }
+
+.pbg-density-body { flex: 1; }
+
+.pbg-density-track {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.3rem;
+    height: 5rem;
+    margin-bottom: 0.5rem;
+}
+
+.pbg-density-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    text-align: right;
+    color: #94a3b8;
+    font-size: 0.92rem;
+    padding-right: 0.2rem;
+}
+
+.pbg-density-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    flex: 1;
+    height: 100%;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 1px;
+}
+
+.pbg-density-bar {
+    flex: 1;
+    min-width: 3px;
+    background: #93c5fd;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.15s ease;
+    position: relative;
+}
+
+.pbg-density-bar--query { background: #1d4ed8; }
+
+/* Visible count badge above each bar */
+.pbg-density-bar-count {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e3a5f;
+    white-space: nowrap;
+    pointer-events: none;
+    line-height: 1.2;
+    margin-bottom: 1px;
+}
+
+/* Density filter controls */
+.pbg-density-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.pbg-check-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: #374151;
+    font-size: 1.05rem;
+    cursor: pointer;
+}
+
+.pbg-check-box {
+    width: 0.85rem;
+    height: 0.85rem;
+    border: 1.5px solid #94a3b8;
+    border-radius: 3px;
+    background: #fff;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.pbg-check-box--on {
+    background: #174a7c;
+    border-color: #174a7c;
+}
+
+/* Dropdown filters */
+.pbg-filter-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.pbg-filter-label {
+    color: #52657f;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pbg-filter-select {
+    padding: 0.2rem 1.6rem 0.2rem 0.45rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.35rem;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E") no-repeat right 0.4rem center;
+    background-size: 8px;
+    color: #14213d;
+    font-size: 1.02rem;
+    appearance: none;
+    cursor: pointer;
+}
+
+.pbg-filter-select:focus {
+    outline: none;
+    border-color: #174a7c;
+    box-shadow: 0 0 0 2px rgba(23,74,124,0.15);
+}
+
+.pbg-density-query-note {
+    margin-left: auto;
+    color: #526071;
+    font-size: 1.02rem;
+}
+
+.pbg-density-query-note strong {
+    color: #14213d;
+}
+
+/* ── Rebuilt Gene locus view: whole-gene ⇄ queried variant ±25bp ───────── */
+.pbg-window-card {
+    padding: 1.35rem 1.55rem 1.45rem;
+    overflow: hidden;
+}
+
+.pbg-window-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.35rem;
+}
+
+.pbg-window-head strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.pbg-window-head-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.pbg-track-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    border: 0;
+    background: transparent;
+    color: #526071;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 0;
+    cursor: pointer;
+}
+
+.pbg-track-toggle span {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #9bb1c8;
+    border-radius: 0.18rem;
+    background: #fff;
+}
+
+.pbg-track-toggle--on span {
+    border-color: #2f5ea8;
+    background: #2f5ea8;
+    box-shadow: inset 0 0 0 2px #fff;
+}
+
+.pbg-window-canvas {
+    position: relative;
+    padding: 0 0.1rem 0.2rem;
+    min-height: 28rem;
+    cursor: default;
+}
+
+.pbg-window-card--base .pbg-window-canvas {
+    min-height: 44rem;
+}
+
+.pbg-window-card--base .pbg-window-canvas,
+.pbg-window-card--base .pbg-window-density-plot {
+    cursor: grab;
+}
+
+.pbg-window-guide {
+    position: absolute;
+    top: 4.2rem;
+    bottom: 3.5rem;
+    width: 1px;
+    border-left: 1px dashed #9bb7d6;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.pbg-window-major-axis {
+    position: relative;
+    height: 3.2rem;
+    border-bottom: 1px solid #c8d6e6;
+    margin-bottom: 0.35rem;
+}
+
+.pbg-window-major-axis span {
+    position: absolute;
+    bottom: 1.05rem;
+    transform: translateX(-50%);
+    color: #526071;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.15rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.pbg-window-major-axis .pbg-window-axis-tick--start {
+    transform: translateX(0);
+}
+
+.pbg-window-major-axis .pbg-window-axis-tick--end {
+    transform: translateX(-100%);
+}
+
+.pbg-window-minor-axis {
+    position: relative;
+    height: 2.55rem;
+}
+
+.pbg-window-minor-axis span {
+    position: absolute;
+    top: 1.05rem;
+    transform: translateX(-50%);
+    color: #526071;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.pbg-window-minor-axis span::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -1rem;
+    height: 0.8rem;
+    border-left: 1px solid #8fb0d6;
+}
+
+.pbg-window-gene-model {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0.75rem 0 1.25rem;
+    min-height: 6.8rem;
+}
+
+.pbg-window-track-label {
+    width: 8.2rem;
+    flex: 0 0 8.2rem;
+    color: #526071;
+    text-align: right;
+    line-height: 1.15;
+}
+
+.pbg-window-track-label strong {
+    display: block;
+    color: #526071;
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.pbg-window-track-label span {
+    display: block;
+    margin-top: 0.15rem;
+    color: #8aa0b6;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.pbg-window-gene-track {
+    position: relative;
+    flex: 1;
+    height: 6.7rem;
+    min-width: 0;
+}
+
+.pbg-window-intron-line {
+    position: absolute;
+    top: 1.55rem;
+    left: 0;
+    right: 0;
+    height: 0.8rem;
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+
+.pbg-window-intron-line::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #0927b8;
+    transform: translateY(-50%);
+}
+
+.pbg-window-intron-line--fwd {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M7 3 L13 6 L7 9' fill='none' stroke='%230927b8' stroke-width='1.6'/%3E%3C/svg%3E");
+}
+
+.pbg-window-intron-line--rev {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12'%3E%3Cpath d='M17 3 L11 6 L17 9' fill='none' stroke='%230927b8' stroke-width='1.6'/%3E%3C/svg%3E");
+}
+
+.pbg-window-exon-block {
+    position: absolute;
+    top: 1.22rem;
+    height: 1.25rem;
+    min-width: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0.08rem;
+    background: #0715b8;
+    transform: none;
+    z-index: 2;
+    cursor: default;
+}
+
+.pbg-window-exon-block--query {
+    box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.22);
+}
+
+.pbg-window-gene-name {
+    position: absolute;
+    top: 4.1rem;
+    left: 0;
+    right: 0;
+    color: #162033;
+    font-size: 1rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+.pbg-window-sequence-lane ~ .pbg-window-gene-name {
+    top: 4.9rem;
+}
+
+.pbg-window-sequence-unavailable {
+    position: absolute;
+    top: 2.7rem;
+    left: 0;
+    right: 0;
+    color: #8090a5;
+    font-size: 0.78rem;
+    font-style: italic;
+    font-weight: 800;
+    text-align: center;
+    pointer-events: none;
+}
+
+.pbg-window-sequence-unavailable ~ .pbg-window-gene-name {
+    top: 4.9rem;
+}
+
+.pbg-window-sequence-lane {
+    position: absolute;
+    top: 2.62rem;
+    left: 0;
+    right: 0;
+    height: 2.45rem;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.pbg-window-sequence-lane--codon {
+    height: 2.65rem;
+}
+
+.pbg-window-sequence-lane--base {
+    height: 2.35rem;
+}
+
+.pbg-window-seq-codon {
+    position: absolute;
+    top: 0;
+    min-width: 0;
+    height: 2.35rem;
+    border: 1px solid #cbd9ea;
+    border-radius: 0.16rem;
+    background: rgba(255, 255, 255, 0.96);
+    color: #162033;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.05;
+}
+
+.pbg-window-seq-codon strong {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: clamp(0.48rem, 0.78vw, 0.86rem);
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.pbg-window-seq-codon em {
+    margin-top: 0.12rem;
+    color: #526071;
+    font-size: clamp(0.45rem, 0.68vw, 0.74rem);
+    font-style: normal;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.pbg-window-seq-codon--query {
+    border-color: #ef9a91;
+    background: #fff0ed;
+}
+
+.pbg-window-seq-codon--query strong,
+.pbg-window-seq-codon--query em {
+    color: #b92318;
+}
+
+.pbg-window-seq-base {
+    position: absolute;
+    top: 0;
+    height: 2rem;
+    border: 1px solid #cbd9ea;
+    border-radius: 0.1rem;
+    background: rgba(255, 255, 255, 0.98);
+    color: #162033;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.pbg-window-seq-base strong {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: clamp(0.5rem, 0.88vw, 1rem);
+    font-weight: 900;
+}
+
+.pbg-window-seq-base small {
+    margin-top: 0.03rem;
+    color: #b92318;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.pbg-window-seq-base--query {
+    border-color: #ef9a91;
+    background: #fff0ed;
+}
+
+.pbg-window-seq-base--query strong {
+    color: #b92318;
+}
+
+.pbg-window-variant-marker {
+    position: absolute;
+    top: -0.32rem;
+    transform: translateX(-50%);
+    border: 0;
+    background: transparent;
+    color: #2f5ea8;
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pbg-window-variant-marker--query {
+    color: #c0392b;
+}
+
+.pbg-window-coding {
+    margin: 0.2rem 0 2.1rem;
+}
+
+.pbg-window-coding-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    color: #526071;
+}
+
+.pbg-window-coding-title strong {
+    color: #162033;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.pbg-window-coding-title span {
+    color: #526071;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.pbg-window-base-row {
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    gap: 0.18rem;
+    margin-bottom: 0.7rem;
+    transform-origin: left center;
+}
+
+.pbg-window-base-cell {
+    min-height: 4.15rem;
+    border: 1px solid #c9d8ea;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #162033;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    line-height: 1.05;
+}
+
+.pbg-window-base-cell span {
+    color: #7e91a8;
+    font-size: 1.02rem;
+    font-weight: 800;
+}
+
+.pbg-window-base-cell strong {
+    margin-top: 0.35rem;
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.pbg-window-base-cell em {
+    color: #b92318;
+    font-size: 0.9rem;
+    font-style: normal;
+    font-weight: 900;
+}
+
+.pbg-window-base-cell--query {
+    border-color: #e98b82;
+    background: #fff0ed;
+    color: #b92318;
+}
+
+.pbg-window-codon-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.18rem;
+}
+
+.pbg-window-codon-card {
+    min-height: 6.4rem;
+    border: 1px solid #c9d8ea;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: #162033;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.25;
+}
+
+.pbg-window-codon-card span {
+    color: #7e91a8;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-codon-card strong {
+    margin-top: 0.55rem;
+    font-size: 1.12rem;
+    font-weight: 900;
+}
+
+.pbg-window-codon-card em {
+    margin-top: 0.45rem;
+    color: #162033;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 900;
+}
+
+.pbg-window-codon-card--query {
+    border-color: #f2a49b;
+    background: #fff0ed;
+}
+
+.pbg-window-codon-card--query strong,
+.pbg-window-codon-card--query em {
+    color: #b92318;
+}
+
+.pbg-window-query-callout {
+    position: relative;
+    height: 3.9rem;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 92%;
+    margin-bottom: 0.1rem;
+    z-index: 8;
+    text-align: center;
+    color: #526071;
+}
+
+.pbg-window-query-callout span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.1rem;
+    height: 2.1rem;
+    padding: 0 0.55rem;
+    border-radius: 0.55rem;
+    background: #cc5a50;
+    color: #fff;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-query-callout i {
+    display: block;
+    width: 0.48rem;
+    height: 0.48rem;
+    margin: 0.2rem auto 0.15rem;
+    border-radius: 50%;
+    background: #c4524a;
+}
+
+.pbg-window-query-callout strong {
+    display: block;
+    color: #526071;
+    font-size: 0.98rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.pbg-window-density {
+    margin-top: 0.15rem;
+}
+
+.pbg-window-density-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0 0 0.65rem 0.75rem;
+}
+
+.pbg-window-density-title span {
+    color: #526071;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.pbg-window-density-title strong {
+    color: #162033;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-density-plot {
+    position: relative;
+    height: 220px;
+    margin-left: 2.1rem;
+    border-left: 1px solid #6d7b8c;
+    border-bottom: 2px solid #6d7b8c;
+}
+
+.pbg-window-density-axis {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -2.05rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #526071;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.pbg-window-density-col {
+    position: absolute;
+    bottom: 0;
+    min-width: 2px;
+    border: 0;
+    border-radius: 0.35rem 0.35rem 0 0;
+    background: #3968b8;
+    transform: translateX(-50%);
+    cursor: pointer;
+    padding: 0;
+}
+
+.pbg-window-density-col--zero {
+    height: 3px !important;
+    border-radius: 100px;
+    background: #4d77be;
+    opacity: 0.75;
+}
+
+.pbg-window-density-col--query {
+    background: #2f5ea8;
+    box-shadow: 0 0 0 2px rgba(47, 94, 168, 0.12);
+}
+
+.pbg-window-density-col span {
+    position: absolute;
+    bottom: calc(100% + 0.25rem);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 1.5rem;
+    padding: 0.16rem 0.34rem;
+    border-radius: 0.5rem;
+    background: #162033;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.pbg-window-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem 1rem;
+    margin-top: 1rem;
+}
+
+.pbg-window-filter-label {
+    color: #526071;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-filters .pbg-check-option {
+    color: #526071;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-filters .pbg-filter-label {
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.pbg-window-filters .pbg-filter-select {
+    min-width: 9.8rem;
+    border-radius: 1.4rem;
+    padding: 0.55rem 2.1rem 0.55rem 1.05rem;
+    font-size: 1.02rem;
+    font-weight: 800;
+}
+
+/* ── Compact gene-locus middle block ───────────────────────────────────── */
+.pbg-window-card {
+    padding: 1rem 1.35rem 0.95rem;
+}
+
+.pbg-window-head {
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.pbg-locus-title {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.pbg-locus-title strong {
+    margin: 0;
+    color: #14213d;
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.pbg-locus-title span {
+    color: #526071;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.98rem;
+    font-weight: 800;
+}
+
+.pbg-locus-filterbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+}
+
+.pbg-locus-filterbar .pbg-filter-select {
+    min-width: 8.4rem;
+    max-width: 12.2rem;
+    height: 2.55rem;
+    padding: 0.38rem 2.1rem 0.38rem 0.9rem;
+    border-radius: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.pbg-locus-filterbar .pbg-filter-select--scope {
+    min-width: 8.9rem;
+    border-color: #0b66d8;
+    background-color: #0b66d8;
+    color: #fff;
+}
+
+.pbg-locus-filterbar .pbg-filter-select:nth-child(3) {
+    min-width: 11.6rem;
+}
+
+.pbg-window-canvas {
+    min-height: 16.4rem;
+    padding: 0 2rem 0 0;
+}
+
+.pbg-window-card--base .pbg-window-canvas {
+    min-height: 25rem;
+}
+
+.pbg-window-major-axis {
+    height: 2.35rem;
+    margin-left: 10.55rem;
+    margin-bottom: 0.12rem;
+}
+
+.pbg-window-major-axis span {
+    bottom: 0.82rem;
+    font-size: 0.9rem;
+}
+
+.pbg-window-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.pbg-window-row--gene {
+    min-height: 4rem;
+}
+
+.pbg-window-row--variants {
+    min-height: 2.35rem;
+}
+
+.pbg-window-row--density {
+    align-items: flex-start;
+    min-height: 6rem;
+}
+
+.pbg-window-track-label {
+    width: 9.75rem;
+    flex: 0 0 9.75rem;
+    text-align: left;
+}
+
+.pbg-window-track-label strong {
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.pbg-window-gene-track {
+    height: 4rem;
+}
+
+.pbg-window-card:not(.pbg-window-card--whole) .pbg-window-row--gene {
+    min-height: 6.8rem;
+}
+
+.pbg-window-card:not(.pbg-window-card--whole) .pbg-window-gene-track {
+    height: 6.7rem;
+}
+
+.pbg-window-card--base .pbg-window-gene-track {
+    height: 6.7rem;
+}
+
+.pbg-window-intron-line {
+    top: 1.32rem;
+}
+
+.pbg-window-exon-block {
+    top: 0.95rem;
+    height: 1.1rem;
+    overflow: visible;
+}
+
+.pbg-window-card--base .pbg-window-exon-block {
+    top: 1.22rem;
+    height: 1.25rem;
+}
+
+.pbg-window-exon-label {
+    position: absolute;
+    top: 1.38rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #2563eb;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.pbg-window-card:not(.pbg-window-card--whole) .pbg-window-exon-label {
+    display: none;
+}
+
+.pbg-window-variant-track {
+    position: relative;
+    flex: 1;
+    height: 2.05rem;
+    min-width: 0;
+    border-bottom: 1px solid #e5edf6;
+    overflow: hidden;
+}
+
+.pbg-window-variant-dot {
+    position: absolute;
+    transform: translateX(calc(-50% + var(--x-nudge, 0px)));
+    width: 1rem;
+    height: 1.7rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.pbg-window-variant-dot::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.78rem;
+    height: 0.85rem;
+    border-left: 2px solid #2f6fe4;
+    transform: translateX(-50%);
+}
+
+.pbg-window-variant-dot span {
+    position: absolute;
+    left: 50%;
+    top: 0.35rem;
+    width: 0.56rem;
+    height: 0.56rem;
+    border-radius: 999px;
+    background: #0b66d8;
+    box-shadow: 0 0 0 2px rgba(11, 102, 216, 0.16);
+    transform: translateX(-50%);
+}
+
+.pbg-window-variant-dot--query span,
+.pbg-window-variant-dot--query::before {
+    background: #0b66d8;
+    border-color: #0b66d8;
+}
+
+.pbg-window-variant-dot--clustered span {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(11, 102, 216, 0.22);
+}
+
+.pbg-window-density {
+    margin-top: 0;
+}
+
+.pbg-window-density-plot {
+    flex: 1;
+    margin: 0;
+    border-left: 0;
+    border-bottom: 1px solid #94a3b8;
+}
+
+.pbg-window-density-axis {
+    left: auto;
+    right: -2.35rem;
+    width: 2rem;
+    align-items: flex-end;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.pbg-window-density-col {
+    border-radius: 0.08rem 0.08rem 0 0;
+    background: #94a3ff;
+}
+
+.pbg-window-density-col--zero {
+    height: 2px !important;
+    border-radius: 0;
+    background: #cbd5e1;
+    opacity: 1;
+}
+
+.pbg-window-density-col--query {
+    background: #2559d8;
+}
+
+.pbg-window-density-col span {
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+
+.pbg-window-density-col:hover span,
+.pbg-window-density-col:focus span {
+    opacity: 1;
+}
+
+.pbg-locus-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.55rem;
+    padding-left: 10.55rem;
+}
+
+.pbg-locus-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.2rem;
+    color: #526071;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.pbg-locus-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.pbg-locus-legend i {
+    display: inline-block;
+}
+
+.pbg-locus-legend-exon {
+    width: 1.5rem;
+    height: 0.8rem;
+    background: #7aa3ff;
+    box-shadow: inset 0 0 0 1px #2f6fe4;
+}
+
+.pbg-locus-legend-intron {
+    width: 1.5rem;
+    border-top: 2px solid #2f6fe4;
+}
+
+.pbg-locus-legend-variant {
+    position: relative;
+    width: 0.75rem;
+    height: 1rem;
+}
+
+.pbg-locus-legend-variant::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.45rem;
+    height: 0.5rem;
+    border-left: 2px solid #0b66d8;
+    transform: translateX(-50%);
+}
+
+.pbg-locus-legend-variant::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.12rem;
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 999px;
+    background: #0b66d8;
+    transform: translateX(-50%);
+}
+
+.pbg-locus-bottom-row .pbg-zoom-controls {
+    margin-left: auto;
+}
+
+.pbg-window-card--whole .pbg-window-query-callout {
+    display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BLOCK 3 — Gene carrier evidence (gene-level tabs + variant accordion)
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-variants-card {
+    padding: 0 0 1.4rem;
+}
+
+/* ── Gene-level tab header ──────────────────────────────────────────────── */
+.pbg-gene-tab-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1.1rem 1.4rem 0;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 0;
+}
+
+.pbg-gene-tab-title strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: #162033;
+    font-size: 1.12rem;
+}
+
+.pbg-gene-tabs {
+    display: flex;
+    gap: 0;
+    align-self: flex-end;
+}
+
+.pbg-gene-tab {
+    padding: 0.55rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #526071;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: -2px;
+    transition: color 0.1s;
+}
+
+.pbg-gene-tab--active {
+    border-bottom-color: #14213d;
+    color: #14213d;
+}
+
+.pbg-gene-tab:hover:not(.pbg-gene-tab--active) {
+    background: #f0f5fb;
+    color: #374151;
+}
+
+/* ── Tab content container ───────────────────────────────────────────────── */
+.pbg-tab-content {
+    padding: 1.1rem 1.4rem 0.5rem;
+}
+
+/* ── Demographics grid (Carrier summary tab) ─────────────────────────────── */
+.pbg-demo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.2rem 2rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pbg-demo-col {}
+
+.pbg-demo-row {
+    display: grid;
+    grid-template-columns: 6rem 1fr 2rem;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+    font-size: 1.05rem;
+}
+
+.pbg-demo-label {
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-demo-bar-wrap {
+    height: 0.5rem;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.pbg-demo-bar {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 100px;
+    transition: width 0.2s ease;
+}
+
+.pbg-demo-bar--inv { background: #6366f1; }
+.pbg-demo-bar--sex { background: #0891b2; }
+.pbg-demo-bar--aff { background: #059669; }
+
+.pbg-demo-count {
+    color: #526071;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: right;
+}
+
+/* ── Summary section (phenotype / genotype profiles) ────────────────────── */
+.pbg-summary-section {
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pbg-summary-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* ── Phenotype bars (shared by summary tab + accordion) ──────────────────── */
+.pbg-pheno-bars { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.pbg-pheno-bar-group {}
+
+.pbg-pheno-bar-header {
+    display: flex;
+    justify-content: space-between;
+    color: #374151;
+    font-size: 1.02rem;
+    margin-bottom: 0.25rem;
+}
+
+.pbg-pheno-bar-header span:last-child { color: #526071; font-size: 0.98rem; }
+
+.pbg-pheno-bar-shell {
+    height: 0.5rem;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.pbg-pheno-bar { height: 100%; background: #3b82f6; border-radius: 100px; }
+
+/* ── Co-carrier table (shared by summary + accordion) ────────────────────── */
+.pbg-co-carrier-table {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    font-size: 1.02rem;
+}
+
+.pbg-co-carrier-head,
+.pbg-co-carrier-row {
+    display: grid;
+    grid-template-columns: 0.7fr 0.8fr 2fr 1.2fr;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+}
+
+.pbg-co-carrier-head {
+    background: #f1f5f9;
+    color: #47637d;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pbg-co-carrier-row {
+    border-top: 1px solid #edf2f7;
+    color: #374151;
+    align-items: start;
+}
+
+.pbg-co-carrier-row:hover { background: #f0f5fb; }
+
+.pbg-table-link {
+    color: #174a7c;
+    font-weight: 600;
+    text-decoration: none;
+}
+.pbg-table-link:hover { text-decoration: underline; }
+
+.pbg-disease-ref {
+    color: #1f4171;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+/* ── Variant accordion table (Variants tab) ─────────────────────────────── */
+.pbg-vtable-head {
+    display: grid;
+    grid-template-columns: minmax(15rem, 1.8fr) minmax(7rem, 0.95fr) minmax(7rem, 0.8fr) 5.2rem 5.2rem minmax(7rem, 0.8fr) minmax(6.5rem, 0.75fr) minmax(6rem, 0.75fr) minmax(10rem, 1.1fr) 1.4rem;
+    gap: 0.5rem;
+    padding: 0.45rem 0.7rem;
+    border-bottom: 2px solid #e2e8f0;
+    color: #47637d;
+    font-size: 0.98rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pbg-vtable-row {
+    display: grid;
+    grid-template-columns: minmax(15rem, 1.8fr) minmax(7rem, 0.95fr) minmax(7rem, 0.8fr) 5.2rem 5.2rem minmax(7rem, 0.8fr) minmax(6.5rem, 0.75fr) minmax(6rem, 0.75fr) minmax(10rem, 1.1fr) 1.4rem;
+    gap: 0.5rem;
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid #edf2f7;
+    color: #1f2937;
+    font-size: 1.08rem;
+    cursor: pointer;
+    transition: background 0.1s;
+    align-items: center;
+}
+
+.pbg-vtable-row:hover         { background: #f0f5fb; }
+.pbg-vtable-row--expanded     { background: #eef3f8; border-bottom-color: transparent; }
+
+.pbg-variant-id {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.02rem;
+    color: #174a7c;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pbg-csq-tag {
+    display: inline-block;
+    padding: 0.12rem 0.45rem;
+    border-radius: 0.3rem;
+    background: #f1f5f9;
+    color: #374151;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.pbg-csq--lof     { background: #fee2e2; color: #991b1b; }
+.pbg-csq--missense { background: #fef3c7; color: #92400e; }
+
+.pbg-csq-detail {
+    display: block;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    margin-top: 0.15rem;
+}
+
+.pbg-score-cell { font-size: 1rem; font-weight: 700; }
+
+.pbg-clinvar-badge {
+    display: inline-block;
+    padding: 0.12rem 0.45rem 0.12rem 0.35rem;
+    border-radius: 0.3rem;
+    background: #f1f5f9;
+    color: #374151;
+    font-size: 0.98rem;
+    font-weight: 600;
+    border-left: 3px solid #cbd5e1;
+}
+
+.pbg-badge--pathogenic  {
+    background: #fde8e8;
+    color: #b91c1c;
+    border-left-color: #ef4444;
+    font-weight: 700;
+}
+.pbg-badge--likely-path {
+    background: #fff4e5;
+    color: #c2410c;
+    border-left-color: #f97316;
+    font-weight: 700;
+}
+.pbg-badge--vus {
+    background: #f8fafc;
+    color: #475569;
+    border-left-color: #94a3b8;
+}
+
+.pbg-top-terms-cell { color: #526071; font-size: 1.02rem; }
+.pbg-expand-icon    { color: #94a3b8; font-size: 1.08rem; text-align: center; }
+
+/* ── Accordion ─────────────────────────────────────────────────────────── */
+.pbg-accordion {
+    background: #f8fbff;
+    border: 1px solid #c7d7e8;
+    border-radius: 0 0 0.45rem 0.45rem;
+    margin-bottom: 0.25rem;
+}
+
+.pbg-accordion-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid #c7d7e8;
+}
+
+.pbg-acc-tab {
+    padding: 0.55rem 1.1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #526071;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: -1px;
+}
+
+.pbg-acc-tab--active        { border-bottom-color: #174a7c; color: #174a7c; }
+.pbg-acc-tab:hover:not(.pbg-acc-tab--active) { background: #eef3f8; }
+
+.pbg-accordion-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+    gap: 1.2rem;
+    padding: 1.1rem 1.2rem 1.2rem;
+}
+
+/* Left col: evidence + sample table */
+.pbg-kv-grid { display: grid; gap: 0; }
+
+.pbg-kv-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 1.05rem;
+}
+
+.pbg-kv-row span  { color: #526071; flex-shrink: 0; }
+.pbg-kv-row strong { color: #14213d; font-weight: 600; text-align: right; }
+
+.pbg-ext-link {
+    color: #174a7c;
+    font-weight: 600;
+    font-size: 1.05rem;
+    text-align: right;
+    text-decoration: none;
+}
+.pbg-ext-link:hover { text-decoration: underline; }
+
+/* Carrier sample table */
+.pbg-carrier-table {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.35rem;
+    overflow: hidden;
+    font-size: 1.02rem;
+    margin-top: 0.4rem;
+}
+
+.pbg-carrier-table-head,
+.pbg-carrier-table-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1.4fr) 5.5rem 3.8rem 4.8rem 4rem 5.5rem minmax(10rem, 1.3fr) 7rem 6rem 5rem;
+    gap: 0.45rem;
+    padding: 0.45rem 0.65rem;
+    align-items: center;
+}
+
+.pbg-carrier-table-head {
+    background: #f1f5f9;
+    color: #47637d;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pbg-carrier-table-row { border-top: 1px solid #edf2f7; color: #374151; align-items: center; }
+.pbg-carrier-table-row:hover { background: #f0f5fb; }
+
+.pbg-table-cell--center {
+    text-align: center;
+}
+
+.pbg-table-cell--num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-table-cell--text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-sample-link {
+    color: #174a7c;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    word-break: break-all;
+}
+
+/* Right col: phenotype / genotype tab panels */
+.pbg-acc-sub {
+    margin: 0 0 0.8rem;
+    color: #526071;
+    font-size: 1.05rem;
+}
+
+/* ── Block 3: gene/variant summary + variant evidence table ─────────────── */
+.pbg-evidence-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.pbg-evidence-summary-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid #dbe5f0;
+}
+
+.pbg-evidence-summary-head strong {
+    display: block;
+    margin-top: 0.25rem;
+    color: #162033;
+    font-size: 1.06rem;
+    font-weight: 900;
+}
+
+.pbg-summary-mode {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    color: #7a92a8;
+    font-size: 0.82rem;
+    font-style: italic;
+}
+
+.pbg-mode-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.28rem;
+    background: #fff;
+    color: #334155;
+    font-size: 0.94rem;
+    font-style: normal;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.pbg-mode-check:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.pbg-mode-check i {
+    width: 0.92rem;
+    height: 0.92rem;
+    border: 1px solid #9bb1c8;
+    border-radius: 0.18rem;
+    background: #fff;
+}
+
+.pbg-mode-check--active {
+    border-color: #0b66d8;
+    color: #0b66d8;
+}
+
+.pbg-mode-check--active i {
+    border-color: #0b66d8;
+    background: #0b66d8;
+    box-shadow: inset 0 0 0 2px #fff;
+}
+
+.pbg-summary-panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr 1.55fr;
+    gap: 0.7rem;
+    padding: 0.9rem 1.25rem;
+}
+
+.pbg-summary-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 13.8rem;
+    border: 1px solid #dbe5f0;
+    border-radius: 0.45rem;
+    background: #fff;
+    padding: 0.8rem 0.9rem;
+}
+
+.pbg-summary-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+}
+
+.pbg-summary-card-head--button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-align: left;
+}
+
+.pbg-summary-card-head strong {
+    color: #334155;
+    font-size: 0.98rem;
+    font-weight: 900;
+}
+
+.pbg-summary-card-head span {
+    color: #7a92a8;
+    font-size: 0.78rem;
+    font-style: italic;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.pbg-summary-card-head em {
+    color: #0b66d8;
+    font-size: 0.76rem;
+    font-style: normal;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.pbg-summary-card-head--button:hover strong,
+.pbg-summary-card-head--button:focus-visible strong {
+    color: #0b66d8;
+}
+
+.pbg-summary-card-body {
+    flex: 1;
+}
+
+.pbg-summary-card-foot {
+    margin-top: auto;
+    padding-top: 0.6rem;
+}
+
+.pbg-summary-more-btn {
+    width: 100%;
+    border: 1px solid #c9d9eb;
+    border-radius: 0.35rem;
+    background: #f8fbff;
+    color: #0b66d8;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1.2;
+    padding: 0.35rem 0.55rem;
+}
+
+.pbg-summary-more-btn:hover,
+.pbg-summary-more-btn:focus-visible {
+    border-color: #0b66d8;
+    background: #eef6ff;
+}
+
+.pbg-summary-pheno-list {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.pbg-summary-pheno-row {
+    display: grid;
+    grid-template-columns: minmax(7.2rem, 1.15fr) minmax(3.4rem, 0.9fr) 2.8rem 4.2rem;
+    align-items: center;
+    gap: 0.45rem;
+    color: #334155;
+    font-size: 0.88rem;
+}
+
+.pbg-summary-pheno-row > span {
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+}
+
+.pbg-summary-pheno-row div,
+.pbg-summary-demo-row i {
+    height: 0.38rem;
+    border-radius: 99px;
+    background: #e8eef7;
+    overflow: hidden;
+}
+
+.pbg-summary-pheno-row i,
+.pbg-summary-demo-row b {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    background: #0b66d8;
+}
+
+.pbg-summary-pheno-row strong {
+    color: #0b66d8;
+    font-size: 0.88rem;
+    text-align: right;
+}
+
+.pbg-summary-pheno-row em {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.pbg-summary-mini-table {
+    display: grid;
+    gap: 0;
+    font-size: 0.86rem;
+}
+
+.pbg-summary-mini-head,
+.pbg-summary-mini-row {
+    display: grid;
+    grid-template-columns: 1.1fr 4.5rem 4.5rem;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.25rem 0;
+}
+
+.pbg-summary-mini-head {
+    color: #47637d;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pbg-summary-mini-row {
+    border-bottom: 1px solid #f0f4f9;
+}
+
+.pbg-summary-mini-row span {
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-summary-demo-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.pbg-summary-demo-grid p {
+    margin: 0 0 0.35rem;
+    color: #47637d;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.pbg-summary-demo-row {
+    display: grid;
+    grid-template-columns: minmax(4.8rem, 0.8fr) 1fr 2rem;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.28rem;
+    font-size: 0.84rem;
+}
+
+.pbg-summary-demo-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-summary-demo-row strong {
+    color: #526071;
+    font-size: 0.84rem;
+    text-align: right;
+}
+
+.pbg-demo-fill--inv { background: #6366f1 !important; }
+.pbg-demo-fill--sex { background: #0891b2 !important; }
+.pbg-demo-fill--aff { background: #059669 !important; }
+
+.pbg-empty-note {
+    margin: 0.4rem 0 0;
+    color: #94a3b8;
+    font-size: 0.86rem;
+    font-style: italic;
+}
+
+.pbg-variant-evidence-block {
+    margin: 0 1.25rem 1.05rem;
+    border: 1px solid #dbe5f0;
+    border-radius: 0.45rem;
+    overflow: hidden;
+    background: #fff;
+}
+
+.pbg-variant-evidence-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0.95rem;
+    border-bottom: 1px solid #dbe5f0;
+}
+
+.pbg-variant-evidence-head > span {
+    color: #526071;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.pbg-ve-table-head,
+.pbg-ve-row {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(13rem, 1.45fr) minmax(8.5rem, 0.85fr) minmax(8.5rem, 0.85fr) minmax(10.5rem, 1.05fr) minmax(8rem, 0.75fr) minmax(9rem, 0.8fr);
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.pbg-ve-table-head {
+    padding: 0.55rem 0.85rem;
+    color: #47637d;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pbg-ve-table-head em {
+    display: inline-block;
+    margin-left: 0.25rem;
+    padding: 0.05rem 0.28rem;
+    border-radius: 0.22rem;
+    background: #14213d;
+    color: #fff;
+    font-size: 0.68rem;
+    font-style: normal;
+    letter-spacing: 0;
+}
+
+.pbg-ve-row {
+    padding: 0.7rem 0.85rem;
+    border-bottom: 1px solid #edf2f7;
+    color: #1f2937;
+    font-size: 0.98rem;
+    cursor: pointer;
+}
+
+.pbg-ve-row:hover {
+    background: #f4f8fd;
+}
+
+.pbg-ve-row--expanded {
+    background: #f8fbff;
+    box-shadow: inset 0 0 0 2px #0b66d8;
+}
+
+.pbg-ve-row--af-warning {
+    background: #fff8ed;
+}
+
+.pbg-ve-row--af-warning:hover {
+    background: #fff3dc;
+}
+
+.pbg-ve-more-row {
+    padding: 0.75rem 0.95rem;
+    border-top: 1px solid #edf2f7;
+    background: #f8fbff;
+}
+
+.pbg-ve-chevron {
+    color: #0b66d8;
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+.pbg-ve-carriers {
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-ve-carriers small {
+    margin-left: 0.25rem;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.pbg-ve-af {
+    color: #174d83;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-af-star {
+    margin-left: 0.14rem;
+    color: #b45309;
+    font-size: 0.95rem;
+    font-weight: 900;
+    vertical-align: super;
+}
+
+.pbg-af-warning-badge {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.08rem 0.34rem;
+    border: 1px solid #f2c46d;
+    border-radius: 0.28rem;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pbg-ve-classification {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.pbg-ve-classification small {
+    color: #64748b;
+    font-size: 0.82rem;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.pbg-score-badge {
+    display: inline-block;
+    min-width: 3.2rem;
+    padding: 0.18rem 0.45rem;
+    border-radius: 0.3rem;
+    font-size: 0.92rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.pbg-no-context {
+    display: inline-block;
+    width: fit-content;
+    padding: 0.16rem 0.45rem;
+    border-radius: 0.3rem;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-style: italic;
+    font-weight: 800;
+}
+
+.pbg-variant-expanded {
+    display: grid;
+    grid-template-columns: minmax(13rem, 0.45fr) minmax(0, 1fr);
+    gap: 1rem;
+    padding: 0.9rem 1rem 1rem;
+    border-right: 2px solid #0b66d8;
+    border-bottom: 2px solid #0b66d8;
+    border-left: 2px solid #0b66d8;
+    background: #fbfdff;
+}
+
+.pbg-selected-variant-evidence {
+    padding-right: 1rem;
+    border-right: 1px solid #dbe5f0;
+}
+
+.pbg-af-warning-note {
+    display: grid;
+    gap: 0.15rem;
+    margin-bottom: 0.55rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid #f2c46d;
+    border-radius: 0.35rem;
+    background: #fffbeb;
+    color: #78350f;
+    line-height: 1.25;
+}
+
+.pbg-af-warning-note strong {
+    font-size: 0.9rem;
+}
+
+.pbg-af-warning-note span {
+    color: #92400e;
+    font-size: 0.84rem;
+}
+
+.pbg-selected-kv {
+    display: grid;
+    gap: 0;
+}
+
+.pbg-selected-kv-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.34rem 0;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 0.9rem;
+}
+
+.pbg-selected-kv-row span {
+    color: #526071;
+}
+
+.pbg-selected-kv-row strong {
+    color: #14213d;
+    font-weight: 900;
+    text-align: right;
+}
+
+.pbg-selected-sample-table {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.35rem;
+}
+
+.pbg-selected-sample-head,
+.pbg-selected-sample-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 1.35fr) 4.2rem 3rem 3.4rem 3.2rem 5rem minmax(7.2rem, 1fr) 5.4rem minmax(7rem, 0.9fr);
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 840px;
+    padding: 0.38rem 0.55rem;
+}
+
+.pbg-selected-sample-head {
+    background: #f1f5f9;
+    color: #47637d;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pbg-selected-sample-row {
+    border-top: 1px solid #edf2f7;
+    color: #334155;
+    font-size: 0.86rem;
+}
+
+.pbg-selected-sample-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pbg-selected-sample-row .pbg-gendx-conflict {
+    color: #9a5b00;
+    font-weight: 900;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Zoom controls (Block 2)
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-zoom-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.pbg-zoom-btn {
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.3rem;
+    background: #f8fafc;
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+}
+
+.pbg-zoom-btn:hover:not(:disabled) { background: #e2e8f0; }
+.pbg-zoom-btn:disabled { opacity: 0.35; cursor: default; }
+
+.pbg-zoom-btn:first-child {
+    width: auto;
+    min-width: 2.9rem;
+    padding: 0 0.48rem;
+}
+
+.pbg-zoom-label {
+    min-width: 7.5rem;
+    text-align: center;
+    color: #374151;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.pbg-zoom-mode {
+    padding: 0.28rem 0.65rem;
+    border: 1px solid transparent;
+    border-radius: 0.3rem;
+    background: transparent;
+    color: #526071;
+    font-size: 0.98rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pbg-zoom-mode:hover {
+    background: #eef3f8;
+    color: #174a7c;
+}
+
+.pbg-zoom-mode--active {
+    border-color: #174a7c;
+    background: #e6f0fb;
+    color: #174a7c;
+}
+
+/* Proband-mode density bars */
+.pbg-density-bar--proband       { background: #a78bfa; }
+.pbg-density-bar--proband-query { background: #7c3aed; }
+
+/* Proband checkbox accent */
+.pbg-check-box--proband.pbg-check-box--on {
+    background: #7c3aed;
+    border-color: #7c3aed;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Gene-level carrier samples table (Carrier summary tab)
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-gene-sample-table {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.35rem;
+    overflow: auto;
+    font-size: 1.02rem;
+}
+
+.pbg-gene-sample-head,
+.pbg-gene-sample-row {
+    display: grid;
+    grid-template-columns: 2.2fr 1.6fr 1fr 0.7fr 0.5fr 0.5fr 0.5fr 0.6fr 1.2fr 0.9fr 0.8fr 0.7fr;
+    gap: 0.25rem;
+    padding: 0.35rem 0.7rem;
+    align-items: center;
+    min-width: 1020px;
+}
+
+.pbg-gene-sample-head {
+    background: #f1f5f9;
+    color: #47637d;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    position: sticky;
+    top: 0;
+}
+
+.pbg-gene-sample-row {
+    border-top: 1px solid #edf2f7;
+    color: #374151;
+}
+.pbg-gene-sample-row:hover { background: #f0f5fb; }
+
+/* Variant chip in the samples table */
+.pbg-variant-chip {
+    display: inline-block;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #374151;
+    font-size: 0.98rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.pbg-variant-chip small {
+    font-weight: 400;
+    color: #64748b;
+    font-size: 0.92rem;
+    margin-left: 0.2rem;
+}
+
+.pbg-variant-chip.pbg-csq--lof,
+.pbg-variant-chip.pbg-csq--missense {
+    background: transparent;
+}
+.pbg-variant-chip.pbg-csq--lof { color: #991b1b; }
+.pbg-variant-chip.pbg-csq--missense { color: #92400e; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Expandable phenotype terms
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-pheno-bar-group--clickable {
+    cursor: pointer;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.35rem;
+    transition: background 0.1s;
+}
+
+.pbg-pheno-bar-group--clickable:hover {
+    background: #f0f5fb;
+}
+
+.pbg-expand-caret {
+    display: inline-block;
+    margin-left: 0.3rem;
+    color: #94a3b8;
+    font-size: 0.92rem;
+    vertical-align: middle;
+}
+
+.pbg-pheno-terms {
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    background: #f8fbff;
+    border: 1px solid #dde5ef;
+    border-radius: 0.3rem;
+}
+
+.pbg-pheno-term-row {
+    display: grid;
+    grid-template-columns: 14rem 6rem 1fr 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.22rem 0;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 1rem;
+}
+
+.pbg-pheno-term-row:last-child { border-bottom: none; }
+
+.pbg-pheno-term-label { color: #1f2937; font-weight: 500; }
+
+.pbg-pheno-term-id {
+    color: #64748b;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.95rem;
+}
+
+.pbg-pheno-term-bar-wrap {
+    height: 0.4rem;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.pbg-pheno-term-bar {
+    height: 100%;
+    background: #60a5fa;
+    border-radius: 100px;
+}
+
+.pbg-pheno-term-pct {
+    color: #1e40af;
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ── Demographics section wrapper (moved to bottom) ─────────────────────── */
+.pbg-demo-section {
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Sortable column headers
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-sort-col {
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    justify-content: flex-start;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    text-align: left;
+    text-transform: inherit;
+    white-space: normal;
+}
+
+.pbg-sort-col:hover {
+    color: #0b66d8;
+}
+
+.pbg-sort-col em {
+    font-style: normal;
+}
+
+.pbg-sort-col i {
+    color: #0b66d8;
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0;
+    margin-left: 0.08rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Variant chip — full genomic ID display
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-variant-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    white-space: nowrap;
+    word-break: normal;
+}
+
+.pbg-variant-chip-id {
+    display: block;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: inherit;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Show more terms button
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-show-more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 0.45rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid #c5d3e0;
+    border-radius: 0.35rem;
+    background: #fff;
+    color: #174a7c;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.pbg-show-more-btn:hover {
+    background: #eef3f8;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   IMPROVED: Gene sample table scrollbar visibility
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-gene-sample-table {
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #e9eef5;
+}
+
+.pbg-gene-sample-table::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.pbg-gene-sample-table::-webkit-scrollbar-track {
+    background: #e9eef5;
+    border-radius: 100px;
+}
+
+.pbg-gene-sample-table::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 100px;
+}
+
+.pbg-gene-sample-table::-webkit-scrollbar-thumb:hover {
+    background: #52657f;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   IMPROVED: Accordion left/right panel visual separation
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-acc-left {
+    padding-right: 1.2rem;
+    border-right: 2px solid #c7d7e8;
+}
+
+.pbg-acc-right {
+    padding-left: 0.2rem;
+    overflow-y: auto;
+    max-height: 520px;
+}
+
+/* Divider between carrier samples and phenotype inside right panel */
+.pbg-acc-divider {
+    border: none;
+    border-top: 1.5px solid #dde6f0;
+    margin: 1rem 0;
+}
+
+/* gnomAD AF cell in variant table */
+.pbg-af-cell {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1rem;
+    color: #475569;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   gnomAD-style CRDC evidence table (Block 1 right panel)
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-ev-header {
+    margin-bottom: 0.55rem;
+}
+
+.pbg-ev-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.05rem;
+    margin-bottom: 0.1rem;
+}
+
+.pbg-ev-th-label,
+.pbg-ev-th-num,
+.pbg-ev-th-pct,
+.pbg-ev-th-score,
+.pbg-ev-th-bar {
+    padding: 0 0.4rem 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #7a92a8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pbg-ev-th-label  { width: 7.5rem; }
+.pbg-ev-th-num    { width: 2.4rem; text-align: right; }
+.pbg-ev-th-pct    { width: 3rem;   text-align: right; }
+.pbg-ev-th-score  { width: 3.6rem; text-align: right; }
+.pbg-ev-th-bar    { text-align: left; padding-left: 0.75rem; }
+
+.pbg-ev-row td {
+    padding: 0.3rem 0.4rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.pbg-ev-row:last-child td { border-bottom: none; }
+
+.pbg-ev-row--total td { padding-top: 0.45rem; }
+
+.pbg-ev-label {
+    color: #374151;
+    font-size: 1.02rem;
+    white-space: nowrap;
+}
+
+.pbg-ev-row--total .pbg-ev-label {
+    font-weight: 700;
+    color: #14213d;
+}
+
+.pbg-ev-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #14213d;
+}
+
+.pbg-ev-num--big {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.pbg-ev-pct {
+    text-align: right;
+    font-size: 0.98rem;
+    color: #7a92a8;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-ev-pct--sub {
+    font-size: 0.95rem;
+    color: #94a3b8;
+}
+
+/* Carrier count bars */
+.pbg-ev-bar-cell {
+    padding-left: 0.75rem !important;
+}
+
+.pbg-ev-bar-wrap {
+    height: 7px;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: hidden;
+    min-width: 70px;
+}
+
+.pbg-ev-bar {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 0.2s ease;
+}
+
+.pbg-ev-bar--total   { background: #378add; }
+.pbg-ev-bar--proband { background: #7c3aed; }
+.pbg-ev-bar--affected { background: #059669; }
+.pbg-ev-bar--gendx   { background: #0891b2; }
+
+/* Section divider */
+.pbg-ev-section-divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 0.6rem 0;
+}
+
+/* Score value badge */
+.pbg-ev-score-val {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    border-radius: 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+
+.pbg-ev-score--high {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pbg-ev-score--mid {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.pbg-ev-score--low {
+    background: #f1f5f9;
+    color: #52657f;
+}
+
+/* Score constraint bar (gnomAD slider style) */
+.pbg-ev-score-track {
+    position: relative;
+    height: 7px;
+    background: #e9eef5;
+    border-radius: 100px;
+    overflow: visible;
+    min-width: 70px;
+}
+
+.pbg-ev-score-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 100px;
+}
+
+.pbg-ev-score--high.pbg-ev-score-fill { background: linear-gradient(90deg, #fcd34d, #b45309); }
+.pbg-ev-score--mid.pbg-ev-score-fill  { background: #3b82f6; }
+.pbg-ev-score--low.pbg-ev-score-fill  { background: #94a3b8; }
+
+.pbg-ev-score-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #475569;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.pbg-ev-scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin-top: 1px;
+    min-width: 70px;
+}
+
+/* LOFTEE badge inline */
+.pbg-ev-lof-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.3rem;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin-right: 0.4rem;
+}
+
+.pbg-ev-lof-sub {
+    font-size: 0.98rem;
+    color: #94a3b8;
+}
+
+/* Variant ref (monospace ID below Top signal bar) */
+.pbg-ev-variant-ref {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    padding-left: 0.4rem !important;
+    vertical-align: middle;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Density bar queried variant label
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-density-bar-var-label {
+    position: absolute;
+    bottom: calc(100% + 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b91c1c;
+    white-space: nowrap;
+    pointer-events: none;
+    line-height: 1.2;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.3rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Show more / less row
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-show-more-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+}
+
+.pbg-show-more-row .pbg-show-more-btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+.pbg-show-less-btn {
+    background: #f8fafc;
+    color: #526071;
+    border-color: #c5d3e0;
+}
+
+.pbg-show-less-btn:hover {
+    background: #eef3f8;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NEW: Coding context panel (zoom 4-5)
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-cc-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.pbg-cc-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    background: #f8fbff;
+    border: 1px solid #c7d7e8;
+    border-radius: 0.4rem;
+    padding: 0.6rem 0.8rem 0.5rem;
+}
+
+.pbg-cc-hgvs {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    margin-bottom: 0.35rem;
+}
+
+.pbg-cc-hgvs-c {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #174a7c;
+}
+
+.pbg-cc-hgvs-p {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.02rem;
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+/* 5-codon row */
+.pbg-cc-codon-row {
+    display: flex;
+    gap: 2px;
+}
+
+.pbg-cc-codon-box {
+    flex: 3;  /* 3 bases per codon = same width as base row cells */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.3rem 0.25rem 0.2rem;
+    border-radius: 0.3rem;
+    background: #edf2f7;
+    border: 1px solid #c7d7e8;
+    min-width: 0;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.pbg-cc-codon--queried {
+    background: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.pbg-cc-aa-ref {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.pbg-cc-aa-arrow {
+    font-size: 0.95rem;
+    color: #b91c1c;
+    margin: 0 1px;
+}
+
+.pbg-cc-aa-alt {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.pbg-cc-codon-num {
+    font-size: 0.88rem;
+    color: #7a92a8;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    margin-top: 0.15rem;
+}
+
+.pbg-cc-codon-bases {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.92rem;
+    color: #526071;
+    letter-spacing: 0.15em;
+    margin-top: 0.1rem;
+}
+
+/* 15-base row */
+.pbg-cc-base-row {
+    display: flex;
+    gap: 2px;
+}
+
+.pbg-cc-base-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.25rem 0.1rem;
+    border-radius: 0.2rem;
+    min-width: 0;
+    text-align: center;
+    cursor: default;
+    position: relative;
+}
+
+.pbg-cc-base--codon-odd  { background: #dbeafe; border: 1px solid #bfdbfe; }
+.pbg-cc-base--codon-even { background: #dcfce7; border: 1px solid #bbf7d0; }
+
+.pbg-cc-base--var {
+    background: #fee2e2 !important;
+    border: 2px solid #ef4444 !important;
+    border-radius: 0.3rem;
+}
+
+/* Left border on first base of each codon */
+.pbg-cc-base--pos1 {
+    border-left-width: 2px;
+}
+
+.pbg-cc-base-ref {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.pbg-cc-base-alt {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #b91c1c;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+/* Genomic position row */
+.pbg-cc-pos-row {
+    display: flex;
+    gap: 2px;
+}
+
+.pbg-cc-pos-cell {
+    flex: 1;
+    font-size: 0.85rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    color: #94a3b8;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.pbg-cc-pos--var {
+    color: #b91c1c;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+
+/* ── Variants tab: header sub-labels + Cohort AF (inner AF) cell ─────────── */
+.pbg-vh-sub {
+    display: block;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #94a3b8;
+}
+
+.pbg-af-cell--cohort {
+    color: #174a7c;
+    font-weight: 700;
+}
+
+/* ── Top variant header (Block 1 score panel) ───────────────────────────── */
+.pbg-ev-topvar-head {
+    margin: 0 0 0.5rem;
+    color: #14213d;
+    font-size: 1.02rem;
+    font-weight: 700;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+.pbg-ev-topvar-head .pbg-table-link {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.98rem;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Evidence panel: headline scores (no-context) + emphasized Top variant box
+══════════════════════════════════════════════════════════════════════════ */
+.pbg-ev-headline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.pbg-ev-headline-item {
+    flex: 1 1 12rem;
+    padding: 0.7rem 0.9rem;
+    border: 2.5px solid #174a7c;
+    border-radius: 0.6rem;
+    background: #f4f9ff;
+    box-shadow: 0 1px 4px rgba(23,74,124,0.10);
+}
+
+.pbg-ev-headline-label {
+    margin: 0 0 0.15rem;
+    color: #52657f;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pbg-ev-headline-num {
+    display: block;
+    color: #14213d;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+}
+
+.pbg-ev-headline-var {
+    display: inline-block;
+    margin-top: 0.15rem;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.95rem;
+}
+
+.pbg-ev-nocontext {
+    display: block;
+    margin-top: 0.25rem;
+    color: #b45309;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.35rem;
+    font-size: 0.85rem;
+    font-style: italic;
+    width: fit-content;
+}
+
+/* Emphasized Top variant box — thick outline so it reads as the headline item */
+.pbg-topvar-box {
+    margin-top: 0.9rem;
+    padding: 0.7rem 0.9rem 0.4rem;
+    border: 2.5px solid #174a7c;
+    border-radius: 0.6rem;
+    background: #f4f9ff;
+    box-shadow: 0 1px 4px rgba(23,74,124,0.10);
+}
+
+.pbg-ev-topvar-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin: 0 0 0.5rem;
+}
+
+.pbg-ev-topvar-tag {
+    background: #174a7c;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.5rem;
+    border-radius: 0.3rem;
+}
+
+.pbg-ev-topvar-id {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+
+/* Carrier counts: compact (do not stretch full width) */
+.pbg-ev-table--simple {
+    width: auto;
+    min-width: 14rem;
+}
+.pbg-ev-table--simple .pbg-ev-th-num,
+.pbg-ev-table--simple .pbg-ev-num,
+.pbg-ev-table--simple .pbg-ev-num--big {
+    padding-right: 0.9rem;
+}
+
+/* Neutral note for computed (non-context) headline values */
+.pbg-ev-headline-note {
+    display: block;
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+
+/* Single remaining headline card (Overall burden match) — keep compact */
+.pbg-ev-headline-item { max-width: 24rem; }
+
+/* Top variant score badge in the box header (the merged "signal" number) */
+.pbg-ev-topvar-score {
+    font-size: 1.35rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    padding: 0.05rem 0.45rem;
+    border-radius: 0.35rem;
+    line-height: 1.1;
+}
+.pbg-ev-topvar-score.pbg-ev-score--high { background: #fef3c7; color: #92400e; }
+.pbg-ev-topvar-score.pbg-ev-score--mid  { background: #dbeafe; color: #1e40af; }
+.pbg-ev-topvar-score.pbg-ev-score--low  { background: #f1f5f9; color: #52657f; }
+
+
+/* ── gnomAD-style emphasis: filled highlight on the KEY number only ──────── */
+.pbg-ev-kpi {
+    background: #fde68a;
+    border: 1px solid #f59e0b;
+    color: #78350f;
+    font-weight: 800;
+}
+.pbg-ev-fill--kpi { background: linear-gradient(90deg, #fcd34d, #d97706); }
+
+/* small inline note under a metric label (e.g., "no phenotype context") */
+.pbg-ev-rownote {
+    display: block;
+    margin-top: 0.1rem;
+    color: #b45309;
+    font-size: 0.85rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+
+/* ── Locus legend + on-bar variant markers + simple variant list ─────────── */
+.pbg-locus-legend {
+    font-size: 0.88rem;
+    color: #64748b;
+}
+.pbg-locus-legend-mark  { color: #1d4ed8; font-weight: 700; }
+.pbg-locus-legend-focal { color: #b91c1c; font-weight: 700; }
+
+/* non-queried variant bar tint */
+.pbg-density-bar--variant { background: #818cf8; }
+
+/* variant marker sitting directly above its aligned bar (replaces lollipops) */
+.pbg-density-bar-var-label {
+    position: absolute;
+    bottom: calc(100% + 1.25rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #1d4ed8;
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: default;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.pbg-density-bar-var-label--focal { color: #b91c1c; }
+
+/* Simple variant list at the locus */
+.pbg-locus-varlist {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.55rem;
+    margin: 1.4rem 0 0.6rem;
+}
+.pbg-locus-varlist-label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #47637d;
+}
+.pbg-locus-var-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid #c7d7e8;
+    border-radius: 0.4rem;
+    background: #f4f9ff;
+    color: #174a7c;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.pbg-locus-var-chip:hover { background: #e6f0fb; }
+.pbg-locus-var-chip small {
+    font-family: var(--font-sans, sans-serif);
+    color: #64748b;
+    font-weight: 400;
+    font-size: 0.82rem;
+}
+.pbg-locus-var-chip--focal {
+    border-color: #fca5a5;
+    background: #fef2f2;
+    color: #991b1b;
+}
+.pbg-locus-var-dot { color: #b91c1c; }
+
+
+/* ── Gene model track: compressed introns w/ strand arrows + focal exon ──── */
+.pbg-track-sub {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: #94a3b8;
+    line-height: 1.2;
+    margin-top: 0.1rem;
+}
+
+.pbg-intron-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 9px;
+    transform: translateY(-50%);
+    background-repeat: repeat-x;
+    background-position: left center;
+}
+.pbg-intron-line::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #cbd5e1;
+    transform: translateY(-50%);
+}
+.pbg-intron-line--fwd {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='9'%3E%3Cpath d='M3 2 L7 4.5 L3 7' fill='none' stroke='%2394afc5' stroke-width='1.3'/%3E%3C/svg%3E");
+}
+.pbg-intron-line--rev {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='9'%3E%3Cpath d='M12 2 L8 4.5 L12 7' fill='none' stroke='%2394afc5' stroke-width='1.3'/%3E%3C/svg%3E");
+}
+
+/* exon containing the queried variant — tie to the red marker */
+.pbg-exon-block--focal {
+    background: #b91c1c;
+    box-shadow: 0 0 0 2px #fecaca;
+    z-index: 2;
+}
+
+
+/* ── Gene model track: stacked variant markers above exon boxes ──────────── */
+.pbg-gm-track { position: relative; flex: 1; }
+.pbg-exon-track-wrap--can-pan:not(.pbg-exon-track-wrap--dragging) .pbg-gm-track {
+    cursor: grab;
+}
+.pbg-exon-track-wrap--dragging .pbg-gm-track {
+    cursor: grabbing;
+}
+.pbg-gm-marker-row { position: relative; height: 1.25rem; }
+.pbg-gm-marker {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    font-size: 0.95rem;
+    line-height: 1;
+    color: #1d4ed8;
+    cursor: pointer;
+}
+.pbg-gm-marker--focal { color: #b91c1c; }
+.pbg-gm-marker:hover {
+    transform: translateX(-50%) scale(1.25);
+}
+.pbg-exon-track-wrap--base .pbg-exon-block--focal {
+    background: #174a7c;
+    box-shadow: none;
+}
+
+.pbg-exon-track-wrap--base {
+    align-items: flex-start;
+}
+
+.pbg-exon-track-wrap--base .pbg-track-label-col {
+    padding-top: 1.25rem;
+}
+
+.pbg-base-track {
+    position: relative;
+    height: 7.7rem;
+    border-bottom: 1px solid #9aaec4;
+}
+
+.pbg-base-hgvs {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    height: 1.35rem;
+    color: #174a7c;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.98rem;
+    font-weight: 800;
+}
+
+.pbg-base-hgvs-p {
+    color: #b91c1c;
+}
+
+.pbg-base-seq-lane,
+.pbg-base-pos-lane,
+.pbg-base-codon-lane {
+    position: relative;
+}
+
+.pbg-base-seq-lane {
+    height: 2.05rem;
+}
+
+.pbg-base-pos-lane {
+    height: 1.05rem;
+}
+
+.pbg-base-codon-lane {
+    height: 3.05rem;
+}
+
+.pbg-base-cell,
+.pbg-base-pos,
+.pbg-base-codon {
+    position: absolute;
+    min-width: 1.4rem;
+    transform: translateX(-50%);
+}
+
+.pbg-base-cell {
+    top: 0;
+    height: 1.9rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #162033;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    line-height: 1;
+}
+
+.pbg-base-cell--codon-odd {
+    background: #dbeafe;
+}
+
+.pbg-base-cell--codon-even {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+}
+
+.pbg-base-cell--var {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+}
+
+.pbg-base-cell span {
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.pbg-base-cell em {
+    margin-top: 0.08rem;
+    color: #b91c1c;
+    font-size: 0.88rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.pbg-base-pos {
+    top: 0;
+    color: #8aa0b6;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.78rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.pbg-base-pos--var {
+    color: #b91c1c;
+    font-weight: 800;
+}
+
+.pbg-base-codon {
+    top: 0;
+    height: 2.75rem;
+    border: 1px solid #c7d7e8;
+    border-radius: 0.3rem;
+    background: #edf2f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #374151;
+    text-align: center;
+    line-height: 1.15;
+}
+
+.pbg-base-codon--queried {
+    border-color: #f59e0b;
+    background: #fef3c7;
+}
+
+.pbg-base-codon strong {
+    font-size: 0.95rem;
+}
+
+.pbg-base-codon span {
+    color: #b91c1c;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.pbg-base-codon small {
+    color: #64748b;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+}
+
+/* ── Per-bp carrier bars (base level): 1 column = 1 bp, aligned to bases ──── */
+.pbg-cc-count-row {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 60px;
+    margin-bottom: 2px;
+}
+.pbg-cc-count-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+}
+.pbg-cc-count-val {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #1e3a5f;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+.pbg-cc-count-bar {
+    width: 62%;
+    background: #93c5fd;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.15s ease;
+}
+.pbg-cc-count-bar--var { background: #1d4ed8; }
+
+.pbg-locus-zoomhint {
+    color: #64748b;
+    font-size: 0.92rem;
+    font-style: italic;
+    margin: 0.7rem 0 0;
+    padding-left: 4.6rem;
+}
+
+/* ── Gene-wide carrier density track ────────────────────────────────────── */
+.pbg-gene-density-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin: 0.4rem 0 0.7rem;
+}
+
+.pbg-gene-density-panel {
+    flex: 1;
+    min-width: 0;
+}
+
+.pbg-gene-density-title {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-bottom: 0.35rem;
+    color: #47637d;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.pbg-gene-density-title span {
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.pbg-gene-density-track {
+    position: relative;
+    height: 9.6rem;
+    padding: 1.35rem 1rem 1.05rem 1.65rem;
+    border-bottom: 1px solid rgba(22, 32, 51, 0.72);
+    cursor: default;
+}
+
+.pbg-exon-track-wrap--can-pan + .pbg-gene-density-wrap .pbg-gene-density-track {
+    cursor: grab;
+}
+
+.pbg-exon-track-wrap--dragging + .pbg-gene-density-wrap .pbg-gene-density-track {
+    cursor: grabbing;
+}
+
+.pbg-gene-density-track::before {
+    content: "";
+    position: absolute;
+    top: 1.35rem;
+    bottom: 1.05rem;
+    left: 1.4rem;
+    width: 1px;
+    background: rgba(22, 32, 51, 0.72);
+}
+
+.pbg-gene-density-y-axis {
+    position: absolute;
+    top: 1.35rem;
+    bottom: 1.05rem;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.pbg-gene-density-bar {
+    position: absolute;
+    bottom: 1.05rem;
+    width: 18px;
+    min-height: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px 4px 0 0;
+    background: #2f5ea8;
+    transform: translateX(-50%);
+    cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+}
+
+.pbg-gene-density-bar--focal {
+    background: #b91c1c;
+}
+
+.pbg-gene-density-bar:hover {
+    filter: brightness(1.12);
+}
+
+.pbg-gene-density-bar span {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 0.3rem);
+    min-width: 1.5rem;
+    padding: 0.12rem 0.28rem;
+    border-radius: 0.35rem;
+    background: #162033;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1;
+    transform: translateX(-50%);
+    opacity: 1;
+    pointer-events: none;
+}
+
+.pbg-gene-density-bar:hover span,
+.pbg-gene-density-bar--focal span {
+    opacity: 1;
+}
+
+.pbg-gene-density-marker {
+    position: absolute;
+    bottom: 0.35rem;
+    color: #1d4ed8;
+    font-size: 0.95rem;
+    line-height: 1;
+    transform: translateX(-50%);
+    cursor: pointer;
+    z-index: 4;
+}
+
+.pbg-gene-density-marker--focal {
+    color: #b91c1c;
+}
+
+.pbg-gene-density-marker:hover {
+    transform: translateX(-50%) scale(1.2);
+}
+
+/* ── Boss-review pass: keep base-level detail compact ───────────────────── */
+.pbg-cc-panel {
+    flex: 0 1 74rem;
+    gap: 0.22rem;
+    padding: 0.45rem 0.65rem;
+}
+
+.pbg-cc-hgvs {
+    margin-bottom: 0.2rem;
+}
+
+.pbg-cc-codon-box {
+    padding: 0.18rem 0.18rem 0.14rem;
+}
+
+.pbg-cc-aa-ref,
+.pbg-cc-aa-alt {
+    font-size: 0.98rem;
+}
+
+.pbg-cc-aa-arrow {
+    font-size: 0.9rem;
+}
+
+.pbg-cc-codon-num {
+    font-size: 0.85rem;
+}
+
+.pbg-cc-codon-bases {
+    font-size: 0.88rem;
+}
+
+.pbg-cc-count-row {
+    height: 48px;
+}
+
+.pbg-cc-count-val {
+    font-size: 0.85rem;
+}
+
+.pbg-cc-base-cell {
+    padding: 0.18rem 0.08rem;
+}
+
+.pbg-cc-base-ref {
+    font-size: 0.98rem;
+}
+
+.pbg-cc-base-alt {
+    font-size: 0.92rem;
+}
+
+.pbg-cc-pos-cell {
+    font-size: 0.85rem;
+}

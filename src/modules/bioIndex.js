@@ -80,7 +80,7 @@ export default function (index, extend) {
             async clear(context) {
                 context.commit("clearData");
             },
-            async query(context, { q, limit, limitWhile, append }) {
+            async query(context, { q, limit, limitWhile, append, query_private }) {
                 if (!append) {
                     context.commit("clearData");
                 }
@@ -124,7 +124,7 @@ export default function (index, extend) {
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);
                         },
-                    }).finally(() => closeAlert(alertID))
+                    }, query_private || module.query_private || false).finally(() => closeAlert(alertID))
 
                     // data is loaded
                     context.commit("setResponse", { data, profile });

@@ -45,6 +45,13 @@ let pages = {
         title: "Gene Info",
         chunks: ["chunk-vendors", "chunk-common", "gene"]
     },
+    pbGene: {
+        entry: "src/views/PbGene/main.js",
+        template: "public/index.html",
+        filename: "pb_Gene.html",
+        title: "PB Gene Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbGene"]
+    },
     datasets: {
         entry: "src/views/Datasets/main.js",
         template: "public/index.html",
