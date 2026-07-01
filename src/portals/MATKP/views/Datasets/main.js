@@ -6,8 +6,11 @@ import { fetchMetadata } from "@/components/researchPortal/singleCellBrowser/sin
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 
 //import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-//const BIO_INDEX_HOST = "https://bioindex-dev.hugeamp.org";
-const BIO_INDEX_HOST = "https://matkp.hugeampkpnbi.org";
+
+const hostname = window.location.hostname;
+const PROD_API = "https://matkp.hugeampkpnbi.org";
+const DEV_API  = "https://matkp-dev.hugeampkpnbi.org";
+const BIO_INDEX_HOST = (hostname === 'matkp.org' || hostname === 'www.matkp.org') ? PROD_API : DEV_API;
 const METADATA_URL = `${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`;
 
 new Vue({
