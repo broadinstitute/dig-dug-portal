@@ -14,7 +14,6 @@
             No association data to plot for this locus.
         </div>
         <template v-else>
-            <p v-if="metaLabel" class="vks-associations-plot-meta">{{ metaLabel }}</p>
             <div ref="plotStack" class="vks-associations-plot-stack">
                 <VariantSifterAssociationRegionPlot
                     :plot-rows="plotData"
@@ -217,19 +216,6 @@ export default {
             const count = this.genesState?.data?.length || 0;
             return `${regionKey}:${count}:${this.genesState?.loading ? "loading" : "ready"}`;
         },
-        metaLabel() {
-            if (!this.searchSession) {
-                return "";
-            }
-            const parts = [this.searchSession.phenotype?.description];
-            if (this.searchSession.ancestry) {
-                parts.push(this.searchSession.ancestry);
-            }
-            if (this.searchSession.regionLabel) {
-                parts.push(this.searchSession.regionLabel);
-            }
-            return parts.filter(Boolean).join(" · ");
-        },
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
         },
@@ -285,14 +271,6 @@ export default {
 .vks-associations-plot {
     background: #ffffff;
     padding: 0 0 12px;
-}
-
-.vks-associations-plot-meta {
-    margin: 0;
-    padding: 8px 14px 0;
-    font-size: 12px;
-    line-height: 1.45;
-    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-associations-plot-stack {

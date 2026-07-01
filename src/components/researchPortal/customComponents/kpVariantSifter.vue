@@ -1,11 +1,25 @@
 <template>
-    <div class="kp-variant-sifter-workspace">
-        <header class="vks-header">
-            <div class="vks-brand">
-                <span class="vks-mark">KP</span>
-                <span class="vks-title">Variant Sifter</span>
+    <div ref="workspace" class="kp-variant-sifter-workspace">
+        <header
+            ref="vksHeader"
+            class="vks-header"
+            :class="{ 'is-pinned': chromePinned }"
+            :style="pinnedChromeStyle.header"
+        >
+            <div class="vks-header-start">
+                <div class="vks-brand">
+                    <span class="vks-mark">KP</span>
+                    <span class="vks-title">Variant Sifter</span>
+                </div>
+                <VariantSifterMenuBar @action="onMenuAction" />
             </div>
-            <VariantSifterMenuBar @action="onMenuAction" />
+            <p
+                v-if="searchSessionLabel"
+                class="vks-header-session"
+                :title="searchSessionLabel"
+            >
+                {{ searchSessionLabel }}
+            </p>
             <VariantSifterViewportControls
                 :region-zoom="regionZoom"
                 :region-zoom-out="regionZoomOut"
@@ -19,6 +33,12 @@
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
             />
         </header>
+        <div
+            v-show="chromePinned"
+            class="vks-header-spacer"
+            :style="{ height: `${headerHeightPx}px` }"
+            aria-hidden="true"
+        ></div>
 
         <input
             ref="sessionImportInput"
@@ -28,47 +48,68 @@
             @change="onSessionFileSelected"
         />
 
-        <div class="vks-stage">
-            <VariantSifterCanvas
-                :sections="sections"
-                :canvas-active="canvasActive"
-                :welcome-open="welcomeOpen"
-                :phenotypes="phenotypes"
-                :utils="utilsBox"
-                :welcome-initial-values="welcomeInitialValues"
-                :search-session="searchSession"
-                :region-zoom="regionZoom"
-                :region-shift-bp="regionShiftBp"
-                :region-view-area="regionViewArea"
-                :view-region="viewRegion"
-                :region-data-loading="regionDataLoading"
-                :data-table-open="dataTableOpen"
-                :open-drawer-id="openDrawerId"
-                :associations-state="associationsState"
-                :genes-state="genesState"
-                :plot-overlays-state="plotOverlaysState"
-                :plot-markers="plotMarkersState"
-                :credible-sets-state="credibleSetsState"
-                :credible-set-colors="credibleSetDotColors"
-                :credible-set-pill-colors="credibleSetPillColors"
-                @update:openDrawerId="openDrawerId = $event"
-                @update:regionShiftBp="onRegionShiftBpUpdate"
-                @update:regionViewArea="onRegionViewAreaUpdate"
-                @pan-end="onRegionPanEnd"
-                @toggle-position-marker="onTogglePositionMarker"
-                @toggle-star-variant="onToggleStarVariant"
-                @set-reference-variant="onSetReferenceVariant"
-                @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
-                @add-credible-set="onAddCredibleSet"
-                @remove-credible-set="onRemoveCredibleSet"
-                @close-data-table="dataTableOpen = false"
-                @start-search="onStartSearch"
-                @import-session="openSessionImport"
-            />
-            <VariantSifterAiAssistantPanel
-                :open="aiAssistantOpen"
-                @close="aiAssistantOpen = false"
-            />
+        <div class="vks-main">
+            <div class="vks-stage">
+                <VariantSifterCanvas
+                    :sections="sections"
+                    :canvas-active="canvasActive"
+                    :welcome-open="welcomeOpen"
+                    :phenotypes="phenotypes"
+                    :utils="utilsBox"
+                    :welcome-initial-values="welcomeInitialValues"
+                    :search-session="searchSession"
+                    :region-zoom="regionZoom"
+                    :region-shift-bp="regionShiftBp"
+                    :region-view-area="regionViewArea"
+                    :view-region="viewRegion"
+                    :region-data-loading="regionDataLoading"
+                    :data-table-open="dataTableOpen"
+                    :associations-state="associationsState"
+                    :genes-state="genesState"
+                    :plot-overlays-state="plotOverlaysState"
+                    :plot-markers="plotMarkersState"
+                    :credible-sets-state="credibleSetsState"
+                    :credible-set-colors="credibleSetDotColors"
+                    :credible-set-pill-colors="credibleSetPillColors"
+                    @update:regionShiftBp="onRegionShiftBpUpdate"
+                    @update:regionViewArea="onRegionViewAreaUpdate"
+                    @pan-end="onRegionPanEnd"
+                    @toggle-position-marker="onTogglePositionMarker"
+                    @toggle-star-variant="onToggleStarVariant"
+                    @set-reference-variant="onSetReferenceVariant"
+                    @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
+                    @add-credible-set="onAddCredibleSet"
+                    @remove-credible-set="onRemoveCredibleSet"
+                    @close-data-table="dataTableOpen = false"
+                    @start-search="onStartSearch"
+                    @import-session="openSessionImport"
+                />
+                <VariantSifterAiAssistantPanel
+                    :open="aiAssistantOpen"
+                    @close="aiAssistantOpen = false"
+                />
+            </div>
+            <div v-if="canvasActive" class="vks-drawer-rail-slot">
+                <VariantSifterSectionDrawers
+                    :sections="sections"
+                    :open-drawer-id="openDrawerId"
+                    :search-session="searchSession"
+                    :associations-state="associationsState"
+                    :plot-overlays-state="plotOverlaysState"
+                    :plot-markers="plotMarkersState"
+                    :credible-sets-state="credibleSetsState"
+                    :credible-set-pill-colors="credibleSetPillColors"
+                    :utils="utilsBox"
+                    :rail-pinned="chromePinned"
+                    :rail-pin-style="pinnedChromeStyle.drawer"
+                    @toggle-drawer="onToggleDrawer"
+                    @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
+                    @toggle-star-variant="onToggleStarVariant"
+                    @set-reference-variant="onSetReferenceVariant"
+                    @add-credible-set="onAddCredibleSet"
+                    @remove-credible-set="onRemoveCredibleSet"
+                />
+            </div>
         </div>
 
         <VariantSifterExportSessionModal
@@ -89,10 +130,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
 import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
 import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
+import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
 import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
 import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
-import { parseRegionParam, formatRegion } from "./kpVariantSifter/variantSifterSearchUtils.js";
+import { parseRegionParam, formatRegion, formatSearchSessionLabel } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import { fetchAssociations } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
 import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
@@ -133,8 +175,8 @@ import {
 import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
 import {
-    findAssociationRefRow,
     pickLeadVariantRow,
+    resolveLdReferenceRow,
     rowToLdVariant,
 } from "./kpVariantSifter/variantSifterLdServer.js";
 import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
@@ -179,6 +221,7 @@ function emptyPlotOverlaysState() {
         error: null,
         recombData: null,
         refVariant: null,
+        refVariantUserSet: false,
     };
 }
 
@@ -203,6 +246,7 @@ export default Vue.component("kp-variant-sifter", {
         VariantSifterMenuBar,
         VariantSifterViewportControls,
         VariantSifterCanvas,
+        VariantSifterSectionDrawers,
         VariantSifterAiAssistantPanel,
         VariantSifterExportSessionModal,
     },
@@ -237,6 +281,12 @@ export default Vue.component("kp-variant-sifter", {
             lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
+            chromePinned: false,
+            headerHeightPx: 53,
+            pinnedChromeStyle: {
+                header: {},
+                drawer: {},
+            },
         };
     },
     computed: {
@@ -268,6 +318,9 @@ export default Vue.component("kp-variant-sifter", {
                 );
             }
             return parts.join(" · ");
+        },
+        searchSessionLabel() {
+            return formatSearchSessionLabel(this.searchSession);
         },
         activeRegion() {
             if (!this.searchSession?.region) {
@@ -328,19 +381,159 @@ export default Vue.component("kp-variant-sifter", {
     },
     mounted() {
         this.applyUrlSearchParams();
+        this.$nextTick(() => this.setupChromePin());
     },
     beforeDestroy() {
         if (this.regionPanSyncTimer) {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
         }
+        this.teardownChromePin();
     },
     watch: {
         phenotypes() {
             this.applyUrlSearchParams();
         },
+        canvasActive() {
+            this.$nextTick(() => {
+                this.refreshChromePinListeners();
+                this.updateChromePin();
+            });
+        },
     },
     methods: {
+        scheduleChromePinUpdate() {
+            if (this.chromePinFrame) {
+                return;
+            }
+            this.chromePinFrame = requestAnimationFrame(() => {
+                this.chromePinFrame = null;
+                this.updateChromePin();
+            });
+        },
+        collectChromePinScrollTargets() {
+            const targets = new Set([window]);
+            const workspace = this.$refs.workspace;
+            let node = workspace?.parentElement;
+
+            while (node) {
+                const style = window.getComputedStyle(node);
+                const overflow = `${style.overflow} ${style.overflowY} ${style.overflowX}`;
+                if (/(auto|scroll|overlay)/.test(overflow)) {
+                    targets.add(node);
+                }
+                if (node === document.body || node === document.documentElement) {
+                    break;
+                }
+                node = node.parentElement;
+            }
+
+            return Array.from(targets);
+        },
+        refreshChromePinListeners() {
+            this.teardownChromePinListeners();
+            this.onChromePinScroll = () => this.scheduleChromePinUpdate();
+            this.chromePinScrollTargets = this.collectChromePinScrollTargets();
+            this.chromePinScrollTargets.forEach((target) => {
+                target.addEventListener("scroll", this.onChromePinScroll, { passive: true });
+            });
+            window.addEventListener("resize", this.onChromePinScroll, { passive: true });
+        },
+        setupChromePin() {
+            const workspace = this.$refs.workspace;
+            if (!workspace) {
+                return;
+            }
+
+            this.refreshChromePinListeners();
+
+            if (typeof IntersectionObserver !== "undefined") {
+                this.chromePinObserver = new IntersectionObserver(
+                    () => this.scheduleChromePinUpdate(),
+                    { threshold: [0, 1] }
+                );
+                this.chromePinObserver.observe(workspace);
+            }
+
+            this.updateChromePin();
+        },
+        teardownChromePinListeners() {
+            if (this.chromePinScrollTargets?.length && this.onChromePinScroll) {
+                this.chromePinScrollTargets.forEach((target) => {
+                    target.removeEventListener("scroll", this.onChromePinScroll);
+                });
+            }
+            if (this.onChromePinScroll) {
+                window.removeEventListener("resize", this.onChromePinScroll);
+            }
+            this.chromePinScrollTargets = [];
+            this.onChromePinScroll = null;
+            if (this.chromePinFrame) {
+                cancelAnimationFrame(this.chromePinFrame);
+                this.chromePinFrame = null;
+            }
+        },
+        teardownChromePin() {
+            this.teardownChromePinListeners();
+            if (this.chromePinObserver) {
+                this.chromePinObserver.disconnect();
+                this.chromePinObserver = null;
+            }
+        },
+        buildPinnedChromeStyle(workspaceRect, headerHeight) {
+            const tabWidth = 30;
+            return {
+                header: {
+                    position: "fixed",
+                    top: "0px",
+                    left: `${workspaceRect.left}px`,
+                    width: `${workspaceRect.width}px`,
+                    zIndex: 1000,
+                },
+                drawer: {
+                    position: "fixed",
+                    top: `${headerHeight}px`,
+                    left: `${workspaceRect.right - tabWidth}px`,
+                    width: `${tabWidth}px`,
+                    height: `calc(100vh - ${headerHeight}px)`,
+                    zIndex: 999,
+                },
+            };
+        },
+        updateChromePin() {
+            const workspace = this.$refs.workspace;
+            const header = this.$refs.vksHeader;
+            if (!workspace || !header) {
+                return;
+            }
+
+            const workspaceRect = workspace.getBoundingClientRect();
+            const headerHeight = header.offsetHeight || 53;
+            this.headerHeightPx = headerHeight;
+
+            const shouldPin =
+                this.canvasActive &&
+                workspaceRect.top <= 0 &&
+                workspaceRect.bottom > headerHeight + 48;
+
+            if (shouldPin) {
+                this.chromePinned = true;
+                this.pinnedChromeStyle = this.buildPinnedChromeStyle(
+                    workspaceRect,
+                    headerHeight
+                );
+                return;
+            }
+
+            this.chromePinned = false;
+            this.pinnedChromeStyle = {
+                header: {},
+                drawer: {},
+            };
+        },
+        onToggleDrawer(sectionId) {
+            this.openDrawerId = this.openDrawerId === sectionId ? null : sectionId;
+        },
         onRegionZoomUpdate(nextZoom) {
             this.pendingPanSliderReset = false;
             this.regionZoom = clampRegionZoom(nextZoom);
@@ -480,6 +673,7 @@ export default Vue.component("kp-variant-sifter", {
                     this.plotOverlaysState = {
                         ...this.plotOverlaysState,
                         refVariant,
+                        refVariantUserSet: true,
                     };
                 }
             } catch (ldError) {
@@ -572,6 +766,7 @@ export default Vue.component("kp-variant-sifter", {
                 let mergedRows = this.associationsState.rows;
                 let mergedGenes = this.genesState.data || [];
                 let mergedRecomb = this.plotOverlaysState.recombData;
+                let extendedAssociationRows = false;
                 const plotConfig = buildAssociationsRegionPlotConfig(this.searchSession);
 
                 for (const gap of gaps) {
@@ -592,6 +787,9 @@ export default Vue.component("kp-variant-sifter", {
                     try {
                         const result = await fetchAssociations(gapSession, host);
                         const formattedRows = formatAssociationRows(result.rows, gapSession);
+                        if (formattedRows.length) {
+                            extendedAssociationRows = true;
+                        }
                         mergedRows = mergeAssociationRowsByVariantId(mergedRows, formattedRows);
                     } catch (assocError) {
                         console.warn("Variant Sifter association gap fetch failed", assocError);
@@ -625,15 +823,11 @@ export default Vue.component("kp-variant-sifter", {
                 mergedGenes = filterGenesInRegion(mergedGenes, activeRegion);
                 mergedRecomb = trimRecombData(mergedRecomb, activeRegion);
 
-                const rowsMissingLd = mergedRows.some(
-                    (row) => row.LDS == null || Number.isNaN(row.LDS)
-                );
-
                 this.dataRegion = cloneGenomicRegion(activeRegion);
                 this.associationsState = {
                     ...this.associationsState,
                     rows: mergedRows,
-                    ldLoading: rowsMissingLd,
+                    ldLoading: extendedAssociationRows,
                 };
                 this.genesState = {
                     ...this.genesState,
@@ -649,46 +843,12 @@ export default Vue.component("kp-variant-sifter", {
                     recombData: mergedRecomb,
                 };
 
-                if (rowsMissingLd) {
-                    try {
-                        const refRow = findAssociationRefRow(
-                            mergedRows,
-                            this.plotOverlaysState.refVariant
-                        );
-                        const rowsWithLd = await enrichAssociationRowsWithLdScoresForRef(
-                            mergedRows,
-                            {
-                                ...this.searchSession,
-                                region: activeRegion,
-                            },
-                            refRow,
-                            activeRegion
-                        );
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        const ldAvailable = rowsWithLd.some(
-                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
-                        );
-                        this.associationsState = {
-                            ...this.associationsState,
-                            ldLoading: false,
-                            ldError: ldAvailable
-                                ? null
-                                : "LD scores could not be loaded for the extended region.",
-                            rows: filterAssociationRowsInRegion(rowsWithLd, activeRegion),
-                        };
-                    } catch (ldError) {
-                        if (token !== this.regionExtendToken) {
-                            return;
-                        }
-                        console.warn("Variant Sifter LD score fetch failed", ldError);
-                        this.associationsState = {
-                            ...this.associationsState,
-                            ldLoading: false,
-                            ldError: "LD scores could not be loaded for the extended region.",
-                        };
-                    }
+                if (extendedAssociationRows) {
+                    await this.refreshRegionLdScores(
+                        mergedRows,
+                        activeRegion,
+                        () => token !== this.regionExtendToken
+                    );
                 }
 
                 this.syncCredibleSetsToActiveRegion(activeRegion);
@@ -1136,7 +1296,74 @@ export default Vue.component("kp-variant-sifter", {
                 error: overlayError,
                 recombData,
                 refVariant: rowToLdVariant(leadRow),
+                refVariantUserSet: false,
             };
+        },
+        async refreshRegionLdScores(rows, activeRegion, isCancelled = () => false) {
+            if (!rows?.length || !activeRegion || !this.searchSession) {
+                return;
+            }
+
+            const refRow = resolveLdReferenceRow(rows, {
+                refVariant: this.plotOverlaysState.refVariant,
+                refVariantUserSet: this.plotOverlaysState.refVariantUserSet,
+            });
+            if (!refRow) {
+                this.associationsState = {
+                    ...this.associationsState,
+                    ldLoading: false,
+                    ldError: "LD scores could not be loaded for the extended region.",
+                };
+                return;
+            }
+
+            const refVariant = rowToLdVariant(refRow);
+            this.associationsState = {
+                ...this.associationsState,
+                ldLoading: true,
+                ldError: null,
+            };
+
+            try {
+                const rowsWithLd = await enrichAssociationRowsWithLdScoresForRef(
+                    rows,
+                    {
+                        ...this.searchSession,
+                        region: activeRegion,
+                    },
+                    refRow,
+                    activeRegion
+                );
+                if (isCancelled()) {
+                    return;
+                }
+
+                const ldAvailable = rowsWithLd.some(
+                    (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                );
+                this.associationsState = {
+                    ...this.associationsState,
+                    ldLoading: false,
+                    ldError: ldAvailable
+                        ? null
+                        : "LD scores could not be loaded for the extended region.",
+                    rows: filterAssociationRowsInRegion(rowsWithLd, activeRegion),
+                };
+                this.plotOverlaysState = {
+                    ...this.plotOverlaysState,
+                    refVariant,
+                };
+            } catch (ldError) {
+                if (isCancelled()) {
+                    return;
+                }
+                console.warn("Variant Sifter LD score fetch failed", ldError);
+                this.associationsState = {
+                    ...this.associationsState,
+                    ldLoading: false,
+                    ldError: "LD scores could not be loaded for the extended region.",
+                };
+            }
         },
         async loadAssociations(session) {
             const token = ++this.associationsRequestToken;
@@ -1295,20 +1522,56 @@ export default Vue.component("kp-variant-sifter", {
     flex-direction: column;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 12px;
-    overflow: hidden;
     background: #ffffff;
     position: relative;
 }
 
 .vks-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: 24px;
+    gap: 16px;
     padding: 12px 18px;
     border-bottom: 1px solid var(--cfde-border, #e6e1d6);
     background: var(--cfde-header-bg, #f6f5f2);
-    z-index: 7;
+    z-index: 20;
     border-radius: 11px 11px 0 0;
+}
+
+.vks-header.is-pinned {
+    border-radius: 0;
+    box-shadow: 0 2px 12px rgba(20, 22, 30, 0.12);
+}
+
+.vks-header-spacer {
+    flex-shrink: 0;
+}
+
+.vks-header-start {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-width: 0;
+    justify-self: start;
+}
+
+.vks-header-session {
+    margin: 0;
+    justify-self: center;
+    max-width: min(560px, 42vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+    text-align: center;
+}
+
+.vks-header >>> .vks-viewport-controls {
+    justify-self: end;
+    margin-left: 0;
 }
 
 .vks-brand {
@@ -1331,10 +1594,24 @@ export default Vue.component("kp-variant-sifter", {
     font-size: 1.05rem;
 }
 
+.vks-main {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    background: #ffffff;
+    border-radius: 0 0 11px 11px;
+}
+
+.vks-drawer-rail-slot {
+    flex: 0 0 var(--vks-drawer-tab-width, 30px);
+    width: var(--vks-drawer-tab-width, 30px);
+    align-self: stretch;
+}
+
 .vks-stage {
     position: relative;
-    border-radius: 0 0 11px 11px;
-    overflow: hidden;
+    flex: 1 1 auto;
+    min-width: 0;
     background: #ffffff;
 }
 

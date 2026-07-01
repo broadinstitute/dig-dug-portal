@@ -14,6 +14,7 @@
     --vks-toolbar-icon: 17px;
     --vks-drawer-open-width: 75vw;
     --vks-drawer-tab-width: 30px;
+    --vks-header-height: 53px;
     --vks-side-panel-inset: 12px;
     --vks-side-panel-top: var(--vks-side-panel-inset);
     font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;

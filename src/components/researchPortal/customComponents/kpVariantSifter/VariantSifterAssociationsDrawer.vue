@@ -1,6 +1,6 @@
 <template>
     <div class="vks-assoc-drawer research-data-table-wrapper">
-        <p v-if="metaLabel" class="vks-assoc-meta">{{ metaLabel }}</p>
+        <p v-if="drawerStatusLabel" class="vks-assoc-meta">{{ drawerStatusLabel }}</p>
 
         <div v-if="loading" class="vks-assoc-status">Loading associations…</div>
         <div v-else-if="error" class="vks-assoc-error" role="alert">
@@ -271,18 +271,8 @@ export default {
         visibleTopRows() {
             return this.topRows.filter((column) => this.visibleColumns[column]);
         },
-        metaLabel() {
-            if (!this.searchSession) {
-                return "";
-            }
-
-            const parts = [this.searchSession.phenotype?.description];
-            if (this.searchSession.ancestry) {
-                parts.push(this.searchSession.ancestry);
-            }
-            if (this.searchSession.regionLabel) {
-                parts.push(this.searchSession.regionLabel);
-            }
+        drawerStatusLabel() {
+            const parts = [];
             if (this.indexName) {
                 parts.push(`(${this.indexName})`);
             }

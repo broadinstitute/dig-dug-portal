@@ -121,6 +121,20 @@ export function findAssociationRefRow(rows, refVariant) {
     return pickLeadVariantRow(rows);
 }
 
+/** Lead variant unless the user pinned a reference variant for LD. */
+export function resolveLdReferenceRow(
+    rows,
+    { refVariant = null, refVariantUserSet = false } = {}
+) {
+    if (!rows?.length) {
+        return null;
+    }
+    if (refVariantUserSet) {
+        return findAssociationRefRow(rows, refVariant);
+    }
+    return pickLeadVariantRow(rows);
+}
+
 export function buildLdScoresUrl({
     population,
     refVariant,

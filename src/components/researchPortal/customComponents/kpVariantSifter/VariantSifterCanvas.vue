@@ -43,27 +43,9 @@
                         v-else
                         :key="section.id + '-strip'"
                         :section="section"
-                        :search-session="searchSession"
                     />
                 </template>
             </div>
-            <VariantSifterSectionDrawers
-                :sections="sections"
-                :open-drawer-id="openDrawerId"
-                :search-session="searchSession"
-                :associations-state="associationsState"
-                :plot-overlays-state="plotOverlaysState"
-                :plot-markers="plotMarkers"
-                :credible-sets-state="credibleSetsState"
-                :credible-set-pill-colors="credibleSetPillColors"
-                :utils="utils"
-                @toggle-drawer="onToggleDrawer"
-                @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
-                @toggle-star-variant="$emit('toggle-star-variant', $event)"
-                @set-reference-variant="$emit('set-reference-variant', $event)"
-                @add-credible-set="$emit('add-credible-set', $event)"
-                @remove-credible-set="$emit('remove-credible-set', $event)"
-            />
             <VariantSifterDataTableModal
                 :open="dataTableOpen"
                 :association-rows="associationsState.rows"
@@ -80,7 +62,6 @@
 <script>
 import VariantSifterTrackStrip from "./VariantSifterTrackStrip.vue";
 import VariantSifterAssociationsPlot from "./VariantSifterAssociationsPlot.vue";
-import VariantSifterSectionDrawers from "./VariantSifterSectionDrawers.vue";
 import VariantSifterDataTableModal from "./VariantSifterDataTableModal.vue";
 import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight, sectionHasCanvasTrack } from "./variantSifterSections.js";
@@ -91,7 +72,6 @@ export default {
     components: {
         VariantSifterTrackStrip,
         VariantSifterAssociationsPlot,
-        VariantSifterSectionDrawers,
         VariantSifterDataTableModal,
         VariantSifterWelcomePanel,
     },
@@ -147,10 +127,6 @@ export default {
         dataTableOpen: {
             type: Boolean,
             default: false,
-        },
-        openDrawerId: {
-            type: String,
-            default: null,
         },
         associationsState: {
             type: Object,
@@ -242,12 +218,6 @@ export default {
                     hasAssociationData: this.hasAssociationData,
                 })
             );
-        },
-    },
-    methods: {
-        onToggleDrawer(sectionId) {
-            const nextId = this.openDrawerId === sectionId ? null : sectionId;
-            this.$emit("update:openDrawerId", nextId);
         },
     },
 };

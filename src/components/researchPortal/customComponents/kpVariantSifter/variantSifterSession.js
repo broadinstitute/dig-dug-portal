@@ -12,6 +12,7 @@ function emptyPlotOverlaysSnapshot() {
     return {
         recombData: null,
         refVariant: null,
+        refVariantUserSet: false,
     };
 }
 
@@ -107,6 +108,7 @@ export function exportVariantSifterSession({
         plotOverlays: {
             recombData: plotOverlaysState?.recombData ?? null,
             refVariant: plotOverlaysState?.refVariant ?? null,
+            refVariantUserSet: Boolean(plotOverlaysState?.refVariantUserSet),
         },
         plotMarkers: {
             starredVariants: plotMarkersState?.starredVariants ?? [],
@@ -274,6 +276,7 @@ function normalizePlotOverlaysState(payload) {
         error: null,
         recombData: exported.recombData ?? null,
         refVariant: exported.refVariant ?? null,
+        refVariantUserSet: Boolean(exported.refVariantUserSet),
     };
 }
 

@@ -1,5 +1,9 @@
 <template>
-    <div class="vks-section-drawers">
+    <div
+        class="vks-section-drawers"
+        :class="{ 'is-rail-pinned': railPinned }"
+        :style="railPinStyle"
+    >
         <aside
             class="vks-section-drawer-panel"
             :class="{ 'is-open': Boolean(openSection) }"
@@ -151,6 +155,14 @@ export default {
             type: Object,
             default: () => ({}),
         },
+        railPinned: {
+            type: Boolean,
+            default: false,
+        },
+        railPinStyle: {
+            type: Object,
+            default: () => ({}),
+        },
     },
     computed: {
         starredVariantIds() {
@@ -175,13 +187,17 @@ export default {
 
 <style scoped>
 .vks-section-drawers {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 0;
+    position: relative;
+    flex-shrink: 0;
+    width: var(--vks-drawer-tab-width, 30px);
+    height: 100%;
+    min-height: 240px;
     pointer-events: none;
     z-index: 6;
+}
+
+.vks-section-drawers.is-rail-pinned {
+    pointer-events: none;
 }
 
 .vks-section-drawer-tabs {

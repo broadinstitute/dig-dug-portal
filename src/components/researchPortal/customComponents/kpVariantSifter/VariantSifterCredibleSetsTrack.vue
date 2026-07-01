@@ -167,9 +167,6 @@ export default {
         hasSelectedSets() {
             return Array.isArray(this.selectedSets) && this.selectedSets.length > 0;
         },
-        phenotypeLabel() {
-            return this.searchSession?.phenotype?.description || null;
-        },
         starredVariants() {
             return this.plotMarkers?.starredVariants || [];
         },
@@ -282,7 +279,6 @@ export default {
                 selectedSets: this.selectedSets,
                 colorBySetId: this.colorBySetId,
                 plotMarkers: this.plotMarkers,
-                phenotypeLabel: this.phenotypeLabel,
                 utils: this.utils,
                 starredVariants: this.starredVariants,
                 xAxisBandHover: this.xAxisBandHover,

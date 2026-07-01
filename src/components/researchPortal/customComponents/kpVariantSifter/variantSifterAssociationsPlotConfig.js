@@ -13,7 +13,7 @@ export const VARIANT_SIFTER_CS_TRACK_MARGIN = {
     leftMargin: 150,
     rightMargin: 80,
     topMargin: 28,
-    bottomMargin: 52,
+    bottomMargin: 100,
     bump: 11,
 };
 

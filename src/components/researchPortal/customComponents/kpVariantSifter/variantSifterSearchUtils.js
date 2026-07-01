@@ -215,6 +215,22 @@ export function formatRegion(region) {
     return `${region.chr}:${region.start}-${region.end}`;
 }
 
+/** Phenotype · ancestry · region label for the workspace header. */
+export function formatSearchSessionLabel(searchSession) {
+    if (!searchSession) {
+        return "";
+    }
+
+    const parts = [searchSession.phenotype?.description];
+    if (searchSession.ancestry) {
+        parts.push(searchSession.ancestry);
+    }
+    if (searchSession.regionLabel) {
+        parts.push(searchSession.regionLabel);
+    }
+    return parts.filter(Boolean).join(" · ");
+}
+
 export function parseRegionParam(regionParam) {
     if (!regionParam) {
         return null;
