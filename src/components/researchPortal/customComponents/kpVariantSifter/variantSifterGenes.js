@@ -19,14 +19,19 @@ async function fetchGenesAnnotationBatch(geneNames, genomeReference) {
         return [];
     }
 
-    const genesDataText = await fetch(url).then((resp) => resp.text());
-    const genesData = JSON.parse(genesDataText);
+    try {
+        const genesDataText = await fetch(url).then((resp) => resp.text());
+        const genesData = JSON.parse(genesDataText);
 
-    if (genesData?.error != null || !Array.isArray(genesData?.data)) {
+        if (genesData?.error != null || !Array.isArray(genesData?.data)) {
+            return [];
+        }
+
+        return genesData.data;
+    } catch (error) {
+        console.warn("Variant Sifter gene annotation batch failed", error);
         return [];
     }
-
-    return genesData.data;
 }
 
 async function fetchAllGeneAnnotations(geneNames, genomeReference) {
@@ -68,13 +73,19 @@ export async function fetchGenesTrackData(region, genomeReference = "GRCh37") {
     }
 
     const queryUrl = `https://bioindex.hugeamp.org/api/bio/query/genes?q=${encodeURIComponent(regionString)}`;
-    const genesText = await fetch(queryUrl).then((resp) => resp.text());
-    const genesInRegion = JSON.parse(genesText);
 
-    if (genesInRegion?.error != null || !Array.isArray(genesInRegion?.data)) {
+    try {
+        const genesText = await fetch(queryUrl).then((resp) => resp.text());
+        const genesInRegion = JSON.parse(genesText);
+
+        if (genesInRegion?.error != null || !Array.isArray(genesInRegion?.data)) {
+            return [];
+        }
+
+        const geneNames = genesInRegion.data.map((gene) => gene.name).filter(Boolean);
+        return fetchAllGeneAnnotations(geneNames, genomeReference);
+    } catch (error) {
+        console.warn("Variant Sifter genes in region query failed", error);
         return [];
     }
-
-    const geneNames = genesInRegion.data.map((gene) => gene.name).filter(Boolean);
-    return fetchAllGeneAnnotations(geneNames, genomeReference);
 }

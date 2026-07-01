@@ -1,36 +1,49 @@
-/** Match kpGEMPkg compareGroupColors.bold used by ResearchCredibleSets. */
-export const VKS_CREDIBLE_SET_COLORS = [
+/** Dot colors for credible sets — same 8-digit hex opacity as association LD dots (`50` ≈ 31%). */
+export const VKS_CREDIBLE_SET_DOT_COLORS = [
+    "#32AFD550",
+    "#4DB05250",
+    "#EE982D50",
+    "#D0363350",
+    "#2074B650",
+    "#82409950",
+];
+
+/** Solid fills for drawer pills (match dot hue, full opacity). */
+export const VKS_CREDIBLE_SET_PILL_COLORS = [
     "#32AFD5",
     "#4DB052",
     "#EE982D",
     "#D03633",
-    "#824099",
     "#2074B6",
-    "#E07B39",
-    "#6B6B6B",
+    "#824099",
 ];
 
 export function credibleSetColorForIndex(index) {
     if (index < 0) {
-        return VKS_CREDIBLE_SET_COLORS[0];
+        return VKS_CREDIBLE_SET_DOT_COLORS[0];
     }
-    return VKS_CREDIBLE_SET_COLORS[index % VKS_CREDIBLE_SET_COLORS.length];
+    return VKS_CREDIBLE_SET_DOT_COLORS[index % VKS_CREDIBLE_SET_DOT_COLORS.length];
 }
 
-export function buildCredibleSetColorMap(availableSets, selectedIds) {
-    const colorKeys = (availableSets || []).map(
-        (entry) => `${entry.credibleSetId}, ${entry.phenotype || ""}`
-    );
-    const map = {};
+export function credibleSetPillColorForIndex(index) {
+    if (index < 0) {
+        return VKS_CREDIBLE_SET_PILL_COLORS[0];
+    }
+    return VKS_CREDIBLE_SET_PILL_COLORS[index % VKS_CREDIBLE_SET_PILL_COLORS.length];
+}
 
-    (selectedIds || []).forEach((credibleSetId) => {
-        const entry = (availableSets || []).find((item) => item.credibleSetId === credibleSetId);
-        const colorKey = entry
-            ? `${entry.credibleSetId}, ${entry.phenotype || ""}`
-            : credibleSetId;
-        const index = colorKeys.indexOf(colorKey);
-        map[credibleSetId] = credibleSetColorForIndex(index >= 0 ? index : selectedIds.indexOf(credibleSetId));
+/**
+ * Assign colors by selection order so each active set is distinct
+ * (independent of index in the full locus list).
+ */
+export function buildCredibleSetColorMap(_availableSets, selectedIds) {
+    const dotMap = {};
+    const pillMap = {};
+
+    (selectedIds || []).forEach((credibleSetId, selectionIndex) => {
+        dotMap[credibleSetId] = credibleSetColorForIndex(selectionIndex);
+        pillMap[credibleSetId] = credibleSetPillColorForIndex(selectionIndex);
     });
 
-    return map;
+    return { dotMap, pillMap };
 }

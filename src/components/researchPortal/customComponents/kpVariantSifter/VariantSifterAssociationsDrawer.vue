@@ -14,7 +14,10 @@
                 :rows="filteredRows"
                 :search-session="searchSession"
                 :plot-overlays-state="plotOverlaysState"
+                :plot-markers="plotMarkers"
                 :utils="utils"
+                @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                @set-reference-variant="$emit('set-reference-variant', $event)"
             />
 
             <VariantSifterAssociationsFilters
@@ -225,6 +228,13 @@ export default {
         utils: {
             type: Object,
             default: null,
+        },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
+            }),
         },
         starredVariantIds: {
             type: Array,

@@ -8,10 +8,13 @@
             <VariantSifterMenuBar @action="onMenuAction" />
             <VariantSifterViewportControls
                 :region-zoom="regionZoom"
+                :region-zoom-out="regionZoomOut"
+                :zoom-out-at-limit="zoomOutAtLimit"
                 :region-view-area="regionViewArea"
                 :data-table-open="dataTableOpen"
                 :ai-assistant-open="aiAssistantOpen"
                 @update:regionZoom="onRegionZoomUpdate"
+                @update:regionZoomOut="onRegionZoomOutUpdate"
                 @update:dataTableOpen="dataTableOpen = $event"
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
             />
@@ -46,7 +49,8 @@
                 :plot-overlays-state="plotOverlaysState"
                 :plot-markers="plotMarkersState"
                 :credible-sets-state="credibleSetsState"
-                :credible-set-colors="credibleSetColors"
+                :credible-set-colors="credibleSetDotColors"
+                :credible-set-pill-colors="credibleSetPillColors"
                 @update:openDrawerId="openDrawerId = $event"
                 @update:regionShiftBp="onRegionShiftBpUpdate"
                 @update:regionViewArea="onRegionViewAreaUpdate"
@@ -112,13 +116,19 @@ import {
     computeActiveRegion,
     computeFetchGaps,
     computeViewRegion,
+    clampRegionViewportForDataLimit,
     filterAssociationRowsInRegion,
     filterGenesInRegion,
     genomicRegionsEqual,
+    isRegionZoomOutBlocked,
     mergeAssociationRowsByVariantId,
     mergeGenesByName,
     mergeRecombData,
+    resolveActiveDataRegion,
+    resolveZoomOutLimitRegion,
     trimRecombData,
+    regionExceedsActiveDataLimit,
+    activeRegionDataLimitMessage,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
 import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
 import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
@@ -137,6 +147,7 @@ import {
     formatCredibleVariantRows,
 } from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
 import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
+import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
 function emptyAssociationsState() {
@@ -203,12 +214,14 @@ export default Vue.component("kp-variant-sifter", {
             searchSession: null,
             welcomeInitialValues: null,
             regionZoom: 0,
+            regionZoomOut: 0,
             regionViewArea: 0,
             regionShiftBp: 0,
             dataRegion: null,
             regionDataLoading: false,
             regionExtendToken: 0,
             regionPanSyncTimer: null,
+            pendingPanSliderReset: false,
             dataTableOpen: false,
             aiAssistantOpen: false,
             openDrawerId: null,
@@ -221,6 +234,7 @@ export default Vue.component("kp-variant-sifter", {
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
+            lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
         };
@@ -259,9 +273,31 @@ export default Vue.component("kp-variant-sifter", {
             if (!this.searchSession?.region) {
                 return null;
             }
-            return computeActiveRegion(
+            return resolveActiveDataRegion(
                 this.searchSession.region,
-                this.regionShiftBp
+                this.regionShiftBp,
+                this.regionZoomOut,
+                this.zoomOutLimitRegion
+            );
+        },
+        zoomOutLimitRegion() {
+            if (!this.searchSession?.region) {
+                return null;
+            }
+            return resolveZoomOutLimitRegion(
+                this.searchSession.region,
+                this.searchSession.regionExpandBp
+            );
+        },
+        zoomOutAtLimit() {
+            if (!this.searchSession?.region) {
+                return true;
+            }
+            return isRegionZoomOutBlocked(
+                this.searchSession.region,
+                this.regionShiftBp,
+                this.regionZoomOut,
+                this.zoomOutLimitRegion
             );
         },
         viewRegion() {
@@ -272,14 +308,22 @@ export default Vue.component("kp-variant-sifter", {
                 this.searchSession.region,
                 this.regionShiftBp,
                 this.regionZoom,
-                this.regionViewArea
+                this.regionViewArea,
+                this.regionZoomOut,
+                this.zoomOutLimitRegion
             );
         },
-        credibleSetColors() {
+        credibleSetDotColors() {
             return buildCredibleSetColorMap(
                 this.credibleSetsState.available,
                 this.credibleSetsState.selectedIds
-            );
+            ).dotMap;
+        },
+        credibleSetPillColors() {
+            return buildCredibleSetColorMap(
+                this.credibleSetsState.available,
+                this.credibleSetsState.selectedIds
+            ).pillMap;
         },
     },
     mounted() {
@@ -298,8 +342,29 @@ export default Vue.component("kp-variant-sifter", {
     },
     methods: {
         onRegionZoomUpdate(nextZoom) {
-            const zoom = clampRegionZoom(nextZoom);
-            this.regionZoom = zoom;
+            this.pendingPanSliderReset = false;
+            this.regionZoom = clampRegionZoom(nextZoom);
+            if (this.regionZoom > 0) {
+                this.regionZoomOut = 0;
+            }
+            this.scheduleRegionDataSync();
+        },
+        onRegionZoomOutUpdate(nextZoomOut) {
+            this.pendingPanSliderReset = false;
+            const viewport = clampRegionViewportForDataLimit(
+                this.searchSession?.region,
+                {
+                    regionShiftBp: this.regionShiftBp,
+                    regionZoomOut: nextZoomOut,
+                },
+                this.zoomOutLimitRegion
+            );
+            this.regionZoomOut = viewport.regionZoomOut;
+            this.regionShiftBp = viewport.regionShiftBp;
+            if (this.regionZoomOut > 0) {
+                this.regionZoom = 0;
+                this.regionViewArea = 0;
+            }
             this.scheduleRegionDataSync();
         },
         onRegionViewAreaUpdate(nextViewArea) {
@@ -307,17 +372,52 @@ export default Vue.component("kp-variant-sifter", {
         },
         resetRegionViewport() {
             this.regionZoom = 0;
+            this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
             if (this.searchSession?.region) {
-                this.applyDataRegion(
-                    computeActiveRegion(this.searchSession.region, 0)
-                );
+                this.applyDataRegion(this.activeRegion);
             }
         },
         onRegionShiftBpUpdate(nextShiftBp) {
-            this.regionShiftBp = Number(nextShiftBp) || 0;
+            const viewport = clampRegionViewportForDataLimit(
+                this.searchSession?.region,
+                {
+                    regionShiftBp: nextShiftBp,
+                    regionZoomOut: this.regionZoomOut,
+                },
+                this.zoomOutLimitRegion
+            );
+            if (viewport.regionShiftBp !== this.regionShiftBp) {
+                this.pendingPanSliderReset = true;
+            }
+            this.regionShiftBp = viewport.regionShiftBp;
+            this.regionZoomOut = viewport.regionZoomOut;
             this.scheduleRegionDataSync();
+        },
+        finishRegionExtendSync() {
+            const hadZoomOut = this.regionZoomOut > 0;
+            const hadPanPendingReset = this.pendingPanSliderReset;
+
+            if (!hadZoomOut && !hadPanPendingReset) {
+                return;
+            }
+
+            const activeRegion = this.activeRegion;
+            if (hadZoomOut && activeRegion && this.searchSession?.region) {
+                this.searchSession = {
+                    ...this.searchSession,
+                    region: cloneGenomicRegion(activeRegion),
+                    regionLabel: formatRegion(activeRegion),
+                };
+                this.regionShiftBp = 0;
+                this.syncUrlSearchParams(this.searchSession);
+            }
+
+            this.regionZoom = 0;
+            this.regionZoomOut = 0;
+            this.regionViewArea = 0;
+            this.pendingPanSliderReset = false;
         },
         onRegionPanEnd() {
             this.scheduleRegionDataSync(0);
@@ -365,15 +465,23 @@ export default Vue.component("kp-variant-sifter", {
                     row,
                     region
                 );
+                const ldAvailable = rowsWithLd.some(
+                    (entry) => entry.LDS != null && !Number.isNaN(entry.LDS)
+                );
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
+                    ldError: ldAvailable
+                        ? null
+                        : "LD scores could not be loaded for the selected reference variant.",
                     rows: rowsWithLd,
                 };
-                this.plotOverlaysState = {
-                    ...this.plotOverlaysState,
-                    refVariant,
-                };
+                if (ldAvailable) {
+                    this.plotOverlaysState = {
+                        ...this.plotOverlaysState,
+                        refVariant,
+                    };
+                }
             } catch (ldError) {
                 console.warn("Variant Sifter reference LD fetch failed", ldError);
                 this.associationsState = {
@@ -438,10 +546,7 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            const activeRegion = computeActiveRegion(
-                this.searchSession.region,
-                this.regionShiftBp
-            );
+            const activeRegion = this.activeRegion;
             if (!activeRegion) {
                 return;
             }
@@ -450,6 +555,8 @@ export default Vue.component("kp-variant-sifter", {
 
             if (!gaps.length) {
                 this.applyDataRegion(activeRegion);
+                this.syncCredibleSetsToActiveRegion(activeRegion);
+                this.finishRegionExtendSync();
                 return;
             }
 
@@ -482,18 +589,32 @@ export default Vue.component("kp-variant-sifter", {
                         region: gapRegion,
                     };
 
-                    const result = await fetchAssociations(gapSession, host);
-                    const formattedRows = formatAssociationRows(result.rows, gapSession);
-                    mergedRows = mergeAssociationRowsByVariantId(mergedRows, formattedRows);
+                    try {
+                        const result = await fetchAssociations(gapSession, host);
+                        const formattedRows = formatAssociationRows(result.rows, gapSession);
+                        mergedRows = mergeAssociationRowsByVariantId(mergedRows, formattedRows);
+                    } catch (assocError) {
+                        console.warn("Variant Sifter association gap fetch failed", assocError);
+                    }
 
-                    const newGenes = await fetchGenesTrackData(
-                        gapRegion,
-                        plotConfig["genome reference"]
-                    );
-                    mergedGenes = mergeGenesByName(mergedGenes, newGenes);
+                    try {
+                        const newGenes = await fetchGenesTrackData(
+                            gapRegion,
+                            plotConfig["genome reference"]
+                        );
+                        mergedGenes = mergeGenesByName(mergedGenes, newGenes);
+                    } catch (genesError) {
+                        console.warn("Variant Sifter genes gap fetch failed", genesError);
+                    }
 
-                    const newRecomb = await fetchRecombinationRate(gapRegion);
-                    mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                    try {
+                        const newRecomb = await fetchRecombinationRate(gapRegion);
+                        if (newRecomb) {
+                            mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                        }
+                    } catch (recombError) {
+                        console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                    }
                 }
 
                 if (token !== this.regionExtendToken) {
@@ -546,9 +667,15 @@ export default Vue.component("kp-variant-sifter", {
                         if (token !== this.regionExtendToken) {
                             return;
                         }
+                        const ldAvailable = rowsWithLd.some(
+                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                        );
                         this.associationsState = {
                             ...this.associationsState,
                             ldLoading: false,
+                            ldError: ldAvailable
+                                ? null
+                                : "LD scores could not be loaded for the extended region.",
                             rows: filterAssociationRowsInRegion(rowsWithLd, activeRegion),
                         };
                     } catch (ldError) {
@@ -563,11 +690,15 @@ export default Vue.component("kp-variant-sifter", {
                         };
                     }
                 }
+
+                this.syncCredibleSetsToActiveRegion(activeRegion);
+                this.finishRegionExtendSync();
             } catch (error) {
                 if (token !== this.regionExtendToken) {
                     return;
                 }
                 console.warn("Variant Sifter region extension failed", error);
+                this.finishRegionExtendSync();
             } finally {
                 if (token === this.regionExtendToken) {
                     this.regionDataLoading = false;
@@ -601,6 +732,7 @@ export default Vue.component("kp-variant-sifter", {
                     plotMarkersState: this.plotMarkersState,
                     credibleSetsState: this.credibleSetsState,
                     regionZoom: this.regionZoom,
+                    regionZoomOut: this.regionZoomOut,
                     regionViewArea: this.regionViewArea,
                     regionShiftBp: this.regionShiftBp,
                     dataRegion: this.dataRegion,
@@ -626,6 +758,7 @@ export default Vue.component("kp-variant-sifter", {
                     plotMarkersState: this.plotMarkersState,
                     credibleSetsState: this.credibleSetsState,
                     regionZoom: this.regionZoom,
+                    regionZoomOut: this.regionZoomOut,
                     regionViewArea: this.regionViewArea,
                     regionShiftBp: this.regionShiftBp,
                     dataRegion: this.dataRegion,
@@ -667,6 +800,23 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         applyImportedSession(restored) {
+            if (regionExceedsActiveDataLimit(restored.searchSession?.region)) {
+                throw new Error(activeRegionDataLimitMessage());
+            }
+
+            const limitRegion = resolveZoomOutLimitRegion(
+                restored.searchSession.region,
+                restored.searchSession.regionExpandBp
+            );
+            const viewport = clampRegionViewportForDataLimit(
+                restored.searchSession.region,
+                {
+                    regionShiftBp: restored.regionShiftBp ?? restored.viewOffsetBp ?? 0,
+                    regionZoomOut: restored.regionZoomOut ?? 0,
+                },
+                limitRegion
+            );
+
             this.associationsRequestToken += 1;
             this.genesRequestToken += 1;
             this.plotOverlaysRequestToken += 1;
@@ -682,10 +832,16 @@ export default Vue.component("kp-variant-sifter", {
                 restored.credibleSetsState || emptyCredibleSetsState();
             this.regionZoom = restored.regionZoom ?? 0;
             this.regionViewArea = restored.regionViewArea ?? 0;
-            this.regionShiftBp = restored.regionShiftBp ?? restored.viewOffsetBp ?? 0;
+            this.regionShiftBp = viewport.regionShiftBp;
+            this.regionZoomOut = viewport.regionZoomOut;
+            this.pendingPanSliderReset = false;
             this.dataRegion = restored.dataRegion
                 ? cloneGenomicRegion(restored.dataRegion)
                 : cloneGenomicRegion(restored.searchSession.region);
+            this.lastCredibleSetsListRegion = computeActiveRegion(
+                restored.searchSession.region,
+                restored.regionShiftBp ?? restored.viewOffsetBp ?? 0
+            );
             this.openDrawerId = restored.openDrawerId;
             this.canvasActive = true;
             this.welcomeOpen = false;
@@ -704,6 +860,7 @@ export default Vue.component("kp-variant-sifter", {
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
+            this.lastCredibleSetsListRegion = null;
             this.dataRegion = null;
             this.regionShiftBp = 0;
             this.regionDataLoading = false;
@@ -726,8 +883,22 @@ export default Vue.component("kp-variant-sifter", {
             });
         },
         onStartSearch(session) {
+            if (regionExceedsActiveDataLimit(session.region)) {
+                this.welcomeInitialValues = {
+                    phenotype: session.phenotype?.name || "",
+                    ancestry: session.ancestry || "",
+                    geneOrVariantQuery: session.geneOrVariantQuery || session.regionLabel || "",
+                    regionExpandBp: session.regionExpandBp ?? null,
+                    errorMessage: activeRegionDataLimitMessage(),
+                };
+                this.welcomeOpen = true;
+                this.canvasActive = false;
+                return;
+            }
+
             this.searchSession = session;
             this.regionZoom = 0;
+            this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.regionShiftBp = 0;
             this.dataRegion = cloneGenomicRegion(session.region);
@@ -735,6 +906,7 @@ export default Vue.component("kp-variant-sifter", {
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
+            this.lastCredibleSetsListRegion = null;
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
@@ -742,12 +914,39 @@ export default Vue.component("kp-variant-sifter", {
             this.loadGenesTrack(session);
             this.loadCredibleSetsList(session);
         },
-        async loadCredibleSetsList(session) {
+        syncCredibleSetsToActiveRegion(activeRegion) {
+            if (!this.searchSession?.phenotype || !activeRegion) {
+                return;
+            }
+            if (genomicRegionsEqual(this.lastCredibleSetsListRegion, activeRegion)) {
+                return;
+            }
+
+            this.loadCredibleSetsList(
+                {
+                    ...this.searchSession,
+                    region: activeRegion,
+                },
+                { preserveSelection: true }
+            );
+        },
+        async loadCredibleSetsList(session, options = {}) {
+            const { preserveSelection = false } = options;
             const token = ++this.credibleSetsRequestToken;
-            this.credibleSetsState = {
-                ...emptyCredibleSetsState(),
-                listLoading: true,
-            };
+
+            if (preserveSelection) {
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    listLoading: true,
+                    listError: null,
+                };
+            } else {
+                this.credibleSetsState = {
+                    ...emptyCredibleSetsState(),
+                    listLoading: true,
+                };
+                this.lastCredibleSetsListRegion = null;
+            }
 
             const host = this.utilsBox?.uiUtils?.biDomain?.();
             if (!host) {
@@ -755,7 +954,7 @@ export default Vue.component("kp-variant-sifter", {
                     return;
                 }
                 this.credibleSetsState = {
-                    ...emptyCredibleSetsState(),
+                    ...(preserveSelection ? this.credibleSetsState : emptyCredibleSetsState()),
                     listError: "BioIndex host is not available.",
                 };
                 return;
@@ -766,19 +965,35 @@ export default Vue.component("kp-variant-sifter", {
                 if (token !== this.credibleSetsRequestToken) {
                     return;
                 }
+
+                const region = cloneGenomicRegion(session.region);
+                let selectedIds = this.credibleSetsState.selectedIds || [];
+                let variantsBySet = this.credibleSetsState.variantsBySet || {};
+
+                if (preserveSelection) {
+                    ({ selectedIds, variantsBySet } = pruneCredibleSetsForRegion(
+                        { selectedIds, variantsBySet },
+                        region
+                    ));
+                }
+
                 this.credibleSetsState = {
                     ...this.credibleSetsState,
                     listLoading: false,
                     listError: null,
                     available,
+                    selectedIds,
+                    variantsBySet,
                 };
+                this.lastCredibleSetsListRegion = region;
             } catch (error) {
                 if (token !== this.credibleSetsRequestToken) {
                     return;
                 }
                 console.warn("Variant Sifter credible sets list failed", error);
                 this.credibleSetsState = {
-                    ...emptyCredibleSetsState(),
+                    ...(preserveSelection ? this.credibleSetsState : emptyCredibleSetsState()),
+                    listLoading: false,
                     listError: "Failed to load credible sets for this locus.",
                 };
             }
@@ -900,33 +1115,28 @@ export default Vue.component("kp-variant-sifter", {
                 loading: true,
             };
 
+            let recombData = null;
+            let overlayError = null;
+
             try {
-                const recombData = await fetchRecombinationRate(session.region);
-                if (token !== this.plotOverlaysRequestToken) {
-                    return;
-                }
-                const leadRow = pickLeadVariantRow(rows);
-                this.plotOverlaysState = {
-                    ready: true,
-                    loading: false,
-                    error: null,
-                    recombData,
-                    refVariant: rowToLdVariant(leadRow),
-                };
+                recombData = await fetchRecombinationRate(session.region);
             } catch (error) {
-                if (token !== this.plotOverlaysRequestToken) {
-                    return;
-                }
                 console.warn("Variant Sifter plot overlays load failed", error);
-                const leadRow = pickLeadVariantRow(rows);
-                this.plotOverlaysState = {
-                    ready: true,
-                    loading: false,
-                    error: "Recombination overlay could not be loaded for this locus.",
-                    recombData: null,
-                    refVariant: rowToLdVariant(leadRow),
-                };
+                overlayError = "Recombination overlay could not be loaded for this locus.";
             }
+
+            if (token !== this.plotOverlaysRequestToken) {
+                return;
+            }
+
+            const leadRow = pickLeadVariantRow(rows);
+            this.plotOverlaysState = {
+                ready: true,
+                loading: false,
+                error: overlayError,
+                recombData,
+                refVariant: rowToLdVariant(leadRow),
+            };
         },
         async loadAssociations(session) {
             const token = ++this.associationsRequestToken;
@@ -973,9 +1183,16 @@ export default Vue.component("kp-variant-sifter", {
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
+                    const ldAvailable = rowsWithLd.some(
+                        (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                    );
                     this.associationsState = {
                         ...this.associationsState,
                         ldLoading: false,
+                        ldError:
+                            ldAvailable || !formattedRows.length
+                                ? null
+                                : "LD scores could not be loaded for this locus.",
                         rows: rowsWithLd,
                     };
                     this.loadPlotOverlays(session, rowsWithLd);
@@ -999,6 +1216,13 @@ export default Vue.component("kp-variant-sifter", {
                 this.associationsState = {
                     ...emptyAssociationsState(),
                     error: "Failed to load associations. Please try again.",
+                };
+                this.plotOverlaysState = {
+                    ready: true,
+                    loading: false,
+                    error: null,
+                    recombData: null,
+                    refVariant: null,
                 };
             }
         },

@@ -1,15 +1,64 @@
 import { normalizePlotMargin } from "./variantSifterPlotShared.js";
 
-/** Region zoom: 0 = full searched locus; 99 = 1% of locus width visible. */
+/** Region zoom in: 0 = full active locus; 99 = ~1% of active width visible. */
 export const VKS_REGION_ZOOM_MIN = 0;
 export const VKS_REGION_ZOOM_MAX = 99;
 export const VKS_REGION_ZOOM_STEP = 1;
 
+/** Center-neutral slider: negative = zoom out, positive = zoom in. */
+export const VKS_REGION_ZOOM_SLIDER_MIN = -100;
+export const VKS_REGION_ZOOM_SLIDER_MAX = 100;
+
 export const VKS_REGION_VIEW_AREA_MIN = -100;
 export const VKS_REGION_VIEW_AREA_MAX = 100;
 
+function clampSliderZoomOut(value) {
+    const zoomOut = Number(value);
+    if (!Number.isFinite(zoomOut)) {
+        return 0;
+    }
+    return Math.max(0, Math.min(100, Math.round(zoomOut)));
+}
+
+export function zoomFromSliderValue(sliderValue) {
+    const value = Math.round(Number(sliderValue) || 0);
+    if (value < 0) {
+        const magnitude = Math.min(100, Math.abs(value));
+        return {
+            regionZoom: VKS_REGION_ZOOM_MIN,
+            regionZoomOut: clampSliderZoomOut(magnitude),
+        };
+    }
+
+    if (value > 0) {
+        return {
+            regionZoom: clampRegionZoom(Math.round((value / 100) * VKS_REGION_ZOOM_MAX)),
+            regionZoomOut: 0,
+        };
+    }
+
+    return {
+        regionZoom: VKS_REGION_ZOOM_MIN,
+        regionZoomOut: 0,
+    };
+}
+
+export function sliderValueFromZoom(regionZoom = 0, regionZoomOut = 0) {
+    const zoomOut = clampSliderZoomOut(regionZoomOut);
+    if (zoomOut > 0) {
+        return -zoomOut;
+    }
+
+    const zoomIn = clampRegionZoom(regionZoom);
+    if (zoomIn > 0) {
+        return Math.round((zoomIn / VKS_REGION_ZOOM_MAX) * 100);
+    }
+
+    return 0;
+}
+
 /**
- * Compute the visible genomic window from search region + zoom/pan (ResearchRegionPlot formula).
+ * Legacy visible-region helper when shift/zoom-out props are unavailable.
  */
 export function computeVisibleRegion(searchRegion, regionZoom = 0, regionViewArea = 0) {
     if (!searchRegion) {

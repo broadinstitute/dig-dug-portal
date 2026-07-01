@@ -2,17 +2,36 @@
     <div class="vks-viewport-controls" role="toolbar" aria-label="Canvas controls">
         <div class="vks-zoom-group">
             <label class="vks-zoom-label" :for="zoomInputId">Region zoom</label>
-            <input
-                :id="zoomInputId"
-                v-model.number="localZoom"
-                type="range"
-                class="vks-zoom-slider"
-                :min="zoomMin"
-                :max="zoomMax"
-                :step="zoomStep"
-                aria-label="Region zoom"
-                @input="onZoomInput"
-            />
+            <div
+                class="vks-zoom-slider-shell"
+                :class="{
+                    'is-zoom-out-limit': zoomOutAtLimit,
+                    'is-zoom-out-active': localSlider < 0,
+                    'is-zoom-in-active': localSlider > 0,
+                }"
+            >
+                <div class="vks-zoom-slider-track" aria-hidden="true">
+                    <div
+                        class="vks-zoom-slider-fill vks-zoom-slider-fill--out"
+                        :style="zoomOutFillStyle"
+                    ></div>
+                    <div
+                        class="vks-zoom-slider-fill vks-zoom-slider-fill--in"
+                        :style="zoomInFillStyle"
+                    ></div>
+                </div>
+                <input
+                    :id="zoomInputId"
+                    v-model.number="localSlider"
+                    type="range"
+                    class="vks-zoom-slider"
+                    :min="sliderMin"
+                    :max="sliderMax"
+                    :step="1"
+                    aria-label="Region zoom"
+                    @input="onZoomInput"
+                />
+            </div>
         </div>
         <div class="vks-viewport-actions">
             <button
@@ -43,9 +62,10 @@
 
 <script>
 import {
-    VKS_REGION_ZOOM_MIN,
-    VKS_REGION_ZOOM_MAX,
-    VKS_REGION_ZOOM_STEP,
+    VKS_REGION_ZOOM_SLIDER_MAX,
+    VKS_REGION_ZOOM_SLIDER_MIN,
+    sliderValueFromZoom,
+    zoomFromSliderValue,
 } from "./variantSifterRegionZoom.js";
 
 let zoomInputCounter = 0;
@@ -55,7 +75,15 @@ export default {
     props: {
         regionZoom: {
             type: Number,
-            default: VKS_REGION_ZOOM_MIN,
+            default: 0,
+        },
+        regionZoomOut: {
+            type: Number,
+            default: 0,
+        },
+        zoomOutAtLimit: {
+            type: Boolean,
+            default: false,
         },
         regionViewArea: {
             type: Number,
@@ -74,33 +102,76 @@ export default {
         zoomInputCounter += 1;
         return {
             zoomInputId: `vks-zoom-${zoomInputCounter}`,
-            localZoom: this.regionZoom,
+            localSlider: sliderValueFromZoom(this.regionZoom, this.regionZoomOut),
         };
     },
     computed: {
-        zoomMin() {
-            return VKS_REGION_ZOOM_MIN;
+        sliderMin() {
+            return this.zoomOutAtLimit ? 0 : VKS_REGION_ZOOM_SLIDER_MIN;
         },
-        zoomMax() {
-            return VKS_REGION_ZOOM_MAX;
+        sliderMax() {
+            return VKS_REGION_ZOOM_SLIDER_MAX;
         },
-        zoomStep() {
-            return VKS_REGION_ZOOM_STEP;
+        sliderPercent() {
+            const range = this.sliderMax - this.sliderMin;
+            if (!range) {
+                return 50;
+            }
+            return ((this.localSlider - this.sliderMin) / range) * 100;
+        },
+        zoomOutFillStyle() {
+            if (this.localSlider >= 0) {
+                return { width: "0%" };
+            }
+            const centerPct = ((0 - this.sliderMin) / (this.sliderMax - this.sliderMin)) * 100;
+            const thumbPct = this.sliderPercent;
+            return {
+                left: `${thumbPct}%`,
+                width: `${centerPct - thumbPct}%`,
+            };
+        },
+        zoomInFillStyle() {
+            if (this.localSlider <= 0) {
+                return { width: "0%" };
+            }
+            const centerPct = ((0 - this.sliderMin) / (this.sliderMax - this.sliderMin)) * 100;
+            const thumbPct = this.sliderPercent;
+            return {
+                left: `${centerPct}%`,
+                width: `${thumbPct - centerPct}%`,
+            };
         },
     },
     watch: {
-        regionZoom(value) {
-            this.localZoom = value;
+        regionZoom() {
+            this.syncLocalSlider();
+        },
+        regionZoomOut() {
+            this.syncLocalSlider();
+        },
+        zoomOutAtLimit(atLimit) {
+            if (atLimit && this.localSlider < 0) {
+                this.localSlider = 0;
+                this.emitZoomFromSlider();
+            }
         },
     },
     methods: {
+        syncLocalSlider() {
+            this.localSlider = sliderValueFromZoom(this.regionZoom, this.regionZoomOut);
+        },
         onZoomInput() {
             const next = Math.max(
-                this.zoomMin,
-                Math.min(this.zoomMax, Math.round(Number(this.localZoom) || 0))
+                this.sliderMin,
+                Math.min(this.sliderMax, Math.round(Number(this.localSlider) || 0))
             );
-            this.localZoom = next;
-            this.$emit("update:regionZoom", next);
+            this.localSlider = next;
+            this.emitZoomFromSlider();
+        },
+        emitZoomFromSlider() {
+            const { regionZoom, regionZoomOut } = zoomFromSliderValue(this.localSlider);
+            this.$emit("update:regionZoom", regionZoom);
+            this.$emit("update:regionZoomOut", regionZoomOut);
         },
     },
 };
@@ -131,12 +202,106 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
-.vks-zoom-slider {
-    width: 96px;
+.vks-zoom-slider-shell {
+    position: relative;
+    width: 132px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.vks-zoom-slider-track {
+    position: absolute;
+    left: 0;
+    right: 0;
     height: 8px;
+    border-radius: 999px;
+    background: #f3f1ec;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.vks-zoom-slider-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+}
+
+.vks-zoom-slider-fill--in {
+    background: var(--cfde-blue, #2c5c97);
+}
+
+.vks-zoom-slider-fill--out {
+    background: var(--cfde-orange, #e07b39);
+}
+
+.vks-zoom-slider-shell.is-zoom-out-limit .vks-zoom-slider-fill--out {
+    opacity: 0.28;
+}
+
+.vks-zoom-slider {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 20px;
     margin: 0;
-    accent-color: var(--cfde-blue, #2c5c97);
+    background: transparent;
     cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.vks-zoom-slider:focus-visible {
+    outline: 2px solid var(--cfde-orange, #e07b39);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.vks-zoom-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    background: transparent;
+}
+
+.vks-zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -3px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: var(--cfde-blue, #2c5c97);
+    box-shadow: 0 1px 4px rgba(20, 22, 30, 0.2);
+}
+
+.vks-zoom-slider-shell.is-zoom-out-active:not(.is-zoom-out-limit)
+    .vks-zoom-slider::-webkit-slider-thumb {
+    background: var(--cfde-orange, #e07b39);
+}
+
+.vks-zoom-slider-shell.is-zoom-out-active:not(.is-zoom-out-limit)
+    .vks-zoom-slider::-moz-range-thumb {
+    background: var(--cfde-orange, #e07b39);
+}
+
+.vks-zoom-slider-shell.is-zoom-out-limit .vks-zoom-slider::-webkit-slider-thumb {
+    background: #9a9a9a;
+}
+
+.vks-zoom-slider::-moz-range-track {
+    height: 8px;
+    background: transparent;
+    border: none;
+}
+
+.vks-zoom-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: var(--cfde-blue, #2c5c97);
+    box-shadow: 0 1px 4px rgba(20, 22, 30, 0.2);
 }
 
 .vks-viewport-actions {

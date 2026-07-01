@@ -179,6 +179,10 @@ import {
     lookupGeneMatches,
     resolveGeneOrVariantToRegion,
 } from "./variantSifterSearchUtils.js";
+import {
+    activeRegionDataLimitMessage,
+    regionExceedsActiveDataLimit,
+} from "./variantSifterRegionPan.js";
 
 let welcomeFieldCounter = 0;
 const GENE_LOOKUP_DEBOUNCE_MS = 200;
@@ -289,6 +293,9 @@ export default {
             if (values.regionExpandBp != null) {
                 this.regionExpandBp = values.regionExpandBp;
             }
+            if (values.errorMessage) {
+                this.errorMessage = values.errorMessage;
+            }
         },
         onDocumentClick(event) {
             if (!this.$el.contains(event.target)) {
@@ -393,6 +400,11 @@ export default {
                 if (!region) {
                     this.errorMessage =
                         "Could not resolve that gene, variant, or region. Check the format and try again.";
+                    return;
+                }
+
+                if (regionExceedsActiveDataLimit(region)) {
+                    this.errorMessage = activeRegionDataLimitMessage();
                     return;
                 }
 

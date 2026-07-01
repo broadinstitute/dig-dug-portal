@@ -3,9 +3,20 @@
         <canvas
             ref="canvas"
             class="vks-ld-region-plot-canvas"
+            :class="{ 'is-dot-hover': dotHover }"
             @mousemove="onMouseMove"
-            @mouseout="hideTooltip"
+            @mouseout="onMouseOut"
+            @click="onCanvasClick"
         ></canvas>
+        <VariantSifterVariantDotMenu
+            :open="dotMenuOpen"
+            :variant-id="dotMenuVariantId"
+            :is-starred="dotMenuIsStarred"
+            :anchor-x="dotMenuX"
+            :anchor-y="dotMenuY"
+            @set-reference="onDotMenuSetReference"
+            @toggle-star="onDotMenuToggleStar"
+        />
         <div ref="tooltip" class="vks-ld-region-plot-tooltip hidden"></div>
         <p v-if="loading" class="vks-ld-region-plot-status">Loading LD plot…</p>
         <p v-if="error" class="vks-ld-region-plot-error" role="alert">{{ error }}</p>
@@ -13,7 +24,9 @@
 </template>
 
 <script>
-import { fetchLdScoreMap, pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
+import { pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
+import { isVariantStarred, renderStarDot } from "./variantSifterPlotMarkers.js";
+import VariantSifterVariantDotMenu from "./VariantSifterVariantDotMenu.vue";
 import {
     VKS_PLOT_DISPLAY_HEIGHT,
     attachPlotResizeObserver,
@@ -30,9 +43,13 @@ import {
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
 } from "./variantSifterPlotShared.js";
+import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
 
 export default {
     name: "VariantSifterLdRegionPlot",
+    components: {
+        VariantSifterVariantDotMenu,
+    },
     props: {
         plotRows: {
             type: Array,
@@ -56,6 +73,13 @@ export default {
                 refVariant: null,
             }),
         },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
+            }),
+        },
         utils: {
             type: Object,
             default: null,
@@ -69,9 +93,23 @@ export default {
             refVariant: null,
             dotPositions: [],
             renderRetryTimer: null,
+            dotMenuOpen: false,
+            dotMenuRow: null,
+            dotMenuX: 0,
+            dotMenuY: 0,
+            dotHover: false,
         };
     },
     computed: {
+        starredVariants() {
+            return this.plotMarkers?.starredVariants || [];
+        },
+        dotMenuVariantId() {
+            return this.dotMenuRow?.["Variant ID"] || "";
+        },
+        dotMenuIsStarred() {
+            return isVariantStarred(this.starredVariants, this.dotMenuVariantId);
+        },
         margin() {
             return normalizePlotMargin(this.plotMargin);
         },
@@ -101,10 +139,17 @@ export default {
             },
             deep: true,
         },
+        plotMarkers: {
+            handler() {
+                this.renderPlot();
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.refreshPlot();
         window.addEventListener("resize", this.onResize);
+        document.addEventListener("mousedown", this.onDocumentMouseDown);
         this.resizeObserver = attachPlotResizeObserver(this, "container", () => {
             if (this.plotRows?.length && !this.loading) {
                 this.renderPlot();
@@ -113,6 +158,7 @@ export default {
     },
     beforeDestroy() {
         window.removeEventListener("resize", this.onResize);
+        document.removeEventListener("mousedown", this.onDocumentMouseDown);
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }
@@ -132,47 +178,24 @@ export default {
                 return;
             }
 
-            if (this.plotOverlaysState?.loading) {
-                this.loading = true;
-                this.error = null;
-                return;
-            }
-
-            this.loading = true;
-            this.error = null;
-
-            try {
-                const rowsMissingLd = this.plotRows.some(
-                    (row) => row.LDS == null || Number.isNaN(row.LDS)
-                );
-                if (rowsMissingLd) {
-                    const ldResult = await fetchLdScoreMap(
-                        this.plotRows,
-                        this.searchSession
-                    );
-                    this.ldScoreMap = ldResult.scoreMap;
-                    this.refVariant = ldResult.refVariant;
-                } else {
-                    this.ldScoreMap = new Map();
-                    const leadRow = pickLeadVariantRow(this.plotRows);
-                    this.refVariant = rowToLdVariant(leadRow);
+            this.renderWithAvailableOverlays();
+        },
+        renderWithAvailableOverlays() {
+            this.loading = false;
+            this.error = this.plotOverlaysState?.error || null;
+            this.ldScoreMap = new Map();
+            const leadRow = pickLeadVariantRow(this.plotRows);
+            this.refVariant =
+                this.plotOverlaysState?.refVariant || rowToLdVariant(leadRow);
+            this.$nextTick(() => {
+                this.renderPlot();
+                if (this.renderRetryTimer) {
+                    clearTimeout(this.renderRetryTimer);
                 }
-            } catch (error) {
-                this.error = error?.message || "Failed to load LD plot.";
-                this.ldScoreMap = new Map();
-                this.refVariant = null;
-            } finally {
-                this.loading = false;
-                this.$nextTick(() => {
+                this.renderRetryTimer = window.setTimeout(() => {
                     this.renderPlot();
-                    if (this.renderRetryTimer) {
-                        clearTimeout(this.renderRetryTimer);
-                    }
-                    this.renderRetryTimer = window.setTimeout(() => {
-                        this.renderPlot();
-                    }, 300);
-                });
-            }
+                }, 300);
+            });
         },
         applySnapshotOverlays() {
             this.loading = false;
@@ -260,6 +283,7 @@ export default {
                 const dotColor = getLdDotColor(ldScore);
                 const variantId = row["Variant ID"];
                 const isRef = variantId === this.refVariant;
+                const isStarred = isVariantStarred(this.starredVariants, variantId);
 
                 this.dotPositions.push({
                     x: xPos,
@@ -270,10 +294,65 @@ export default {
 
                 if (isRef) {
                     renderDiamond(ctx, xPos, yPos, dotColor);
+                } else if (isStarred) {
+                    renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {
                     renderPlotDot(ctx, xPos, yPos, dotColor);
                 }
             });
+        },
+        findDotAtCanvasPoint(x, y) {
+            return this.dotPositions.find(
+                (dot) => Math.hypot(dot.x - x, dot.y - y) <= VKS_DEFAULT_DOT_RADIUS + 4
+            );
+        },
+        closeDotMenu() {
+            this.dotMenuOpen = false;
+            this.dotMenuRow = null;
+        },
+        onDocumentMouseDown(event) {
+            if (!this.dotMenuOpen) {
+                return;
+            }
+            const menu = this.$el?.querySelector(".vks-variant-dot-menu");
+            if (menu?.contains(event.target)) {
+                return;
+            }
+            this.closeDotMenu();
+        },
+        onCanvasClick(event) {
+            const canvas = this.$refs.canvas;
+            if (!canvas) {
+                return;
+            }
+
+            const { x, y } = canvasPointerPosition(event, canvas);
+            const hit = this.findDotAtCanvasPoint(x, y);
+            if (!hit) {
+                return;
+            }
+
+            this.openDotMenu(hit.row, event.offsetX, event.offsetY);
+        },
+        openDotMenu(row, anchorX, anchorY) {
+            this.dotMenuRow = row;
+            this.dotMenuX = anchorX;
+            this.dotMenuY = anchorY;
+            this.dotMenuOpen = true;
+        },
+        onDotMenuSetReference() {
+            const row = this.dotMenuRow;
+            this.closeDotMenu();
+            if (row) {
+                this.$emit("set-reference-variant", row);
+            }
+        },
+        onDotMenuToggleStar() {
+            const row = this.dotMenuRow;
+            this.closeDotMenu();
+            if (row) {
+                this.$emit("toggle-star-variant", row);
+            }
         },
         onMouseMove(event) {
             const canvas = this.$refs.canvas;
@@ -283,9 +362,12 @@ export default {
             }
 
             const { x, y } = canvasPointerPosition(event, canvas);
-            const hit = this.dotPositions.find(
-                (dot) => Math.hypot(dot.x - x, dot.y - y) <= VKS_DEFAULT_DOT_RADIUS + 4
-            );
+            const hit = this.findDotAtCanvasPoint(x, y);
+
+            const isHovering = Boolean(hit);
+            if (this.dotHover !== isHovering) {
+                this.dotHover = isHovering;
+            }
 
             if (!hit) {
                 this.hideTooltip();
@@ -299,8 +381,18 @@ export default {
                 `-log10(P): ${row["-log10(P-Value)"] ?? ""}`,
             ].join("<br />");
             tooltip.classList.remove("hidden");
-            tooltip.style.left = `${event.offsetX + 12}px`;
-            tooltip.style.top = `${event.offsetY + 12}px`;
+            this.$nextTick(() => {
+                positionAnchoredPopupElement(
+                    tooltip,
+                    event.offsetX,
+                    event.offsetY,
+                    this.$refs.container
+                );
+            });
+        },
+        onMouseOut() {
+            this.dotHover = false;
+            this.hideTooltip();
         },
         hideTooltip() {
             const tooltip = this.$refs.tooltip;
@@ -315,12 +407,16 @@ export default {
 <style scoped>
 .vks-ld-region-plot {
     position: relative;
-    padding: 4px;
+    padding: 4px 0;
 }
 
 .vks-ld-region-plot-canvas {
     display: block;
     width: 100%;
+}
+
+.vks-ld-region-plot-canvas.is-dot-hover {
+    cursor: pointer;
 }
 
 .vks-ld-region-plot-tooltip {

@@ -164,15 +164,20 @@ export async function fetchRecombinationRate(region) {
         " and position lt " +
         region.end;
 
-    const signalJson = await fetch(signalURL).then((response) => response.json());
-    if (signalJson?.error != null || !signalJson?.data?.position) {
+    try {
+        const signalJson = await fetch(signalURL).then((response) => response.json());
+        if (signalJson?.error != null || !signalJson?.data?.position) {
+            return null;
+        }
+
+        return {
+            position: signalJson.data.position,
+            recomb_rate: signalJson.data.recomb_rate,
+        };
+    } catch (error) {
+        console.warn("Variant Sifter recombination rate fetch failed", error);
         return null;
     }
-
-    return {
-        position: signalJson.data.position,
-        recomb_rate: signalJson.data.recomb_rate,
-    };
 }
 
 export function renderDiamond(ctx, xPos, yPos, color) {
@@ -347,7 +352,8 @@ export function renderPlotAxis(ctx, options) {
         }
     }
 
-    const xStep = type === "asso" ? Math.ceil((xMax - xMin) / 5) : 0.2;
+    const xStep =
+        type === "asso" || type === "cs" ? Math.ceil((xMax - xMin) / 5) : 0.2;
     const xTickDistance = plotWidth / 5;
     for (let i = 0; i < 6; i += 1) {
         const tickXPos = margin.left + i * xTickDistance;
@@ -358,7 +364,7 @@ export function renderPlotAxis(ctx, options) {
 
         ctx.textAlign = "center";
         let positionLabel = formatAxisTickValue(xMin + i * xStep, xDecimal, utils);
-        if (type === "asso" && Number(positionLabel) >= 100000) {
+        if ((type === "asso" || type === "cs") && Number(positionLabel) >= 100000) {
             positionLabel = `${Math.round(Number(positionLabel) * 0.001)}k`;
         }
         ctx.fillText(
@@ -385,11 +391,13 @@ export function renderPlotAxis(ctx, options) {
     }
 
     ctx.rotate((-Math.PI * 3) / 2);
-    ctx.fillText(
-        xAxisLabel,
-        plotWidth / 2 + margin.left,
-        margin.top + margin.bottom + plotHeight - 24
-    );
+    if (xAxisLabel) {
+        ctx.fillText(
+            xAxisLabel,
+            plotWidth / 2 + margin.left,
+            margin.top + margin.bottom + plotHeight - 24
+        );
+    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 

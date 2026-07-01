@@ -17,6 +17,7 @@
                         :rows="associationPlotRows"
                         :loading="associationsState.loading"
                         :ld-loading="associationsState.ldLoading"
+                        :ld-error="associationsState.ldError"
                         :error="associationsState.error"
                         :search-session="searchSession"
                         :region-zoom="regionZoom"
@@ -27,6 +28,9 @@
                         :genes-state="genesState"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
+                        :credible-sets-state="credibleSetsState"
+                        :credible-set-colors="credibleSetColors"
+                        :credible-set-pill-colors="credibleSetPillColors"
                         :utils="utils"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
@@ -34,15 +38,6 @@
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
-                    />
-                    <VariantSifterCredibleSetsPlot
-                        v-else-if="section.id === 'credible-sets'"
-                        :key="section.id"
-                        :selected-sets="credibleSetsTrackData"
-                        :color-by-set-id="credibleSetColors"
-                        :search-session="searchSession"
-                        :view-region="viewRegion"
-                        :plot-markers="plotMarkers"
                     />
                     <VariantSifterTrackStrip
                         v-else
@@ -60,11 +55,12 @@
                 :plot-overlays-state="plotOverlaysState"
                 :plot-markers="plotMarkers"
                 :credible-sets-state="credibleSetsState"
-                :credible-set-colors="credibleSetColors"
+                :credible-set-pill-colors="credibleSetPillColors"
                 :utils="utils"
                 @toggle-drawer="onToggleDrawer"
                 @update:associationsFiltersIndex="$emit('update:associationsFiltersIndex', $event)"
                 @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                @set-reference-variant="$emit('set-reference-variant', $event)"
                 @add-credible-set="$emit('add-credible-set', $event)"
                 @remove-credible-set="$emit('remove-credible-set', $event)"
             />
@@ -90,14 +86,11 @@ import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight, sectionHasCanvasTrack } from "./variantSifterSections.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 
-import VariantSifterCredibleSetsPlot from "./VariantSifterCredibleSetsPlot.vue";
-
 export default {
     name: "VariantSifterCanvas",
     components: {
         VariantSifterTrackStrip,
         VariantSifterAssociationsPlot,
-        VariantSifterCredibleSetsPlot,
         VariantSifterSectionDrawers,
         VariantSifterDataTableModal,
         VariantSifterWelcomePanel,
@@ -214,6 +207,10 @@ export default {
             type: Object,
             default: () => ({}),
         },
+        credibleSetPillColors: {
+            type: Object,
+            default: () => ({}),
+        },
     },
     computed: {
         starredVariantIds() {
@@ -239,22 +236,10 @@ export default {
             const { rows, loading } = this.associationsState;
             return !loading && Array.isArray(rows) && rows.length > 0;
         },
-        hasSelectedCredibleSets() {
-            return (this.credibleSetsState?.selectedIds || []).length > 0;
-        },
-        credibleSetsTrackData() {
-            return (this.credibleSetsState?.selectedIds || []).map((credibleSetId) => ({
-                credibleSetId,
-                variants:
-                    this.credibleSetsState?.variantsBySet?.[credibleSetId]?.rawVariants ||
-                    [],
-            }));
-        },
         canvasTrackSections() {
             return this.sections.filter((section) =>
                 sectionHasCanvasTrack(section, {
                     hasAssociationData: this.hasAssociationData,
-                    hasSelectedCredibleSets: this.hasSelectedCredibleSets,
                 })
             );
         },

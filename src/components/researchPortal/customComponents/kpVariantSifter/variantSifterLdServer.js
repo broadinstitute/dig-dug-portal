@@ -206,21 +206,20 @@ export async function fetchLdScoreMapForRefRow(refRow, session, region) {
         region,
     });
 
-    const ldJson = await fetch(ldUrl).then((response) => response.json());
-    if (ldJson?.error != null) {
-        throw new Error(ldJson.error || "LD server request failed");
-    }
+    try {
+        const ldJson = await fetch(ldUrl).then((response) => response.json());
+        if (ldJson?.error != null || !ldJson?.data?.variant1?.length) {
+            return { scoreMap: new Map(), refVariant };
+        }
 
-    if (!ldJson?.data?.variant1?.length) {
-        throw new Error(
-            `LD server did not recognize reference variant "${refVariant}".`
-        );
+        return {
+            scoreMap: buildLdScoreMap(ldJson),
+            refVariant,
+        };
+    } catch (error) {
+        console.warn("Variant Sifter LD score fetch failed", error);
+        return { scoreMap: new Map(), refVariant };
     }
-
-    return {
-        scoreMap: buildLdScoreMap(ldJson),
-        refVariant,
-    };
 }
 
 export async function enrichAssociationRowsWithLdScoresForRef(rows, session, refRow, region) {

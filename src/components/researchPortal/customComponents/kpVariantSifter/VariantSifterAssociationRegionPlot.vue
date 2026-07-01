@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import { fetchLdScoreMap, pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
+import { pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
 import {
     canvasXToGenomicPosition,
     genomicPositionToCanvasX,
@@ -98,7 +98,6 @@ import {
     attachPlotResizeObserver,
     canvasPointerPosition,
     computeNegLog10Extents,
-    fetchRecombinationRate,
     getLdDotColor,
     getInternalPlotHeight,
     measureAssociationCanvasWidth,
@@ -111,6 +110,7 @@ import {
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
 } from "./variantSifterPlotShared.js";
+import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
 
 export default {
     name: "VariantSifterAssociationRegionPlot",
@@ -150,6 +150,10 @@ export default {
         regionViewArea: {
             type: Number,
             default: 0,
+        },
+        viewRegion: {
+            type: Object,
+            default: null,
         },
         plotOverlaysState: {
             type: Object,
@@ -222,6 +226,9 @@ export default {
             return computeNegLog10Extents(this.plotRows);
         },
         visibleRegion() {
+            if (this.viewRegion) {
+                return this.viewRegion;
+            }
             return computeViewRegion(
                 this.region,
                 this.regionShiftBp,
@@ -267,6 +274,12 @@ export default {
         },
         regionViewArea() {
             this.renderPlot();
+        },
+        viewRegion: {
+            handler() {
+                this.renderPlot();
+            },
+            deep: true,
         },
         sharedCanvasWidth() {
             this.renderPlot();
@@ -314,45 +327,19 @@ export default {
                 return;
             }
 
-            if (this.plotOverlaysState?.loading) {
-                this.loading = true;
-                this.error = null;
-                return;
-            }
-
-            this.loading = true;
-            this.error = null;
-
-            try {
-                const recombData = await fetchRecombinationRate(this.region);
-                this.recombData = recombData;
-
-                const rowsMissingLd = this.plotRows.some(
-                    (row) => row.LDS == null || Number.isNaN(row.LDS)
-                );
-                if (rowsMissingLd) {
-                    const ldResult = await fetchLdScoreMap(
-                        this.plotRows,
-                        this.searchSession
-                    );
-                    this.ldScoreMap = ldResult.scoreMap;
-                    this.refVariant = ldResult.refVariant;
-                } else {
-                    this.ldScoreMap = new Map();
-                    const leadRow = pickLeadVariantRow(this.plotRows);
-                    this.refVariant = rowToLdVariant(leadRow);
-                }
-            } catch (error) {
-                this.error = error?.message || "Failed to load plot overlays.";
-                this.recombData = null;
-                this.ldScoreMap = new Map();
-                this.refVariant = null;
-            } finally {
-                this.loading = false;
-                this.$nextTick(() => {
-                    this.renderPlot();
-                });
-            }
+            this.renderWithAvailableOverlays();
+        },
+        renderWithAvailableOverlays() {
+            this.loading = false;
+            this.error = this.plotOverlaysState?.error || null;
+            this.recombData = this.plotOverlaysState?.recombData || null;
+            this.ldScoreMap = new Map();
+            const leadRow = pickLeadVariantRow(this.plotRows);
+            this.refVariant =
+                this.plotOverlaysState?.refVariant || rowToLdVariant(leadRow);
+            this.$nextTick(() => {
+                this.renderPlot();
+            });
         },
         applySnapshotOverlays() {
             this.loading = false;
@@ -597,8 +584,8 @@ export default {
         },
         openDotMenu(row, anchorX, anchorY) {
             this.dotMenuRow = row;
-            this.dotMenuX = anchorX + 12;
-            this.dotMenuY = anchorY + 12;
+            this.dotMenuX = anchorX;
+            this.dotMenuY = anchorY;
             this.dotMenuOpen = true;
         },
         onDotMenuSetReference() {
@@ -735,8 +722,14 @@ export default {
                 .filter(Boolean)
                 .join("<br />");
             tooltip.classList.remove("hidden");
-            tooltip.style.left = `${event.offsetX + 12}px`;
-            tooltip.style.top = `${event.offsetY + 12}px`;
+            this.$nextTick(() => {
+                positionAnchoredPopupElement(
+                    tooltip,
+                    event.offsetX,
+                    event.offsetY,
+                    this.$refs.container
+                );
+            });
         },
         hideTooltip() {
             const tooltip = this.$refs.tooltip;

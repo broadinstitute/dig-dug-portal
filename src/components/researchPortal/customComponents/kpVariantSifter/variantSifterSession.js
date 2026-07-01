@@ -1,6 +1,6 @@
 import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociationsFilters.js";
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
-import { regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
+import { clampRegionZoomOut, regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
 
 export const VKS_SESSION_VERSION = 5;
@@ -57,6 +57,7 @@ export function exportVariantSifterSession({
     plotMarkersState = null,
     credibleSetsState = null,
     regionZoom = 0,
+    regionZoomOut = 0,
     regionViewArea = 0,
     viewOffsetBp = 0,
     regionShiftBp = viewOffsetBp,
@@ -120,6 +121,7 @@ export function exportVariantSifterSession({
             : null,
         ui: {
             regionZoom,
+            regionZoomOut,
             regionViewArea,
             viewOffsetBp: regionShiftBp,
             regionShiftBp,
@@ -369,6 +371,8 @@ export function importVariantSifterSession(payload, phenotypes = []) {
     const ui = payload.ui || {};
     const regionZoom =
         typeof ui.regionZoom === "number" ? clampRegionZoom(ui.regionZoom) : 0;
+    const regionZoomOut =
+        typeof ui.regionZoomOut === "number" ? clampRegionZoomOut(ui.regionZoomOut) : 0;
     const regionViewArea =
         typeof ui.regionViewArea === "number"
             ? clampRegionViewArea(ui.regionViewArea)
@@ -400,6 +404,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         plotMarkersState: normalizePlotMarkersState(payload),
         credibleSetsState: normalizeCredibleSetsState(payload),
         regionZoom,
+        regionZoomOut,
         regionViewArea,
         regionShiftBp,
         viewOffsetBp: regionShiftBp,

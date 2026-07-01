@@ -193,5 +193,6 @@ export default {
 .vks-genes-track-canvas {
     display: block;
     width: 100%;
+    pointer-events: none;
 }
 </style>

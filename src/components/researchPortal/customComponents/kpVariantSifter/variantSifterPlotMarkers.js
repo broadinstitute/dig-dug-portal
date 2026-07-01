@@ -1,6 +1,11 @@
 import plotUtils from "@/utils/plotUtils.js";
 import { normalizePlotMargin } from "./variantSifterPlotShared.js";
 
+export const VKS_STAR_DOT_SCALE = 1.25;
+const VKS_STAR_DOT_INNER = 5 * VKS_STAR_DOT_SCALE;
+const VKS_STAR_DOT_OUTER = 10 * VKS_STAR_DOT_SCALE;
+const VKS_STAR_DOT_SPIKE = 6 * VKS_STAR_DOT_SCALE;
+
 export const VKS_STAR_LINE_COLOR = "#FFAA0088";
 export const VKS_POSITION_MARKER_COLOR = "#ff0000";
 
@@ -197,5 +202,14 @@ export function renderPlotMarkerLines(ctx, options) {
 }
 
 export function renderStarDot(ctx, xPos, yPos, color) {
-    plotUtils.renderStar(ctx, xPos, yPos, 5, 10, 6, color, color);
+    plotUtils.renderStar(
+        ctx,
+        xPos,
+        yPos,
+        VKS_STAR_DOT_INNER,
+        VKS_STAR_DOT_OUTER,
+        VKS_STAR_DOT_SPIKE,
+        color,
+        color
+    );
 }

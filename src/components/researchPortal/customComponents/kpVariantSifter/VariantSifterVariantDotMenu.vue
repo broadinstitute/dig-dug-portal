@@ -1,6 +1,7 @@
 <template>
     <div
         v-if="open"
+        ref="menu"
         class="vks-variant-dot-menu"
         :style="menuStyle"
         role="menu"
@@ -17,6 +18,11 @@
 </template>
 
 <script>
+import {
+    clampAnchoredPopupPosition,
+    resolvePopupContainerBounds,
+} from "./variantSifterPopupPosition.js";
+
 export default {
     name: "VariantSifterVariantDotMenu",
     props: {
@@ -41,12 +47,52 @@ export default {
             default: 0,
         },
     },
+    data() {
+        return {
+            clampedX: 0,
+            clampedY: 0,
+        };
+    },
     computed: {
         menuStyle() {
             return {
-                left: `${this.anchorX}px`,
-                top: `${this.anchorY}px`,
+                left: `${this.clampedX}px`,
+                top: `${this.clampedY}px`,
             };
+        },
+    },
+    watch: {
+        open(isOpen) {
+            if (isOpen) {
+                this.updateClampedPosition();
+            }
+        },
+        anchorX() {
+            this.updateClampedPosition();
+        },
+        anchorY() {
+            this.updateClampedPosition();
+        },
+        isStarred() {
+            this.updateClampedPosition();
+        },
+    },
+    methods: {
+        updateClampedPosition() {
+            this.$nextTick(() => {
+                const menu = this.$refs.menu;
+                const bounds = resolvePopupContainerBounds(menu);
+                const { x, y } = clampAnchoredPopupPosition({
+                    containerWidth: bounds.width,
+                    containerHeight: bounds.height,
+                    anchorX: this.anchorX,
+                    anchorY: this.anchorY,
+                    popupWidth: menu?.offsetWidth || 216,
+                    popupHeight: menu?.offsetHeight || 100,
+                });
+                this.clampedX = x;
+                this.clampedY = y;
+            });
         },
     },
 };

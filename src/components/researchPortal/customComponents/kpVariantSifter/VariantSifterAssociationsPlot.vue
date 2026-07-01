@@ -1,9 +1,13 @@
 <template>
     <div class="vks-associations-plot">
-        <div v-if="loading" class="vks-associations-plot-status">
+        <div v-if="loading && !plotData" class="vks-associations-plot-status">
             Loading associations…
         </div>
-        <div v-else-if="error" class="vks-associations-plot-error" role="alert">
+        <div
+            v-else-if="error && !plotData"
+            class="vks-associations-plot-error"
+            role="alert"
+        >
             {{ error }}
         </div>
         <div v-else-if="!plotData" class="vks-associations-plot-status">
@@ -32,6 +36,25 @@
                     @toggle-star-variant="$emit('toggle-star-variant', $event)"
                     @set-reference-variant="$emit('set-reference-variant', $event)"
                 />
+                <VariantSifterCredibleSetsTrack
+                    v-if="hasSelectedCredibleSets"
+                    :selected-sets="credibleSetsTrackData"
+                    :color-by-set-id="credibleSetColors"
+                    :region="searchSession?.region"
+                    :view-region="viewRegion"
+                    :region-zoom="regionZoom"
+                    :region-shift-bp="regionShiftBp"
+                    :region-view-area="regionViewArea"
+                    :search-session="searchSession"
+                    :shared-canvas-width="stackCanvasWidth"
+                    :plot-markers="plotMarkers"
+                    :utils="utils"
+                    @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                    @pan-end="$emit('pan-end')"
+                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                    @set-reference-variant="$emit('set-reference-variant', $event)"
+                />
                 <VariantSifterGenesTrack
                     :key="genesTrackKey"
                     :genes="genesTrackData"
@@ -49,12 +72,16 @@
             <p v-else-if="ldLoading" class="vks-associations-plot-note">
                 Loading LD scores for table…
             </p>
+            <p v-else-if="ldError" class="vks-associations-plot-note">
+                {{ ldError }}
+            </p>
         </template>
     </div>
 </template>
 
 <script>
 import VariantSifterGenesTrack from "./VariantSifterGenesTrack.vue";
+import VariantSifterCredibleSetsTrack from "./VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "./VariantSifterAssociationRegionPlot.vue";
 import { associationRowsToPlotData } from "./variantSifterAssociationsPlotData.js";
 import {
@@ -69,6 +96,7 @@ export default {
     name: "VariantSifterAssociationsPlot",
     components: {
         VariantSifterGenesTrack,
+        VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
     },
     data() {
@@ -88,6 +116,10 @@ export default {
         ldLoading: {
             type: Boolean,
             default: false,
+        },
+        ldError: {
+            type: String,
+            default: null,
         },
         error: {
             type: String,
@@ -151,6 +183,17 @@ export default {
             type: Object,
             default: null,
         },
+        credibleSetsState: {
+            type: Object,
+            default: () => ({
+                selectedIds: [],
+                variantsBySet: {},
+            }),
+        },
+        credibleSetColors: {
+            type: Object,
+            default: () => ({}),
+        },
     },
     computed: {
         plotData() {
@@ -187,12 +230,31 @@ export default {
             }
             return parts.filter(Boolean).join(" · ");
         },
+        hasSelectedCredibleSets() {
+            return (this.credibleSetsState?.selectedIds || []).length > 0;
+        },
+        credibleSetsTrackData() {
+            return (this.credibleSetsState?.selectedIds || []).map((credibleSetId) => {
+                const setState = this.credibleSetsState?.variantsBySet?.[credibleSetId];
+                return {
+                    credibleSetId,
+                    variants: setState?.rawVariants || [],
+                    formattedVariants: setState?.formattedVariants || [],
+                };
+            });
+        },
     },
     watch: {
         plotData(hasData) {
             if (hasData?.length) {
                 this.$nextTick(() => this.updateStackCanvasWidth());
             }
+        },
+        selectedSets: {
+            handler() {
+                this.$nextTick(() => this.updateStackCanvasWidth());
+            },
+            deep: true,
         },
         loading(isLoading) {
             if (!isLoading) {
@@ -236,6 +298,7 @@ export default {
 .vks-associations-plot-stack {
     min-height: 280px;
     padding: 0 8px;
+    position: relative;
 }
 
 .vks-associations-plot-status,

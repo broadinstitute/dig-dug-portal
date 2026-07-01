@@ -51,7 +51,7 @@ export function sectionById(sectionId) {
  */
 export function sectionHasCanvasTrack(
     section,
-    { hasAssociationData = false, hasSelectedCredibleSets = false } = {}
+    { hasAssociationData = false } = {}
 ) {
     if (!section) {
         return false;
@@ -60,7 +60,7 @@ export function sectionHasCanvasTrack(
         return true;
     }
     if (section.id === "credible-sets") {
-        return section.trackImplemented === true && hasSelectedCredibleSets;
+        return false;
     }
     if (section.trackImplemented !== true) {
         return false;

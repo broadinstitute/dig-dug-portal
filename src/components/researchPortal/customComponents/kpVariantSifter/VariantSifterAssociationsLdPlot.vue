@@ -5,7 +5,10 @@
             :search-session="searchSession"
             :plot-overlays-state="plotOverlaysState"
             :plot-margin="plotMargin"
+            :plot-markers="plotMarkers"
             :utils="utils"
+            @toggle-star-variant="$emit('toggle-star-variant', $event)"
+            @set-reference-variant="$emit('set-reference-variant', $event)"
         />
     </div>
 </template>
@@ -39,6 +42,13 @@ export default {
                 refVariant: null,
             }),
         },
+        plotMarkers: {
+            type: Object,
+            default: () => ({
+                starredVariants: [],
+                positionMarkers: [],
+            }),
+        },
         utils: {
             type: Object,
             default: null,
@@ -58,9 +68,5 @@ export default {
 <style scoped>
 .vks-assoc-ld-plot {
     margin-bottom: 10px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 8px;
-    overflow: hidden;
-    background: #ffffff;
 }
 </style>

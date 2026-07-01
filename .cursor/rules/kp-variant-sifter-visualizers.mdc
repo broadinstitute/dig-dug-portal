@@ -16,12 +16,14 @@ When adding a new visualizer or track to KP Variant Sifter, **create a new compo
 - Reuse shared VS utilities: `variantSifterPlotShared.js`, `variantSifterRegionZoom.js`, `VARIANT_SIFTER_PLOT_MARGIN`
 - Accept `sharedCanvasWidth` from the plot stack so x-axis alignment stays correct
 - Accept `plotMarkers` (`starredVariants`, `positionMarkers`) and call `renderPlotMarkerLines()` from `variantSifterPlotMarkers.js` after the main draw so stars and position pins align across tracks
+- Clamp dot menus and tooltips inside their plot container via `variantSifterPopupPosition.js` so popups never render under drawer tabs or off-screen
 
 ## Do not
 
 - Modify `ResearchGenesTrack.vue`, `ResearchRegionPlot.vue`, or other legacy `researchPortal/` visualizers for VS features
 - Add VS-specific props or layout hacks to shared portal components
 - Fork behavior inside an existing VS visualizer when the feature is a distinct track/section — give it its own component
+- Add decorative borders around sections, tracks, or plots unless structurally required (e.g. drawer chrome, floating menus, modal frames). Canvas plots and drawer content areas should be borderless by default.
 
 ## Examples
 

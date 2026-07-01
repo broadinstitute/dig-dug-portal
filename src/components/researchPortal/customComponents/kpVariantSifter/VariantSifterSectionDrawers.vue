@@ -31,14 +31,16 @@
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
                         :plot-overlays-state="plotOverlaysState"
+                        :plot-markers="plotMarkers"
                         :starred-variant-ids="starredVariantIds"
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
                     <VariantSifterCredibleSetsDrawer
                         v-else-if="openSection.id === 'credible-sets'"
                         :credible-sets-state="credibleSetsState"
-                        :color-by-set-id="credibleSetColors"
+                        :color-by-set-id="credibleSetPillColors"
                         :utils="utils"
                         @add-set="$emit('add-credible-set', $event)"
                         @remove-set="$emit('remove-credible-set', $event)"
@@ -145,7 +147,7 @@ export default {
                 variantsError: null,
             }),
         },
-        credibleSetColors: {
+        credibleSetPillColors: {
             type: Object,
             default: () => ({}),
         },

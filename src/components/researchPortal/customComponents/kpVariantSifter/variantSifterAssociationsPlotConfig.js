@@ -8,6 +8,15 @@ export const VARIANT_SIFTER_PLOT_MARGIN = {
     bump: 11,
 };
 
+/** Compact margin for the credible-sets track nested in the associations stack. */
+export const VARIANT_SIFTER_CS_TRACK_MARGIN = {
+    leftMargin: 150,
+    rightMargin: 80,
+    topMargin: 28,
+    bottomMargin: 52,
+    bump: 11,
+};
+
 export const VARIANT_SIFTER_PLOT_COLORS = [
     "#007bff",
     "#048845",
