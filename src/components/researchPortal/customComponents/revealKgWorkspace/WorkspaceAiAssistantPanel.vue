@@ -98,18 +98,27 @@
                             : 'wkb-assistant-message--assistant',
                         entry.isClarify ? 'wkb-assistant-message--clarify' : '',
                         entry.isStepResult ? 'wkb-assistant-message--step-result' : '',
+                        entry.isStepError ? 'wkb-assistant-message--step-error' : '',
                     ]"
                 >
                     <span class="wkb-assistant-message-label">
                         {{
                             entry.role === "user"
                                 ? "You"
-                                : entry.isStepResult
-                                  ? "Step"
-                                  : "Assistant"
+                                : entry.isStepError
+                                  ? "Step failed"
+                                  : entry.isStepResult
+                                    ? "Step"
+                                    : "Assistant"
                         }}
                     </span>
+                    <p v-if="entry.isStepError && entry.stepLabel" class="wkb-assistant-step-error-label">
+                        {{ entry.stepLabel }}
+                    </p>
                     <p>{{ entry.text }}</p>
+                    <p v-if="entry.isStepError && entry.resolution" class="wkb-assistant-step-error-resolution">
+                        <strong>What to do:</strong> {{ entry.resolution }}
+                    </p>
                     <p v-if="entry.workflowLink" class="wkb-assistant-workflow-cta">
                         <a
                             class="wkb-assistant-workflow-link"
@@ -500,7 +509,13 @@ export default {
                 return false;
             }
             const last = this.threadEntries[this.threadEntries.length - 1];
-            return !(last?.role === "assistant" && last.isClarify && last.text === this.error);
+            if (last?.role === "assistant" && last.isClarify && last.text === this.error) {
+                return false;
+            }
+            if (last?.role === "assistant" && last.isStepError && last.text === this.error) {
+                return false;
+            }
+            return true;
         },
         showAutocomplete() {
             return this.autocompleteSuggestions.length > 0 && this.activeTab === "request";
@@ -813,6 +828,26 @@ export default {
             ];
             this.scrollMessagePanelToEnd();
         },
+        appendStepError(step, { message = "", resolution = "", stepLabel = "" } = {}) {
+            const errorMessage = String(message || "").trim();
+            if (!errorMessage) {
+                return;
+            }
+            entryCounter += 1;
+            this.threadEntries = [
+                ...this.threadEntries,
+                {
+                    id: `step-error-${entryCounter}`,
+                    role: "assistant",
+                    text: errorMessage,
+                    isStepError: true,
+                    stepLabel: String(step?.label || stepLabel || "Assistant step").trim(),
+                    resolution: String(resolution || "").trim(),
+                },
+            ];
+            this.activeTab = "request";
+            this.scrollMessagePanelToEnd();
+        },
         replacePendingAssistantMessage(text, { isClarify = false, workflowLink = null } = {}) {
             const last = this.threadEntries[this.threadEntries.length - 1];
             if (last?.role === "assistant" && last.pending) {
@@ -1076,6 +1111,32 @@ export default {
 
 .wkb-assistant-message--clarify .wkb-assistant-message-label {
     color: #a34b2d;
+}
+
+.wkb-assistant-message--step-error {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fdf6f0;
+    border: 1px solid #ecd9c8;
+}
+
+.wkb-assistant-message--step-error .wkb-assistant-message-label {
+    color: #a34b2d;
+}
+
+.wkb-assistant-step-error-label {
+    margin: 4px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-assistant-step-error-resolution {
+    margin: 8px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-ink, #33363d);
 }
 
 .wkb-assistant-clarify {

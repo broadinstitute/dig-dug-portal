@@ -199,6 +199,61 @@ function queryMentionsContextualEdges(userQuery) {
     return /\bcontextual\s+edges?\b/i.test(String(userQuery || ""));
 }
 
+const NOVELTY_FILTER_ACTIONS = new Set(["expand_graph", "filter_graph", "build_hypotheses"]);
+
+/** Map "novel" / "known" language in the user query to novelty filter options. */
+export function parseNoveltyOptionsFromQuery(userQuery) {
+    const query = String(userQuery || "");
+    if (/\b(?:known\s+and\s+novel|novel\s+and\s+known)\b/i.test(query)) {
+        return null;
+    }
+    if (/\bonly\s+novel\b/i.test(query)) {
+        return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
+    }
+    if (/\bnovel(?:ty)?\s+only\b/i.test(query)) {
+        return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
+    }
+    if (/\bknown\s+only\b/i.test(query)) {
+        return { filter_type: "novelty", novelty_known: true, novelty_novel: false };
+    }
+    const stripped = query.replace(/\bwell[\s-]known\b/gi, "");
+    const hasNovel = /\bnovel(?:ty)?\b/i.test(stripped);
+    const hasKnown = /\bknown\b/i.test(stripped);
+    if (hasNovel && !hasKnown) {
+        return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
+    }
+    if (hasKnown && !hasNovel) {
+        return { filter_type: "novelty", novelty_known: true, novelty_novel: false };
+    }
+    if (hasNovel && hasKnown) {
+        return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
+    }
+    return null;
+}
+
+function applyNoveltyOptionsFromQuery(action, options, userQuery) {
+    if (!NOVELTY_FILTER_ACTIONS.has(action)) {
+        return;
+    }
+    const novelty = parseNoveltyOptionsFromQuery(userQuery);
+    if (!novelty) {
+        return;
+    }
+    if (options.novelty_known === undefined) {
+        options.novelty_known = novelty.novelty_known;
+    }
+    if (options.novelty_novel === undefined) {
+        options.novelty_novel = novelty.novelty_novel;
+    }
+    if (
+        action === "filter_graph" ||
+        !options.filter_type ||
+        options.filter_type === "none"
+    ) {
+        options.filter_type = novelty.filter_type;
+    }
+}
+
 function queryWantsHide(userQuery) {
     return /\b(hide|turn off|disable)\b/i.test(String(userQuery || ""));
 }
@@ -709,6 +764,8 @@ function repairStepOptions(step, userQuery, sessionContext) {
             options.open = false;
         }
     }
+
+    applyNoveltyOptionsFromQuery(action, options, query);
 
     if (action === "open_expand_panel" && wantsSelectedScope(query)) {
         step = {

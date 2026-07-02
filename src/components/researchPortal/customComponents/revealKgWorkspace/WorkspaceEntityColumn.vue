@@ -125,6 +125,8 @@
                             <button
                                 type="button"
                                 class="wkb-entity-suggestion"
+                                :class="{ 'is-added': isAlreadySelected(item) }"
+                                :aria-disabled="isAlreadySelected(item)"
                                 @click="addItem(item)"
                             >
                                 <strong>{{ displayLabel(item) }}</strong>
@@ -171,6 +173,8 @@
                             <button
                                 type="button"
                                 class="wkb-entity-suggestion"
+                                :class="{ 'is-added': isAlreadySelected(item) }"
+                                :aria-disabled="isAlreadySelected(item)"
                                 @click="addItem(item)"
                             >
                                 <strong>{{ displayLabel(item) }}</strong>
@@ -189,6 +193,8 @@
                             <button
                                 type="button"
                                 class="wkb-entity-suggestion"
+                                :class="{ 'is-added': isAlreadySelected(item) }"
+                                :aria-disabled="isAlreadySelected(item)"
                                 @click="addItem(item)"
                             >
                                 <strong>{{ displayLabel(item) }}</strong>
@@ -212,6 +218,7 @@
 <script>
 import {
     anchorChipShouldShowSubtitle,
+    catalogItemAlreadyAdded,
     formatEntityDisplayLabel,
     formatEntitySearchSubtitle,
     interactiveEntityKey,
@@ -392,11 +399,10 @@ export default {
             this.selectedFeedbackMessage = "";
         },
         isAlreadySelected(item) {
-            const nodeId = item?.node_id || item?.id;
-            if (!nodeId) {
-                return false;
-            }
-            return this.items.some((entry) => entry.node_id === nodeId);
+            return catalogItemAlreadyAdded(
+                item,
+                (this.items || []).map((entry) => entry.node_id)
+            );
         },
         showSelectedFeedback(message) {
             this.clearSelectedFeedback();
@@ -798,6 +804,15 @@ export default {
 
 .wkb-entity-suggestion:hover {
     background: var(--cfde-orange-soft, #fbeee3);
+}
+
+.wkb-entity-suggestion.is-added {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.wkb-entity-suggestion.is-added:hover {
+    background: var(--cfde-bg, #f6f5f2);
 }
 
 .wkb-entity-suggestion strong {

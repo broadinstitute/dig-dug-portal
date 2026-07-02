@@ -329,3 +329,28 @@ export function assistantActionShowsProgressOverlay(action, options = {}) {
         "open_provenance_explorer",
     ].includes(action);
 }
+
+export function assistantActionUsesExpandPanel(action) {
+    return action === "open_expand_panel" || action === "expand_graph";
+}
+
+export function assistantStepClosesExpandPanel(action) {
+    return assistantActionUsesExpandPanel(action);
+}
+
+export function assistantStepClosesFilterPanel(action, options = {}) {
+    if (action === "open_filter_panel") {
+        return true;
+    }
+    if (action === "filter_graph") {
+        return (options.mode || "build") === "build";
+    }
+    return false;
+}
+
+export function assistantStepReopensAssistantPanel(action, options = {}) {
+    return (
+        assistantStepClosesExpandPanel(action) ||
+        assistantStepClosesFilterPanel(action, options)
+    );
+}

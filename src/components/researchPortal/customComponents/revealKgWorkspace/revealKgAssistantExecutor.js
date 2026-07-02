@@ -87,10 +87,29 @@ function resolveFilterLayerId(session, filterRef) {
 function graphFiltersPatchFromOptions(options = {}) {
     const filterType = options.filter_type || "intent";
     if (filterType === "novelty") {
+        const known = options.novelty_known === true;
+        const novel = options.novelty_novel === true;
+        if (known && novel) {
+            return {
+                relevanceEnabled: false,
+                intent: "",
+                noveltyKnown: true,
+                noveltyNovel: false,
+            };
+        }
+        if (!known && !novel) {
+            return {
+                relevanceEnabled: false,
+                intent: "",
+                noveltyKnown: false,
+                noveltyNovel: true,
+            };
+        }
         return {
             relevanceEnabled: false,
-            noveltyKnown: options.novelty_known !== false,
-            noveltyNovel: options.novelty_novel === true,
+            intent: "",
+            noveltyKnown: known,
+            noveltyNovel: novel,
         };
     }
     if (filterType === "expression") {
@@ -133,10 +152,26 @@ function expandFiltersPatchFromOptions(options = {}) {
         };
     }
     if (filterType === "novelty") {
+        const known = options.novelty_known === true;
+        const novel = options.novelty_novel === true;
+        if (known && novel) {
+            return {
+                relevanceEnabled: false,
+                noveltyKnown: true,
+                noveltyNovel: false,
+            };
+        }
+        if (!known && !novel) {
+            return {
+                relevanceEnabled: false,
+                noveltyKnown: false,
+                noveltyNovel: true,
+            };
+        }
         return {
             relevanceEnabled: false,
-            noveltyKnown: options.novelty_known !== false,
-            noveltyNovel: options.novelty_novel === true,
+            noveltyKnown: known,
+            noveltyNovel: novel,
         };
     }
     if (filterType === "expression") {

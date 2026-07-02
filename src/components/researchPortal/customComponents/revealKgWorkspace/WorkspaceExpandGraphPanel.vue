@@ -15,7 +15,7 @@
                     type="button"
                     class="wkb-expand-close"
                     aria-label="Close"
-                    :disabled="loading || manualAddBusy"
+                    :disabled="loading || manualAddBusy || assistantBusy"
                     @click="$emit('close')"
                 >
                     &times;
@@ -362,6 +362,7 @@
                                 :api-client="apiClient"
                                 :llm-available="llmAvailable"
                                 :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
+                                :existing-node-ids="graphNodeIds"
                                 :busy="manualAddBusy"
                                 @add="$emit('add-manual-node', $event)"
                                 @error="$emit('manual-add-error', $event)"
@@ -395,6 +396,28 @@
             >
                 Expand graph
             </button>
+        </div>
+
+        <div
+            v-if="assistantBusy"
+            class="wkb-expand-assistant-overlay"
+            role="alertdialog"
+            aria-modal="true"
+            aria-live="assertive"
+            aria-busy="true"
+            :aria-label="assistantMessage || 'AI Assist is running'"
+        >
+            <div class="wkb-expand-assistant-overlay-card">
+                <span class="wkb-expand-assistant-spinner" aria-hidden="true" />
+                <p class="wkb-expand-assistant-title">AI Assist is running</p>
+                <p class="wkb-expand-assistant-message">
+                    {{ assistantMessage || "Running an expansion for you…" }}
+                </p>
+                <p class="wkb-expand-assistant-note">
+                    You do not need to change anything in this panel — Assist will continue
+                    automatically.
+                </p>
+            </div>
         </div>
     </aside>
 </template>
@@ -508,7 +531,19 @@ export default {
             type: Boolean,
             default: false,
         },
+        graphNodeIds: {
+            type: Array,
+            default: () => [],
+        },
         initialTab: {
+            type: String,
+            default: "",
+        },
+        assistantBusy: {
+            type: Boolean,
+            default: false,
+        },
+        assistantMessage: {
             type: String,
             default: "",
         },
@@ -665,6 +700,70 @@ export default {
     background: #ffffff;
     box-shadow: 0 8px 32px rgba(20, 22, 30, 0.16);
     pointer-events: auto;
+}
+
+.wkb-expand-assistant-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(246, 245, 242, 0.82);
+    backdrop-filter: blur(2px);
+    pointer-events: all;
+}
+
+.wkb-expand-assistant-overlay-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: min(340px, calc(100% - 24px));
+    padding: 20px 22px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 10px 32px rgba(20, 22, 30, 0.14);
+    text-align: center;
+}
+
+.wkb-expand-assistant-spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid rgba(44, 92, 151, 0.18);
+    border-top-color: var(--cfde-blue, #2c5c97);
+    border-radius: 50%;
+    animation: wkb-expand-assistant-spin 0.75s linear infinite;
+}
+
+@keyframes wkb-expand-assistant-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.wkb-expand-assistant-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.wkb-expand-assistant-message {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-expand-assistant-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-expand-head {

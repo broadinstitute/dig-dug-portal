@@ -57,7 +57,9 @@
                 <button
                     type="button"
                     class="wkb-expand-manual-suggestion"
+                    :class="{ 'is-added': isAlreadyOnGraph(item) }"
                     :disabled="busy"
+                    :aria-disabled="isAlreadyOnGraph(item)"
                     @click="addItem(item)"
                 >
                     <strong>{{ displayLabel(item) }}</strong>
@@ -75,7 +77,9 @@
                 :key="entityKey(item.candidate) || `semantic-${index}`"
                 type="button"
                 class="wkb-expand-manual-suggestion"
+                :class="{ 'is-added': isAlreadyOnGraph(item.candidate) }"
                 :disabled="busy"
+                :aria-disabled="isAlreadyOnGraph(item.candidate)"
                 @click="addItem(item.candidate)"
             >
                 <strong>{{ displayLabel(item.candidate) }}</strong>
@@ -96,6 +100,7 @@
 
 <script>
 import {
+    catalogItemAlreadyAdded,
     formatEntityDisplayLabel,
     formatEntitySearchSubtitle,
     interactiveEntityKey,
@@ -131,6 +136,10 @@ export default {
         geneSetSemanticSearchAvailable: {
             type: Boolean,
             default: true,
+        },
+        existingNodeIds: {
+            type: Array,
+            default: () => [],
         },
         busy: {
             type: Boolean,
@@ -200,6 +209,9 @@ export default {
     methods: {
         entityKey(item) {
             return interactiveEntityKey(item);
+        },
+        isAlreadyOnGraph(item) {
+            return catalogItemAlreadyAdded(item, this.existingNodeIds);
         },
         displayLabel(item) {
             return formatEntityDisplayLabel(this.entityType, item?.label);
@@ -299,6 +311,9 @@ export default {
         },
         addItem(item) {
             if (!item?.node_id && !item?.id) {
+                return;
+            }
+            if (this.isAlreadyOnGraph(item)) {
                 return;
             }
             this.$emit("add", {
@@ -418,6 +433,15 @@ export default {
 .wkb-expand-manual-suggestion:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+.wkb-expand-manual-suggestion.is-added {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.wkb-expand-manual-suggestion.is-added:hover {
+    background: #faf9f7;
 }
 
 .wkb-expand-manual-suggestion strong {

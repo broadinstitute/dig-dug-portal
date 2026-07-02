@@ -1,6 +1,7 @@
 import {
     graphLabelsMentionedInQuery,
     graphLabelsMissingFromQuery,
+    parseNoveltyOptionsFromQuery,
     prepareAssistantPlannerJson,
 } from "../revealKgAssistantPlanRepair.js";
 
@@ -335,5 +336,76 @@ describe("prepareAssistantPlannerJson", () => {
         expect(result.type).toBe("plan");
         expect(result.json.steps[0].options.visible).toBe(true);
         expect(result.json.steps[0].target.node_types).toEqual(["gene"]);
+    });
+
+    it("maps novel language to novelty-only expand filters", () => {
+        expect(
+            parseNoveltyOptionsFromQuery(
+                "Fetch novel genes connected to the selected pathways/gene sets"
+            )
+        ).toEqual({
+            filter_type: "novelty",
+            novelty_novel: true,
+            novelty_known: false,
+        });
+        expect(parseNoveltyOptionsFromQuery("Expand known pathways only")).toEqual({
+            filter_type: "novelty",
+            novelty_known: true,
+            novelty_novel: false,
+        });
+        expect(parseNoveltyOptionsFromQuery("known and novel genes")).toBeNull();
+    });
+
+    it("repairs expand_graph steps with novelty filters from the user query", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Expand for novel genes",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "expand_graph",
+                        label: "Fetch novel genes",
+                        target: { scope: "selected_nodes" },
+                        options: { count: 15, target_type: "gene" },
+                    },
+                ],
+            },
+            "I'm interested in novel genes and pathways relevant to adipose tissue and diabetes",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.filter_type).toBe("novelty");
+        expect(result.json.steps[0].options.novelty_novel).toBe(true);
+        expect(result.json.steps[0].options.novelty_known).toBe(false);
+    });
+
+    it("repairs filter_graph steps with novelty filters from only novel phrasing", () => {
+        expect(parseNoveltyOptionsFromQuery("only novel genes and pathways")).toEqual({
+            filter_type: "novelty",
+            novelty_novel: true,
+            novelty_known: false,
+        });
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Build novelty filter",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "filter_graph",
+                        label: "Build a novelty filter to identify novel pathways",
+                        target: { scope: "all" },
+                        options: { mode: "build" },
+                    },
+                ],
+            },
+            "I'm interested in only novel genes and pathways relevant to adipose tissue and type 2 diabetes",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.filter_type).toBe("novelty");
+        expect(result.json.steps[0].options.novelty_novel).toBe(true);
+        expect(result.json.steps[0].options.novelty_known).toBe(false);
     });
 });

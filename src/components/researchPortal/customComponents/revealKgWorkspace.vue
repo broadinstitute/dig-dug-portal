@@ -107,6 +107,9 @@
                 :llm-available="llmAvailable"
                 :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
                 :expand-needs-llm="expandGraphNeedsLlm"
+                :graph-node-ids="graphNodeIds"
+                :assistant-busy="expandAssistantOverlayBusy"
+                :assistant-message="expandAssistantOverlayMessage"
                 @close="closeExpandGraph"
                 @patch-filters="onExpandFiltersPatch"
                 @patch-controls="onExpandControlsPatch"
@@ -390,12 +393,19 @@ import WorkspaceAiAssistantPanel from "./revealKgWorkspace/WorkspaceAiAssistantP
 import WorkspaceAssistantActionProgressOverlay from "./revealKgWorkspace/WorkspaceAssistantActionProgressOverlay.vue";
 import {
     assistantActionShowsProgressOverlay,
+    assistantActionUsesExpandPanel,
     assistantActionUsesExpandProgress,
+    assistantStepClosesExpandPanel,
+    assistantStepClosesFilterPanel,
+    assistantStepReopensAssistantPanel,
     defaultProgressMessageForAction,
 } from "./revealKgWorkspace/revealKgAssistantActionCatalog.js";
 import { planAssistantQuery, abortAssistantPlan } from "./revealKgWorkspace/revealKgAssistantLlm.js";
 import { executeAssistantPlan } from "./revealKgWorkspace/revealKgAssistantExecutor.js";
-import { sanitizeAssistantError } from "./revealKgWorkspace/revealKgAssistantErrorUtils.js";
+import {
+    formatAssistantStepError,
+    sanitizeAssistantError,
+} from "./revealKgWorkspace/revealKgAssistantErrorUtils.js";
 import {
     assistantActionPostEffects,
     computeAssistantPlanPostEffects,
@@ -683,6 +693,7 @@ export default Vue.component("reveal-kg-workspace", {
             assistantClarification: null,
             assistantStepStates: {},
             assistantError: "",
+            assistantStepErrorRecorded: false,
             assistantUserQuery: "",
         };
     },
@@ -755,6 +766,9 @@ export default Vue.component("reveal-kg-workspace", {
         },
         geneSetSemanticSearchAvailable() {
             return this.interactiveModelCapabilities.geneSetSemanticSearch;
+        },
+        graphNodeIds() {
+            return (this.session?.graphNodes || []).map((node) => node.id).filter(Boolean);
         },
         graphSummary() {
             if (!this.activeSession?.graphNodes?.length) {
@@ -922,6 +936,32 @@ export default Vue.component("reveal-kg-workspace", {
                 this.tableAddBusy ||
                 this.assistantPlanning ||
                 this.assistantExecuting
+            );
+        },
+        expandAssistantOverlayBusy() {
+            if (!this.expandGraphOpen || !this.assistantExecuting) {
+                return false;
+            }
+            const step = this.assistantCurrentStep;
+            return Boolean(step && assistantActionUsesExpandPanel(step.action));
+        },
+        expandAssistantOverlayMessage() {
+            if (this.expandGraphLoading) {
+                return (
+                    String(this.expandGraphProgress || "").trim() ||
+                    String(this.assistantExecutingStepLabel || "").trim() ||
+                    "Expanding the graph…"
+                );
+            }
+            if (this.assistantCurrentStep?.action === "open_expand_panel") {
+                return (
+                    String(this.assistantExecutingStepLabel || "").trim() ||
+                    "Preparing expansion from your seeds…"
+                );
+            }
+            return (
+                String(this.assistantExecutingStepLabel || "").trim() ||
+                "Running expansion…"
             );
         },
         displayGraph() {
@@ -2078,6 +2118,33 @@ export default Vue.component("reveal-kg-workspace", {
                 this.mapGenesOpen = true;
             }
         },
+        restoreAssistantUiAfterAssistStep(step) {
+            if (!this.assistantExecuting || !step?.action) {
+                return;
+            }
+            if (assistantStepClosesExpandPanel(step.action) && this.expandGraphOpen) {
+                this.expandGraphOpen = false;
+                this.expandPanelInitialTab = "";
+                this.expandSeedNodeIds = [];
+            }
+            if (
+                assistantStepClosesFilterPanel(step.action, step.options || {}) &&
+                this.filterGraphOpen
+            ) {
+                this.filterGraphOpen = false;
+            }
+            if (assistantStepReopensAssistantPanel(step.action, step.options || {})) {
+                this.aiAssistantOpen = true;
+            }
+        },
+        recordAssistantStepFailure(step, error) {
+            const formatted = formatAssistantStepError(error, step);
+            this.assistantStepErrorRecorded = true;
+            this.assistantError = formatted.message;
+            this.$refs.aiAssistantPanel?.appendStepError?.(step, formatted);
+            this.restoreAssistantUiAfterAssistStep(step);
+            this.aiAssistantOpen = true;
+        },
         applyMapGenesFromRun(run) {
             if (!run) {
                 return;
@@ -2175,6 +2242,7 @@ export default Vue.component("reveal-kg-workspace", {
             const postEffects = computeAssistantPlanPostEffects(stepsToRun);
             this.assistantExecuting = true;
             this.assistantError = "";
+            this.assistantStepErrorRecorded = false;
             if (postEffects.graphLoading) {
                 this.graphLoading = true;
             }
@@ -2252,18 +2320,30 @@ export default Vue.component("reveal-kg-workspace", {
                             this.$refs.aiAssistantPanel?.appendStepResult?.(summary, {
                                 workflowLink: meta?.bulkWorkflowLink || null,
                             });
+                            this.restoreAssistantUiAfterAssistStep(step);
                         },
-                        onStepError: (step) => {
+                        onStepError: (step, index, error) => {
                             this.endAssistantStepProgress(step);
                             this.setAssistantStepState(step.id, "error");
+                            this.recordAssistantStepFailure(step, error);
                         },
                     },
                     { startIndex }
                 );
-                this.showStatus("Canvas assistant finished running the plan.", 3200);
+                if (!this.assistantStepErrorRecorded) {
+                    this.showStatus("Canvas assistant finished running the plan.", 3200);
+                }
             } catch (error) {
-                this.assistantError = sanitizeAssistantError(error);
-                this.showStatus(this.assistantError, 3600);
+                if (!this.assistantStepErrorRecorded) {
+                    const formatted = formatAssistantStepError(error, this.assistantCurrentStep);
+                    this.assistantError = formatted.message;
+                    this.$refs.aiAssistantPanel?.appendStepError?.(
+                        this.assistantCurrentStep,
+                        formatted
+                    );
+                    this.aiAssistantOpen = true;
+                    this.showStatus(formatted.message, 3600);
+                }
             } finally {
                 this.assistantExecuting = false;
                 this.assistantCurrentStep = null;
@@ -2340,7 +2420,12 @@ export default Vue.component("reveal-kg-workspace", {
             this.expandGraphOpen = true;
         },
         closeExpandGraph() {
-            if (this.expandGraphLoading || this.expandManualAddBusy || this.expandIntentAddBusy) {
+            if (
+                this.expandGraphLoading ||
+                this.expandManualAddBusy ||
+                this.expandIntentAddBusy ||
+                this.expandAssistantOverlayBusy
+            ) {
                 return;
             }
             this.expandGraphOpen = false;

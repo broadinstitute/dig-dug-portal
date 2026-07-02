@@ -34,6 +34,22 @@ export function interactiveEntityKey(item) {
     return item.node_id || item.id || item.node_key || null;
 }
 
+export function catalogItemNodeId(item) {
+    const key = interactiveEntityKey(item);
+    return key ? String(key) : "";
+}
+
+export function catalogItemAlreadyAdded(item, existingNodeIds = []) {
+    const nodeId = catalogItemNodeId(item);
+    if (!nodeId) {
+        return false;
+    }
+    const existing = existingNodeIds instanceof Set
+        ? existingNodeIds
+        : new Set((existingNodeIds || []).map((id) => String(id)));
+    return existing.has(nodeId);
+}
+
 export function formatEntityDisplayLabel(entityType, label) {
     const text = String(label || "").trim();
     if (!text) {
