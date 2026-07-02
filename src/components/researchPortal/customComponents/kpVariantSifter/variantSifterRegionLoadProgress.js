@@ -10,6 +10,7 @@ export const VKS_REGION_LOAD_STEPS = [
     { id: "genes", label: "Genes track" },
     { id: "recomb", label: "Recombination overlay" },
     { id: "credibleSets", label: "Credible sets list" },
+    { id: "globalEnrichment", label: "Global enrichment" },
     { id: "ld", label: "LD scores" },
 ];
 

@@ -55,6 +55,17 @@
                         :genes-state="genesState"
                         @update:selectedTypes="$emit('update:genesSelectedTypes', $event)"
                     />
+                    <VariantSifterGlobalEnrichmentDrawer
+                        v-else-if="openSection.id === 'global-enrichment'"
+                        :global-enrichment-state="globalEnrichmentState"
+                        :search-session="searchSession"
+                        :utils="utils"
+                        :hide-loading-status="regionLoadProgressActive"
+                        @update:enabledMutedAnnotations="
+                            $emit('update:geEnabledMutedAnnotations', $event)
+                        "
+                        @update:enabledMutedTissues="$emit('update:geEnabledMutedTissues', $event)"
+                    />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>
                         <p class="vks-section-drawer-note">
@@ -92,6 +103,7 @@ import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.v
 
 import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
 import VariantSifterGenesDrawer from "./VariantSifterGenesDrawer.vue";
+import VariantSifterGlobalEnrichmentDrawer from "./VariantSifterGlobalEnrichmentDrawer.vue";
 
 export default {
     name: "VariantSifterSectionDrawers",
@@ -99,6 +111,7 @@ export default {
         VariantSifterAssociationsDrawer,
         VariantSifterCredibleSetsDrawer,
         VariantSifterGenesDrawer,
+        VariantSifterGlobalEnrichmentDrawer,
     },
     props: {
         sections: {
@@ -171,6 +184,27 @@ export default {
                 error: null,
                 data: null,
                 selectedTypes: ["protein_coding"],
+            }),
+        },
+        globalEnrichmentState: {
+            type: Object,
+            default: () => ({
+                loading: false,
+                error: null,
+                geRows: [],
+                annoRows: [],
+                annoData: {},
+                catalog: { annotations: [], tissues: [] },
+                llmRelevance: {
+                    loading: false,
+                    error: null,
+                    llmUsed: false,
+                    relevantAnnotations: [],
+                    relevantTissues: [],
+                    rationaleById: {},
+                },
+                enabledMutedAnnotations: [],
+                enabledMutedTissues: [],
             }),
         },
         regionLoadProgressActive: {

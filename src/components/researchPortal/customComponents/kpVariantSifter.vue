@@ -87,7 +87,15 @@
                 />
                 <VariantSifterAiAssistantPanel
                     :open="aiAssistantOpen"
+                    :active-tab="assistantState.activeTab"
+                    :thread-entries="assistantState.threadEntries"
+                    :executing="assistantState.executing"
+                    :execution-progress-label="assistantState.executionProgressLabel"
+                    :llm-available="assistantState.llmAvailable"
+                    :can-run-actions="assistantCanRunActions"
                     @close="aiAssistantOpen = false"
+                    @update:activeTab="onAssistantActiveTabUpdate"
+                    @run-action="onAssistantRunAction"
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
@@ -101,6 +109,7 @@
                     :credible-sets-state="credibleSetsState"
                     :credible-set-pill-colors="credibleSetPillColors"
                     :genes-state="genesState"
+                    :global-enrichment-state="globalEnrichmentState"
                     :utils="utilsBox"
                     :region-load-progress-active="regionLoadProgress.active"
                     :rail-pinned="chromePinned"
@@ -112,6 +121,8 @@
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
+                    @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
+                    @update:geEnabledMutedTissues="onGeEnabledMutedTissuesUpdate"
                 />
             </div>
         </div>
@@ -184,6 +195,25 @@ import {
     activeRegionDataLimitMessage,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
 import { fetchGenesTrackData } from "./kpVariantSifter/variantSifterGenes.js";
+import {
+    fetchGlobalEnrichment,
+    fetchLocusAnnotations,
+} from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
+import { buildAnnoDataFromRows, emptyGeLlmRelevanceState, extractGeCatalog } from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
+import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
+import {
+    buildGeRelevanceIntroMessage,
+    buildGeRelevanceReportMessage,
+    buildGeRelevanceRunningMessage,
+} from "./kpVariantSifter/variantSifterAssistantGeRelevance.js";
+import {
+    appendAssistantEntries,
+    createAssistantStatusMessage,
+    createAssistantStepMessage,
+    emptyAssistantState,
+    removePendingAssistantEntry,
+    replacePendingAssistantEntry,
+} from "./kpVariantSifter/variantSifterAssistantConversation.js";
 import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
 import {
     pickLeadVariantRow,
@@ -263,6 +293,20 @@ function emptyCredibleSetsState() {
     };
 }
 
+function emptyGlobalEnrichmentState() {
+    return {
+        loading: false,
+        error: null,
+        geRows: [],
+        annoRows: [],
+        annoData: {},
+        catalog: { annotations: [], tissues: [] },
+        llmRelevance: emptyGeLlmRelevanceState(),
+        enabledMutedAnnotations: [],
+        enabledMutedTissues: [],
+    };
+}
+
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
@@ -296,16 +340,20 @@ export default Vue.component("kp-variant-sifter", {
             pendingPanSliderReset: false,
             dataTableOpen: false,
             aiAssistantOpen: false,
+            assistantState: emptyAssistantState(),
+            assistantActionToken: 0,
             openDrawerId: null,
             associationsState: emptyAssociationsState(),
             genesState: emptyGenesState(),
             plotOverlaysState: emptyPlotOverlaysState(),
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
+            globalEnrichmentState: emptyGlobalEnrichmentState(),
             associationsRequestToken: 0,
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
+            globalEnrichmentRequestToken: 0,
             lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
@@ -349,6 +397,13 @@ export default Vue.component("kp-variant-sifter", {
         },
         searchSessionLabel() {
             return formatSearchSessionLabel(this.searchSession);
+        },
+        assistantCanRunActions() {
+            const catalog = this.globalEnrichmentState?.catalog;
+            return Boolean(
+                this.searchSession &&
+                    (catalog?.annotations?.length || catalog?.tissues?.length)
+            );
         },
         activeRegion() {
             if (!this.searchSession?.region) {
@@ -410,6 +465,7 @@ export default Vue.component("kp-variant-sifter", {
     mounted() {
         this.applyUrlSearchParams();
         this.$nextTick(() => this.setupChromePin());
+        this.refreshAssistantLlmHealth();
     },
     beforeDestroy() {
         if (this.regionPanSyncTimer) {
@@ -1194,12 +1250,17 @@ export default Vue.component("kp-variant-sifter", {
             this.genesRequestToken += 1;
             this.plotOverlaysRequestToken += 1;
             this.credibleSetsRequestToken += 1;
+            this.globalEnrichmentRequestToken += 1;
+            this.assistantActionToken += 1;
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
             this.genesState = emptyGenesState();
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
+            this.globalEnrichmentState = emptyGlobalEnrichmentState();
+            this.assistantState = emptyAssistantState();
+            this.aiAssistantOpen = false;
             this.lastCredibleSetsListRegion = null;
             this.dataRegion = null;
             this.regionShiftBp = 0;
@@ -1237,6 +1298,9 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             this.searchSession = session;
+            this.assistantActionToken += 1;
+            this.assistantState = emptyAssistantState();
+            this.aiAssistantOpen = false;
             this.regionZoom = 0;
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
@@ -1246,6 +1310,7 @@ export default Vue.component("kp-variant-sifter", {
             this.plotOverlaysState = emptyPlotOverlaysState();
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
+            this.globalEnrichmentState = emptyGlobalEnrichmentState();
             this.lastCredibleSetsListRegion = null;
             this.canvasActive = true;
             this.welcomeOpen = false;
@@ -1557,6 +1622,7 @@ export default Vue.component("kp-variant-sifter", {
             ++this.genesRequestToken;
             ++this.plotOverlaysRequestToken;
             ++this.credibleSetsRequestToken;
+            ++this.globalEnrichmentRequestToken;
 
             if (this.regionLoadDismissTimer) {
                 clearTimeout(this.regionLoadDismissTimer);
@@ -1622,10 +1688,12 @@ export default Vue.component("kp-variant-sifter", {
             const genesToken = ++this.genesRequestToken;
             const recombToken = ++this.plotOverlaysRequestToken;
             const credibleSetsToken = ++this.credibleSetsRequestToken;
+            const globalEnrichmentToken = ++this.globalEnrichmentRequestToken;
 
             this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
             this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
             this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+            this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
 
             await Promise.all([
                 (async () => {
@@ -1716,6 +1784,60 @@ export default Vue.component("kp-variant-sifter", {
                             listError: "Failed to load credible sets for this locus.",
                         };
                         this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                })(),
+                (async () => {
+                    this.globalEnrichmentState = {
+                        ...emptyGlobalEnrichmentState(),
+                        loading: true,
+                    };
+                    try {
+                        const [geRows, annoRows] = await Promise.all([
+                            fetchGlobalEnrichment(session, host),
+                            fetchLocusAnnotations(session.region, host),
+                        ]);
+                        if (globalEnrichmentToken !== this.globalEnrichmentRequestToken) {
+                            return;
+                        }
+                        const annoData = buildAnnoDataFromRows(annoRows);
+                        const catalog = extractGeCatalog(annoData);
+                        this.globalEnrichmentState = {
+                            loading: false,
+                            error: Object.keys(annoData).length
+                                ? null
+                                : "No regulatory annotations were found for this locus.",
+                            geRows,
+                            annoRows,
+                            annoData,
+                            catalog,
+                            llmRelevance: emptyGeLlmRelevanceState(),
+                            enabledMutedAnnotations: [],
+                            enabledMutedTissues: [],
+                        };
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            Object.keys(annoData).length
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                        if (Object.keys(annoData).length) {
+                            this.$nextTick(() => {
+                                this.runAssistantAction("filter_ge_relevance", {
+                                    auto: true,
+                                    requestToken: globalEnrichmentToken,
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        if (globalEnrichmentToken !== this.globalEnrichmentRequestToken) {
+                            return;
+                        }
+                        console.warn("Variant Sifter global enrichment load failed", error);
+                        this.globalEnrichmentState = {
+                            ...emptyGlobalEnrichmentState(),
+                            error: "Failed to load global enrichment for this locus.",
+                        };
+                        this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.FAILED);
                     }
                 })(),
             ]);
@@ -1843,6 +1965,150 @@ export default Vue.component("kp-variant-sifter", {
                     selectedTypes,
                     this.genesState.data
                 ),
+            };
+        },
+        async refreshAssistantLlmHealth() {
+            const health = await fetchInteractiveLlmHealth();
+            this.assistantState = {
+                ...this.assistantState,
+                llmAvailable: Boolean(health?.llm_available),
+            };
+        },
+        onAssistantActiveTabUpdate(activeTab) {
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab,
+            };
+        },
+        onAssistantRunAction(actionId) {
+            this.runAssistantAction(actionId, { auto: false });
+        },
+        async runAssistantAction(actionId, { auto = false, requestToken } = {}) {
+            if (actionId !== "filter_ge_relevance") {
+                return;
+            }
+
+            const session = this.searchSession;
+            const catalog = this.globalEnrichmentState?.catalog;
+            if (
+                !session ||
+                (!catalog?.annotations?.length && !catalog?.tissues?.length)
+            ) {
+                return;
+            }
+
+            const geToken = requestToken ?? this.globalEnrichmentRequestToken;
+            const actionToken = ++this.assistantActionToken;
+            const runningLabel = buildGeRelevanceRunningMessage();
+
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                executing: true,
+                executionProgressLabel: runningLabel,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(
+                        buildGeRelevanceIntroMessage(session, catalog)
+                    ),
+                    createAssistantStatusMessage(runningLabel, { pending: true }),
+                ]),
+            };
+
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                llmRelevance: {
+                    ...emptyGeLlmRelevanceState(),
+                    loading: true,
+                },
+            };
+
+            try {
+                const result = await fetchGeRelevanceFromLlm({
+                    session,
+                    annoData: this.globalEnrichmentState?.annoData || {},
+                    annotations: catalog.annotations,
+                    tissues: catalog.tissues,
+                });
+                if (
+                    actionToken !== this.assistantActionToken ||
+                    geToken !== this.globalEnrichmentRequestToken
+                ) {
+                    return;
+                }
+
+                const llmRelevance = {
+                    loading: false,
+                    error: null,
+                    llmUsed: Boolean(result.llmUsed),
+                    tissueOnly: result.tissueOnly !== false,
+                    relevantAnnotations: result.relevantAnnotations || [],
+                    relevantTissues: result.relevantTissues || [],
+                    rationaleById: result.rationaleById || {},
+                };
+
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    llmRelevance,
+                    enabledMutedAnnotations: [],
+                    enabledMutedTissues: [],
+                };
+
+                const report = buildGeRelevanceReportMessage({
+                    session,
+                    catalog,
+                    llmRelevance,
+                });
+
+                this.assistantState = {
+                    ...this.assistantState,
+                    executing: false,
+                    executionProgressLabel: "",
+                    threadEntries: appendAssistantEntries(
+                        removePendingAssistantEntry(this.assistantState.threadEntries),
+                        [createAssistantStepMessage(report)]
+                    ),
+                };
+            } catch (error) {
+                if (
+                    actionToken !== this.assistantActionToken ||
+                    geToken !== this.globalEnrichmentRequestToken
+                ) {
+                    return;
+                }
+                console.warn("Variant Sifter GE LLM relevance failed", error);
+                const errorMessage =
+                    error?.message ||
+                    "LLM relevance filtering is unavailable; showing all tissues and annotations.";
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    llmRelevance: {
+                        ...emptyGeLlmRelevanceState(),
+                        error: errorMessage,
+                    },
+                };
+                this.assistantState = {
+                    ...this.assistantState,
+                    executing: false,
+                    executionProgressLabel: "",
+                    threadEntries: replacePendingAssistantEntry(
+                        this.assistantState.threadEntries,
+                        errorMessage,
+                        { isClarify: true }
+                    ),
+                };
+            }
+        },
+        onGeEnabledMutedAnnotationsUpdate(enabledMutedAnnotations) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                enabledMutedAnnotations: [...enabledMutedAnnotations],
+            };
+        },
+        onGeEnabledMutedTissuesUpdate(enabledMutedTissues) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                enabledMutedTissues: [...enabledMutedTissues],
             };
         },
     },
