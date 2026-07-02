@@ -30,6 +30,7 @@
                     :step="1"
                     aria-label="Region zoom"
                     @input="onZoomInput"
+                    @change="onZoomCommit"
                 />
             </div>
         </div>
@@ -167,6 +168,9 @@ export default {
             );
             this.localSlider = next;
             this.emitZoomFromSlider();
+        },
+        onZoomCommit() {
+            this.$emit("zoom-slider-commit");
         },
         emitZoomFromSlider() {
             const { regionZoom, regionZoomOut } = zoomFromSliderValue(this.localSlider);

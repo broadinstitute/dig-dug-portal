@@ -23,6 +23,11 @@ export const VKS_LD_BG_COLORS = [
 
 export const VKS_DEFAULT_DOT_RADIUS = 9;
 
+/** Recombination rate (cM/Mb) above which gray highlight bands are drawn. */
+export const VKS_RECOMB_SIGNAL_BAND_MIN_RATE = 0.2;
+
+export const VKS_TRACK_HIGHLIGHT_BAND_FILL = "rgba(120, 120, 120, 0.14)";
+
 export function normalizePlotMargin(plotMargin) {
     if (!plotMargin) {
         return { left: 150, right: 40, top: 20, bottom: 100, bump: 11 };
@@ -130,6 +135,112 @@ export function getLdDotColor(r2) {
     }
     const index = Math.floor(Number(r2) * 5);
     return VKS_LD_DOT_COLORS[index] ?? "#00000030";
+}
+
+/**
+ * Genomic intervals where recombination signal (cM/Mb) exceeds a threshold.
+ */
+export function computeRecombSignalIntervals(
+    recombData,
+    visibleRegion,
+    { minRate = VKS_RECOMB_SIGNAL_BAND_MIN_RATE } = {}
+) {
+    if (!recombData?.position?.length || !visibleRegion) {
+        return [];
+    }
+
+    const intervals = [];
+    let currentStart = null;
+    let currentEnd = null;
+
+    for (let i = 0; i < recombData.position.length; i += 1) {
+        const pos = Number(recombData.position[i]);
+        const rate = Number(recombData.recomb_rate[i]);
+        if (Number.isNaN(pos) || Number.isNaN(rate)) {
+            continue;
+        }
+        if (pos < visibleRegion.start || pos > visibleRegion.end) {
+            continue;
+        }
+
+        if (rate > minRate) {
+            if (currentStart == null) {
+                currentStart = pos;
+            }
+            currentEnd = pos;
+        } else if (currentStart != null) {
+            intervals.push({ start: currentStart, end: currentEnd });
+            currentStart = null;
+            currentEnd = null;
+        }
+    }
+
+    if (currentStart != null) {
+        intervals.push({ start: currentStart, end: currentEnd });
+    }
+
+    if (!intervals.length) {
+        return [];
+    }
+
+    intervals.sort((a, b) => a.start - b.start);
+    const merged = [{ ...intervals[0] }];
+    for (let i = 1; i < intervals.length; i += 1) {
+        const current = intervals[i];
+        const last = merged[merged.length - 1];
+        if (current.start <= last.end) {
+            last.end = Math.max(last.end, current.end);
+        } else {
+            merged.push({ ...current });
+        }
+    }
+    return merged;
+}
+
+export function renderTrackHighlightBands(ctx, options) {
+    const {
+        intervals,
+        visibleRegion,
+        margin,
+        plotWidth,
+        plotHeight,
+        bandTop = null,
+        bandHeight = null,
+        fillStyle = VKS_TRACK_HIGHLIGHT_BAND_FILL,
+    } = options;
+
+    if (!intervals?.length || !visibleRegion || !plotWidth || !plotHeight) {
+        return;
+    }
+
+    const xMin = Number(visibleRegion.start);
+    const xMax = Number(visibleRegion.end);
+    const xSpan = xMax - xMin;
+    if (!xSpan) {
+        return;
+    }
+
+    const xPosByPixel = plotWidth / xSpan;
+    const top = bandTop ?? margin.top;
+    const height = bandHeight ?? plotHeight;
+
+    ctx.save();
+    ctx.fillStyle = fillStyle;
+    ctx.beginPath();
+    ctx.rect(margin.left, top, plotWidth, height);
+    ctx.clip();
+
+    const minWidthPx = 4;
+    intervals.forEach(({ start, end }) => {
+        const x1 = margin.left + (start - xMin) * xPosByPixel;
+        const x2 = margin.left + (end - xMin) * xPosByPixel;
+        const rawWidth = x2 - x1;
+        const width = Math.max(rawWidth, minWidthPx);
+        const x = rawWidth < minWidthPx ? (x1 + x2) / 2 - minWidthPx / 2 : x1;
+        ctx.fillRect(x, top, width, height);
+    });
+
+    ctx.restore();
 }
 
 export function computeNegLog10Extents(plotRows) {

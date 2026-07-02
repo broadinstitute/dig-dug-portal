@@ -29,6 +29,7 @@
                 :ai-assistant-open="aiAssistantOpen"
                 @update:regionZoom="onRegionZoomUpdate"
                 @update:regionZoomOut="onRegionZoomOutUpdate"
+                @zoom-slider-commit="onRegionZoomSliderCommit"
                 @update:dataTableOpen="dataTableOpen = $event"
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
             />
@@ -62,7 +63,6 @@
                     :region-shift-bp="regionShiftBp"
                     :region-view-area="regionViewArea"
                     :view-region="viewRegion"
-                    :region-data-loading="regionDataLoading"
                     :data-table-open="dataTableOpen"
                     :associations-state="associationsState"
                     :genes-state="genesState"
@@ -71,6 +71,7 @@
                     :credible-sets-state="credibleSetsState"
                     :credible-set-colors="credibleSetDotColors"
                     :credible-set-pill-colors="credibleSetPillColors"
+                    :region-load-progress-active="regionLoadProgress.active"
                     @update:regionShiftBp="onRegionShiftBpUpdate"
                     @update:regionViewArea="onRegionViewAreaUpdate"
                     @pan-end="onRegionPanEnd"
@@ -99,7 +100,9 @@
                     :plot-markers="plotMarkersState"
                     :credible-sets-state="credibleSetsState"
                     :credible-set-pill-colors="credibleSetPillColors"
+                    :genes-state="genesState"
                     :utils="utilsBox"
+                    :region-load-progress-active="regionLoadProgress.active"
                     :rail-pinned="chromePinned"
                     :rail-pin-style="pinnedChromeStyle.drawer"
                     @toggle-drawer="onToggleDrawer"
@@ -108,9 +111,15 @@
                     @set-reference-variant="onSetReferenceVariant"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
+                    @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                 />
             </div>
         </div>
+
+        <VariantSifterRegionLoadBubble
+            :progress="regionLoadProgress"
+            @dismiss="dismissRegionLoadProgress"
+        />
 
         <VariantSifterExportSessionModal
             :open="exportSessionOpen"
@@ -133,6 +142,7 @@ import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
 import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
 import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
+import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
 import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
 import { parseRegionParam, formatRegion, formatSearchSessionLabel } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import { fetchAssociations } from "./kpVariantSifter/variantSifterAssociationsApi.js";
@@ -169,6 +179,7 @@ import {
     resolveActiveDataRegion,
     resolveZoomOutLimitRegion,
     trimRecombData,
+    unionGenomicRegions,
     regionExceedsActiveDataLimit,
     activeRegionDataLimitMessage,
 } from "./kpVariantSifter/variantSifterRegionPan.js";
@@ -190,6 +201,20 @@ import {
 } from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
 import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
 import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
+import {
+    normalizeSelectedGeneTypes,
+    resolveSelectedGeneTypesForData,
+    VKS_DEFAULT_GENE_TYPES,
+} from "./kpVariantSifter/variantSifterGenesFilter.js";
+import {
+    emptyRegionLoadProgress,
+    finishRegionLoadProgress,
+    patchRegionLoadStep,
+    regionLoadProgressSettled,
+    regionLoadProgressCanAutoDismiss,
+    startRegionLoadProgress,
+    VKS_REGION_LOAD_STATUS,
+} from "./kpVariantSifter/variantSifterRegionLoadProgress.js";
 import "./kpVariantSifter/vksSharedStyles.css";
 
 function emptyAssociationsState() {
@@ -211,6 +236,7 @@ function emptyGenesState() {
         loading: false,
         error: null,
         data: null,
+        selectedTypes: [...VKS_DEFAULT_GENE_TYPES],
     };
 }
 
@@ -249,6 +275,7 @@ export default Vue.component("kp-variant-sifter", {
         VariantSifterSectionDrawers,
         VariantSifterAiAssistantPanel,
         VariantSifterExportSessionModal,
+        VariantSifterRegionLoadBubble,
     },
     data() {
         return {
@@ -262,7 +289,8 @@ export default Vue.component("kp-variant-sifter", {
             regionViewArea: 0,
             regionShiftBp: 0,
             dataRegion: null,
-            regionDataLoading: false,
+            regionLoadProgress: emptyRegionLoadProgress(),
+            regionLoadDismissTimer: null,
             regionExtendToken: 0,
             regionPanSyncTimer: null,
             pendingPanSliderReset: false,
@@ -389,6 +417,10 @@ export default Vue.component("kp-variant-sifter", {
             this.regionPanSyncTimer = null;
         }
         this.teardownChromePin();
+        if (this.regionLoadDismissTimer) {
+            clearTimeout(this.regionLoadDismissTimer);
+            this.regionLoadDismissTimer = null;
+        }
     },
     watch: {
         phenotypes() {
@@ -540,7 +572,6 @@ export default Vue.component("kp-variant-sifter", {
             if (this.regionZoom > 0) {
                 this.regionZoomOut = 0;
             }
-            this.scheduleRegionDataSync();
         },
         onRegionZoomOutUpdate(nextZoomOut) {
             this.pendingPanSliderReset = false;
@@ -558,7 +589,9 @@ export default Vue.component("kp-variant-sifter", {
                 this.regionZoom = 0;
                 this.regionViewArea = 0;
             }
-            this.scheduleRegionDataSync();
+        },
+        onRegionZoomSliderCommit() {
+            this.scheduleRegionDataSync(0);
         },
         onRegionViewAreaUpdate(nextViewArea) {
             this.regionViewArea = clampRegionViewArea(nextViewArea);
@@ -586,7 +619,6 @@ export default Vue.component("kp-variant-sifter", {
             }
             this.regionShiftBp = viewport.regionShiftBp;
             this.regionZoomOut = viewport.regionZoomOut;
-            this.scheduleRegionDataSync();
         },
         finishRegionExtendSync() {
             const hadZoomOut = this.regionZoomOut > 0;
@@ -735,6 +767,66 @@ export default Vue.component("kp-variant-sifter", {
                 recombData,
             };
         },
+        setRegionLoadStep(stepId, status) {
+            this.regionLoadProgress = patchRegionLoadStep(
+                this.regionLoadProgress,
+                stepId,
+                status
+            );
+        },
+        closeRegionLoadProgressIfSettled() {
+            if (
+                !this.regionLoadProgress.active ||
+                !regionLoadProgressSettled(this.regionLoadProgress) ||
+                !regionLoadProgressCanAutoDismiss(this.regionLoadProgress)
+            ) {
+                return;
+            }
+            if (this.regionLoadDismissTimer) {
+                return;
+            }
+            this.regionLoadDismissTimer = setTimeout(() => {
+                this.regionLoadProgress = finishRegionLoadProgress(this.regionLoadProgress);
+                this.regionLoadDismissTimer = null;
+            }, 700);
+        },
+        dismissRegionLoadProgress() {
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = finishRegionLoadProgress(this.regionLoadProgress);
+        },
+        flushStreamedAssociationRows(mergedRows, activeRegion, gapRegion = null) {
+            const rowsForRegion = filterAssociationRowsInRegion(mergedRows, activeRegion);
+            if (gapRegion) {
+                this.dataRegion = unionGenomicRegions(this.dataRegion, gapRegion);
+            }
+            this.associationsState = {
+                ...this.associationsState,
+                rows: rowsForRegion,
+                ldLoading: false,
+                ldError: null,
+            };
+        },
+        flushStreamedGenes(mergedGenes, activeRegion) {
+            const genesForRegion = filterGenesInRegion(mergedGenes, activeRegion);
+            this.genesState = {
+                ...this.genesState,
+                ready: true,
+                loading: false,
+                data: genesForRegion.length ? genesForRegion : null,
+                error: genesForRegion.length ? null : this.genesState.error,
+            };
+        },
+        flushStreamedRecomb(mergedRecomb, activeRegion) {
+            this.plotOverlaysState = {
+                ...this.plotOverlaysState,
+                ready: true,
+                loading: false,
+                recombData: trimRecombData(mergedRecomb, activeRegion),
+            };
+        },
         async syncRegionDataToView() {
             if (!this.searchSession?.region || !this.dataRegion) {
                 return;
@@ -755,20 +847,27 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const token = ++this.regionExtendToken;
-            this.regionDataLoading = true;
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = startRegionLoadProgress();
             const host = this.utilsBox?.uiUtils?.biDomain?.();
             if (!host) {
-                this.regionDataLoading = false;
+                this.regionLoadProgress = finishRegionLoadProgress(this.regionLoadProgress);
                 return;
             }
 
-            try {
-                let mergedRows = this.associationsState.rows;
-                let mergedGenes = this.genesState.data || [];
-                let mergedRecomb = this.plotOverlaysState.recombData;
-                let extendedAssociationRows = false;
-                const plotConfig = buildAssociationsRegionPlotConfig(this.searchSession);
+            const plotConfig = buildAssociationsRegionPlotConfig(this.searchSession);
+            let mergedRows = this.associationsState.rows;
+            let mergedGenes = this.genesState.data || [];
+            let mergedRecomb = this.plotOverlaysState.recombData;
+            let extendedAssociationRows = false;
+            let associationFetchFailed = false;
 
+            this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
+
+            try {
                 for (const gap of gaps) {
                     if (token !== this.regionExtendToken) {
                         return;
@@ -791,27 +890,10 @@ export default Vue.component("kp-variant-sifter", {
                             extendedAssociationRows = true;
                         }
                         mergedRows = mergeAssociationRowsByVariantId(mergedRows, formattedRows);
+                        this.flushStreamedAssociationRows(mergedRows, activeRegion, gapRegion);
                     } catch (assocError) {
+                        associationFetchFailed = true;
                         console.warn("Variant Sifter association gap fetch failed", assocError);
-                    }
-
-                    try {
-                        const newGenes = await fetchGenesTrackData(
-                            gapRegion,
-                            plotConfig["genome reference"]
-                        );
-                        mergedGenes = mergeGenesByName(mergedGenes, newGenes);
-                    } catch (genesError) {
-                        console.warn("Variant Sifter genes gap fetch failed", genesError);
-                    }
-
-                    try {
-                        const newRecomb = await fetchRecombinationRate(gapRegion);
-                        if (newRecomb) {
-                            mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
-                        }
-                    } catch (recombError) {
-                        console.warn("Variant Sifter recomb gap fetch failed", recombError);
                     }
                 }
 
@@ -820,48 +902,146 @@ export default Vue.component("kp-variant-sifter", {
                 }
 
                 mergedRows = filterAssociationRowsInRegion(mergedRows, activeRegion);
-                mergedGenes = filterGenesInRegion(mergedGenes, activeRegion);
-                mergedRecomb = trimRecombData(mergedRecomb, activeRegion);
-
                 this.dataRegion = cloneGenomicRegion(activeRegion);
-                this.associationsState = {
-                    ...this.associationsState,
-                    rows: mergedRows,
-                    ldLoading: extendedAssociationRows,
-                };
-                this.genesState = {
-                    ...this.genesState,
-                    ready: true,
-                    loading: false,
-                    data: mergedGenes.length ? mergedGenes : null,
-                    error: mergedGenes.length
-                        ? null
-                        : this.genesState.error,
-                };
-                this.plotOverlaysState = {
-                    ...this.plotOverlaysState,
-                    recombData: mergedRecomb,
-                };
+                this.flushStreamedAssociationRows(mergedRows, activeRegion);
+                this.setRegionLoadStep(
+                    "associations",
+                    associationFetchFailed && !extendedAssociationRows
+                        ? VKS_REGION_LOAD_STATUS.FAILED
+                        : VKS_REGION_LOAD_STATUS.DONE
+                );
+
+                let genesFetchFailed = false;
+                let recombFetchFailed = false;
+
+                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+
+                await Promise.all([
+                    (async () => {
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newGenes = await fetchGenesTrackData(
+                                    gapRegion,
+                                    plotConfig["genome reference"]
+                                );
+                                mergedGenes = mergeGenesByName(mergedGenes, newGenes);
+                                this.flushStreamedGenes(mergedGenes, activeRegion);
+                            } catch (genesError) {
+                                genesFetchFailed = true;
+                                console.warn("Variant Sifter genes gap fetch failed", genesError);
+                            }
+                        }
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "genes",
+                            genesFetchFailed && !mergedGenes.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
+                        );
+                    })(),
+                    (async () => {
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newRecomb = await fetchRecombinationRate(gapRegion);
+                                if (newRecomb) {
+                                    mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                                    this.flushStreamedRecomb(mergedRecomb, activeRegion);
+                                }
+                            } catch (recombError) {
+                                recombFetchFailed = true;
+                                console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                            }
+                        }
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "recomb",
+                            recombFetchFailed && !mergedRecomb?.position?.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
+                        );
+                    })(),
+                ]);
+
+                if (token !== this.regionExtendToken) {
+                    return;
+                }
 
                 if (extendedAssociationRows) {
-                    await this.refreshRegionLdScores(
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                    const ldOk = await this.refreshRegionLdScores(
                         mergedRows,
                         activeRegion,
                         () => token !== this.regionExtendToken
                     );
+                    if (token !== this.regionExtendToken) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "ld",
+                        ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                    );
+                } else {
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
                 }
 
-                this.syncCredibleSetsToActiveRegion(activeRegion);
+                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+                const credibleSetsOk = await this.loadCredibleSetsList(
+                    {
+                        ...this.searchSession,
+                        region: activeRegion,
+                    },
+                    { preserveSelection: true }
+                );
+                if (token !== this.regionExtendToken) {
+                    return;
+                }
+                this.setRegionLoadStep(
+                    "credibleSets",
+                    credibleSetsOk
+                        ? VKS_REGION_LOAD_STATUS.DONE
+                        : VKS_REGION_LOAD_STATUS.FAILED
+                );
+
                 this.finishRegionExtendSync();
             } catch (error) {
                 if (token !== this.regionExtendToken) {
                     return;
                 }
                 console.warn("Variant Sifter region extension failed", error);
+                this.regionLoadProgress = {
+                    ...this.regionLoadProgress,
+                    steps: this.regionLoadProgress.steps.map((step) =>
+                        step.status === VKS_REGION_LOAD_STATUS.LOADING
+                            ? { ...step, status: VKS_REGION_LOAD_STATUS.FAILED }
+                            : step
+                    ),
+                };
                 this.finishRegionExtendSync();
+                this.closeRegionLoadProgressIfSettled();
             } finally {
                 if (token === this.regionExtendToken) {
-                    this.regionDataLoading = false;
+                    this.closeRegionLoadProgressIfSettled();
                 }
             }
         },
@@ -1023,7 +1203,7 @@ export default Vue.component("kp-variant-sifter", {
             this.lastCredibleSetsListRegion = null;
             this.dataRegion = null;
             this.regionShiftBp = 0;
-            this.regionDataLoading = false;
+            this.regionLoadProgress = emptyRegionLoadProgress();
             this.resetRegionViewport();
             this.openDrawerId = null;
             this.dataTableOpen = false;
@@ -1070,9 +1250,7 @@ export default Vue.component("kp-variant-sifter", {
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
-            this.loadAssociations(session);
-            this.loadGenesTrack(session);
-            this.loadCredibleSetsList(session);
+            this.loadInitialSearchData(session);
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
             if (!this.searchSession?.phenotype || !activeRegion) {
@@ -1111,19 +1289,19 @@ export default Vue.component("kp-variant-sifter", {
             const host = this.utilsBox?.uiUtils?.biDomain?.();
             if (!host) {
                 if (token !== this.credibleSetsRequestToken) {
-                    return;
+                    return false;
                 }
                 this.credibleSetsState = {
                     ...(preserveSelection ? this.credibleSetsState : emptyCredibleSetsState()),
                     listError: "BioIndex host is not available.",
                 };
-                return;
+                return false;
             }
 
             try {
                 const available = await fetchCredibleSetsList(session, host);
                 if (token !== this.credibleSetsRequestToken) {
-                    return;
+                    return false;
                 }
 
                 const region = cloneGenomicRegion(session.region);
@@ -1146,9 +1324,10 @@ export default Vue.component("kp-variant-sifter", {
                     variantsBySet,
                 };
                 this.lastCredibleSetsListRegion = region;
+                return true;
             } catch (error) {
                 if (token !== this.credibleSetsRequestToken) {
-                    return;
+                    return false;
                 }
                 console.warn("Variant Sifter credible sets list failed", error);
                 this.credibleSetsState = {
@@ -1156,6 +1335,7 @@ export default Vue.component("kp-variant-sifter", {
                     listLoading: false,
                     listError: "Failed to load credible sets for this locus.",
                 };
+                return false;
             }
         },
         async onAddCredibleSet({ credibleSetId, phenotype }) {
@@ -1252,10 +1432,15 @@ export default Vue.component("kp-variant-sifter", {
                     return;
                 }
                 this.genesState = {
+                    ...this.genesState,
                     ready: true,
                     loading: false,
                     error: data.length ? null : "No genes found for this locus.",
                     data: data.length ? data : null,
+                    selectedTypes: resolveSelectedGeneTypesForData(
+                        this.genesState.selectedTypes,
+                        data
+                    ),
                 };
             } catch (error) {
                 if (token !== this.genesRequestToken) {
@@ -1301,7 +1486,7 @@ export default Vue.component("kp-variant-sifter", {
         },
         async refreshRegionLdScores(rows, activeRegion, isCancelled = () => false) {
             if (!rows?.length || !activeRegion || !this.searchSession) {
-                return;
+                return false;
             }
 
             const refRow = resolveLdReferenceRow(rows, {
@@ -1314,7 +1499,7 @@ export default Vue.component("kp-variant-sifter", {
                     ldLoading: false,
                     ldError: "LD scores could not be loaded for the extended region.",
                 };
-                return;
+                return false;
             }
 
             const refVariant = rowToLdVariant(refRow);
@@ -1335,7 +1520,7 @@ export default Vue.component("kp-variant-sifter", {
                     activeRegion
                 );
                 if (isCancelled()) {
-                    return;
+                    return false;
                 }
 
                 const ldAvailable = rowsWithLd.some(
@@ -1353,9 +1538,10 @@ export default Vue.component("kp-variant-sifter", {
                     ...this.plotOverlaysState,
                     refVariant,
                 };
+                return ldAvailable;
             } catch (ldError) {
                 if (isCancelled()) {
-                    return;
+                    return false;
                 }
                 console.warn("Variant Sifter LD score fetch failed", ldError);
                 this.associationsState = {
@@ -1363,14 +1549,21 @@ export default Vue.component("kp-variant-sifter", {
                     ldLoading: false,
                     ldError: "LD scores could not be loaded for the extended region.",
                 };
+                return false;
             }
         },
-        async loadAssociations(session) {
+        async loadInitialSearchData(session) {
             const token = ++this.associationsRequestToken;
-            this.associationsState = {
-                ...emptyAssociationsState(),
-                loading: true,
-            };
+            ++this.genesRequestToken;
+            ++this.plotOverlaysRequestToken;
+            ++this.credibleSetsRequestToken;
+
+            if (this.regionLoadDismissTimer) {
+                clearTimeout(this.regionLoadDismissTimer);
+                this.regionLoadDismissTimer = null;
+            }
+            this.regionLoadProgress = startRegionLoadProgress();
+            this.associationsState = emptyAssociationsState();
 
             const host = this.utilsBox?.uiUtils?.biDomain?.();
             if (!host) {
@@ -1378,30 +1571,161 @@ export default Vue.component("kp-variant-sifter", {
                     ...emptyAssociationsState(),
                     error: "BioIndex host is not available.",
                 };
+                for (const step of this.regionLoadProgress.steps) {
+                    this.setRegionLoadStep(step.id, VKS_REGION_LOAD_STATUS.FAILED);
+                }
+                this.closeRegionLoadProgressIfSettled();
                 return;
             }
 
+            let formattedRows = [];
+            let associationFailed = false;
+
+            this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
             try {
                 const result = await fetchAssociations(session, host);
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
 
-                const formattedRows = formatAssociationRows(result.rows, session);
+                formattedRows = formatAssociationRows(result.rows, session);
                 if (!this.dataRegion) {
                     this.dataRegion = cloneGenomicRegion(session.region);
                 }
                 this.associationsState = {
                     ...this.associationsState,
-                    loading: false,
-                    ldLoading: true,
                     error: null,
                     ldError: null,
                     rows: formattedRows,
                     index: result.index,
                     query: result.q,
                 };
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+            } catch (error) {
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+                associationFailed = true;
+                console.warn("Variant Sifter associations load failed", error);
+                this.associationsState = {
+                    ...emptyAssociationsState(),
+                    error: "Failed to load associations. Please try again.",
+                };
+                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+            }
 
+            if (token !== this.associationsRequestToken) {
+                return;
+            }
+
+            const plotConfig = buildAssociationsRegionPlotConfig(session);
+            const genesToken = ++this.genesRequestToken;
+            const recombToken = ++this.plotOverlaysRequestToken;
+            const credibleSetsToken = ++this.credibleSetsRequestToken;
+
+            this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
+            this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+            this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.LOADING);
+
+            await Promise.all([
+                (async () => {
+                    try {
+                        const data = await fetchGenesTrackData(
+                            session.region,
+                            plotConfig["genome reference"]
+                        );
+                        if (genesToken !== this.genesRequestToken) {
+                            return;
+                        }
+                        this.genesState = {
+                            ...this.genesState,
+                            ready: true,
+                            loading: false,
+                            error: data.length ? null : "No genes found for this locus.",
+                            data: data.length ? data : null,
+                            selectedTypes: resolveSelectedGeneTypesForData(
+                                this.genesState.selectedTypes,
+                                data
+                            ),
+                        };
+                        this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
+                    } catch (error) {
+                        if (genesToken !== this.genesRequestToken) {
+                            return;
+                        }
+                        console.warn("Variant Sifter genes track load failed", error);
+                        this.genesState = {
+                            ...emptyGenesState(),
+                            error: "Failed to load genes track for this locus.",
+                        };
+                        this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                })(),
+                (async () => {
+                    try {
+                        const recombData = await fetchRecombinationRate(session.region);
+                        if (recombToken !== this.plotOverlaysRequestToken) {
+                            return;
+                        }
+                        const leadRow = pickLeadVariantRow(formattedRows);
+                        this.plotOverlaysState = {
+                            ready: true,
+                            loading: false,
+                            error: null,
+                            recombData,
+                            refVariant: rowToLdVariant(leadRow),
+                            refVariantUserSet: false,
+                        };
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
+                    } catch (error) {
+                        if (recombToken !== this.plotOverlaysRequestToken) {
+                            return;
+                        }
+                        console.warn("Variant Sifter plot overlays load failed", error);
+                        this.plotOverlaysState = {
+                            ...emptyPlotOverlaysState(),
+                            ready: true,
+                            error: "Recombination overlay could not be loaded for this locus.",
+                        };
+                        this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                })(),
+                (async () => {
+                    this.credibleSetsState = {
+                        ...emptyCredibleSetsState(),
+                        listLoading: true,
+                    };
+                    try {
+                        const available = await fetchCredibleSetsList(session, host);
+                        if (credibleSetsToken !== this.credibleSetsRequestToken) {
+                            return;
+                        }
+                        this.credibleSetsState = {
+                            ...emptyCredibleSetsState(),
+                            available,
+                        };
+                        this.lastCredibleSetsListRegion = cloneGenomicRegion(session.region);
+                        this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
+                    } catch (error) {
+                        if (credibleSetsToken !== this.credibleSetsRequestToken) {
+                            return;
+                        }
+                        console.warn("Variant Sifter credible sets list failed", error);
+                        this.credibleSetsState = {
+                            ...emptyCredibleSetsState(),
+                            listError: "Failed to load credible sets for this locus.",
+                        };
+                        this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                })(),
+            ]);
+
+            if (token !== this.associationsRequestToken) {
+                return;
+            }
+
+            if (!associationFailed && formattedRows.length) {
+                this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
                 try {
                     const rowsWithLd = await enrichAssociationRowsWithLdScores(
                         formattedRows,
@@ -1413,16 +1737,24 @@ export default Vue.component("kp-variant-sifter", {
                     const ldAvailable = rowsWithLd.some(
                         (row) => row.LDS != null && !Number.isNaN(row.LDS)
                     );
+                    const leadRow = pickLeadVariantRow(rowsWithLd);
                     this.associationsState = {
                         ...this.associationsState,
-                        ldLoading: false,
-                        ldError:
-                            ldAvailable || !formattedRows.length
-                                ? null
-                                : "LD scores could not be loaded for this locus.",
+                        ldError: ldAvailable
+                            ? null
+                            : "LD scores could not be loaded for this locus.",
                         rows: rowsWithLd,
                     };
-                    this.loadPlotOverlays(session, rowsWithLd);
+                    this.plotOverlaysState = {
+                        ...this.plotOverlaysState,
+                        refVariant: rowToLdVariant(leadRow),
+                    };
+                    this.setRegionLoadStep(
+                        "ld",
+                        ldAvailable
+                            ? VKS_REGION_LOAD_STATUS.DONE
+                            : VKS_REGION_LOAD_STATUS.FAILED
+                    );
                 } catch (ldError) {
                     if (token !== this.associationsRequestToken) {
                         return;
@@ -1430,28 +1762,20 @@ export default Vue.component("kp-variant-sifter", {
                     console.warn("Variant Sifter LD score fetch failed", ldError);
                     this.associationsState = {
                         ...this.associationsState,
-                        ldLoading: false,
                         ldError: "LD scores could not be loaded for this locus.",
                     };
-                    this.loadPlotOverlays(session, formattedRows);
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
                 }
-            } catch (error) {
-                if (token !== this.associationsRequestToken) {
-                    return;
-                }
-                console.warn("Variant Sifter associations load failed", error);
-                this.associationsState = {
-                    ...emptyAssociationsState(),
-                    error: "Failed to load associations. Please try again.",
-                };
-                this.plotOverlaysState = {
-                    ready: true,
-                    loading: false,
-                    error: null,
-                    recombData: null,
-                    refVariant: null,
-                };
+            } else {
+                this.setRegionLoadStep(
+                    "ld",
+                    associationFailed
+                        ? VKS_REGION_LOAD_STATUS.FAILED
+                        : VKS_REGION_LOAD_STATUS.DONE
+                );
             }
+
+            this.closeRegionLoadProgressIfSettled();
         },
         applyUrlSearchParams() {
             if (this.canvasActive || this.searchSession) {
@@ -1510,6 +1834,15 @@ export default Vue.component("kp-variant-sifter", {
             this.associationsState = {
                 ...this.associationsState,
                 filtersIndex,
+            };
+        },
+        onGenesSelectedTypesUpdate(selectedTypes) {
+            this.genesState = {
+                ...this.genesState,
+                selectedTypes: resolveSelectedGeneTypesForData(
+                    selectedTypes,
+                    this.genesState.data
+                ),
             };
         },
     },

@@ -112,6 +112,10 @@ export default {
             type: Object,
             default: null,
         },
+        recombPeakIntervals: {
+            type: Array,
+            default: () => [],
+        },
     },
     data() {
         return {
@@ -211,6 +215,12 @@ export default {
             },
             deep: true,
         },
+        recombPeakIntervals: {
+            handler() {
+                this.renderTrack();
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.renderTrack();
@@ -279,6 +289,7 @@ export default {
                 selectedSets: this.selectedSets,
                 colorBySetId: this.colorBySetId,
                 plotMarkers: this.plotMarkers,
+                recombPeakIntervals: this.recombPeakIntervals,
                 utils: this.utils,
                 starredVariants: this.starredVariants,
                 xAxisBandHover: this.xAxisBandHover,

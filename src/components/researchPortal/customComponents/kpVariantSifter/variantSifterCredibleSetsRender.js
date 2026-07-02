@@ -1,6 +1,7 @@
 import {
     getInternalPlotHeight,
     normalizePlotMargin,
+    renderTrackHighlightBands,
     renderPlotAxis,
     renderPlotDot,
     setupPlotCanvas,
@@ -55,6 +56,7 @@ export function renderCredibleSetsTrack(ctx, options) {
         selectedSets,
         colorBySetId,
         plotMarkers,
+        recombPeakIntervals = [],
         phenotypeLabel,
         utils,
         starredVariants = [],
@@ -102,6 +104,14 @@ export function renderCredibleSetsTrack(ctx, options) {
         utils,
         yAxisLabel: "PPA",
         xAxisLabel: "",
+    });
+
+    renderTrackHighlightBands(ctx, {
+        intervals: recombPeakIntervals,
+        visibleRegion: viewRegion,
+        margin,
+        plotWidth,
+        plotHeight,
     });
 
     let dotsInRegion = 0;

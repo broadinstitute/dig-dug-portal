@@ -2,7 +2,7 @@
     <div class="vks-assoc-drawer research-data-table-wrapper">
         <p v-if="drawerStatusLabel" class="vks-assoc-meta">{{ drawerStatusLabel }}</p>
 
-        <div v-if="loading" class="vks-assoc-status">Loading associations…</div>
+        <div v-if="loading && !hideLoadingStatus" class="vks-assoc-status">Loading associations…</div>
         <div v-else-if="error" class="vks-assoc-error" role="alert">
             {{ error }}
         </div>
@@ -188,6 +188,10 @@ export default {
             default: null,
         },
         loading: {
+            type: Boolean,
+            default: false,
+        },
+        hideLoadingStatus: {
             type: Boolean,
             default: false,
         },

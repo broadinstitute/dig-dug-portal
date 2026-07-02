@@ -430,6 +430,24 @@ export function cloneGenomicRegion(region) {
     };
 }
 
+/** Union of two regions on the same chromosome (for incremental data loading). */
+export function unionGenomicRegions(left, right) {
+    if (!left) {
+        return cloneGenomicRegion(right);
+    }
+    if (!right) {
+        return cloneGenomicRegion(left);
+    }
+    if (left.chr !== right.chr) {
+        return cloneGenomicRegion(left);
+    }
+    return {
+        chr: left.chr,
+        start: Math.min(Number(left.start), Number(right.start)),
+        end: Math.max(Number(left.end), Number(right.end)),
+    };
+}
+
 export function genomicRegionsEqual(left, right) {
     if (!left || !right) {
         return false;

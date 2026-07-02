@@ -103,6 +103,7 @@ import {
     measureAssociationCanvasWidth,
     normalizePlotMargin,
     renderDiamond,
+    renderTrackHighlightBands,
     renderPlotAxis,
     renderPlotDot,
     renderRecombinationLine,
@@ -175,6 +176,10 @@ export default {
         utils: {
             type: Object,
             default: null,
+        },
+        recombPeakIntervals: {
+            type: Array,
+            default: () => [],
         },
     },
     data() {
@@ -283,6 +288,12 @@ export default {
         },
         sharedCanvasWidth() {
             this.renderPlot();
+        },
+        recombPeakIntervals: {
+            handler() {
+                this.renderPlot();
+            },
+            deep: true,
         },
         plotOverlaysState: {
             handler() {
@@ -404,6 +415,14 @@ export default {
                 utils: this.utils,
                 yAxisLabel: "-log10(p-value)",
                 xAxisLabel: "Chromosome",
+            });
+
+            renderTrackHighlightBands(ctx, {
+                intervals: this.recombPeakIntervals,
+                visibleRegion,
+                margin,
+                plotWidth,
+                plotHeight,
             });
 
             renderRecombinationLine(

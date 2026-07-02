@@ -16,6 +16,7 @@
                         :key="section.id"
                         :rows="associationPlotRows"
                         :loading="associationsState.loading"
+                        :hide-loading-status="regionLoadProgressActive"
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
                         :error="associationsState.error"
@@ -24,7 +25,6 @@
                         :region-shift-bp="regionShiftBp"
                         :region-view-area="regionViewArea"
                         :view-region="viewRegion"
-                        :region-data-loading="regionDataLoading"
                         :genes-state="genesState"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
@@ -120,10 +120,6 @@ export default {
             type: Object,
             default: null,
         },
-        regionDataLoading: {
-            type: Boolean,
-            default: false,
-        },
         dataTableOpen: {
             type: Boolean,
             default: false,
@@ -186,6 +182,10 @@ export default {
         credibleSetPillColors: {
             type: Object,
             default: () => ({}),
+        },
+        regionLoadProgressActive: {
+            type: Boolean,
+            default: false,
         },
     },
     computed: {

@@ -2,6 +2,7 @@ import { createFiltersIndex, cloneFiltersIndex } from "./variantSifterAssociatio
 import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
 import { clampRegionZoomOut, regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
+import { normalizeSelectedGeneTypes, resolveSelectedGeneTypesForData } from "./variantSifterGenesFilter.js";
 
 export const VKS_SESSION_VERSION = 5;
 export const VKS_SESSION_APP = "kp-variant-sifter";
@@ -104,6 +105,7 @@ export function exportVariantSifterSession({
         },
         genesTrack: {
             data: genesState.data,
+            selectedTypes: normalizeSelectedGeneTypes(genesState.selectedTypes),
         },
         plotOverlays: {
             recombData: plotOverlaysState?.recombData ?? null,
@@ -290,6 +292,10 @@ function normalizeGenesState(payload) {
                 ? null
                 : "Session file did not include genes track data.",
         data: Array.isArray(exportedGenes) && exportedGenes.length ? exportedGenes : null,
+        selectedTypes: resolveSelectedGeneTypesForData(
+            payload?.genesTrack?.selectedTypes,
+            exportedGenes
+        ),
     };
 }
 

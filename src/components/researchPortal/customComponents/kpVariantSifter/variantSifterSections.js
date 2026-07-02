@@ -3,8 +3,8 @@ export const VARIANT_SIFTER_SECTIONS = [
     {
         id: "associations",
         label: "Associations",
-        drawerLabel: "Associations",
-        shortLabel: "Assoc.",
+        drawerLabel: "Asso.",
+        shortLabel: "Asso.",
         description: "Association and LD plots for the searched locus.",
     },
     {
@@ -37,6 +37,14 @@ export const VARIANT_SIFTER_SECTIONS = [
         drawerLabel: "SNP 2 gene",
         shortLabel: "S2G",
         description: "SNP-to-gene link scores for the locus.",
+        trackImplemented: false,
+    },
+    {
+        id: "genes",
+        label: "Genes",
+        drawerLabel: "Genes",
+        shortLabel: "Genes",
+        description: "Gene annotation track filters for the searched locus.",
         trackImplemented: false,
     },
 ];

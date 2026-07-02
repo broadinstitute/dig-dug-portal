@@ -219,6 +219,7 @@ export default {
             phenotypeListOpen: false,
             geneListOpen: false,
             geneSuggestions: [],
+            geneSuggestionSuppressed: false,
             geneLookupToken: 0,
             geneLookupTimer: null,
             errorMessage: "",
@@ -270,6 +271,7 @@ export default {
             this.phenotypeListOpen = false;
             this.geneListOpen = false;
             this.geneSuggestions = [];
+            this.geneSuggestionSuppressed = false;
             this.errorMessage = "";
             this.resolvedRegionLabel = "";
         },
@@ -304,13 +306,19 @@ export default {
             }
         },
         onGeneOrVariantFocus() {
-            if (isGeneLookupQuery(this.geneOrVariantQuery)) {
+            if (
+                isGeneLookupQuery(this.geneOrVariantQuery) &&
+                !this.geneSuggestionSuppressed
+            ) {
                 this.geneListOpen = true;
                 this.scheduleGeneLookup();
             }
         },
         onGeneOrVariantInput() {
-            this.geneListOpen = isGeneLookupQuery(this.geneOrVariantQuery);
+            this.geneSuggestionSuppressed = false;
+            this.geneListOpen =
+                isGeneLookupQuery(this.geneOrVariantQuery) &&
+                !this.geneSuggestionSuppressed;
             this.scheduleGeneLookup();
         },
         scheduleGeneLookup() {
@@ -318,7 +326,10 @@ export default {
                 clearTimeout(this.geneLookupTimer);
             }
 
-            if (!isGeneLookupQuery(this.geneOrVariantQuery)) {
+            if (
+                !isGeneLookupQuery(this.geneOrVariantQuery) ||
+                this.geneSuggestionSuppressed
+            ) {
                 this.geneSuggestions = [];
                 this.geneListOpen = false;
                 return;
@@ -330,7 +341,7 @@ export default {
         },
         async fetchGeneSuggestions() {
             const query = this.geneOrVariantQuery.trim();
-            if (!isGeneLookupQuery(query)) {
+            if (!isGeneLookupQuery(query) || this.geneSuggestionSuppressed) {
                 this.geneSuggestions = [];
                 return;
             }
@@ -342,9 +353,14 @@ export default {
             }
 
             this.geneSuggestions = matches;
-            this.geneListOpen = matches.length > 0;
+            this.geneListOpen = matches.length > 0 && !this.geneSuggestionSuppressed;
         },
         selectGene(gene) {
+            if (this.geneLookupTimer) {
+                clearTimeout(this.geneLookupTimer);
+                this.geneLookupTimer = null;
+            }
+            this.geneSuggestionSuppressed = true;
             this.geneOrVariantQuery = gene;
             this.geneSuggestions = [];
             this.geneListOpen = false;

@@ -1,6 +1,6 @@
 <template>
     <div class="vks-associations-plot">
-        <div v-if="loading && !plotData" class="vks-associations-plot-status">
+        <div v-if="loading && !plotData && !hideLoadingStatus" class="vks-associations-plot-status">
             Loading associations…
         </div>
         <div
@@ -17,6 +17,7 @@
             <div ref="plotStack" class="vks-associations-plot-stack">
                 <VariantSifterAssociationRegionPlot
                     :plot-rows="plotData"
+                    :recomb-peak-intervals="recombPeakIntervals"
                     :region="searchSession?.region"
                     :search-session="searchSession"
                     :region-zoom="regionZoom"
@@ -38,6 +39,7 @@
                 <VariantSifterCredibleSetsTrack
                     v-if="hasSelectedCredibleSets"
                     :selected-sets="credibleSetsTrackData"
+                    :recomb-peak-intervals="recombPeakIntervals"
                     :color-by-set-id="credibleSetColors"
                     :region="searchSession?.region"
                     :view-region="viewRegion"
@@ -57,18 +59,17 @@
                 <VariantSifterGenesTrack
                     :key="genesTrackKey"
                     :genes="genesTrackData"
+                    :recomb-peak-intervals="recombPeakIntervals"
                     :region="searchSession?.region"
                     :view-region="viewRegion"
                     :plot-margin="plotMargin"
                     :region-zoom="regionZoom"
                     :shared-canvas-width="stackCanvasWidth"
                     :plot-markers="plotMarkers"
+                    :color-by-gene-type="geneTypeColors"
                 />
             </div>
-            <p v-if="regionDataLoading" class="vks-associations-plot-note">
-                Loading extended region…
-            </p>
-            <p v-else-if="ldLoading" class="vks-associations-plot-note">
+            <p v-if="ldLoading" class="vks-associations-plot-note">
                 Loading LD scores for table…
             </p>
             <p v-else-if="ldError" class="vks-associations-plot-note">
@@ -87,7 +88,13 @@ import {
     VARIANT_SIFTER_PLOT_MARGIN,
 } from "./variantSifterAssociationsPlotConfig.js";
 import {
+    buildGeneTypeOptions,
+    filterGenesByTypes,
+} from "./variantSifterGenesFilter.js";
+import { buildGeneTypeColorMap } from "./variantSifterGenesColors.js";
+import {
     attachPlotResizeObserver,
+    computeRecombSignalIntervals,
     measureVksPlotStackCanvasWidth,
 } from "./variantSifterPlotShared.js";
 
@@ -109,6 +116,10 @@ export default {
             default: () => [],
         },
         loading: {
+            type: Boolean,
+            default: false,
+        },
+        hideLoadingStatus: {
             type: Boolean,
             default: false,
         },
@@ -147,10 +158,6 @@ export default {
         viewRegion: {
             type: Object,
             default: null,
-        },
-        regionDataLoading: {
-            type: Boolean,
-            default: false,
         },
         plotOverlaysState: {
             type: Object,
@@ -204,7 +211,8 @@ export default {
         genesTrackData() {
             const { loading, ready, data } = this.genesState || {};
             if (loading || ready) {
-                return Array.isArray(data) ? data : [];
+                const genes = Array.isArray(data) ? data : [];
+                return filterGenesByTypes(genes, this.genesState?.selectedTypes);
             }
             return [];
         },
@@ -214,7 +222,11 @@ export default {
                 ? `${region.chr}:${region.start}-${region.end}`
                 : "region";
             const count = this.genesState?.data?.length || 0;
-            return `${regionKey}:${count}:${this.genesState?.loading ? "loading" : "ready"}`;
+            return `${regionKey}:${count}:${this.genesState?.loading ? "loading" : "ready"}:${(this.genesState?.selectedTypes || []).join(",")}:${Object.keys(this.geneTypeColors).join(",")}`;
+        },
+        geneTypeColors() {
+            const genes = Array.isArray(this.genesState?.data) ? this.genesState.data : [];
+            return buildGeneTypeColorMap(buildGeneTypeOptions(genes));
         },
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
@@ -228,6 +240,13 @@ export default {
                     formattedVariants: setState?.formattedVariants || [],
                 };
             });
+        },
+        recombPeakIntervals() {
+            const region = this.viewRegion || this.searchSession?.region;
+            if (!region) {
+                return [];
+            }
+            return computeRecombSignalIntervals(this.plotOverlaysState?.recombData, region);
         },
     },
     watch: {

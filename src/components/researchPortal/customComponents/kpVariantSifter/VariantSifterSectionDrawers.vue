@@ -27,6 +27,7 @@
                         :rows="associationsState.rows"
                         :filters-index="associationsState.filtersIndex"
                         :loading="associationsState.loading"
+                        :hide-loading-status="regionLoadProgressActive"
                         :error="associationsState.error"
                         :index-name="associationsState.index"
                         :query-string="associationsState.query"
@@ -48,6 +49,11 @@
                         :utils="utils"
                         @add-set="$emit('add-credible-set', $event)"
                         @remove-set="$emit('remove-credible-set', $event)"
+                    />
+                    <VariantSifterGenesDrawer
+                        v-else-if="openSection.id === 'genes'"
+                        :genes-state="genesState"
+                        @update:selectedTypes="$emit('update:genesSelectedTypes', $event)"
                     />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>
@@ -85,12 +91,14 @@ import { drawerTabLabel, drawerTabHeight, sectionById } from "./variantSifterSec
 import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.vue";
 
 import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
+import VariantSifterGenesDrawer from "./VariantSifterGenesDrawer.vue";
 
 export default {
     name: "VariantSifterSectionDrawers",
     components: {
         VariantSifterAssociationsDrawer,
         VariantSifterCredibleSetsDrawer,
+        VariantSifterGenesDrawer,
     },
     props: {
         sections: {
@@ -154,6 +162,20 @@ export default {
         credibleSetPillColors: {
             type: Object,
             default: () => ({}),
+        },
+        genesState: {
+            type: Object,
+            default: () => ({
+                ready: false,
+                loading: false,
+                error: null,
+                data: null,
+                selectedTypes: ["protein_coding"],
+            }),
+        },
+        regionLoadProgressActive: {
+            type: Boolean,
+            default: false,
         },
         railPinned: {
             type: Boolean,
