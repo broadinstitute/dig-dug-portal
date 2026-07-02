@@ -37,25 +37,39 @@ export function truncateProvenanceLabel(text, max = PROVENANCE_LABEL_MAX_LENGTH)
     return `${value.slice(0, max - 1)}…`;
 }
 
+export function normalizeGeneSetIdForApi(value) {
+    const text = String(value ?? "").trim();
+    return text || null;
+}
+
 export function geneSetDetailUrl(geneSetId) {
-    const id = Number(geneSetId);
-    if (!Number.isFinite(id)) {
+    const id = normalizeGeneSetIdForApi(geneSetId);
+    if (!id) {
         return "";
     }
-    return `${GENE_SET_DETAIL_API_URL}?gene_set_id=${id}`;
+    const params = new URLSearchParams({ gene_set_id: id });
+    return `${GENE_SET_DETAIL_API_URL}?${params.toString()}`;
 }
 
 export function resolveGeneSetIdForProvenance(node) {
-    const fromMeta = Number(node?.demo_gene_set?.gene_set_id);
-    if (Number.isFinite(fromMeta)) {
-        return fromMeta;
+    const meta = node?.demo_gene_set || {};
+    const standardName = String(meta.standard_name || node?.standard_name || "").trim();
+    if (standardName) {
+        return standardName;
     }
-    const match = String(node?.id || node?.node_id || "").match(/^gene_set:demo:(\d+)$/i);
-    if (match) {
-        return Number(match[1]);
+    const metaId = meta.gene_set_id;
+    if (typeof metaId === "string" && metaId.trim() && !/^\d+$/.test(metaId.trim())) {
+        return metaId.trim();
     }
-    const generic = Number(node?.gene_set_id);
-    return Number.isFinite(generic) ? generic : null;
+    const fromNodeId = String(node?.id || node?.node_id || "").match(/^gene_set:demo:(\d+)$/i);
+    const numericCandidates = [metaId, fromNodeId?.[1], node?.gene_set_id];
+    for (const candidate of numericCandidates) {
+        const num = Number(candidate);
+        if (Number.isFinite(num)) {
+            return String(num);
+        }
+    }
+    return null;
 }
 
 export function formatGeneSetInformationForClipboard({
@@ -64,17 +78,18 @@ export function formatGeneSetInformationForClipboard({
     collectionName = "",
     assistantIntention = "",
 } = {}) {
-    const id = Number(geneSetId);
+    const id = normalizeGeneSetIdForApi(geneSetId);
+    const resolvedStandardName = String(standardName || "").trim();
     const lines = [];
     const provenanceUrl = geneSetDetailUrl(id);
     if (provenanceUrl) {
         lines.push(`Gene set provenance URL: ${provenanceUrl}`);
     }
-    if (Number.isFinite(id)) {
+    if (id) {
         lines.push(`Gene set ID: ${id}`);
     }
-    if (String(standardName || "").trim()) {
-        lines.push(`Standard name: ${String(standardName).trim()}`);
+    if (resolvedStandardName && resolvedStandardName !== id) {
+        lines.push(`Standard name: ${resolvedStandardName}`);
     }
     if (String(collectionName || "").trim()) {
         lines.push(`Collection: ${String(collectionName).trim()}`);
@@ -95,7 +110,7 @@ export function geneSetInformationEntryFromNode(node) {
     return {
         nodeId: node?.id || node?.node_id || "",
         label: String(node?.label || "").trim(),
-        geneSetId: Number.isFinite(geneSetId) ? geneSetId : null,
+        geneSetId,
         standardName: String(demoMeta.standard_name || node?.label || "").trim(),
         collectionName: String(demoMeta.collection_name || "").trim(),
         assistantIntention: resolveAssistantIntentionForGeneSet(node),
@@ -105,7 +120,7 @@ export function geneSetInformationEntryFromNode(node) {
 export function formatSelectedGeneSetsInformationForClipboard(nodes = []) {
     const entries = (nodes || [])
         .map(geneSetInformationEntryFromNode)
-        .filter((entry) => Number.isFinite(entry.geneSetId));
+        .filter((entry) => entry.geneSetId);
     if (!entries.length) {
         return "";
     }
@@ -162,10 +177,10 @@ export function openProvenanceExplorerWindow(url = GENE_SET_PROVENANCE_EXPLORER_
 export async function gatherCopyAndOpenProvenanceExplorer(nodes = [], url = GENE_SET_PROVENANCE_EXPLORER_URL) {
     const entries = (nodes || [])
         .map(geneSetInformationEntryFromNode)
-        .filter((entry) => Number.isFinite(entry.geneSetId));
+        .filter((entry) => entry.geneSetId);
     if (!entries.length) {
         throw new Error(
-            "Selected gene sets need catalog ids (for example demo gene sets added via the assistant)."
+            "Selected gene sets need gene set ids (for example demo gene sets added via the assistant)."
         );
     }
     const clipboardText = formatSelectedGeneSetsInformationForClipboard(nodes);
@@ -181,8 +196,8 @@ export async function gatherCopyAndOpenProvenanceExplorer(nodes = [], url = GENE
 }
 
 export async function fetchGeneSetProvenanceDetail(geneSetId) {
-    const id = Number(geneSetId);
-    if (!Number.isFinite(id)) {
+    const id = normalizeGeneSetIdForApi(geneSetId);
+    if (!id) {
         throw new Error("A valid gene set id is required.");
     }
     const response = await fetch(geneSetDetailUrl(id), {
@@ -692,7 +707,7 @@ export function buildDownloadRegenerateContext(payload) {
     ).trim();
 
     return {
-        geneSetId: payload?.gene_set_id ?? null,
+        geneSetId: payload?.standard_name || payload?.gene_set_id || null,
         standardName: payload?.standard_name || "",
         collectionName: payload?.collection_name || "",
         sourceFiles,
@@ -722,6 +737,6 @@ export function parseGeneSetProvenancePayload(payload) {
         downloadRegenerate: buildDownloadRegenerateContext(payload),
         standardName: payload?.standard_name || "",
         collectionName: payload?.collection_name || "",
-        geneSetId: payload?.gene_set_id ?? null,
+        geneSetId: payload?.standard_name || payload?.gene_set_id || null,
     };
 }

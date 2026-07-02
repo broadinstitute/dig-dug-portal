@@ -6,6 +6,7 @@ import {
     buildProvenanceGraphTableRows,
     formatGeneSetInformationForClipboard,
     formatSelectedGeneSetsInformationForClipboard,
+    GENE_SET_DETAIL_API_URL,
     geneSetDetailUrl,
     mentionsOpenProvenanceExplorerInQuery,
     mergeDuplicateProvenanceFileNodes,
@@ -125,10 +126,26 @@ describe("revealKgGeneSetProvenance", () => {
         expect(
             resolveGeneSetIdForProvenance({
                 id: "gene_set:demo:20",
+                demo_gene_set: {
+                    gene_set_id: 20,
+                    standard_name: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
+                },
+            })
+        ).toBe("GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn");
+        expect(
+            resolveGeneSetIdForProvenance({
+                id: "gene_set:demo:20",
                 demo_gene_set: { gene_set_id: 20 },
             })
-        ).toBe(20);
+        ).toBe("20");
         expect(resolveGeneSetIdForProvenance({ id: "gene_set:INSULIN" })).toBeNull();
+    });
+
+    it("builds gene-set detail URLs with encoded standard names", () => {
+        const standardName = "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_30-39_up";
+        expect(geneSetDetailUrl(standardName)).toBe(
+            `${GENE_SET_DETAIL_API_URL}?gene_set_id=${encodeURIComponent(standardName)}`
+        );
     });
 
     it("truncates long provenance labels", () => {
@@ -205,7 +222,7 @@ describe("revealKgGeneSetProvenance", () => {
 
     it("builds download and regenerate context from provenance inputs", () => {
         const context = buildDownloadRegenerateContext(SAMPLE_PAYLOAD);
-        expect(context.geneSetId).toBe(20);
+        expect(context.geneSetId).toBe(SAMPLE_PAYLOAD.standard_name);
         expect(context.sourceFiles).toHaveLength(2);
         expect(context.sourceFiles[0]).toMatchObject({
             name: "GTEx_Analysis_gene_reads.gct.gz",
@@ -218,14 +235,16 @@ describe("revealKgGeneSetProvenance", () => {
     });
 
     it("formats gene set information for clipboard copy", () => {
+        const standardName = "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn";
         const text = formatGeneSetInformationForClipboard({
-            geneSetId: 20,
-            standardName: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
+            geneSetId: standardName,
+            standardName,
             collectionName: "GTEx",
             assistantIntention: "add Type 2 diabetes related gene sets from demo gene sets.",
         });
-        expect(text).toContain(geneSetDetailUrl(20));
-        expect(text).toContain("Gene set ID: 20");
+        expect(text).toContain(geneSetDetailUrl(standardName));
+        expect(text).toContain(`Gene set ID: ${standardName}`);
+        expect(text).not.toContain("Standard name:");
         expect(text).toContain("User intention: add Type 2 diabetes related gene sets");
     });
 
@@ -256,8 +275,10 @@ describe("revealKgGeneSetProvenance", () => {
         const text = formatSelectedGeneSetsInformationForClipboard(nodes);
         expect(text).toContain("Gene set 1: GTEx adipose aging");
         expect(text).toContain("Gene set 2: GTEx liver aging");
-        expect(text).toContain("Gene set ID: 20");
-        expect(text).toContain("Gene set ID: 21");
+        expect(text).toContain(
+            "Gene set ID: GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn"
+        );
+        expect(text).toContain("Gene set ID: GTEx__liver__GTEx_aging_Liver_20-29_50-59_dn");
         expect(text).toContain("User intention: add aging gene sets");
     });
 
@@ -268,7 +289,7 @@ describe("revealKgGeneSetProvenance", () => {
 
     it("parses full provenance payload", () => {
         const parsed = parseGeneSetProvenancePayload(SAMPLE_PAYLOAD);
-        expect(parsed.geneSetId).toBe(20);
+        expect(parsed.geneSetId).toBe(SAMPLE_PAYLOAD.standard_name);
         expect(parsed.provenanceNetwork.nodes).toHaveLength(8);
         expect(parsed.graphTableRows.length).toBe(7);
         expect(parsed.geneRows.length).toBe(2);

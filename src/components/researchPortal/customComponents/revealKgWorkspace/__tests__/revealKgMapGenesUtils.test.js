@@ -77,7 +77,11 @@ describe("revealKgMapGenesUtils", () => {
                     id: "gene_set:demo:20",
                     label: "Demo set",
                     type: "gene_set",
-                    demo_gene_set: { gene_set_id: 20 },
+                    demo_gene_set: {
+                        gene_set_id: 20,
+                        standard_name:
+                            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
+                    },
                 },
             ],
         };

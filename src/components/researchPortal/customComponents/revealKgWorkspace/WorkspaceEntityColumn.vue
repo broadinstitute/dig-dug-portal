@@ -86,6 +86,12 @@
                     <p v-if="autocompleteLoading" class="wkb-entity-add-status">
                         Searching…
                     </p>
+                    <p
+                        v-else-if="geneSetSearchUnavailableNote"
+                        class="wkb-entity-llm-note"
+                    >
+                        {{ geneSetSearchUnavailableNote }}
+                    </p>
                     <transition name="wkb-entity-added-fade">
                         <p
                             v-if="selectedFeedbackVisible"
@@ -218,6 +224,7 @@ import {
     isDemoGeneSetSearchQuery,
     parseDemoGeneSetSearchTerm,
 } from "./revealKgDemoGeneSets.js";
+import { GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE } from "./revealKgCanvasModel.js";
 
 export default {
     name: "WorkspaceEntityColumn",
@@ -245,6 +252,10 @@ export default {
         llmAvailable: {
             type: Boolean,
             default: false,
+        },
+        geneSetSemanticSearchAvailable: {
+            type: Boolean,
+            default: true,
         },
     },
     data() {
@@ -278,9 +289,23 @@ export default {
         },
         searchPlaceholder() {
             if (this.entityType === "gene_set") {
+                if (!this.geneSetSemanticSearchAvailable) {
+                    return "Try demo:bladder for demo gene sets";
+                }
                 return "Search by name, describe a biology question, or try demo:bladder";
             }
             return `Search ${this.title.toLowerCase()}`;
+        },
+        geneSetSearchUnavailableNote() {
+            if (
+                this.entityType !== "gene_set" ||
+                this.geneSetSemanticSearchAvailable ||
+                !this.autocompleteQuery.trim() ||
+                isDemoGeneSetSearchQuery(this.autocompleteQuery)
+            ) {
+                return "";
+            }
+            return GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE;
         },
         conceptualSearchEnabled() {
             return (
@@ -415,6 +440,16 @@ export default {
                     this.autocompleteSuggestions = filterDemoGeneSets(records, demoTerm, 8).map(
                         demoGeneSetCatalogItem
                     );
+                    return;
+                }
+                if (
+                    this.entityType === "gene_set" &&
+                    !this.geneSetSemanticSearchAvailable
+                ) {
+                    if (requestId !== this.catalogRequestId) {
+                        return;
+                    }
+                    this.autocompleteSuggestions = [];
                     return;
                 }
                 const payload =

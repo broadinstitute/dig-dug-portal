@@ -9,11 +9,15 @@
  */
 
 import { logGeneSetAdd } from "../components/researchPortal/customComponents/revealKgWorkspace/revealKgGeneSetDebug.js";
+import { DEFAULT_CANVAS_INTERACTIVE_MODEL } from "../components/researchPortal/customComponents/revealKgWorkspace/revealKgCanvasModel.js";
 
 const INTERACTIVE_API_PREFIX = "/api/interactive";
 
 /** Default request timeout (ms). */
 export const REQUEST_TIMEOUT_MS = 2 * 60 * 1000;
+
+/** Default cfde-reveal data bucket when no `model` URL param is set. */
+export const DEFAULT_REVEAL_KG_INTERACTIVE_MODEL = DEFAULT_CANVAS_INTERACTIVE_MODEL;
 
 /** cfde-reveal host used by dig-dug-server proxy and webpack devServer (not browser). */
 export const DEFAULT_REVEAL_KG_API_BASE_URL =
@@ -25,6 +29,60 @@ const DEFAULT_GENE_SET_SEARCH_PATH = `${INTERACTIVE_API_PREFIX}/gene-set/search`
 let apiBaseUrl = normalizeApiBase(
     process.env.VUE_APP_REVEAL_KG_API_BASE_URL || ""
 );
+
+let interactiveModel = DEFAULT_REVEAL_KG_INTERACTIVE_MODEL;
+
+export function setRevealKgInteractiveModel(model) {
+    interactiveModel = String(model || DEFAULT_REVEAL_KG_INTERACTIVE_MODEL).trim() ||
+        DEFAULT_REVEAL_KG_INTERACTIVE_MODEL;
+}
+
+export function getRevealKgInteractiveModel() {
+    return interactiveModel;
+}
+
+function shouldSendInteractiveModel() {
+    return (
+        String(interactiveModel || "").trim() &&
+        interactiveModel !== DEFAULT_REVEAL_KG_INTERACTIVE_MODEL
+    );
+}
+
+function appendInteractiveModelParam(params) {
+    if (shouldSendInteractiveModel()) {
+        params.set("model", interactiveModel);
+    }
+    return params;
+}
+
+function withInteractiveModelPayload(payload = {}) {
+    if (!shouldSendInteractiveModel() || payload?.model) {
+        return payload;
+    }
+    return {
+        ...payload,
+        model: interactiveModel,
+    };
+}
+
+function getInteractiveJson(path, params = {}) {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value != null && value !== "") {
+            search.set(key, String(value));
+        }
+    });
+    appendInteractiveModelParam(search);
+    const query = search.toString();
+    return requestJson(query ? `${path}?${query}` : path);
+}
+
+function postInteractiveJson(path, payload = {}) {
+    return requestJson(path, {
+        method: "POST",
+        body: JSON.stringify(withInteractiveModelPayload(payload)),
+    });
+}
 
 function normalizeApiBase(value) {
     return String(value || "")
@@ -167,11 +225,11 @@ export function getInteractiveHelpManual() {
 }
 
 export function getInteractiveResourceSummary() {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/resource-summary`);
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/resource-summary`);
 }
 
 export function getInteractiveExpressionOptions() {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/expression-options`);
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/expression-options`);
 }
 
 // ---------------------------------------------------------------------------
@@ -179,12 +237,11 @@ export function getInteractiveExpressionOptions() {
 // ---------------------------------------------------------------------------
 
 export function searchInteractiveCatalog(entityType, query, limit = 10) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/catalog`, {
         entity_type: entityType,
         q: query,
         limit: String(limit),
     });
-    return requestJson(`${INTERACTIVE_API_PREFIX}/catalog?${params.toString()}`);
 }
 
 function normalizeGeneSetSearchResponse(payload) {
@@ -215,7 +272,11 @@ function normalizeGeneSetSearchResponse(payload) {
             };
         })
         .filter(Boolean);
-    return { items };
+    return {
+        items,
+        method: payload?.method || "",
+        explanation: payload?.explanation || "",
+    };
 }
 
 /**
@@ -233,13 +294,10 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
     const searchPath = getGeneSetSearchPath();
     const cappedTopK = Math.max(1, Number(topK) || 10);
     try {
-        const payload = await requestJson(searchPath, {
-            method: "POST",
-            body: JSON.stringify({
-                query: q,
-                top_k: cappedTopK,
-                limit: cappedTopK,
-            }),
+        const payload = await postInteractiveJson(searchPath, {
+            query: q,
+            top_k: cappedTopK,
+            limit: cappedTopK,
         });
         const normalized = normalizeGeneSetSearchResponse(payload);
         logGeneSetAdd("gene-set/search", {
@@ -247,6 +305,9 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
             searchPayload: payload,
             searchItems: normalized.items,
         });
+        if (normalized.method === "unavailable" && normalized.explanation) {
+            return normalized;
+        }
         return normalized;
     } catch (primaryError) {
         const message = String(primaryError?.message || primaryError);
@@ -264,17 +325,11 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
 }
 
 export function parseInteractiveAnchor(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/anchor/parse`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/anchor/parse`, payload);
 }
 
 export function getInteractiveAnchorLinks(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/anchor-links`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/anchor-links`, payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -282,60 +337,36 @@ export function getInteractiveAnchorLinks(payload) {
 // ---------------------------------------------------------------------------
 
 export function getInteractiveConnections(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/connections`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/connections`, payload);
 }
 
 export function classifyInteractiveCandidates(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/classify-candidates`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/classify-candidates`, payload);
 }
 
 export function getInteractiveSemanticMatches(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/semantic-match`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/semantic-match`, payload);
 }
 
 export function getInteractiveSessionSemanticMatches(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/session-semantic-match`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/session-semantic-match`, payload);
 }
 
 export function getInteractiveSessionNodeLinks(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/session-node-links`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/session-node-links`, payload);
 }
 
 export function getInteractiveSubgraphEdges(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/subgraph-edges`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/subgraph-edges`, payload);
 }
 
 export function getInteractiveFactorFactorEdges(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/factor-factor-edges`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/factor-factor-edges`, payload);
 }
 
 export async function getInteractiveContextualEdges(payload) {
     try {
-        return await requestJson(`${INTERACTIVE_API_PREFIX}/contextual-edges`, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        return await postInteractiveJson(`${INTERACTIVE_API_PREFIX}/contextual-edges`, payload);
     } catch (error) {
         const message = String(error?.message || error);
         if (!message.includes("Method Not Allowed") && !message.includes("404")) {
@@ -349,10 +380,7 @@ export async function getInteractiveContextualEdges(payload) {
 }
 
 export function getInteractiveEdgeDiagnostic(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/edge-diagnostic`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/edge-diagnostic`, payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -360,49 +388,31 @@ export function getInteractiveEdgeDiagnostic(payload) {
 // ---------------------------------------------------------------------------
 
 export function prioritizeInteractiveSigChains(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/sig-chains/prioritize`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/sig-chains/prioritize`, payload);
 }
 
 export function getInteractiveSigChainPacket(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/sig-chains/packet`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/sig-chains/packet`, payload);
 }
 
 export async function findInteractiveCfdeDatasets(payload) {
     try {
-        return await requestJson(`${INTERACTIVE_API_PREFIX}/cfde-datasets`, {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        return await postInteractiveJson(`${INTERACTIVE_API_PREFIX}/cfde-datasets`, payload);
     } catch (primaryError) {
         const message = String(primaryError?.message || primaryError);
         if (!message.includes("Method Not Allowed") && !message.includes("404")) {
             throw primaryError;
         }
-        return requestJson("/interactive/cfde-datasets", {
-            method: "POST",
-            body: JSON.stringify(payload),
-        });
+        return postInteractiveJson("/interactive/cfde-datasets", payload);
     }
 }
 
 export function interpretInteractiveNode(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/node-interpretation`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/node-interpretation`, payload);
 }
 
 export function interpretInteractiveSession(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/session-interpretation`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/session-interpretation`, payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -410,10 +420,7 @@ export function interpretInteractiveSession(payload) {
 // ---------------------------------------------------------------------------
 
 export function getInteractiveEdgeProvenance(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/edge-provenance`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/edge-provenance`, payload);
 }
 
 export function getInteractiveFactorLoadings(
@@ -421,36 +428,34 @@ export function getInteractiveFactorLoadings(
     geneLimit = 50000,
     geneSetLimit = 50000
 ) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/factor-loadings`, {
         factor_id: factorId,
         gene_limit: String(geneLimit),
         gene_set_limit: String(geneSetLimit),
     });
-    return requestJson(`${INTERACTIVE_API_PREFIX}/factor-loadings?${params.toString()}`);
 }
 
 export function getInteractiveFactorGeneSets(factorId, limit = 100, minLoading = 0) {
-    const params = new URLSearchParams({
-        limit: String(limit),
-        min_loading: String(minLoading),
-    });
-    return requestJson(
-        `${INTERACTIVE_API_PREFIX}/factor/${encodeURIComponent(factorId)}/gene-sets?${params.toString()}`
+    return getInteractiveJson(
+        `${INTERACTIVE_API_PREFIX}/factor/${encodeURIComponent(factorId)}/gene-sets`,
+        {
+            limit: String(limit),
+            min_loading: String(minLoading),
+        }
     );
 }
 
 export function getInteractiveFactorGene(factorId, gene, limit = 100, minLoading = 0) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/factor-gene`, {
         factor_id: factorId,
         gene,
         limit: String(limit),
         min_loading: String(minLoading),
     });
-    return requestJson(`${INTERACTIVE_API_PREFIX}/factor-gene?${params.toString()}`);
 }
 
 export function getInteractiveExpressionProfile(referenceId, item, scope = {}) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/expression-profile`, {
         reference_id: referenceId,
         node_id: item.node_id || item.id || "",
         node_type: item.node_type || item.type || "",
@@ -459,43 +464,38 @@ export function getInteractiveExpressionProfile(referenceId, item, scope = {}) {
         tissue: scope.tissue || "",
         cell_type: scope.cell_type || "",
     });
-    return requestJson(`${INTERACTIVE_API_PREFIX}/expression-profile?${params.toString()}`);
 }
 
 export function getInteractiveExpressionFilter(payload) {
-    return requestJson(`${INTERACTIVE_API_PREFIX}/expression-filter`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    return postInteractiveJson(`${INTERACTIVE_API_PREFIX}/expression-filter`, payload);
 }
 
 export function getInteractiveLocusZoomRegion(gene, traitId, flank = 250000) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/locus-zoom/region`, {
         gene,
         trait_id: traitId,
         flank: String(flank),
     });
-    return requestJson(`${INTERACTIVE_API_PREFIX}/locus-zoom/region?${params.toString()}`);
 }
 
 export function getInteractiveLocusZoomAssociations({ traitId, chromosome, start, end }) {
-    const params = new URLSearchParams({
+    return getInteractiveJson(`${INTERACTIVE_API_PREFIX}/locus-zoom/associations`, {
         trait_id: traitId,
         chr: chromosome,
         start: String(start),
         end: String(end),
     });
-    return requestJson(
-        `${INTERACTIVE_API_PREFIX}/locus-zoom/associations?${params.toString()}`
-    );
 }
 
 export default {
     REQUEST_TIMEOUT_MS,
     INTERACTIVE_API_PREFIX,
     DEFAULT_REVEAL_KG_API_BASE_URL,
+    DEFAULT_REVEAL_KG_INTERACTIVE_MODEL,
     setRevealKgApiBaseUrl,
     getRevealKgApiBaseUrl,
+    setRevealKgInteractiveModel,
+    getRevealKgInteractiveModel,
     getInteractiveHealth,
     getInteractiveHelpManual,
     getInteractiveResourceSummary,

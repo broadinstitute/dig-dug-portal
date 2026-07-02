@@ -4,6 +4,9 @@
             <div class="rkw-brand">
                 <span class="rkw-mark">REVEAL</span>
                 <span class="rkw-title">KG Canvas</span>
+                <span v-if="interactiveModelLabel" class="rkw-model-badge">
+                    {{ interactiveModelLabel }}
+                </span>
             </div>
             <WorkspaceMenuBar @action="onMenuAction" />
         </header>
@@ -102,6 +105,7 @@
                 :expression-options="expressionOptions"
                 :api-client="apiClient"
                 :llm-available="llmAvailable"
+                :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
                 :expand-needs-llm="expandGraphNeedsLlm"
                 @close="closeExpandGraph"
                 @patch-filters="onExpandFiltersPatch"
@@ -240,6 +244,7 @@
             :add-neighboring-nodes="addNeighboringNodes"
             :api-client="apiClient"
             :llm-available="llmAvailable"
+            :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
             :duplicate-source-label="duplicateSourceLabel"
             @update:buckets="starterBuckets = $event"
             @update:context="starterContext = $event"
@@ -359,7 +364,12 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import userUtils from "@/utils/userUtils.js";
-import revealKgApi from "@/utils/revealKgApi.js";
+import revealKgApi, { setRevealKgInteractiveModel } from "@/utils/revealKgApi.js";
+import {
+    canvasModelCapabilities,
+    normalizeCanvasInteractiveModel,
+    parseCanvasInteractiveModelFromLocation,
+} from "./revealKgWorkspace/revealKgCanvasModel.js";
 import WorkspaceMenuBar from "./revealKgWorkspace/WorkspaceMenuBar.vue";
 import WorkspaceCanvas from "./revealKgWorkspace/WorkspaceCanvas.vue";
 import WorkspaceLibraryModal from "./revealKgWorkspace/WorkspaceLibraryModal.vue";
@@ -647,6 +657,8 @@ export default Vue.component("reveal-kg-workspace", {
             mapGenesSkippedGeneSets: [],
             mapGenesAddingGene: "",
             provenanceExplorerOpen: false,
+            requestedInteractiveModel: "",
+            interactiveModel: parseCanvasInteractiveModelFromLocation(),
             filterGraphOpen: false,
             graphFilterLoading: false,
             graphFilterProgress: "",
@@ -731,6 +743,18 @@ export default Vue.component("reveal-kg-workspace", {
         },
         apiClient() {
             return this.utilsBox?.revealKgApi || revealKgApi;
+        },
+        interactiveModelCapabilities() {
+            return canvasModelCapabilities(this.interactiveModel);
+        },
+        interactiveModelLabel() {
+            if (this.interactiveModel === "cfde") {
+                return "";
+            }
+            return this.interactiveModelCapabilities.label;
+        },
+        geneSetSemanticSearchAvailable() {
+            return this.interactiveModelCapabilities.geneSetSemanticSearch;
         },
         graphSummary() {
             if (!this.activeSession?.graphNodes?.length) {
@@ -1220,6 +1244,9 @@ export default Vue.component("reveal-kg-workspace", {
         },
     },
     created() {
+        this.requestedInteractiveModel = parseCanvasInteractiveModelFromLocation();
+        this.interactiveModel = this.requestedInteractiveModel;
+        setRevealKgInteractiveModel(this.interactiveModel);
         this.canvasOpenCount = userUtils.recordRevealKgCanvasOpen();
         this.refreshSavedGraphs();
         this.bootstrapInteractiveApi();
@@ -1247,6 +1274,23 @@ export default Vue.component("reveal-kg-workspace", {
             try {
                 const health = await this.apiClient.getInteractiveHealth();
                 this.llmAvailable = Boolean(health?.llm_available);
+                const resolved = normalizeCanvasInteractiveModel(
+                    this.requestedInteractiveModel,
+                    health?.models
+                );
+                if (resolved !== this.interactiveModel) {
+                    this.interactiveModel = resolved;
+                    setRevealKgInteractiveModel(resolved);
+                }
+                if (
+                    this.requestedInteractiveModel &&
+                    resolved !== this.requestedInteractiveModel
+                ) {
+                    this.showStatus(
+                        `Unknown model "${this.requestedInteractiveModel}" — using ${resolved}.`,
+                        4200
+                    );
+                }
             } catch (error) {
                 this.llmAvailable = false;
                 this.showStatus("Interactive API not reachable yet.", 3200);
@@ -4269,6 +4313,18 @@ export default Vue.component("reveal-kg-workspace", {
     font-weight: 600;
     color: var(--cfde-blue);
     font-size: 1.05rem;
+}
+
+.rkw-model-badge {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--cfde-muted, #6b6b6b);
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--cfde-bg, #f6f5f2);
+    border: 1px solid var(--cfde-border, #e6e1d6);
 }
 
 .rkw-stage {

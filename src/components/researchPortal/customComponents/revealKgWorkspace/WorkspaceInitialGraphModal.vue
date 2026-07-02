@@ -38,6 +38,7 @@
                             :items="buckets[column.entityType]"
                             :api-client="apiClient"
                             :llm-available="llmAvailable"
+                            :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
                             @add="onAdd(column.entityType, $event)"
                             @remove="onRemove(column.entityType, $event)"
                             @error="onColumnError"
@@ -130,6 +131,10 @@ export default {
         llmAvailable: {
             type: Boolean,
             default: false,
+        },
+        geneSetSemanticSearchAvailable: {
+            type: Boolean,
+            default: true,
         },
         duplicateSourceLabel: {
             type: String,

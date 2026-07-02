@@ -177,11 +177,11 @@ export async function buildMapGenesMatrixForSession(
 
     for (const node of geneSetNodes) {
         const geneSetId = resolveGeneSetIdForProvenance(node);
-        if (!Number.isFinite(geneSetId)) {
+        if (!geneSetId) {
             skippedGeneSets.push({
                 id: node.id,
                 label: node.label,
-                reason: "No catalog gene set id is available for this node.",
+                reason: "No gene set id is available for this node.",
             });
             continue;
         }

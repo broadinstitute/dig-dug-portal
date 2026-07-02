@@ -31,6 +31,12 @@
         </label>
 
         <p v-if="searchLoading" class="wkb-expand-manual-status" role="status">Searching…</p>
+        <p
+            v-else-if="geneSetSearchUnavailableNote"
+            class="wkb-expand-manual-note"
+        >
+            {{ geneSetSearchUnavailableNote }}
+        </p>
 
         <button
             v-if="conceptualSearchEnabled"
@@ -102,6 +108,7 @@ import {
     isDemoGeneSetSearchQuery,
     parseDemoGeneSetSearchTerm,
 } from "./revealKgDemoGeneSets.js";
+import { GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE } from "./revealKgCanvasModel.js";
 
 const ENTITY_TYPE_OPTIONS = [
     { value: "gene", label: "Gene" },
@@ -120,6 +127,10 @@ export default {
         llmAvailable: {
             type: Boolean,
             default: false,
+        },
+        geneSetSemanticSearchAvailable: {
+            type: Boolean,
+            default: true,
         },
         busy: {
             type: Boolean,
@@ -144,6 +155,9 @@ export default {
         },
         searchPlaceholder() {
             if (this.entityType === "gene_set") {
+                if (!this.geneSetSemanticSearchAvailable) {
+                    return "Try demo:bladder for demo gene sets";
+                }
                 return 'Search by name, describe a biology question, or try demo:bladder';
             }
             const label =
@@ -157,6 +171,17 @@ export default {
                 this.entityType !== "gene_set" &&
                 this.entityType !== "gene"
             );
+        },
+        geneSetSearchUnavailableNote() {
+            if (
+                this.entityType !== "gene_set" ||
+                this.geneSetSemanticSearchAvailable ||
+                !this.query.trim() ||
+                isDemoGeneSetSearchQuery(this.query)
+            ) {
+                return "";
+            }
+            return GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE;
         },
     },
     watch: {
@@ -217,6 +242,16 @@ export default {
                     this.catalogSuggestions = filterDemoGeneSets(records, demoTerm, 8).map(
                         demoGeneSetCatalogItem
                     );
+                    return;
+                }
+                if (
+                    this.entityType === "gene_set" &&
+                    !this.geneSetSemanticSearchAvailable
+                ) {
+                    if (requestId !== this.catalogRequestId) {
+                        return;
+                    }
+                    this.catalogSuggestions = [];
                     return;
                 }
                 const payload =

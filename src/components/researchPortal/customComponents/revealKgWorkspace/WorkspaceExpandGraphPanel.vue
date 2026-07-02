@@ -361,6 +361,7 @@
                             <WorkspaceExpandManualAdd
                                 :api-client="apiClient"
                                 :llm-available="llmAvailable"
+                                :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
                                 :busy="manualAddBusy"
                                 @add="$emit('add-manual-node', $event)"
                                 @error="$emit('manual-add-error', $event)"
@@ -496,6 +497,10 @@ export default {
             default: null,
         },
         llmAvailable: {
+            type: Boolean,
+            default: true,
+        },
+        geneSetSemanticSearchAvailable: {
             type: Boolean,
             default: true,
         },

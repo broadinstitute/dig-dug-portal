@@ -167,6 +167,7 @@ import {
     fetchGeneSetProvenanceDetail,
     formatGeneSetInformationForClipboard,
     GENE_SET_PROVENANCE_EXPLORER_URL,
+    normalizeGeneSetIdForApi,
     parseGeneSetProvenancePayload,
     resolveAssistantIntentionForGeneSet,
 } from "./revealKgGeneSetProvenance.js";
@@ -184,7 +185,7 @@ export default {
     },
     props: {
         geneSetId: {
-            type: Number,
+            type: [Number, String],
             default: null,
         },
         geneSetNode: {
@@ -321,8 +322,8 @@ export default {
             return `${this.panelId}-panel-${name}`;
         },
         async loadProvenance() {
-            const geneSetId = Number(this.geneSetId);
-            if (!Number.isFinite(geneSetId)) {
+            const geneSetId = normalizeGeneSetIdForApi(this.geneSetId);
+            if (!geneSetId) {
                 this.loading = false;
                 this.error = "";
                 this.parsed = null;
