@@ -299,7 +299,7 @@ export default {
                 if (!this.geneSetSemanticSearchAvailable) {
                     return "Try demo:bladder for demo gene sets";
                 }
-                return "Search by name, describe a biology question, or try demo:bladder";
+                return "Search by name or describe a biology question";
             }
             return `Search ${this.title.toLowerCase()}`;
         },

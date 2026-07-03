@@ -47,11 +47,10 @@ export function canvasModelCapabilities(model = DEFAULT_CANVAS_INTERACTIVE_MODEL
     const incubator = normalized === "cfde-inc";
     return {
         model: normalized,
-        geneSetSemanticSearch: !incubator,
+        geneSetSemanticSearch: true,
         label: incubator ? "CFDE Incubator" : "CFDE",
     };
 }
 
 export const GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE =
-    "Gene-set embedding search is not available for this data bucket. " +
-    "Use demo: prefix for demo gene sets, or open Canvas with the default CFDE model.";
+    "Gene-set embedding search is not available for this data bucket.";

@@ -11,7 +11,11 @@ import {
     mentionsOpenProvenanceExplorerInQuery,
     mergeDuplicateProvenanceFileNodes,
     parseGeneSetProvenancePayload,
+    isCatalogGeneSetStandardName,
+    provenanceSectionHeading,
     resolveGeneSetIdForProvenance,
+    resolveGeneSetProvenanceIds,
+    splitIntersectionGeneSetIds,
     truncateProvenanceLabel,
 } from "../revealKgGeneSetProvenance.js";
 
@@ -139,6 +143,50 @@ describe("revealKgGeneSetProvenance", () => {
             })
         ).toBe("20");
         expect(resolveGeneSetIdForProvenance({ id: "gene_set:INSULIN" })).toBeNull();
+    });
+
+    it("resolves catalog standard_name from cfde-inc graph nodes", () => {
+        const standardName =
+            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_60-69_dn___LINCS_L1000__all_signatures__LINCS_L1000_CRISPR_KO_WNK1_up";
+        expect(
+            resolveGeneSetIdForProvenance({
+                id: `gene_set:${standardName}`,
+                node_type: "gene_set",
+                label: standardName,
+            })
+        ).toBe(standardName);
+        expect(
+            resolveGeneSetIdForProvenance({
+                id: `gene_set:${standardName}`,
+                node_key: standardName,
+            })
+        ).toBe(standardName);
+        expect(resolveGeneSetIdForProvenance({ id: "gene_set:WP_ADIPOGENESIS" })).toBeNull();
+    });
+
+    it("detects incubator catalog standard_name shape", () => {
+        expect(
+            isCatalogGeneSetStandardName(
+                "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_30-39_up"
+            )
+        ).toBe(true);
+        expect(isCatalogGeneSetStandardName("WP_ADIPOGENESIS")).toBe(false);
+        expect(isCatalogGeneSetStandardName("demo:20")).toBe(false);
+    });
+
+    it("splits intersection gene sets on triple underscores", () => {
+        const gtex =
+            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_60-69_dn";
+        const lincs =
+            "LINCS_L1000__all_signatures__LINCS_L1000_CRISPR_KO_WNK1_up";
+        const combined = `${gtex}___${lincs}`;
+        expect(splitIntersectionGeneSetIds(combined)).toEqual([gtex, lincs]);
+        expect(resolveGeneSetProvenanceIds({ id: `gene_set:${combined}` })).toEqual([
+            gtex,
+            lincs,
+        ]);
+        expect(provenanceSectionHeading(gtex)).toBe(`Gene set provenance: ${gtex}`);
+        expect(splitIntersectionGeneSetIds(gtex)).toEqual([gtex]);
     });
 
     it("builds gene-set detail URLs with encoded standard names", () => {

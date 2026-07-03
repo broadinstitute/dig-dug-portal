@@ -1,10 +1,11 @@
 <template>
     <section class="wkb-gene-set-provenance">
-        <h4 class="wkb-inspector-section-heading">Gene set provenance</h4>
+        <h4 class="wkb-inspector-section-heading" :title="sectionHeading">
+            {{ sectionHeading }}
+        </h4>
 
         <p v-if="!geneSetId" class="wkb-gene-set-provenance-note">
-            Provenance detail is available when this gene set has a catalog id (demo gene sets
-            added via <code>demo:</code> search).
+            Provenance detail is unavailable for this gene set section.
         </p>
 
         <template v-else>
@@ -169,6 +170,7 @@ import {
     GENE_SET_PROVENANCE_EXPLORER_URL,
     normalizeGeneSetIdForApi,
     parseGeneSetProvenancePayload,
+    provenanceSectionHeading,
     resolveAssistantIntentionForGeneSet,
 } from "./revealKgGeneSetProvenance.js";
 import { demoGeneSetProvenanceForNode } from "./revealKgDemoGeneSets.js";
@@ -211,6 +213,9 @@ export default {
         };
     },
     computed: {
+        sectionHeading() {
+            return provenanceSectionHeading(this.geneSetId);
+        },
         tabs() {
             return [
                 { id: "provenance", label: "Provenance" },
@@ -417,7 +422,9 @@ export default {
     margin: 0 0 8px;
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.4;
     color: var(--cfde-ink, #33363d);
+    overflow-wrap: anywhere;
 }
 
 .wkb-gene-set-provenance-note {

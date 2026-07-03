@@ -51,6 +51,54 @@ export function geneSetDetailUrl(geneSetId) {
     return `${GENE_SET_DETAIL_API_URL}?${params.toString()}`;
 }
 
+/** Incubator / GTEx catalog ids use double-underscore standard_name segments. */
+export function isCatalogGeneSetStandardName(value) {
+    const text = String(value || "").trim();
+    return Boolean(text && text.includes("__") && !/^demo:\d+$/i.test(text));
+}
+
+function catalogStandardNameFromNodeId(nodeId) {
+    const text = String(nodeId || "").trim();
+    const match = text.match(/^gene_set:(.+)$/i);
+    if (!match) {
+        return null;
+    }
+    const key = match[1].trim();
+    return isCatalogGeneSetStandardName(key) ? key : null;
+}
+
+export const GENE_SET_INTERSECTION_SEPARATOR = "___";
+
+export function splitIntersectionGeneSetIds(geneSetId) {
+    const id = normalizeGeneSetIdForApi(geneSetId);
+    if (!id) {
+        return [];
+    }
+    if (!id.includes(GENE_SET_INTERSECTION_SEPARATOR)) {
+        return [id];
+    }
+    const parts = id
+        .split(GENE_SET_INTERSECTION_SEPARATOR)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    const valid = parts.filter(
+        (part) => isCatalogGeneSetStandardName(part) || /^\d+$/.test(part)
+    );
+    if (valid.length >= 2) {
+        return valid;
+    }
+    return [id];
+}
+
+export function resolveGeneSetProvenanceIds(node) {
+    return splitIntersectionGeneSetIds(resolveGeneSetIdForProvenance(node));
+}
+
+export function provenanceSectionHeading(geneSetId) {
+    const id = normalizeGeneSetIdForApi(geneSetId);
+    return id ? `Gene set provenance: ${id}` : "Gene set provenance";
+}
+
 export function resolveGeneSetIdForProvenance(node) {
     const meta = node?.demo_gene_set || {};
     const standardName = String(meta.standard_name || node?.standard_name || "").trim();
@@ -60,6 +108,14 @@ export function resolveGeneSetIdForProvenance(node) {
     const metaId = meta.gene_set_id;
     if (typeof metaId === "string" && metaId.trim() && !/^\d+$/.test(metaId.trim())) {
         return metaId.trim();
+    }
+    const nodeKey = String(node?.node_key || "").trim();
+    if (isCatalogGeneSetStandardName(nodeKey)) {
+        return nodeKey;
+    }
+    const fromCatalogId = catalogStandardNameFromNodeId(node?.id || node?.node_id);
+    if (fromCatalogId) {
+        return fromCatalogId;
     }
     const fromNodeId = String(node?.id || node?.node_id || "").match(/^gene_set:demo:(\d+)$/i);
     const numericCandidates = [metaId, fromNodeId?.[1], node?.gene_set_id];

@@ -121,9 +121,20 @@
         </section>
 
         <WorkspaceGeneSetProvenancePanel
-            :gene-set-id="geneSetIdForProvenance"
+            v-for="(geneSetId, index) in geneSetProvenanceIds"
+            :key="`${node.id}-provenance-${index}-${geneSetId}`"
+            :gene-set-id="geneSetId"
             :gene-set-node="node"
         />
+
+        <p
+            v-if="!geneSetProvenanceIds.length"
+            class="wkb-gene-set-provenance-unavailable"
+        >
+            Provenance detail is available when this gene set has a Translator catalog
+            <code>standard_name</code> (for example GTEx incubator gene sets from semantic search
+            or demo gene sets added via <code>demo:</code> search).
+        </p>
 
         <WorkspaceNodeConnectionTabs
             :node="node"
@@ -142,7 +153,7 @@
 
 <script>
 import { groupedConnectedNeighborsForNode } from "./revealKgInspectorUtils";
-import { resolveGeneSetIdForProvenance } from "./revealKgGeneSetProvenance.js";
+import { resolveGeneSetProvenanceIds } from "./revealKgGeneSetProvenance.js";
 import WorkspaceGeneSetProvenancePanel from "./WorkspaceGeneSetProvenancePanel.vue";
 import WorkspaceNodeConnectionTabs from "./WorkspaceNodeConnectionTabs.vue";
 
@@ -223,8 +234,8 @@ export default {
         hasHeader() {
             return Boolean(this.node?.label || this.node?.id);
         },
-        geneSetIdForProvenance() {
-            return resolveGeneSetIdForProvenance(this.node);
+        geneSetProvenanceIds() {
+            return resolveGeneSetProvenanceIds(this.node);
         },
     },
     methods: {
@@ -255,6 +266,19 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.wkb-gene-set-provenance-unavailable {
+    margin: 0 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-gene-set-provenance-unavailable code {
+    font-size: 11px;
 }
 
 .wkb-inspector-panel-block {

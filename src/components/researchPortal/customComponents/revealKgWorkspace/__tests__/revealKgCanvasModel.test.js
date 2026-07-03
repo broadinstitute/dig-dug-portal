@@ -39,8 +39,8 @@ describe("revealKgCanvasModel", () => {
         ).toBe(DEFAULT_CANVAS_INTERACTIVE_MODEL);
     });
 
-    it("disables gene-set semantic search for incubator bucket", () => {
+    it("enables gene-set semantic search for cfde and cfde-inc", () => {
         expect(canvasModelCapabilities("cfde").geneSetSemanticSearch).toBe(true);
-        expect(canvasModelCapabilities("cfde-inc").geneSetSemanticSearch).toBe(false);
+        expect(canvasModelCapabilities("cfde-inc").geneSetSemanticSearch).toBe(true);
     });
 });
