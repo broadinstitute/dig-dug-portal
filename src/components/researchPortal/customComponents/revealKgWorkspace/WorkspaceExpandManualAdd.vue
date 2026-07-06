@@ -106,13 +106,6 @@ import {
     interactiveEntityKey,
     normalizeInteractiveSemanticMatchRows,
 } from "./revealKgEntityUtils.js";
-import {
-    demoGeneSetCatalogItem,
-    fetchDemoGeneSetsCatalog,
-    filterDemoGeneSets,
-    isDemoGeneSetSearchQuery,
-    parseDemoGeneSetSearchTerm,
-} from "./revealKgDemoGeneSets.js";
 import { GENE_SET_SEMANTIC_SEARCH_UNAVAILABLE_NOTE } from "./revealKgCanvasModel.js";
 
 const ENTITY_TYPE_OPTIONS = [
@@ -165,7 +158,7 @@ export default {
         searchPlaceholder() {
             if (this.entityType === "gene_set") {
                 if (!this.geneSetSemanticSearchAvailable) {
-                    return "Try demo:bladder for demo gene sets";
+                    return "Search gene sets by name";
                 }
                 return "Search by name or describe a biology question";
             }
@@ -185,8 +178,7 @@ export default {
             if (
                 this.entityType !== "gene_set" ||
                 this.geneSetSemanticSearchAvailable ||
-                !this.query.trim() ||
-                isDemoGeneSetSearchQuery(this.query)
+                !this.query.trim()
             ) {
                 return "";
             }
@@ -245,17 +237,6 @@ export default {
         },
         async runCatalogSearch(query, requestId) {
             try {
-                if (isDemoGeneSetSearchQuery(query)) {
-                    const demoTerm = parseDemoGeneSetSearchTerm(query);
-                    const records = await fetchDemoGeneSetsCatalog();
-                    if (requestId !== this.catalogRequestId) {
-                        return;
-                    }
-                    this.catalogSuggestions = filterDemoGeneSets(records, demoTerm, 8).map(
-                        demoGeneSetCatalogItem
-                    );
-                    return;
-                }
                 if (
                     this.entityType === "gene_set" &&
                     !this.geneSetSemanticSearchAvailable
@@ -322,7 +303,6 @@ export default {
                 type: item.node_type || item.type || this.entityType,
                 label: item.label || item.node_id || item.id,
                 subtitle: item.subtitle || "",
-                demo_gene_set: item.demo_gene_set || null,
             });
             this.query = "";
             this.catalogSuggestions = [];

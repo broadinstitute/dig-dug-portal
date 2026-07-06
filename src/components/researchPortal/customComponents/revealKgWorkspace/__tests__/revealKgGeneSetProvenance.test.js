@@ -126,22 +126,21 @@ const SAMPLE_PAYLOAD = {
 };
 
 describe("revealKgGeneSetProvenance", () => {
-    it("resolves gene set id from demo graph nodes", () => {
+    it("resolves gene set id from catalog graph nodes", () => {
+        const standardName =
+            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn";
         expect(
             resolveGeneSetIdForProvenance({
-                id: "gene_set:demo:20",
-                demo_gene_set: {
-                    gene_set_id: 20,
-                    standard_name: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
-                },
+                id: `gene_set:${standardName}`,
+                standard_name: standardName,
             })
-        ).toBe("GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn");
+        ).toBe(standardName);
         expect(
             resolveGeneSetIdForProvenance({
-                id: "gene_set:demo:20",
-                demo_gene_set: { gene_set_id: 20 },
+                id: "gene_set:42",
+                gene_set_id: 42,
             })
-        ).toBe("20");
+        ).toBe("42");
         expect(resolveGeneSetIdForProvenance({ id: "gene_set:INSULIN" })).toBeNull();
     });
 
@@ -171,7 +170,6 @@ describe("revealKgGeneSetProvenance", () => {
             )
         ).toBe(true);
         expect(isCatalogGeneSetStandardName("WP_ADIPOGENESIS")).toBe(false);
-        expect(isCatalogGeneSetStandardName("demo:20")).toBe(false);
     });
 
     it("splits intersection gene sets on triple underscores", () => {
@@ -288,7 +286,7 @@ describe("revealKgGeneSetProvenance", () => {
             geneSetId: standardName,
             standardName,
             collectionName: "GTEx",
-            assistantIntention: "add Type 2 diabetes related gene sets from demo gene sets.",
+            assistantIntention: "add Type 2 diabetes related gene sets.",
         });
         expect(text).toContain(geneSetDetailUrl(standardName));
         expect(text).toContain(`Gene set ID: ${standardName}`);
@@ -297,27 +295,24 @@ describe("revealKgGeneSetProvenance", () => {
     });
 
     it("formats selected gene sets for clipboard copy", () => {
+        const standardA =
+            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn";
+        const standardB = "GTEx__liver__GTEx_aging_Liver_20-29_50-59_dn";
         const nodes = [
             {
-                id: "gene_set:demo:20",
+                id: `gene_set:${standardA}`,
                 label: "GTEx adipose aging",
                 node_type: "gene_set",
-                demo_gene_set: {
-                    gene_set_id: 20,
-                    standard_name: "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
-                    collection_name: "GTEx",
-                    assistant_intention: "add aging gene sets from demo gene sets.",
-                },
+                standard_name: standardA,
+                collection_name: "GTEx",
+                assistant_intention: "add aging gene sets.",
             },
             {
-                id: "gene_set:demo:21",
+                id: `gene_set:${standardB}`,
                 label: "GTEx liver aging",
                 node_type: "gene_set",
-                demo_gene_set: {
-                    gene_set_id: 21,
-                    standard_name: "GTEx__liver__GTEx_aging_Liver_20-29_50-59_dn",
-                    collection_name: "GTEx",
-                },
+                standard_name: standardB,
+                collection_name: "GTEx",
             },
         ];
         const text = formatSelectedGeneSetsInformationForClipboard(nodes);

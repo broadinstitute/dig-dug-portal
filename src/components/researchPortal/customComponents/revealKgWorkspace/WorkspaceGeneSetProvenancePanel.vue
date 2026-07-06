@@ -173,7 +173,6 @@ import {
     provenanceSectionHeading,
     resolveAssistantIntentionForGeneSet,
 } from "./revealKgGeneSetProvenance.js";
-import { demoGeneSetProvenanceForNode } from "./revealKgDemoGeneSets.js";
 import WorkspaceEvidenceTable from "./WorkspaceEvidenceTable.vue";
 import WorkspaceGeneSetProvenanceViz from "./WorkspaceGeneSetProvenanceViz.vue";
 
@@ -249,16 +248,11 @@ export default {
                 : "Provenance explorer URL is not configured yet";
         },
         geneSetInformationClipboardText() {
-            const demoMeta = demoGeneSetProvenanceForNode(this.geneSetNode) || {};
             const context = this.downloadRegenerate;
             return formatGeneSetInformationForClipboard({
                 geneSetId: this.geneSetId || context.geneSetId,
-                standardName:
-                    context.standardName ||
-                    demoMeta.standard_name ||
-                    this.geneSetNode?.label ||
-                    "",
-                collectionName: context.collectionName || demoMeta.collection_name || "",
+                standardName: context.standardName || this.geneSetNode?.label || "",
+                collectionName: context.collectionName || this.geneSetNode?.subtitle || "",
                 assistantIntention: resolveAssistantIntentionForGeneSet(this.geneSetNode),
             });
         },

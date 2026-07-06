@@ -1,7 +1,6 @@
 /** Crossing (intersection) gene sets: catalog nodes with A___B ids. */
 
 import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
-import { mentionsDemoGeneSetsInQuery } from "./revealKgDemoGeneSets.js";
 import { GENE_SET_INTERSECTION_SEPARATOR } from "./revealKgGeneSetProvenance.js";
 
 const MAX_TOTAL_NODES = CANVAS_ASSISTANT_PER_STEP_MAX;
@@ -43,7 +42,7 @@ export function mentionsGeneSetCrossingInQuery(query) {
 
 export function shouldUseGeneSetCrossingAdd(query) {
     const text = String(query || "").trim();
-    if (!text || mentionsDemoGeneSetsInQuery(text)) {
+    if (!text) {
         return false;
     }
     if (!mentionsGeneSetCrossingInQuery(text)) {

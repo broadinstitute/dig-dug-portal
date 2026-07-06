@@ -1,10 +1,6 @@
 /** Repair common planner JSON mistakes using the user query and session context. */
 
 import { parseExplicitIntentNodeTypes } from "./revealKgIntentAddNodes.js";
-import {
-    mentionsDemoGeneSetsInQuery,
-    parseDemoGeneSetTopicFromQuery,
-} from "./revealKgDemoGeneSets.js";
 import { shouldUsePhenotypeGeneSetAdd } from "./revealKgPhenotypeGeneSetAdd.js";
 import { shouldUseGeneSetCrossingAdd } from "./revealKgGeneSetCrossingAdd.js";
 import {
@@ -440,62 +436,6 @@ function repairIntentAddStep(step, userQuery) {
     return { ...step, options };
 }
 
-function repairDemoGeneSetStep(step, userQuery) {
-    if (step?.action !== "add_demo_gene_sets") {
-        return step;
-    }
-    const options = { ...(step.options || {}) };
-    const query = String(userQuery || "").trim();
-    if (options.search_term === undefined || options.search_term === "") {
-        const topic = parseDemoGeneSetTopicFromQuery(query);
-        if (topic) {
-            options.search_term = topic;
-        }
-    } else {
-        options.search_term = String(options.search_term).trim();
-    }
-    if (options.limit === undefined && options.count === undefined) {
-        const count = parseAddCountFromQuery(query);
-        if (count) {
-            options.limit = count;
-        }
-    }
-    return { ...step, options };
-}
-
-function repairDemoGeneSetSteps(steps, userQuery) {
-    if (!mentionsDemoGeneSetsInQuery(userQuery)) {
-        return steps;
-    }
-    if ((steps || []).some((step) => step?.action === "add_demo_gene_sets")) {
-        return (steps || []).map((step) => repairDemoGeneSetStep(step, userQuery));
-    }
-    const query = String(userQuery || "").trim();
-    const convertible =
-        !steps?.length ||
-        (steps.length === 1 &&
-            ["add_node", "add_nodes_by_intent", "expand_graph", "filter_graph"].includes(
-                steps[0]?.action
-            ));
-    if (!convertible) {
-        return steps;
-    }
-    const topic = parseDemoGeneSetTopicFromQuery(query);
-    const count = parseAddCountFromQuery(query);
-    return [
-        {
-            id: steps?.[0]?.id || "step-1",
-            action: "add_demo_gene_sets",
-            label: "Add demo gene sets",
-            target: {},
-            options: {
-                ...(topic ? { search_term: topic } : {}),
-                ...(count ? { limit: count } : {}),
-            },
-        },
-    ];
-}
-
 function repairProvenanceExplorerSteps(steps, userQuery) {
     if (!mentionsOpenProvenanceExplorerInQuery(userQuery)) {
         return steps;
@@ -602,10 +542,13 @@ function repairSelectConnectedStep(step, userQuery) {
 }
 
 function repairSelectConnectedSteps(steps, userQuery) {
-    if (!mentionsSelectConnectedInQuery(userQuery)) {
+    const query = String(userQuery || "").trim();
+    if (!mentionsSelectConnectedInQuery(query)) {
         return steps;
     }
-    const query = String(userQuery || "").trim();
+    if (/\btop\s+\d+\b/i.test(query)) {
+        return steps;
+    }
     const seedLabel = parseConnectedSeedLabelFromQuery(query);
     if ((steps || []).some((step) => step?.action === "select_connected_nodes")) {
         return (steps || []).map((step) => repairSelectConnectedStep(step, userQuery));
@@ -665,10 +608,7 @@ function repairGeneSetCrossingStep(step, userQuery) {
 }
 
 function repairGeneSetCrossingSteps(steps, userQuery) {
-    if (
-        mentionsDemoGeneSetsInQuery(userQuery) ||
-        !shouldUseGeneSetCrossingAdd(userQuery)
-    ) {
+    if (!shouldUseGeneSetCrossingAdd(userQuery)) {
         return steps;
     }
     if ((steps || []).some((step) => step?.action === "add_gene_set_crossing")) {
@@ -701,7 +641,6 @@ function repairGeneSetCrossingSteps(steps, userQuery) {
 
 function repairPhenotypeGeneSetSteps(steps, userQuery) {
     if (
-        mentionsDemoGeneSetsInQuery(userQuery) ||
         shouldUseGeneSetCrossingAdd(userQuery) ||
         !shouldUsePhenotypeGeneSetAdd(userQuery)
     ) {
@@ -737,7 +676,6 @@ function repairPhenotypeGeneSetSteps(steps, userQuery) {
 
 function repairIntentAddSteps(steps, userQuery) {
     if (
-        mentionsDemoGeneSetsInQuery(userQuery) ||
         mentionsMapGenesInQuery(userQuery) ||
         mentionsOpenProvenanceExplorerInQuery(userQuery) ||
         shouldUseGeneSetCrossingAdd(userQuery) ||
@@ -995,9 +933,6 @@ export function shouldSkipGraphLabelMissingCheck(userQuery) {
     if (shouldUsePhenotypeGeneSetAdd(query)) {
         return true;
     }
-    if (mentionsDemoGeneSetsInQuery(query)) {
-        return true;
-    }
     if (
         /\badd\b\s+\d+\s+[\s\S]*\b(gene[\s-]?sets?\s+and\s+traits?|traits?\s+and\s+gene[\s-]?sets?)\b/i.test(
             query
@@ -1140,13 +1075,10 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     const repairedSteps = stripRedundantClearBeforeRemove(
         repairProvenanceExplorerSteps(
             repairMapGenesSteps(
-                repairDemoGeneSetSteps(
-                    repairGeneSetCrossingSteps(
-                        repairSelectConnectedSteps(
-                            repairPhenotypeGeneSetSteps(
-                                repairIntentAddSteps(steps, userQuery),
-                                userQuery
-                            ),
+                repairGeneSetCrossingSteps(
+                    repairSelectConnectedSteps(
+                        repairPhenotypeGeneSetSteps(
+                            repairIntentAddSteps(steps, userQuery),
                             userQuery
                         ),
                         userQuery
@@ -1157,22 +1089,19 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
             ),
             userQuery
         ).map((step) =>
-            repairDemoGeneSetStep(
-                repairGeneSetCrossingStep(
-                    repairPhenotypeGeneSetStep(
-                        repairIntentAddStep(
-                            repairSelectConnectedStep(
-                                repairUnselectStep(
-                                    repairAddNodeStep(
-                                        repairRemoveNodeTarget(
-                                            repairStepOptions(
-                                                repairStepTarget(step, labelsOnGraph),
-                                                userQuery,
-                                                sessionContext
-                                            ),
-                                            labelsOnGraph,
-                                            userQuery
+            repairGeneSetCrossingStep(
+                repairPhenotypeGeneSetStep(
+                    repairIntentAddStep(
+                        repairSelectConnectedStep(
+                            repairUnselectStep(
+                                repairAddNodeStep(
+                                    repairRemoveNodeTarget(
+                                        repairStepOptions(
+                                            repairStepTarget(step, labelsOnGraph),
+                                            userQuery,
+                                            sessionContext
                                         ),
+                                        labelsOnGraph,
                                         userQuery
                                     ),
                                     userQuery

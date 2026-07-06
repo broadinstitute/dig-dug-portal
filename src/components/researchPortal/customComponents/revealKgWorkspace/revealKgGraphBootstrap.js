@@ -7,7 +7,6 @@ import {
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
 import { isGeneSetRow, logGeneSetAdd } from "./revealKgGeneSetDebug.js";
-import { isDemoGeneSetAnchorItem } from "./revealKgDemoGeneSets.js";
 
 const NEIGHBOR_TARGET_ORDER = ["gene", "gene_set", "trait", "factor"];
 
@@ -158,7 +157,6 @@ export function anchorItemsFromBuckets(buckets) {
         label: item.label,
         subtitle: item.subtitle || "",
         node_type: item.node_type || item.type,
-        ...(item.demo_gene_set ? { demo_gene_set: item.demo_gene_set } : {}),
     }));
 }
 
@@ -199,7 +197,7 @@ export async function buildInitialGraphFromAnchors({
     let graphNodes = starterGraphNodesFromAnchorItems(anchorItems);
     let graphEdges = [];
 
-    const catalogAnchorItems = anchorItems.filter((item) => !isDemoGeneSetAnchorItem(item));
+    const catalogAnchorItems = anchorItems;
     if (catalogAnchorItems.length) {
         const anchorPayload = await apiClient.getInteractiveAnchorLinks({
             anchor_items: catalogAnchorItems,

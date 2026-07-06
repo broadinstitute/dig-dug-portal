@@ -457,9 +457,6 @@ import WorkspaceDatasetsBubble from "./revealKgWorkspace/WorkspaceDatasetsBubble
 import WorkspaceNodeActionMenu from "./revealKgWorkspace/WorkspaceNodeActionMenu.vue";
 import WorkspaceEdgeActionMenu from "./revealKgWorkspace/WorkspaceEdgeActionMenu.vue";
 import WorkspaceRemoveNodeConfirmModal from "./revealKgWorkspace/WorkspaceRemoveNodeConfirmModal.vue";
-import {
-    addDemoGeneSetsToGraphLocally,
-} from "./revealKgWorkspace/revealKgDemoGeneSets.js";
 import { connectedNodeIdsForSession } from "./revealKgWorkspace/revealKgSelectConnectedNodes.js";
 import {
     addNodesToGraphLocally,
@@ -2565,18 +2562,18 @@ export default Vue.component("reveal-kg-workspace", {
             this.expandManualAddBusy = true;
             const previousNodeCount = this.activeSession.graphNodes?.length || 0;
             try {
-                const nextSession = row.demo_gene_set?.standard_name
-                    ? addDemoGeneSetsToGraphLocally(this.activeSession, [row])
-                    : await addNodesToWorkspaceGraph(this.apiClient, this.activeSession, [row]);
+                const nextSession = await addNodesToWorkspaceGraph(
+                    this.apiClient,
+                    this.activeSession,
+                    [row]
+                );
                 if ((nextSession.graphNodes?.length || 0) <= previousNodeCount) {
                     this.showStatus(`${row.label || row.node_id} is already on the graph.`, 2800);
                     return;
                 }
                 this.activeSession = withNormalizedKeyNodes(nextSession);
-                if (!row.demo_gene_set?.standard_name) {
-                    this.contextualFetchSignature = "";
-                    this.scheduleContextualEdgesFetch({ immediate: true });
-                }
+                this.contextualFetchSignature = "";
+                this.scheduleContextualEdgesFetch({ immediate: true });
                 this.maybeRemindAfterGraphMutation(previousNodeCount);
                 this.showStatus(`Added ${row.label || row.node_id} to the graph.`, 2800);
             } catch (error) {

@@ -2,7 +2,6 @@
 
 import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
 import { parseExplicitIntentNodeTypes } from "./revealKgIntentAddNodes.js";
-import { mentionsDemoGeneSetsInQuery } from "./revealKgDemoGeneSets.js";
 import { planPhenotypeSemanticSearchQuery } from "./revealKgPhenotypeQueryTranslate.js";
 
 const MAX_TOTAL_NODES = CANVAS_ASSISTANT_PER_STEP_MAX;
@@ -51,7 +50,7 @@ function looksLikeUnspecifiedIntentAddQuery(query) {
  */
 export function shouldUsePhenotypeGeneSetAdd(query) {
     const text = String(query || "").trim();
-    if (!text || mentionsDemoGeneSetsInQuery(text)) {
+    if (!text) {
         return false;
     }
 

@@ -48,10 +48,6 @@ import { getAssistantActionDefinition } from "./revealKgAssistantTools.js";
 import { toggleVisibilityFilterLayer, collectInvisibleNodeIds } from "./revealKgVisibilityFilterUtils.js";
 import { resolveAssistantAddNodeRows } from "./revealKgAssistantAddNode.js";
 import { resolveIntentAddNodes } from "./revealKgIntentAddNodes.js";
-import {
-    addDemoGeneSetsToGraphLocally,
-    resolveDemoGeneSetsForAssistant,
-} from "./revealKgDemoGeneSets.js";
 import { resolvePhenotypeGeneSetRows } from "./revealKgPhenotypeGeneSetAdd.js";
 import { resolveGeneSetCrossingRows } from "./revealKgGeneSetCrossingAdd.js";
 import {
@@ -547,41 +543,6 @@ async function runAssistantAction(session, step, runtime) {
                     searchQuery: result.searchQuery,
                     originalQuery: result.originalQuery,
                     queryTranslations: result.queryTranslations,
-                    ...bulkWorkflowMeta(runtime),
-                },
-            };
-        }
-        case "add_demo_gene_sets": {
-            onProgress?.("Finding demo gene sets…");
-            const searchTerm = String(options.search_term || "").trim();
-            const limit = options.limit ?? options.count ?? 8;
-            const rows = await resolveDemoGeneSetsForAssistant(searchTerm, limit);
-            if (!rows.length) {
-                throw new Error(
-                    searchTerm
-                        ? `No demo gene sets matched "${searchTerm}".`
-                        : "No demo gene sets found in the catalog."
-                );
-            }
-            const previousCount = session.graphNodes?.length || 0;
-            const assistantIntention = String(
-                runtime.userQuery || options.search_term || ""
-            ).trim();
-            const nextSession = addDemoGeneSetsToGraphLocally(session, rows, {
-                assistantIntention,
-            });
-            const addedCount = Math.max(
-                0,
-                (nextSession.graphNodes?.length || 0) - previousCount
-            );
-            if (!addedCount) {
-                throw new Error("Those demo gene sets are already on the graph.");
-            }
-            return {
-                session: nextSession,
-                meta: {
-                    addedCount,
-                    labels: rows.map((row) => row.label),
                     ...bulkWorkflowMeta(runtime),
                 },
             };

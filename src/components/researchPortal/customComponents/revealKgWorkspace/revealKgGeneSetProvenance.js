@@ -54,7 +54,7 @@ export function geneSetDetailUrl(geneSetId) {
 /** Incubator / GTEx catalog ids use double-underscore standard_name segments. */
 export function isCatalogGeneSetStandardName(value) {
     const text = String(value || "").trim();
-    return Boolean(text && text.includes("__") && !/^demo:\d+$/i.test(text));
+    return Boolean(text && text.includes("__"));
 }
 
 function catalogStandardNameFromNodeId(nodeId) {
@@ -100,14 +100,9 @@ export function provenanceSectionHeading(geneSetId) {
 }
 
 export function resolveGeneSetIdForProvenance(node) {
-    const meta = node?.demo_gene_set || {};
-    const standardName = String(meta.standard_name || node?.standard_name || "").trim();
+    const standardName = String(node?.standard_name || "").trim();
     if (standardName) {
         return standardName;
-    }
-    const metaId = meta.gene_set_id;
-    if (typeof metaId === "string" && metaId.trim() && !/^\d+$/.test(metaId.trim())) {
-        return metaId.trim();
     }
     const nodeKey = String(node?.node_key || "").trim();
     if (isCatalogGeneSetStandardName(nodeKey)) {
@@ -117,13 +112,9 @@ export function resolveGeneSetIdForProvenance(node) {
     if (fromCatalogId) {
         return fromCatalogId;
     }
-    const fromNodeId = String(node?.id || node?.node_id || "").match(/^gene_set:demo:(\d+)$/i);
-    const numericCandidates = [metaId, fromNodeId?.[1], node?.gene_set_id];
-    for (const candidate of numericCandidates) {
-        const num = Number(candidate);
-        if (Number.isFinite(num)) {
-            return String(num);
-        }
+    const num = Number(node?.gene_set_id);
+    if (Number.isFinite(num)) {
+        return String(num);
     }
     return null;
 }
@@ -157,18 +148,17 @@ export function formatGeneSetInformationForClipboard({
 }
 
 export function resolveAssistantIntentionForGeneSet(node) {
-    return String(node?.demo_gene_set?.assistant_intention || "").trim();
+    return String(node?.assistant_intention || "").trim();
 }
 
 export function geneSetInformationEntryFromNode(node) {
-    const demoMeta = node?.demo_gene_set || {};
     const geneSetId = resolveGeneSetIdForProvenance(node);
     return {
         nodeId: node?.id || node?.node_id || "",
         label: String(node?.label || "").trim(),
         geneSetId,
-        standardName: String(demoMeta.standard_name || node?.label || "").trim(),
-        collectionName: String(demoMeta.collection_name || "").trim(),
+        standardName: String(node?.standard_name || node?.label || "").trim(),
+        collectionName: String(node?.collection_name || "").trim(),
         assistantIntention: resolveAssistantIntentionForGeneSet(node),
     };
 }
@@ -236,7 +226,7 @@ export async function gatherCopyAndOpenProvenanceExplorer(nodes = [], url = GENE
         .filter((entry) => entry.geneSetId);
     if (!entries.length) {
         throw new Error(
-            "Selected gene sets need gene set ids (for example demo gene sets added via the assistant)."
+            "Selected gene sets need resolvable gene set ids for provenance lookup."
         );
     }
     const clipboardText = formatSelectedGeneSetsInformationForClipboard(nodes);

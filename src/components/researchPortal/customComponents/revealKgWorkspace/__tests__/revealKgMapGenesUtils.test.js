@@ -13,15 +13,15 @@ import {
 describe("revealKgMapGenesUtils", () => {
     it("collects selected gene set nodes from the session", () => {
         const session = {
-            highlighted: ["gene_set:demo:1", "gene:TP53"],
+            highlighted: ["gene_set:GTEx__set_a", "gene:TP53"],
             graphNodes: [
-                { id: "gene_set:demo:1", label: "Set A", type: "gene_set" },
+                { id: "gene_set:GTEx__set_a", label: "Set A", type: "gene_set" },
                 { id: "gene:TP53", label: "TP53", type: "gene" },
-                { id: "gene_set:demo:2", label: "Set B", type: "gene_set" },
+                { id: "gene_set:GTEx__set_b", label: "Set B", type: "gene_set" },
             ],
         };
         expect(getSelectedGeneSetNodesFromSession(session)).toEqual([
-            expect.objectContaining({ id: "gene_set:demo:1", label: "Set A" }),
+            expect.objectContaining({ id: "gene_set:GTEx__set_a", label: "Set A" }),
         ]);
     });
 
@@ -49,11 +49,11 @@ describe("revealKgMapGenesUtils", () => {
 
     it("preserves map genes runs keyed by selected gene sets", () => {
         const nodes = [
-            { id: "gene_set:demo:1", label: "Set A", type: "gene_set" },
-            { id: "gene_set:demo:2", label: "Set B", type: "gene_set" },
+            { id: "gene_set:GTEx__set_a", label: "Set A", type: "gene_set" },
+            { id: "gene_set:GTEx__set_b", label: "Set B", type: "gene_set" },
         ];
         const result = {
-            columns: [{ id: "gene_set:demo:1", label: "Set A" }],
+            columns: [{ id: "gene_set:GTEx__set_a", label: "Set A" }],
             rows: [{ row_id: "TP53", gene: "TP53", gene_set_count: 3 }],
             skippedGeneSets: [],
             error: "",
@@ -70,18 +70,16 @@ describe("revealKgMapGenesUtils", () => {
     });
 
     it("loads gene lists for selected gene sets", async () => {
+        const standardName =
+            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn";
         const session = {
-            highlighted: ["gene_set:demo:20"],
+            highlighted: [`gene_set:${standardName}`],
             graphNodes: [
                 {
-                    id: "gene_set:demo:20",
-                    label: "Demo set",
+                    id: `gene_set:${standardName}`,
+                    label: "Catalog set",
                     type: "gene_set",
-                    demo_gene_set: {
-                        gene_set_id: 20,
-                        standard_name:
-                            "GTEx__adipose_tissue__GTEx_aging_AdiposeTissue_20-29_50-59_dn",
-                    },
+                    standard_name: standardName,
                 },
             ],
         };

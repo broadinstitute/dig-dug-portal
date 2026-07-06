@@ -132,8 +132,7 @@
             class="wkb-gene-set-provenance-unavailable"
         >
             Provenance detail is available when this gene set has a Translator catalog
-            <code>standard_name</code> (for example GTEx incubator gene sets from semantic search
-            or demo gene sets added via <code>demo:</code> search).
+            <code>standard_name</code> (for example GTEx incubator gene sets from semantic search).
         </p>
 
         <WorkspaceNodeConnectionTabs
