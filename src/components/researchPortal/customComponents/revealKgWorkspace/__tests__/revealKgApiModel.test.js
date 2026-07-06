@@ -50,4 +50,15 @@ describe("revealKgApi interactive model", () => {
             model: "cfde-inc",
         });
     });
+
+    it("sends mode phenotype for phenotype gene-set search", async () => {
+        setRevealKgInteractiveModel("cfde-inc");
+        await revealKgApi.searchInteractivePhenotypeGeneSets("insulin", 3);
+        const [, options] = global.fetch.mock.calls[0];
+        expect(JSON.parse(options.body)).toMatchObject({
+            query: "insulin",
+            mode: "phenotype",
+            model: "cfde-inc",
+        });
+    });
 });

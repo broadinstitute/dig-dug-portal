@@ -54,6 +54,15 @@ describe("graphLabelsMissingFromQuery", () => {
             )
         ).toEqual([]);
     });
+
+    it("does not flag phenotype abbreviations or gene-set program names", () => {
+        expect(
+            graphLabelsMissingFromQuery(
+                "add 5 gene sets and trait nodes from GTEx associated with T2D trait and pancreas",
+                { sample_nodes: [] }
+            )
+        ).toEqual([]);
+    });
 });
 
 describe("graphLabelsMentionedInQuery", () => {

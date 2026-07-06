@@ -279,6 +279,59 @@ function normalizeGeneSetSearchResponse(payload) {
     };
 }
 
+function normalizePhenotypeGeneSetPair(row) {
+    if (!row || typeof row !== "object") {
+        return null;
+    }
+    const traitId =
+        row.trait_node_id ||
+        (row.trait ? `trait:${row.trait}` : null);
+    const geneSetId =
+        row.gene_set_node_id ||
+        (row.gene_set ? `gene_set:${row.gene_set}` : null);
+    if (!traitId || !geneSetId) {
+        return null;
+    }
+    const program = String(row.program || "").trim();
+    return {
+        trait: {
+            node_id: traitId,
+            node_type: "trait",
+            type: "trait",
+            label: String(row.trait_description || row.trait || traitId).trim(),
+            subtitle: String(row.trait || "").trim(),
+            score: row.score,
+        },
+        gene_set: {
+            node_id: geneSetId,
+            node_type: "gene_set",
+            type: "gene_set",
+            label: String(row.gene_set || geneSetId).trim(),
+            subtitle: program ? program.toUpperCase() : "",
+            description: row.gene_set_description || "",
+            score: row.score,
+            beta_uncorrected: row.beta_uncorrected,
+        },
+        score: row.score,
+        beta_uncorrected: row.beta_uncorrected,
+    };
+}
+
+function normalizePhenotypeGeneSetSearchResponse(payload) {
+    const raw =
+        payload?.items ??
+        payload?.results ??
+        payload?.matches ??
+        [];
+    const list = Array.isArray(raw) ? raw : [];
+    const pairs = list.map(normalizePhenotypeGeneSetPair).filter(Boolean);
+    return {
+        pairs,
+        method: payload?.method || "",
+        explanation: payload?.explanation || "",
+    };
+}
+
 /**
  * Search gene sets by name or natural-language query (Search & select → Gene sets).
  *
@@ -286,19 +339,32 @@ function normalizeGeneSetSearchResponse(payload) {
  * Sends `limit` as well for servers that still honor it for result capping.
  * Override path via VUE_APP_REVEAL_KG_GENE_SET_SEARCH_PATH if needed.
  */
-export async function searchInteractiveGeneSets(query, topK = 10) {
+export async function searchInteractiveGeneSets(query, topK = 10, { mode } = {}) {
     const q = String(query || "").trim();
     if (!q) {
-        return { items: [] };
+        return { items: [], pairs: [] };
     }
     const searchPath = getGeneSetSearchPath();
     const cappedTopK = Math.max(1, Number(topK) || 10);
+    const body = {
+        query: q,
+        top_k: cappedTopK,
+        limit: cappedTopK,
+    };
+    if (mode) {
+        body.mode = mode;
+    }
     try {
-        const payload = await postInteractiveJson(searchPath, {
-            query: q,
-            top_k: cappedTopK,
-            limit: cappedTopK,
-        });
+        const payload = await postInteractiveJson(searchPath, body);
+        if (mode === "phenotype") {
+            const normalized = normalizePhenotypeGeneSetSearchResponse(payload);
+            logGeneSetAdd("gene-set/search (phenotype)", {
+                query: q,
+                searchPayload: payload,
+                searchPairs: normalized.pairs,
+            });
+            return normalized;
+        }
         const normalized = normalizeGeneSetSearchResponse(payload);
         logGeneSetAdd("gene-set/search", {
             query: q,
@@ -310,6 +376,9 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
         }
         return normalized;
     } catch (primaryError) {
+        if (mode === "phenotype") {
+            throw primaryError;
+        }
         const message = String(primaryError?.message || primaryError);
         if (!message.includes("404") && !message.includes("Method Not Allowed")) {
             throw primaryError;
@@ -322,6 +391,14 @@ export async function searchInteractiveGeneSets(query, topK = 10) {
         });
         return catalogPayload;
     }
+}
+
+/**
+ * Search trait–gene set association pairs by natural-language query.
+ * POST /api/interactive/gene-set/search with mode "phenotype".
+ */
+export async function searchInteractivePhenotypeGeneSets(query, topK = 10) {
+    return searchInteractiveGeneSets(query, topK, { mode: "phenotype" });
 }
 
 export function parseInteractiveAnchor(payload) {
@@ -502,6 +579,7 @@ export default {
     getInteractiveExpressionOptions,
     searchInteractiveCatalog,
     searchInteractiveGeneSets,
+    searchInteractivePhenotypeGeneSets,
     parseInteractiveAnchor,
     getInteractiveAnchorLinks,
     getInteractiveConnections,

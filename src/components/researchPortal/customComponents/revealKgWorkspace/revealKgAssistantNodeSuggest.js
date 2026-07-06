@@ -120,3 +120,26 @@ export function replaceActiveToken(text, start, end, replacement) {
         caret: safeStart + insert.length,
     };
 }
+
+export function assistantSuggestFullLabel(item) {
+    return String(item?.fullLabel || item?.label || "").trim();
+}
+
+/** Show the full-name preview when labels are long or share a similar prefix. */
+export function shouldShowAssistantSuggestPreview(suggestions = [], activeIndex = -1) {
+    if (activeIndex < 0) {
+        return false;
+    }
+    const labels = (suggestions || []).map(assistantSuggestFullLabel).filter(Boolean);
+    if (!labels[activeIndex]) {
+        return false;
+    }
+    if (labels[activeIndex].length > 36) {
+        return true;
+    }
+    if (labels.length >= 2) {
+        const prefixes = labels.map((label) => label.slice(0, 30));
+        return new Set(prefixes).size < labels.length;
+    }
+    return false;
+}

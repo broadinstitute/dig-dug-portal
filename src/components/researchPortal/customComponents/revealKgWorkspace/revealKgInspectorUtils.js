@@ -255,6 +255,35 @@ function connectedNeighborsForEdgeGroup(nodeId, edges, graphNodes, isContextual 
 }
 
 /**
+ * Node ids for 1-hop neighbors on active and contextual edges, including the seed node.
+ */
+export function directAndContextualConnectedNodeIds(
+    nodeId,
+    graphEdges,
+    contextualEdges,
+    graphNodes
+) {
+    if (!nodeId) {
+        return [];
+    }
+    const labels = graphNodeLabelById(graphNodes);
+    const onGraph = graphNodeIdSet(graphNodes);
+    if (!onGraph.has(nodeId)) {
+        return [];
+    }
+    const ids = new Set([nodeId]);
+    for (const neighborMap of [
+        oneHopNeighborsForNode(nodeId, graphEdges, labels, onGraph, false),
+        oneHopNeighborsForNode(nodeId, contextualEdges, labels, onGraph, true),
+    ]) {
+        for (const neighborId of neighborMap.keys()) {
+            ids.add(neighborId);
+        }
+    }
+    return Array.from(ids);
+}
+
+/**
  * Connected nodes for inspector: grouped by active vs contextual edges.
  * Within each group, linkKind is `direct` (1-hop, any jump) or `indirect` (2-hop only).
  */

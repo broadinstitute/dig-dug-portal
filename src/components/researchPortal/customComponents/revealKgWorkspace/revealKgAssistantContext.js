@@ -14,13 +14,20 @@ function countNodesByType(nodes = []) {
 }
 
 function summarizeNode(node) {
-    return {
-        node_id: node.id || node.node_id,
-        label: node.label || node.id,
-        type: node.type || node.node_type,
+    const type = node.type || node.node_type;
+    const nodeId = node.id || node.node_id;
+    const label = node.label || nodeId;
+    const summary = {
+        node_id: nodeId,
+        label,
+        type,
         is_starting_node: Boolean(node.is_anchor),
         is_selected: false,
     };
+    if (type === "trait" && nodeId && label && label !== nodeId) {
+        summary.trait_id = String(nodeId).replace(/^trait:/, "");
+    }
+    return summary;
 }
 
 export function buildAssistantSessionContext(
@@ -39,6 +46,14 @@ export function buildAssistantSessionContext(
     const traitLabels = nodes
         .filter((node) => String(node?.type || node?.node_type || "").trim() === "trait")
         .map((node) => node.label || node.id);
+    const traitIdLabels = nodes
+        .filter((node) => String(node?.type || node?.node_type || "").trim() === "trait")
+        .map((node) => ({
+            node_id: node.id || node.node_id,
+            trait_id: String(node.id || node.node_id || "").replace(/^trait:/, ""),
+            label: node.label || node.id,
+        }))
+        .filter((entry) => entry.label && entry.trait_id);
     const nodeSummaries = nodes.slice(0, 120).map((node) => ({
         ...summarizeNode(node),
         is_selected: selectedIds.has(node.id),
@@ -73,6 +88,7 @@ export function buildAssistantSessionContext(
         selected_gene_count: selectedGenes.length,
         selected_gene_labels: selectedGenes.map((node) => node.label || node.id),
         trait_labels_on_graph: traitLabels,
+        trait_id_labels_on_graph: traitIdLabels.slice(0, 80),
         selected_trait_labels: selectedNodes
             .filter((node) => String(node?.type || node?.node_type || "").trim() === "trait")
             .map((node) => node.label || node.id),

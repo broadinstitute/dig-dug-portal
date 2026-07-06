@@ -65,6 +65,16 @@ export const ASSISTANT_ACTION_CATALOG = [
                 ],
             },
             {
+                id: "select_connected_nodes",
+                label: "Select connected nodes",
+                description:
+                    "Mark a seed node and every node directly linked by active or contextual edges. Adds to the current selection.",
+                examples: [
+                    "Select all nodes connected to FLG",
+                    "Select connected nodes for BRCA1",
+                ],
+            },
+            {
                 id: "select_nodes",
                 label: "Select nodes",
                 description:
@@ -109,6 +119,28 @@ export const ASSISTANT_ACTION_CATALOG = [
                 examples: [
                     "Find a glycosylation mechanism that could alter lipoprotein handling and coagulation",
                     "Add nodes related to adipose expansion and adverse metabolic outcomes",
+                ],
+            },
+            {
+                id: "add_gene_set_crossing",
+                label: "Add crossing gene sets",
+                description:
+                    "Search and add intersection gene sets (e.g. GTEx ∩ LINCS) in one semantic query.",
+                examples: [
+                    "Add gene sets for pancreas malfunction from GTEx crossed with LINCS",
+                    "Find LINCS PDGFRL CRISPR KO crossed with MoTrPAC vastus lateralis training",
+                    "Add intersection gene sets for adipose GTEx and LINCS",
+                ],
+            },
+            {
+                id: "add_phenotype_gene_sets",
+                label: "Add phenotype gene sets",
+                description:
+                    "Search trait–gene set associations by research question and add matching traits and gene sets to the graph.",
+                examples: [
+                    "Find traits and gene sets for insulin secretion in pancreatic beta cells",
+                    "Add nodes related to adipose expansion and adverse metabolic outcomes",
+                    "Search phenotype gene sets for type 2 diabetes complications",
                 ],
             },
             {
@@ -283,6 +315,8 @@ export function defaultProgressMessageForAction(action) {
             return "Mapping shared genes…";
         case "open_provenance_explorer":
             return "Opening provenance explorer…";
+        case "select_connected_nodes":
+            return "Selecting connected nodes…";
         case "select_nodes":
             return "Updating selected nodes…";
         case "select_visible_nodes":
@@ -297,6 +331,10 @@ export function defaultProgressMessageForAction(action) {
             return "Adding node…";
         case "add_nodes_by_intent":
             return "Finding nodes from your intention…";
+        case "add_gene_set_crossing":
+            return "Searching crossing gene sets…";
+        case "add_phenotype_gene_sets":
+            return "Searching trait–gene set associations…";
         case "add_demo_gene_sets":
             return "Adding demo gene sets…";
         case "remove_node":

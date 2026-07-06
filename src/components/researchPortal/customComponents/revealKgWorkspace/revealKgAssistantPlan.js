@@ -170,6 +170,11 @@ function validateStepOptions(action, options = {}) {
                 next.subject = next.subject === "edge" ? "edge" : "node";
             }
             break;
+        case "select_connected_nodes":
+            if (next.replace !== undefined) {
+                next.replace = Boolean(next.replace);
+            }
+            break;
         case "select_nodes":
             if (next.replace !== undefined) {
                 next.replace = Boolean(next.replace);
@@ -263,6 +268,40 @@ function validateStepOptions(action, options = {}) {
             }
             if (next.node_types !== undefined) {
                 next.node_types = validateNodeTypes(next.node_types, "node_types");
+            }
+            break;
+        case "add_phenotype_gene_sets":
+            if (next.search_query) {
+                next.search_query = String(next.search_query).trim();
+            }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
+            }
+            if (next.count !== undefined) {
+                next.count = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.count) || 1)
+                );
+            }
+            break;
+        case "add_gene_set_crossing":
+            if (next.search_query) {
+                next.search_query = String(next.search_query).trim();
+            }
+            if (next.limit !== undefined) {
+                next.limit = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.limit) || 1)
+                );
+            }
+            if (next.count !== undefined) {
+                next.count = Math.min(
+                    assistantPerStepMax(),
+                    Math.max(1, Number(next.count) || 1)
+                );
             }
             break;
         case "add_demo_gene_sets":
@@ -474,6 +513,7 @@ export function assistantActionPostEffects(action, options = {}) {
                 forceContextualRefetch: false,
             };
         case "select_nodes":
+        case "select_connected_nodes":
         case "select_visible_nodes":
         case "unselect_nodes":
             return {
@@ -501,6 +541,22 @@ export function assistantActionPostEffects(action, options = {}) {
                 forceContextualRefetch: false,
             };
         case "add_nodes_by_intent":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: false,
+                remindAfterMutation: true,
+                forceContextualRefetch: true,
+            };
+        case "add_phenotype_gene_sets":
+            return {
+                graphLoading: false,
+                normalizeSession: true,
+                clearHiddenSelection: false,
+                remindAfterMutation: true,
+                forceContextualRefetch: true,
+            };
+        case "add_gene_set_crossing":
             return {
                 graphLoading: false,
                 normalizeSession: true,

@@ -5,6 +5,16 @@ import {
     mentionsDemoGeneSetsInQuery,
     parseDemoGeneSetTopicFromQuery,
 } from "./revealKgDemoGeneSets.js";
+import { shouldUsePhenotypeGeneSetAdd } from "./revealKgPhenotypeGeneSetAdd.js";
+import { shouldUseGeneSetCrossingAdd } from "./revealKgGeneSetCrossingAdd.js";
+import {
+    mentionsSelectConnectedInQuery,
+    parseConnectedSeedLabelFromQuery,
+} from "./revealKgSelectConnectedNodes.js";
+import {
+    isGeneSetProgramToken,
+    isResolvablePhenotypeToken,
+} from "./revealKgPhenotypeQueryTranslate.js";
 import { mentionsMapGenesInQuery } from "./revealKgMapGenesUtils.js";
 import { mentionsOpenProvenanceExplorerInQuery } from "./revealKgGeneSetProvenance.js";
 import {
@@ -549,11 +559,189 @@ function repairMapGenesSteps(steps, userQuery) {
     ];
 }
 
+function repairPhenotypeGeneSetStep(step, userQuery) {
+    if (step?.action !== "add_phenotype_gene_sets") {
+        return step;
+    }
+    const options = { ...(step.options || {}) };
+    if (!options.search_query) {
+        options.search_query = String(userQuery || "").trim();
+    }
+    if (options.limit === undefined && options.count === undefined) {
+        const count = parseAddCountFromQuery(userQuery);
+        if (count) {
+            options.limit = count;
+        }
+    }
+    return { ...step, options };
+}
+
+function repairSelectConnectedStep(step, userQuery) {
+    if (step?.action !== "select_connected_nodes") {
+        return step;
+    }
+    const options = { ...(step.options || {}) };
+    if (options.replace === undefined) {
+        options.replace = false;
+    }
+    const target = { ...(step.target || {}) };
+    if (
+        (!target.node_labels?.length && !target.node_ids?.length) ||
+        target.scope === "all" ||
+        !target.scope
+    ) {
+        const seedLabel =
+            parseConnectedSeedLabelFromQuery(userQuery) ||
+            String(step.options?.connected_to_label || "").trim();
+        if (seedLabel) {
+            target.scope = "node";
+            target.node_labels = [seedLabel];
+        }
+    }
+    return { ...step, target, options };
+}
+
+function repairSelectConnectedSteps(steps, userQuery) {
+    if (!mentionsSelectConnectedInQuery(userQuery)) {
+        return steps;
+    }
+    const query = String(userQuery || "").trim();
+    const seedLabel = parseConnectedSeedLabelFromQuery(query);
+    if ((steps || []).some((step) => step?.action === "select_connected_nodes")) {
+        return (steps || []).map((step) => repairSelectConnectedStep(step, userQuery));
+    }
+    if (!steps?.length && seedLabel) {
+        return [
+            {
+                id: "step-1",
+                action: "select_connected_nodes",
+                label: `Select nodes connected to ${seedLabel}`,
+                target: { scope: "node", node_labels: [seedLabel] },
+                options: { replace: false },
+            },
+        ];
+    }
+    const rewritten = (steps || []).map((step) => {
+        if (step?.action !== "select_nodes") {
+            return step;
+        }
+        const label =
+            seedLabel ||
+            String(step.options?.connected_to_label || "").trim() ||
+            (step.target?.node_labels?.length === 1 ? step.target.node_labels[0] : "");
+        if (!label) {
+            return step;
+        }
+        return {
+            ...step,
+            action: "select_connected_nodes",
+            target: { scope: "node", node_labels: [label] },
+            options: {
+                replace: step.options?.replace === true,
+            },
+        };
+    });
+    if (rewritten.some((step, index) => step !== steps[index])) {
+        return rewritten;
+    }
+    return steps;
+}
+
+function repairGeneSetCrossingStep(step, userQuery) {
+    if (step?.action !== "add_gene_set_crossing") {
+        return step;
+    }
+    const options = { ...(step.options || {}) };
+    if (!options.search_query) {
+        options.search_query = String(userQuery || "").trim();
+    }
+    if (options.limit === undefined && options.count === undefined) {
+        const count = parseAddCountFromQuery(userQuery);
+        if (count) {
+            options.limit = count;
+        }
+    }
+    return { ...step, options };
+}
+
+function repairGeneSetCrossingSteps(steps, userQuery) {
+    if (
+        mentionsDemoGeneSetsInQuery(userQuery) ||
+        !shouldUseGeneSetCrossingAdd(userQuery)
+    ) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "add_gene_set_crossing")) {
+        return (steps || []).map((step) => repairGeneSetCrossingStep(step, userQuery));
+    }
+    const query = String(userQuery || "").trim();
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["add_node", "add_nodes_by_intent", "expand_graph", "filter_graph"].includes(
+                steps[0]?.action
+            ));
+    if (!convertible) {
+        return steps;
+    }
+    const count = parseAddCountFromQuery(query);
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "add_gene_set_crossing",
+            label: "Add crossing gene sets",
+            target: {},
+            options: {
+                search_query: query,
+                ...(count ? { limit: count } : {}),
+            },
+        },
+    ];
+}
+
+function repairPhenotypeGeneSetSteps(steps, userQuery) {
+    if (
+        mentionsDemoGeneSetsInQuery(userQuery) ||
+        shouldUseGeneSetCrossingAdd(userQuery) ||
+        !shouldUsePhenotypeGeneSetAdd(userQuery)
+    ) {
+        return steps;
+    }
+    if ((steps || []).some((step) => step?.action === "add_phenotype_gene_sets")) {
+        return (steps || []).map((step) => repairPhenotypeGeneSetStep(step, userQuery));
+    }
+    const query = String(userQuery || "").trim();
+    const convertible =
+        !steps?.length ||
+        (steps.length === 1 &&
+            ["add_node", "add_nodes_by_intent", "expand_graph", "filter_graph"].includes(
+                steps[0]?.action
+            ));
+    if (!convertible) {
+        return steps;
+    }
+    const count = parseAddCountFromQuery(query);
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "add_phenotype_gene_sets",
+            label: "Add trait and gene set associations",
+            target: {},
+            options: {
+                search_query: query,
+                ...(count ? { limit: count } : {}),
+            },
+        },
+    ];
+}
+
 function repairIntentAddSteps(steps, userQuery) {
     if (
         mentionsDemoGeneSetsInQuery(userQuery) ||
         mentionsMapGenesInQuery(userQuery) ||
-        mentionsOpenProvenanceExplorerInQuery(userQuery)
+        mentionsOpenProvenanceExplorerInQuery(userQuery) ||
+        shouldUseGeneSetCrossingAdd(userQuery) ||
+        shouldUsePhenotypeGeneSetAdd(userQuery)
     ) {
         return steps;
     }
@@ -795,9 +983,37 @@ export function graphLabelsMentionedInQuery(userQuery, sessionContext) {
     return preferLongestLabels(mentioned);
 }
 
+/** Catalog-add requests name traits/phenotypes and sources — not existing graph nodes. */
+export function shouldSkipGraphLabelMissingCheck(userQuery) {
+    const query = String(userQuery || "").trim();
+    if (!query) {
+        return false;
+    }
+    if (shouldUseGeneSetCrossingAdd(query)) {
+        return true;
+    }
+    if (shouldUsePhenotypeGeneSetAdd(query)) {
+        return true;
+    }
+    if (mentionsDemoGeneSetsInQuery(query)) {
+        return true;
+    }
+    if (
+        /\badd\b\s+\d+\s+[\s\S]*\b(gene[\s-]?sets?\s+and\s+traits?|traits?\s+and\s+gene[\s-]?sets?)\b/i.test(
+            query
+        )
+    ) {
+        return true;
+    }
+    return false;
+}
+
 /** Gene-like tokens in the query that are not on the graph. */
 export function graphLabelsMissingFromQuery(userQuery, sessionContext) {
     const query = String(userQuery || "");
+    if (shouldSkipGraphLabelMissingCheck(query)) {
+        return [];
+    }
     const tokens = query.match(/\b[A-Z][A-Z0-9-]{1,}\b/g) || [];
     const exactOnGraph = new Set(
         graphLabelEntries(sessionContext).flatMap((entry) => {
@@ -818,6 +1034,9 @@ export function graphLabelsMissingFromQuery(userQuery, sessionContext) {
             continue;
         }
         if (tokenIsPartOfGraphLabel(token, sessionContext)) {
+            continue;
+        }
+        if (isResolvablePhenotypeToken(token) || isGeneSetProgramToken(token)) {
             continue;
         }
         const tokenRange = queryRangesForLabel(query, token)[0];
@@ -921,22 +1140,43 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     const repairedSteps = stripRedundantClearBeforeRemove(
         repairProvenanceExplorerSteps(
             repairMapGenesSteps(
-                repairDemoGeneSetSteps(repairIntentAddSteps(steps, userQuery), userQuery),
+                repairDemoGeneSetSteps(
+                    repairGeneSetCrossingSteps(
+                        repairSelectConnectedSteps(
+                            repairPhenotypeGeneSetSteps(
+                                repairIntentAddSteps(steps, userQuery),
+                                userQuery
+                            ),
+                            userQuery
+                        ),
+                        userQuery
+                    ),
+                    userQuery
+                ),
                 userQuery
             ),
             userQuery
         ).map((step) =>
             repairDemoGeneSetStep(
-                repairIntentAddStep(
-                    repairUnselectStep(
-                        repairAddNodeStep(
-                            repairRemoveNodeTarget(
-                                repairStepOptions(
-                                    repairStepTarget(step, labelsOnGraph),
-                                    userQuery,
-                                    sessionContext
+                repairGeneSetCrossingStep(
+                    repairPhenotypeGeneSetStep(
+                        repairIntentAddStep(
+                            repairSelectConnectedStep(
+                                repairUnselectStep(
+                                    repairAddNodeStep(
+                                        repairRemoveNodeTarget(
+                                            repairStepOptions(
+                                                repairStepTarget(step, labelsOnGraph),
+                                                userQuery,
+                                                sessionContext
+                                            ),
+                                            labelsOnGraph,
+                                            userQuery
+                                        ),
+                                        userQuery
+                                    ),
+                                    userQuery
                                 ),
-                                labelsOnGraph,
                                 userQuery
                             ),
                             userQuery

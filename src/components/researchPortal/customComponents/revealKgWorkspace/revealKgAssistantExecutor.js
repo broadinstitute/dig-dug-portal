@@ -10,6 +10,7 @@ import {
     addNodesToGraphLocally,
     addNodesToWorkspaceGraph,
     canRemoveGraphNode,
+    findGraphNode,
     isKeyNode,
     keyNodeItemsFromSession,
     removeKeyNodesBatch,
@@ -51,6 +52,8 @@ import {
     addDemoGeneSetsToGraphLocally,
     resolveDemoGeneSetsForAssistant,
 } from "./revealKgDemoGeneSets.js";
+import { resolvePhenotypeGeneSetRows } from "./revealKgPhenotypeGeneSetAdd.js";
+import { resolveGeneSetCrossingRows } from "./revealKgGeneSetCrossingAdd.js";
 import {
     buildMapGenesMatrixForSession,
     buildMapGenesRun,
@@ -67,6 +70,7 @@ import {
     resolveUnselectNodeIds,
     resolveVisibleNodeIds,
 } from "./revealKgAssistantTargetResolve.js";
+import { resolveConnectedSelectionNodeIds } from "./revealKgSelectConnectedNodes.js";
 
 function resolveFilterLayerId(session, filterRef) {
     const layers = session?.visibilityFilterLayers || [];
@@ -271,6 +275,30 @@ async function runAssistantAction(session, step, runtime) {
                 },
             };
         }
+        case "select_connected_nodes": {
+            let nextSession = session;
+            if (options.replace === true) {
+                nextSession = { ...nextSession, highlighted: [] };
+            }
+            const { seedNodeId, nodeIds } = resolveConnectedSelectionNodeIds(
+                nextSession,
+                target
+            );
+            const { session: markedSession, addedIds } = addKeyNodesBatch(
+                nextSession,
+                nodeIds
+            );
+            const seedNode = findGraphNode(markedSession, seedNodeId);
+            return {
+                session: markedSession,
+                meta: {
+                    markedCount: addedIds.length,
+                    nodeIds: addedIds,
+                    seedNodeId,
+                    seedLabel: seedNode?.label || seedNodeId,
+                },
+            };
+        }
         case "unselect_nodes": {
             const nodeIds = resolveUnselectNodeIds(
                 session,
@@ -425,6 +453,101 @@ async function runAssistantAction(session, step, runtime) {
                     explanation: result.plan.explanation,
                     geneGuidance: result.gene_guidance,
                     searchCount: result.searchLog.length,
+                },
+            };
+        }
+        case "add_gene_set_crossing": {
+            const searchQuery = String(
+                options.search_query || runtime.userQuery || ""
+            ).trim();
+            if (!searchQuery) {
+                throw new Error("add_gene_set_crossing requires a search query.");
+            }
+            onProgress?.("Searching crossing gene sets…");
+            const limit = options.limit ?? options.count;
+            const existingNodeIds = (session.graphNodes || [])
+                .map((node) => node.id)
+                .filter(Boolean);
+            const result = await resolveGeneSetCrossingRows(
+                apiClient,
+                searchQuery,
+                limit,
+                { existingNodeIds }
+            );
+            const previousCount = session.graphNodes?.length || 0;
+            const nextSession = await addNodesToWorkspaceGraph(
+                apiClient,
+                session,
+                result.rows
+            );
+            const addedCount = Math.max(
+                0,
+                (nextSession.graphNodes?.length || 0) - previousCount
+            );
+            if (!addedCount) {
+                throw new Error("Matching crossing gene sets are already on the graph.");
+            }
+            return {
+                session: nextSession,
+                meta: {
+                    addedCount,
+                    labels: result.rows.map((row) => row.label),
+                    searchQuery: result.searchQuery,
+                    rawMatchCount: result.rawCount,
+                    crossingMatchCount: result.crossingCount,
+                    ...bulkWorkflowMeta(runtime),
+                },
+            };
+        }
+        case "add_phenotype_gene_sets": {
+            const searchQuery = String(
+                options.search_query || runtime.userQuery || ""
+            ).trim();
+            if (!searchQuery) {
+                throw new Error("add_phenotype_gene_sets requires a search query.");
+            }
+            onProgress?.("Searching trait–gene set associations…");
+            const limit = options.limit ?? options.count;
+            const existingNodeIds = (session.graphNodes || [])
+                .map((node) => node.id)
+                .filter(Boolean);
+            const result = await resolvePhenotypeGeneSetRows(
+                apiClient,
+                searchQuery,
+                limit,
+                {
+                    existingNodeIds,
+                    session,
+                    interactiveLlmAvailable,
+                    onProgress,
+                }
+            );
+            const previousCount = session.graphNodes?.length || 0;
+            const nextSession = await addNodesToWorkspaceGraph(
+                apiClient,
+                session,
+                result.rows
+            );
+            const addedCount = Math.max(
+                0,
+                (nextSession.graphNodes?.length || 0) - previousCount
+            );
+            if (!addedCount) {
+                throw new Error("Matching trait and gene set nodes are already on the graph.");
+            }
+            return {
+                session: nextSession,
+                meta: {
+                    addedCount,
+                    labels: result.rows.map((row) => row.label),
+                    pairCount: result.pairCount,
+                    traitCount: result.rows.filter((row) => row.node_type === "trait").length,
+                    geneSetCount: result.rows.filter((row) => row.node_type === "gene_set")
+                        .length,
+                    searchQuery: result.searchQuery,
+                    originalQuery: result.originalQuery,
+                    queryTranslations: result.queryTranslations,
+                    ...bulkWorkflowMeta(runtime),
                 },
             };
         }

@@ -24,6 +24,9 @@
         <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('expand')">
             Expand graph from node
         </button>
+        <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('select-connected')">
+            Select connected nodes
+        </button>
         <button type="button" class="wkb-node-action-btn" role="menuitem" @click="emitAndClose('toggle-key-node')">
             {{ isKeyNode ? "Remove from selected nodes" : "Mark as selected node" }}
         </button>
@@ -32,7 +35,7 @@
 
 <script>
 const MENU_WIDTH = 230;
-const MENU_HEIGHT = 200;
+const MENU_HEIGHT = 240;
 const PAD = 10;
 
 function clampMenuPosition(left, top) {

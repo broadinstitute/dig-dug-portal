@@ -41,6 +41,28 @@ export const ASSISTANT_ACTIONS = [
         requires_interactive_llm: true,
     },
     {
+        action: "add_gene_set_crossing",
+        description:
+            "Search and add crossing (intersection) gene sets from two programs/corpora in one semantic query. Use when the user says crossed with, intersection, or overlap between sources (e.g. GTEx crossed with LINCS). Runs one gene-set search and adds only catalog nodes whose ids contain ___ (subtitle shows ∩). Do not split into separate per-program searches.",
+        has_options: true,
+        options: {
+            search_query:
+                "full crossing search phrase including biology and both programs (defaults to user query)",
+            limit: `optional number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} — max crossing gene sets to add (default 8)`,
+        },
+    },
+    {
+        action: "add_phenotype_gene_sets",
+        description:
+            "Search trait–gene set association pairs by research question using phenotype-mode embedding search. Adds matching traits and gene sets (up to 20 total nodes per step). Use when the user asks for phenotypes/traits and gene sets together, or gives an open-ended research question without naming mechanisms. Do not use for mechanism-only or gene-set-only requests.",
+        has_options: true,
+        options: {
+            search_query:
+                "plain-language research question for embedding search (defaults to user query). Replace phenotype/trait database ids with human-readable labels — never pass raw gcat_trait_* or trait: ids when a readable name is known.",
+            limit: `optional number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} — max association pairs to fetch (default 10)`,
+        },
+    },
+    {
         action: "add_demo_gene_sets",
         description:
             "Add gene sets from the Translator demo gene set catalog when the user mentions demo gene set(s). Filter by topic keywords in standard_name; does not use REVEAL catalog search.",
@@ -272,9 +294,18 @@ export const ASSISTANT_ACTIONS = [
         },
     },
     {
+        action: "select_connected_nodes",
+        description:
+            "Mark the seed node and every node directly linked by an active or contextual (dashed) edge. Use when the user says select connected nodes or nodes connected to a named node. Requires exactly one seed via target.node_labels, target.node_ids, or a single selected node.",
+        has_options: true,
+        options: {
+            replace: "boolean — clear existing selection first (default false; keeps current selection)",
+        },
+    },
+    {
         action: "select_nodes",
         description:
-            "Mark nodes as selected (blue). Use target to choose which nodes; use options for top-N and ranking.",
+            "Mark nodes as selected (blue). Use target to choose which nodes; use options for top-N and ranking. For neighborhood selection around one node, use select_connected_nodes instead.",
         has_options: true,
         options: {
             replace: "boolean — clear existing selection first",
@@ -282,7 +313,7 @@ export const ASSISTANT_ACTIONS = [
             limit: `number — keep only top N matches (1–${CANVAS_ASSISTANT_PER_STEP_MAX})`,
             rank_by: "relevance | connection",
             match: "pass | fail when using last_filter_pass/fail target",
-            connected_to_label: "trait/mechanism label for connection ranking",
+            connected_to_label: "label for connection ranking when using limit + rank_by connection (not neighborhood select)",
             connected_to_node_type: "gene | gene_set | factor | trait",
         },
     },

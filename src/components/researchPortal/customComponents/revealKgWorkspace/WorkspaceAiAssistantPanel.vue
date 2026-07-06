@@ -53,9 +53,9 @@
                 v-if="activeTab === 'request' && !hasThread"
                 class="wkb-assistant-autocomplete-hint"
             >
-                Suggestions appear as you type. Use
+                Suggestions appear as you type. Hover or use
                 <kbd class="wkb-assistant-kbd">↑</kbd><kbd class="wkb-assistant-kbd">↓</kbd>
-                to move,
+                to see the full name above the list for long labels. Press
                 <kbd class="wkb-assistant-kbd">Tab</kbd> or
                 <kbd class="wkb-assistant-kbd">Enter</kbd> to accept,
                 <kbd class="wkb-assistant-kbd">Esc</kbd> to close.
@@ -385,42 +385,62 @@
                     @focus="updateAutocomplete"
                     @blur="onDraftBlur"
                 />
-                <ul
-                    v-if="showAutocomplete"
-                    id="wkb-assistant-suggest"
-                    class="wkb-assistant-suggest"
-                    role="listbox"
-                    aria-label="Matching actions and graph nodes"
-                >
-                    <li
-                        v-for="(item, index) in autocompleteSuggestions"
-                        :key="item.id"
-                        role="presentation"
+                <div v-if="showAutocomplete" class="wkb-assistant-suggest-wrap">
+                    <div
+                        v-if="showSuggestionPreview"
+                        class="wkb-assistant-suggest-preview"
+                        role="status"
+                        aria-live="polite"
                     >
-                        <button
-                            type="button"
-                            class="wkb-assistant-suggest-item"
-                            :class="{ 'is-active': index === suggestHighlight }"
-                            role="option"
-                            :aria-selected="index === suggestHighlight ? 'true' : 'false'"
-                            @mousedown.prevent="selectSuggestion(item)"
+                        <span class="wkb-assistant-suggest-preview-label">
+                            {{ previewSuggestionLabel }}
+                        </span>
+                        <span
+                            v-if="previewSuggestionHint"
+                            class="wkb-assistant-suggest-preview-hint"
                         >
-                            <span class="wkb-assistant-suggest-label">{{ item.label }}</span>
-                            <span
-                                class="wkb-assistant-suggest-hint"
-                                :class="{
-                                    'wkb-assistant-suggest-hint--action': item.kind === 'action',
-                                    'wkb-assistant-suggest-hint--entity': item.kind === 'entity',
-                                    'wkb-assistant-suggest-hint--term': item.kind === 'term',
-                                    'wkb-assistant-suggest-hint--phrase': item.kind === 'phrase',
-                                    'wkb-assistant-suggest-hint--node': item.kind === 'node',
-                                }"
+                            {{ previewSuggestionHint }}
+                        </span>
+                    </div>
+                    <ul
+                        id="wkb-assistant-suggest"
+                        class="wkb-assistant-suggest"
+                        role="listbox"
+                        aria-label="Matching actions and graph nodes"
+                    >
+                        <li
+                            v-for="(item, index) in autocompleteSuggestions"
+                            :key="item.id"
+                            role="presentation"
+                        >
+                            <button
+                                type="button"
+                                class="wkb-assistant-suggest-item"
+                                :class="{ 'is-active': index === suggestHighlight }"
+                                role="option"
+                                :aria-selected="index === suggestHighlight ? 'true' : 'false'"
+                                :title="suggestionFullLabel(item)"
+                                @mouseenter="suggestHoverIndex = index"
+                                @mouseleave="suggestHoverIndex = -1"
+                                @mousedown.prevent="selectSuggestion(item)"
                             >
-                                {{ item.hint }}
-                            </span>
-                        </button>
-                    </li>
-                </ul>
+                                <span class="wkb-assistant-suggest-label">{{ item.label }}</span>
+                                <span
+                                    class="wkb-assistant-suggest-hint"
+                                    :class="{
+                                        'wkb-assistant-suggest-hint--action': item.kind === 'action',
+                                        'wkb-assistant-suggest-hint--entity': item.kind === 'entity',
+                                        'wkb-assistant-suggest-hint--term': item.kind === 'term',
+                                        'wkb-assistant-suggest-hint--phrase': item.kind === 'phrase',
+                                        'wkb-assistant-suggest-hint--node': item.kind === 'node',
+                                    }"
+                                >
+                                    {{ item.hint }}
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <button
                 type="button"
@@ -437,7 +457,12 @@
 <script>
 import { ASSISTANT_ACTION_CATALOG } from "./revealKgAssistantActionCatalog.js";
 import { buildAssistantAutocompleteSuggestions } from "./revealKgAssistantActionSuggest.js";
-import { getActiveToken, replaceActiveToken } from "./revealKgAssistantNodeSuggest.js";
+import {
+    assistantSuggestFullLabel,
+    getActiveToken,
+    replaceActiveToken,
+    shouldShowAssistantSuggestPreview,
+} from "./revealKgAssistantNodeSuggest.js";
 
 let entryCounter = 0;
 
@@ -490,6 +515,7 @@ export default {
             actionCatalog: ASSISTANT_ACTION_CATALOG,
             autocompleteSuggestions: [],
             suggestHighlight: -1,
+            suggestHoverIndex: -1,
             suggestTokenStart: 0,
             suggestTokenEnd: 0,
             otherOptionsOpen: false,
@@ -519,6 +545,29 @@ export default {
         },
         showAutocomplete() {
             return this.autocompleteSuggestions.length > 0 && this.activeTab === "request";
+        },
+        previewSuggestionIndex() {
+            if (this.suggestHoverIndex >= 0) {
+                return this.suggestHoverIndex;
+            }
+            if (this.suggestHighlight >= 0) {
+                return this.suggestHighlight;
+            }
+            return -1;
+        },
+        previewSuggestionLabel() {
+            const item = this.autocompleteSuggestions[this.previewSuggestionIndex];
+            return item ? this.suggestionFullLabel(item) : "";
+        },
+        previewSuggestionHint() {
+            const item = this.autocompleteSuggestions[this.previewSuggestionIndex];
+            return item?.hint || "";
+        },
+        showSuggestionPreview() {
+            return shouldShowAssistantSuggestPreview(
+                this.autocompleteSuggestions,
+                this.previewSuggestionIndex
+            );
         },
         canExecuteAll() {
             return (
@@ -691,6 +740,7 @@ export default {
         closeAutocomplete() {
             this.autocompleteSuggestions = [];
             this.suggestHighlight = -1;
+            this.suggestHoverIndex = -1;
         },
         updateAutocomplete() {
             const input = this.getRequestInput();
@@ -709,6 +759,18 @@ export default {
             this.suggestTokenEnd = end;
             this.autocompleteSuggestions = matches;
             this.suggestHighlight = matches.length ? 0 : -1;
+            this.suggestHoverIndex = -1;
+        },
+        suggestionFullLabel(item) {
+            return assistantSuggestFullLabel(item);
+        },
+        scrollActiveSuggestionIntoView() {
+            this.$nextTick(() => {
+                const active = this.$el?.querySelector?.(
+                    ".wkb-assistant-suggest-item.is-active"
+                );
+                active?.scrollIntoView?.({ block: "nearest" });
+            });
         },
         onDraftInput() {
             this.updateAutocomplete();
@@ -726,11 +788,13 @@ export default {
                         this.suggestHighlight + 1,
                         this.autocompleteSuggestions.length - 1
                     );
+                    this.scrollActiveSuggestionIntoView();
                     return;
                 }
                 if (event.key === "ArrowUp") {
                     event.preventDefault();
                     this.suggestHighlight = Math.max(this.suggestHighlight - 1, 0);
+                    this.scrollActiveSuggestionIntoView();
                     return;
                 }
                 if (event.key === "Escape") {
@@ -1454,12 +1518,47 @@ export default {
     position: relative;
 }
 
-.wkb-assistant-suggest {
+.wkb-assistant-suggest-wrap {
     position: absolute;
     left: 0;
     right: 0;
     bottom: calc(100% + 4px);
     z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wkb-assistant-suggest-preview {
+    padding: 8px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #f8fafc;
+    box-shadow: 0 4px 16px rgba(20, 22, 30, 0.1);
+}
+
+.wkb-assistant-suggest-preview-label {
+    display: block;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.wkb-assistant-suggest-preview-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-assistant-suggest {
+    position: static;
     margin: 0;
     padding: 4px;
     max-height: 200px;

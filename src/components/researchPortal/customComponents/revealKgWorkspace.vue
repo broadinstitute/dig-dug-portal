@@ -182,6 +182,7 @@
             @inspect="onNodeActionInspect"
             @remove-node="onNodeActionRemove"
             @expand="onNodeActionExpand"
+            @select-connected="onNodeActionSelectConnected"
             @toggle-key-node="onNodeActionToggleKeyNode"
         />
 
@@ -459,6 +460,7 @@ import WorkspaceRemoveNodeConfirmModal from "./revealKgWorkspace/WorkspaceRemove
 import {
     addDemoGeneSetsToGraphLocally,
 } from "./revealKgWorkspace/revealKgDemoGeneSets.js";
+import { connectedNodeIdsForSession } from "./revealKgWorkspace/revealKgSelectConnectedNodes.js";
 import {
     addNodesToGraphLocally,
     addKeyNodesBatch,
@@ -1948,6 +1950,28 @@ export default Vue.component("reveal-kg-workspace", {
                     ? `Marked ${label} as a selected node.`
                     : `Removed ${label} from selected nodes.`,
                 2600
+            );
+        },
+        onNodeActionSelectConnected(node) {
+            if (!node?.nodeId || !this.activeSession) {
+                return;
+            }
+            const graphNode = (this.activeSession.graphNodes || []).find(
+                (entry) => entry.id === node.nodeId || entry.node_id === node.nodeId
+            );
+            const label = graphNode?.label || node.label || node.nodeId;
+            const nodeIds = connectedNodeIdsForSession(this.activeSession, node.nodeId);
+            if (!nodeIds.length) {
+                this.showStatus(`No connected nodes found for ${label}.`, 2800);
+                return;
+            }
+            const { session, addedIds } = addKeyNodesBatch(this.activeSession, nodeIds);
+            this.activeSession = session;
+            this.showStatus(
+                addedIds.length
+                    ? `Added ${addedIds.length} node${addedIds.length === 1 ? "" : "s"} connected to ${label} to the selection.`
+                    : `All nodes connected to ${label} are already selected.`,
+                3200
             );
         },
         onGraphAction(action) {

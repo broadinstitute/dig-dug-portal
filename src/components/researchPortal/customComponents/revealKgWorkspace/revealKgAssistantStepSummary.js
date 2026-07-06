@@ -44,6 +44,16 @@ export function formatAssistantStepSummary(step, meta = {}) {
             }
             return label ? `Finished: ${label}` : "Visibility filter updated.";
         }
+        case "select_connected_nodes": {
+            const count = Number(meta.markedCount);
+            const seed = String(meta.seedLabel || "").trim();
+            if (Number.isFinite(count)) {
+                return seed
+                    ? `Added ${count} node${count === 1 ? "" : "s"} connected to ${seed} to the selection.`
+                    : `Added ${count} node${count === 1 ? "" : "s"} to the selection.`;
+            }
+            return label ? `Finished: ${label}` : "Connected-node selection updated.";
+        }
         case "select_nodes": {
             if (meta.cleared) {
                 return "Cleared all selected nodes.";
@@ -191,6 +201,38 @@ export function formatAssistantStepSummary(step, meta = {}) {
                     ? `Added ${count} node${count === 1 ? "" : "s"} from your research intention.`
                     : label || "Added nodes from research intention.";
             return meta.geneGuidance ? `${base} ${meta.geneGuidance}` : base;
+        }
+        case "add_phenotype_gene_sets": {
+            const count = Number(meta.addedCount);
+            const traits = Number(meta.traitCount);
+            const geneSets = Number(meta.geneSetCount);
+            if (Number.isFinite(count) && count > 0) {
+                const detail = [];
+                if (Number.isFinite(traits) && traits > 0) {
+                    detail.push(`${traits} trait${traits === 1 ? "" : "s"}`);
+                }
+                if (Number.isFinite(geneSets) && geneSets > 0) {
+                    detail.push(`${geneSets} gene set${geneSets === 1 ? "" : "s"}`);
+                }
+                const breakdown = detail.length ? ` (${detail.join(", ")})` : "";
+                return withBulkWorkflowNote(
+                    `Added ${count} node${count === 1 ? "" : "s"} from trait–gene set search${breakdown}.`,
+                    meta
+                );
+            }
+            return withBulkWorkflowNote(
+                label || "Added trait and gene set nodes from phenotype search.",
+                meta
+            );
+        }
+        case "add_gene_set_crossing": {
+            const count = Number(meta.addedCount);
+            return withBulkWorkflowNote(
+                Number.isFinite(count) && count > 0
+                    ? `Added ${count} crossing gene set${count === 1 ? "" : "s"} (∩).`
+                    : label || "Added crossing gene sets.",
+                meta
+            );
         }
         case "add_demo_gene_sets": {
             const count = Number(meta.addedCount);
