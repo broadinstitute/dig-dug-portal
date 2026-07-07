@@ -3,11 +3,15 @@ import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.
 import { clampRegionZoomOut, regionShiftBpFromLegacyViewArea } from "./variantSifterRegionPan.js";
 import { emptyPlotMarkersState } from "./variantSifterPlotMarkers.js";
 import { normalizeSelectedGeneTypes, resolveSelectedGeneTypesForData } from "./variantSifterGenesFilter.js";
+import {
+    normalizeGlobalEnrichmentFromSession,
+    snapshotGlobalEnrichmentForExport,
+} from "./variantSifterGlobalEnrichmentData.js";
 
-export const VKS_SESSION_VERSION = 5;
+export const VKS_SESSION_VERSION = 6;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -24,6 +28,7 @@ export function validateSessionExportReady({
     associationsState,
     genesState,
     plotOverlaysState,
+    globalEnrichmentState,
 }) {
     if (associationsState?.loading) {
         throw new Error("Association data is still loading. Wait before exporting.");
@@ -45,6 +50,14 @@ export function validateSessionExportReady({
     if (plotOverlaysState?.loading) {
         throw new Error("Plot overlays are still loading. Wait before exporting.");
     }
+    if (globalEnrichmentState?.loading) {
+        throw new Error("Global enrichment is still loading. Wait before exporting.");
+    }
+    if (globalEnrichmentState?.llmRelevance?.loading) {
+        throw new Error(
+            "Global enrichment tissue filtering is still running. Wait before exporting."
+        );
+    }
 }
 
 /**
@@ -58,6 +71,7 @@ export function exportVariantSifterSession({
     plotOverlaysState = null,
     plotMarkersState = null,
     credibleSetsState = null,
+    globalEnrichmentState = null,
     regionZoom = 0,
     regionZoomOut = 0,
     regionViewArea = 0,
@@ -71,6 +85,7 @@ export function exportVariantSifterSession({
         associationsState,
         genesState,
         plotOverlaysState,
+        globalEnrichmentState,
     });
 
     if (!searchSession?.phenotype || !searchSession?.region) {
@@ -123,6 +138,7 @@ export function exportVariantSifterSession({
                   variantsBySet: credibleSetsState.variantsBySet ?? {},
               }
             : null,
+        globalEnrichment: snapshotGlobalEnrichmentForExport(globalEnrichmentState),
         ui: {
             regionZoom,
             regionZoomOut,
@@ -412,6 +428,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         plotOverlaysState: normalizePlotOverlaysState(payload),
         plotMarkersState: normalizePlotMarkersState(payload),
         credibleSetsState: normalizeCredibleSetsState(payload),
+        globalEnrichmentState: normalizeGlobalEnrichmentFromSession(payload.globalEnrichment),
         regionZoom,
         regionZoomOut,
         regionViewArea,

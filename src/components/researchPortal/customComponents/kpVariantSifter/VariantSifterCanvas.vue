@@ -31,6 +31,7 @@
                         :credible-sets-state="credibleSetsState"
                         :credible-set-colors="credibleSetColors"
                         :credible-set-pill-colors="credibleSetPillColors"
+                        :global-enrichment-state="globalEnrichmentState"
                         :utils="utils"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
@@ -182,6 +183,15 @@ export default {
         credibleSetPillColors: {
             type: Object,
             default: () => ({}),
+        },
+        globalEnrichmentState: {
+            type: Object,
+            default: () => ({
+                annoData: {},
+                geRows: [],
+                catalog: { annotations: [] },
+                selectedAnnotations: [],
+            }),
         },
         regionLoadProgressActive: {
             type: Boolean,

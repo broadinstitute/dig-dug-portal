@@ -16,26 +16,9 @@
                 Relevance filtering is applied. See the assistant panel for details, or use
                 the controls below to re-enable muted items.
             </p>
-
-            <div class="vks-ge-filter-row">
-                <label class="vks-ge-filter-label" :for="annotationSelectId">
-                    Select annotation
-                </label>
-                <select
-                    :id="annotationSelectId"
-                    v-model="annotationOnFocus"
-                    class="custom-select vks-ge-filter-select"
-                >
-                    <option value="">Show all</option>
-                    <option
-                        v-for="annotation in annotationOptions"
-                        :key="annotation"
-                        :value="annotation"
-                    >
-                        {{ annotation }}
-                    </option>
-                </select>
-            </div>
+            <p v-else-if="llmRelevance.error" class="vks-ge-llm-note" role="status">
+                {{ llmRelevance.error }} Showing full global enrichment data.
+            </p>
 
             <div
                 v-if="llmRelevance.llmUsed && hasMutedItems"
@@ -95,43 +78,34 @@
                 </div>
             </div>
 
-            <div class="vks-ge-legend">
-                <p class="vks-ge-legend-title">Global enrichment</p>
-                <ul class="vks-ge-legend-list">
-                    <li
-                        v-for="(annotation, index) in annotationOptions"
-                        :key="annotation"
-                        class="vks-ge-legend-item"
-                        :class="{
-                            'is-muted': !isAnnotationEmphasized(annotation),
-                        }"
-                    >
-                        <span
-                            class="vks-ge-legend-swatch"
-                            :style="{ backgroundColor: legendColor(annotation, index) }"
-                            aria-hidden="true"
-                        ></span>
-                        <span>{{ annotation }}</span>
-                    </li>
-                </ul>
-            </div>
+            <ul class="vks-ge-legend-list" role="group" aria-label="Annotation types">
+                <li
+                    v-for="(annotation, index) in annotationOptions"
+                    :key="annotation"
+                    class="vks-ge-legend-item"
+                    :class="{ 'is-muted': !isAnnotationSelected(annotation) }"
+                >
+                    <label class="vks-ge-legend-checkbox">
+                        <input
+                            type="checkbox"
+                            class="vks-ge-legend-input"
+                            :checked="isAnnotationSelected(annotation)"
+                            :style="{ accentColor: legendSolidColor(annotation, index) }"
+                            @change="onToggleAnnotation(annotation, $event)"
+                        />
+                        <span class="vks-ge-legend-label">
+                            {{ annotation }}
+                        </span>
+                    </label>
+                </li>
+            </ul>
 
             <VariantSifterGlobalEnrichmentPlot
                 :global-enrichment-state="globalEnrichmentState"
                 :search-session="searchSession"
-                :annotation-on-focus="annotationOnFocus || null"
+                :selected-annotations="selectedAnnotations"
                 :utils="utils"
             />
-
-            <div class="vks-ge-annotations-section">
-                <p class="vks-ge-legend-title">Annotations in this locus</p>
-                <VariantSifterAnnotationsPlot
-                    :global-enrichment-state="globalEnrichmentState"
-                    :search-session="searchSession"
-                    :selected-annotation="annotationOnFocus || null"
-                    :utils="utils"
-                />
-            </div>
         </template>
         <p v-else class="vks-ge-drawer-hint">
             No regulatory annotations were found for this locus.
@@ -141,23 +115,20 @@
 
 <script>
 import VariantSifterGlobalEnrichmentPlot from "./VariantSifterGlobalEnrichmentPlot.vue";
-import VariantSifterAnnotationsPlot from "./VariantSifterAnnotationsPlot.vue";
 import {
     isGeAnnotationEmphasized,
     listMutedGeAnnotations,
     listMutedGeTissues,
-    mutedAnnotationColor,
+    resolveSelectedGeAnnotations,
+    solidAnnotationColor,
     sortedAnnotationKeys,
     VKS_ANNOTATION_COLORS,
 } from "./variantSifterGlobalEnrichmentData.js";
-
-let geDrawerSelectCounter = 0;
 
 export default {
     name: "VariantSifterGlobalEnrichmentDrawer",
     components: {
         VariantSifterGlobalEnrichmentPlot,
-        VariantSifterAnnotationsPlot,
     },
     props: {
         globalEnrichmentState: {
@@ -179,6 +150,7 @@ export default {
                 },
                 enabledMutedAnnotations: [],
                 enabledMutedTissues: [],
+                selectedAnnotations: [],
             }),
         },
         searchSession: {
@@ -195,10 +167,7 @@ export default {
         },
     },
     data() {
-        geDrawerSelectCounter += 1;
         return {
-            annotationOnFocus: "",
-            annotationSelectId: `vks-ge-annotation-${geDrawerSelectCounter}`,
             showMutedPanel: false,
         };
     },
@@ -233,6 +202,12 @@ export default {
         annotationOptions() {
             return sortedAnnotationKeys(this.globalEnrichmentState?.annoData || {});
         },
+        selectedAnnotations() {
+            return resolveSelectedGeAnnotations(
+                this.globalEnrichmentState?.selectedAnnotations,
+                this.annotationOptions
+            );
+        },
         tissueOptions() {
             return this.globalEnrichmentState?.catalog?.tissues || [];
         },
@@ -253,18 +228,32 @@ export default {
         },
     },
     methods: {
+        isAnnotationSelected(annotation) {
+            return this.selectedAnnotations.includes(annotation);
+        },
         isAnnotationEmphasized(annotation) {
             return isGeAnnotationEmphasized(annotation, {
                 llmRelevance: this.llmRelevance,
                 enabledMutedAnnotations: this.enabledMutedAnnotations,
             });
         },
-        legendColor(annotation, index) {
+        legendSolidColor(annotation, index) {
             const baseColor =
                 VKS_ANNOTATION_COLORS[index % VKS_ANNOTATION_COLORS.length];
-            return this.isAnnotationEmphasized(annotation)
-                ? baseColor
-                : mutedAnnotationColor(baseColor);
+            return solidAnnotationColor(
+                this.isAnnotationEmphasized(annotation) ? baseColor : `${baseColor.slice(0, 7)}55`
+            );
+        },
+        onToggleAnnotation(annotation, event) {
+            const checked = Boolean(event?.target?.checked);
+            const next = new Set(this.selectedAnnotations);
+            if (checked) {
+                next.add(annotation);
+            } else {
+                next.delete(annotation);
+            }
+            const ordered = this.annotationOptions.filter((item) => next.has(item));
+            this.$emit("update:selectedAnnotations", ordered);
         },
         onToggleMutedAnnotation(annotation, event) {
             const enabled = Boolean(event?.target?.checked);
@@ -313,22 +302,6 @@ export default {
 .vks-ge-drawer-error {
     color: #b42318;
     font-size: 0.9rem;
-}
-
-.vks-ge-filter-row {
-    margin-bottom: 12px;
-}
-
-.vks-ge-filter-label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.vks-ge-filter-select {
-    width: 100%;
-    max-width: 360px;
 }
 
 .vks-ge-muted-panel {
@@ -381,44 +354,38 @@ export default {
     cursor: pointer;
 }
 
-.vks-ge-legend {
-    margin-bottom: 8px;
-}
-
-.vks-ge-legend-title {
-    margin: 0 0 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
 .vks-ge-legend-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 14px;
-    margin: 0;
+    margin: 0 0 10px;
     padding: 0;
     list-style: none;
 }
 
-.vks-ge-legend-item {
+.vks-ge-legend-item.is-muted {
+    opacity: 0.55;
+}
+
+.vks-ge-legend-checkbox {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    margin: 0;
+    cursor: pointer;
     font-size: 0.82rem;
+    color: #33363d;
 }
 
-.vks-ge-legend-item.is-muted {
-    color: #8a8a8a;
-}
-
-.vks-ge-legend-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+.vks-ge-legend-input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
     flex-shrink: 0;
+    cursor: pointer;
 }
 
-.vks-ge-annotations-section {
-    margin-top: 16px;
+.vks-ge-legend-label {
+    line-height: 1.3;
 }
 </style>

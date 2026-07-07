@@ -72,8 +72,19 @@ export function setupPlotCanvas(canvas, internalWidth, internalHeight) {
 /** Minimum container width before plotting (drawer may still be animating open). */
 export const VKS_MIN_PLOT_CONTAINER_WIDTH = 100;
 
+/** CSS display width of the plot content area inside a padded stack container. */
+export function measurePlotContentWidth(containerEl) {
+    if (!containerEl) {
+        return 0;
+    }
+    const style = window.getComputedStyle(containerEl);
+    const paddingLeft = Number.parseFloat(style.paddingLeft) || 0;
+    const paddingRight = Number.parseFloat(style.paddingRight) || 0;
+    return Math.max(0, containerEl.clientWidth - paddingLeft - paddingRight);
+}
+
 export function measurePlotCanvasWidth(containerEl) {
-    const displayWidth = containerEl?.clientWidth || 0;
+    const displayWidth = measurePlotContentWidth(containerEl);
     if (displayWidth < VKS_MIN_PLOT_CONTAINER_WIDTH) {
         return null;
     }
@@ -84,9 +95,9 @@ export function measureAssociationCanvasWidth(containerEl) {
     return measurePlotCanvasWidth(containerEl);
 }
 
-/** Shared stack width: retina internal pixels from the plot stack container. */
+/** Shared stack width: retina internal pixels from the plot stack content area. */
 export function measureVksPlotStackCanvasWidth(containerEl) {
-    const displayWidth = containerEl?.clientWidth || 0;
+    const displayWidth = measurePlotContentWidth(containerEl);
     if (displayWidth < VKS_MIN_PLOT_CONTAINER_WIDTH) {
         return null;
     }

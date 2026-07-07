@@ -56,18 +56,51 @@
                     @toggle-star-variant="$emit('toggle-star-variant', $event)"
                     @set-reference-variant="$emit('set-reference-variant', $event)"
                 />
-                <VariantSifterGenesTrack
-                    :key="genesTrackKey"
-                    :genes="genesTrackData"
-                    :recomb-peak-intervals="recombPeakIntervals"
+                <VariantSifterAnnotationsWorkspaceTrack
+                    v-if="hasAnnotationTrackData"
+                    :global-enrichment-state="globalEnrichmentState"
+                    :search-session="searchSession"
                     :region="searchSession?.region"
                     :view-region="viewRegion"
-                    :plot-margin="plotMargin"
                     :region-zoom="regionZoom"
+                    :region-shift-bp="regionShiftBp"
+                    :region-view-area="regionViewArea"
                     :shared-canvas-width="stackCanvasWidth"
                     :plot-markers="plotMarkers"
-                    :color-by-gene-type="geneTypeColors"
+                    :recomb-peak-intervals="recombPeakIntervals"
+                    :utils="utils"
+                    @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                    @pan-end="$emit('pan-end')"
+                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
                 />
+            </div>
+            <div class="vks-genes-track-slot">
+                <div
+                    v-if="genesDockPinned"
+                    class="vks-genes-track-spacer"
+                    :style="{ height: `${genesTrackHeight}px` }"
+                    aria-hidden="true"
+                ></div>
+                <div
+                    ref="genesDock"
+                    class="vks-genes-track-dock"
+                    :class="{ 'is-pinned': genesDockPinned }"
+                    :style="genesDockPinned ? genesDockPinnedStyle : null"
+                >
+                    <VariantSifterGenesTrack
+                        :key="genesTrackKey"
+                        :genes="genesTrackData"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        :region="searchSession?.region"
+                        :view-region="viewRegion"
+                        :plot-margin="plotMargin"
+                        :region-zoom="regionZoom"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-markers="plotMarkers"
+                        :color-by-gene-type="geneTypeColors"
+                        @track-layout="onGenesTrackLayout"
+                    />
+                </div>
             </div>
             <p v-if="ldLoading" class="vks-associations-plot-note">
                 Loading LD scores for table…
@@ -83,6 +116,7 @@
 import VariantSifterGenesTrack from "./VariantSifterGenesTrack.vue";
 import VariantSifterCredibleSetsTrack from "./VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "./VariantSifterAssociationRegionPlot.vue";
+import VariantSifterAnnotationsWorkspaceTrack from "./VariantSifterAnnotationsWorkspaceTrack.vue";
 import { associationRowsToPlotData } from "./variantSifterAssociationsPlotData.js";
 import {
     VARIANT_SIFTER_PLOT_MARGIN,
@@ -97,6 +131,11 @@ import {
     computeRecombSignalIntervals,
     measureVksPlotStackCanvasWidth,
 } from "./variantSifterPlotShared.js";
+import {
+    buildPinnedGenesTrackDockStyle,
+    collectOverflowScrollTargets,
+    shouldPinGenesTrackDock,
+} from "./variantSifterGenesTrackDock.js";
 
 export default {
     name: "VariantSifterAssociationsPlot",
@@ -104,10 +143,15 @@ export default {
         VariantSifterGenesTrack,
         VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
+        VariantSifterAnnotationsWorkspaceTrack,
     },
     data() {
         return {
             stackCanvasWidth: null,
+            genesTrackHeight: 0,
+            genesDockPinned: false,
+            genesDockPinnedStyle: {},
+            genesDockPinFrame: null,
         };
     },
     props: {
@@ -200,6 +244,15 @@ export default {
             type: Object,
             default: () => ({}),
         },
+        globalEnrichmentState: {
+            type: Object,
+            default: () => ({
+                annoData: {},
+                geRows: [],
+                catalog: { annotations: [] },
+                selectedAnnotations: [],
+            }),
+        },
     },
     computed: {
         plotData() {
@@ -231,6 +284,19 @@ export default {
         hasSelectedCredibleSets() {
             return (this.credibleSetsState?.selectedIds || []).length > 0;
         },
+        hasAnnotationTrackData() {
+            const annoData = this.globalEnrichmentState?.annoData;
+            if (!annoData || typeof annoData !== "object") {
+                return false;
+            }
+            const annotations = Object.keys(annoData);
+            if (!annotations.length) {
+                return false;
+            }
+            return annotations.some(
+                (annotation) => Object.keys(annoData[annotation] || {}).length > 0
+            );
+        },
         credibleSetsTrackData() {
             return (this.credibleSetsState?.selectedIds || []).map((credibleSetId) => {
                 const setState = this.credibleSetsState?.variantsBySet?.[credibleSetId];
@@ -250,10 +316,20 @@ export default {
         },
     },
     watch: {
-        plotData(hasData) {
-            if (hasData?.length) {
-                this.$nextTick(() => this.updateStackCanvasWidth());
-            }
+        plotData: {
+            handler(hasData) {
+                if (!hasData?.length) {
+                    this.genesDockPinned = false;
+                    this.genesDockPinnedStyle = {};
+                    return;
+                }
+                this.$nextTick(() => {
+                    this.updateStackCanvasWidth();
+                    this.setupGenesDockPinListeners();
+                    this.updateGenesDockPin();
+                });
+            },
+            immediate: true,
         },
         selectedSets: {
             handler() {
@@ -266,21 +342,108 @@ export default {
                 this.$nextTick(() => this.updateStackCanvasWidth());
             }
         },
+        genesTrackKey() {
+            this.$nextTick(() => this.scheduleGenesDockPinUpdate());
+        },
+        hasAnnotationTrackData() {
+            this.$nextTick(() => this.scheduleGenesDockPinUpdate());
+        },
+        hasSelectedCredibleSets() {
+            this.$nextTick(() => this.scheduleGenesDockPinUpdate());
+        },
     },
     mounted() {
         this.updateStackCanvasWidth();
         this.stackResizeObserver = attachPlotResizeObserver(this, "plotStack", () => {
             this.updateStackCanvasWidth();
+            this.scheduleGenesDockPinUpdate();
+        });
+        this.genesDockResizeObserver = attachPlotResizeObserver(this, "genesDock", () => {
+            this.scheduleGenesDockPinUpdate();
+        });
+        this.$nextTick(() => {
+            this.setupGenesDockPinListeners();
+            this.updateGenesDockPin();
         });
     },
     beforeDestroy() {
         if (this.stackResizeObserver) {
             this.stackResizeObserver.disconnect();
         }
+        if (this.genesDockResizeObserver) {
+            this.genesDockResizeObserver.disconnect();
+        }
+        this.teardownGenesDockPinListeners();
     },
     methods: {
+        setupGenesDockPinListeners() {
+            this.teardownGenesDockPinListeners();
+            const plotStack = this.$refs.plotStack;
+            if (!plotStack) {
+                return;
+            }
+            this.onGenesDockPinScroll = () => this.scheduleGenesDockPinUpdate();
+            this.genesDockScrollTargets = collectOverflowScrollTargets(plotStack);
+            this.genesDockScrollTargets.forEach((target) => {
+                target.addEventListener("scroll", this.onGenesDockPinScroll, { passive: true });
+            });
+            window.addEventListener("resize", this.onGenesDockPinScroll, { passive: true });
+        },
+        teardownGenesDockPinListeners() {
+            if (this.genesDockScrollTargets?.length && this.onGenesDockPinScroll) {
+                this.genesDockScrollTargets.forEach((target) => {
+                    target.removeEventListener("scroll", this.onGenesDockPinScroll);
+                });
+            }
+            if (this.onGenesDockPinScroll) {
+                window.removeEventListener("resize", this.onGenesDockPinScroll);
+            }
+            this.genesDockScrollTargets = [];
+            this.onGenesDockPinScroll = null;
+            if (this.genesDockPinFrame) {
+                cancelAnimationFrame(this.genesDockPinFrame);
+                this.genesDockPinFrame = null;
+            }
+        },
+        scheduleGenesDockPinUpdate() {
+            if (this.genesDockPinFrame) {
+                return;
+            }
+            this.genesDockPinFrame = requestAnimationFrame(() => {
+                this.genesDockPinFrame = null;
+                this.updateGenesDockPin();
+            });
+        },
+        updateGenesDockPin() {
+            const plotStack = this.$refs.plotStack;
+            if (!plotStack || !this.plotData?.length) {
+                this.genesDockPinned = false;
+                this.genesDockPinnedStyle = {};
+                return;
+            }
+
+            const plotStackRect = plotStack.getBoundingClientRect();
+            const genesDockPinned = shouldPinGenesTrackDock(
+                plotStackRect,
+                this.genesTrackHeight
+            );
+            this.genesDockPinned = genesDockPinned;
+            this.genesDockPinnedStyle = genesDockPinned
+                ? buildPinnedGenesTrackDockStyle(plotStackRect)
+                : {};
+        },
+        onGenesTrackLayout({ height }) {
+            const nextHeight = Number(height) || 0;
+            if (this.genesTrackHeight === nextHeight) {
+                this.scheduleGenesDockPinUpdate();
+                return;
+            }
+            this.genesTrackHeight = nextHeight;
+            this.scheduleGenesDockPinUpdate();
+        },
         updateStackCanvasWidth() {
             this.stackCanvasWidth = measureVksPlotStackCanvasWidth(this.$refs.plotStack);
+            this.scheduleGenesDockPinUpdate();
         },
     },
 };
@@ -296,6 +459,28 @@ export default {
     min-height: 280px;
     padding: 0 8px;
     position: relative;
+}
+
+.vks-genes-track-slot {
+    position: relative;
+}
+
+.vks-genes-track-spacer {
+    width: 100%;
+    pointer-events: none;
+}
+
+.vks-genes-track-dock {
+    box-sizing: border-box;
+    padding: 0 8px;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 -4px 12px rgba(20, 22, 30, 0.06);
+}
+
+.vks-genes-track-dock.is-pinned {
+    position: fixed;
+    bottom: 0;
+    z-index: 6;
 }
 
 .vks-associations-plot-status,

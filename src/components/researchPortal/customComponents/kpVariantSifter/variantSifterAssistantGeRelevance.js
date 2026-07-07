@@ -27,8 +27,10 @@ export function buildGeRelevanceReportMessage({
     enabledMutedTissues = [],
 }) {
     if (!llmRelevance?.llmUsed) {
+        if (llmRelevance?.error) {
+            return `${llmRelevance.error} Showing full global enrichment data without tissue filtering.`;
+        }
         return (
-            llmRelevance?.error ||
             "LLM relevance filtering was not applied. All tissues and annotations are shown without muting."
         );
     }

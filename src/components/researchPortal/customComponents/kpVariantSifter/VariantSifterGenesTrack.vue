@@ -209,7 +209,8 @@ export default {
             if (this.sharedCanvasWidth) {
                 return this.sharedCanvasWidth;
             }
-            return measureVksPlotStackCanvasWidth(this.$refs.container);
+            const dock = this.$refs.container?.parentElement;
+            return measureVksPlotStackCanvasWidth(dock);
         },
         clearHover() {
             this.hoveredGene = null;
@@ -256,6 +257,7 @@ export default {
             if (!canvas || !container || !this.region) {
                 this.geneHitRegions = [];
                 this.clearHover();
+                this.$emit("track-layout", { height: 0 });
                 return;
             }
 
@@ -292,6 +294,7 @@ export default {
                 canvas.style.height = "0px";
                 this.geneHitRegions = [];
                 this.clearHover();
+                this.$emit("track-layout", { height: 0 });
                 return;
             }
 
@@ -332,6 +335,9 @@ export default {
                 canvasWidth,
                 ctx
             );
+
+            const displayHeight = canvas.height ? canvas.height / 2 : 0;
+            this.$emit("track-layout", { height: displayHeight });
         },
     },
 };
@@ -346,6 +352,7 @@ export default {
     display: block;
     width: 100%;
     cursor: default;
+    background: transparent;
 }
 
 .vks-genes-track-canvas.is-gene-hover {

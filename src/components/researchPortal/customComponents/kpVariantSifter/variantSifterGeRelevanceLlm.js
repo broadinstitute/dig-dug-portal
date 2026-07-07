@@ -3,8 +3,6 @@ import {
     getInteractiveHealth,
 } from "@/utils/revealKgApi.js";
 import { sortedAnnotationKeys } from "./variantSifterGlobalEnrichmentData.js";
-
-/** Fast model for GE tissue relevance (passed when the backend supports llm_model). */
 export const GE_RELEVANCE_LLM_MODEL = "gpt-4.1-nano";
 
 const CLASSIFY_BATCH_SIZE = 60;
@@ -137,10 +135,6 @@ export async function fetchGeRelevanceFromLlm({
     tissues = [],
 }) {
     const health = await fetchInteractiveLlmHealth();
-    if (!health?.llm_available) {
-        throw new Error("LLM relevance filtering is not available in this environment.");
-    }
-
     const pairs = buildGeAnnotationTissuePairs(annoData);
     const resolvedPairs =
         pairs.length > 0
@@ -153,10 +147,25 @@ export async function fetchGeRelevanceFromLlm({
     const annotationLabels =
         annotations.length > 0 ? [...annotations] : sortedAnnotationKeys(annoData);
 
+    if (!health?.llm_available) {
+        return {
+            llmUsed: false,
+            tissueOnly: true,
+            filterComplete: true,
+            relevantAnnotations: annotationLabels,
+            relevantTissues: [],
+            rationaleById: {},
+            error:
+                health?.error ||
+                "LLM relevance filtering is not available in this environment.",
+        };
+    }
+
     if (!tissueLabels.length) {
         return {
             llmUsed: false,
             tissueOnly: true,
+            filterComplete: true,
             relevantAnnotations: annotationLabels,
             relevantTissues: [],
             rationaleById: {},
@@ -193,6 +202,7 @@ export async function fetchGeRelevanceFromLlm({
     return {
         llmUsed,
         tissueOnly: true,
+        filterComplete: true,
         relevantAnnotations: annotationLabels,
         relevantTissues: parsed.relevantTissues,
         rationaleById: parsed.rationaleById,

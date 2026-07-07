@@ -29,9 +29,9 @@ export default {
             type: Object,
             default: null,
         },
-        selectedAnnotation: {
-            type: String,
-            default: null,
+        selectedAnnotations: {
+            type: Array,
+            default: () => [],
         },
         utils: {
             type: Object,
@@ -45,7 +45,7 @@ export default {
         annotations() {
             return annotationsForPlot(
                 this.globalEnrichmentState?.annoData || {},
-                this.selectedAnnotation
+                this.selectedAnnotations
             );
         },
         canvasHeight() {

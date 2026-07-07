@@ -11,7 +11,7 @@ const GE_PLOT_MARGIN = {
     left: 150,
     right: 40,
     top: 48,
-    bottom: 88,
+    bottom: 120,
     bump: 11,
 };
 
@@ -119,7 +119,7 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         canvasWidth,
         canvasHeight,
         title,
-        annotationOnFocus = null,
+        selectedAnnotations = null,
         colors,
         utils,
         llmRelevance = null,
@@ -127,8 +127,10 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         enabledMutedTissues = [],
     } = options;
 
+    const dotPositions = [];
+
     if (!ctx || !canvasWidth || !canvasHeight) {
-        return;
+        return dotPositions;
     }
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -142,8 +144,13 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
             canvasWidth / 2,
             canvasHeight / 2
         );
-        return;
+        return dotPositions;
     }
+
+    const selectedSet =
+        Array.isArray(selectedAnnotations) && selectedAnnotations.length
+            ? new Set(selectedAnnotations)
+            : null;
 
     const plotLeft = GE_PLOT_MARGIN.left;
     const plotTop = GE_PLOT_MARGIN.top + 28;
@@ -175,24 +182,33 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
     });
 
     points.forEach((point) => {
+        if (selectedSet && !selectedSet.has(point.annotation)) {
+            return;
+        }
+
         const emphasized = isGePointEmphasized(point, {
             llmRelevance,
             enabledMutedAnnotations,
             enabledMutedTissues,
         });
-        const baseColor =
-            !annotationOnFocus || annotationOnFocus === point.annotation
-                ? annotationColorForKey(point.annotation, annotations, colors)
-                : "#00000030";
+        const baseColor = annotationColorForKey(point.annotation, annotations, colors);
         const color = emphasized ? baseColor : mutedAnnotationColor(baseColor);
 
         const xPos = plotLeft + (point.pValue - xMin) * xPosByPixel;
         const yPos = plotTop + plotHeight - (point.fold - yMin) * yPosByPixel;
+        const radius = emphasized ? 8 : 6;
 
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(xPos, yPos, emphasized ? 8 : 6, 0, Math.PI * 2);
+        ctx.arc(xPos, yPos, radius, 0, Math.PI * 2);
         ctx.fill();
+
+        dotPositions.push({
+            x: xPos,
+            y: yPos,
+            radius,
+            point,
+        });
 
         const shouldLabel =
             emphasized &&
@@ -213,6 +229,8 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
             ctx.fillText(point.tissue, xPos + 14, yPos + 6);
         }
     });
+
+    return dotPositions;
 }
 
 function renderAnnotationAxis(ctx, plotLeft, plotTop, plotWidth, plotHeight, xMin, xMax, utils) {
@@ -358,7 +376,7 @@ export function renderAnnotationsPlot(ctx, options) {
 }
 
 export function globalEnrichmentPlotCanvasHeight() {
-    return GE_PLOT_MARGIN.top + 28 + 260 + GE_PLOT_MARGIN.bottom;
+    return GE_PLOT_MARGIN.top + 28 + 280 + GE_PLOT_MARGIN.bottom;
 }
 
 export {
