@@ -78,6 +78,14 @@ export function resolveTraitGeneSetExpandIntent(options = {}, stepLabel = "", us
     return "";
 }
 
+export function traitGeneSetExpandUsesSemanticSearch(intent) {
+    return Boolean(String(intent || "").trim());
+}
+
+export function traitGeneSetExpandModeFromIntent(intent) {
+    return traitGeneSetExpandUsesSemanticSearch(intent) ? "semantic" : "connections";
+}
+
 export function prepareTraitGeneSetExpandExecution(
     seedItems = [],
     options = {},
@@ -95,17 +103,23 @@ export function prepareTraitGeneSetExpandExecution(
         return null;
     }
     const intent = resolveTraitGeneSetExpandIntent(options, stepLabel, userQuery);
-    if (!intent) {
-        return { needsIntent: true };
+    const limit = resolveTraitGeneSetGraphAddLimit(options.count);
+    if (!traitGeneSetExpandUsesSemanticSearch(intent)) {
+        return {
+            targetType: "gene_set",
+            expandMode: "connections",
+            limit,
+        };
     }
     return {
         targetType: "gene_set",
+        expandMode: "semantic",
         expandFilters: {
             intent,
             relevanceEnabled: true,
             relevanceMode: options.relevance_mode || "llm",
         },
-        limit: resolveTraitGeneSetGraphAddLimit(options.count),
+        limit,
     };
 }
 
@@ -144,13 +158,6 @@ function pairScore(pair) {
     return Number(pair?.score ?? pair?.gene_set?.score ?? 0);
 }
 
-function catalogRowsFromPair(pair) {
-    if (!pair?.trait?.node_id || !pair?.gene_set?.node_id) {
-        return [];
-    }
-    return [pair.trait, pair.gene_set];
-}
-
 function normalizeCatalogRow(row) {
     const nodeType = String(row?.node_type || row?.type || "").toLowerCase();
     return {
@@ -165,26 +172,38 @@ function normalizeCatalogRow(row) {
 
 export function rowsFromTraitGeneSetExpandPairs(
     pairs = [],
-    { existingNodeIds = [], limit = TRAIT_GENE_SET_GRAPH_ADD_MAX } = {}
+    { existingNodeIds = [], geneSetLimit = TRAIT_GENE_SET_GRAPH_ADD_MAX, limit } = {}
 ) {
+    const cap = resolveTraitGeneSetGraphAddLimit(
+        geneSetLimit !== undefined ? geneSetLimit : limit
+    );
     const seen = new Set(existingNodeIds || []);
     const ranked = [...(pairs || [])].sort((left, right) => pairScore(right) - pairScore(left));
     const rows = [];
+    let geneSetsAdded = 0;
 
     for (const pair of ranked) {
-        for (const row of catalogRowsFromPair(pair)) {
-            if (!row?.node_id || seen.has(row.node_id)) {
-                continue;
-            }
-            seen.add(row.node_id);
-            rows.push(normalizeCatalogRow(row));
-            if (rows.length >= limit) {
-                return { rows, capped: true };
-            }
+        const geneSet = pair?.gene_set;
+        const trait = pair?.trait;
+        if (!geneSet?.node_id || seen.has(geneSet.node_id)) {
+            continue;
+        }
+
+        if (trait?.node_id && !seen.has(trait.node_id)) {
+            seen.add(trait.node_id);
+            rows.push(normalizeCatalogRow(trait));
+        }
+
+        seen.add(geneSet.node_id);
+        rows.push(normalizeCatalogRow(geneSet));
+        geneSetsAdded += 1;
+
+        if (geneSetsAdded >= cap) {
+            return { rows, capped: true, geneSetsAdded };
         }
     }
 
-    return { rows, capped: false };
+    return { rows, capped: false, geneSetsAdded };
 }
 
 export function mentionsExpandTraitToGeneSets(query) {
@@ -201,39 +220,8 @@ export function mentionsExpandTraitToGeneSets(query) {
     return false;
 }
 
-export function wantsTraitGeneSetExpandWithoutIntent(query, steps = []) {
-    const text = String(query || "").trim();
-    const expandSteps = (steps || []).filter((step) => step?.action === "expand_graph");
-    const traitGeneSetSteps = expandSteps.filter(
-        (step) =>
-            String(step?.options?.target_type || "").trim() === "gene_set" ||
-            mentionsExpandTraitToGeneSets(text) ||
-            mentionsExpandTraitToGeneSets(step?.label)
-    );
-    if (!traitGeneSetSteps.length && !mentionsExpandTraitToGeneSets(text)) {
-        return false;
-    }
-    if (
-        traitGeneSetSteps.some((step) =>
-            Boolean(resolveTraitGeneSetExpandIntent(step?.options, step?.label, text))
-        )
-    ) {
-        return false;
-    }
-    if (!mentionsExpandTraitToGeneSets(text)) {
-        return traitGeneSetSteps.length > 0;
-    }
-    const quoted = text.match(/"([^"]+)"/)?.[1];
-    if (quoted?.trim()) {
-        return false;
-    }
-    if (/\bfor\b[\s\S]{4,}/i.test(text)) {
-        return false;
-    }
-    if (/\b(?:related to|associated with|involving|in)\b[\s\S]{4,}/i.test(text)) {
-        return false;
-    }
-    return true;
+export function wantsTraitGeneSetExpandWithoutIntent() {
+    return false;
 }
 
 export function traitGeneSetExpandClarifyJson(userQuery = "") {
@@ -346,7 +334,7 @@ export async function resolveTraitGeneSetExpandRows(
 
     const { rows, capped } = rowsFromTraitGeneSetExpandPairs(mergedPairs, {
         existingNodeIds,
-        limit: graphAddLimit,
+        geneSetLimit: graphAddLimit,
     });
 
     if (!rows.length) {

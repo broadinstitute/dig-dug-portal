@@ -12,6 +12,8 @@ import {
     shouldUseTraitGeneSetExpand,
     TRAIT_GENE_SET_GRAPH_ADD_MAX,
     TRAIT_GENE_SET_PAIR_SEARCH_MAX,
+    traitGeneSetExpandModeFromIntent,
+    traitGeneSetExpandUsesSemanticSearch,
     wantsTraitGeneSetExpandWithoutIntent,
 } from "../revealKgTraitGeneSetExpand.js";
 import { prepareAssistantPlannerJson } from "../revealKgAssistantPlanRepair.js";
@@ -55,7 +57,7 @@ describe("revealKgTraitGeneSetExpand", () => {
         ).toBe("Type 2 diabetes: pancreatic islet dysfunction");
     });
 
-    it("returns trait and gene set rows from top pairs, ranked and capped", () => {
+    it("caps gene set rows only and adds traits from those pairs", () => {
         const pairs = [
             {
                 trait: { node_id: "trait:T2D", node_type: "trait", label: "T2D" },
@@ -67,12 +69,23 @@ describe("revealKgTraitGeneSetExpand", () => {
                 gene_set: { node_id: "gene_set:2", label: "GS2", node_type: "gene_set" },
                 score: 0.9,
             },
+            {
+                trait: { node_id: "trait:THIRD", node_type: "trait", label: "Third" },
+                gene_set: { node_id: "gene_set:3", label: "GS3", node_type: "gene_set" },
+                score: 0.8,
+            },
         ];
-        const { rows } = rowsFromTraitGeneSetExpandPairs(pairs, { limit: 3 });
+        const { rows, geneSetsAdded } = rowsFromTraitGeneSetExpandPairs(pairs, {
+            geneSetLimit: 2,
+        });
+        expect(geneSetsAdded).toBe(2);
+        expect(rows.filter((row) => row.node_type === "gene_set")).toHaveLength(2);
+        expect(rows.filter((row) => row.node_type === "trait")).toHaveLength(2);
         expect(rows.map((row) => row.node_id)).toEqual([
             "trait:OTHER",
             "gene_set:2",
-            "trait:T2D",
+            "trait:THIRD",
+            "gene_set:3",
         ]);
     });
 
@@ -177,7 +190,7 @@ describe("revealKgTraitGeneSetExpand", () => {
         ).toBe(TRAIT_GENE_SET_GRAPH_ADD_MAX);
     });
 
-    it("requests 50 pairs from the API and adds top nodes up to the graph add limit", async () => {
+    it("requests 50 pairs from the API and adds gene sets up to the graph add limit", async () => {
         const pairs = Array.from({ length: 30 }, (_, index) => ({
             trait: {
                 node_id: `trait:${index}`,
@@ -204,9 +217,36 @@ describe("revealKgTraitGeneSetExpand", () => {
             expect.any(String),
             TRAIT_GENE_SET_PAIR_SEARCH_MAX
         );
-        expect(rows).toHaveLength(5);
-        expect(rows[0].node_id).toBe("trait:0");
-        expect(rows[1].node_id).toBe("gene_set:0");
+        expect(rows.filter((row) => row.node_type === "gene_set")).toHaveLength(5);
+        expect(rows.filter((row) => row.node_type === "trait")).toHaveLength(5);
+    });
+
+    it("adds requested gene set count plus traits from those pairs", async () => {
+        const pairs = Array.from({ length: 20 }, (_, index) => ({
+            trait: {
+                node_id: `trait:${index % 7}`,
+                node_type: "trait",
+                label: `Trait ${index % 7}`,
+            },
+            gene_set: {
+                node_id: `gene_set:${index}`,
+                node_type: "gene_set",
+                label: `GS${index}`,
+            },
+            score: 1 - index * 0.01,
+        }));
+        const apiClient = {
+            searchInteractivePhenotypeGeneSets: jest.fn().mockResolvedValue({ pairs }),
+        };
+        const { rows } = await resolveTraitGeneSetExpandRows(
+            apiClient,
+            [traitA],
+            "pancreas dysfunction",
+            15
+        );
+        expect(rows.filter((row) => row.node_type === "gene_set")).toHaveLength(15);
+        expect(rows.filter((row) => row.node_type === "trait").length).toBeGreaterThan(0);
+        expect(rows.length).toBeGreaterThan(15);
     });
 
     it("detects expand trait to gene set phrasing", () => {
@@ -220,16 +260,33 @@ describe("revealKgTraitGeneSetExpand", () => {
         ).toBe(false);
     });
 
-    it("flags missing intent for trait gene set expand", () => {
-        expect(wantsTraitGeneSetExpandWithoutIntent("Expand gene sets from traits", [])).toBe(
-            true
+    it("uses connections mode without intent and semantic mode with intent", () => {
+        expect(traitGeneSetExpandUsesSemanticSearch("")).toBe(false);
+        expect(traitGeneSetExpandUsesSemanticSearch("pancreas")).toBe(true);
+        expect(traitGeneSetExpandModeFromIntent("")).toBe("connections");
+        expect(traitGeneSetExpandModeFromIntent("pancreas")).toBe("semantic");
+
+        const connections = prepareTraitGeneSetExpandExecution(
+            [traitA],
+            { target_type: "gene_set", count: 15 },
+            {}
         );
-        expect(
-            wantsTraitGeneSetExpandWithoutIntent(
-                "Expand gene sets from traits for pancreatic islet dysfunction",
-                []
-            )
-        ).toBe(false);
+        expect(connections?.expandMode).toBe("connections");
+        expect(connections?.limit).toBe(15);
+
+        const semantic = prepareTraitGeneSetExpandExecution(
+            [traitA],
+            { target_type: "gene_set", count: 15, intent: "pancreas dysfunction" },
+            {}
+        );
+        expect(semantic?.expandMode).toBe("semantic");
+        expect(semantic?.expandFilters?.intent).toBe("pancreas dysfunction");
+    });
+
+    it("does not require intent for trait gene set expand", () => {
+        expect(wantsTraitGeneSetExpandWithoutIntent("Expand gene sets from traits", [])).toBe(
+            false
+        );
     });
 });
 
@@ -287,6 +344,38 @@ describe("trait gene set expand plan repair", () => {
         );
         expect(prepared?.targetType).toBe("gene_set");
         expect(prepared?.expandFilters?.intent).toBe("pancreas malfunction");
+    });
+
+    it("repairs expand requests without intent to connection-based gene set expand", () => {
+        const query = "Expand 15 gene set nodes from Type 2 diabetes (T2D)";
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Expand gene sets from T2D",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "expand_graph",
+                        label: "Expand gene sets",
+                        target: {
+                            scope: "node",
+                            node_labels: ["Type 2 diabetes (T2D)"],
+                        },
+                        options: { target_type: "gene_set" },
+                    },
+                ],
+            },
+            query,
+            {
+                sample_nodes: [
+                    { node_id: "trait:T2D", label: "Type 2 diabetes", type: "trait" },
+                ],
+            }
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].options.target_type).toBe("gene_set");
+        expect(result.json.steps[0].options.count).toBe(15);
+        expect(result.json.steps[0].options.intent).toBeUndefined();
     });
 
     it("repairs planner node label to graph trait label", () => {

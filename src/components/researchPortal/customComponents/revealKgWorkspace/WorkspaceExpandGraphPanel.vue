@@ -100,11 +100,25 @@
                     LLM backend.
                 </p>
 
-                <p v-if="expandTraitGeneSetMode" class="wkb-expand-trait-gene-set-note" role="note">
+                <p
+                    v-if="expandTraitGeneSetMode && intentHasText"
+                    class="wkb-expand-trait-gene-set-note"
+                    role="note"
+                >
                     Expanding traits to gene sets uses phenotype semantic search (up to
                     {{ traitGeneSetPairSearchMax }} ranked trait–gene set pairs per trait). Count
-                    controls how many nodes to add from the top pairs (traits and gene sets, max
-                    20). Novelty and expression filters do not apply on this path.
+                    controls how many gene sets to add from the top pairs (max 20). Matching trait
+                    nodes from those pairs are also added. Novelty and expression filters do not
+                    apply on this path.
+                </p>
+                <p
+                    v-else-if="expandTraitGeneSetMode"
+                    class="wkb-expand-trait-gene-set-note"
+                    role="note"
+                >
+                    Without intent, gene sets are ranked by the same trait connection scores shown in
+                    the trait inspector. Count controls how many top gene sets to add (max 20). Add
+                    intent below to switch to phenotype semantic search instead.
                 </p>
 
                 <label class="wkb-expand-field">
@@ -160,9 +174,14 @@
                             @change="onLimitChange"
                         />
                         <small class="wkb-expand-hint">
-                            <template v-if="expandTraitGeneSetMode">
-                                Max nodes to add from top pairs (traits and gene sets; semantic
-                                search ranks up to {{ traitGeneSetPairSearchMax }} pairs per trait).
+                            <template v-if="expandTraitGeneSetMode && intentHasText">
+                                Max gene sets to add (semantic search ranks up to
+                                {{ traitGeneSetPairSearchMax }} pairs per trait; traits from those
+                                pairs are added too).
+                            </template>
+                            <template v-else-if="expandTraitGeneSetMode">
+                                Max gene sets to add from trait connection scores (trait inspector
+                                table).
                             </template>
                             <template v-else>
                                 Max neighbors to add. AI classification often stops early once this

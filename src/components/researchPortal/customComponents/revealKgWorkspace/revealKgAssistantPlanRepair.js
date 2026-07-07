@@ -652,12 +652,13 @@ function repairTraitGeneSetExpandStep(step, userQuery, sessionContext) {
     const query = String(userQuery || "").trim();
     const options = { ...(step.options || {}) };
     options.target_type = "gene_set";
-    options.filter_type = options.filter_type || "intent";
-    if (!String(options.intent || "").trim()) {
-        const intent = resolveTraitGeneSetExpandIntent(options, step.label, query);
-        if (intent) {
-            options.intent = intent;
-        }
+    const intent = resolveTraitGeneSetExpandIntent(options, step.label, query);
+    if (intent) {
+        options.filter_type = options.filter_type || "intent";
+        options.intent = intent;
+    } else if (options.filter_type === "intent") {
+        delete options.filter_type;
+        delete options.intent;
     }
     const count = parseExpandCountFromUserQuery(query);
     if (count && options.count === undefined) {
@@ -698,6 +699,7 @@ function repairTraitGeneSetExpandSteps(steps, userQuery, sessionContext) {
         );
     }
     const count = parseExpandCountFromUserQuery(query);
+    const intent = resolveTraitGeneSetExpandIntent({}, "", query);
     return [
         {
             id: steps?.[0]?.id || "step-1",
@@ -709,8 +711,7 @@ function repairTraitGeneSetExpandSteps(steps, userQuery, sessionContext) {
             },
             options: {
                 target_type: "gene_set",
-                filter_type: "intent",
-                intent: resolveTraitGeneSetExpandIntent({}, "", query),
+                ...(intent ? { filter_type: "intent", intent } : {}),
                 ...(count ? { count } : {}),
             },
         },
@@ -877,12 +878,13 @@ function repairStepOptions(step, userQuery, sessionContext) {
     if (action === "expand_graph") {
         if (mentionsExpandTraitToGeneSets(query)) {
             options.target_type = options.target_type || "gene_set";
-            options.filter_type = options.filter_type || "intent";
-            if (!String(options.intent || "").trim()) {
-                const intent = extractTraitGeneSetExpandIntent(query);
-                if (intent) {
-                    options.intent = intent;
-                }
+            const intent = resolveTraitGeneSetExpandIntent(options, step.label, query);
+            if (intent) {
+                options.filter_type = options.filter_type || "intent";
+                options.intent = intent;
+            } else if (options.filter_type === "intent") {
+                delete options.filter_type;
+                delete options.intent;
             }
         }
         if (options.count === undefined) {

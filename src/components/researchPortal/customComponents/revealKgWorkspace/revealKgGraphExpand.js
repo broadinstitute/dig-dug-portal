@@ -32,6 +32,7 @@ import {
     expandTraitToGeneSetsOnSession,
     extendExpandTargetTypes,
     shouldUseTraitGeneSetExpand,
+    traitGeneSetExpandUsesSemanticSearch,
 } from "./revealKgTraitGeneSetExpand.js";
 
 const CLASSIFY_BATCH_SIZE = 20;
@@ -242,14 +243,16 @@ export async function expandGraphOnSession(
     if (shouldUseTraitGeneSetExpand(anchorItems, targetType)) {
         const expandFilters =
             session.controls?.expandFilters || createDefaultGraphFilters(expressionOptions);
-        return expandTraitToGeneSetsOnSession(session, {
-            apiClient,
-            anchorItems,
-            intent: expandFilters.intent,
-            limit: expandLimit(session),
-            onProgress,
-            interactiveLlmAvailable,
-        });
+        if (traitGeneSetExpandUsesSemanticSearch(expandFilters.intent)) {
+            return expandTraitToGeneSetsOnSession(session, {
+                apiClient,
+                anchorItems,
+                intent: expandFilters.intent,
+                limit: expandLimit(session),
+                onProgress,
+                interactiveLlmAvailable,
+            });
+        }
     }
 
     if (!apiClient?.getInteractiveConnections) {

@@ -598,17 +598,16 @@ async function runAssistantAction(session, step, runtime) {
                 stepLabel: step.label,
                 userQuery: runtime.userQuery,
             });
-            if (traitGeneSet?.needsIntent) {
-                throw new Error(
-                    "Describe what gene sets you want to expand from this trait (intent is required)."
-                );
-            }
             const patchedOptions = traitGeneSet
                 ? {
                       ...options,
                       target_type: "gene_set",
-                      filter_type: "intent",
-                      intent: traitGeneSet.expandFilters.intent,
+                      ...(traitGeneSet.expandMode === "semantic"
+                          ? {
+                                filter_type: "intent",
+                                intent: traitGeneSet.expandFilters.intent,
+                            }
+                          : {}),
                       count: traitGeneSet.limit,
                   }
                 : options;
@@ -633,7 +632,7 @@ async function runAssistantAction(session, step, runtime) {
                 interactiveLlmAvailable: Boolean(runtime.interactiveLlmAvailable),
                 onProgress,
             });
-            if (traitGeneSet && !(result.addedCount || 0)) {
+            if (traitGeneSet?.expandMode === "semantic" && !(result.addedCount || 0)) {
                 throw new Error("No relevant trait–gene set pairs found.");
             }
             const appliedExpandFilters =

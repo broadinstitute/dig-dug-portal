@@ -419,6 +419,7 @@ import {
     extendExpandTargetTypes,
     shouldUseTraitGeneSetExpand,
 } from "./revealKgWorkspace/revealKgTraitGeneSetExpand.js";
+import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
 import {
     emptyExpandBatchProgress,
     normalizeExpandProgressUpdate,
@@ -2627,14 +2628,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
             if (this.expandTraitGeneSetMode) {
                 const intent = String(this.expandFilters?.intent || "").trim();
-                if (!intent) {
-                    this.showStatus(
-                        "Describe your intent in the Expand panel before expanding traits to gene sets.",
-                        4000
-                    );
-                    return;
-                }
-                if (!this.geneSetSemanticSearchAvailable) {
+                if (intent && !this.geneSetSemanticSearchAvailable) {
                     this.showStatus("Phenotype gene-set search is not available.", 3200);
                     return;
                 }

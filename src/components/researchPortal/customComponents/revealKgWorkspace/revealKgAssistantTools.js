@@ -117,7 +117,7 @@ export const ASSISTANT_ACTIONS = [
         has_options: true,
         options: {
             target_type: "all | gene | gene_set | factor | trait",
-            count: `number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} nodes to add per step from top semantic pairs (traits and gene sets; search fetches up to ${TRAIT_GENE_SET_PAIR_SEARCH_MAX} ranked pairs per trait)`,
+            count: `number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} gene sets to add per step (without intent: trait connection scores; with intent: phenotype semantic search up to ${TRAIT_GENE_SET_PAIR_SEARCH_MAX} pairs per trait)`,
             connection_scope: "direct | two_hop",
             reducer: "max (any) | mean (balanced) | min (all)",
             filter_type: "none | intent | novelty | expression",
