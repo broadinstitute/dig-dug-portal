@@ -92,15 +92,47 @@ function filterNodesByTypes(nodes, nodeTypes = []) {
 }
 
 function resolveNodeIdsFromLabels(session, labels = []) {
-    const wanted = new Set(
-        labels.map((label) => String(label || "").trim().toLowerCase()).filter(Boolean)
-    );
-    if (!wanted.size) {
+    const wanted = labels
+        .map((label) => String(label || "").trim())
+        .filter(Boolean);
+    if (!wanted.length) {
         return [];
     }
-    return (session.graphNodes || [])
-        .filter((node) => wanted.has(String(node.label || "").trim().toLowerCase()))
-        .map((node) => node.id);
+    const graphNodes = session.graphNodes || [];
+    const ids = new Set();
+
+    for (const label of wanted) {
+        const normalizedWanted = label.toLowerCase();
+        const strippedWanted = label.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+        let matched = false;
+        for (const node of graphNodes) {
+            const nodeLabel = String(node.label || "").trim();
+            const normalizedNode = nodeLabel.toLowerCase();
+            if (
+                normalizedNode === normalizedWanted ||
+                normalizedNode === strippedWanted ||
+                normalizedWanted.includes(normalizedNode) ||
+                normalizedNode.includes(strippedWanted)
+            ) {
+                ids.add(node.id);
+                matched = true;
+            }
+        }
+        if (!matched) {
+            const compactWanted = strippedWanted.replace(/[^a-z0-9]+/g, "");
+            for (const node of graphNodes) {
+                const compactNode = String(node.label || "")
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "");
+                if (compactNode && compactWanted && compactNode === compactWanted) {
+                    ids.add(node.id);
+                }
+            }
+        }
+    }
+
+    return Array.from(ids);
 }
 
 function resolveNodeIdsFromFilterLayer(session, layer, { nodeTypes = [], match = "pass" } = {}) {

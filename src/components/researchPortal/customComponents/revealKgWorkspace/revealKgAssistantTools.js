@@ -1,6 +1,7 @@
 /** Canvas assistant action catalog (v2 planner). */
 
 import { CANVAS_ASSISTANT_PER_STEP_MAX } from "./revealKgBulkWorkflowGuidance.js";
+import { TRAIT_GENE_SET_PAIR_SEARCH_MAX } from "./revealKgTraitGeneSetExpand.js";
 
 export const ASSISTANT_NODE_TYPES = ["gene", "gene_set", "factor", "trait"];
 
@@ -112,11 +113,11 @@ export const ASSISTANT_ACTIONS = [
     {
         action: "expand_graph",
         description:
-            "Fetch and add neighbor nodes from the API. Seeds are usually selected nodes unless the user names a specific node or edge.",
+            "Fetch and add neighbor nodes from the API. Seeds are usually selected nodes unless the user names a specific node or edge. For trait seeds expanding to gene sets, set target_type gene_set with filter_type intent and options.intent (phenotype semantic search).",
         has_options: true,
         options: {
             target_type: "all | gene | gene_set | factor | trait",
-            count: `number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} (neighbors to add per step)`,
+            count: `number 1–${CANVAS_ASSISTANT_PER_STEP_MAX} nodes to add per step from top semantic pairs (traits and gene sets; search fetches up to ${TRAIT_GENE_SET_PAIR_SEARCH_MAX} ranked pairs per trait)`,
             connection_scope: "direct | two_hop",
             reducer: "max (any) | mean (balanced) | min (all)",
             filter_type: "none | intent | novelty | expression",

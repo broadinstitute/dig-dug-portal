@@ -28,13 +28,21 @@ import {
     markGraphNodesShownInLedger,
     mergeRetrievalLedger,
 } from "./revealKgRetrievalLedger.js";
+import {
+    expandTraitToGeneSetsOnSession,
+    extendExpandTargetTypes,
+    shouldUseTraitGeneSetExpand,
+} from "./revealKgTraitGeneSetExpand.js";
 
 const CLASSIFY_BATCH_SIZE = 20;
 
 function resolveExpandTargetTypes(session, anchorItems) {
     const connectionScope = session.controls?.connectionScope || "direct";
     const targetType = session.controls?.targetType || "all";
-    const available = getAvailableConnectionTargetTypes(anchorItems, connectionScope);
+    const available = extendExpandTargetTypes(
+        anchorItems,
+        getAvailableConnectionTargetTypes(anchorItems, connectionScope)
+    );
     if (targetType === "all") {
         return available;
     }
@@ -216,13 +224,11 @@ export async function expandGraphOnSession(
         expressionOptions = {},
         anchorItems: anchorItemsOverride = null,
         onProgress = () => {},
+        interactiveLlmAvailable = false,
     } = {}
 ) {
     if (!session) {
         throw new Error("No active graph session.");
-    }
-    if (!apiClient?.getInteractiveConnections) {
-        throw new Error("Connection ranking API is not configured.");
     }
 
     const anchorItems = anchorItemsOverride?.length
@@ -230,6 +236,24 @@ export async function expandGraphOnSession(
         : keyNodeItemsFromSession(session);
     if (!anchorItems.length) {
         throw new Error("Mark at least one selected node to expand from.");
+    }
+
+    const targetType = session.controls?.targetType || "all";
+    if (shouldUseTraitGeneSetExpand(anchorItems, targetType)) {
+        const expandFilters =
+            session.controls?.expandFilters || createDefaultGraphFilters(expressionOptions);
+        return expandTraitToGeneSetsOnSession(session, {
+            apiClient,
+            anchorItems,
+            intent: expandFilters.intent,
+            limit: expandLimit(session),
+            onProgress,
+            interactiveLlmAvailable,
+        });
+    }
+
+    if (!apiClient?.getInteractiveConnections) {
+        throw new Error("Connection ranking API is not configured.");
     }
 
     const expandFilters =

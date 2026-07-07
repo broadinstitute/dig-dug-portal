@@ -100,6 +100,13 @@
                     LLM backend.
                 </p>
 
+                <p v-if="expandTraitGeneSetMode" class="wkb-expand-trait-gene-set-note" role="note">
+                    Expanding traits to gene sets uses phenotype semantic search (up to
+                    {{ traitGeneSetPairSearchMax }} ranked trait–gene set pairs per trait). Count
+                    controls how many nodes to add from the top pairs (traits and gene sets, max
+                    20). Novelty and expression filters do not apply on this path.
+                </p>
+
                 <label class="wkb-expand-field">
                     <span class="wkb-expand-label">Target node type</span>
                     <select
@@ -147,14 +154,20 @@
                             class="wkb-expand-input"
                             type="number"
                             min="1"
-                            max="20"
+                            :max="expandMaxNeighbors"
                             :value="controls.limit"
                             :disabled="loading"
                             @change="onLimitChange"
                         />
                         <small class="wkb-expand-hint">
-                            Max neighbors to add. AI classification often stops early once this many
-                            pass your filters.
+                            <template v-if="expandTraitGeneSetMode">
+                                Max nodes to add from top pairs (traits and gene sets; semantic
+                                search ranks up to {{ traitGeneSetPairSearchMax }} pairs per trait).
+                            </template>
+                            <template v-else>
+                                Max neighbors to add. AI classification often stops early once this
+                                many pass your filters.
+                            </template>
                         </small>
                         <p v-if="showBulkWorkflowHint" class="wkb-expand-workflow-hint" role="status">
                             Need more than {{ expandMaxNeighbors }} neighbors at once?
@@ -437,6 +450,7 @@ import {
     REVEAL_WORKFLOW_TITLE,
     REVEAL_WORKFLOW_URL,
 } from "./revealKgBulkWorkflowGuidance.js";
+import { TRAIT_GENE_SET_PAIR_SEARCH_MAX } from "./revealKgTraitGeneSetExpand.js";
 
 let expandPanelIdCounter = 0;
 
@@ -531,6 +545,14 @@ export default {
             type: Boolean,
             default: false,
         },
+        expandTraitGeneSetMode: {
+            type: Boolean,
+            default: false,
+        },
+        expandSeedAreAllTraits: {
+            type: Boolean,
+            default: false,
+        },
         graphNodeIds: {
             type: Array,
             default: () => [],
@@ -561,6 +583,9 @@ export default {
     computed: {
         expandMaxNeighbors() {
             return CANVAS_EXPAND_MAX_NEIGHBORS;
+        },
+        traitGeneSetPairSearchMax() {
+            return TRAIT_GENE_SET_PAIR_SEARCH_MAX;
         },
         workflowUrl() {
             return REVEAL_WORKFLOW_URL;
@@ -969,6 +994,16 @@ export default {
     border-radius: 8px;
     background: #fff8ef;
     color: #7a4b12;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.wkb-expand-trait-gene-set-note {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #eef6ff;
+    color: #1e4a7a;
     font-size: 13px;
     line-height: 1.45;
 }

@@ -22,6 +22,7 @@ import {
     patchSessionGraphFilters,
 } from "./revealKgGraphFilterUtils.js";
 import { expandGraphOnSession } from "./revealKgGraphExpand.js";
+import { prepareTraitGeneSetExpandExecution } from "./revealKgTraitGeneSetExpand.js";
 import {
     appendExpansionHistoryEntry,
     buildExpansionHistoryEntry,
@@ -143,11 +144,11 @@ function bulkWorkflowMeta(runtime = {}) {
 
 function expandFiltersPatchFromOptions(options = {}) {
     const filterType = options.filter_type || "none";
+    const explicitIntent = String(options.intent || "").trim();
     if (filterType === "intent") {
-        const intent = String(options.intent || "").trim();
         return {
-            intent,
-            relevanceEnabled: Boolean(intent),
+            intent: explicitIntent,
+            relevanceEnabled: Boolean(explicitIntent),
             relevanceMode: options.relevance_mode || "llm",
         };
     }
@@ -181,6 +182,13 @@ function expandFiltersPatchFromOptions(options = {}) {
             expressionCellType: options.expression_cell_type || "",
             expressionAbsoluteMin: options.expression_absolute_min ?? "",
             expressionRelativeMax: options.expression_relative_max ?? "",
+        };
+    }
+    if (explicitIntent) {
+        return {
+            intent: explicitIntent,
+            relevanceEnabled: true,
+            relevanceMode: options.relevance_mode || "llm",
         };
     }
     return {};
@@ -586,17 +594,35 @@ async function runAssistantAction(session, step, runtime) {
         case "expand_graph": {
             onProgress?.("Expanding graph…");
             const seedItems = resolveAssistantSeedAnchorItems(session, target);
-            const expandFilters = expandFiltersPatchFromOptions(options);
+            const traitGeneSet = prepareTraitGeneSetExpandExecution(seedItems, options, {
+                stepLabel: step.label,
+                userQuery: runtime.userQuery,
+            });
+            if (traitGeneSet?.needsIntent) {
+                throw new Error(
+                    "Describe what gene sets you want to expand from this trait (intent is required)."
+                );
+            }
+            const patchedOptions = traitGeneSet
+                ? {
+                      ...options,
+                      target_type: "gene_set",
+                      filter_type: "intent",
+                      intent: traitGeneSet.expandFilters.intent,
+                      count: traitGeneSet.limit,
+                  }
+                : options;
+            const expandFilters = expandFiltersPatchFromOptions(patchedOptions);
             let nextSession = patchSessionExpandControls(
                 session,
                 {
                     expandFilters,
-                    targetType: options.target_type || "all",
-                    limit: options.count || 15,
-                    ...(options.connection_scope
-                        ? { connectionScope: options.connection_scope }
+                    targetType: traitGeneSet?.targetType || patchedOptions.target_type || "all",
+                    limit: patchedOptions.count || 15,
+                    ...(patchedOptions.connection_scope
+                        ? { connectionScope: patchedOptions.connection_scope }
                         : {}),
-                    ...(options.reducer ? { reducer: options.reducer } : {}),
+                    ...(patchedOptions.reducer ? { reducer: patchedOptions.reducer } : {}),
                 },
                 expressionOptions
             );
@@ -604,8 +630,12 @@ async function runAssistantAction(session, step, runtime) {
                 apiClient,
                 expressionOptions,
                 anchorItems: seedItems.length ? seedItems : anchorItems,
+                interactiveLlmAvailable: Boolean(runtime.interactiveLlmAvailable),
                 onProgress,
             });
+            if (traitGeneSet && !(result.addedCount || 0)) {
+                throw new Error("No relevant trait–gene set pairs found.");
+            }
             const appliedExpandFilters =
                 result.session.controls?.expandFilters || expandFilters;
             const controls = result.session.controls || {};

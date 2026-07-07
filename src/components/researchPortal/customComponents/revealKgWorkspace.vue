@@ -106,7 +106,8 @@
                 :api-client="apiClient"
                 :llm-available="llmAvailable"
                 :gene-set-semantic-search-available="geneSetSemanticSearchAvailable"
-                :expand-needs-llm="expandGraphNeedsLlm"
+                :expand-trait-gene-set-mode="expandTraitGeneSetMode"
+                :expand-seed-are-all-traits="expandSeedAreAllTraits"
                 :graph-node-ids="graphNodeIds"
                 :assistant-busy="expandAssistantOverlayBusy"
                 :assistant-message="expandAssistantOverlayMessage"
@@ -414,7 +415,10 @@ import {
 } from "./revealKgWorkspace/revealKgAssistantPlan.js";
 import { formatAssistantStepSummary } from "./revealKgWorkspace/revealKgAssistantStepSummary.js";
 import WorkspaceExpandProgressOverlay from "./revealKgWorkspace/WorkspaceExpandProgressOverlay.vue";
-import { expandGraphOnSession } from "./revealKgWorkspace/revealKgGraphExpand.js";
+import {
+    extendExpandTargetTypes,
+    shouldUseTraitGeneSetExpand,
+} from "./revealKgWorkspace/revealKgTraitGeneSetExpand.js";
 import {
     emptyExpandBatchProgress,
     normalizeExpandProgressUpdate,
@@ -1054,7 +1058,25 @@ export default Vue.component("reveal-kg-workspace", {
         },
         expandAvailableTargetTypes() {
             const scope = this.activeSession?.controls?.connectionScope || "direct";
-            return getAvailableConnectionTargetTypes(this.expandSeedItems, scope);
+            return extendExpandTargetTypes(
+                this.expandSeedItems,
+                getAvailableConnectionTargetTypes(this.expandSeedItems, scope)
+            );
+        },
+        expandSeedAreAllTraits() {
+            const items = this.expandSeedItems || [];
+            return (
+                items.length > 0 &&
+                items.every(
+                    (item) => String(item?.node_type || item?.type || "").toLowerCase() === "trait"
+                )
+            );
+        },
+        expandTraitGeneSetMode() {
+            return (
+                this.expandSeedAreAllTraits &&
+                (this.expandControls?.targetType || "all") === "gene_set"
+            );
         },
         savedVisibilityFilters() {
             return normalizeVisibilityFilterLayers(
@@ -2599,9 +2621,23 @@ export default Vue.component("reveal-kg-workspace", {
                 );
                 return;
             }
-            if (!this.llmAvailable && this.expandGraphNeedsLlm) {
+            if (!this.llmAvailable && this.expandGraphNeedsLlm && !this.expandTraitGeneSetMode) {
                 this.showStatus("LLM expansion filters are not available.", 3200);
                 return;
+            }
+            if (this.expandTraitGeneSetMode) {
+                const intent = String(this.expandFilters?.intent || "").trim();
+                if (!intent) {
+                    this.showStatus(
+                        "Describe your intent in the Expand panel before expanding traits to gene sets.",
+                        4000
+                    );
+                    return;
+                }
+                if (!this.geneSetSemanticSearchAvailable) {
+                    this.showStatus("Phenotype gene-set search is not available.", 3200);
+                    return;
+                }
             }
             this.expandGraphLoading = true;
             this.expandGraphProgress = "Expanding graph…";
@@ -2614,6 +2650,7 @@ export default Vue.component("reveal-kg-workspace", {
                     apiClient: this.apiClient,
                     expressionOptions: this.expressionOptions,
                     anchorItems: this.expandSeedItems,
+                    interactiveLlmAvailable: this.llmAvailable,
                     onProgress: (update) => {
                         this.onExpandProgress(update);
                     },

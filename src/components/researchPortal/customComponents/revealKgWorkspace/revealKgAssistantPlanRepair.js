@@ -2,6 +2,12 @@
 
 import { parseExplicitIntentNodeTypes } from "./revealKgIntentAddNodes.js";
 import { shouldUsePhenotypeGeneSetAdd } from "./revealKgPhenotypeGeneSetAdd.js";
+import {
+    mentionsExpandTraitToGeneSets,
+    resolveTraitGeneSetExpandIntent,
+    traitGeneSetExpandClarifyJson,
+    wantsTraitGeneSetExpandWithoutIntent,
+} from "./revealKgTraitGeneSetExpand.js";
 import { shouldUseGeneSetCrossingAdd } from "./revealKgGeneSetCrossingAdd.js";
 import {
     mentionsSelectConnectedInQuery,
@@ -639,7 +645,82 @@ function repairGeneSetCrossingSteps(steps, userQuery) {
     ];
 }
 
+function repairTraitGeneSetExpandStep(step, userQuery, sessionContext) {
+    if (step?.action !== "expand_graph" || !mentionsExpandTraitToGeneSets(userQuery)) {
+        return step;
+    }
+    const query = String(userQuery || "").trim();
+    const options = { ...(step.options || {}) };
+    options.target_type = "gene_set";
+    options.filter_type = options.filter_type || "intent";
+    if (!String(options.intent || "").trim()) {
+        const intent = resolveTraitGeneSetExpandIntent(options, step.label, query);
+        if (intent) {
+            options.intent = intent;
+        }
+    }
+    const count = parseExpandCountFromUserQuery(query);
+    if (count && options.count === undefined) {
+        options.count = count;
+    }
+    let target = { ...(step.target || {}) };
+    const labelsOnGraph = graphLabelsMentionedInQuery(query, sessionContext);
+    if (labelsOnGraph.length) {
+        if (labelsOnGraph.length === 1) {
+            target.scope = "node";
+            target.node_labels = [labelsOnGraph[0]];
+        } else if (!target.node_labels?.length) {
+            target.scope = "nodes";
+            target.node_labels = labelsOnGraph;
+        }
+    } else if (wantsSelectedScope(query) && (!target.scope || target.scope === "all")) {
+        target = {
+            scope: "selected_nodes",
+            node_types: ["trait"],
+        };
+    }
+    return {
+        ...step,
+        target,
+        options,
+        label: step.label || "Expand gene sets from trait",
+    };
+}
+
+function repairTraitGeneSetExpandSteps(steps, userQuery, sessionContext) {
+    if (!mentionsExpandTraitToGeneSets(userQuery)) {
+        return steps;
+    }
+    const query = String(userQuery || "").trim();
+    if ((steps || []).some((step) => step?.action === "expand_graph")) {
+        return (steps || []).map((step) =>
+            repairTraitGeneSetExpandStep(step, userQuery, sessionContext)
+        );
+    }
+    const count = parseExpandCountFromUserQuery(query);
+    return [
+        {
+            id: steps?.[0]?.id || "step-1",
+            action: "expand_graph",
+            label: "Expand gene sets from trait",
+            target: {
+                scope: wantsSelectedScope(query) ? "selected_nodes" : "selected_nodes",
+                node_types: ["trait"],
+            },
+            options: {
+                target_type: "gene_set",
+                filter_type: "intent",
+                intent: resolveTraitGeneSetExpandIntent({}, "", query),
+                ...(count ? { count } : {}),
+            },
+        },
+    ];
+}
+
 function repairPhenotypeGeneSetSteps(steps, userQuery) {
+    if (mentionsExpandTraitToGeneSets(userQuery)) {
+        return steps;
+    }
     if (
         shouldUseGeneSetCrossingAdd(userQuery) ||
         !shouldUsePhenotypeGeneSetAdd(userQuery)
@@ -794,6 +875,16 @@ function repairStepOptions(step, userQuery, sessionContext) {
     }
 
     if (action === "expand_graph") {
+        if (mentionsExpandTraitToGeneSets(query)) {
+            options.target_type = options.target_type || "gene_set";
+            options.filter_type = options.filter_type || "intent";
+            if (!String(options.intent || "").trim()) {
+                const intent = extractTraitGeneSetExpandIntent(query);
+                if (intent) {
+                    options.intent = intent;
+                }
+            }
+        }
         if (options.count === undefined) {
             const neighborCount = parseExpandCountFromUserQuery(query);
             if (neighborCount) {
@@ -931,6 +1022,9 @@ export function shouldSkipGraphLabelMissingCheck(userQuery) {
         return true;
     }
     if (shouldUsePhenotypeGeneSetAdd(query)) {
+        return true;
+    }
+    if (mentionsExpandTraitToGeneSets(query)) {
         return true;
     }
     if (
@@ -1076,12 +1170,16 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
         repairProvenanceExplorerSteps(
             repairMapGenesSteps(
                 repairGeneSetCrossingSteps(
-                    repairSelectConnectedSteps(
-                        repairPhenotypeGeneSetSteps(
-                            repairIntentAddSteps(steps, userQuery),
+                    repairTraitGeneSetExpandSteps(
+                        repairSelectConnectedSteps(
+                            repairPhenotypeGeneSetSteps(
+                                repairIntentAddSteps(steps, userQuery),
+                                userQuery
+                            ),
                             userQuery
                         ),
-                        userQuery
+                        userQuery,
+                        sessionContext
                     ),
                     userQuery
                 ),
@@ -1090,18 +1188,21 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
             userQuery
         ).map((step) =>
             repairGeneSetCrossingStep(
-                repairPhenotypeGeneSetStep(
-                    repairIntentAddStep(
-                        repairSelectConnectedStep(
-                            repairUnselectStep(
-                                repairAddNodeStep(
-                                    repairRemoveNodeTarget(
-                                        repairStepOptions(
-                                            repairStepTarget(step, labelsOnGraph),
-                                            userQuery,
-                                            sessionContext
+                repairTraitGeneSetExpandStep(
+                    repairPhenotypeGeneSetStep(
+                        repairIntentAddStep(
+                            repairSelectConnectedStep(
+                                repairUnselectStep(
+                                    repairAddNodeStep(
+                                        repairRemoveNodeTarget(
+                                            repairStepOptions(
+                                                repairStepTarget(step, labelsOnGraph),
+                                                userQuery,
+                                                sessionContext
+                                            ),
+                                            labelsOnGraph,
+                                            userQuery
                                         ),
-                                        labelsOnGraph,
                                         userQuery
                                     ),
                                     userQuery
@@ -1112,12 +1213,19 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
                         ),
                         userQuery
                     ),
-                    userQuery
+                    userQuery,
+                    sessionContext
                 ),
                 userQuery
             )
         )
     );
+    if (wantsTraitGeneSetExpandWithoutIntent(userQuery, repairedSteps)) {
+        return {
+            type: "clarify",
+            json: traitGeneSetExpandClarifyJson(userQuery),
+        };
+    }
     const stillBroken = repairedSteps.some((step) => stepNeedsNodeLabels(step));
     if (stillBroken) {
         return {
