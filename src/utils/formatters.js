@@ -1,3 +1,5 @@
+import DOMPurify from "dompurify";
+
 function alleleFormatter(reference, alt) {
     if (reference.length > 3) {
         reference = reference.substr(0, 3) + "...";
@@ -780,7 +782,10 @@ function replaceWithParams(STR, PARAMS) {
         replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
     }
 
-    return replacedSTR
+    // This string is substituted with raw URL query-param values and rendered
+    // via v-html by callers, so sanitize it to prevent reflected XSS while
+    // preserving the intentional formatting markup above.
+    return (!!replacedSTR) ? DOMPurify.sanitize(replacedSTR) : replacedSTR;
 }
 
 
