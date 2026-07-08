@@ -424,7 +424,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                     let linksArr = [];
 
                     let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
-                        (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
+                        Array.isArray(cellValue) ? cellValue : [cellValue];
 
                     cellVals.map(v => {
                         let link = "<a href='" + columnKeyObj["link to"] + v;
@@ -531,11 +531,11 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
                 break;
 
-            case "value in class":
+            case "value in class": {
+                const colorize = formatTypes.includes('colorize');
                 if (typeof cellValue != "object") {
-                    const colorize = formatTypes.includes('colorize');
                     cellValue = `<span class="${cellValue} ${colorize ? 'do-color' : ''}">${cellValue}</span>`
-                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                } else if (Array.isArray(cellValue)) {
                     let cellValueString = "";
                     cellValue.map(value => {
                         cellValueString += `<span class="${value} ${colorize ? 'do-color' : ''}">${value}</span>`;
@@ -545,6 +545,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 break;
+            }
 
             case "render background percent":
                 fieldValue =

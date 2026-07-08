@@ -38,7 +38,7 @@ let applyFilters = function (FILTERS, DATA, PARAMS) {
                                 let valuesInColumn = d[filter.field].toString().toLowerCase();
 
                                 filterValue.map(fV => {
-                                    meetFilters = !!d[filter.field].toLowerCase().includes(fV.toLowerCase()) ? true : meetFilters;
+                                    meetFilters = !!valuesInColumn.includes(fV.toLowerCase()) ? true : meetFilters;
                                 })
                             }
                         }
