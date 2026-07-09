@@ -66,6 +66,12 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         examples: ["Open the filter panel", "Show visibility filters"],
                     },
                     {
+                        id: "close_filter_panel",
+                        label: "Close filter panel",
+                        description: "Close the visibility filter panel.",
+                        examples: ["Close the filter panel", "Close filter panel"],
+                    },
+                    {
                         id: "open_expand_panel",
                         label: "Open Expand KG",
                         description: "Open the Expand KG panel with seeds prefilled (no fetch yet).",
@@ -73,6 +79,12 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                             "Open expand panel for selected nodes",
                             "Open Expand KG from BRCA1",
                         ],
+                    },
+                    {
+                        id: "close_expand_panel",
+                        label: "Close Expand KG",
+                        description: "Close the Expand KG panel.",
+                        examples: ["Close the expand panel", "Close Expand KG"],
                     },
                     {
                         id: "open_expansion_history",
@@ -373,6 +385,10 @@ export function defaultProgressMessageForAction(action) {
             return "Opening Expand KG…";
         case "open_expansion_history":
             return "Opening expansion history…";
+        case "close_filter_panel":
+            return "Closing filter panel…";
+        case "close_expand_panel":
+            return "Closing Expand KG…";
         case "focus_graph_view":
             return "Adjusting graph view…";
         case "add_node":

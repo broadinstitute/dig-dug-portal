@@ -72,12 +72,22 @@ function tryDirectCommand(query) {
             makeStep("open_filter_panel", "Open filter panel"),
         ]);
     }
+    if (/\bclose\s+(?:the\s+)?(?:visibility\s+)?filter(?:\s+panel)?\b/i.test(text)) {
+        return makePlan("Close the filter panel.", [
+            makeStep("close_filter_panel", "Close filter panel"),
+        ]);
+    }
 
     if (/\bopen\s+(?:the\s+)?expand(?:\s+kg|\s+panel)?\b/i.test(text)) {
         return makePlan("Open the Expand KG panel.", [
             makeStep("open_expand_panel", "Open Expand KG", {
                 target: { scope: "selected_nodes" },
             }),
+        ]);
+    }
+    if (/\bclose\s+(?:the\s+)?expand(?:\s+kg|\s+panel)?\b/i.test(text)) {
+        return makePlan("Close the Expand KG panel.", [
+            makeStep("close_expand_panel", "Close Expand KG"),
         ]);
     }
 

@@ -567,6 +567,12 @@ async function runAssistantAction(session, step, runtime) {
         case "open_filter_panel":
             runtime.openFilterGraphPanel?.();
             return { session, meta: { uiAction: "open_filter_panel" } };
+        case "close_filter_panel":
+            runtime.closeFilterGraphPanel?.();
+            return { session, meta: { uiAction: "close_filter_panel" } };
+        case "close_expand_panel":
+            runtime.closeExpandGraphPanel?.();
+            return { session, meta: { uiAction: "close_expand_panel" } };
         case "open_my_library":
             runtime.openMyLibrary?.();
             return { session, meta: { uiAction: "open_my_library" } };

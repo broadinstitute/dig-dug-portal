@@ -2338,9 +2338,11 @@ export default Vue.component("reveal-kg-workspace", {
                         openSaveGraph: () => this.openSaveGraph(),
                         openNewGraph: () => this.openInitialGraphSetup({ reset: true }),
                         downloadSnapshot: () => this.downloadGraphSnapshot(),
-                        openExpandGraphPanel: ({ seedNodeIds = [] } = {}) =>
-                            this.openExpandGraphPanel({ seedNodeIds }),
-                        openFilterGraphPanel: () => this.openFilterGraph(),
+                        openExpandGraphPanel: ({ seedNodeIds = [], tab = "" } = {}) =>
+                            this.openExpandGraphPanel({ seedNodeIds, tab, keepAssistantOpen: true }),
+                        openFilterGraphPanel: () => this.openFilterGraph({ keepAssistantOpen: true }),
+                        closeFilterGraphPanel: () => this.closeFilterGraph(),
+                        closeExpandGraphPanel: () => this.closeExpandGraph(),
                         openMyLibrary: () => this.openLibrary(),
                         loadLibraryGraph: (record) => {
                             const session = this.graphStore.sessionFromGraph(record);
@@ -2450,7 +2452,7 @@ export default Vue.component("reveal-kg-workspace", {
             }
             this.openExpandGraphPanel({ seedNodeIds: nodeIds });
         },
-        openExpandGraphPanel({ seedNodeIds = [], tab = "" } = {}) {
+        openExpandGraphPanel({ seedNodeIds = [], tab = "", keepAssistantOpen = false } = {}) {
             if (!this.activeSession) {
                 this.showStatus("Start a canvas session before expanding.", 3200);
                 return;
@@ -2460,7 +2462,9 @@ export default Vue.component("reveal-kg-workspace", {
                 tab === "manual" || tab === "discover" || tab === "history" ? tab : "";
             if (!this.activeSession.graphNodes?.length) {
                 this.filterGraphOpen = false;
-                this.aiAssistantOpen = false;
+                if (!keepAssistantOpen) {
+                    this.aiAssistantOpen = false;
+                }
                 this.expandSeedNodeIds = [];
                 this.expandGraphOpen = true;
                 return;
@@ -2472,7 +2476,9 @@ export default Vue.component("reveal-kg-workspace", {
                 }
             }
             this.filterGraphOpen = false;
-            this.aiAssistantOpen = false;
+            if (!keepAssistantOpen) {
+                this.aiAssistantOpen = false;
+            }
             this.expandSeedNodeIds = normalizedSeedIds;
             this.activeSession = ensureSessionFilterState(
                 this.activeSession,
@@ -2707,13 +2713,15 @@ export default Vue.component("reveal-kg-workspace", {
             this.expandGraphProgress = normalized.message;
             this.expandBatchProgress = normalized;
         },
-        openFilterGraph() {
+        openFilterGraph({ keepAssistantOpen = false } = {}) {
             if (!this.activeSession?.graphNodes?.length) {
                 this.showStatus("Build a graph before filtering.", 3200);
                 return;
             }
             this.expandGraphOpen = false;
-            this.aiAssistantOpen = false;
+            if (!keepAssistantOpen) {
+                this.aiAssistantOpen = false;
+            }
             let session = ensureSessionFilterState(
                 this.activeSession,
                 this.expressionOptions

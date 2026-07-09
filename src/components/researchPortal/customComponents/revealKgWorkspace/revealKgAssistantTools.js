@@ -78,6 +78,18 @@ export const ASSISTANT_ACTIONS = [
         options: {},
     },
     {
+        action: "close_filter_panel",
+        description: "Close the visibility filter panel.",
+        has_options: false,
+        options: {},
+    },
+    {
+        action: "close_expand_panel",
+        description: "Close the Expand KG panel.",
+        has_options: false,
+        options: {},
+    },
+    {
         action: "open_my_library",
         description: "Open My library to browse saved graphs in this browser.",
         has_options: false,
