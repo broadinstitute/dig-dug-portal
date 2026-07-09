@@ -24,6 +24,11 @@ import {
     parseExpandCountFromUserQuery,
     preparePlanWithBulkHandling,
 } from "./revealKgBulkWorkflowGuidance.js";
+import {
+    assistantCatalogHelpClarifyJson,
+    isAssistantCatalogHelpQuery,
+    plannerJsonLooksLikeCatalogHelpMisroute,
+} from "./revealKgAssistantCatalogHelp.js";
 
 const QUERY_STOP_WORDS = new Set([
     "SELECT",
@@ -218,6 +223,20 @@ export function parseNoveltyOptionsFromQuery(userQuery) {
     const query = String(userQuery || "");
     if (/\b(?:known\s+and\s+novel|novel\s+and\s+known)\b/i.test(query)) {
         return null;
+    }
+    if (
+        /\b(?:filter\s+out|filter\s+away|exclude|hide|remove|drop|without)\b[\s\S]{0,48}\bknown\b/i.test(
+            query
+        )
+    ) {
+        return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
+    }
+    if (
+        /\b(?:filter\s+out|filter\s+away|exclude|hide|remove|drop|without)\b[\s\S]{0,48}\bnovel\b/i.test(
+            query
+        )
+    ) {
+        return { filter_type: "novelty", novelty_known: true, novelty_novel: false };
     }
     if (/\bonly\s+novel\b/i.test(query)) {
         return { filter_type: "novelty", novelty_novel: true, novelty_known: false };
@@ -1127,6 +1146,13 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
 
     if (isClarifyJson(json)) {
         return { type: "clarify", json };
+    }
+
+    if (
+        isAssistantCatalogHelpQuery(userQuery) ||
+        plannerJsonLooksLikeCatalogHelpMisroute(json, userQuery)
+    ) {
+        return { type: "clarify", json: assistantCatalogHelpClarifyJson() };
     }
 
     const missingOnGraph = graphLabelsMissingFromQuery(userQuery, sessionContext);

@@ -65,7 +65,7 @@ function resolutionForAssistantStepError(message, step = {}) {
 
     if (/No new connections matched/i.test(message)) {
         const neighborLabel = neighborTypeLabel(targetType);
-        return `No novel ${neighborLabel} matched the current seeds and filters. Try relaxing "novel only" to include known connections, switch the target type, or mark different seed nodes on the graph. Then click Run on this step to retry.`;
+        return `No novel ${neighborLabel} matched the current seeds and filters. Try including known nodes too (“show known and novel nodes”), change the target type, or pick different seed nodes. Then click Run to retry.`;
     }
     if (/Mark at least one selected node/i.test(message)) {
         return "Mark one or more seed nodes on the graph, then click Run on this step again.";
@@ -74,7 +74,7 @@ function resolutionForAssistantStepError(message, step = {}) {
         return "Try a different target type or expansion scope, or add seed nodes that support that neighbor type.";
     }
     if (/Add expression, novelty, or intent criteria/i.test(message)) {
-        return 'Add at least one filter criterion (novelty, expression, or intent) before building the filter. You can also edit your request to say "novel only" and plan again.';
+        return 'Say what should stay visible — for example “show novel nodes only”, “show known nodes only”, or describe an intent such as “genes related to insulin signaling”. Then plan again.';
     }
     if (/No nodes matched the removal target|No nodes matched the unselect criteria/i.test(message)) {
         return "Adjust the step target or graph selection so matching nodes exist, then click Run to retry.";

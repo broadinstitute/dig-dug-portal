@@ -1,6 +1,7 @@
 import { ASSISTANT_ACTIONS } from "../revealKgAssistantTools.js";
 import {
     ASSISTANT_ACTION_CATALOG,
+    ASSISTANT_ACTION_CATALOG_SECTIONS,
     catalogActionIds,
 } from "../revealKgAssistantActionCatalog.js";
 
@@ -25,5 +26,21 @@ describe("ASSISTANT_ACTION_CATALOG", () => {
                 expect(action.examples?.length).toBeGreaterThan(0);
             }
         }
+    });
+
+    it("organizes actions into Commands and Research sections", () => {
+        expect(ASSISTANT_ACTION_CATALOG_SECTIONS.map((section) => section.section)).toEqual([
+            "Commands",
+            "Research",
+        ]);
+        for (const section of ASSISTANT_ACTION_CATALOG_SECTIONS) {
+            expect(String(section.intro || "").trim()).not.toBe("");
+            expect(section.groups?.length).toBeGreaterThan(0);
+        }
+        const sectionIds = ASSISTANT_ACTION_CATALOG_SECTIONS.flatMap((section) =>
+            section.groups.flatMap((group) => group.actions.map((action) => action.id))
+        );
+        expect(sectionIds.length).toBe(catalogActionIds().length);
+        expect(new Set(sectionIds).size).toBe(sectionIds.length);
     });
 });

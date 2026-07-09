@@ -403,6 +403,7 @@ import {
     defaultProgressMessageForAction,
 } from "./revealKgWorkspace/revealKgAssistantActionCatalog.js";
 import { planAssistantQuery, abortAssistantPlan } from "./revealKgWorkspace/revealKgAssistantLlm.js";
+import { resolveAssistantQuery } from "./revealKgWorkspace/revealKgAssistantQueryRouter.js";
 import { executeAssistantPlan } from "./revealKgWorkspace/revealKgAssistantExecutor.js";
 import {
     formatAssistantStepError,
@@ -2223,13 +2224,18 @@ export default Vue.component("reveal-kg-workspace", {
             try {
                 this.refreshSavedGraphs();
                 const canvas = this.$refs.workspaceCanvas;
-                const { result } = await planAssistantQuery(query, this.activeSession, {
+                const contextOptions = {
                     interactiveLlmAvailable: this.llmAvailable,
                     viewOptions: canvas?.getGraphViewOptions?.() || {},
+                    savedLibraryGraphs: this.savedGraphs,
                     conversation: threadHistory,
                     lastPlan: previousPlan,
-                    savedLibraryGraphs: this.savedGraphs,
-                });
+                };
+                const { result } = await resolveAssistantQuery(
+                    query,
+                    this.activeSession,
+                    contextOptions
+                );
                 if (result?.type === "clarify") {
                     this.assistantClarification = {
                         ...result,
@@ -2239,6 +2245,12 @@ export default Vue.component("reveal-kg-workspace", {
                 }
                 this.assistantPlan = result;
                 this.assistantStepStates = initialAssistantStepStates(result.steps);
+                if (result.autoExecute) {
+                    await this.$nextTick();
+                    await this.onAssistantExecuteAll();
+                    this.resetAssistantPlanState();
+                    return;
+                }
             } catch (error) {
                 this.assistantError = sanitizeAssistantError(error);
             } finally {
@@ -2375,7 +2387,10 @@ export default Vue.component("reveal-kg-workspace", {
                     { startIndex }
                 );
                 if (!this.assistantStepErrorRecorded) {
-                    this.showStatus("Canvas assistant finished running the plan.", 3200);
+                    const isDirectCommand = this.assistantPlan?.autoExecute;
+                    if (!isDirectCommand) {
+                        this.showStatus("Canvas assistant finished running the plan.", 3200);
+                    }
                 }
             } catch (error) {
                 if (!this.assistantStepErrorRecorded) {

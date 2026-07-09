@@ -163,13 +163,13 @@ export function describeNoveltyFilter(filters = {}) {
         return "any";
     }
     if (filters.noveltyKnown && filters.noveltyNovel) {
-        return "known and novel";
+        return "Show known and novel nodes";
     }
     if (filters.noveltyKnown && !filters.noveltyNovel) {
-        return "known only";
+        return "Show known nodes only";
     }
     if (filters.noveltyNovel && !filters.noveltyKnown) {
-        return "novel only";
+        return "Show novel nodes only";
     }
     return "any";
 }
@@ -198,6 +198,63 @@ export function describeExpressionFilter(filters = {}) {
         parts.push(`rel <= ${filters.expressionRelativeMax}`);
     }
     return parts.join(", ");
+}
+
+/** User-facing label for expression-based visibility filters. */
+export function describeExpressionFilterLabel(filters = {}) {
+    if (!hasExpressionFilter(filters)) {
+        return null;
+    }
+    const tissue = String(filters.expressionTissue || "").trim();
+    const cell = String(filters.expressionCellType || "").trim();
+    let location = "the selected tissue";
+    if (tissue && cell) {
+        location = `${tissue} / ${cell}`;
+    } else if (tissue) {
+        location = tissue;
+    } else if (cell) {
+        location = cell;
+    }
+    const thresholds = [];
+    if (String(filters.expressionAbsoluteMin || "").trim() !== "") {
+        thresholds.push(`min expression ${filters.expressionAbsoluteMin}`);
+    }
+    if (String(filters.expressionRelativeMax || "").trim() !== "") {
+        thresholds.push(`max relative ${filters.expressionRelativeMax}`);
+    }
+    const thresholdText = thresholds.length ? ` (${thresholds.join(", ")})` : "";
+    return `Show genes expressed in ${location}${thresholdText}`;
+}
+
+/** User-facing label for intent / relevance visibility filters. */
+export function describeIntentFilterLabel(filters = {}) {
+    const intent = String(filters.intent || "").trim();
+    if (!intent) {
+        return null;
+    }
+    const truncated = intent.length > 50 ? `${intent.slice(0, 47)}…` : intent;
+    return `Show nodes matching “${truncated}”`;
+}
+
+/** Build a readable filter-layer name from criteria. */
+export function summarizeVisibilityFilterCriteria(filters = {}, index = 0) {
+    const parts = [];
+    const expressionLabel = describeExpressionFilterLabel(filters);
+    if (expressionLabel) {
+        parts.push(expressionLabel);
+    }
+    const noveltyLabel = describeNoveltyFilter(filters);
+    if (noveltyLabel !== "any") {
+        parts.push(noveltyLabel);
+    }
+    const intentLabel = describeIntentFilterLabel(filters);
+    if (intentLabel) {
+        parts.push(intentLabel);
+    }
+    if (parts.length) {
+        return parts.join(" · ");
+    }
+    return `Filter ${index + 1}`;
 }
 
 export function buildCandidateStubFromNode(node) {

@@ -20,8 +20,8 @@ describe("revealKgAssistantErrorUtils", () => {
             }
         );
         expect(formatted.message).toContain("No new connections matched");
-        expect(formatted.resolution).toContain("novel only");
-        expect(formatted.resolution).toContain("Run on this step");
+        expect(formatted.resolution).toContain("show known and novel nodes");
+        expect(formatted.resolution).toContain("Run to retry");
         expect(formatted.stepLabel).toBe("Fetch novel pathways");
     });
 
@@ -30,6 +30,6 @@ describe("revealKgAssistantErrorUtils", () => {
             new Error("Add expression, novelty, or intent criteria before building a filter."),
             { action: "filter_graph", label: "Build a novelty filter" }
         );
-        expect(formatted.resolution).toContain("novel only");
+        expect(formatted.resolution).toContain("show novel nodes only");
     });
 });

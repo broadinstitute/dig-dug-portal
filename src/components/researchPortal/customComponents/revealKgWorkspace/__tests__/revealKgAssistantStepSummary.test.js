@@ -16,7 +16,7 @@ describe("formatAssistantStepSummary", () => {
                 { action: "select_nodes", label: "Clear" },
                 { cleared: true }
             )
-        ).toBe("Cleared all selected nodes.");
+        ).toBe("Cleared node selection.");
     });
 
     it("summarizes select_visible_nodes", () => {
@@ -25,7 +25,7 @@ describe("formatAssistantStepSummary", () => {
                 { action: "select_visible_nodes", label: "Select visible genes" },
                 { markedCount: 4 }
             )
-        ).toBe("Marked 4 visible nodes as selected.");
+        ).toBe("Selected 4 visible nodes on the canvas.");
     });
 
     it("summarizes unselect_nodes", () => {
@@ -34,13 +34,13 @@ describe("formatAssistantStepSummary", () => {
                 { action: "unselect_nodes", label: "Unselect all" },
                 { cleared: true, unselectedCount: 5 }
             )
-        ).toBe("Unmarked all 5 selected nodes.");
+        ).toBe("Unselected 5 nodes.");
         expect(
             formatAssistantStepSummary(
                 { action: "unselect_nodes", label: "Unselect visible genes" },
                 { unselectedCount: 2 }
             )
-        ).toBe("Unmarked 2 nodes.");
+        ).toBe("Unselected 2 nodes.");
     });
 
     it("summarizes focus_graph_view reset", () => {
@@ -49,7 +49,7 @@ describe("formatAssistantStepSummary", () => {
                 { action: "focus_graph_view", label: "Fit graph" },
                 { resetView: true }
             )
-        ).toBe("Reset the graph view to show the full canvas.");
+        ).toBe("Fitted the full graph in view.");
     });
 
     it("summarizes remove_node and add_node", () => {
@@ -66,7 +66,35 @@ describe("formatAssistantStepSummary", () => {
                 { action: "add_node", label: "Add TP53" },
                 { addedCount: 1 }
             )
-        ).toBe("Added 1 node to the graph; rebuilding edges…");
+        ).toBe("Added 1 node to the graph. Edges will rebuild shortly.");
+    });
+
+    it("summarizes filter_graph with label and counts", () => {
+        expect(
+            formatAssistantStepSummary(
+                { action: "filter_graph", label: "Show novel nodes only" },
+                {
+                    afterVisibleCount: 18,
+                    totalNodeCount: 42,
+                    filterLabel: "Show novel nodes only",
+                }
+            )
+        ).toBe("Show novel nodes only — 18 of 42 nodes visible (24 hidden).");
+    });
+
+    it("summarizes filter enable and disable", () => {
+        expect(
+            formatAssistantStepSummary(
+                { action: "filter_graph", label: "Enable filter" },
+                { enabled: true, filterLabel: "Show known nodes only" }
+            )
+        ).toBe('Turned on filter “Show known nodes only”.');
+        expect(
+            formatAssistantStepSummary(
+                { action: "filter_graph", label: "Disable filter" },
+                { enabled: false, filterLabel: "Show novel nodes only" }
+            )
+        ).toBe('Turned off filter “Show novel nodes only”.');
     });
 
     it("summarizes library actions", () => {
@@ -78,6 +106,6 @@ describe("formatAssistantStepSummary", () => {
                 { action: "open_library_graph", label: "Load graph" },
                 { graphLabel: "Study A" }
             )
-        ).toBe('Loaded "Study A" from My library.');
+        ).toBe('Loaded “Study A” from My library.');
     });
 });

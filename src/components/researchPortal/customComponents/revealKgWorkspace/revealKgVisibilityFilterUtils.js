@@ -7,11 +7,11 @@ import {
     createDefaultGraphFilters,
     describeExpressionFilter,
     describeNoveltyFilter,
-    describeRelevanceMode,
     graphFiltersMatchDefaults,
     hasExpressionFilter,
     hasNoveltyRestriction,
     hasRelevanceFilter,
+    summarizeVisibilityFilterCriteria,
 } from "./revealKgGraphFilterUtils.js";
 
 export function createVisibilityFilterLayerId() {
@@ -27,29 +27,7 @@ export function draftHasBuildCriteria(filters = {}) {
 }
 
 export function summarizeVisibilityFilterLayer(filters = {}, index = 0) {
-    const parts = [];
-    const expressionSummary = describeExpressionFilter(filters);
-    if (expressionSummary !== "none") {
-        parts.push(`Expression (${expressionSummary})`);
-    }
-    const noveltySummary = describeNoveltyFilter(filters);
-    if (noveltySummary !== "any") {
-        parts.push(`Novelty: ${noveltySummary}`);
-    }
-    const relevanceSummary = describeRelevanceMode(filters);
-    if (relevanceSummary !== "none") {
-        parts.push(
-            relevanceSummary === "semantic" ? "Semantic relevance" : "LLM relevance"
-        );
-    }
-    const intent = String(filters.intent || "").trim();
-    if (intent) {
-        parts.push(intent.length > 48 ? `${intent.slice(0, 45)}…` : intent);
-    }
-    if (parts.length) {
-        return parts.join(" · ");
-    }
-    return `Filter ${index + 1}`;
+    return summarizeVisibilityFilterCriteria(filters, index);
 }
 
 export function createVisibilityFilterLayer({

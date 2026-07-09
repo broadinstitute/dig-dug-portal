@@ -61,8 +61,8 @@
                 <kbd class="wkb-assistant-kbd">Esc</kbd> to close.
             </p>
             <p v-if="activeTab === 'request' && !hasThread" class="wkb-assistant-intro">
-                Describe graph changes in plain language. The assistant builds a step-by-step
-                plan, then runs those steps for you.
+                Describe graph changes in plain language. The assistant builds a step-by-step plan,
+                then runs those steps for you.
             </p>
             <p v-else class="wkb-assistant-intro">
                 What you can ask for on the Request tab. Type similar requests in your own words —
@@ -173,7 +173,10 @@
                     </p>
                 </div>
 
-                <div v-if="plan && plan.steps.length" class="wkb-assistant-plan">
+                <div
+                    v-if="plan && plan.steps.length && !plan.autoExecute"
+                    class="wkb-assistant-plan"
+                >
                     <p v-if="plan.panelShortcuts?.overflowNote" class="wkb-assistant-overflow-note">
                         {{ plan.panelShortcuts.overflowNote }}
                     </p>
@@ -316,29 +319,40 @@
             class="wkb-assistant-body wkb-assistant-actions-panel"
         >
             <section
-                v-for="group in actionCatalog"
-                :key="group.group"
-                class="wkb-assistant-action-group"
+                v-for="section in actionCatalogSections"
+                :key="section.section"
+                class="wkb-assistant-action-section"
             >
-                <h3 class="wkb-assistant-action-group-title">{{ group.group }}</h3>
-                <ul class="wkb-assistant-action-list">
-                    <li
-                        v-for="action in group.actions"
-                        :key="action.id"
-                        class="wkb-assistant-action-item"
-                    >
-                        <span class="wkb-assistant-action-label">{{ action.label }}</span>
-                        <p class="wkb-assistant-action-desc">{{ action.description }}</p>
-                        <template v-if="action.examples.length">
-                            <p class="wkb-assistant-action-examples-label">Example requests</p>
-                            <ul class="wkb-assistant-action-examples">
-                                <li v-for="(example, index) in action.examples" :key="`${action.id}-${index}`">
-                                    {{ example }}
-                                </li>
-                            </ul>
-                        </template>
-                    </li>
-                </ul>
+                <h2 class="wkb-assistant-action-section-title">{{ section.section }}</h2>
+                <p class="wkb-assistant-action-section-intro">{{ section.intro }}</p>
+                <section
+                    v-for="group in section.groups"
+                    :key="`${section.section}-${group.group}`"
+                    class="wkb-assistant-action-group"
+                >
+                    <h3 class="wkb-assistant-action-group-title">{{ group.group }}</h3>
+                    <ul class="wkb-assistant-action-list">
+                        <li
+                            v-for="action in group.actions"
+                            :key="action.id"
+                            class="wkb-assistant-action-item"
+                        >
+                            <span class="wkb-assistant-action-label">{{ action.label }}</span>
+                            <p class="wkb-assistant-action-desc">{{ action.description }}</p>
+                            <template v-if="action.examples.length">
+                                <p class="wkb-assistant-action-examples-label">Example requests</p>
+                                <ul class="wkb-assistant-action-examples">
+                                    <li
+                                        v-for="(example, index) in action.examples"
+                                        :key="`${action.id}-${index}`"
+                                    >
+                                        {{ example }}
+                                    </li>
+                                </ul>
+                            </template>
+                        </li>
+                    </ul>
+                </section>
             </section>
         </div>
 
@@ -448,14 +462,14 @@
                 :disabled="!draft.trim() || planning || executing"
                 @click="onPlan"
             >
-                Plan
+                {{ submitButtonLabel }}
             </button>
         </footer>
     </aside>
 </template>
 
 <script>
-import { ASSISTANT_ACTION_CATALOG } from "./revealKgAssistantActionCatalog.js";
+import { ASSISTANT_ACTION_CATALOG_SECTIONS } from "./revealKgAssistantActionCatalog.js";
 import { buildAssistantAutocompleteSuggestions } from "./revealKgAssistantActionSuggest.js";
 import {
     assistantSuggestFullLabel,
@@ -512,7 +526,7 @@ export default {
             draft: "",
             threadEntries: [],
             lastSubmittedQuery: "",
-            actionCatalog: ASSISTANT_ACTION_CATALOG,
+            actionCatalogSections: ASSISTANT_ACTION_CATALOG_SECTIONS,
             autocompleteSuggestions: [],
             suggestHighlight: -1,
             suggestHoverIndex: -1,
@@ -522,6 +536,9 @@ export default {
         };
     },
     computed: {
+        submitButtonLabel() {
+            return "Run";
+        },
         hasThread() {
             return (
                 this.threadEntries.length > 0 ||
@@ -581,23 +598,23 @@ export default {
         },
         requestPlaceholder() {
             if (this.isEmptyGraph) {
-                return "e.g. Find gene sets related to adipose tissue aging";
+                return "e.g. Start a new graph, Find gene sets about adipose tissue aging";
             }
-            return "e.g. Explain selected nodes";
+            return "e.g. Open filter panel, Explain selected nodes";
         },
         welcomeExamples() {
             if (this.isEmptyGraph) {
                 return [
+                    "Start a new graph",
                     "Find gene sets about adipose tissue aging",
-                    "Add mechanisms related to insulin resistance",
-                    "Add traits connected to type 2 diabetes",
+                    "Open My library",
                 ];
             }
             return [
+                "Show jumping edges",
+                "Open filter panel and find gene sets for type 2 diabetes",
                 "Explain selected nodes",
-                "Select top 5 genes connected to Type 2 diabetes",
-                "Filter genes related to insulin resistance, then expand from selected nodes",
-                "Show jumping edges on the graph",
+                "Expand 15 gene set nodes from Type 2 diabetes",
             ];
         },
         showExecutionProgress() {
@@ -626,6 +643,11 @@ export default {
         },
         plan(nextPlan) {
             this.otherOptionsOpen = false;
+            if (nextPlan?.autoExecute) {
+                this.replacePendingAssistantMessage("Running command…");
+                this.scrollMessagePanelToEnd();
+                return;
+            }
             if (nextPlan?.summary) {
                 this.replacePendingAssistantMessage(nextPlan.summary);
                 this.scrollMessagePanelToEnd();
@@ -1665,6 +1687,31 @@ export default {
 
 .wkb-assistant-actions-panel {
     padding-top: 4px;
+}
+
+.wkb-assistant-action-section + .wkb-assistant-action-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.wkb-assistant-action-section:first-child {
+    border-top: none;
+    padding-top: 0;
+}
+
+.wkb-assistant-action-section-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.wkb-assistant-action-section-intro {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .wkb-assistant-action-group + .wkb-assistant-action-group {

@@ -365,6 +365,21 @@ describe("prepareAssistantPlannerJson", () => {
         expect(parseNoveltyOptionsFromQuery("known and novel genes")).toBeNull();
     });
 
+    it("maps filter-out-known phrasing to show novel nodes only", () => {
+        expect(
+            parseNoveltyOptionsFromQuery("Create a filter to filter out known nodes")
+        ).toEqual({
+            filter_type: "novelty",
+            novelty_novel: true,
+            novelty_known: false,
+        });
+        expect(parseNoveltyOptionsFromQuery("Hide novel nodes from the graph")).toEqual({
+            filter_type: "novelty",
+            novelty_known: true,
+            novelty_novel: false,
+        });
+    });
+
     it("repairs expand_graph steps with novelty filters from the user query", () => {
         const result = prepareAssistantPlannerJson(
             {

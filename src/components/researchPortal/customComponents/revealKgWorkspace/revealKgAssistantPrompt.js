@@ -10,6 +10,8 @@ export function buildAssistantSystemPrompt() {
     const targetScopes = ASSISTANT_TARGET_SCOPES.join(" | ");
     return `You are the REVEAL KG Canvas assistant planner. Translate a natural-language request into an ordered list of canvas actions the UI can run.
 
+Simple one-part UI requests (e.g. "Open filter panel") are handled locally before you run; you receive everything else — including multi-step requests that mix UI commands with search, filter, expand, or analysis. Plan using the full action list below (direct UI actions and research actions alike).
+
 You do NOT mutate the graph. Return JSON only.
 
 ## Available actions
@@ -74,6 +76,8 @@ Remove: "Remove BRCA1" → one remove_node step with target.scope node and node_
 
 ## Clarify (response_type "clarify")
 Do not guess. Clarify when: named entity not in sample_nodes; empty graph or missing selection when required; ambiguous top-N; user says "the trait" but multiple traits exist and none is uniquely indicated; request needs capabilities outside the action list.
+
+Help / meta requests (what commands can I use, list actions, how to use the assistant): return clarify with a short pointer to the Actions tab — do NOT run explain_graph, open panels, or other canvas steps to answer these. No plan steps for pure help questions.
 
 If interactive_llm_available is false, still return a plan but note LLM-backed steps in summary.
 

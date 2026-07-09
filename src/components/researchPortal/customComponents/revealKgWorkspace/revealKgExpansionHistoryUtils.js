@@ -2,26 +2,11 @@
 
 import {
     EXPAND_TARGET_TYPE_OPTIONS,
+    describeNoveltyFilter,
     getExpansionOriginTag,
     hasExpressionFilter,
     MATCH_REQUIREMENT_OPTIONS,
 } from "./revealKgGraphFilterUtils.js";
-
-export function describeNoveltyFilter(filters = {}) {
-    if (!filters.noveltyKnown && !filters.noveltyNovel) {
-        return "any";
-    }
-    if (filters.noveltyKnown && filters.noveltyNovel) {
-        return "known and novel";
-    }
-    if (filters.noveltyKnown) {
-        return "known only";
-    }
-    if (filters.noveltyNovel) {
-        return "novel only";
-    }
-    return "any";
-}
 
 export function describeRelevanceMode(filters = {}) {
     const intent = String(filters.intent || "").trim();

@@ -46,6 +46,7 @@ import {
     edgesForVisibleNodes,
 } from "./revealKgSigChainPrioritizeUtils.js";
 import { getAssistantActionDefinition } from "./revealKgAssistantTools.js";
+import { getAssistantActionPreconditionMessage } from "./revealKgAssistantActionPreconditions.js";
 import { toggleVisibilityFilterLayer, collectInvisibleNodeIds } from "./revealKgVisibilityFilterUtils.js";
 import { resolveAssistantAddNodeRows } from "./revealKgAssistantAddNode.js";
 import { resolveIntentAddNodes } from "./revealKgIntentAddNodes.js";
@@ -225,6 +226,11 @@ async function runAssistantAction(session, step, runtime) {
         throw new Error(
             `${action} requires interactive LLM classification, which is not available.`
         );
+    }
+
+    const preconditionMessage = getAssistantActionPreconditionMessage(session, step);
+    if (preconditionMessage) {
+        throw new Error(preconditionMessage);
     }
 
     switch (action) {
@@ -665,11 +671,18 @@ async function runAssistantAction(session, step, runtime) {
                 const layer = layers.find((entry) => entry.id === layerId);
                 const shouldEnable = mode === "enable";
                 if (layer && (layer.enabled !== false) === shouldEnable) {
-                    return { session, meta: { layerId } };
+                    return {
+                        session,
+                        meta: { layerId, filterLabel: layer?.name || "" },
+                    };
                 }
                 return {
                     session: toggleVisibilityFilterLayer(session, layerId, expressionOptions),
-                    meta: { layerId, enabled: shouldEnable },
+                    meta: {
+                        layerId,
+                        enabled: shouldEnable,
+                        filterLabel: layer?.name || "",
+                    },
                 };
             }
             onProgress?.("Building visibility filter…");
@@ -689,6 +702,8 @@ async function runAssistantAction(session, step, runtime) {
                 meta: {
                     layerId: result.layer?.id,
                     afterVisibleCount: result.afterVisibleCount,
+                    totalNodeCount: result.session?.graphNodes?.length || 0,
+                    filterLabel: result.layer?.name || "",
                 },
             };
         }
