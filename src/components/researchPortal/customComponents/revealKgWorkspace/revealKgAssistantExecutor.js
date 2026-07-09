@@ -341,6 +341,9 @@ async function runAssistantAction(session, step, runtime) {
                 meta: { seedCount: seedItems.length },
             };
         }
+        case "open_expansion_history":
+            runtime.openExpandGraphPanel?.({ tab: "history" });
+            return { session, meta: { uiAction: "open_expansion_history" } };
         case "remove_node": {
             onProgress?.("Removing nodes…");
             const nodeIds = resolveAssistantTargetNodeIds(session, target, options);

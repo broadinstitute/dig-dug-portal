@@ -75,6 +75,15 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         ],
                     },
                     {
+                        id: "open_expansion_history",
+                        label: "Expansion history",
+                        description: "Open the Expand KG panel on the History tab to review past expansion runs.",
+                        examples: [
+                            "Show expansion history",
+                            "Open expansion history",
+                        ],
+                    },
+                    {
                         id: "toggle_data_table",
                         label: "Data table",
                         description: "Open or close the graph data table panel.",
@@ -114,6 +123,8 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         examples: [
                             "Unselect all",
                             "Unselect all visible genes",
+                            "Unselect all visible traits",
+                            "Unselect all visible gene sets",
                         ],
                     },
                     {
@@ -124,6 +135,8 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         examples: [
                             "Select all visible nodes",
                             "Select all visible genes",
+                            "Select all visible traits",
+                            "Select all visible gene sets",
                         ],
                     },
                     {
@@ -234,10 +247,13 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         id: "select_nodes",
                         label: "Select nodes",
                         description:
-                            "Mark nodes as selected (blue) on the canvas, including top-N picks (up to 20 per step).",
+                            "Mark nodes as selected (blue). Selecting a single named node runs immediately; top-N or filter-based picks are planned step by step.",
                         examples: [
+                            "Select NMU",
+                            "Select BRCA1",
                             "Select top 5 genes connected to Type 2 diabetes",
-                            "Clear selected nodes",
+                            "Select nodes that passed the last filter",
+                            "Select nodes that failed the last filter",
                         ],
                     },
                 ],
@@ -253,6 +269,9 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         examples: [
                             "Filter genes related to insulin resistance",
                             "Enable the last visibility filter",
+                            "Disable the last visibility filter",
+                            "Show only novel nodes",
+                            "Show only known nodes",
                         ],
                     },
                 ],
@@ -352,6 +371,8 @@ export function defaultProgressMessageForAction(action) {
             return "Updating selection…";
         case "open_expand_panel":
             return "Opening Expand KG…";
+        case "open_expansion_history":
+            return "Opening expansion history…";
         case "focus_graph_view":
             return "Adjusting graph view…";
         case "add_node":

@@ -251,6 +251,13 @@ function tryRuleCommand(query, sessionContext) {
                 }),
             ]);
         }
+        if (/\bselect\b/i.test(text) && !/\b(?:unselect|deselect)\b/i.test(text)) {
+            return makePlan(`Select ${labels[0]}.`, [
+                makeStep("select_nodes", `Select ${labels[0]}`, {
+                    target: { scope: "node", node_labels: [labels[0]] },
+                }),
+            ]);
+        }
     }
 
     const libraryMatch = text.match(

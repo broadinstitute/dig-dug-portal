@@ -101,6 +101,13 @@ export const ASSISTANT_ACTIONS = [
         options: {},
     },
     {
+        action: "open_expansion_history",
+        description:
+            "Open the Expand KG panel on the History tab to review past expansion runs.",
+        has_options: false,
+        options: {},
+    },
+    {
         action: "focus_graph_view",
         description:
             "Pan and zoom the canvas to show target nodes, or reset to the full graph when scope is entire_graph.",
