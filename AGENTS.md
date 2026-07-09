@@ -196,6 +196,8 @@ npm install
 
 On Windows, `npm install --no-optional` reduces optional macOS dependency warnings.
 
+A committed `package-lock.json` pins the dependency tree, so for a clean/reproducible install prefer `npm ci`. Installs resolve cleanly with no extra flags: `eslint` is pinned to `8.57.1`, the version every eslint plugin/config in `devDependencies` accepts (eslint-config-standard requires `^8.0.1`; the import/promise/vue plugins cap at 8). Without that explicit pin, npm auto-resolved eslint to its latest major via the plugins' open-ended `>=7` peers, which the capped plugins rejected — the `ERESOLVE` failure that previously forced `--legacy-peer-deps`.
+
 ### 2. Prototype (Watch Mode)
 
 ```bash

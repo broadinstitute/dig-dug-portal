@@ -59,6 +59,7 @@
     "babel-loader": "8.4.1",
     "babel-plugin-transform-remove-console": "6.9.4",
     "cache-loader": "4.1.0",
+    "eslint": "8.57.1",
     "eslint-config-prettier": "8.10.0",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.29.1",
