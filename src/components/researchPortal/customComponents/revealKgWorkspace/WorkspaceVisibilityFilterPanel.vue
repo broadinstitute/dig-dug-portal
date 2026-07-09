@@ -2,6 +2,7 @@
     <aside
         v-if="open"
         class="wkb-filter-popup"
+        :style="aiAssistantOpen ? { right: 'calc(12px + min(380px, calc(100% - 24px)) + 8px)' } : {}"
         role="dialog"
         aria-modal="false"
         aria-labelledby="wkb-filter-title"
@@ -384,6 +385,10 @@ export default {
             default: 0,
         },
         removeInvisibleDisabled: {
+            type: Boolean,
+            default: false,
+        },
+        aiAssistantOpen: {
             type: Boolean,
             default: false,
         },

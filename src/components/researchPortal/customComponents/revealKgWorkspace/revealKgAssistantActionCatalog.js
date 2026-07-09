@@ -4,7 +4,7 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
     {
         section: "Commands",
         intro:
-            "Direct canvas actions—panels, view toggles, selection, files. Simple one-part requests like these often run immediately.",
+            "Direct canvas actions—panels, view toggles, selection, files. No API calls or domain reasoning required. You can chain multiple commands in one request and the assistant will sequence them without asking for confirmation.",
         groups: [
             {
                 group: "Library & files",
@@ -147,38 +147,14 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         description: "Open the inspector for a node or edge on the graph.",
                         examples: ["Inspect BRCA1", "Inspect the edge between TP53 and BRCA1"],
                     },
-                ],
-            },
-            {
-                group: "Quick tools",
-                actions: [
                     {
-                        id: "map_genes",
-                        label: "Map genes",
+                        id: "select_connected_nodes",
+                        label: "Select connected nodes",
                         description:
-                            "Show genes shared across selected gene sets in a membership table.",
+                            "Mark a seed node and every node directly linked by active or contextual edges. Adds to the current selection.",
                         examples: [
-                            "Map genes across selected gene sets",
-                            "Show shared genes in selected gene sets",
-                        ],
-                    },
-                    {
-                        id: "find_datasets",
-                        label: "Find related datasets",
-                        description: "Search CFDE gene sets from selected genes.",
-                        examples: [
-                            "Find related datasets",
-                            "Find CFDE gene sets for selected genes",
-                        ],
-                    },
-                    {
-                        id: "open_provenance_explorer",
-                        label: "Open provenance explorer",
-                        description:
-                            "Copy provenance details for selected gene sets and open the provenance explorer.",
-                        examples: [
-                            "Open provenance explorer for selected gene sets",
-                            "Copy gene set information and open provenance explorer",
+                            "Select all nodes connected to FLG",
+                            "Select connected nodes for BRCA1",
                         ],
                     },
                 ],
@@ -188,7 +164,7 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
     {
         section: "Research",
         intro:
-            "Exploratory requests the assistant plans step by step—catalog search, semantic filters, expansion, and analysis. Combine with commands in one request when needed.",
+            "Requests that search the catalog, call the API, or require reasoning about which nodes are relevant. The assistant plans these step by step and will ask for clarification if your request is underspecified.",
         groups: [
             {
                 group: "Add nodes",
@@ -264,16 +240,6 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                             "Clear selected nodes",
                         ],
                     },
-                    {
-                        id: "select_connected_nodes",
-                        label: "Select connected nodes",
-                        description:
-                            "Mark a seed node and every node directly linked by active or contextual edges. Adds to the current selection.",
-                        examples: [
-                            "Select all nodes connected to FLG",
-                            "Select connected nodes for BRCA1",
-                        ],
-                    },
                 ],
             },
             {
@@ -312,6 +278,35 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         examples: [
                             "Build hypotheses for known pathways only",
                             "Build hypotheses for selected nodes",
+                        ],
+                    },
+                    {
+                        id: "find_datasets",
+                        label: "Find related datasets",
+                        description: "Fetch CFDE gene sets matched to selected genes via the dataset search API.",
+                        examples: [
+                            "Find related datasets",
+                            "Find CFDE gene sets for selected genes",
+                        ],
+                    },
+                    {
+                        id: "map_genes",
+                        label: "Map genes",
+                        description:
+                            "Fetch gene membership for selected gene sets and show shared genes in a membership table.",
+                        examples: [
+                            "Map genes across selected gene sets",
+                            "Show shared genes in selected gene sets",
+                        ],
+                    },
+                    {
+                        id: "open_provenance_explorer",
+                        label: "Provenance explorer",
+                        description:
+                            "Fetch and copy provenance details for selected gene sets, then open the provenance explorer.",
+                        examples: [
+                            "Open provenance explorer for selected gene sets",
+                            "Copy gene set information and open provenance explorer",
                         ],
                     },
                 ],

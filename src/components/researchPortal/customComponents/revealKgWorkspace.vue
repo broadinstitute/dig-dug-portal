@@ -111,6 +111,7 @@
                 :graph-node-ids="graphNodeIds"
                 :assistant-busy="expandAssistantOverlayBusy"
                 :assistant-message="expandAssistantOverlayMessage"
+                :ai-assistant-open="aiAssistantOpen"
                 @close="closeExpandGraph"
                 @patch-filters="onExpandFiltersPatch"
                 @patch-controls="onExpandControlsPatch"
@@ -141,6 +142,7 @@
             />
             <WorkspaceVisibilityFilterPanel
                 :open="filterGraphOpen"
+                :ai-assistant-open="aiAssistantOpen"
                 :loading="graphFilterLoading"
                 :progress-label="graphFilterProgress"
                 :filters="graphFilters"

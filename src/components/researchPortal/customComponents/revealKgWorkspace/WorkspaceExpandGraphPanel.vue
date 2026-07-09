@@ -2,6 +2,7 @@
     <aside
         v-if="open"
         class="wkb-expand-popup"
+        :style="aiAssistantOpen ? { right: 'calc(12px + min(380px, calc(100% - 24px)) + 8px)' } : {}"
         role="dialog"
         aria-modal="false"
         aria-labelledby="wkb-expand-title"
@@ -587,6 +588,10 @@ export default {
         assistantMessage: {
             type: String,
             default: "",
+        },
+        aiAssistantOpen: {
+            type: Boolean,
+            default: false,
         },
     },
     data() {
