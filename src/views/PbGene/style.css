@@ -1481,12 +1481,14 @@
     height: 1.25rem;
     min-width: 6px;
     padding: 0;
-    border: 0;
-    border-radius: 0.08rem;
-    background: #0715b8;
+    border: 1px solid #2563eb;
+    border-radius: 0.1rem;
+    background: #79a7ff;
     transform: none;
-    z-index: 2;
+    z-index: 4;
     cursor: default;
+    box-sizing: border-box;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.16);
 }
 
 .pbg-window-exon-block--query {
@@ -2038,8 +2040,9 @@
 }
 
 .pbg-window-exon-block {
-    top: 0.95rem;
-    height: 1.1rem;
+    top: 0.82rem;
+    height: 1.36rem;
+    min-width: 8px;
     overflow: visible;
 }
 
@@ -2069,6 +2072,7 @@
     height: 2.05rem;
     min-width: 0;
     border-bottom: 1px solid #e5edf6;
+    overflow: hidden;
 }
 
 .pbg-window-variant-dot {

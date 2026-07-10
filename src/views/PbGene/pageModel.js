@@ -877,7 +877,7 @@ export const pbGeneComputed = {
                 ...marker,
                 clusterSize: n,
                 yIndex: n > 1 ? idx % 4 : 0,
-                xNudge: n > 1 ? (idx - (n - 1) / 2) * 7 : 0,
+                xNudge: n > 1 ? this.clampMarkerNudge((idx - (n - 1) / 2) * 7, marker.leftPct) : 0,
             }));
         });
     },
@@ -1486,6 +1486,14 @@ export const pbGeneMethods = {
     inferPathwaySource(name) {
         const raw = String(name || "");
         return raw.indexOf("WP_") === 0 || /wikipath/i.test(raw) ? "WikiPathways" : "Reactome";
+    },
+
+    clampMarkerNudge(nudgePx, leftPct) {
+        const markerHalfWidthPx = 6;
+        const maxTrackWidthPx = 980;
+        const leftRoomPx = (Math.max(0, leftPct) / 100) * maxTrackWidthPx - markerHalfWidthPx;
+        const rightRoomPx = ((100 - Math.min(100, leftPct)) / 100) * maxTrackWidthPx - markerHalfWidthPx;
+        return Math.max(-Math.max(leftRoomPx, 0), Math.min(Math.max(rightRoomPx, 0), nudgePx));
     },
 
     togglePathwayDetails() {

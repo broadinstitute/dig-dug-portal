@@ -1,5 +1,6 @@
 import { query } from "@/utils/bioIndexUtils";
 import { getGeneReferenceAnnotation } from "./geneAnnotationReference";
+import { getGeneExons } from "./geneExonReference";
 
 const DENSITY_BINS = 50;
 
@@ -38,8 +39,9 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
         .map(entry => buildVariantRow(entry))
         .sort((a, b) => b.carrierCount - a.carrierCount || a.id.localeCompare(b.id));
     const carrierIds = uniqueValues(sampleRows.map(row => value(row, ["sample_id", "sampleId", "sample"])));
-    const geneInfo = buildGeneInfo(gene, geneRows[0] || {}, variants);
-    const genomeWindow = buildGenomeWindow(geneInfo, variants);
+    const exons = getGeneExons(gene);
+    const geneInfo = buildGeneInfo(gene, geneRows[0] || {}, variants, exons);
+    const genomeWindow = buildGenomeWindow(geneInfo, variants, exons);
 
     return {
         geneInfo,
@@ -145,9 +147,9 @@ function buildVariantRow(entry) {
     };
 }
 
-function buildGeneInfo(gene, geneRow, variants) {
-    const chromosome = cleanChrom(value(geneRow, ["chromosome", "chrom", "chr"]) || variantChromosome(variants) || "");
-    const range = geneRange(geneRow, variants);
+function buildGeneInfo(gene, geneRow, variants, exons = []) {
+    const chromosome = cleanChrom(value(geneRow, ["chromosome", "chrom", "chr"]) || exonChromosome(exons) || variantChromosome(variants) || "");
+    const range = geneRange(geneRow, variants, exons);
     return {
         symbol: gene,
         fullName: displayValue(value(geneRow, ["description", "name", "gene_name", "full_name"]), "Unavailable in live BioIndex"),
@@ -171,9 +173,9 @@ function buildGeneInfo(gene, geneRow, variants) {
     };
 }
 
-function buildGenomeWindow(geneInfo, variants) {
+function buildGenomeWindow(geneInfo, variants, exons = []) {
     const positions = variants.map(row => variantPosition(row.id)).filter(Boolean);
-    const geneRange = parseLocationRange(geneInfo.location);
+    const geneRange = parseLocationRange(geneInfo.location) || exonRange(exons);
     const start = geneRange ? geneRange.start : positions.length ? Math.max(Math.min(...positions) - 1000, 1) : 1;
     const end = geneRange ? geneRange.end : positions.length ? Math.max(...positions) + 1000 : 2;
     const span = Math.max(end - start, 1);
@@ -196,7 +198,7 @@ function buildGenomeWindow(geneInfo, variants) {
 
     return {
         axisTicks: axisTicks(start, end),
-        exons: [],
+        exons: buildExonRows(exons, start, end),
         markers,
         densityAll,
         densityProband: densityAll.slice(),
@@ -333,10 +335,12 @@ function normalizeGene(raw) {
     return String(raw || "").trim().toUpperCase();
 }
 
-function geneRange(geneRow, variants) {
+function geneRange(geneRow, variants, exons = []) {
     const start = numericValue(geneRow, ["start", "gene_start", "txStart"]);
     const end = numericValue(geneRow, ["end", "gene_end", "txEnd"]);
     if (start != null && end != null) return { start: Math.min(start, end), end: Math.max(start, end) };
+    const range = exonRange(exons);
+    if (range) return range;
     const positions = variants.map(row => variantPosition(row.id)).filter(Boolean);
     if (!positions.length) return null;
     return {
@@ -345,8 +349,40 @@ function geneRange(geneRow, variants) {
     };
 }
 
+function exonChromosome(exons) {
+    return cleanChrom((exons[0] || {}).chrom || "");
+}
+
+function exonRange(exons) {
+    const starts = exons.map(exon => Number(exon.start)).filter(Number.isFinite);
+    const ends = exons.map(exon => Number(exon.end)).filter(Number.isFinite);
+    if (!starts.length || !ends.length) return null;
+    return { start: Math.min(...starts), end: Math.max(...ends) };
+}
+
+function buildExonRows(exons, geneStart, geneEnd) {
+    const span = Math.max(geneEnd - geneStart, 1);
+    return (exons || []).map((exon, index) => {
+        const start = Number(exon.start);
+        const end = Number(exon.end);
+        if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+        const leftPct = Math.max(0, Math.min(100, ((start - geneStart) / span) * 100));
+        const widthPct = Math.max(((end - start) / span) * 100, 0.3);
+        return {
+            label: `E${exon.exonNumber || index + 1}`,
+            left: `${leftPct.toFixed(2)}%`,
+            width: `${widthPct.toFixed(2)}%`,
+            start,
+            end,
+            sequence: "",
+        };
+    }).filter(Boolean);
+}
+
 function parseLocationRange(location) {
-    const values = String(location || "").match(/\d[\d,]*/g) || [];
+    const raw = String(location || "");
+    const coordinateText = raw.includes(":") ? raw.slice(raw.indexOf(":") + 1) : raw;
+    const values = coordinateText.match(/\d[\d,]*/g) || [];
     if (values.length < 2) return null;
     const parsed = values.map(item => parseInt(item.replace(/,/g, ""), 10)).filter(Number.isFinite);
     return parsed.length >= 2 ? { start: Math.min(parsed[0], parsed[1]), end: Math.max(parsed[0], parsed[1]) } : null;
