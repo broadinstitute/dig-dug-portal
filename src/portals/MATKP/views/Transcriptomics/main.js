@@ -6,14 +6,15 @@ import "../../assets/matkp-styles.css";
 import { matkpMixin } from "../../mixins/matkpMixin.js";
 import keyParams from "@/utils/keyParams";
 import {
-    resolveCanonicalHumanGene,
+    fetchOrthologSymbol,
     resolveHumanMouseSymbols,
 } from "../../utils/gprofilerOrth.js";
 import { fetchForestGenePayload } from "../../utils/buildForestGenePayload.js";
 
-import pageIndex from "../../data/transcriptomicPrototype/index.json";
-import geneIndex from "../../data/transcriptomicPrototype/genes_index.json";
-import outcomeIndex from "../../data/transcriptomicPrototype/outcomes_index.json";
+import VolcanoPlot from "./VolcanoPlot.vue";
+Vue.component("volcano-plot", VolcanoPlot);
+
+const VOLCANO_OUTCOME_IDS = new Set(["genotype_status"]);
 
 const FILTER_DROPDOWN_POPPER_OPTS = {
     placement: "right",
@@ -38,14 +39,16 @@ new Vue({
 
     data() {
         return {
-            pageIndex,
-            geneIndex,
-            outcomeIndex,
             activeGenePayload: null,
             showGeneResults: false,
             selectedGene: null,
             geneQuery: "",
-            geneSearchSpecies: "human",
+            geneExamples: [
+                { gene: "LEP", label: "LEP" },
+                { gene: "ADIPOQ", label: "ADIPOQ" },
+                { gene: "Fasn", label: "Fasn" },
+                { gene: "Ucp1", label: "Ucp1" },
+            ],
             geneLoading: false,
             pendingOutcomeId: null,
             urlOutcomeFilter: null,
@@ -53,13 +56,14 @@ new Vue({
                 human: null,
                 mouse: null,
             },
+            viewSpecies: "human",
             geneNotFound: false,
             selectedOutcomeId: null,
             expandedOutcomes: {},
             visibleOutcomes: {},
             speciesFilters: {
                 human: true,
-                mouse: true,
+                mouse: false,
                 other: true,
             },
             depotFilters: {},
@@ -67,6 +71,8 @@ new Vue({
             adjPValueMax: "",
             adjPValueInput: "",
             datasetRowVisibility: {},
+            plotViews: {},
+            volcanoHoveredKey: null,
             filterDropdownPopperOpts: FILTER_DROPDOWN_POPPER_OPTS,
             activeScrolledOutcomeId: null,
             scrollHandler: null,
@@ -109,9 +115,7 @@ new Vue({
             return parts.join(" | ");
         },
         geneSearchPlaceholder() {
-            return this.geneSearchSpecies === "mouse"
-                ? "Type a mouse gene symbol"
-                : "Type a human gene symbol";
+            return "Search Gene (human or mouse)";
         },
         activeOutcomeIds() {
             return this.activeGene ? this.activeGene.supported_outcomes : [];
@@ -143,12 +147,22 @@ new Vue({
                     this.decorateRowForPlot(row, domain)
                 );
 
+                const pooledPlotRow = plotRows.find(
+                    (r) => r.row_type === "pooled"
+                );
+
+                const outcomeId = outcome.outcome_id;
+
                 return {
                     ...outcome,
                     hasFilteredData: visibleRows.length > 0,
                     domain,
                     ticks: this.buildTicks(domain),
                     plotRowGroups: this.buildPlotRowGroups(plotRows),
+                    pooledEffectLeft: pooledPlotRow
+                        ? pooledPlotRow.effectLeft
+                        : null,
+                    supportsVolcano: VOLCANO_OUTCOME_IDS.has(outcomeId),
                 };
             });
         },
@@ -169,12 +183,17 @@ new Vue({
         }
     },
     mounted() {
+        this.updateGeneBarHeight();
+
         if (!this.showGeneResults) {
+            this.geneQuery = "ADIPOQ";
+            this.loadGene();
             return;
         }
 
         this.bootstrapGene().then(() => {
             this.$nextTick(() => {
+                this.updateGeneBarHeight();
                 this.setupScrollTracking();
             });
         });
@@ -186,7 +205,26 @@ new Vue({
         }
     },
 
+    watch: {
+        volcanoHoveredKey(key) {
+            if (!key) return;
+            this.$nextTick(() => {
+                const el = document.querySelector(".vlabel-active");
+                if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            });
+        },
+    },
+
     methods: {
+        updateGeneBarHeight() {
+            const bar = document.querySelector(".gene-bar");
+            const height = bar ? bar.offsetHeight : 48;
+            document.documentElement.style.setProperty("--gene-bar-height", `${height}px`);
+        },
+        getGeneBarOffset() {
+            const bar = document.querySelector(".gene-bar");
+            return bar ? bar.offsetHeight : 48;
+        },
         initializeVisibleOutcomes() {
             const visible = {};
 
@@ -438,6 +476,16 @@ new Vue({
                 this.$set(this.datasetFilters, option.id, isVisible);
             });
         },
+        datasetFilterBadge() {
+            const total = this.datasetOptions.length;
+            const active = this.datasetOptions.filter(o => this.datasetFilters[o.id] !== false).length;
+            return active < total ? `${active} of ${total}` : String(total);
+        },
+        depotFilterBadge() {
+            const total = this.depotOptions.length;
+            const active = this.depotOptions.filter(o => this.depotFilters[o.id] !== false).length;
+            return active < total ? `${active} of ${total}` : String(total);
+        },
         isDatasetFilterActive() {
             if (!this.datasetOptions.length) {
                 return false;
@@ -617,6 +665,10 @@ new Vue({
             return this.speciesFilters[this.speciesClass(row.species)] !== false;
         },
         isDepotRowVisible(row) {
+            if (row.row_type === "pooled") {
+                return true;
+            }
+
             const enabledDepots = this.depotOptions.filter(
                 (option) => this.depotFilters[option.id] !== false
             );
@@ -708,38 +760,28 @@ new Vue({
             return !Number.isNaN(Number(maxValue));
         },
         buildPlotRowGroups(plotRows) {
-            const groups = [];
-            let lastSpeciesKey = null;
-
-            plotRows.forEach((row) => {
-                const speciesKey = row.species || "__none__";
-
-                if (speciesKey !== lastSpeciesKey) {
-                    groups.push({
-                        type: "species-header",
-                        key: `header-${speciesKey}-${groups.length}`,
-                        species: row.species,
-                        label: this.formatSpeciesLabel(row.species),
-                        speciesClass: this.speciesClass(row.species),
-                    });
-                    lastSpeciesKey = speciesKey;
-                }
-
-                groups.push({
-                    type: "row",
-                    key: `${row.display_label_short}-${row.row_type}-${groups.length}`,
-                    row,
-                });
-            });
-
-            return groups;
+            return plotRows.map((row, index) => ({
+                type: "row",
+                key: `${row.display_label_short}-${row.row_type}-${index}`,
+                row,
+            }));
+        },
+        setViewSpecies(species) {
+            this.viewSpecies = species;
+            this.setSpeciesFilter("human", species === "human");
+            this.setSpeciesFilter("mouse", species === "mouse");
+            this.setSpeciesFilter("other", true);
         },
         buildTicks(domain) {
             return [0, 0.25, 0.5, 0.75, 1].map((fraction) => {
                 const value = domain.min + (domain.max - domain.min) * fraction;
+                const label =
+                    fraction === 0 || fraction === 1
+                        ? String(Math.round(value))
+                        : this.formatTick(value);
                 return {
                     value,
-                    label: this.formatTick(value),
+                    label,
                     position: fraction * 100,
                 };
             });
@@ -767,6 +809,13 @@ new Vue({
             }
 
             return Number(value).toFixed(digits);
+        },
+        formatStars(pValue) {
+            if (pValue === null || pValue === undefined || Number.isNaN(pValue)) return "";
+            if (pValue < 0.001) return "***";
+            if (pValue < 0.01) return "**";
+            if (pValue < 0.05) return "*";
+            return "";
         },
         formatPValue(value) {
             if (value === null || value === undefined || Number.isNaN(value)) {
@@ -823,11 +872,6 @@ new Vue({
                 max: extent,
             };
         },
-        outcomeMeta(outcomeId) {
-            return (
-                this.outcomeIndex.find((item) => item.outcome_id === outcomeId) || null
-            );
-        },
         async loadGene() {
             const query = String(this.geneQuery || "").trim();
 
@@ -835,29 +879,24 @@ new Vue({
                 return;
             }
 
-            const canonicalGene = await resolveCanonicalHumanGene(
-                query,
-                this.geneSearchSpecies
-            );
+            // Try as human gene first, then fall back to mouse ortholog lookup
+            let canonicalGene = query.toUpperCase();
+            let loaded = await this.fetchGenePayload(canonicalGene);
 
-            if (!canonicalGene) {
+            if (!loaded) {
+                const ortholog = await fetchOrthologSymbol(query, "mmusculus", "hsapiens");
+                if (ortholog) {
+                    canonicalGene = ortholog.toUpperCase();
+                    loaded = await this.fetchGenePayload(canonicalGene);
+                }
+            }
+
+            if (!loaded) {
                 this.showGeneResults = true;
                 this.geneNotFound = true;
                 this.activeGenePayload = null;
                 this.selectedGene = query.toUpperCase();
-                this.geneOrthologSymbols = {
-                    human: null,
-                    mouse: null,
-                };
-                this.syncParams();
-                return;
-            }
-
-            const loaded = await this.fetchGenePayload(canonicalGene);
-
-            if (!loaded) {
-                this.showGeneResults = true;
-                this.selectedGene = canonicalGene;
+                this.geneOrthologSymbols = { human: null, mouse: null };
                 this.syncParams();
                 return;
             }
@@ -865,20 +904,14 @@ new Vue({
             this.showGeneResults = true;
             this.selectedGene = canonicalGene;
 
-            const symbols = await resolveHumanMouseSymbols(
-                query,
-                this.geneSearchSpecies
-            );
+            const symbols = await resolveHumanMouseSymbols(canonicalGene, "human");
 
             this.geneOrthologSymbols = {
                 human: canonicalGene,
                 mouse: symbols.mouse || query,
             };
             this.onGeneChange(canonicalGene, { updateQuery: false });
-            this.geneQuery =
-                this.geneSearchSpecies === "mouse"
-                    ? this.geneOrthologSymbols.mouse
-                    : canonicalGene;
+            this.geneQuery = canonicalGene;
         },
         onGeneChange(gene, options = {}) {
             this.selectedGene = gene;
@@ -889,8 +922,8 @@ new Vue({
             }
             this.expandedOutcomes = {};
             this.speciesFilters = {
-                human: true,
-                mouse: true,
+                human: this.viewSpecies === "human",
+                mouse: this.viewSpecies === "mouse",
                 other: true,
             };
             this.adjPValueMax = "";
@@ -902,6 +935,7 @@ new Vue({
 
             this.syncParams();
             this.$nextTick(() => {
+                this.updateGeneBarHeight();
                 this.setupScrollTracking();
             });
         },
@@ -927,23 +961,63 @@ new Vue({
             return ((value - domain.min) / (domain.max - domain.min)) * 100;
         },
         rowTooltip(row) {
-            const label = row.display_label_full || row.display_label_medium;
-            const datasetId = row.dataset_id || "meta-analysis";
+            const title = row.display_label_short || "—";
+            const description = row.dataset_name || null;
+            const comparison = row.direction_label || null;
             const species = this.formatSpeciesLabel(row.species);
+            const tissue = row.tissue || null;
+
+            const depot = row.depot || null;
+            const depot2 = row.depot2 || null;
+
             const effect = this.formatNumber(row.effect);
             const ciLow = this.formatNumber(row.ci_low);
             const ciHigh = this.formatNumber(row.ci_high);
+            const pValue = row.p_value != null ? this.formatPValue(row.p_value) : null;
+            const pValueAdj = row.p_value_adj != null ? this.formatPValue(row.p_value_adj) : null;
+
+            const r = (label, value) =>
+                value
+                    ? `<div class="plot-tooltip__row"><span class="plot-tooltip__label">${label}</span><span class="plot-tooltip__value">${value}</span></div>`
+                    : "";
 
             return `
                 <div class="plot-tooltip">
-                    <div class="plot-tooltip__title">${label}</div>
-                    <div class="plot-tooltip__row"><span class="plot-tooltip__label">Dataset ID</span><span class="plot-tooltip__value">${datasetId}</span></div>
-                    <div class="plot-tooltip__row"><span class="plot-tooltip__label">Species</span><span class="plot-tooltip__value">${species}</span></div>
-                    <div class="plot-tooltip__row"><span class="plot-tooltip__label">Effect</span><span class="plot-tooltip__value">${effect}</span></div>
-                    <div class="plot-tooltip__row"><span class="plot-tooltip__label">CI low</span><span class="plot-tooltip__value">${ciLow}</span></div>
-                    <div class="plot-tooltip__row"><span class="plot-tooltip__label">CI high</span><span class="plot-tooltip__value">${ciHigh}</span></div>
+                    <div class="plot-tooltip__title">${title}</div>
+                    ${description ? `<div class="plot-tooltip__description">${description}</div>` : ""}
+                    ${comparison ? `<div class="plot-tooltip__comparison"><span class="plot-tooltip__pill">${comparison}</span></div>` : ""}
+                    <div class="plot-tooltip__divider"></div>
+                    ${r("Species", species)}
+                    ${r("Tissue", tissue)}
+                    ${r("Depot", depot)}
+                    ${r("Depot 2", depot2)}
+                    <div class="plot-tooltip__divider"></div>
+                    ${r("Effect", effect)}
+                    ${r("CI low", ciLow)}
+                    ${r("CI high", ciHigh)}
+                    ${r("P-value", pValue)}
+                    ${r("Adj. P", pValueAdj)}
                 </div>
             `;
+        },
+        navigateToOutcome(outcome) {
+            const outcomeId = outcome.outcome_id;
+
+            // If no data visible under current species, find which species has data
+            if (!outcome.hasFilteredData) {
+                const rawRows = outcome.rows || [];
+                const hasHuman = rawRows.some(r => r.species === "Homo sapiens" || r.row_type === "pooled");
+                const hasMouse = rawRows.some(r => r.species === "Mus musculus");
+                if (hasMouse && this.viewSpecies !== "mouse") {
+                    this.setViewSpecies("mouse");
+                } else if (hasHuman && this.viewSpecies !== "human") {
+                    this.setViewSpecies("human");
+                }
+            }
+
+            this.$nextTick(() => {
+                this.selectOutcome(outcomeId);
+            });
         },
         selectOutcome(outcomeId) {
             this.selectedOutcomeId = outcomeId;
@@ -955,12 +1029,29 @@ new Vue({
                 );
 
                 if (section) {
-                    section.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                    });
+                    const offset = this.getGeneBarOffset() + 14;
+                    const top = section.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top, behavior: "smooth" });
                 }
             });
+        },
+        getPlotView(outcomeId) {
+            if (this.plotViews[outcomeId]) return this.plotViews[outcomeId];
+            return VOLCANO_OUTCOME_IDS.has(outcomeId) ? "volcano" : "forest";
+        },
+        setPlotView(outcomeId, view) {
+            this.$set(this.plotViews, outcomeId, view);
+        },
+        volcanoDataRows(outcome) {
+            return outcome.rows.filter(
+                (r) => r.row_type !== "pooled" && r.effect != null && r.p_value != null && r.p_value > 0
+            );
+        },
+        volcanoRowKey(row, idx) {
+            return `${idx}-${row.dataset_id || idx}`;
+        },
+        setVolcanoHoveredKey(key) {
+            this.volcanoHoveredKey = key || null;
         },
         toggleOutcome(outcomeId) {
             this.$set(
@@ -991,7 +1082,7 @@ new Vue({
                 return;
             }
 
-            const topAnchor = 0;
+            const topAnchor = this.getGeneBarOffset() + 14;
             let closestBelowTop = null;
             let lastAboveTop = null;
 

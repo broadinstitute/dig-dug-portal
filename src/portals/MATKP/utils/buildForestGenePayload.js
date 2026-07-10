@@ -1,7 +1,20 @@
-import outcomeIndex from "../data/transcriptomicPrototype/outcomes_index.json";
 import { fetchForestGeneRows } from "./forestGeneApi.js";
 
-const OUTCOME_ORDER = outcomeIndex.map((item) => item.outcome_id);
+const OUTCOME_ORDER = [
+    "age",
+    "depot_binary",
+    "diet_group",
+    "genotype_status",
+    "hdl",
+    "homa_ir",
+    "insulin_resistance_status",
+    "ldl",
+    "log10_homa_ir",
+    "obesity_status",
+    "temperature_group",
+    "treatment_group",
+    "triglycerides",
+];
 
 function formatDatasetLabel(apiRow) {
     if (apiRow.datasetId) {
@@ -17,11 +30,9 @@ function formatDatasetLabel(apiRow) {
     return "Dataset";
 }
 
-function combineDepot(apiRow) {
-    return [apiRow.depot, apiRow.depot2]
-        .map((value) => String(value || "").trim())
-        .filter(Boolean)
-        .join(";");
+function normalizeDepot(value) {
+    const s = String(value || "").trim();
+    return s === "None" || s === "none" ? "" : s;
 }
 
 function transformApiRow(apiRow) {
@@ -38,7 +49,8 @@ function transformApiRow(apiRow) {
         source_category: isPooled ? "meta_analysis" : null,
         source_path: apiRow.dataset_dir || null,
         species: apiRow.species || null,
-        depot: combineDepot(apiRow),
+        depot: normalizeDepot(apiRow.depot),
+        depot2: normalizeDepot(apiRow.depot2),
         tissue: apiRow.tissue || "",
         outcome_id: outcomeId,
         outcome_label: apiRow.standardized_outcome_label,
@@ -63,6 +75,9 @@ function transformApiRow(apiRow) {
             ? `${outcomeId}_pooled`
             : `${datasetId || "dataset"}_${outcomeId}`,
         note: apiRow.notes || apiRow.direction_notes || "",
+        direction_label: apiRow.direction_label || null,
+        positive_direction_text: apiRow.positive_direction_text || null,
+        negative_direction_text: apiRow.negative_direction_text || null,
         gene: apiRow.gene,
         gene_key: apiRow.gene_key,
         display_label_short: displayShort,
@@ -72,6 +87,45 @@ function transformApiRow(apiRow) {
         display_label_full: isPooled
             ? "Pooled bulk meta-analysis"
             : `${datasetName || displayShort}${datasetId ? ` [${datasetId}]` : ""}`,
+    };
+}
+
+function extractDirectionLabel(text) {
+    if (!text) return null;
+    const slashIdx = text.lastIndexOf("/");
+    if (slashIdx !== -1) {
+        return text.slice(slashIdx + 1).trim() || null;
+    }
+    return text.replace(/^higher expression in\s+/i, "").trim() || null;
+}
+
+function buildOutcomeAxisLabels(rawRows) {
+    const datasetRows = rawRows.filter((r) => r.row_kind === "dataset_result");
+
+    if (!datasetRows.length) {
+        return { left: null, right: null, leftTooltip: null, rightTooltip: null };
+    }
+
+    const posLabels = [
+        ...new Set(
+            datasetRows
+                .map((r) => extractDirectionLabel(r.positive_direction_text))
+                .filter(Boolean)
+        ),
+    ];
+    const negLabels = [
+        ...new Set(
+            datasetRows
+                .map((r) => extractDirectionLabel(r.negative_direction_text))
+                .filter(Boolean)
+        ),
+    ];
+
+    return {
+        left: negLabels.length === 1 ? negLabels[0] : null,
+        right: posLabels.length === 1 ? posLabels[0] : null,
+        leftTooltip: datasetRows[0].negative_direction_text || null,
+        rightTooltip: datasetRows[0].positive_direction_text || null,
     };
 }
 
@@ -147,6 +201,7 @@ export function buildForestGenePayload(geneSymbol, apiRows) {
             outcome_type: rawRows[0].outcome_type,
             contrast_label: buildOutcomeContrastLabel(rawRows),
             summary_counts: buildSummaryCounts(rows),
+            axis_labels: buildOutcomeAxisLabels(rawRows),
             rows: [...datasetRows, ...pooledRows],
         };
     });

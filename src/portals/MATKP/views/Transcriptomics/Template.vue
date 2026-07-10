@@ -8,80 +8,161 @@
           <div class="hero-panel f-col">
             <div class="hero-row f-row">
               <div class="hero-copy f-col">
-                <h1>Bulk transcriptomic datasets viewer</h1>
-                <p>
-                  Gene-first viewer for scanning bulk RNA-seq evidence across
-                  adipose datasets. Each outcome is rendered as a compact forest
-                  plot with a matching evidence table underneath. Read each row
-                  as one dataset. The center line is the null value. Dots to the
-                  right indicate a higher estimate in the named comparison
-                  direction, dots to the left indicate a lower or opposite
-                  estimate, and orange intervals show uncertainty. If an
-                  interval crosses the center line, the row is compatible with
-                  little or no effect.
-                </p>
+                <h2>Cross-study transcriptomic evidence</h2>
+                <div style="font-size: 16px;">
+                  Search a gene to explore differential expression across curated bulk RNA-seq studies in humans and mice.<br/>
+                  See results grouped by biological outcomes, summarized across studies using meta-analysis.
+                </div>
               </div>
 
-              <div class="hero-controls f-col">
-                <div class="gene-search-header f-row">
-                  <span
-                    id="gene-search-label"
-                    class="helper-copy gene-search-header__label"
-                    >Gene:</span
-                  >
-                  <div
-                    class="gene-search-species"
-                    role="radiogroup"
-                    aria-labelledby="gene-search-label"
-                  >
-                    <label class="gene-search-species__option">
+              
+            </div>
+          </div>
+
+          <div v-if="$parent.showGeneResults" class="gene-bar">
+            <div class="hero-controls f-col">
+              <div class="gene-search-header f-row">
+                <label
+                  for="gene-search"
+                  class="gene-bar__label"
+                  >Search Gene (human or mouse)</label
+                >
+              </div>
+              <div class="gene-search-row">
+                <input
+                  id="gene-search"
+                  v-model="$parent.geneQuery"
+                  type="text"
+                  :placeholder="$parent.geneSearchPlaceholder"
+                  @keydown.enter.prevent="$parent.loadGene()"
+                />
+                <button
+                  type="button"
+                  class="action-button"
+                  :disabled="$parent.geneLoading"
+                  @click="$parent.loadGene()"
+                >
+                  Search
+                </button>
+              </div>
+              <div class="gene-search-examples helper-copy">
+                Try
+                <span
+                  v-for="(item, index) in $parent.geneExamples"
+                  :key="item.gene"
+                  class="demo-gene"
+                  @click="$parent.geneQuery = item.gene; $parent.loadGene()"
+                  >{{ item.label }}<span
+                    v-if="index < $parent.geneExamples.length - 1"
+                    > </span
+                  ></span
+                >
+              </div>
+            </div>
+            <div class="gene-bar__group">
+              <div class="gene-bar__label">Result by species</div>
+              <div
+                v-if="!$parent.geneNotFound && !$parent.geneLoading && $parent.activeGene"
+                class="species-toggle"
+              >
+                <button
+                  type="button"
+                  class="species-toggle__btn"
+                  :class="{ 'species-toggle__btn--active': $parent.viewSpecies === 'human' }"
+                  @click="$parent.setViewSpecies('human')"
+                >Human<span v-if="$parent.geneOrthologSymbols.human" class="species-toggle__symbol"> {{ $parent.geneOrthologSymbols.human }}</span></button>
+                <button
+                  type="button"
+                  class="species-toggle__btn"
+                  :class="{ 'species-toggle__btn--active': $parent.viewSpecies === 'mouse' }"
+                  @click="$parent.setViewSpecies('mouse')"
+                >Mouse<span v-if="$parent.geneOrthologSymbols.mouse" class="species-toggle__symbol"> {{ $parent.geneOrthologSymbols.mouse }}</span></button>
+              </div>
+            </div>
+
+            <div v-if="!$parent.geneNotFound && !$parent.geneLoading && $parent.activeGene" class="gene-bar__group">
+              <div class="gene-bar__label">Filter data</div>
+              <div class="gene-bar__filters">
+                <div class="filter-section">
+                  <div class="filter-section__header">
+                    <span class="filter-section__name">Datasets</span>
+                    <span class="filter-badge" :class="{ 'filter-badge--active': $parent.isDatasetFilterActive() }">{{ $parent.datasetFilterBadge() }}</span>
+                  </div>
+                  <div class="filter-flyout">
+                    <label class="filter-option filter-option--select-all">
                       <input
-                        v-model="$parent.geneSearchSpecies"
-                        type="radio"
-                        name="gene-search-species"
-                        value="human"
+                        type="checkbox"
+                        :checked="$parent.areAllDatasetsSelected()"
+                        :indeterminate.prop="$parent.isDatasetFilterIndeterminate()"
+                        @change="$parent.setAllDatasetFilters($event.target.checked)"
                       />
-                      Human
+                      <span>Select all</span>
                     </label>
-                    <label class="gene-search-species__option">
+                    <label
+                      v-for="dataset in $parent.datasetOptions"
+                      :key="dataset.id"
+                      class="filter-option"
+                    >
                       <input
-                        v-model="$parent.geneSearchSpecies"
-                        type="radio"
-                        name="gene-search-species"
-                        value="mouse"
+                        type="checkbox"
+                        :checked="$parent.datasetFilters[dataset.id]"
+                        @change="$parent.setDatasetFilter(dataset.id, $event.target.checked)"
                       />
-                      Mouse
+                      <span>{{ dataset.label }}</span>
                     </label>
                   </div>
                 </div>
-                <div class="gene-search-row">
-                  <input
-                    id="gene-search"
-                    v-model="$parent.geneQuery"
-                    type="text"
-                    :placeholder="$parent.geneSearchPlaceholder"
-                    @keydown.enter.prevent="$parent.loadGene()"
-                  />
-                  <button
-                    type="button"
-                    class="action-button"
-                    :disabled="$parent.geneLoading"
-                    @click="$parent.loadGene()"
-                  >
-                    Search
-                  </button>
+
+                <div class="filter-section">
+                  <div class="filter-section__header">
+                    <span class="filter-section__name">Depot</span>
+                    <span class="filter-badge" :class="{ 'filter-badge--active': $parent.isDepotFilterActive() }">{{ $parent.depotFilterBadge() }}</span>
+                  </div>
+                  <div class="filter-flyout">
+                    <label class="filter-option filter-option--select-all">
+                      <input
+                        type="checkbox"
+                        :checked="$parent.areAllDepotsSelected()"
+                        :indeterminate.prop="$parent.isDepotFilterIndeterminate()"
+                        @change="$parent.setAllDepotFilters($event.target.checked)"
+                      />
+                      <span>Select all</span>
+                    </label>
+                    <label
+                      v-for="depot in $parent.depotOptions"
+                      :key="depot.id"
+                      class="filter-option"
+                    >
+                      <input
+                        type="checkbox"
+                        :checked="$parent.depotFilters[depot.id]"
+                        @change="$parent.setDepotFilter(depot.id, $event.target.checked)"
+                      />
+                      <span>{{ depot.label }}</span>
+                    </label>
+                  </div>
                 </div>
-                <div class="helper-copy">
-                  Examples:
-                  <span
-                    v-for="(item, index) in $parent.geneIndex"
-                    :key="item.gene"
-                    class="demo-gene"
-                    >{{ item.gene }}<span
-                      v-if="index < $parent.geneIndex.length - 1"
-                      >, </span
-                    ></span
-                  >
+
+                <div class="filter-section">
+                  <div class="filter-section__header">
+                    <span class="filter-section__name">Adj. P-value</span>
+                    <span class="filter-badge" :class="{ 'filter-badge--active': $parent.isAdjPFilterActive() }">{{ $parent.isAdjPFilterActive() ? '≤ ' + $parent.adjPValueMax : '—' }}</span>
+                  </div>
+                  <div class="filter-flyout filter-flyout--input">
+                    <label class="filter-option-label" for="adj-p-value-filter">Max adj. P-value</label>
+                    <input
+                      id="adj-p-value-filter"
+                      v-model="$parent.adjPValueInput"
+                      class="filter-section__input"
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.001"
+                      placeholder="e.g. 0.05"
+                      @keydown.enter.prevent="$parent.applyAdjPFilter()"
+                      @blur="$parent.applyAdjPFilter()"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -89,340 +170,32 @@
 
           <div v-if="$parent.showGeneResults" class="content-grid">
             <div class="sticky-rail f-col">
-              <div class="rail-card f-col">
-                <div class="gene-display-block f-col">
-                  <div
-                    class="gene-display"
-                    :class="{ 'gene-display--empty': $parent.geneNotFound }"
-                  >
-                    {{
-                      $parent.geneLoading
-                        ? "Loading..."
-                        : $parent.geneNotFound
-                          ? "No data found"
-                          : ($parent.activeGene && $parent.activeGene.gene) || ""
-                    }}
-                  </div>
-                  <div
-                    v-if="
-                      !$parent.geneNotFound &&
-                      !$parent.geneLoading &&
-                      $parent.geneSpeciesSymbolLabel
-                    "
-                    class="gene-display__species"
-                  >
-                    ({{ $parent.geneSpeciesSymbolLabel }})
-                  </div>
-                </div>
-                <ul
-                  v-if="!$parent.geneNotFound && !$parent.geneLoading"
-                  class="gene-summary-list"
-                >
-                  <li
-                    v-for="item in $parent.geneSummaryList"
-                    :key="item"
-                  >
-                    {{ item }}
-                  </li>
-                </ul>
-              </div>
-
               <div class="rail-card rail-card--sticky f-col">
-                <div class="rail-title">Outcomes</div>
                 <div class="outcomes-list">
-                  <div class="outcomes-group-title">Filter data</div>
-
-                  <div class="outcome-filter-row outcome-filter-row--species">
-                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
-                    <span class="outcome-filter-label">
-                      Species
-                      <span
-                        v-if="$parent.isSpeciesFilterActive()"
-                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
-                        aria-hidden="true"
-                      ></span>
+                  <div class="outcomes-group-title">
+                    Outcomes
+                    <span class="outcomes-species-indicator">
+                      <button class="outcomes-species-btn" :class="{ 'outcomes-species--dimmed': $parent.viewSpecies !== 'human' }" @click="$parent.setViewSpecies('human')">Human</button>
+                      <button class="outcomes-species-btn" :class="{ 'outcomes-species--dimmed': $parent.viewSpecies !== 'mouse' }" @click="$parent.setViewSpecies('mouse')">Mouse</button>
                     </span>
-                    <b-dropdown
-                      dropright
-                      no-caret
-                      variant="link"
-                      toggle-class="outcome-filter-menu"
-                      boundary="viewport"
-                      menu-class="outcome-filter-dropdown-menu"
-                      :popper-opts="$parent.filterDropdownPopperOpts"
-                    >
-                      <template #button-content>
-                        <b-icon icon="three-dots-vertical"></b-icon>
-                      </template>
-                      <b-dropdown-form class="outcome-filter-dropdown">
-                        <b-form-checkbox
-                          size="sm"
-                          :checked="$parent.speciesFilters.human"
-                          @change="
-                            $parent.setSpeciesFilter('human', $event)
-                          "
-                        >
-                          Human
-                        </b-form-checkbox>
-                        <b-form-checkbox
-                          size="sm"
-                          :checked="$parent.speciesFilters.mouse"
-                          @change="
-                            $parent.setSpeciesFilter('mouse', $event)
-                          "
-                        >
-                          Mouse
-                        </b-form-checkbox>
-                        <b-form-checkbox
-                          size="sm"
-                          :checked="$parent.speciesFilters.other"
-                          @change="
-                            $parent.setSpeciesFilter('other', $event)
-                          "
-                        >
-                          Pooled / other
-                        </b-form-checkbox>
-                      </b-dropdown-form>
-                    </b-dropdown>
                   </div>
 
-                  <div class="outcome-filter-row outcome-filter-row--species">
-                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
-                    <span class="outcome-filter-label">
-                      Datasets
-                      <span
-                        v-if="$parent.isDatasetFilterActive()"
-                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
-                        aria-hidden="true"
-                      ></span>
-                    </span>
-                    <b-dropdown
-                      dropright
-                      no-caret
-                      variant="link"
-                      toggle-class="outcome-filter-menu"
-                      boundary="viewport"
-                      menu-class="outcome-filter-dropdown-menu"
-                      :popper-opts="$parent.filterDropdownPopperOpts"
-                    >
-                      <template #button-content>
-                        <b-icon icon="three-dots-vertical"></b-icon>
-                      </template>
-                      <b-dropdown-form class="outcome-filter-dropdown">
-                        <b-form-checkbox
-                          size="sm"
-                          class="outcome-filter-dropdown__select-all"
-                          :checked="$parent.areAllDatasetsSelected()"
-                          :indeterminate="
-                            $parent.isDatasetFilterIndeterminate()
-                          "
-                          @change="$parent.setAllDatasetFilters($event)"
-                        >
-                          Select all
-                        </b-form-checkbox>
-                        <b-form-checkbox
-                          v-for="dataset in $parent.datasetOptions"
-                          :key="dataset.id"
-                          size="sm"
-                          :checked="$parent.datasetFilters[dataset.id]"
-                          @change="
-                            $parent.setDatasetFilter(dataset.id, $event)
-                          "
-                        >
-                          {{ dataset.label }}
-                        </b-form-checkbox>
-                      </b-dropdown-form>
-                    </b-dropdown>
-                  </div>
-
-                  <div class="outcome-filter-row outcome-filter-row--species">
-                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
-                    <span class="outcome-filter-label">
-                      Depot
-                      <span
-                        v-if="$parent.isDepotFilterActive()"
-                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
-                        aria-hidden="true"
-                      ></span>
-                    </span>
-                    <b-dropdown
-                      dropright
-                      no-caret
-                      variant="link"
-                      toggle-class="outcome-filter-menu"
-                      boundary="viewport"
-                      menu-class="outcome-filter-dropdown-menu"
-                      :popper-opts="$parent.filterDropdownPopperOpts"
-                    >
-                      <template #button-content>
-                        <b-icon icon="three-dots-vertical"></b-icon>
-                      </template>
-                      <b-dropdown-form class="outcome-filter-dropdown">
-                        <b-form-checkbox
-                          size="sm"
-                          class="outcome-filter-dropdown__select-all"
-                          :checked="$parent.areAllDepotsSelected()"
-                          :indeterminate="$parent.isDepotFilterIndeterminate()"
-                          @change="$parent.setAllDepotFilters($event)"
-                        >
-                          Select all
-                        </b-form-checkbox>
-                        <b-form-checkbox
-                          v-for="depot in $parent.depotOptions"
-                          :key="depot.id"
-                          size="sm"
-                          :checked="$parent.depotFilters[depot.id]"
-                          @change="
-                            $parent.setDepotFilter(depot.id, $event)
-                          "
-                        >
-                          {{ depot.label }}
-                        </b-form-checkbox>
-                      </b-dropdown-form>
-                    </b-dropdown>
-                  </div>
-
-                  <div class="outcome-filter-row outcome-filter-row--species">
-                    <span class="outcome-filter-spacer" aria-hidden="true"></span>
-                    <span class="outcome-filter-label">
-                      Adj. P-value
-                      <span
-                        v-if="$parent.isAdjPFilterActive()"
-                        class="outcome-filter-active-dot outcome-filter-active-dot--after"
-                        aria-hidden="true"
-                      ></span>
-                    </span>
-                    <b-dropdown
-                      dropright
-                      no-caret
-                      variant="link"
-                      toggle-class="outcome-filter-menu"
-                      boundary="viewport"
-                      menu-class="outcome-filter-dropdown-menu"
-                      :popper-opts="$parent.filterDropdownPopperOpts"
-                    >
-                      <template #button-content>
-                        <b-icon icon="three-dots-vertical"></b-icon>
-                      </template>
-                      <b-dropdown-form class="outcome-filter-dropdown">
-                        <label
-                          class="outcome-filter-input-label"
-                          for="adj-p-value-filter"
-                        >
-                          Adj. P-value &lt;=
-                        </label>
-                        <input
-                          id="adj-p-value-filter"
-                          v-model="$parent.adjPValueInput"
-                          class="outcome-filter-input"
-                          type="number"
-                          min="0"
-                          max="1"
-                          step="0.001"
-                          placeholder="e.g. 0.05"
-                          @keydown.enter.prevent="$parent.applyAdjPFilter()"
-                          @blur="$parent.applyAdjPFilter()"
-                        />
-                      </b-dropdown-form>
-                    </b-dropdown>
-                  </div>
-
-                  <div class="outcomes-group-title">Show/Hide sections</div>
-
-                  <div class="outcomes-show-hide">
-                    <div class="outcome-filter-row outcome-filter-row--select-all">
-                      <b-form-checkbox
-                        class="outcome-filter-checkbox"
-                        size="sm"
-                        :checked="$parent.areAllOutcomesSelected()"
-                        :indeterminate="
-                          $parent.isOutcomeVisibilityIndeterminate()
-                        "
-                        @change="$parent.setAllOutcomeVisibility($event)"
-                      ></b-form-checkbox>
-                      <span class="outcome-filter-label">Select all</span>
-                      <span
-                        class="outcome-filter-spacer"
-                        aria-hidden="true"
-                      ></span>
-                    </div>
-                    <div
+                  <div class="outcomes-nav">
+                    <button
                       v-for="outcome in $parent.outcomes"
                       :key="outcome.outcome_id"
-                      class="outcome-filter-row"
+                      class="outcome-nav-item"
                       :class="{
-                        'outcome-filter-row--dimmed': !outcome.hasFilteredData,
+                        'outcome-nav-item--active': $parent.isOutcomeInFocus(outcome.outcome_id),
+                        'outcome-nav-item--dimmed': !outcome.hasFilteredData,
                       }"
-                    >
-                      <b-form-checkbox
-                        class="outcome-filter-checkbox"
-                        size="sm"
-                        :checked="
-                          $parent.isOutcomeVisible(outcome.outcome_id)
-                        "
-                        @change="
-                          $parent.setOutcomeVisibility(
-                            outcome.outcome_id,
-                            $event
-                          )
-                        "
-                      ></b-form-checkbox>
-                      <span class="outcome-filter-label">
-                        {{ outcome.outcome_label }}
-                        <span
-                          v-if="
-                            $parent.isOutcomeDatasetFilterActive(
-                              outcome.outcome_id
-                            )
-                          "
-                          class="outcome-filter-active-dot outcome-filter-active-dot--after"
-                          aria-hidden="true"
-                        ></span>
-                      </span>
-                      <b-dropdown
-                        dropright
-                        no-caret
-                        variant="link"
-                        toggle-class="outcome-filter-menu"
-                        boundary="viewport"
-                        menu-class="outcome-filter-dropdown-menu"
-                        :popper-opts="$parent.filterDropdownPopperOpts"
-                      >
-                        <template #button-content>
-                          <b-icon icon="three-dots-vertical"></b-icon>
-                        </template>
-                        <b-dropdown-form class="outcome-filter-dropdown">
-                          <div class="outcome-filter-dropdown__title">
-                            Datasets
-                          </div>
-                          <b-form-checkbox
-                            v-for="dataset in $parent.getOutcomeDatasetOptions(
-                              outcome
-                            )"
-                            :key="dataset.id"
-                            size="sm"
-                            :checked="
-                              $parent.isDatasetVisible(
-                                outcome.outcome_id,
-                                dataset.id
-                              )
-                            "
-                            @change="
-                              $parent.setDatasetVisibility(
-                                outcome.outcome_id,
-                                dataset.id,
-                                $event
-                              )
-                            "
-                          >
-                            {{ dataset.label }}
-                          </b-form-checkbox>
-                        </b-dropdown-form>
-                      </b-dropdown>
-                    </div>
+                      @click="$parent.navigateToOutcome(outcome)"
+                    >{{ outcome.outcome_label }}</button>
                   </div>
                 </div>
               </div>
+
+              
             </div>
 
             <div class="sections-column f-col">
@@ -443,7 +216,7 @@
                 :data-outcome-id="outcome.outcome_id"
               >
                 <div class="section-header f-row">
-                  <div class="f-col section-heading">
+                  <div class="f-row section-heading">
                     <div class="section-title">
                       <span class="section-title__label">{{
                         outcome.outcome_label
@@ -454,121 +227,200 @@
                         >({{ outcome.contrast_label }})</small
                       >
                     </div>
+                    <div v-if="outcome.supportsVolcano" class="plot-view-toggle">
+                      <button
+                        type="button"
+                        class="plot-view-btn"
+                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome.outcome_id) === 'forest' }"
+                        @click="$parent.setPlotView(outcome.outcome_id, 'forest')"
+                      >Forest</button>
+                      <button
+                        type="button"
+                        class="plot-view-btn"
+                        :class="{ 'plot-view-btn--active': $parent.getPlotView(outcome.outcome_id) === 'volcano' }"
+                        @click="$parent.setPlotView(outcome.outcome_id, 'volcano')"
+                      >Volcano</button>
+                    </div>
                   </div>
                   <div class="section-header-meta f-col">
-                    <div class="section-meta">
-                      <span
-                        >{{ outcome.summary_counts.dataset_count }} datasets</span
-                      >
-                      <span
-                        >{{ outcome.summary_counts.species_count }} species</span
-                      >
-                      <span class="section-meta__pooled pooled-emphasis"
-                        >{{
-                          outcome.summary_counts.pooled_row_count || 0
-                        }}
-                        pooled data</span
-                      >
+                    <div v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome.outcome_id) === 'forest'" class="plot-legend f-col">
+                      <div class="f-row legend-row">
+                        <div class="legend-item f-row">
+                          <span class="legend-dot"></span>
+                          <span>effect size</span>
+                        </div>
+                        <div class="legend-item f-row">
+                          <span class="legend-line"></span>
+                          <span>95% CI</span>
+                        </div>
+                      </div>
+                      <template v-if="outcome.pooledEffectLeft !== null">
+                        <div class="f-row legend-row">
+                          <div class="legend-item f-row">
+                            <span class="legend-dot legend-dot--pooled"></span>
+                            <span>pooled effect size</span>
+                          </div>
+                          <div class="legend-item f-row">
+                            <span class="legend-ref-line"></span>
+                            <span>pooled ref line</span>
+                          </div>
+                        </div>
+                        <div class="f-row legend-row">
+                          <div class="legend-item f-row">
+                            <span><span class="legend-stars">*</span>&ensp;p&lt;0.05&ensp;<span class="legend-stars">**</span>&ensp;p&lt;0.01&ensp;<span class="legend-stars">***</span>&ensp;p&lt;0.001</span>
+                          </div>
+                          pooled significance
+                        </div>
+                      </template>
                     </div>
-                    <div class="plot-legend f-row">
-                      <div class="legend-item f-row">
-                        <span class="legend-dot"></span>
-                        <span>estimate</span>
-                      </div>
-                      <div class="legend-item f-row">
-                        <span class="legend-line"></span>
-                        <span>95% CI</span>
-                      </div>
-                      <div class="legend-item f-row">
-                        <span class="legend-null"></span>
-                        <span>null</span>
+                    <div v-else class="plot-legend f-col">
+                      <div class="f-row legend-row">
+                        <div class="legend-item f-row">
+                          <span class="legend-dot" style="background:#ff6c02"></span>
+                          <span>p ≤ 0.05</span>
+                        </div>
+                        <div class="legend-item f-row">
+                          <span class="legend-dot" style="background:#bbbbbb; opacity:0.55"></span>
+                          <span>p > 0.05</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="plot-card f-col">
-                  <div class="plot-scale-row">
-                    <div></div>
-                    <div class="plot-guide">
-                      <div
-                        v-for="tick in outcome.ticks"
-                        :key="`${outcome.outcome_id}-${tick.position}`"
-                        class="tick-label"
-                        :class="{ null: Math.abs(tick.value) < 0.000001 }"
-                        :style="{ left: `${tick.position}%` }"
-                      >
-                        {{ tick.label }}
+                  <template v-if="!outcome.supportsVolcano || $parent.getPlotView(outcome.outcome_id) === 'forest'">
+                    <div
+                      v-if="outcome.axis_labels.left || outcome.axis_labels.right"
+                      class="plot-scale-row"
+                    >
+                      <div></div>
+                      <div class="plot-direction-bar">
+                        <span
+                          v-if="outcome.axis_labels.left"
+                          class="plot-direction-left"
+                        >← {{ outcome.axis_labels.left }}</span>
+                        <span
+                          v-if="outcome.axis_labels.right"
+                          class="plot-direction-right"
+                        >{{ outcome.axis_labels.right }} →</span>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="plot-rows f-col">
-                    <template
-                      v-for="item in outcome.plotRowGroups"
-                    >
-                      <div
-                        v-if="item.type === 'species-header'"
-                        :key="item.key"
-                        class="species-group-header plot-scale-row"
-                      >
+                    <div class="plot-scale-row">
+                      <div></div>
+                      <div class="plot-guide">
                         <div
-                          class="species-group-header__label"
-                          :class="item.speciesClass"
+                          v-for="tick in outcome.ticks"
+                          :key="`${outcome.outcome_id}-${tick.position}`"
+                          class="tick-label"
+                          :class="{ null: Math.abs(tick.value) < 0.000001 }"
+                          :style="{ left: `${tick.position}%` }"
                         >
-                          {{ item.label }}
+                          {{ tick.label }}
                         </div>
-                        <div></div>
                       </div>
+                    </div>
+
+                    <div class="plot-rows f-col">
                       <div
-                        v-else
+                        v-for="item in outcome.plotRowGroups"
                         :key="item.key"
                         class="plot-row"
                         :class="{ pooled: item.row.row_type === 'pooled' }"
                       >
-                        <div class="label-rail">
-                          <div
-                            class="row-title"
-                            :class="[
-                              $parent.speciesClass(item.row.species),
-                              {
-                                'pooled-emphasis':
-                                  item.row.row_type === 'pooled',
-                              },
-                            ]"
-                            v-b-tooltip.html.hover.right="
-                              $parent.rowTooltip(item.row)
-                            "
-                          >
-                            {{ item.row.display_label_short }}
+                          <div class="label-rail">
+                            <div
+                              class="row-title"
+                              :class="[
+                                $parent.speciesClass(item.row.species),
+                                {
+                                  'pooled-emphasis':
+                                    item.row.row_type === 'pooled',
+                                },
+                              ]"
+                              v-b-tooltip.html.hover.right="
+                                $parent.rowTooltip(item.row)
+                              "
+                            >
+                              {{ item.row.display_label_short }}
+                            </div>
                           </div>
-                        </div>
 
-                        <div
-                          class="plot-rail"
-                          v-b-tooltip.html.hover.top="
-                            $parent.rowTooltip(item.row)
-                          "
-                        >
-                          <div class="rail-line"></div>
-                          <div class="rail-zero"></div>
-                          <div
-                            class="ci-line"
-                            :style="{
-                              left: `${item.row.ciLeft}%`,
-                              width: `${item.row.ciWidth}%`,
-                            }"
-                          ></div>
-                          <div
-                            class="effect-marker"
-                            :class="{ pooled: item.row.row_type === 'pooled' }"
-                            :style="{
-                              left: `calc(${item.row.effectLeft}% - 7px)`,
-                            }"
-                          ></div>
-                        </div>
+                          <div class="plot-rail-wrap">
+                            <span
+                              v-if="item.row.comparison_level_a && item.row.row_type !== 'pooled'"
+                              class="level-pill level-pill--left"
+                            >{{ item.row.comparison_level_a }}</span>
+                            <div
+                              class="plot-rail"
+                              v-b-tooltip.html.hover.top="
+                                $parent.rowTooltip(item.row)
+                              "
+                            >
+                              <div class="rail-line"></div>
+                              <div class="rail-zero"></div>
+                              <div
+                                v-if="item.row.row_type !== 'pooled' && outcome.pooledEffectLeft !== null"
+                                class="pooled-ref-line"
+                                :style="{ left: `${outcome.pooledEffectLeft}%` }"
+                              ></div>
+                              <div
+                                class="ci-line"
+                                :style="{
+                                  left: `${item.row.ciLeft}%`,
+                                  width: `${item.row.ciWidth}%`,
+                                }"
+                              ></div>
+                              <div
+                                class="effect-marker"
+                                :class="{ pooled: item.row.row_type === 'pooled' }"
+                                :style="{
+                                  left: `calc(${item.row.effectLeft}% - 7px)`,
+                                }"
+                              ></div>
+                              <div
+                                v-if="item.row.row_type === 'pooled' && $parent.formatStars(item.row.p_value)"
+                                class="pooled-stars"
+                                :style="{ left: `${item.row.effectLeft}%` }"
+                              >{{ $parent.formatStars(item.row.p_value) }}</div>
+                            </div>
+                            <span
+                              v-if="item.row.comparison_level_b && item.row.row_type !== 'pooled'"
+                              class="level-pill level-pill--right"
+                            >{{ item.row.comparison_level_b }}</span>
+                          </div>
                       </div>
-                    </template>
+                    </div>
+                  </template>
+
+                  <div v-else class="volcano-section">
+                    <div class="volcano-label-col f-col">
+                      <div
+                        v-for="(row, idx) in $parent.volcanoDataRows(outcome)"
+                        :key="`vlbl-${idx}`"
+                        class="label-rail vlabel-row"
+                      >
+                        <div
+                          class="row-title"
+                          :class="[
+                            $parent.speciesClass(row.species),
+                            { 'vlabel-active': $parent.volcanoHoveredKey === $parent.volcanoRowKey(row, idx) },
+                          ]"
+                          @mouseenter="$parent.setVolcanoHoveredKey($parent.volcanoRowKey(row, idx))"
+                          @mouseleave="$parent.setVolcanoHoveredKey(null)"
+                        >{{ row.display_label_short }}</div>
+                      </div>
+                    </div>
+                    <div class="volcano-plot-col">
+                      <volcano-plot
+                        :rows="outcome.rows"
+                        :row-tooltip="$parent.rowTooltip"
+                        :hovered-key="$parent.volcanoHoveredKey"
+                        @hover="$parent.setVolcanoHoveredKey($event)"
+                        @hover-end="$parent.setVolcanoHoveredKey(null)"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -593,35 +445,61 @@
                   v-if="$parent.isOutcomeExpanded(outcome.outcome_id)"
                   class="details-card f-col"
                 >
+                  <div class="table-shadow-wrap">
                   <div class="table-wrap">
                     <table class="details-table">
+                      <colgroup>
+                        <col style="width: 150px" />
+                        <col style="width: 180px" />
+                        <col style="width: 100px" />
+                        <col style="width: 100px" />
+                        <col style="width: 100px" />
+                        <col style="width: 110px" />
+                        <col style="width: 70px" />
+                        <col style="width: 152px" />
+                        <col style="width: 75px" />
+                        <col style="width: 75px" />
+                        <col style="width: 150px" />
+                      </colgroup>
                       <thead>
                         <tr>
                           <th>Study</th>
-                          <th>Dataset ID</th>
-                          <th>Species</th>
+                          <th>Description</th>
+                          <th>Tissue</th>
                           <th>Depot</th>
+                          <th>Depot 2</th>
+                          <th>Comparison</th>
+                          <th
+                            class="th-tooltip"
+                            v-b-tooltip.hover.top="'Number of samples in each comparison group: reference (a) / treatment (b)'"
+                          >N (a / b)</th>
                           <th>Effect (95% CI)</th>
-                          <th>Adj. p</th>
-                          <th>Notes</th>
+                          <th>P-value</th>
+                          <th>Adj. P</th>
+                          <th>Method</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr
-                          v-for="row in outcome.rows"
-                          :key="`${outcome.outcome_id}-table-${row.display_label_short}-${row.row_type}`"
+                          v-for="(row, rowIndex) in outcome.rows"
+                          :key="`${outcome.outcome_id}-table-${rowIndex}`"
                           :class="{ pooled: row.row_type === 'pooled' }"
                         >
-                          <td>{{ row.display_label_medium }}</td>
-                          <td>{{ row.dataset_id || "meta-analysis" }}</td>
-                          <td>{{ row.species || "Pooled" }}</td>
-                          <td>{{ row.depot || "—" }}</td>
+                          <td class="cell-truncate" :title="row.display_label_medium">{{ row.display_label_short }}</td>
+                          <td class="cell-truncate" :title="row.dataset_name">{{ row.dataset_name || "—" }}</td>
+                          <td class="cell-truncate" :title="row.tissue">{{ row.tissue || "—" }}</td>
+                          <td class="cell-truncate" :title="row.depot">{{ row.depot || '—' }}</td>
+                          <td class="cell-truncate" :title="row.depot2">{{ row.depot2 || '—' }}</td>
+                          <td class="cell-truncate" :title="row.direction_label">{{ row.direction_label || "—" }}</td>
+                          <td class="cell-number">{{ row.n_group_a != null && row.n_group_b != null ? `${row.n_group_a} / ${row.n_group_b}` : row.n_total != null ? row.n_total : "—" }}</td>
                           <td>{{ $parent.formatEstimate(row) }}</td>
+                          <td>{{ $parent.formatPValue(row.p_value) }}</td>
                           <td>{{ $parent.formatPValue(row.p_value_adj) }}</td>
-                          <td>{{ row.note || "—" }}</td>
+                          <td class="cell-truncate" :title="row.note">{{ row.note || "—" }}</td>
                         </tr>
                       </tbody>
                     </table>
+                  </div>
                   </div>
                 </div>
               </section>
@@ -642,15 +520,20 @@
   margin: 0 auto;
 }
 
-.hero-panel,
 .rail-card,
 .outcome-section {
   background: #ffffffcc;
 }
 
+.gene-display__species {
+  font-size: 0.65em;
+  font-weight: 400;
+  color: #666666;
+}
+
 .hero-panel {
   gap: 14px;
-  padding: 28px;
+  padding: 0 0 25px;
 }
 
 .hero-row {
@@ -659,7 +542,6 @@
 }
 
 .hero-copy {
-  gap: 8px;
   max-width: 760px;
 }
 
@@ -671,22 +553,19 @@
 
 .hero-copy p {
   margin: 0;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.45;
-  max-width: 680px;
 }
 
 .hero-controls {
-  gap: 6px;
-  min-width: 340px;
-  width: 340px;
+  gap: 4px;
+  width: 240px;
 }
 
 .gene-search-header {
   align-items: center;
   gap: 10px;
   margin: 0;
-  margin-bottom: -12px;
 }
 
 .gene-search-header__label {
@@ -714,13 +593,20 @@
   margin: 0;
 }
 
+.gene-search-examples{
+  display:flex;
+  gap:5px;
+}
+
 .helper-copy {
   color: #555555;
   font-size: 12px;
 }
 
 .demo-gene {
+  cursor: pointer;
   font-weight: 700;
+  text-underline-offset: 2px;
 }
 
 .gene-search-row {
@@ -728,6 +614,10 @@
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) auto;
   margin: 0;
+}
+
+#gene-search{
+  height: 36px;
 }
 
 .hero-controls > .helper-copy {
@@ -742,16 +632,21 @@
 
 .sticky-rail {
   gap: 14px;
+  position: sticky;
+  top: calc(var(--gene-bar-height, 48px) + 14px);
+  align-self: flex-start;
+  max-height: calc(100vh - var(--gene-bar-height, 48px) - 28px);
+  overflow-y: auto;
 }
 
 .rail-card {
   gap: 10px;
-  padding: 16px;
+  padding: 16px 16px 16px 25px;
 }
 
 .rail-card--sticky {
   position: sticky;
-  top: 20px;
+  top: calc(var(--gene-bar-height, 48px) + 14px);
   width: 100%;
 }
 
@@ -762,11 +657,83 @@
   font-weight: 700;
 }
 
-.gene-display-block {
-  font-size: 18px;
+.gene-bar {
+  align-items: flex-start;
+  background: #ffffffee;
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+  padding: 10px 25px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.gene-bar__identity {
+  font-size: 20px;
   font-weight: 700;
   gap: 2px;
   line-height: 1.1;
+}
+
+.gene-bar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gene-bar__label {
+  color: #999999;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gene-bar__filters {
+  display: flex;
+  gap: 0;
+}
+
+.gene-bar .filter-section {
+  border-bottom: none;
+  border-right: 1px solid #dddddd;
+}
+
+.species-toggle {
+  display: flex;
+  overflow: hidden;
+  width: 240px;
+}
+
+.species-toggle__btn {
+  border: 0;
+  color: #555555;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 12px;
+  flex: 1;
+}
+
+.species-toggle__btn:not(.species-toggle__btn--active):hover{
+  background: #fee6d7;
+}
+
+.species-toggle__btn--active {
+  background: #ff6c02;
+  color: #ffffff;
+}
+
+.species-toggle__symbol {
+  font-weight: 600;
+  opacity: 0.85;
+  font-size: 16px;
 }
 
 .gene-display {
@@ -775,21 +742,26 @@
   line-height: inherit;
 }
 
-.gene-display__species {
-  font-size: 0.75em;
-  font-weight: inherit;
-}
-
 .gene-display--empty {
   color: #555555;
 }
 
 .gene-summary-list {
+  align-items: center;
   color: #555555;
+  display: flex;
+  flex-wrap: wrap;
   font-size: 13px;
-  line-height: 1.5;
-  margin: 0;
-  padding-left: 18px;
+  gap: 0 12px;
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+
+.gene-summary-list li + li::before {
+  content: "|";
+  margin-right: 12px;
+  opacity: 0.4;
 }
 
 .outcomes-list {
@@ -798,50 +770,77 @@
 }
 
 .outcomes-group-title {
+  align-items: center;
   color: #555555;
+  display: flex;
   font-size: 11px;
   font-weight: 700;
+  gap: 6px;
+  justify-content: space-between;
   letter-spacing: 0.04em;
   margin: 10px 0 4px;
   text-transform: uppercase;
+}
+
+.outcomes-species-indicator {
+  display: flex;
+  gap: 4px;
+}
+
+.outcomes-species-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  text-transform: inherit;
+}
+
+.outcomes-species-btn:hover {
+  color: #ff6c02;
+}
+
+.outcomes-species--dimmed {
+  opacity: 0.3;
 }
 
 .outcomes-group-title:first-child {
   margin-top: 0;
 }
 
-.outcomes-show-hide {
-  padding-left: 12px;
+.outcomes-nav {
+  display: flex;
+  flex-direction: column;
 }
 
-.outcome-filter-input-label {
-  color: #000000;
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
+.outcome-nav-item {
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  color: #333333;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.25;
-  margin-bottom: 6px;
+  padding: 6px 0 6px 10px;
+  text-align: left;
 }
 
-.outcome-filter-input {
-  border: 1px solid #dddddd;
-  border-radius: 4px;
-  font-size: 13px;
-  line-height: 1.25;
-  padding: 4px 6px;
-  width: 100%;
+.outcome-nav-item:hover {
+  color: #ff6c02;
 }
 
-.outcome-filter-input[type="number"] {
-  appearance: textfield;
-  -moz-appearance: textfield;
+.outcome-nav-item--active {
+  border-left-color: #ff6c02;
+  color: #ff6c02;
 }
 
-.outcome-filter-input[type="number"]::-webkit-outer-spin-button,
-.outcome-filter-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.outcome-nav-item--dimmed {
+  opacity: 0.35;
 }
+
 
 .outcome-filter-active-dot {
   background: #ff6c02;
@@ -858,29 +857,132 @@
   margin-right: 0;
 }
 
-.outcome-filter-row {
-  align-items: center;
-  background: none;
-  border: none;
-  border-bottom: solid 1px #dddddd;
-  border-radius: 0;
-  display: grid;
-  gap: 0 10px;
-  grid-template-columns: 1.1rem 1fr 1.1rem;
-  min-height: 38px;
-  padding: 0;
+.filter-section {
+  border-bottom: 1px solid #dddddd;
+  position: relative;
 }
 
-.outcome-filter-row--species {
-  grid-template-columns: 1.1rem 1fr 1.1rem;
+.filter-section__header {
+  align-items: center;
+  background: #eeeeee;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 6px 10px;
+}
+
+.filter-section__name {
+  flex: 1;
+}
+
+.filter-badge {
+  background: #ffffff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.filter-badge--active {
+  background: #ff6c02;
+  color: #ffffff;
+}
+
+.filter-section:hover .filter-badge:not(.filter-badge--active) {
+  outline: 2px solid #ff6c02;
+}
+
+.filter-flyout {
+  background: #ffffff;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.15);
+  display: none;
+  flex-direction: column;
+  left: 0;
+  max-height: 500px;
+  min-width: 200px;
+  width: max-content;
+  overflow-y: auto;
+  padding: 8px 0;
+  position: absolute;
+  top: 100%;
+  z-index: 100;
+}
+
+.filter-flyout--input {
+  padding: 10px 12px;
+}
+
+.filter-section:hover .filter-flyout {
+  display: flex;
+}
+
+.filter-option {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 8px;
+  min-height: 28px;
+  padding: 2px 12px;
+}
+
+.filter-option:hover {
+  background: #f5f5f5;
+}
+
+.filter-option--select-all {
+  border-bottom: 1px solid #eeeeee;
+  color: #555555;
+  font-weight: 700;
+  margin-bottom: 4px;
+  padding-bottom: 8px;
+}
+
+.filter-option-label {
+  color: #555555;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.filter-section__input {
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  font-size: 13px;
+  padding: 4px 6px;
+  width: 160px;
+}
+
+.filter-section__input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.filter-section__input[type="number"]::-webkit-outer-spin-button,
+.filter-section__input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.outcome-filter-row {
+  align-items: center;
+  border-bottom: solid 1px #dddddd;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0;
 }
 
 .outcome-filter-row--dimmed {
   opacity: 0.4;
-}
-
-.outcome-filter-spacer {
-  width: 1.1rem;
 }
 
 .outcome-filter-label {
@@ -895,138 +997,8 @@
 }
 
 .outcome-filter-checkbox {
-  justify-self: start;
-  line-height: 1;
+  flex-shrink: 0;
   margin: 0;
-  min-height: 0;
-  padding: 0;
-}
-
-.outcome-filter-checkbox :deep(.custom-control) {
-  margin: 0;
-  min-height: 0.64rem;
-  padding-left: 0.64rem;
-}
-
-.outcome-filter-checkbox :deep(.custom-control-label) {
-  min-height: 0.64rem;
-  padding: 0;
-}
-
-.outcome-filter-checkbox :deep(.custom-control-label::before),
-.outcome-filter-checkbox :deep(.custom-control-label::after) {
-  height: 0.64rem;
-  left: -0.64rem;
-  top: 0;
-  width: 0.64rem;
-}
-
-.outcome-filter-menu {
-  align-items: center;
-  color: #999999;
-  display: inline-flex;
-  font-size: 15px;
-  height: 24px;
-  justify-content: center;
-  justify-self: end;
-  line-height: 1;
-  min-width: 24px;
-  padding: 0;
-  text-decoration: none;
-}
-
-.outcome-filter-menu:hover,
-.outcome-filter-menu:focus,
-.outcome-filter-menu:active {
-  background: transparent;
-  box-shadow: none;
-  color: #999999;
-  text-decoration: none;
-}
-
-.outcome-filter-row :deep(.outcome-filter-menu .b-icon) {
-  color: #999999;
-}
-
-.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu),
-.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu .b-icon),
-.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:hover),
-.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:focus),
-.outcome-filter-row :deep(.dropdown.show .outcome-filter-menu:active) {
-  color: #ff6c02;
-}
-
-.outcome-filter-row :deep(.dropdown) {
-  justify-self: end;
-  line-height: 1;
-}
-
-.outcome-filter-row :deep(.btn-link) {
-  border: 0;
-}
-
-:deep(.outcome-filter-dropdown-menu) {
-  border: 1px solid #dddddd;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  margin: 0;
-  max-height: calc(100vh - 16px);
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: 0;
-}
-
-:deep(.outcome-filter-dropdown) {
-  font-size: 13px;
-  line-height: 1.35;
-  min-width: 168px;
-  padding: 6px 10px;
-}
-
-:deep(.outcome-filter-dropdown__title) {
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-:deep(.outcome-filter-dropdown__placeholder) {
-  color: #555555;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-:deep(.outcome-filter-dropdown .custom-checkbox) {
-  align-items: center;
-  display: flex;
-  margin-bottom: 10px;
-  min-height: 0;
-  padding-left: calc(0.6rem + 8px);
-}
-
-:deep(.outcome-filter-dropdown .custom-checkbox:last-child) {
-  margin-bottom: 0;
-}
-
-:deep(.outcome-filter-dropdown .custom-control-label) {
-  align-items: center;
-  display: inline-flex;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 0;
-  min-height: 0.6rem;
-  padding-left: 0rem;
-  padding-top: 0;
-  position: relative;
-}
-
-:deep(.outcome-filter-dropdown .custom-control-label::before),
-:deep(.outcome-filter-dropdown .custom-control-label::after) {
-  height: 0.6rem;
-  left: calc(-0.6rem - 8px);
-  margin-top: -0.3rem;
-  top: 50%;
-  width: 0.6rem;
 }
 
 .action-button {
@@ -1055,14 +1027,14 @@
 
 .outcome-section {
   gap: 12px;
-  padding: 20px 24px;
+  padding: 20px 25px;
 }
 
 .section-header {
   background: transparent;
   padding: 0;
   text-align: left;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   justify-content: space-between;
   width: 100%;
@@ -1084,13 +1056,7 @@
 }
 
 .section-title__contrast {
-  color: #555555;
-  display: inline-block;
-  font-size: 0.75em;
-  font-weight: 700;
-  margin-left: 0.3em;
-  max-width: 100%;
-  vertical-align: baseline;
+  display: none;
 }
 
 .section-header-meta {
@@ -1145,8 +1111,27 @@
   font-weight: 700;
 }
 
+.plot-direction-bar {
+  align-items: center;
+  color: #333333;
+  display: flex;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.plot-direction-left,
+.plot-direction-right {
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .plot-rows {
-  gap: 2px;
+  gap: 0px;
 }
 
 .plot-row {
@@ -1154,11 +1139,39 @@
   display: grid;
   gap: 8px;
   grid-template-columns: 220px minmax(0, 1fr);
-  min-height: 24px;
+  min-height: 20px;
 }
 
 .label-rail {
   min-width: 0;
+}
+
+.plot-rail-wrap {
+  overflow: visible;
+  position: relative;
+}
+
+.level-pill {
+  background: #f0f0f0;
+  border-radius: 4px;
+  color: #444444;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.level-pill--left {
+  left: 0;
+}
+
+.level-pill--right {
+  right: 0;
 }
 
 .species-group-header {
@@ -1193,6 +1206,7 @@
   background: #f2f2f2;
 }
 
+/*
 .row-title.human {
   border-left: solid 3px #ffe7cf;
   padding-left: 5px;
@@ -1207,6 +1221,7 @@
   border-left: solid 3px #f2f2f2;
   padding-left: 5px;
 }
+*/
 
 .row-title {
   font-size: 12px;
@@ -1239,17 +1254,25 @@
 
 .rail-zero {
   background: #424242;
-  bottom: 2px;
   left: 50%;
-  top: 2px;
   transform: translateX(-50%);
   width: 1px;
+  height: 130%;
+}
+
+.pooled-ref-line {
+  border-left: 2px dotted rgba(255, 108, 2, 0.45);
+  bottom: -10px;
+  pointer-events: none;
+  position: absolute;
+  top: -1px;
+  transform: translateX(-3px);
 }
 
 .ci-line {
   background: #ff6c02;
   border-radius: 999px;
-  height: 3px;
+  height: 1px;
   position: absolute;
   top: 8px;
 }
@@ -1269,11 +1292,25 @@
   border-color: #424242;
 }
 
-.plot-legend {
-  align-items: center;
-  color: #555555;
-  flex-wrap: wrap;
+.pooled-stars {
+  color: #ff6c02;
   font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  position: absolute;
+  top: 17px;
+  transform: translateX(-65%);
+}
+
+.plot-legend {
+  align-items: flex-end;
+  color: #555555;
+  font-size: 11px;
+}
+
+.legend-row {
+  align-items: center;
   gap: 12px;
   justify-content: flex-end;
 }
@@ -1288,8 +1325,14 @@
   border: 2px solid #ffe514;
   border-radius: 999px;
   display: inline-block;
+  flex-shrink: 0;
   height: 10px;
   width: 10px;
+}
+
+.legend-dot--pooled {
+  background: #ff6c02;
+  border-color: #424242;
 }
 
 .legend-line {
@@ -1298,6 +1341,19 @@
   display: inline-block;
   height: 3px;
   width: 18px;
+}
+
+.legend-ref-line {
+  border-left: 2px dotted rgba(255, 108, 2, 0.6);
+  display: inline-block;
+  flex-shrink: 0;
+  height: 14px;
+  width: 0;
+}
+
+.legend-stars {
+  color: #ff6c02;
+  font-weight: 700;
 }
 
 .legend-null {
@@ -1362,6 +1418,18 @@
   border-bottom-color: #dddddd !important;
 }
 
+:global(.plot-tooltip__pill) {
+  background: #f0f0f0;
+  border-radius: 4px;
+  color: #444444;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  white-space: nowrap;
+}
+
 :global(.plot-tooltip) {
   display: flex;
   flex-direction: column;
@@ -1374,10 +1442,21 @@
   line-height: 1.35;
 }
 
+:global(.plot-tooltip__description) {
+  color: #555555;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+:global(.plot-tooltip__divider) {
+  border-top: 1px solid #eeeeee;
+  margin: 2px 0;
+}
+
 :global(.plot-tooltip__row) {
   display: grid;
   gap: 12px;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 60px minmax(0, 1fr);
 }
 
 :global(.plot-tooltip__label) {
@@ -1392,10 +1471,30 @@
   line-height: 1.35;
 }
 
+.table-shadow-wrap {
+  position: relative;
+}
+
+.table-shadow-wrap::after {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+  bottom: 0;
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 12px;
+  z-index: 10;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
 .details-table {
   border-collapse: collapse;
-  min-width: 100%;
-  width: 100%;
+  table-layout: fixed;
+  width: max-content;
 }
 
 .details-table th,
@@ -1405,7 +1504,7 @@
   line-height: 1.4;
   padding: 8px 10px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .details-table th {
@@ -1414,9 +1513,98 @@
   text-transform: uppercase;
 }
 
+.th-tooltip {
+  cursor: help;
+  text-decoration: underline dotted #666666;
+  text-underline-offset: 3px;
+}
+
+.details-table th:first-child,
+.details-table td:first-child {
+  background: #ffffff;
+  left: 0;
+  position: sticky;
+  z-index: 1;
+}
+
+.details-table th:first-child {
+  background: #f2f2f2;
+}
+
 .details-table tr.pooled td {
   background: #fff9d9;
   font-weight: 700;
+}
+
+.details-table tr.pooled td:first-child {
+  background: #fff9d9;
+}
+
+.cell-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-number {
+  text-align: right;
+}
+
+.volcano-section {
+  align-items: flex-start;
+  display: flex;
+}
+
+.volcano-label-col {
+  flex-shrink: 0;
+  padding: 20px 0 0;
+  width: 220px;
+  height: 320px;
+  overflow: scroll;
+}
+
+.vlabel-row {
+  align-items: center;
+  display: flex;
+  min-height: 20px;
+  padding: 2px 0;
+}
+
+.vlabel-active {
+  background: #fff4ee;
+  color: #cc4400;
+}
+
+.volcano-plot-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.plot-view-toggle {
+  display: flex;
+  margin-left: 6px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.plot-view-btn {
+  background: #eeeeee;
+  border: none;
+  color: #666666;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 10px;
+}
+
+.plot-view-btn + .plot-view-btn {
+  border-left: 1px solid #dddddd;
+}
+
+.plot-view-btn--active {
+  background: #ff6c02;
+  color: #ffffff;
 }
 
 @media (max-width: 1280px) {
