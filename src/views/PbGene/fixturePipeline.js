@@ -5,8 +5,11 @@ let applyPortalGeneData = null;
 try {
     // This optional generated file is local-only. A fresh shared checkout should
     // build without it and fall back to mockData.
-    const generatedFixtures = require.context(".", false, /^\.\/portalGeneData\.generated\.js$/);
-    if (generatedFixtures.keys().includes("./portalGeneData.generated.js")) {
+    const enableLocalFixture = process.env.VUE_APP_PB_GENE_LOCAL_FIXTURE === "true";
+    const generatedFixtures = enableLocalFixture
+        ? require.context(".", false, /^\.\/portalGeneData\.generated\.js$/)
+        : { keys: () => [] };
+    if (enableLocalFixture && generatedFixtures.keys().includes("./portalGeneData.generated.js")) {
         const mod = generatedFixtures("./portalGeneData.generated.js");
         applyPortalGeneData = mod.applyPortalGeneData;
     }

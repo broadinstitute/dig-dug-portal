@@ -413,6 +413,15 @@ module.exports = {
         headers: {
             "Access-Control-Allow-Origin": "*",
         },
+        proxy: process.env.BIOINDEX_HOST_PRIVATE
+            ? {
+                "/__bioindex_private__": {
+                    target: process.env.BIOINDEX_HOST_PRIVATE,
+                    changeOrigin: true,
+                    pathRewrite: { "^/__bioindex_private__": "" },
+                },
+            }
+            : {},
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
@@ -421,6 +430,9 @@ module.exports = {
         //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
+        let bioindex_host_private_browser =
+            process.env.BIOINDEX_HOST_PRIVATE_BROWSER ||
+            (process.env.BIOINDEX_HOST_PRIVATE ? "/__bioindex_private__" : bioindex_host_private);
 
         if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
             bioindex_host =
@@ -431,7 +443,7 @@ module.exports = {
 
         // output which vue config file and bioindex is being used
         console.log(
-            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private}`
+            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private} via ${bioindex_host_private_browser}`
         );
 
         // add the transform rule for bioindex
@@ -451,7 +463,7 @@ module.exports = {
             loader: "string-replace-loader",
             options: {
                 search: "SERVER_IP_PRIVATE",
-                replace: bioindex_host_private,
+                replace: bioindex_host_private_browser,
                 flags: "g",
             },
         });

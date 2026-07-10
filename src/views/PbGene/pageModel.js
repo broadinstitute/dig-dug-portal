@@ -3,21 +3,26 @@ import {
     geneCarrierDemographics, geneLevelPhenotypeCategories, geneLevelCoCarrierGenes,
 } from "./mockData";
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
+import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
 
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
     const query = normalizeGeneQuery(params.get("query") || fixtureGeneSymbol || geneInfo.symbol);
+    const mockSymbol = normalizeGeneQuery(geneInfo.symbol);
+    const useMockBase = fixtureLoaded || query === mockSymbol;
 
     // Base state from mockData
-    const base = {
-        geneInfo: { ...geneInfo, symbol: query },
-        crdcEvidence,
-        genomeWindow,
-        variantRows,
-        geneCarrierDemographics,
-        geneLevelPhenotypeCategories,
-        geneLevelCoCarrierGenes,
-    };
+    const base = useMockBase
+        ? {
+            geneInfo: { ...geneInfo, symbol: query },
+            crdcEvidence,
+            genomeWindow,
+            variantRows,
+            geneCarrierDemographics,
+            geneLevelPhenotypeCategories,
+            geneLevelCoCarrierGenes,
+        }
+        : createUnavailableGeneState(query);
 
     // Apply RDS fixture if available (overrides mockData)
     const resolved = fixtureLoaded ? applyPbGeneFixturePipeline(base, query) : base;
@@ -44,6 +49,8 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         searchGeneQuery: query,
         searchGeneLoading: false,
         searchGeneError: "",
+        liveDataLoaded: false,
+        liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
 
         // Variants sub-accordion
         expandedVariantId: null,
@@ -66,6 +73,7 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier table "show more" (+5 increments)
         showCountCarrierMap:  {},   // variantId → count shown
         showCountGeneCarriers: 5,
+        showCountVariants: 10,
 
         // Expandable phenotype categories
         expandedPhenoCategories: {},
@@ -87,6 +95,60 @@ function normalizeGeneQuery(value) {
     return String(value || "").trim().toUpperCase();
 }
 
+function createUnavailableGeneState(query) {
+    return {
+        geneInfo: {
+            ...geneInfo,
+            symbol: query,
+            fullName: "Unavailable until private BioIndex responds",
+            description: "Live private BioIndex data has not loaded for this gene.",
+            cytogeneticLocation: "",
+            ensemblId: "Unavailable",
+            chromosome: "",
+            location: "Unavailable",
+            strand: "+",
+            omim: "Unavailable",
+            referenceAnnotation: {
+                ddg2p: { support: false, confidenceCategories: null, diseaseNames: null, source: "DDG2P" },
+                panelapp: { greenSupport: false, panelCount: 0, modesOfInheritance: null, source: "PanelApp" },
+                pathways: {
+                    count: 0,
+                    reactomeCount: 0,
+                    wikipathwaysCount: 0,
+                    displayNames: [],
+                    allNames: [],
+                    items: [],
+                    moreCount: 0,
+                    source: "Reactome / WikiPathways",
+                },
+            },
+        },
+        crdcEvidence: {
+            currentGeneCarrierTotal: 0,
+            queriedVariantCarriers: 0,
+            variantCount: 0,
+            probands: null,
+            affected: null,
+            genDxDiagnosed: null,
+            overallBurdenMatchScore: null,
+            topVariantSignal: { score: null, variant: "-" },
+            topCarrierTerms: [],
+        },
+        genomeWindow: {
+            axisTicks: [],
+            exons: [],
+            markers: [],
+            densityAll: Array.from({ length: 50 }, () => 0),
+            densityProband: Array.from({ length: 50 }, () => 0),
+            queryDensityIndex: 0,
+        },
+        variantRows: [],
+        geneCarrierDemographics: { byAge: [], bySex: [], byAffected: [], byProband: [], byInvestigator: [] },
+        geneLevelPhenotypeCategories: [],
+        geneLevelCoCarrierGenes: [],
+    };
+}
+
 const ZOOM_HALF_WINDOWS = [25, 13, 7, 4, 2]; // (legacy) bins on each side
 // Single coordinate system, zoom-driven window WIDTH in bp.
 // L1 = whole gene · L2 = 5 kb · L3 = 500 bp · L4 = 100 bp · L5 = ±25 bp.
@@ -95,6 +157,7 @@ const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
 const TERMS_LIMIT    = 5;
 const CARRIER_LIMIT  = 5;
+const VARIANT_LIMIT  = 10;
 const PHENO_CAT_LIMIT = 5;
 const SUMMARY_PHENO_LIMIT = 4;
 const SUMMARY_GENE_LIMIT = 6;
@@ -1338,6 +1401,14 @@ export const pbGeneComputed = {
         return (this.geneLevelPhenotypeCategories || []).slice(0, 4);
     },
 
+    visibleVariantRows() {
+        return (this.variantRows || []).slice(0, this.showCountVariants || VARIANT_LIMIT);
+    },
+
+    hiddenVariantCount() {
+        return Math.max(0, (this.variantRows || []).length - (this.showCountVariants || VARIANT_LIMIT));
+    },
+
     pathwayDetailItems() {
         const pathways = (this.geneInfo.referenceAnnotation || {}).pathways || {};
         if (Array.isArray(pathways.items) && pathways.items.length) {
@@ -1394,6 +1465,14 @@ export const pbGeneComputed = {
 };
 
 export const pbGeneMethods = {
+    displayMetric(value) {
+        return value == null || value === "" ? "Unavailable" : value;
+    },
+
+    isUnavailableValue(value) {
+        return value == null || value === "" || String(value).toLowerCase() === "unavailable";
+    },
+
     shortPhenotypeCategory(label) {
         const withoutId = String(label || "").replace(/\s*\[[^\]]+\]\s*$/, "").trim();
         const simplified = withoutId
@@ -1432,19 +1511,7 @@ export const pbGeneMethods = {
         this.searchGeneLoading = true;
         this.searchGeneError = "";
         try {
-            const payload = await this.fetchLocalGeneFixture(query);
-            const geneState = payload.gene || payload;
-            const resolvedSymbol = normalizeGeneQuery((geneState.geneInfo || {}).symbol || query);
-            const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, new URLSearchParams());
-            Object.keys(nextState).forEach(key => {
-                this[key] = nextState[key];
-            });
-            const url = new URL(window.location.href);
-            url.pathname = "/pb_Gene.html";
-            url.searchParams.set("query", resolvedSymbol);
-            url.searchParams.delete("locus");
-            url.searchParams.delete("locusView");
-            window.history.pushState({}, "", url.toString());
+            await this.loadLiveGeneData(query, true);
         } catch (error) {
             this.searchGeneError = String(error && error.message ? error.message : error);
         } finally {
@@ -1452,25 +1519,36 @@ export const pbGeneMethods = {
         }
     },
 
-    async fetchLocalGeneFixture(query) {
-        const endpoint = window.PB_GENE_FIXTURE_ENDPOINT || "http://127.0.0.1:8091/pb-gene-fixture";
-        const url = new URL(endpoint);
-        url.searchParams.set("gene", query);
-        const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
-        const bodyText = await response.text();
-        let payload = null;
+    async loadLiveGeneData(queryOverride = null, updateUrl = false) {
+        const query = normalizeGeneQuery(queryOverride || this.searchGeneQuery || (this.geneInfo || {}).symbol);
+        if (!query) return;
+        this.searchGeneLoading = true;
+        this.searchGeneError = "";
         try {
-            payload = bodyText ? JSON.parse(bodyText) : null;
+            const geneState = await fetchPbGeneBioIndexState(query);
+            const resolvedSymbol = normalizeGeneQuery((geneState.geneInfo || {}).symbol || query);
+            const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, new URLSearchParams());
+            Object.keys(nextState).forEach(key => {
+                this[key] = nextState[key];
+            });
+            this.liveDataLoaded = true;
+            this.liveDataSource = "private BioIndex";
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.pathname = "/pb_Gene.html";
+                url.searchParams.set("query", resolvedSymbol);
+                url.searchParams.delete("locus");
+                url.searchParams.delete("locusView");
+                window.history.pushState({}, "", url.toString());
+            }
         } catch (error) {
-            throw new Error("Local pb_Gene fixture helper returned invalid JSON.");
+            this.liveDataLoaded = false;
+            this.liveDataSource = "mock fallback";
+            this.searchGeneError = String(error && error.message ? error.message : error);
+            throw error;
+        } finally {
+            this.searchGeneLoading = false;
         }
-        if (!response.ok) {
-            throw new Error((payload && (payload.detail || payload.error)) || `Fixture helper failed for ${query}.`);
-        }
-        if (!payload || !payload.gene || !payload.gene.geneInfo) {
-            throw new Error(`No pb_Gene fixture returned for ${query}.`);
-        }
-        return payload;
     },
 
     // ── gene-level tab ────────────────────────────────────────────────────────
@@ -1655,6 +1733,13 @@ export const pbGeneMethods = {
 
     showLessGeneCarriers() {
         this.showCountGeneCarriers = 5;
+    },
+
+    showMoreVariants() {
+        this.showCountVariants = Math.min(
+            (this.showCountVariants || VARIANT_LIMIT) + VARIANT_LIMIT,
+            (this.variantRows || []).length
+        );
     },
 
     // ── expandable phenotype categories ───────────────────────────────────────

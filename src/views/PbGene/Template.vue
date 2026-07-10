@@ -115,17 +115,17 @@
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.affected" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.affected }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.affected) }">{{ displayMetric(crdcEvidence.affected) }}</strong>
                                 <em>Affected</em>
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.probands" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.probands }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.probands) }">{{ displayMetric(crdcEvidence.probands) }}</strong>
                                 <em>Probands</em>
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.gendx" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.genDxDiagnosed }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.genDxDiagnosed) }">{{ displayMetric(crdcEvidence.genDxDiagnosed) }}</strong>
                                 <em>GenDx diagnosed</em>
                             </div>
                             <div class="pbg-metric-item">
@@ -495,7 +495,7 @@
                             <span>Match score <em>CRDC</em></span>
                         </div>
 
-                        <template v-for="row in variantRows">
+                        <template v-for="row in visibleVariantRows">
                             <div :key="row.id"
                                  :data-variant-id="row.id"
                                  class="pbg-ve-row"
@@ -510,7 +510,7 @@
                                     <small v-if="variantAffectedCount(row)">({{ variantAffectedCount(row) }} affected)</small>
                                 </span>
                                 <span class="pbg-ve-af">
-                                    {{ crdcAF(row) }}
+                                    <span :class="{ 'pbg-unavailable-inline': isUnavailableValue(crdcAF(row)) }">{{ crdcAF(row) }}</span>
                                     <small v-if="variantHasHighAf(row)" class="pbg-af-warning-badge" :title="variantAfWarningText(row)">High AF</small>
                                 </span>
                                 <span class="pbg-ve-classification">
@@ -583,6 +583,12 @@
                                 </div>
                             </div>
                         </template>
+                        <button v-if="hiddenVariantCount"
+                                class="pbg-show-more-btn pbg-show-more-btn--variants"
+                                type="button"
+                                @click.stop="showMoreVariants">
+                            +10 more ({{ hiddenVariantCount }} remaining)
+                        </button>
                     </div>
                 </section>
 
@@ -617,6 +623,9 @@ export default {
             ...createPbGeneState(),
             metricIcons,
         };
+    },
+    mounted() {
+        this.loadLiveGeneData(this.searchGeneQuery, false).catch(() => {});
     },
     computed: pbGeneComputed,
     methods: pbGeneMethods,
