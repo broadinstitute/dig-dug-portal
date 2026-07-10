@@ -2975,7 +2975,7 @@
 .pbg-ve-table-head,
 .pbg-ve-row {
     display: grid;
-    grid-template-columns: 1.5rem minmax(13rem, 1.45fr) minmax(8.5rem, 0.85fr) minmax(8.5rem, 0.85fr) minmax(10.5rem, 1.05fr) minmax(8rem, 0.75fr) minmax(9rem, 0.8fr);
+    grid-template-columns: 1.5rem minmax(13rem, 1.45fr) minmax(8.5rem, 0.85fr) minmax(8.5rem, 0.85fr) minmax(10rem, 1fr) minmax(9.5rem, 0.82fr) minmax(9.5rem, 0.85fr);
     align-items: center;
     gap: 0.6rem;
 }
@@ -2992,33 +2992,39 @@
 
 .pbg-ve-table-head em {
     display: inline-block;
-    margin-left: 0.25rem;
-    padding: 0.05rem 0.28rem;
+    margin-left: 0.2rem;
+    padding: 0.03rem 0.26rem;
     border-radius: 0.22rem;
     background: #14213d;
     color: #fff;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-style: normal;
     letter-spacing: 0;
+    line-height: 1.05;
+    vertical-align: 0.08rem;
 }
 
 .pbg-ve-sort {
     all: unset;
-    position: relative;
-    display: block;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.22rem;
     min-width: 0;
-    padding-right: 0.7rem;
     cursor: pointer;
+    line-height: 1.15;
+}
+
+.pbg-ve-sort > span {
+    min-width: 0;
 }
 
 .pbg-ve-sort i {
-    position: absolute;
-    top: 0.05rem;
-    right: 0;
+    flex: 0 0 auto;
     color: #1d4ed8;
     font-size: 0.72rem;
     font-style: normal;
-    line-height: 1;
+    line-height: 1.15;
+    padding-top: 0.02rem;
 }
 
 .pbg-ve-sort:focus-visible {

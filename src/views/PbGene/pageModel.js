@@ -87,8 +87,8 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier samples sort
         sortKey: null,
         sortDir: "asc",
-        variantSortKey: null,
-        variantSortDir: "asc",
+        variantSortKey: "variantScore",
+        variantSortDir: "desc",
     };
 }
 
@@ -1837,7 +1837,7 @@ export const pbGeneMethods = {
             this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
         } else {
             this.variantSortKey = key;
-            this.variantSortDir = "asc";
+            this.variantSortDir = key === "variantScore" ? "desc" : "asc";
         }
     },
 

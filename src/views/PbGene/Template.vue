@@ -489,22 +489,22 @@
                         <div class="pbg-ve-table-head">
                             <span></span>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')">
-                                Variant <i>{{ variantSortIndicator('variant') }}</i>
+                                <i>{{ variantSortIndicator('variant') }}</i><span>Variant</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">
-                                Carriers (affected) <i>{{ variantSortIndicator('carriers') }}</i>
+                                <i>{{ variantSortIndicator('carriers') }}</i><span>Carriers (affected)</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('crdcAF')">
-                                CRDC AF <i>{{ variantSortIndicator('crdcAF') }}</i>
+                                <i>{{ variantSortIndicator('crdcAF') }}</i><span>CRDC AF</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('classification')">
-                                Classification <i>{{ variantSortIndicator('classification') }}</i>
+                                <i>{{ variantSortIndicator('classification') }}</i><span>Classification</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
-                                Variant score <em>CRDC</em> <i>{{ variantSortIndicator('variantScore') }}</i>
+                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Variant score <em>CRDC</em></span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
-                                Match score <em>CRDC</em> <i>{{ variantSortIndicator('matchScore') }}</i>
+                                <i>{{ variantSortIndicator('matchScore') }}</i><span>Match score <em>CRDC</em></span>
                             </button>
                         </div>
 
