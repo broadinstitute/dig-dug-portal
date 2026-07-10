@@ -737,6 +737,100 @@ function repairTraitGeneSetExpandSteps(steps, userQuery, sessionContext) {
     ];
 }
 
+const DESTRUCTIVE_TYPE_LABELS = {
+    gene: "gene",
+    gene_set: "gene set",
+    factor: "mechanism",
+    trait: "trait",
+};
+
+/**
+ * Backstop for ambiguous destructive removals. A single remove_node step that targets a
+ * whole node type (no specific node named) with more than one such node on the graph is
+ * almost never what the user meant by a singular "remove the trait" — and deleting them
+ * all would destroy the very nodes a follow-up alternative might target. Convert it to a
+ * clarify listing each candidate as a one-click option (plus an explicit "remove all").
+ * Returns clarify JSON, or null when the removal is unambiguous / intentional.
+ */
+export function ambiguousDestructiveRemovalClarify(steps, userQuery, sessionContext) {
+    if (!Array.isArray(steps) || steps.length !== 1) {
+        return null;
+    }
+    const step = steps[0];
+    if (step?.action !== "remove_node") {
+        return null;
+    }
+    const target = step.target || {};
+    if (target.node_labels?.length || target.node_ids?.length) {
+        return null; // specific node(s) named — unambiguous
+    }
+    if (/\b(all|every|each|both|hidden|invisible|entire)\b/i.test(String(userQuery || ""))) {
+        return null; // user explicitly asked for a bulk removal
+    }
+    const types = (target.node_types || []).filter(Boolean);
+    if (!types.length) {
+        return null;
+    }
+    const candidates = (sessionContext?.sample_nodes || []).filter((node) =>
+        types.includes(node.type)
+    );
+    if (candidates.length <= 1) {
+        return null; // nothing to disambiguate
+    }
+    const typeLabel = types.map((type) => DESTRUCTIVE_TYPE_LABELS[type] || type).join("/");
+    const options = candidates.slice(0, 3).map((node) => ({
+        label: `Remove ${node.label}`,
+        query: `remove ${node.label}`,
+    }));
+    options.push({
+        label: `Remove all ${typeLabel} nodes`,
+        query: `remove all ${typeLabel} nodes`,
+    });
+    return {
+        response_type: "clarify",
+        message: `Which ${typeLabel} should I remove? There are several on the graph.`,
+        issues: [],
+        suggestions: [],
+        options,
+    };
+}
+
+/**
+ * Veto an LLM-chosen add_phenotype_gene_sets step when the deterministic heuristic
+ * disagrees (e.g. the user named a single explicit node type like "gene set nodes").
+ * Converts it to add_nodes_by_intent, which uses normal catalog search instead of the
+ * phenotype embedding endpoint. Prevents the phenotype misroute at plan time.
+ */
+export function vetoPhenotypeGeneSetMisroute(steps, userQuery) {
+    if (!Array.isArray(steps) || !steps.length) {
+        return steps;
+    }
+    if (mentionsExpandTraitToGeneSets(userQuery)) {
+        return steps;
+    }
+    if (shouldUsePhenotypeGeneSetAdd(userQuery)) {
+        return steps;
+    }
+    const query = String(userQuery || "").trim();
+    const explicitTypes = parseExplicitIntentNodeTypes(query);
+    return steps.map((step) => {
+        if (step?.action !== "add_phenotype_gene_sets") {
+            return step;
+        }
+        return {
+            ...step,
+            action: "add_nodes_by_intent",
+            label: "Add nodes from research intention",
+            target: {},
+            options: {
+                research_intent:
+                    String(step.options?.search_query || query).trim() || query,
+                ...(explicitTypes ? { node_types: explicitTypes } : {}),
+            },
+        };
+    });
+}
+
 function repairPhenotypeGeneSetSteps(steps, userQuery) {
     if (mentionsExpandTraitToGeneSets(userQuery)) {
         return steps;
@@ -1131,6 +1225,87 @@ function isClarifyJson(json) {
  * Before strict validation: fix missing node_labels from query, or return clarify JSON.
  * @returns {{ type: 'plan', json } | { type: 'clarify', json }}
  */
+/**
+ * Run the full deterministic repair pipeline over a list of planner steps.
+ * Applies the phenotype-misroute veto first, then plan-level and per-step repairs.
+ * Shared by the primary plan and each fallback plan.
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.preserveActions] When true, skip the plan-level transforms that
+ *   swap one action for another (intent-add, phenotype, gene-set crossing). Used for
+ *   fallback plans so a deliberately-different alternative isn't converted back into the
+ *   same action as the primary (which would make it fail identically). The always-safe
+ *   phenotype→intent veto and per-step target/option repairs still run.
+ */
+export function repairPlanSteps(
+    steps,
+    userQuery,
+    sessionContext,
+    labelsOnGraph,
+    { preserveActions = false } = {}
+) {
+    const graphLabels =
+        labelsOnGraph || graphLabelsMentionedInQuery(userQuery, sessionContext);
+    const vetoed = vetoPhenotypeGeneSetMisroute(steps, userQuery);
+    const actionAdjusted = preserveActions
+        ? vetoed
+        : repairPhenotypeGeneSetSteps(
+              repairIntentAddSteps(vetoed, userQuery),
+              userQuery
+          );
+    return stripRedundantClearBeforeRemove(
+        repairProvenanceExplorerSteps(
+            repairMapGenesSteps(
+                (preserveActions
+                    ? actionAdjusted
+                    : repairGeneSetCrossingSteps(
+                          repairTraitGeneSetExpandSteps(
+                              repairSelectConnectedSteps(actionAdjusted, userQuery),
+                              userQuery,
+                              sessionContext
+                          ),
+                          userQuery
+                      )
+                ),
+                userQuery
+            ),
+            userQuery
+        ).map((step) =>
+            repairGeneSetCrossingStep(
+                repairTraitGeneSetExpandStep(
+                    repairPhenotypeGeneSetStep(
+                        repairIntentAddStep(
+                            repairSelectConnectedStep(
+                                repairUnselectStep(
+                                    repairAddNodeStep(
+                                        repairRemoveNodeTarget(
+                                            repairStepOptions(
+                                                repairStepTarget(step, graphLabels),
+                                                userQuery,
+                                                sessionContext
+                                            ),
+                                            graphLabels,
+                                            userQuery
+                                        ),
+                                        userQuery
+                                    ),
+                                    userQuery
+                                ),
+                                userQuery
+                            ),
+                            userQuery
+                        ),
+                        userQuery
+                    ),
+                    userQuery,
+                    sessionContext
+                ),
+                userQuery
+            )
+        )
+    );
+}
+
 export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
     if (!json || typeof json !== "object") {
         return {
@@ -1194,60 +1369,7 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
         };
     }
 
-    const repairedSteps = stripRedundantClearBeforeRemove(
-        repairProvenanceExplorerSteps(
-            repairMapGenesSteps(
-                repairGeneSetCrossingSteps(
-                    repairTraitGeneSetExpandSteps(
-                        repairSelectConnectedSteps(
-                            repairPhenotypeGeneSetSteps(
-                                repairIntentAddSteps(steps, userQuery),
-                                userQuery
-                            ),
-                            userQuery
-                        ),
-                        userQuery,
-                        sessionContext
-                    ),
-                    userQuery
-                ),
-                userQuery
-            ),
-            userQuery
-        ).map((step) =>
-            repairGeneSetCrossingStep(
-                repairTraitGeneSetExpandStep(
-                    repairPhenotypeGeneSetStep(
-                        repairIntentAddStep(
-                            repairSelectConnectedStep(
-                                repairUnselectStep(
-                                    repairAddNodeStep(
-                                        repairRemoveNodeTarget(
-                                            repairStepOptions(
-                                                repairStepTarget(step, labelsOnGraph),
-                                                userQuery,
-                                                sessionContext
-                                            ),
-                                            labelsOnGraph,
-                                            userQuery
-                                        ),
-                                        userQuery
-                                    ),
-                                    userQuery
-                                ),
-                                userQuery
-                            ),
-                            userQuery
-                        ),
-                        userQuery
-                    ),
-                    userQuery,
-                    sessionContext
-                ),
-                userQuery
-            )
-        )
-    );
+    const repairedSteps = repairPlanSteps(steps, userQuery, sessionContext, labelsOnGraph);
     if (wantsTraitGeneSetExpandWithoutIntent(userQuery, repairedSteps)) {
         return {
             type: "clarify",
@@ -1271,10 +1393,74 @@ export function prepareAssistantPlannerJson(json, userQuery, sessionContext) {
         };
     }
 
+    const destructiveClarify = ambiguousDestructiveRemovalClarify(
+        repairedSteps,
+        userQuery,
+        sessionContext
+    );
+    if (destructiveClarify) {
+        return { type: "clarify", json: destructiveClarify };
+    }
+
+    const repairedFallbackPlans = repairFallbackPlans(
+        json.fallback_plans,
+        userQuery,
+        sessionContext,
+        labelsOnGraph
+    );
+    const repairedAlternatives =
+        json.confidence === "medium"
+            ? repairFallbackPlans(
+                  json.alternatives,
+                  userQuery,
+                  sessionContext,
+                  labelsOnGraph
+              )
+            : [];
+    const { fallback_plans, alternatives, ...restJson } = json;
+    const jsonWithExtras = {
+        ...restJson,
+        ...(repairedFallbackPlans.length
+            ? { fallback_plans: repairedFallbackPlans }
+            : {}),
+        ...(repairedAlternatives.length
+            ? { alternatives: repairedAlternatives }
+            : {}),
+    };
+
     return {
         type: "plan",
-        json: preparePlanWithBulkHandling(json, userQuery, repairedSteps),
+        json: preparePlanWithBulkHandling(jsonWithExtras, userQuery, repairedSteps),
     };
+}
+
+/**
+ * Repair each fallback plan's steps with the same pipeline as the primary plan.
+ * Fallbacks are best-effort: any plan that ends up empty or still needs node labels
+ * is dropped rather than clarified, so a bad fallback never blocks a good primary.
+ */
+function repairFallbackPlans(fallbackPlans, userQuery, sessionContext, labelsOnGraph) {
+    if (!Array.isArray(fallbackPlans)) {
+        return [];
+    }
+    const repaired = [];
+    for (const plan of fallbackPlans) {
+        const rawSteps = Array.isArray(plan) ? plan : plan?.steps;
+        if (!Array.isArray(rawSteps) || !rawSteps.length) {
+            continue;
+        }
+        const steps = repairPlanSteps(rawSteps, userQuery, sessionContext, labelsOnGraph, {
+            preserveActions: true,
+        });
+        if (!steps.length || steps.some((step) => stepNeedsNodeLabels(step))) {
+            continue;
+        }
+        repaired.push({
+            summary: String(plan?.summary || "").trim(),
+            steps,
+        });
+    }
+    return repaired;
 }
 
 export function validationErrorToClarifyJson(error, userQuery) {

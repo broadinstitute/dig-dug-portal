@@ -116,6 +116,21 @@
                         {{ entry.stepLabel }}
                     </p>
                     <p>{{ entry.text }}</p>
+                    <div
+                        v-if="entry.alternatives && entry.alternatives.length"
+                        class="wkb-assistant-alt-options"
+                    >
+                        <button
+                            v-for="alt in entry.alternatives"
+                            :key="`alt-${entry.id}-${alt.index}`"
+                            type="button"
+                            class="wkb-assistant-alt-option"
+                            :disabled="planning || executing"
+                            @click="onRunAlternative(alt.index)"
+                        >
+                            {{ alt.label }}
+                        </button>
+                    </div>
                     <p v-if="entry.isStepError && entry.resolution" class="wkb-assistant-step-error-resolution">
                         <strong>What to do:</strong> {{ entry.resolution }}
                     </p>
@@ -139,9 +154,24 @@
                     role="status"
                 >
                     <p class="wkb-assistant-clarify-lead">
-                        Please improve your request, then edit and plan again.
+                        A quick check so I get this right:
                     </p>
                     <p class="wkb-assistant-clarify-message">{{ clarification.message }}</p>
+                    <div
+                        v-if="clarification.options && clarification.options.length"
+                        class="wkb-assistant-clarify-options"
+                    >
+                        <button
+                            v-for="(option, index) in clarification.options"
+                            :key="`clarify-option-${index}`"
+                            type="button"
+                            class="wkb-assistant-clarify-option"
+                            :disabled="planning || executing"
+                            @click="onClarifyOption(option)"
+                        >
+                            {{ option.label }}
+                        </button>
+                    </div>
                     <ul
                         v-if="clarification.issues && clarification.issues.length"
                         class="wkb-assistant-clarify-list"
@@ -888,13 +918,128 @@ export default {
             });
         },
         buildThreadHistory() {
+            // Action receipts are post-action feedback, not part of the dialog context —
+            // exclude them so a completed action does not bleed into the next request.
             return this.threadEntries
-                .filter((entry) => !entry.pending && String(entry.text || "").trim())
+                .filter(
+                    (entry) =>
+                        !entry.pending &&
+                        !entry.isActionReceipt &&
+                        String(entry.text || "").trim()
+                )
                 .map((entry) => ({
                     role: entry.role,
                     text: String(entry.text).trim(),
                 }))
                 .slice(-12);
+        },
+        /**
+         * Drop the accumulated dialog once an action has completed, keeping only the
+         * receipt entry (if any) so the user retains a one-line record + any alternative
+         * chips. The next request starts from a clean slate.
+         */
+        clearDialogExcept(keepId = null) {
+            this.threadEntries = keepId
+                ? this.threadEntries.filter((entry) => entry.id === keepId)
+                : [];
+        },
+        /**
+         * Collapse the dialog to just the last step summary after a completed action,
+         * marking it as a receipt (so it is excluded from future planning context).
+         * Falls back to clearing everything when there is no step summary to keep.
+         */
+        retainLastResultAsReceipt() {
+            const results = this.threadEntries.filter(
+                (entry) => entry.isStepResult || entry.isActionReceipt
+            );
+            const last = results[results.length - 1];
+            this.threadEntries = last
+                ? [{ ...last, isActionReceipt: true }]
+                : [];
+        },
+        appendActionReceipt(text) {
+            const message = String(text || "").trim();
+            if (!message) {
+                return null;
+            }
+            entryCounter += 1;
+            const id = `action-receipt-${entryCounter}`;
+            this.threadEntries = [
+                ...this.threadEntries,
+                {
+                    id,
+                    role: "assistant",
+                    text: message,
+                    isActionReceipt: true,
+                    isStepResult: true,
+                },
+            ];
+            this.scrollMessagePanelToEnd();
+            return id;
+        },
+        appendActionConfirmation(text, alternatives = []) {
+            const message = String(text || "").trim();
+            if (!message) {
+                return null;
+            }
+            entryCounter += 1;
+            const id = `action-confirm-${entryCounter}`;
+            this.threadEntries = [
+                ...this.threadEntries,
+                {
+                    id,
+                    role: "assistant",
+                    text: message,
+                    isActionReceipt: true,
+                    isConfirmation: true,
+                    alternatives: (alternatives || [])
+                        .map((alt) => ({
+                            index: Number(alt.index),
+                            label: String(alt.label || "").trim(),
+                        }))
+                        .filter((alt) => alt.label && Number.isInteger(alt.index)),
+                },
+            ];
+            this.scrollMessagePanelToEnd();
+            return id;
+        },
+        onRunAlternative(index) {
+            if (this.planning || this.executing) {
+                return;
+            }
+            this.$emit("run-alternative", { index });
+        },
+        onClarifyOption(option) {
+            const query = String(option?.query || "").trim();
+            if (!query || this.planning || this.executing) {
+                return;
+            }
+            this.submitQuery(query);
+        },
+        submitQuery(query) {
+            const text = String(query || "").trim();
+            if (!text || this.planning || this.executing) {
+                return;
+            }
+            this.lastSubmittedQuery = text;
+            entryCounter += 1;
+            this.threadEntries = [
+                ...this.threadEntries,
+                { id: `user-${entryCounter}`, role: "user", text },
+                {
+                    id: `assistant-pending-${entryCounter}`,
+                    role: "assistant",
+                    text: "Planning…",
+                    pending: true,
+                },
+            ];
+            this.draft = "";
+            this.closeAutocomplete();
+            this.scrollMessagePanelToEnd();
+            this.$emit("plan-request", {
+                query: text,
+                threadHistory: this.buildThreadHistory(),
+            });
         },
         appendStepResult(text, { workflowLink = null } = {}) {
             const message = String(text || "").trim();
@@ -964,29 +1109,7 @@ export default {
             this.scrollMessagePanelToEnd();
         },
         onPlan() {
-            const text = String(this.draft || "").trim();
-            if (!text || this.planning || this.executing) {
-                return;
-            }
-            this.lastSubmittedQuery = text;
-            entryCounter += 1;
-            this.threadEntries = [
-                ...this.threadEntries,
-                { id: `user-${entryCounter}`, role: "user", text },
-                {
-                    id: `assistant-pending-${entryCounter}`,
-                    role: "assistant",
-                    text: "Planning…",
-                    pending: true,
-                },
-            ];
-            this.draft = "";
-            this.closeAutocomplete();
-            this.scrollMessagePanelToEnd();
-            this.$emit("plan-request", {
-                query: text,
-                threadHistory: this.buildThreadHistory(),
-            });
+            this.submitQuery(this.draft);
         },
         stepStatus(stepId) {
             return this.stepStates?.[stepId] || "pending";
@@ -1258,6 +1381,39 @@ export default {
 .wkb-assistant-clarify-suggestions {
     margin-bottom: 0;
     color: var(--cfde-muted, #6b6b6b);
+}
+
+.wkb-assistant-clarify-options,
+.wkb-assistant-alt-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.wkb-assistant-clarify-option,
+.wkb-assistant-alt-option {
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1.3;
+    text-align: left;
+    color: var(--cfde-blue, #2c5c97);
+    background: var(--cfde-blue-tint, #eef3f9);
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    border-radius: 14px;
+    cursor: pointer;
+}
+
+.wkb-assistant-clarify-option:hover,
+.wkb-assistant-alt-option:hover {
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+}
+
+.wkb-assistant-clarify-option:disabled,
+.wkb-assistant-alt-option:disabled {
+    opacity: 0.5;
+    cursor: default;
 }
 
 .wkb-assistant-workflow-cta {

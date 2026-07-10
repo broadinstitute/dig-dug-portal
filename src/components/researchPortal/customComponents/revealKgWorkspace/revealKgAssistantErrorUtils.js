@@ -94,6 +94,43 @@ function resolutionForAssistantStepError(message, step = {}) {
     return "Review the step settings and graph state, then click Run on this step to retry or edit your request and plan again.";
 }
 
+/**
+ * True when a step failure is worth retrying with an alternative (fallback) plan.
+ * Retriable: upstream gateway/server errors (5xx), timeouts, network failures, and
+ * "no results" outcomes. NOT retriable: preconditions, validation, and user-input
+ * errors — a fallback plan would fail the same way or do something unintended.
+ */
+export function isRetriableAssistantError(error) {
+    const message = String(error?.message || error || "");
+    if (!message) {
+        return false;
+    }
+    // Preconditions / user-state errors — a different plan won't help.
+    if (
+        /\brequires\b|\bMark\b|\bmark one or more\b|\bBuild a (?:graph|visibility filter)\b|\bStart a canvas session\b|\bcannot be removed\b|\balready on the graph\b|\bnot on (?:this|the) graph\b|\bis no longer on the graph\b|\bnot configured\b/i.test(
+            message
+        )
+    ) {
+        return false;
+    }
+    // Validation / planning errors — not a runtime failure.
+    if (/\binvalid\b|\bunsupported action\b|\bmissing (?:label|summary|steps)\b|\bmust be an array\b/i.test(message)) {
+        return false;
+    }
+    // Upstream gateway / server errors and timeouts.
+    if (/\b(?:429|500|502|503|504)\b|Bad Gateway|Gateway Time-?out|Service Unavailable|Internal Server Error/i.test(message)) {
+        return true;
+    }
+    if (/\btimed?\s*out\b|timeout|ETIMEDOUT|ECONNRESET|ECONNREFUSED|ENOTFOUND|network (?:error|failure)|Failed to fetch/i.test(message)) {
+        return true;
+    }
+    // Empty-result outcomes — an alternative search strategy may find matches.
+    if (/No (?:relevant|new|matching|valid)\b|No .* (?:found|matched)\b|returned no results/i.test(message)) {
+        return true;
+    }
+    return false;
+}
+
 export function formatAssistantStepError(error, step = {}) {
     const message = sanitizeAssistantError(error);
     const stepLabel = String(step?.label || "Assistant step").trim();

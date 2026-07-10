@@ -138,6 +138,7 @@
                 @execute-all="onAssistantExecuteAll"
                 @execute-step="onAssistantExecuteStep"
                 @open-panel="onAssistantOpenPanel"
+                @run-alternative="onAssistantRunAlternative"
                 @error-acknowledged="assistantError = ''"
             />
             <WorkspaceVisibilityFilterPanel
@@ -409,6 +410,7 @@ import { resolveAssistantQuery } from "./revealKgWorkspace/revealKgAssistantQuer
 import { executeAssistantPlan } from "./revealKgWorkspace/revealKgAssistantExecutor.js";
 import {
     formatAssistantStepError,
+    isRetriableAssistantError,
     sanitizeAssistantError,
 } from "./revealKgWorkspace/revealKgAssistantErrorUtils.js";
 import {
@@ -698,6 +700,8 @@ export default Vue.component("reveal-kg-workspace", {
             assistantCurrentStep: null,
             assistantPlan: null,
             assistantClarification: null,
+            assistantAlternatives: [],
+            assistantPreActionSession: null,
             assistantStepStates: {},
             assistantError: "",
             assistantStepErrorRecorded: false,
@@ -2222,6 +2226,9 @@ export default Vue.component("reveal-kg-workspace", {
             }
             const previousPlan = this.assistantPlan;
             this.resetAssistantPlanState();
+            // New user turn — invalidate any stale alternatives/snapshot from a prior action.
+            this.assistantAlternatives = [];
+            this.assistantPreActionSession = null;
             this.assistantPlanning = true;
             try {
                 this.refreshSavedGraphs();
@@ -2239,6 +2246,8 @@ export default Vue.component("reveal-kg-workspace", {
                     contextOptions
                 );
                 if (result?.type === "clarify") {
+                    // A clarify does not complete an action — keep the dialog going so the
+                    // user's answer accumulates as context for the next planning turn.
                     this.assistantClarification = {
                         ...result,
                         restoreQuery: query,
@@ -2247,17 +2256,102 @@ export default Vue.component("reveal-kg-workspace", {
                 }
                 this.assistantPlan = result;
                 this.assistantStepStates = initialAssistantStepStates(result.steps);
-                if (result.autoExecute) {
+                if (this.shouldAutoExecuteAssistantPlan(result)) {
+                    // Snapshot pre-action state so a chosen alternative (an "I meant this
+                    // instead" reading) can roll back this action first — essential when the
+                    // action is destructive and would otherwise delete its own alternative's
+                    // target.
+                    this.assistantPreActionSession = this.activeSession;
                     await this.$nextTick();
                     await this.onAssistantExecuteAll();
-                    this.resetAssistantPlanState();
+                    this.finishAssistantAction(result);
                     return;
                 }
+                // Non-auto plan (e.g. bulk overflow): leave the plan card for the user to
+                // route via panel/workflow. Dialog is cleared when they run it.
             } catch (error) {
                 this.assistantError = sanitizeAssistantError(error);
             } finally {
                 this.assistantPlanning = false;
             }
+        },
+        /**
+         * Act-first policy: direct commands and normal LLM plans (high/medium confidence)
+         * run immediately. Only bulk-overflow plans wait for the user to pick a panel or
+         * the REVEAL Workflow, since auto-running them would exceed per-step caps.
+         */
+        shouldAutoExecuteAssistantPlan(result) {
+            if (!result?.steps?.length) {
+                return false;
+            }
+            if (result.autoExecute) {
+                return true;
+            }
+            if (result.panelShortcuts?.hasOverflow) {
+                return false;
+            }
+            return true;
+        },
+        /**
+         * Runs after an action finishes. On success: for medium confidence, post a
+         * "did you mean something else?" confirmation with one-click alternatives; then
+         * clear the dialog history so the next request starts fresh. On failure, leave the
+         * dialog intact so the user can continue from the error.
+         */
+        finishAssistantAction(result) {
+            if (!this.assistantStepErrorRecorded) {
+                const summary = String(result?.summary || "").trim();
+                let receiptId = null;
+                const alternatives =
+                    result?.confidence === "medium" && Array.isArray(result?.alternatives)
+                        ? result.alternatives
+                        : [];
+                if (alternatives.length) {
+                    this.assistantAlternatives = alternatives;
+                    receiptId = this.$refs.aiAssistantPanel?.appendActionConfirmation?.(
+                        summary
+                            ? `Done — ${summary} If that isn't what you meant, pick another reading:`
+                            : "Done. If that isn't what you meant, pick another reading:",
+                        alternatives.map((alt, index) => ({
+                            index,
+                            label: alt.summary || `Option ${index + 1}`,
+                        }))
+                    );
+                    this.$refs.aiAssistantPanel?.clearDialogExcept?.(receiptId);
+                } else {
+                    // Keep the last past-tense step summary as the receipt; drop the rest.
+                    this.assistantAlternatives = [];
+                    this.$refs.aiAssistantPanel?.retainLastResultAsReceipt?.();
+                }
+            }
+            this.resetAssistantPlanState();
+        },
+        async onAssistantRunAlternative({ index } = {}) {
+            const alternative = this.assistantAlternatives?.[Number(index)];
+            if (
+                !alternative?.steps?.length ||
+                this.assistantExecuting ||
+                this.assistantPlanning
+            ) {
+                return;
+            }
+            // An alternative replaces the action the user actually meant — undo the primary
+            // action first (restore pre-action state), then apply the alternative onto it.
+            if (this.assistantPreActionSession) {
+                this.activeSession = this.assistantPreActionSession;
+            }
+            const plan = {
+                type: "plan",
+                confidence: "high",
+                summary: alternative.summary || "",
+                steps: alternative.steps,
+            };
+            this.assistantPlan = plan;
+            this.assistantStepStates = initialAssistantStepStates(plan.steps);
+            this.assistantUserQuery = alternative.summary || this.assistantUserQuery;
+            await this.$nextTick();
+            await this.onAssistantExecuteAll();
+            this.finishAssistantAction(plan);
         },
         async onAssistantExecuteAll() {
             if (!this.assistantPlan?.steps?.length || this.assistantExecuting) {
@@ -2296,18 +2390,94 @@ export default Vue.component("reveal-kg-workspace", {
             if (!this.activeSession || this.assistantExecuting) {
                 return;
             }
-            const stepsToRun = steps.slice(startIndex);
-            const postEffects = computeAssistantPlanPostEffects(stepsToRun);
+            // Primary attempt, plus any fallback plans (full-plan runs only — a single-step
+            // re-run via Run should not silently swap in an alternative plan).
+            const attempts = [{ steps, startIndex, isFallback: false }];
+            if (startIndex === 0 && Array.isArray(this.assistantPlan?.fallbackPlans)) {
+                for (const fallback of this.assistantPlan.fallbackPlans) {
+                    if (fallback?.steps?.length) {
+                        attempts.push({
+                            steps: fallback.steps,
+                            startIndex: 0,
+                            isFallback: true,
+                            summary: fallback.summary || "",
+                        });
+                    }
+                }
+            }
+            const sessionSnapshot = this.activeSession;
+
             this.assistantExecuting = true;
             this.assistantError = "";
             this.assistantStepErrorRecorded = false;
+            try {
+                for (let i = 0; i < attempts.length; i += 1) {
+                    const attempt = attempts[i];
+                    const hasMoreAttempts = i < attempts.length - 1;
+                    if (attempt.isFallback) {
+                        // Roll back partial side effects before trying an alternative.
+                        this.activeSession = sessionSnapshot;
+                    }
+                    const outcome = await this.attemptAssistantPlan(
+                        attempt.steps,
+                        attempt.startIndex,
+                        { deferErrorChat: hasMoreAttempts }
+                    );
+                    if (outcome.ok) {
+                        if (attempt.isFallback) {
+                            this.$refs.aiAssistantPanel?.appendStepResult?.(
+                                attempt.summary
+                                    ? `The initial approach was unavailable — used an alternative instead: ${attempt.summary}`
+                                    : "The initial approach was unavailable — used an alternative instead."
+                            );
+                        }
+                        if (!this.assistantStepErrorRecorded) {
+                            const isDirectCommand = this.assistantPlan?.autoExecute;
+                            if (!isDirectCommand) {
+                                this.showStatus(
+                                    "Canvas assistant finished running the plan.",
+                                    3200
+                                );
+                            }
+                        }
+                        return;
+                    }
+                    if (hasMoreAttempts && isRetriableAssistantError(outcome.error)) {
+                        this.$refs.aiAssistantPanel?.appendStepResult?.(
+                            "That approach didn't work — trying an alternative…"
+                        );
+                        continue;
+                    }
+                    // Non-retriable, or no alternatives left: this attempt already reported
+                    // the error to chat (deferErrorChat was false). Stop here.
+                    return;
+                }
+            } finally {
+                this.assistantExecuting = false;
+                this.assistantCurrentStep = null;
+                this.clearAssistantStepProgress();
+                if (this.activeSession?.pendingNodeAdds?.length) {
+                    this.clearGraphRebuildTimer();
+                    void this.runPendingGraphRebuild();
+                }
+            }
+        },
+        /**
+         * Run one plan attempt. Returns { ok } on success or { ok: false, error, step } on
+         * failure. When deferErrorChat is true the failure is NOT surfaced to chat (a
+         * fallback plan will be tried); the caller decides whether to report it.
+         */
+        async attemptAssistantPlan(steps, startIndex, { deferErrorChat = false } = {}) {
+            const stepsToRun = steps.slice(startIndex);
+            const postEffects = computeAssistantPlanPostEffects(stepsToRun);
             if (postEffects.graphLoading) {
                 this.graphLoading = true;
             }
             let stepPreviousNodeCount = this.activeSession.graphNodes?.length || 0;
+            let failure = null;
             try {
                 this.refreshSavedGraphs();
-                const result = await executeAssistantPlan(
+                await executeAssistantPlan(
                     this.activeSession,
                     steps,
                     {
@@ -2385,38 +2555,40 @@ export default Vue.component("reveal-kg-workspace", {
                         onStepError: (step, index, error) => {
                             this.endAssistantStepProgress(step);
                             this.setAssistantStepState(step.id, "error");
-                            this.recordAssistantStepFailure(step, error);
+                            failure = { error, step };
+                            if (!deferErrorChat) {
+                                this.recordAssistantStepFailure(step, error);
+                            }
                         },
                     },
                     { startIndex }
                 );
-                if (!this.assistantStepErrorRecorded) {
-                    const isDirectCommand = this.assistantPlan?.autoExecute;
-                    if (!isDirectCommand) {
-                        this.showStatus("Canvas assistant finished running the plan.", 3200);
+                if (failure) {
+                    return { ok: false, error: failure.error, step: failure.step };
+                }
+                return { ok: true };
+            } catch (error) {
+                if (!failure) {
+                    // Error thrown outside a step (e.g. before execution began).
+                    failure = { error, step: this.assistantCurrentStep };
+                    if (!deferErrorChat) {
+                        const formatted = formatAssistantStepError(
+                            error,
+                            this.assistantCurrentStep
+                        );
+                        this.assistantError = formatted.message;
+                        this.$refs.aiAssistantPanel?.appendStepError?.(
+                            this.assistantCurrentStep,
+                            formatted
+                        );
+                        this.aiAssistantOpen = true;
+                        this.showStatus(formatted.message, 3600);
                     }
                 }
-            } catch (error) {
-                if (!this.assistantStepErrorRecorded) {
-                    const formatted = formatAssistantStepError(error, this.assistantCurrentStep);
-                    this.assistantError = formatted.message;
-                    this.$refs.aiAssistantPanel?.appendStepError?.(
-                        this.assistantCurrentStep,
-                        formatted
-                    );
-                    this.aiAssistantOpen = true;
-                    this.showStatus(formatted.message, 3600);
-                }
+                return { ok: false, error: failure.error, step: failure.step };
             } finally {
-                this.assistantExecuting = false;
-                this.assistantCurrentStep = null;
-                this.clearAssistantStepProgress();
                 if (postEffects.graphLoading) {
                     this.graphLoading = false;
-                }
-                if (this.activeSession?.pendingNodeAdds?.length) {
-                    this.clearGraphRebuildTimer();
-                    void this.runPendingGraphRebuild();
                 }
             }
         },

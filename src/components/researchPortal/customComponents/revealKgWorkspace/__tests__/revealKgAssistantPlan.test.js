@@ -136,3 +136,87 @@ describe("initialAssistantStepStates", () => {
         ).toEqual({ a: "pending", b: "pending" });
     });
 });
+
+describe("validateAssistantPlan confidence + alternatives", () => {
+    const step = {
+        id: "step-1",
+        action: "add_node",
+        label: "Add BRCA1",
+        target: { scope: "node", node_labels: ["BRCA1"] },
+        options: {},
+    };
+
+    it("defaults confidence to high", () => {
+        const plan = validateAssistantPlan({ summary: "Add a node", steps: [step] });
+        expect(plan.confidence).toBe("high");
+        expect(plan.alternatives).toBeUndefined();
+    });
+
+    it("keeps alternatives only when confidence is medium", () => {
+        const alt = {
+            summary: "Add as gene set instead",
+            steps: [
+                {
+                    id: "step-1",
+                    action: "add_node",
+                    label: "Add BRCA1 gene set",
+                    target: { scope: "node", node_labels: ["BRCA1"] },
+                    options: { node_type: "gene_set" },
+                },
+            ],
+        };
+        const medium = validateAssistantPlan({
+            confidence: "medium",
+            summary: "Add a node",
+            steps: [step],
+            alternatives: [alt],
+        });
+        expect(medium.confidence).toBe("medium");
+        expect(medium.alternatives).toHaveLength(1);
+        expect(medium.alternatives[0].steps[0].action).toBe("add_node");
+
+        const high = validateAssistantPlan({
+            confidence: "high",
+            summary: "Add a node",
+            steps: [step],
+            alternatives: [alt],
+        });
+        expect(high.alternatives).toBeUndefined();
+    });
+
+    it("drops malformed alternatives without failing the plan", () => {
+        const plan = validateAssistantPlan({
+            confidence: "medium",
+            summary: "Add a node",
+            steps: [step],
+            alternatives: [{ summary: "bad", steps: [{ action: "not_a_real_action" }] }],
+        });
+        expect(plan.type).toBe("plan");
+        expect(plan.alternatives).toBeUndefined();
+    });
+});
+
+describe("validateAssistantClarification options", () => {
+    it("normalizes clickable options and drops entries without a query", () => {
+        const result = validateAssistantClarification({
+            message: "Did you mean the trait or gene sets?",
+            options: [
+                { label: "The trait", query: "select the Type 2 diabetes trait" },
+                { query: "add gene sets for type 2 diabetes" },
+                { label: "no query here" },
+            ],
+        });
+        expect(result.options).toHaveLength(2);
+        expect(result.options[0]).toEqual({
+            label: "The trait",
+            query: "select the Type 2 diabetes trait",
+        });
+        // Falls back to the query text as the label when label is omitted.
+        expect(result.options[1].label).toBe("add gene sets for type 2 diabetes");
+    });
+
+    it("omits options when none are valid", () => {
+        const result = validateAssistantClarification({ message: "Clarify" });
+        expect(result.options).toBeUndefined();
+    });
+});

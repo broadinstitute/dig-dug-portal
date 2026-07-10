@@ -343,6 +343,26 @@ function normalizeStringList(value) {
         .filter(Boolean);
 }
 
+function normalizeClarifyOptions(raw) {
+    if (!Array.isArray(raw)) {
+        return [];
+    }
+    return raw
+        .map((entry) => {
+            if (!isPlainObject(entry)) {
+                return null;
+            }
+            const query = String(entry.query || entry.request || "").trim();
+            if (!query) {
+                return null;
+            }
+            const label = String(entry.label || query).trim();
+            return { label, query };
+        })
+        .filter(Boolean)
+        .slice(0, 4);
+}
+
 export function validateAssistantClarification(raw) {
     if (!isPlainObject(raw)) {
         throw new Error("Clarification response was not a JSON object.");
@@ -352,11 +372,13 @@ export function validateAssistantClarification(raw) {
         throw new Error('Clarification response missing "message".');
     }
     const workflowLink = normalizeWorkflowLink(raw.workflow_link);
+    const options = normalizeClarifyOptions(raw.options);
     return {
         type: "clarify",
         message,
         issues: normalizeStringList(raw.issues),
         suggestions: normalizeStringList(raw.suggestions),
+        ...(options.length ? { options } : {}),
         ...(workflowLink ? { workflowLink } : {}),
     };
 }
@@ -373,18 +395,11 @@ function normalizeWorkflowLink(raw) {
     return { href, label };
 }
 
-export function validateAssistantPlan(rawPlan) {
-    if (!isPlainObject(rawPlan)) {
-        throw new Error("Planner response was not a JSON object.");
-    }
-    const summary = String(rawPlan.summary || "").trim();
-    if (!summary) {
-        throw new Error("Planner response missing summary.");
-    }
-    if (!Array.isArray(rawPlan.steps)) {
+function validatePlanSteps(rawSteps) {
+    if (!Array.isArray(rawSteps)) {
         throw new Error("Planner response missing steps array.");
     }
-    const steps = rawPlan.steps.map((step, index) => {
+    return rawSteps.map((step, index) => {
         if (!isPlainObject(step)) {
             throw new Error(`Step ${index + 1} is invalid.`);
         }
@@ -403,11 +418,61 @@ export function validateAssistantPlan(rawPlan) {
         const options = validateStepOptions(action, step.options || step.params || {});
         return { id, action, label, target, options };
     });
+}
+
+/**
+ * Validate fallback plans. Best-effort: any fallback that fails validation is dropped
+ * (never throws), so a malformed alternative can't block a valid primary plan.
+ */
+function validateFallbackPlans(rawFallbackPlans) {
+    if (!Array.isArray(rawFallbackPlans)) {
+        return [];
+    }
+    const plans = [];
+    for (const raw of rawFallbackPlans) {
+        const rawSteps = Array.isArray(raw) ? raw : raw?.steps;
+        try {
+            const steps = validatePlanSteps(rawSteps);
+            if (steps.length) {
+                plans.push({
+                    summary: String(raw?.summary || "").trim(),
+                    steps,
+                });
+            }
+        } catch (error) {
+            // Drop unusable fallback plan.
+        }
+    }
+    return plans;
+}
+
+function normalizePlanConfidence(value) {
+    return value === "medium" ? "medium" : "high";
+}
+
+export function validateAssistantPlan(rawPlan) {
+    if (!isPlainObject(rawPlan)) {
+        throw new Error("Planner response was not a JSON object.");
+    }
+    const summary = String(rawPlan.summary || "").trim();
+    if (!summary) {
+        throw new Error("Planner response missing summary.");
+    }
+    const steps = validatePlanSteps(rawPlan.steps);
+    const confidence = normalizePlanConfidence(rawPlan.confidence);
+    // "alternatives" = other interpretations offered after a medium-confidence action.
+    // Validated leniently like fallback plans; only meaningful when confidence is medium.
+    const alternatives =
+        confidence === "medium" ? validateFallbackPlans(rawPlan.alternatives) : [];
+    const fallbackPlans = validateFallbackPlans(rawPlan.fallback_plans);
     const panelShortcuts = normalizePanelShortcuts(rawPlan.panel_shortcuts);
     return {
         type: "plan",
+        confidence,
         summary,
         steps,
+        ...(alternatives.length ? { alternatives } : {}),
+        ...(fallbackPlans.length ? { fallbackPlans } : {}),
         ...(panelShortcuts ? { panelShortcuts } : {}),
     };
 }

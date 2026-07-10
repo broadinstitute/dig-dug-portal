@@ -433,3 +433,289 @@ describe("prepareAssistantPlannerJson", () => {
         expect(result.json.steps[0].options.novelty_known).toBe(false);
     });
 });
+
+describe("vetoPhenotypeGeneSetMisroute (via prepareAssistantPlannerJson)", () => {
+    it("converts add_phenotype_gene_sets to add_nodes_by_intent when a single explicit type is named", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Find gene set–trait associations",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_phenotype_gene_sets",
+                        label: "Find gene set–trait associations",
+                        target: {},
+                        options: { search_query: "insulin control failure in T2D" },
+                    },
+                ],
+            },
+            "find gene set nodes that are relevant to the failure of controlling insulin related to type 2 diabetes",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].action).toBe("add_nodes_by_intent");
+        expect(result.json.steps[0].options.node_types).toEqual(["gene_set"]);
+        expect(result.json.steps[0].options.research_intent).toBeTruthy();
+    });
+
+    it("keeps add_phenotype_gene_sets when the query names both traits and gene sets", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Find traits and gene sets",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_phenotype_gene_sets",
+                        label: "Find traits and gene sets",
+                        target: {},
+                        options: { search_query: "insulin secretion" },
+                    },
+                ],
+            },
+            "find traits and gene sets for insulin secretion in pancreatic beta cells",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.steps[0].action).toBe("add_phenotype_gene_sets");
+    });
+});
+
+describe("fallback plan repair (via prepareAssistantPlannerJson)", () => {
+    it("repairs and preserves valid fallback plans", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Add phenotype gene sets",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_phenotype_gene_sets",
+                        label: "Find gene set–trait associations",
+                        target: {},
+                        options: { search_query: "insulin secretion" },
+                    },
+                ],
+                fallback_plans: [
+                    {
+                        summary: "Add gene sets by intention",
+                        steps: [
+                            {
+                                id: "step-1",
+                                action: "add_nodes_by_intent",
+                                label: "Add gene sets from research intention",
+                                target: {},
+                                options: { research_intent: "insulin secretion", node_types: ["gene_set"] },
+                            },
+                        ],
+                    },
+                ],
+            },
+            "find traits and gene sets for insulin secretion in pancreatic beta cells",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(Array.isArray(result.json.fallback_plans)).toBe(true);
+        expect(result.json.fallback_plans).toHaveLength(1);
+        expect(result.json.fallback_plans[0].steps[0].action).toBe("add_nodes_by_intent");
+    });
+
+    it("drops fallback plans whose steps still need node labels", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Explain the graph",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "explain_graph",
+                        label: "Explain all visible nodes",
+                        target: { scope: "entire_graph" },
+                        options: { scope: "entire_graph" },
+                    },
+                ],
+                fallback_plans: [
+                    {
+                        summary: "Broken fallback",
+                        steps: [
+                            {
+                                id: "step-1",
+                                action: "inspect",
+                                label: "Inspect a node",
+                                target: { scope: "node" },
+                                options: { subject: "node" },
+                            },
+                        ],
+                    },
+                ],
+            },
+            "explain all visible nodes on the graph",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.fallback_plans).toBeUndefined();
+    });
+});
+
+describe("alternatives repair (via prepareAssistantPlannerJson)", () => {
+    it("repairs and preserves medium-confidence alternatives without swapping their action", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                confidence: "medium",
+                summary: "Add phenotype gene sets",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_phenotype_gene_sets",
+                        label: "Find gene set–trait associations",
+                        target: {},
+                        options: { search_query: "insulin secretion" },
+                    },
+                ],
+                alternatives: [
+                    {
+                        summary: "Add gene sets by intention instead",
+                        steps: [
+                            {
+                                id: "step-1",
+                                action: "add_nodes_by_intent",
+                                label: "Add gene sets from research intention",
+                                target: {},
+                                options: {
+                                    research_intent: "insulin secretion",
+                                    node_types: ["gene_set"],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            "find traits and gene sets for insulin secretion in pancreatic beta cells",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(Array.isArray(result.json.alternatives)).toBe(true);
+        expect(result.json.alternatives[0].steps[0].action).toBe("add_nodes_by_intent");
+    });
+
+    it("ignores alternatives when confidence is not medium", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                confidence: "high",
+                summary: "Add a node",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "add_node",
+                        label: "Add BRCA1",
+                        target: { scope: "node", node_labels: ["BRCA1"] },
+                        options: {},
+                    },
+                ],
+                alternatives: [
+                    {
+                        summary: "Something else",
+                        steps: [
+                            {
+                                id: "step-1",
+                                action: "add_node",
+                                label: "Add TP53",
+                                target: { scope: "node", node_labels: ["TP53"] },
+                                options: {},
+                            },
+                        ],
+                    },
+                ],
+            },
+            "add BRCA1",
+            sessionContext
+        );
+        expect(result.type).toBe("plan");
+        expect(result.json.alternatives).toBeUndefined();
+    });
+});
+
+describe("ambiguous destructive removal (via prepareAssistantPlannerJson)", () => {
+    const twoTraitContext = {
+        sample_nodes: [
+            { node_id: "gene:1", label: "BRCA1", type: "gene" },
+            { node_id: "trait:1", label: "Type 2 diabetes", type: "trait" },
+            { node_id: "trait:2", label: "Obesity", type: "trait" },
+        ],
+        sample_edges: [],
+    };
+
+    function removeTraitPlan() {
+        return {
+            response_type: "plan",
+            confidence: "high",
+            summary: "Remove trait nodes",
+            steps: [
+                {
+                    id: "step-1",
+                    action: "remove_node",
+                    label: "Remove traits",
+                    target: { scope: "all", node_types: ["trait"] },
+                    options: {},
+                },
+            ],
+        };
+    }
+
+    it("clarifies a bare 'remove trait' when several traits exist", () => {
+        const result = prepareAssistantPlannerJson(
+            removeTraitPlan(),
+            "remove trait",
+            twoTraitContext
+        );
+        expect(result.type).toBe("clarify");
+        expect(result.json.options.length).toBe(3); // 2 traits + "remove all"
+        expect(result.json.options[0].query).toBe("remove Type 2 diabetes");
+        expect(result.json.options[2].query).toBe("remove all trait nodes");
+    });
+
+    it("acts when the user explicitly says 'all'", () => {
+        const result = prepareAssistantPlannerJson(
+            removeTraitPlan(),
+            "remove all traits",
+            twoTraitContext
+        );
+        expect(result.type).toBe("plan");
+    });
+
+    it("acts when a specific trait is named", () => {
+        const result = prepareAssistantPlannerJson(
+            {
+                response_type: "plan",
+                summary: "Remove Obesity",
+                steps: [
+                    {
+                        id: "step-1",
+                        action: "remove_node",
+                        label: "Remove Obesity",
+                        target: { scope: "node", node_labels: ["Obesity"] },
+                        options: {},
+                    },
+                ],
+            },
+            "remove Obesity",
+            twoTraitContext
+        );
+        expect(result.type).toBe("plan");
+    });
+
+    it("acts when only one node of the type exists", () => {
+        const result = prepareAssistantPlannerJson(
+            removeTraitPlan(),
+            "remove trait",
+            {
+                sample_nodes: [{ node_id: "trait:1", label: "Type 2 diabetes", type: "trait" }],
+                sample_edges: [],
+            }
+        );
+        expect(result.type).toBe("plan");
+    });
+});
