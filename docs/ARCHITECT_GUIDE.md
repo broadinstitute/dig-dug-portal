@@ -513,6 +513,7 @@ Supporting docs:
 ```text
 docs/pb_gene_blueprint.md
 docs/pb_gene_engineer_guide.md
+docs/pb_gene_live_handoff.md
 docs/DB_portal.md
 ```
 

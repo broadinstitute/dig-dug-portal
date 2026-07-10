@@ -3107,8 +3107,9 @@
 
 .pbg-ve-classification {
     display: flex;
-    align-items: center;
-    gap: 0.45rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.18rem;
     min-width: 0;
 }
 
@@ -3116,7 +3117,9 @@
     color: #64748b;
     font-size: 0.82rem;
     font-style: italic;
-    white-space: nowrap;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 
 .pbg-score-badge {
