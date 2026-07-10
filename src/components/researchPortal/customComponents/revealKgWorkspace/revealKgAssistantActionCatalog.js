@@ -128,6 +128,19 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                 group: "Selection & cleanup",
                 actions: [
                     {
+                        id: "select_nodes",
+                        label: "Select nodes",
+                        description:
+                            "Mark nodes as selected (blue). Selecting a single named node runs immediately; top-N or filter-based picks are planned step by step.",
+                        examples: [
+                            "Select NMU",
+                            "Select BRCA1",
+                            "Select top 5 genes connected to Type 2 diabetes",
+                            "Select nodes that passed the last filter",
+                            "Select nodes that failed the last filter",
+                        ],
+                    },
+                    {
                         id: "unselect_nodes",
                         label: "Unselect nodes",
                         description:
@@ -253,19 +266,6 @@ export const ASSISTANT_ACTION_CATALOG_SECTIONS = [
                             "Add 10 neighbor mechanisms to BRCA1",
                             "Expand 15 gene set nodes from Type 2 diabetes",
                             "Expand neighbors from the edge between TP53 and BRCA1",
-                        ],
-                    },
-                    {
-                        id: "select_nodes",
-                        label: "Select nodes",
-                        description:
-                            "Mark nodes as selected (blue). Selecting a single named node runs immediately; top-N or filter-based picks are planned step by step.",
-                        examples: [
-                            "Select NMU",
-                            "Select BRCA1",
-                            "Select top 5 genes connected to Type 2 diabetes",
-                            "Select nodes that passed the last filter",
-                            "Select nodes that failed the last filter",
                         ],
                     },
                 ],
