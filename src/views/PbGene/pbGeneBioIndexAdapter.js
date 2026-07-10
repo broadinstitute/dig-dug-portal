@@ -112,7 +112,7 @@ function buildVariantRow(entry) {
     const hgvsp = displayValue(value(primary, ["HGVSp", "hgvsp", "hgvs_p", "protein_change"]), "");
     const clinvar = displayValue(value(primary, ["ClinVar_CLNSIG", "clinvar_clnsig", "clinvar", "classification"]), "Unavailable");
     const carrierCount = carrierSamples.length || numericValue(primary, ["carrier_count", "carrierCount", "n_carriers"]) || 0;
-    const crdcAf = displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "AF"]), "Unavailable");
+    const crdcAf = displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "cohort_AF_dp20", "cohort_af_dp20", "AF"]), "Unavailable");
     const gnomadAf = displayValue(value(primary, ["gnomAD_AF", "gnomad_AF", "gnomad_exome_af", "gnomADe_AF"]), "Unavailable");
     const revel = displayValue(value(primary, ["REVEL", "revel", "revel_score"]), "Unavailable");
     const alphaMissense = displayValue(value(primary, ["alphamissense", "AlphaMissense", "alphamissense_score", "am_pathogenicity"]), "Unavailable");
@@ -211,22 +211,23 @@ function buildGenomeWindow(geneInfo, variants, exons = []) {
 function buildDemographics(sampleRows) {
     const uniqueRows = uniqueBy(sampleRows, row => value(row, ["sample_id", "sampleId", "sample"]));
     return {
-        byAge: countField(uniqueRows, ["age_for_portal", "age_at_enrollment", "age", "age_band"], "Unavailable")
+        byAge: countField(uniqueRows, ["age_for_portal", "age_at_enrollment", "age", "age_band"])
             .map(row => ({ band: row.label, count: row.count })),
-        bySex: countField(uniqueRows, ["sex", "gender"], "Unavailable"),
-        byAffected: countField(uniqueRows, ["affected_flag", "affected", "is_affected"], "Unavailable")
+        bySex: countField(uniqueRows, ["sex", "gender"]),
+        byAffected: countField(uniqueRows, ["affected_flag", "affected", "is_affected"])
             .map(row => ({ label: booleanDisplay(row.label), count: row.count })),
-        byProband: countField(uniqueRows, ["proband_flag", "proband", "is_proband"], "Unavailable")
+        byProband: countField(uniqueRows, ["proband_flag", "proband", "is_proband"])
             .map(row => ({ label: booleanDisplay(row.label, "Proband", "non-Proband"), count: row.count })),
-        byInvestigator: countField(uniqueRows, ["investigator", "cohort", "study", "study_code"], "Unavailable")
+        byInvestigator: countField(uniqueRows, ["investigator", "cohort", "study", "study_code"])
             .map(row => ({ inv: row.label, count: row.count })),
     };
 }
 
-function countField(rows, keys, fallback) {
+function countField(rows, keys) {
     const counts = {};
     rows.forEach(row => {
-        const key = displayValue(value(row, keys), fallback);
+        const key = value(row, keys);
+        if (key == null || key === "") return;
         counts[key] = (counts[key] || 0) + 1;
     });
     return Object.keys(counts)

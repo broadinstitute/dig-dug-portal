@@ -2945,6 +2945,10 @@
     font-style: italic;
 }
 
+.pbg-summary-empty-note {
+    padding: 0.9rem 1rem 1rem;
+}
+
 .pbg-variant-evidence-block {
     margin: 0 1.25rem 1.05rem;
     border: 1px solid #dbe5f0;
@@ -2996,6 +3000,30 @@
     font-size: 0.68rem;
     font-style: normal;
     letter-spacing: 0;
+}
+
+.pbg-ve-sort {
+    all: unset;
+    position: relative;
+    display: block;
+    min-width: 0;
+    padding-right: 0.7rem;
+    cursor: pointer;
+}
+
+.pbg-ve-sort i {
+    position: absolute;
+    top: 0.05rem;
+    right: 0;
+    color: #1d4ed8;
+    font-size: 0.72rem;
+    font-style: normal;
+    line-height: 1;
+}
+
+.pbg-ve-sort:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
 }
 
 .pbg-ve-row {

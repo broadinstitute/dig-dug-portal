@@ -87,6 +87,8 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier samples sort
         sortKey: null,
         sortDir: "asc",
+        variantSortKey: null,
+        variantSortDir: "asc",
     };
 }
 
@@ -524,10 +526,11 @@ export const pbGeneComputed = {
             return this.geneCarrierDemographics || { byAge: [], byInvestigator: [], bySex: [], byAffected: [] };
         }
         const samples = this.selectedEvidenceVariant.carrierSamples || [];
-        const countBy = (field, emptyLabel = "Unknown") => {
+        const countBy = (field) => {
             const map = {};
             samples.forEach(sample => {
-                const key = sample[field] || emptyLabel;
+                const key = sample[field];
+                if (this.isMissingMetadataValue(key)) return;
                 map[key] = (map[key] || 0) + 1;
             });
             return Object.keys(map)
@@ -540,6 +543,11 @@ export const pbGeneComputed = {
             bySex: countBy("sex").map(row => ({ label: row.key, count: row.count })),
             byAffected: countBy("affected").map(row => ({ label: row.key, count: row.count })),
         };
+    },
+
+    summaryCarrierDemographicsHasRows() {
+        const demo = this.summaryCarrierDemographics || {};
+        return ["byAge", "byInvestigator", "bySex", "byAffected"].some(key => (demo[key] || []).length);
     },
 
     summaryCarrierDemographicsVisible() {
@@ -1401,8 +1409,24 @@ export const pbGeneComputed = {
         return (this.geneLevelPhenotypeCategories || []).slice(0, 4);
     },
 
+    sortedVariantRows() {
+        const rows = [...(this.variantRows || [])];
+        if (!this.variantSortKey) return rows;
+        const key = this.variantSortKey;
+        const dir = this.variantSortDir === "asc" ? 1 : -1;
+        return rows.sort((a, b) => {
+            const av = this.variantSortValue(a, key);
+            const bv = this.variantSortValue(b, key);
+            if (av == null && bv == null) return a.id.localeCompare(b.id);
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir || a.id.localeCompare(b.id);
+            return String(av).localeCompare(String(bv)) * dir || a.id.localeCompare(b.id);
+        });
+    },
+
     visibleVariantRows() {
-        return (this.variantRows || []).slice(0, this.showCountVariants || VARIANT_LIMIT);
+        return this.sortedVariantRows.slice(0, this.showCountVariants || VARIANT_LIMIT);
     },
 
     hiddenVariantCount() {
@@ -1471,6 +1495,12 @@ export const pbGeneMethods = {
 
     isUnavailableValue(value) {
         return value == null || value === "" || String(value).toLowerCase() === "unavailable";
+    },
+
+    isMissingMetadataValue(value) {
+        if (value == null || value === "") return true;
+        const normalized = String(value).trim().toLowerCase();
+        return ["unavailable", "unknown", "n/a", "na", "-", "—"].includes(normalized);
     },
 
     shortPhenotypeCategory(label) {
@@ -1800,6 +1830,30 @@ export const pbGeneMethods = {
     sortIndicator(key) {
         if (this.sortKey !== key) return "◇";
         return this.sortDir === "asc" ? "▲" : "▼";
+    },
+
+    sortVariantsBy(key) {
+        if (this.variantSortKey === key) {
+            this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
+        } else {
+            this.variantSortKey = key;
+            this.variantSortDir = "asc";
+        }
+    },
+
+    variantSortIndicator(key) {
+        if (this.variantSortKey !== key) return "▵";
+        return this.variantSortDir === "asc" ? "▲" : "▼";
+    },
+
+    variantSortValue(row, key) {
+        if (key === "variant") return row.id || "";
+        if (key === "carriers") return Number(row.carrierCount || 0);
+        if (key === "crdcAF") return this.parseAfValue(this.crdcAF(row));
+        if (key === "classification") return `${this.variantClassification(row)} ${row.consequence || ""}`.trim().toLowerCase();
+        if (key === "variantScore") return this.variantScoreValue(row);
+        if (key === "matchScore") return this.parseEvidenceNumber(row, "Match score");
+        return null;
     },
 
     // ── Block 3 evidence helpers ──────────────────────────────────────────────

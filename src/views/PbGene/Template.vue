@@ -436,7 +436,7 @@
                                 <strong>Carrier demographics</strong>
                                 <span>{{ summaryCarrierTotal }} carriers</span>
                             </button>
-                            <div class="pbg-summary-card-body pbg-summary-demo-grid">
+                            <div v-if="summaryCarrierDemographicsHasRows" class="pbg-summary-card-body pbg-summary-demo-grid">
                                 <div>
                                     <p>By age</p>
                                     <div v-for="row in summaryCarrierDemographicsVisible.byAge" :key="'age-' + row.band" class="pbg-summary-demo-row">
@@ -468,6 +468,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <p v-else class="pbg-empty-note pbg-summary-empty-note">No sample metadata available</p>
                             <div v-if="summaryCarrierDemographicsHiddenCount" class="pbg-summary-card-foot">
                                 <button class="pbg-summary-more-btn" type="button" @click="toggleSummaryCard('demographics')">
                                     {{ isSummaryCardExpanded('demographics') ? 'Show less' : '+' + summaryCarrierDemographicsHiddenCount + ' more rows' }}
@@ -487,12 +488,24 @@
 
                         <div class="pbg-ve-table-head">
                             <span></span>
-                            <span>Variant</span>
-                            <span>Carriers (affected)</span>
-                            <span>CRDC AF</span>
-                            <span>Classification</span>
-                            <span>Variant score <em>CRDC</em></span>
-                            <span>Match score <em>CRDC</em></span>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')">
+                                Variant <i>{{ variantSortIndicator('variant') }}</i>
+                            </button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">
+                                Carriers (affected) <i>{{ variantSortIndicator('carriers') }}</i>
+                            </button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('crdcAF')">
+                                CRDC AF <i>{{ variantSortIndicator('crdcAF') }}</i>
+                            </button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('classification')">
+                                Classification <i>{{ variantSortIndicator('classification') }}</i>
+                            </button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
+                                Variant score <em>CRDC</em> <i>{{ variantSortIndicator('variantScore') }}</i>
+                            </button>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
+                                Match score <em>CRDC</em> <i>{{ variantSortIndicator('matchScore') }}</i>
+                            </button>
                         </div>
 
                         <template v-for="row in visibleVariantRows">
