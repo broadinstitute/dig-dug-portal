@@ -68,20 +68,28 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
 }
 
 function collectVariants(variantRows, sampleRows) {
-    const map = new Map();
+    const annotationMap = new Map();
     variantRows.forEach(row => {
         const id = variantId(row);
         if (!id) return;
-        const entry = map.get(id) || { id, variantRows: [], sampleRows: [] };
-        entry.variantRows.push(row);
-        map.set(id, entry);
+        const key = canonicalVariantId(id);
+        const rows = annotationMap.get(key) || [];
+        rows.push(row);
+        annotationMap.set(key, rows);
     });
+
+    const map = new Map();
     sampleRows.forEach(row => {
         const id = variantId(row);
         if (!id) return;
-        const entry = map.get(id) || { id, variantRows: [], sampleRows: [] };
+        const key = canonicalVariantId(id);
+        const entry = map.get(key) || {
+            id,
+            variantRows: annotationMap.get(key) || [],
+            sampleRows: [],
+        };
         entry.sampleRows.push(row);
-        map.set(id, entry);
+        map.set(key, entry);
     });
     return map;
 }
@@ -311,6 +319,10 @@ function variantId(row) {
     const ref = value(row, ["reference", "ref", "REF"]);
     const alt = value(row, ["alt", "ALT", "alternate"]);
     return chrom && pos && ref && alt ? `chr${chrom}:${pos}:${ref}:${alt}` : "";
+}
+
+function canonicalVariantId(id) {
+    return String(id || "").replace(/^chr/i, "");
 }
 
 function variantPosition(id) {

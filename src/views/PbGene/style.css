@@ -1819,6 +1819,7 @@
     margin-left: 2.1rem;
     border-left: 1px solid #6d7b8c;
     border-bottom: 2px solid #6d7b8c;
+    overflow: hidden;
 }
 
 .pbg-window-density-axis {
@@ -2127,6 +2128,7 @@
     margin: 0;
     border-left: 0;
     border-bottom: 1px solid #94a3b8;
+    overflow: hidden;
 }
 
 .pbg-window-density-axis {

@@ -1205,6 +1205,7 @@ export const pbGeneComputed = {
         const map = this.positionCarrierCountMap;
         const max = this.locusDensityMax;
         const plotHeight = this.locusDensityPlotHeightPx;
+        const maxBarHeight = Math.max(2, plotHeight - 3);
         if (this.isBaseLevel) {
             const cols = [];
             const s = Math.ceil(start);
@@ -1218,7 +1219,7 @@ export const pbGeneComputed = {
                     count: item.count,
                     variantIds: item.variantIds,
                     isQueried: pos === this.queriedBp,
-                    heightPx: item.count > 0 ? Math.max(7, Math.round((item.count / max) * plotHeight)) : 2,
+                    heightPx: item.count > 0 ? Math.min(maxBarHeight, Math.max(7, Math.round((item.count / max) * maxBarHeight))) : 2,
                     title: `chr${this.geneInfo.chromosome}:${pos.toLocaleString()} · ${item.count} carriers`,
                 });
             }
@@ -1266,7 +1267,7 @@ export const pbGeneComputed = {
                 count,
                 variantIds: bin.variantIds,
                 isQueried: bin.isQueried,
-                heightPx: count > 0 ? Math.max(7, Math.round((count / max) * plotHeight)) : 2,
+                heightPx: count > 0 ? Math.min(maxBarHeight, Math.max(7, Math.round((count / max) * maxBarHeight))) : 2,
                 title: `chr${this.geneInfo.chromosome}:${Math.round(bin.start).toLocaleString()}-${Math.round(bin.end).toLocaleString()} · ${count} carriers${variantLabel}`,
             };
         });

@@ -41,8 +41,8 @@ The adapter currently queries:
 | BioIndex index | Query | Used for |
 |---|---|---|
 | `gene` | HGNC gene symbol | Best available gene identity fields from BioIndex. This is partial for some display fields. |
-| `gene-variants2` | HGNC gene symbol | Variant list and variant-level rows. |
-| `gene-samples` | HGNC gene symbol | Carrier/sample variant rows, unique carrier counts, genotype, consequence, LoF/REVEL/AlphaMissense/pathogenicity fields. |
+| `gene-variants2` | HGNC gene symbol | Variant annotation supplement when it matches a carrier variant. Variants that have no `gene-samples` carrier rows are not shown in the CRDC evidence table. |
+| `gene-samples` | HGNC gene symbol | Carrier/sample variant rows, unique carrier counts, genotype, CRDC AF, consequence, LoF/REVEL/AlphaMissense/pathogenicity fields. This is the source of the displayed variant evidence rows. |
 
 The shared BioIndex helper follows `/api/bio/cont` continuations, so the page is
 not limited to the first BioIndex response page.
@@ -69,11 +69,11 @@ These are sanitized/reference-style data, not the old fixed carrier fixture.
 | NCBI description | `gene` BioIndex row when available; otherwise explicit unavailable text. |
 | Location/build | Gene BioIndex coordinates if available, otherwise tracked exon reference and observed variant positions. Build label is `GRCh38`. |
 | Current carriers | Unique `sample_id` values from `gene-samples`. |
-| Variants in this gene | Distinct variant ids collected from `gene-variants2` plus `gene-samples`. |
+| Variants in this gene | Distinct carrier variant ids from `gene-samples`. |
 | CRDC AF | First available of `crdc_vcf_af`, `crdcAF`, `cohortAF`, `cohort_AF_dp20`, `cohort_af_dp20`, `AF`. |
 | Variant severity score | `LoFTEE/LoF HC -> 1`, else AlphaMissense, else REVEL. |
 | Most severe observed variant | Highest annotation-only variant severity score among current rows. |
-| Variant evidence table | Live variant rows, default-sorted by variant score descending, ten rows at a time. |
+| Variant evidence table | Live carrier variant rows from `gene-samples`, default-sorted by variant score descending, ten rows at a time. |
 
 ## Explicitly Unavailable or Empty Today
 
@@ -107,4 +107,3 @@ Checked locally on 2026-07-10:
 - The variant evidence table defaults to variant score descending.
 - Classification consequence text wraps inside the classification column.
 - Missing sample metadata is shown as an empty state, not as fake `Unavailable N` bars.
-
