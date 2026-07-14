@@ -1,109 +1,212 @@
-# pb_Gene Live BioIndex Handoff
+# pb_Gene BioIndex and Context API Handoff
 
-Date: 2026-07-10
-Page: `/pb_Gene.html?query={GENE}`
+Date: 2026-07-14
+Page: `/pb_Gene.html?query={HGNC_SYMBOL}`
 
-This note documents the current shareable branch state for the `pb_Gene` mockup.
-It is meant for handoff/review, not as a final production API contract.
+This is the entry point for Helen's implementation review. It records what the
+current Gene Page reads from BioIndex, what the new context endpoint must
+calculate, and which method decisions are still provisional.
 
-## How to Run
+## Review package
 
-Use the private BioIndex host through the dev-server proxy:
+Read in this order:
+
+1. `docs/pb_gene_live_handoff.md` — current frontend, BioIndex, and endpoint mapping.
+2. `docs/pb_gene_context_api_guide.md` — calculation definitions and request/response contract.
+3. `docs/pb_gene_context_api_review_checklist.md` — required statistical, data, and production sign-off.
+
+Reference code:
+
+| File | Role |
+|---|---|
+| `scripts/rphers_fast.py` | Calculate one `phenotype_match_score_resid` value for every analysis sample. |
+| `scripts/context_api_fast.py` | Calculate variant Match Scores, construct gene burden X, fit the provisional burden model, and calculate BH-FDR. |
+| `scripts/test_rphers_fast.py` | HPO scoring and residual tests. |
+| `scripts/test_context_api_fast.py` | Variant mean, binary-carrier burden, RLM, and BH tests. |
+
+`scripts/pb_gene_context_validation.py` and its tests are local validation
+support. They are useful for method review but are not the production API.
+
+## Run the current shared page
+
+Use the private BioIndex host through the development proxy:
 
 ```bash
-BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 NODE_OPTIONS=--openssl-legacy-provider ./node_modules/.bin/vue-cli-service serve --port 8093 --host 127.0.0.1
+BIOINDEX_HOST_PRIVATE=http://100.80.30.199:5000 \
+NODE_OPTIONS=--openssl-legacy-provider \
+./node_modules/.bin/vue-cli-service serve --port 8090 --host 127.0.0.1
 ```
 
 Then open:
 
 ```text
-http://127.0.0.1:8093/pb_Gene.html?query=DMD
-http://127.0.0.1:8093/pb_Gene.html?query=EGFR
-http://127.0.0.1:8093/pb_Gene.html?query=SCN1A
+http://127.0.0.1:8090/pb_Gene.html?query=DMD
 ```
 
-The page should respond to the searched gene. It should not stay fixed on the
-old mock gene.
+This command verifies the Gene Page and live BioIndex fields. Running a real
+HPO context calculation also requires the production context service to be
+connected through `PHENOTYPE_ANALYZER_HOST_PRIVATE` or an equivalent deployed
+route for `/phenotype-analyzer-api/analyze`.
 
-## Runtime Connection
+## End-to-end data flow
 
-The private connection is intentionally scoped to this dev build.
+```text
+HGNC gene query
+  -> BioIndex gene + gene-variants2 + complete gene-samples continuations
+  -> Gene Page identity, locus, carrier, variant, annotation, and Pathogenic Score fields
 
-| Layer | File | Current role |
+HPO list
+  -> full-CRDC phenotype scoring engine
+  -> one phenotype_match_score_resid value per analysis sample (Y)
+
+complete gene-samples rows + full ordered Y
+  -> variant carrier means
+  -> Match Score (Context-based), one value per variant
+  -> binary-carrier Pathogenic Score sums (X), one value per sample
+  -> provisional Huber RLM Y ~ X + C
+  -> gene-level Beta, P-value, FDR/status
+
+aggregate response only
+  -> /phenotype-analyzer-api/analyze
+  -> context result row and Variant Table Match Score column
+```
+
+Patient-level Y, HPO, or genotype data must not be returned to the browser by
+the context endpoint.
+
+## Runtime connection
+
+| Layer | File or route | Role |
 |---|---|---|
-| Dev proxy | `vue.config.js` | When `BIOINDEX_HOST_PRIVATE` is set, proxies browser requests through `/__bioindex_private__`. |
-| BioIndex client | `src/utils/bioIndexUtils.js` | Replaces `BIO_INDEX_HOST_PRIVATE` at build time and uses it when `query_private: true`. |
-| pb_Gene adapter | `src/views/PbGene/pbGeneBioIndexAdapter.js` | Calls private BioIndex and converts rows into the page-shaped state. |
-| Page state/rendering | `src/views/PbGene/pageModel.js`, `Template.vue`, `style.css` | Displays live gene-level and variant-level evidence. |
+| BioIndex dev proxy | `vue.config.js` | Proxies `/__bioindex_private__` when `BIOINDEX_HOST_PRIVATE` is set. |
+| BioIndex client | `src/utils/bioIndexUtils.js` | Queries private BioIndex and follows `/api/bio/cont` continuations. |
+| Gene Page adapter | `src/views/PbGene/pbGeneBioIndexAdapter.js` | Joins carrier evidence with matching annotation rows and creates page state. |
+| Context route | `POST /phenotype-analyzer-api/analyze` | Accepts gene, HPO terms, and Advanced options; returns aggregate Match Scores and gene burden statistics. |
+| Page state | `src/views/PbGene/pageModel.js` | Sends the context request and merges aggregate scores into existing live variant rows. |
+| Rendering | `src/views/PbGene/Template.vue`, `style.css` | Displays HPO controls, results, BioIndex evidence, and context-dependent Match Scores. |
 
-The adapter currently queries:
+## BioIndex mapping
 
-| BioIndex index | Query | Used for |
-|---|---|---|
-| `gene` | HGNC gene symbol | Best available gene identity fields from BioIndex. This is partial for some display fields. |
-| `gene-variants2` | HGNC gene symbol | Variant annotation supplement when it matches a carrier variant. Variants that have no `gene-samples` carrier rows are not shown in the CRDC evidence table. |
-| `gene-samples` | HGNC gene symbol | Carrier/sample variant rows, unique carrier counts, genotype, CRDC AF, consequence, LoF/REVEL/AlphaMissense/pathogenicity fields. This is the source of the displayed variant evidence rows. |
+The Gene Page currently queries each index by HGNC gene symbol:
 
-The shared BioIndex helper follows `/api/bio/cont` continuations, so the page is
-not limited to the first BioIndex response page.
-
-## Tracked Reference Data
-
-Some data shown on the page is not coming from the live BioIndex response yet.
-Those references are tracked in the branch so Helen can reproduce them after a
-pull.
-
-| UI area | Source files | Notes |
-|---|---|---|
-| DDG2P, PanelApp, pathway rows | `src/views/PbGene/geneAnnotationReference.js`, `src/views/PbGene/geneAnnotationReference.generated.js` | Generated from `data/reference_db/gene_annotation_summary.tsv` by `scripts/build_pb_gene_annotation_reference.js`. |
-| Exon model in the locus block | `src/views/PbGene/geneExonReference.js`, `src/views/PbGene/geneExonReference.generated.js` | Generated from `data/reference_db/gene_exon_coords.tsv` by `scripts/build_pb_gene_exon_reference.js`. |
-
-These are sanitized/reference-style data, not the old fixed carrier fixture.
-
-## Current Field Mapping
-
-| UI field | Current source |
+| BioIndex index | Current use |
 |---|---|
-| Gene title | Requested query gene. |
-| HGNC name | `gene` BioIndex row when available. |
-| NCBI description | `gene` BioIndex row when available; otherwise explicit unavailable text. |
-| Location/build | Gene BioIndex coordinates if available, otherwise tracked exon reference and observed variant positions. Build label is `GRCh38`. |
-| Current carriers | Unique `sample_id` values from `gene-samples`. |
-| Variants in this gene | Distinct carrier variant ids from `gene-samples`. |
-| CRDC AF | First available of `crdc_vcf_af`, `crdcAF`, `cohortAF`, `cohort_AF_dp20`, `cohort_af_dp20`, `AF`. |
-| Variant severity score | `LoFTEE/LoF HC -> 1`, else AlphaMissense, else REVEL. |
-| Most severe observed variant | Highest annotation-only variant severity score among current rows. |
-| Variant evidence table | Live carrier variant rows from `gene-samples`, default-sorted by variant score descending, ten rows at a time. |
+| `gene` | Best available gene name, description, chromosome, coordinates, and identifiers. |
+| `gene-variants2` | Variant annotation supplement when its canonical variant ID matches a carrier variant. It does not create a CRDC evidence row without carrier evidence. |
+| `gene-samples` | Source of CRDC carrier/sample rows, unique carriers, displayed variants, GT, CRDC frequency, consequence, ClinVar clinical significance, LoFTEE, AlphaMissense, REVEL, `pathogenicity_score`, and `score_source`. It is also the input for carrier grouping and gene burden X. |
 
-## Explicitly Unavailable or Empty Today
+The shared BioIndex helper must consume all continuation pages. A first-page or
+UI pagination subset is not a valid input for counts, Match Scores, or gene
+burden.
 
-These values are intentionally not mocked. They are empty/unavailable because
-the currently tested private BioIndex responses do not expose the required
-sample-level metadata or phenotype data.
+## UI field mapping
 
-| UI field | Current display | Reason |
-|---|---|---|
-| Affected count | `Unavailable` | `gene-samples` rows tested so far do not provide `affected_flag` or equivalent sample-level metadata. |
-| Proband count | `Unavailable` | `gene-samples` rows tested so far do not provide `proband_flag` or equivalent sample-level metadata. |
-| GenDx diagnosed count | `Unavailable` | `gene-samples` rows tested so far do not provide `diagnosed_flag`; no built `patient` index was available during testing. |
-| Carrier demographics by age/sex/investigator | `No sample metadata available` | Current rows do not include age, sex/gender, investigator/cohort/study fields. |
-| Gene-level carrier phenotype profile | `No HPO category data` / empty profile | Current live response does not include sample-level HPO terms for gene carriers. |
-| Variant-level phenotype profile | Empty profile | Same sample-level HPO limitation. |
-| Co-carrier gene summary | `No co-carrier gene summary` | Current rows do not include a co-carrier summary. |
-| Match score | `no context` / unavailable | A match score needs a phenotype or outcome context; this gene search page does not currently have one. |
-| Some OMIM / Ensembl fields | `Unavailable` | Not consistently available in the current `gene` BioIndex response used by this page. |
+| UI field | Source or calculation |
+|---|---|
+| Gene title | Requested HGNC gene symbol. |
+| HGNC name and NCBI description | `gene` row when available. |
+| Location/build | `gene` coordinates, then tracked exon reference or observed variant positions; build is GRCh38. |
+| CRDC cohort | Cohort denominator field when provided; otherwise explicit `Unavailable`. |
+| Gene carriers | Distinct `gene-samples.sample_id` values. |
+| Affected / Proband | Carrier flags when provided; otherwise explicit `Unavailable`. |
+| Largest contributing clinical area | Investigator/cohort-to-public-clinical-area summary when provided; otherwise explicit `Unavailable`. |
+| Variants in this gene | Distinct carrier variant IDs from complete `gene-samples` results. |
+| CRDC carrier frequency | Person-level carrier frequency supplied or derived by the backend. Do not label it allele frequency. |
+| Classification | ClinVar clinical significance fields only; keep the external ClinVar link when unavailable. |
+| Pathogenic Score | Fixed variant-level biological score; current display precedence is LoFTEE HC = 1, else AlphaMissense, else REVEL. |
+| Match Score (Context-based) | Mean `phenotype_match_score_resid` across all unique carriers of each variant. |
+| Beta / P-value | Gene-level context burden regression result returned by the context endpoint. |
 
-Note: `gene-variants2` may expose variant-level HPO-like aggregate fields in
-some rows, but that is not the same as sample-level HPO/category data for the
-current carrier set. The page leaves the carrier phenotype cards empty rather
-than mixing incompatible semantics.
+Tracked reference data remains separate from BioIndex:
 
-## Verification Snapshot
+| UI area | Tracked source |
+|---|---|
+| DDG2P, PanelApp, pathways | `data/reference_db/gene_annotation_summary.tsv` and generated reference module. |
+| Gene locus exon model | `data/reference_db/gene_exon_coords.tsv` and generated reference module. |
 
-Checked locally on 2026-07-10:
+## Context endpoint contract
 
-- `npm run build` completes with the pre-existing `tabix-reader` warning.
-- `DMD` loads live carrier/variant counts from private BioIndex.
-- The variant evidence table defaults to variant score descending.
-- Classification consequence text wraps inside the classification column.
-- Missing sample metadata is shown as an empty state, not as fake `Unavailable N` bars.
+Request:
+
+```json
+{
+  "terms": "HP:0001250,HP:0000133",
+  "gene": "DMD",
+  "advanced": {
+    "significance_metric": "p_value",
+    "significance_threshold": 0.05,
+    "min_carriers": 5
+  }
+}
+```
+
+Response shape:
+
+```json
+{
+  "query_hpo": ["HP:0001250", "HP:0000133"],
+  "gene": "DMD",
+  "analysis_sample_count": 12438,
+  "variant_match_scores": {},
+  "gene_burden": {
+    "beta": 0.184,
+    "standard_error": 0.051,
+    "p_value": 0.00031,
+    "fdr": 0.00124,
+    "n_samples": 12438,
+    "n_positive_burden": 84,
+    "min_carriers": 5,
+    "status": "ok",
+    "model_version": "portal_huber_rlm_v0"
+  }
+}
+```
+
+The complete calculation, status values, Advanced validation, and FDR rules are
+defined in `docs/pb_gene_context_api_guide.md`.
+
+## Production readiness boundary
+
+The Python code is a reviewable reference implementation, not a complete HTTP
+service and not a statistically approved final model.
+
+The following decisions remain open and must not be hidden during handoff:
+
+1. `portal_huber_rlm_v0` currently uses MASS `summary.rlm`-style standard errors and a two-sided normal approximation. It is not HC3.
+2. Covariates are currently empty. Age band, sex, and PC1-PC10 require a versioned method decision and parity validation before use.
+3. `min_carriers` currently gates on samples with X > 0. This may differ from the number of actual carriers when scores are zero or missing.
+4. The exact Pathogenic Score provenance, version, valid range, and missing-score policy require data-owner sign-off.
+5. The FDR family must be request-scoped and explicitly returned. The BH helper exists, but production response assembly is not implemented here.
+6. Production uses the complete current Gene Page carrier-variant set from BioIndex. The private CEP152/DMD validation used a nonsynonymous evidence subset and must not silently redefine the production variant universe.
+
+See `docs/pb_gene_context_api_review_checklist.md` for the full approval list.
+
+## Explicitly unavailable today
+
+The current tested BioIndex rows do not consistently provide affected/proband
+flags, public clinical-area mappings, cohort denominator, age, sex,
+investigator, GenDx detail, sample HPO terms, or co-carrier genes. The UI must
+show an explicit unavailable or empty state rather than fabricated values.
+
+## Privacy and sharing boundary
+
+Do not commit or send:
+
+- original VCF or HPO matrices;
+- real sample IDs or patient-level residuals;
+- private sample/variant audit tables;
+- `/private/tmp/cep152_dmd_context_validation.json`;
+- any private source path or checksum that is not needed to implement the API.
+
+The aggregate CEP152/DMD results are local validation evidence only. Helen's
+implementation should follow the documented endpoint contract and validate it
+against approved backend data.
+
+## Verification snapshot
+
+Checked locally on 2026-07-14:
+
+- 32 context, calculation, validation, and UI tests passed.
+- `npm run build` completed with the pre-existing `tabix-reader` warning.
+- `git diff --check` passed.
+- No private VCF, HPO matrix, sample-level audit, or aggregate validation fixture was added to Git.

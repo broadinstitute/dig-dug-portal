@@ -413,15 +413,28 @@ module.exports = {
         headers: {
             "Access-Control-Allow-Origin": "*",
         },
-        proxy: process.env.BIOINDEX_HOST_PRIVATE
-            ? {
+        before(app) {
+            const fixturePath = process.env.PB_GENE_CONTEXT_FIXTURE_PATH;
+            if (!fixturePath) return;
+            app.get("/__pb_gene_context_fixture__", (request, response, next) => {
+                response.sendFile(fixturePath, error => { if (error) next(error); });
+            });
+        },
+        proxy: process.env.BIOINDEX_HOST_PRIVATE || process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE ? {
+            ...(process.env.BIOINDEX_HOST_PRIVATE ? {
                 "/__bioindex_private__": {
                     target: process.env.BIOINDEX_HOST_PRIVATE,
                     changeOrigin: true,
                     pathRewrite: { "^/__bioindex_private__": "" },
                 },
-            }
-            : {},
+            } : {}),
+            ...(process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE ? {
+                "/phenotype-analyzer-api": {
+                    target: process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE,
+                    changeOrigin: true,
+                },
+            } : {}),
+        } : undefined,
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;

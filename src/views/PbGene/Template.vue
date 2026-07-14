@@ -36,6 +36,79 @@
                     </div>
                 </div>
 
+                <section class="pbg-context-card" aria-labelledby="pbg-context-title">
+                    <div class="pbg-context-head">
+                        <div>
+                            <h2 id="pbg-context-title">HPO context</h2>
+                            <p>Recalculate gene-level burden and variant-level carrier matching for an entered HPO list.</p>
+                        </div>
+                        <span class="pbg-context-status" :class="{ 'pbg-context-status--active': activeContextTerms.length }">
+                            {{ activeContextTerms.length ? 'Context active' : 'No context' }}
+                        </span>
+                    </div>
+                    <form class="pbg-context-form" @submit.prevent="runContextAnalysis">
+                        <input v-model.trim="contextInput"
+                               type="text"
+                               aria-label="HPO context terms"
+                               autocomplete="off"
+                               spellcheck="false"
+                               placeholder="Enter HPO terms, e.g. HP:0001250, HP:0000133">
+                        <button type="submit" :disabled="contextLoading">
+                            {{ contextLoading ? 'Calculating' : 'Go' }}
+                        </button>
+                        <details class="pbg-context-advanced">
+                            <summary>Advanced</summary>
+                            <div class="pbg-context-advanced-panel">
+                                <label>
+                                    <span>Statistical filter</span>
+                                    <select v-model="contextSignificanceMetric">
+                                        <option value="p_value">P-value</option>
+                                        <option value="fdr">FDR</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    <span>Threshold</span>
+                                    <input v-model.number="contextSignificanceThreshold"
+                                           type="number" min="0.000001" max="1" step="any">
+                                </label>
+                                <label>
+                                    <span>Minimum carriers</span>
+                                    <input v-model.number="contextMinCarriers"
+                                           type="number" min="1" step="1">
+                                </label>
+                                <small v-if="contextSignificanceMetric === 'fdr'">
+                                    BH-FDR is calculated within the API-defined test family.
+                                </small>
+                                <button class="pbg-context-advanced-apply"
+                                        type="submit"
+                                        :disabled="contextLoading">Apply &amp; run</button>
+                            </div>
+                        </details>
+                    </form>
+                    <p v-if="contextError" class="pbg-context-error">{{ contextError }}</p>
+                    <div class="pbg-context-results">
+                        <div class="pbg-context-result-head">
+                            <span>HPOs (Entered terms)</span>
+                            <span>Beta (Effect Size)</span>
+                            <span>P-value</span>
+                            <span>Status / score coverage</span>
+                        </div>
+                        <div v-for="run in contextRuns" :key="run.id" class="pbg-context-result-row">
+                            <span>
+                                {{ run.hpos }}
+                                <small>{{ run.sourceLabel }}</small>
+                            </span>
+                            <strong>{{ run.beta }}</strong>
+                            <strong>{{ run.pValue }}</strong>
+                            <span class="pbg-context-result-diagnostic">
+                                <strong>{{ run.statusLabel }}</strong>
+                                <small>{{ run.coverageLabel }}</small>
+                            </span>
+                        </div>
+                        <p v-if="!contextRuns.length" class="pbg-context-empty">Enter an HPO context and select Go to add a result.</p>
+                    </div>
+                </section>
+
                 <!-- ══════════════════════════════════════════════════════
                      BLOCK 1 — Gene identity + Primary CRDC evidence
                 ═══════════════════════════════════════════════════════════ -->
@@ -69,13 +142,21 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="pbg-ref-source">PanelApp</td>
+                                    <td class="pbg-ref-source"
+                                        title="Diagnostic-grade panels contain expert-reviewed genes with strong evidence for a specific disorder and can support clinical diagnosis.">PanelApp</td>
                                     <td>
                                         <span v-if="geneInfo.referenceAnnotation.panelapp.greenSupport" class="pbg-ref-val pbg-ref-val--pos">
-                                            {{ geneInfo.referenceAnnotation.panelapp.panelCount }} green panels
-                                            · MOI: {{ geneInfo.referenceAnnotation.panelapp.modesOfInheritance }}
+                                            {{ geneInfo.referenceAnnotation.panelapp.panelCount }} diagnostic-grade
+                                            panel{{ geneInfo.referenceAnnotation.panelapp.panelCount === 1 ? '' : 's' }}
+                                            <small v-if="geneInfo.referenceAnnotation.panelapp.panelNames" class="pbg-ref-detail">
+                                                {{ geneInfo.referenceAnnotation.panelapp.panelNames }}
+                                            </small>
+                                            <small v-if="geneInfo.referenceAnnotation.panelapp.modesOfInheritance" class="pbg-ref-detail">
+                                                MOI: {{ geneInfo.referenceAnnotation.panelapp.modesOfInheritance }}
+                                            </small>
                                         </span>
-                                        <span v-else class="pbg-ref-val pbg-ref-val--none">No green panels</span>
+                                        <span v-else class="pbg-ref-val pbg-ref-val--none">No diagnostic-grade panel association found</span>
+                                        <small class="pbg-ref-detail">Source: Genomics England PanelApp</small>
                                     </td>
                                 </tr>
                                 <tr>
@@ -102,31 +183,38 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <p class="pbg-ref-source-note">Source: gene_annotation_summary (DDG2P / PanelApp / Reactome / WikiPathways)</p>
+                        <p class="pbg-ref-source-note">Source: gene_annotation_summary (DDG2P / Genomics England PanelApp / Reactome / WikiPathways)</p>
                     </div>
 
                     <!-- Right: gene-level CRDC summary + representative evidence -->
                     <div class="pbg-hero-summary">
+                        <div class="pbg-cohort-strip" aria-label="CRDC cohort denominator">
+                            <span>
+                                <small>CRDC cohort:</small>
+                                <strong>{{ cohortCount(crdcEvidence.crdcCohortCount) }}</strong>
+                            </span>
+                            <span>
+                                <small>Gene carriers:</small>
+                                <strong>{{ cohortRatio(totalGeneCarriers) }}</strong>
+                            </span>
+                        </div>
                         <div class="pbg-metric-strip" aria-label="Gene-level CRDC summary">
                             <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.carriers" alt="" aria-hidden="true">
-                                <strong>{{ totalGeneCarriers }}</strong>
-                                <em>Carriers</em>
-                            </div>
-                            <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.affected" alt="" aria-hidden="true">
-                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.affected) }">{{ displayMetric(crdcEvidence.affected) }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.affected), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.affected) }">{{ metricRatio(crdcEvidence.affected) }}</strong>
                                 <em>Affected</em>
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.probands" alt="" aria-hidden="true">
-                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.probands) }">{{ displayMetric(crdcEvidence.probands) }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.probands), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.probands) }">{{ metricRatio(crdcEvidence.probands) }}</strong>
                                 <em>Probands</em>
                             </div>
                             <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.gendx" alt="" aria-hidden="true">
-                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.genDxDiagnosed) }">{{ displayMetric(crdcEvidence.genDxDiagnosed) }}</strong>
-                                <em>GenDx diagnosed</em>
+                                <strong class="pbg-clinical-area-value" :class="{ 'pbg-unavailable-value': !crdcEvidence.largestClinicalArea }">
+                                    {{ crdcEvidence.largestClinicalArea ? crdcEvidence.largestClinicalArea.label : 'Unavailable' }}
+                                </strong>
+                                <small v-if="crdcEvidence.largestClinicalArea">{{ metricRatio(crdcEvidence.largestClinicalArea.count) }}</small>
+                                <em>Largest contributing clinical area</em>
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.variants" alt="" aria-hidden="true">
@@ -166,12 +254,7 @@
                                 </div>
                                 <div class="pbg-score-spotlights">
                                     <div>
-                                        <span>Mean carrier burden</span>
-                                        <strong>{{ meanCarrierBurdenScore != null ? meanCarrierBurdenScore.toFixed(2) : '—' }}</strong>
-                                        <em>variant score × GT dosage</em>
-                                    </div>
-                                    <div>
-                                        <span>Variant severity score</span>
+                                        <span>Pathogenic Score</span>
                                         <strong>{{ topVariant.topScore.toFixed(2) }}</strong>
                                         <em>{{ topVariant.scoreSource }}</em>
                                     </div>
@@ -495,16 +578,16 @@
                                 <i>{{ variantSortIndicator('carriers') }}</i><span>Carriers (affected)</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('crdcAF')">
-                                <i>{{ variantSortIndicator('crdcAF') }}</i><span>CRDC AF</span>
+                                <i>{{ variantSortIndicator('crdcAF') }}</i><span>CRDC carrier frequency</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('classification')">
                                 <i>{{ variantSortIndicator('classification') }}</i><span>Classification</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
-                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Variant score <em>CRDC</em></span>
+                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Pathogenic Score <em>CRDC</em></span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
-                                <i>{{ variantSortIndicator('matchScore') }}</i><span>Match score <em>CRDC</em></span>
+                                <i>{{ variantSortIndicator('matchScore') }}</i><span>Match Score (Context-based) <em>CRDC</em></span>
                             </button>
                         </div>
 
@@ -535,7 +618,11 @@
                                 <span>
                                     <strong class="pbg-score-badge" :class="variantScoreClass(row)">{{ variantScoreDisplay(row) }}</strong>
                                 </span>
-                                <span class="pbg-no-context">no context</span>
+                                <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
+                                <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge">
+                                    {{ row.phenotypeMatchScore.toFixed(2) }}
+                                </strong>
+                                <span v-else class="pbg-no-context" :title="row.phenotypeMatchStatus || ''">Unavailable</span>
                             </div>
 
                             <div v-if="expandedVariantId === row.id"
@@ -569,10 +656,10 @@
                                             <span>Age</span>
                                             <span>Sex</span>
                                             <span>GT</span>
-                                            <span>HPO</span>
                                             <span>Co-genes</span>
                                             <span>Investigator</span>
                                             <span>Affected</span>
+                                            <span>Proband</span>
                                             <span>GenDx</span>
                                         </div>
                                         <div v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id" class="pbg-selected-sample-row">
@@ -580,10 +667,16 @@
                                             <span>{{ s.age }}</span>
                                             <span>{{ s.sex }}</span>
                                             <span>{{ s.gt }}</span>
-                                            <span>{{ s.hpo }}</span>
-                                            <span>{{ s.genes }}</span>
+                                            <div class="pbg-co-gene-cell">
+                                                <span>{{ coGenePreview(s.genes) }}</span>
+                                                <details v-if="coGeneRemaining(s.genes).length">
+                                                    <summary>+{{ coGeneRemaining(s.genes).length }} more</summary>
+                                                    <span>{{ coGeneRemaining(s.genes).join(', ') }}</span>
+                                                </details>
+                                            </div>
                                             <span>{{ s.group }}</span>
                                             <span>{{ s.affected }}</span>
+                                            <span>{{ s.proband }}</span>
                                             <span :class="{ 'pbg-gendx-conflict': s.gendxConflict }"
                                                   :title="s.gendxNote || s.gendx || '-'">{{ s.gendx || '-' }}</span>
                                         </div>
@@ -614,18 +707,14 @@
 
 <script>
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "./pageModel";
-import carriersIcon from "./carriers.png";
 import affectedIcon from "./affected.png";
 import probandsIcon from "./proband.png";
-import gendxIcon from "./gendx.png";
 import variantsIcon from "./variants.png";
 import "./style.css";
 
 const metricIcons = {
-    carriers: carriersIcon,
     affected: affectedIcon,
     probands: probandsIcon,
-    gendx: gendxIcon,
     variants: variantsIcon,
 };
 

@@ -5,6 +5,8 @@ import {
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
 
+const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
+
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
     const query = normalizeGeneQuery(params.get("query") || fixtureGeneSymbol || geneInfo.symbol);
@@ -51,6 +53,16 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         searchGeneError: "",
         liveDataLoaded: false,
         liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
+
+        // User-entered HPO context and accumulated gene-level runs
+        contextInput: "",
+        contextLoading: false,
+        contextError: "",
+        contextRuns: [],
+        activeContextTerms: [],
+        contextSignificanceMetric: "p_value",
+        contextSignificanceThreshold: 0.05,
+        contextMinCarriers: 5,
 
         // Variants sub-accordion
         expandedVariantId: null,
@@ -126,12 +138,13 @@ function createUnavailableGeneState(query) {
             },
         },
         crdcEvidence: {
+            crdcCohortCount: null,
             currentGeneCarrierTotal: 0,
             queriedVariantCarriers: 0,
             variantCount: 0,
             probands: null,
             affected: null,
-            genDxDiagnosed: null,
+            largestClinicalArea: null,
             overallBurdenMatchScore: null,
             topVariantSignal: { score: null, variant: "-" },
             topCarrierTerms: [],
@@ -1472,26 +1485,46 @@ export const pbGeneComputed = {
         return best;
     },
 
-    meanCarrierBurdenScore() {
-        const sampleMax = new Map();
-        (this.variantRows || []).forEach(row => {
-            const score = this.variantScoreValue(row);
-            if (score == null) return;
-            (row.carrierSamples || []).forEach(sample => {
-                const burden = score * this.gtDosage(sample.gt);
-                const prev = sampleMax.get(sample.id);
-                if (prev == null || burden > prev) sampleMax.set(sample.id, burden);
-            });
-        });
-        const values = Array.from(sampleMax.values());
-        if (!values.length) return null;
-        return values.reduce((sum, value) => sum + value, 0) / values.length;
-    },
 };
 
 export const pbGeneMethods = {
     displayMetric(value) {
         return value == null || value === "" ? "Unavailable" : value;
+    },
+
+    metricRatio(value) {
+        if (this.isUnavailableValue(value)) return "Unavailable";
+        const total = Number(this.totalGeneCarriers || 0);
+        const count = Number(value);
+        return total ? `${count} / ${total} (${Math.round(count / total * 100)}%)` : `${count}`;
+    },
+
+    cohortCount(value) {
+        const count = Number(value);
+        return Number.isFinite(count) && count > 0 ? count.toLocaleString() : "Unavailable";
+    },
+
+    cohortRatio(value) {
+        const count = Number(value);
+        const total = Number((this.crdcEvidence || {}).crdcCohortCount);
+        if (!Number.isFinite(count)) return "Unavailable";
+        if (!Number.isFinite(total) || total <= 0) return count.toLocaleString();
+        return `${count.toLocaleString()} / ${total.toLocaleString()} (${(count / total * 100).toFixed(1)}%)`;
+    },
+
+    coGeneItems(value) {
+        if (Array.isArray(value)) return value.map(item => String(item).trim()).filter(Boolean);
+        if (typeof value !== "string" || !/[,;|]/.test(value)) return [];
+        return value.split(/[,;|]/).map(item => item.trim()).filter(Boolean);
+    },
+
+    coGenePreview(value) {
+        const items = this.coGeneItems(value);
+        return items.length ? items.slice(0, 3).join(", ") : this.displayMetric(value);
+    },
+
+    coGeneRemaining(value) {
+        return this.coGeneItems(value).slice(3);
     },
 
     isUnavailableValue(value) {
@@ -1539,6 +1572,176 @@ export const pbGeneMethods = {
         this.$set(this.summaryExpandedCards, key, !this.isSummaryCardExpanded(key));
     },
 
+    async runContextAnalysis() {
+        const terms = String(this.contextInput || "")
+            .toUpperCase()
+            .split(/[\s,;]+/)
+            .filter(Boolean)
+            .filter((term, index, all) => all.indexOf(term) === index);
+        const invalid = terms.find(term => !/^HP:\d{7}$/.test(term));
+        if (!terms.length || invalid) {
+            this.contextError = invalid ? `${invalid} is not a valid HPO ID.` : "Enter at least one HPO term.";
+            return;
+        }
+        const significanceThreshold = Number(this.contextSignificanceThreshold);
+        const minCarriers = Number(this.contextMinCarriers);
+        if (!Number.isFinite(significanceThreshold) || significanceThreshold <= 0 || significanceThreshold > 1) {
+            this.contextError = "Threshold must be greater than 0 and no more than 1.";
+            return;
+        }
+        if (!Number.isInteger(minCarriers) || minCarriers < 1) {
+            this.contextError = "Minimum carriers must be a whole number of at least 1.";
+            return;
+        }
+
+        this.contextLoading = true;
+        this.contextError = "";
+        try {
+            const response = LOCAL_CONTEXT_FIXTURE_ENABLED
+                ? await fetch("/__pb_gene_context_fixture__")
+                : await fetch("/phenotype-analyzer-api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        terms: terms.join(","),
+                        gene: this.geneInfo.symbol,
+                        advanced: {
+                            significance_metric: this.contextSignificanceMetric,
+                            significance_threshold: significanceThreshold,
+                            min_carriers: minCarriers,
+                        },
+                    }),
+                });
+            if (!response.ok) throw new Error(`Context API returned ${response.status}.`);
+            const payload = await response.json();
+            let result = payload;
+            let sourceLabel = "Private API";
+            if (LOCAL_CONTEXT_FIXTURE_ENABLED) {
+                const expectedTerms = Array.isArray(payload.query_hpo) ? payload.query_hpo : [];
+                const sameTerms = expectedTerms.length === terms.length && terms.every(term => expectedTerms.includes(term));
+                const gene = String((this.geneInfo || {}).symbol || "").toUpperCase();
+                if (!sameTerms || !payload.genes || !payload.genes[gene]) {
+                    throw new Error(`Local fixture supports only ${expectedTerms.join(", ")} for CEP152 or DMD.`);
+                }
+                result = payload.genes[gene];
+                sourceLabel = "Local validation fixture";
+                this.installLocalContextVariantRows(result);
+            }
+            this.applyVariantContextScores(result);
+            const burden = result.gene_burden || result.burden || {};
+            this.contextRuns.push({
+                id: `${Date.now()}-${this.contextRuns.length}`,
+                hpos: terms.join(", "),
+                beta: this.contextStatistic(burden.beta != null ? burden.beta : result.beta),
+                pValue: this.contextStatistic(
+                    burden.p_value != null ? burden.p_value : burden.pValue != null ? burden.pValue : result.p_value
+                ),
+                fdr: this.contextStatistic(burden.fdr),
+                status: burden.status || "unknown",
+                nPositiveBurden: burden.n_positive_burden,
+                minCarriers: burden.min_carriers,
+                nVariantsScored: burden.n_variants_scored,
+                nVariantsTotal: burden.n_variants_total,
+                interpretationScope: burden.interpretation_scope,
+                modelVersion: burden.model_version,
+                statusLabel: this.contextBurdenStatusLabel(burden),
+                coverageLabel: this.contextBurdenCoverageLabel(burden),
+                sourceLabel,
+            });
+            this.activeContextTerms = terms;
+        } catch (error) {
+            this.contextError = String(error && error.message ? error.message : error);
+        } finally {
+            this.contextLoading = false;
+        }
+    },
+
+    installLocalContextVariantRows(result) {
+        if ((this.variantRows || []).length) return;
+        const scores = result.variant_match_scores || {};
+        this.variantRows = Object.keys(scores).map(variantId => ({
+            id: variantId,
+            carrierCount: Number(scores[variantId].carrier_count || 0),
+            affected: null,
+            carrierSamples: [],
+            crdcAF: "Unavailable",
+            classification: "Unavailable",
+            consequence: "Unavailable",
+            phenotypeCategories: [],
+            variantEvidence: [],
+            phenotypeMatchScore: null,
+        }));
+        this.crdcEvidence = {
+            ...(this.crdcEvidence || {}),
+            currentGeneCarrierTotal: Number(result.carrier_sample_count || 0),
+            variantCount: this.variantRows.length,
+        };
+    },
+
+    applyVariantContextScores(result) {
+        const scores = result && result.variant_match_scores && typeof result.variant_match_scores === "object"
+            ? result.variant_match_scores
+            : {};
+        const scoreByVariant = new Map(
+            Object.keys(scores).map(variantId => [String(variantId).toLowerCase(), scores[variantId]])
+        );
+        (this.variantRows || []).forEach(row => {
+            const context = scoreByVariant.get(String(row.id || "").toLowerCase()) || null;
+            const score = context && context.match_score != null ? Number(context.match_score) : NaN;
+            row.phenotypeMatchScore = Number.isFinite(score) ? score : null;
+            row.phenotypeMatchStatus = context && context.status ? context.status : "not_returned";
+            row.phenotypeMatchCarrierCount = context && context.carrier_count != null
+                ? Number(context.carrier_count)
+                : null;
+            row.phenotypeMatchScoredCarrierCount = context && context.scored_carrier_count != null
+                ? Number(context.scored_carrier_count)
+                : null;
+        });
+    },
+
+    contextBurdenStatusLabel(burden) {
+        const status = String(burden.status || "unknown");
+        const positive = Number(burden.n_positive_burden);
+        const minimum = Number(burden.min_carriers);
+        if (status === "ok") {
+            return Number.isFinite(positive)
+                ? `Calculated · ${positive.toLocaleString()} positive-burden samples`
+                : "Calculated";
+        }
+        if (status === "insufficient_carriers") {
+            const support = Number.isFinite(positive) && Number.isFinite(minimum) ? ` · ${positive}/${minimum}` : "";
+            return `Insufficient positive-burden samples${support}`;
+        }
+        const labels = {
+            constant_input: "No variable burden signal",
+            singular_design: "Singular model design",
+            non_converged: "Model did not converge",
+            invalid_standard_error: "Invalid standard error",
+            zero_residual_scale: "Zero residual scale",
+            invalid_data: "Invalid analysis data",
+        };
+        return labels[status] || `Unavailable · ${status}`;
+    },
+
+    contextBurdenCoverageLabel(burden) {
+        const scored = Number(burden.n_variants_scored);
+        const total = Number(burden.n_variants_total);
+        if (!Number.isFinite(scored) || !Number.isFinite(total)) return "Pathogenic Score coverage unavailable";
+        if (total === 0) return "No gene variants in this context result";
+        const percent = ((scored / total) * 100).toFixed(1);
+        const partial = burden.interpretation_scope === "exploratory_scored_variants_only"
+            ? " · exploratory scored-variants-only burden"
+            : "";
+        return `${scored}/${total} variants scored (${percent}%)${partial}`;
+    },
+
+    contextStatistic(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return "—";
+        if (number !== 0 && Math.abs(number) < 0.001) return number.toExponential(2);
+        return number.toFixed(3);
+    },
+
     async submitGeneSearch() {
         const query = normalizeGeneQuery(this.searchGeneQuery);
         if (!query) return;
@@ -1561,6 +1764,15 @@ export const pbGeneMethods = {
     async loadLiveGeneData(queryOverride = null, updateUrl = false) {
         const query = normalizeGeneQuery(queryOverride || this.searchGeneQuery || (this.geneInfo || {}).symbol);
         if (!query) return;
+        if (LOCAL_CONTEXT_FIXTURE_ENABLED) {
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.pathname = "/pb_Gene.html";
+                url.searchParams.set("query", query);
+                window.location.assign(url.toString());
+            }
+            return;
+        }
         this.searchGeneLoading = true;
         this.searchGeneError = "";
         try {
@@ -1838,7 +2050,7 @@ export const pbGeneMethods = {
             this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
         } else {
             this.variantSortKey = key;
-            this.variantSortDir = key === "variantScore" ? "desc" : "asc";
+            this.variantSortDir = key === "variantScore" || key === "matchScore" ? "desc" : "asc";
         }
     },
 
@@ -1853,15 +2065,15 @@ export const pbGeneMethods = {
         if (key === "crdcAF") return this.parseAfValue(this.crdcAF(row));
         if (key === "classification") return `${this.variantClassification(row)} ${row.consequence || ""}`.trim().toLowerCase();
         if (key === "variantScore") return this.variantScoreValue(row);
-        if (key === "matchScore") return this.parseEvidenceNumber(row, "Match score");
+        if (key === "matchScore") return row.phenotypeMatchScore;
         return null;
     },
 
     // ── Block 3 evidence helpers ──────────────────────────────────────────────
-    variantEvidenceValue(row, label) {
+    variantEvidenceValue(row, label, fallback = "—") {
         const target = String(label || "").toLowerCase();
         const item = (row.variantEvidence || []).find(ev => String(ev.label || "").toLowerCase() === target);
-        return item && item.value != null && item.value !== "" ? item.value : "—";
+        return item && item.value != null && item.value !== "" ? item.value : fallback;
     },
 
     variantEvidenceHref(row, label) {
@@ -1889,7 +2101,7 @@ export const pbGeneMethods = {
         const crdc = this.parseAfValue(this.crdcAF(row));
         const gnomad = this.parseAfValue(row.gnomadAF || this.variantEvidenceValue(row, "gnomAD AF"));
         const sources = [];
-        if (crdc != null && crdc >= 0.10) sources.push(`CRDC AF ${(crdc * 100).toFixed(1)}%`);
+        if (crdc != null && crdc >= 0.10) sources.push(`CRDC carrier frequency ${(crdc * 100).toFixed(1)}%`);
         if (gnomad != null && gnomad >= 0.10) sources.push(`gnomAD AF ${(gnomad * 100).toFixed(1)}%`);
         return sources;
     },
@@ -1950,19 +2162,9 @@ export const pbGeneMethods = {
         return value == null ? "" : this.scoreClass(value);
     },
 
-    gtDosage(gt) {
-        const normalized = String(gt || "").replace(/\|/g, "/");
-        if (normalized === "1/1") return 2;
-        if (normalized === "0/1" || normalized === "1/0") return 1;
-        return normalized.split(/[\/]/).reduce((sum, allele) => {
-            if (allele === "." || allele === "") return sum;
-            return sum + (Number(allele) > 0 ? 1 : 0);
-        }, 0);
-    },
-
     variantEvidenceRows(row) {
         return [
-            { label: "CRDC AF", value: this.crdcAF(row) },
+            { label: "CRDC carrier frequency", value: this.crdcAF(row) },
             { label: "AlphaMissense", value: this.variantEvidenceValue(row, "AlphaMissense") },
             { label: "REVEL", value: this.variantEvidenceValue(row, "REVEL") },
             { label: "LOFTEE", value: this.variantEvidenceValue(row, "LOFTEE") },
@@ -1973,7 +2175,7 @@ export const pbGeneMethods = {
             },
             {
                 label: "ClinVar",
-                value: this.variantClassification(row),
+                value: this.variantEvidenceValue(row, "ClinVar", "Unavailable"),
                 href: this.variantEvidenceHref(row, "ClinVar"),
             },
         ];

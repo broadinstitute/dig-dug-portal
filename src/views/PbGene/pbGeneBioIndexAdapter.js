@@ -42,16 +42,19 @@ function buildPbGeneState(gene, geneRows, variantRows, sampleRows) {
     const exons = getGeneExons(gene);
     const geneInfo = buildGeneInfo(gene, geneRows[0] || {}, variants, exons);
     const genomeWindow = buildGenomeWindow(geneInfo, variants, exons);
+    const cohortKeys = ["crdc_cohort_count", "cohort_sample_count", "cohort_n", "total_cohort_samples"];
+    const cohortRow = sampleRows.concat(variantRows).find(row => numericValue(row, cohortKeys) != null);
 
     return {
         geneInfo,
         crdcEvidence: {
+            crdcCohortCount: cohortRow ? numericValue(cohortRow, cohortKeys) : null,
             currentGeneCarrierTotal: carrierIds.length,
             queriedVariantCarriers: variants[0] ? variants[0].carrierCount : 0,
             variantCount: variants.length,
             probands: countFlag(sampleRows, ["proband_flag", "proband", "is_proband"]),
             affected: countFlag(sampleRows, ["affected_flag", "affected", "is_affected"]),
-            genDxDiagnosed: countFlag(sampleRows, ["diagnosed_flag", "gendx_flag", "diagnosed"]),
+            largestClinicalArea: largestClinicalArea(sampleRows),
             overallBurdenMatchScore: null,
             topVariantSignal: {
                 score: null,
@@ -118,13 +121,13 @@ function buildVariantRow(entry) {
 
     const consequence = displayValue(value(primary, ["Consequence", "consequence", "most_severe_consequence"]), "Unavailable");
     const hgvsp = displayValue(value(primary, ["HGVSp", "hgvsp", "hgvs_p", "protein_change"]), "");
-    const clinvar = displayValue(value(primary, ["ClinVar_CLNSIG", "clinvar_clnsig", "clinvar", "classification"]), "Unavailable");
+    const clinvar = displayValue(value(primary, ["Clinical_sig", "clinical_sig", "ClinVar_CLNSIG", "clinvar_clnsig", "CLNSIG"]), "Unavailable");
     const carrierCount = carrierSamples.length || numericValue(primary, ["carrier_count", "carrierCount", "n_carriers"]) || 0;
     const crdcAf = displayValue(value(primary, ["crdc_vcf_af", "crdcAF", "cohortAF", "cohort_AF_dp20", "cohort_af_dp20", "AF"]), "Unavailable");
     const gnomadAf = displayValue(value(primary, ["gnomAD_AF", "gnomad_AF", "gnomad_exome_af", "gnomADe_AF"]), "Unavailable");
-    const revel = displayValue(value(primary, ["REVEL", "revel", "revel_score"]), "Unavailable");
-    const alphaMissense = displayValue(value(primary, ["alphamissense", "AlphaMissense", "alphamissense_score", "am_pathogenicity"]), "Unavailable");
-    const loftee = displayValue(value(primary, ["LoF", "lof", "lof_class", "LOFTEE"]), "Unavailable");
+    const revel = optionalAnnotationValue(primary, ["REVEL", "revel", "revel_score"]);
+    const alphaMissense = optionalAnnotationValue(primary, ["alphamissense", "AlphaMissense", "alphamissense_score", "am_pathogenicity"]);
+    const loftee = optionalAnnotationValue(primary, ["LoF", "lof", "lof_class", "LOFTEE"]);
 
     return {
         id: entry.id,
@@ -146,7 +149,7 @@ function buildVariantRow(entry) {
             { label: "REVEL", value: revel },
             { label: "AlphaMissense", value: alphaMissense },
             { label: "LOFTEE", value: loftee },
-            { label: "Pathogenicity score", value: displayValue(value(primary, ["pathogenicity_score"]), "Unavailable") },
+            { label: "Pathogenic Score", value: displayValue(value(primary, ["pathogenicity_score"]), "Unavailable") },
             { label: "Weighted score", value: displayValue(value(primary, ["weighted_score"]), "Unavailable") },
         ],
         carrierSamples,
@@ -243,6 +246,12 @@ function countField(rows, keys) {
         .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
+function largestClinicalArea(rows) {
+    const uniqueRows = uniqueBy(rows, row => value(row, ["sample_id", "sampleId", "sample"]));
+    const top = countField(uniqueRows, ["public_clinical_area", "clinical_area", "clinicalArea"])[0];
+    return top ? { label: top.label, count: top.count } : null;
+}
+
 function countFlag(rows, keys) {
     const hasAnyField = rows.some(row => keys.some(key => row && row[key] != null && row[key] !== ""));
     if (!hasAnyField) return null;
@@ -265,6 +274,11 @@ function value(row, keys) {
 function displayValue(raw, fallback = "Unavailable") {
     if (raw == null || raw === "" || raw === "NA" || raw === "NaN") return fallback;
     return String(raw);
+}
+
+function optionalAnnotationValue(row, keys) {
+    const key = keys.find(candidate => row && Object.prototype.hasOwnProperty.call(row, candidate));
+    return key ? displayValue(row[key], "—") : "Unavailable";
 }
 
 function numericValue(row, keys) {

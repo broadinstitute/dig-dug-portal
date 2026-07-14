@@ -73,12 +73,13 @@ export const geneInfo = {
 
 // ─── Primary CRDC evidence (gene level) ──────────────────────────────────────
 export const crdcEvidence = {
+    crdcCohortCount: null,
     currentGeneCarrierTotal: 13,
     queriedVariantCarriers: 13,
     variantCount: 3,
     probands: 4,
     affected: 6,
-    genDxDiagnosed: 5,
+    largestClinicalArea: { label: "Neuromuscular disorders", count: 7 },
     overallBurdenMatchScore: 0.84,
     topVariantSignal: {
         score: 0.88,
