@@ -1,3 +1,5 @@
+import { sanitizeHtml, sanitizeToText } from "./sanitizeUtils";
+
 function alleleFormatter(reference, alt) {
     if (reference.length > 3) {
         reference = reference.substr(0, 3) + "...";
@@ -422,7 +424,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                     let linksArr = [];
 
                     let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
-                        (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
+                        Array.isArray(cellValue) ? cellValue : [cellValue];
 
                     cellVals.map(v => {
                         let link = "<a href='" + columnKeyObj["link to"] + v;
@@ -529,11 +531,11 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
                 break;
 
-            case "value in class":
+            case "value in class": {
+                const colorize = formatTypes.includes('colorize');
                 if (typeof cellValue != "object") {
-                    const colorize = formatTypes.includes('colorize');
                     cellValue = `<span class="${cellValue} ${colorize ? 'do-color' : ''}">${cellValue}</span>`
-                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                } else if (Array.isArray(cellValue)) {
                     let cellValueString = "";
                     cellValue.map(value => {
                         cellValueString += `<span class="${value} ${colorize ? 'do-color' : ''}">${value}</span>`;
@@ -543,6 +545,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 break;
+            }
 
             case "render background percent":
                 fieldValue =
@@ -744,7 +747,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
             }
         }
 
-        return cellValue;
+        // The HTML built above interpolates data values unescaped and is
+        // rendered via v-html by table/card components, so sanitize it here
+        // at the formatter boundary.
+        return sanitizeHtml(cellValue);
     } else {
         return VALUE;
     }
@@ -772,15 +778,21 @@ function replaceWithParams(STR, PARAMS) {
 
         Object.keys(queryParams).map(key => {
             if (paramKeys.includes(key)) {
-                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : queryParams[key];
+                // Raw query-param values are attacker-controlled and callers
+                // render this string via v-html, so reduce them to plain text
+                // before substitution; config-authored markup in STR (and
+                // values mapped through the trusted PARAMS config) stays intact.
+                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : sanitizeToText(queryParams[key]);
                 replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
             }
         })
 
-        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
+        // Only mark unresolved $placeholder keys; literal dollar amounts like
+        // "$100k" are left alone.
+        replacedSTR = replacedSTR.replace(/\$(?=[A-Za-z_])/g, '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
     }
 
-    return replacedSTR
+    return replacedSTR;
 }
 
 

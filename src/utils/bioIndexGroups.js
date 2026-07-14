@@ -1,4 +1,5 @@
 import bioIndexUtils from "@/utils/bioIndexUtils"
+import { groupBy } from "./lodashUtils";
 
 class BioIndexGroup {
     
@@ -11,7 +12,7 @@ class BioIndexGroup {
             if (!!bioIndexResults.data) {
                 if (bioIndexResults.data.length > 0) {
 
-                    this.#grouping = new Map(Object.entries(_.groupBy(bioIndexResults.data, groupKey)));
+                    this.#grouping = new Map(Object.entries(groupBy(bioIndexResults.data, groupKey)));
 
                 } else {
                     throw new Error('No data for the mapping');
@@ -40,7 +41,7 @@ class BioIndexGroup {
 
     reMap(groupKey) {
         // a pullback + re-projection, not an override
-        const _mapping = new Map(_.groupBy(this.list, groupKey));
+        const _mapping = new Map(groupBy(this.list, groupKey));
         return _mapping;
     }
 

@@ -5,7 +5,7 @@ import {
     CELL_STATE_EXPRESSION_TOOLTIP_DEFAULT,
     CELL_STATE_EXPRESSION_SUBHEADER_DEFAULT,
 } from "./cellStateExpressionDocumentation";
-import _ from "lodash";
+import { difference } from "@/utils/lodashUtils";
 
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsTable from "@/components/GeneAssociationsTable";
@@ -578,7 +578,7 @@ new Vue({
         },
 
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(
+            const removedPhenotypes = difference(
                 oldPhenotypes.map((p) => p.name),
                 phenotypes.map((p) => p.name)
             );

@@ -228,7 +228,7 @@
 
 <script>
 import Vue from "vue";
-import { isEqual } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 import { query } from "@/utils/bioIndexUtils";
 import {
     filterFromPredicates,
