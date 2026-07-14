@@ -36,6 +36,48 @@ export function ancestryLabel(code) {
     return VARIANT_SIFTER_ANCESTRY_LABELS[code] || code;
 }
 
+/** Resolve a case-insensitive ancestry code to a known Variant Sifter option. */
+export function normalizeAncestryCode(code) {
+    if (code == null || code === "") {
+        return null;
+    }
+    const trimmed = String(code).trim();
+    const match = VARIANT_SIFTER_ANCESTRY_OPTIONS.find(
+        (option) => option.toLowerCase() === trimmed.toLowerCase()
+    );
+    return match || null;
+}
+
+/**
+ * Parse `sub_ancestries` URL values (`EA,SA` or space/| separated).
+ * Drops Mixed, the primary ancestry, unknowns, and duplicates.
+ */
+export function parseSubAncestriesParam(value, primaryAncestry = null) {
+    const primary = normalizeAncestryCode(primaryAncestry) || primaryAncestry || "Mixed";
+    const raw = Array.isArray(value)
+        ? value
+        : String(value || "")
+              .split(/[,+|;\s]+/)
+              .map((part) => part.trim())
+              .filter(Boolean);
+
+    const seen = new Set();
+    const codes = [];
+    raw.forEach((part) => {
+        const code = normalizeAncestryCode(part);
+        if (!code || code === "Mixed" || code === primary || seen.has(code)) {
+            return;
+        }
+        seen.add(code);
+        codes.push(code);
+    });
+    return codes;
+}
+
+export function formatSubAncestriesParam(codes = []) {
+    return parseSubAncestriesParam(codes).join(",");
+}
+
 export const REGION_EXPAND_OPTIONS = [
     { value: null, label: "Gene / variant bounds only" },
     { value: 50000, label: "± 50 kb" },

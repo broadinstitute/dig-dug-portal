@@ -15,6 +15,7 @@
                         v-if="section.id === 'associations'"
                         :key="section.id"
                         :rows="associationPlotRows"
+                        :selected-ancestries="associationsState.selectedAncestries || []"
                         :loading="associationsState.loading"
                         :hide-loading-status="regionLoadProgressActive"
                         :ld-loading="associationsState.ldLoading"

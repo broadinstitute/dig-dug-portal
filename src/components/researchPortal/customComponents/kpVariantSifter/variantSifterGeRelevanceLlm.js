@@ -25,19 +25,24 @@ export function uniqueTissueLabelsFromPairs(pairs = []) {
     return [...new Set(pairs.map((pair) => pair.tissue).filter(Boolean))].sort();
 }
 
-export function buildGeRelevancePrompt(session, pairs = []) {
+/**
+ * Phenotype→tissue relevance only.
+ * Variant Sifter GE data has no novelty scores, so we never ask the LLM for novelty
+ * labels or rationales — just which tissues are relevant to the phenotype.
+ */
+export function buildGeRelevancePrompt(session, tissueLabels = []) {
     const phenotype = session?.phenotype?.name || "unknown phenotype";
     const description = session?.phenotype?.description || "";
-    const ancestry = session?.ancestry || "Mixed";
 
     const parts = [
-        `For ${phenotype} (${ancestry}), pick broad tissue categories that are biologically plausible.`,
-        "Classify tissues only; ignore regulatory annotation type.",
+        `Classify which broad tissue categories are biologically relevant to the phenotype ${phenotype}.`,
+        "For each tissue, decide only whether it is relevant or irrelevant to this phenotype.",
+        "Do not classify annotation types.",
     ];
     if (description) {
-        parts.push(`Phenotype context: ${description}`);
+        parts.push(`Phenotype description: ${description}.`);
     }
-    parts.push(`Candidates: ${JSON.stringify(pairs)}`);
+    parts.push(`Tissues: ${JSON.stringify(tissueLabels)}.`);
     return parts.join(" ");
 }
 
@@ -55,29 +60,23 @@ export function buildGeTissueCandidates(tissueLabels = []) {
 function parseTissueRelevanceResults(items = [], tissueLabels = []) {
     const tissueLabelSet = new Set(tissueLabels);
     const relevantTissues = [];
-    const rationaleById = {};
 
     items.forEach((item) => {
         const tissueLabel = item?.display_name || item?.candidate_id;
         if (!tissueLabel || !tissueLabelSet.has(tissueLabel)) {
             return;
         }
-        rationaleById[tissueLabel] = item?.rationale || "";
         if (item?.relevance_label === "relevant") {
             relevantTissues.push(tissueLabel);
         }
     });
 
-    return {
-        relevantTissues,
-        rationaleById,
-    };
+    return { relevantTissues };
 }
 
 async function classifyTissueBatch({
     session,
     prompt,
-    pairs,
     tissueLabels,
     candidates,
     batchIndex,
@@ -101,10 +100,11 @@ async function classifyTissueBatch({
         relevance_mode: "llm",
         relevance_threshold: 0.3,
         requested_label: "ge_relevance_tissue",
+        // VS has no novelty scores for these tissues; relevance-only classify path.
         llm_model: GE_RELEVANCE_LLM_MODEL,
-        ge_pairs: pairs,
         batch_index: batchIndex,
         total_batches: totalBatches,
+        tissue_labels: tissueLabels,
     });
 }
 
@@ -126,7 +126,8 @@ export async function fetchInteractiveLlmHealth() {
 
 /**
  * Ask the interactive LLM which broad tissue categories are relevant for the
- * searched phenotype and ancestry. Annotation types are left unfiltered.
+ * searched phenotype. Variant Sifter GE data has no novelty scores; filtering is
+ * phenotype↔tissue relevance only. Annotation types stay unfiltered.
  */
 export async function fetchGeRelevanceFromLlm({
     session,
@@ -172,7 +173,7 @@ export async function fetchGeRelevanceFromLlm({
         };
     }
 
-    const prompt = buildGeRelevancePrompt(session, resolvedPairs);
+    const prompt = buildGeRelevancePrompt(session, tissueLabels);
     const candidateBatches = [];
     const tissueCandidates = buildGeTissueCandidates(tissueLabels);
     for (let index = 0; index < tissueCandidates.length; index += CLASSIFY_BATCH_SIZE) {
@@ -186,7 +187,6 @@ export async function fetchGeRelevanceFromLlm({
         const payload = await classifyTissueBatch({
             session,
             prompt,
-            pairs: resolvedPairs,
             tissueLabels,
             candidates: candidateBatches[batchIndex],
             batchIndex: batchIndex + 1,
@@ -205,6 +205,6 @@ export async function fetchGeRelevanceFromLlm({
         filterComplete: true,
         relevantAnnotations: annotationLabels,
         relevantTissues: parsed.relevantTissues,
-        rationaleById: parsed.rationaleById,
+        rationaleById: {},
     };
 }

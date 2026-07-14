@@ -4,20 +4,18 @@ export function buildGeRelevanceIntroMessage(session, catalog) {
     const phenotype = session?.phenotype?.name || "this phenotype";
     const ancestry = session?.ancestry || "Mixed";
     const tissueCount = catalog?.tissues?.length || 0;
-    const pairCount = catalog?.pairCount || 0;
 
     return [
         `Global enrichment data is loaded for ${phenotype} (${ancestry}).`,
-        pairCount
-            ? `I will review ${pairCount} annotation×tissue pair${pairCount === 1 ? "" : "s"} and ask the LLM to keep only the ${tissueCount} broad tissue categor${tissueCount === 1 ? "y" : "ies"} that are biologically plausible.`
-            : `I will ask the LLM which of ${tissueCount} broad tissue categor${tissueCount === 1 ? "y" : "ies"} are biologically plausible.`,
+        `I will classify which of ${tissueCount} broad tissue categor${tissueCount === 1 ? "y" : "ies"} are relevant to this phenotype.`,
+        "This uses phenotype–tissue relevance only (Variant Sifter has no novelty scores for these tissues).",
         "Annotation types stay visible; muted tissues are de-emphasized on the GE plot.",
         "You can re-enable muted tissues from the Global enrich. drawer.",
     ].join(" ");
 }
 
 export function buildGeRelevanceRunningMessage() {
-    return "Classifying tissues for relevance…";
+    return "Classifying phenotype-relevant tissues…";
 }
 
 export function buildGeRelevanceReportMessage({

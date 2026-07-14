@@ -543,6 +543,41 @@ export function mergeAssociationRowsByVariantId(existingRows, incomingRows) {
     });
 }
 
+export function associationRowMergeKey(row, primaryAncestry = "Mixed") {
+    const id = row?.["Variant ID"] || row?.varId || "";
+    const ancestry = row?.Ancestry || primaryAncestry;
+    return `${id}@@${ancestry}`;
+}
+
+/** Merge association rows preserving one record per Variant ID × Ancestry. */
+export function mergeAssociationRowsByVariantAndAncestry(
+    existingRows,
+    incomingRows,
+    primaryAncestry = "Mixed"
+) {
+    const byKey = new Map();
+
+    (existingRows || []).forEach((row) => {
+        const key = associationRowMergeKey(row, primaryAncestry);
+        if (key && !key.startsWith("@@")) {
+            byKey.set(key, row);
+        }
+    });
+
+    (incomingRows || []).forEach((row) => {
+        const key = associationRowMergeKey(row, primaryAncestry);
+        if (key && !key.startsWith("@@")) {
+            byKey.set(key, row);
+        }
+    });
+
+    return Array.from(byKey.values()).sort((left, right) => {
+        const pLeft = left?.["P-Value"] ?? 1;
+        const pRight = right?.["P-Value"] ?? 1;
+        return pLeft - pRight;
+    });
+}
+
 export function filterGenesInRegion(genes, region) {
     if (!Array.isArray(genes) || !region) {
         return genes || [];

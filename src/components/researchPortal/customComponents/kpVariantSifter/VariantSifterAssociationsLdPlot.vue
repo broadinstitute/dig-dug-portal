@@ -1,20 +1,60 @@
 <template>
-    <div v-if="plotData" class="vks-assoc-ld-plot">
-        <VariantSifterLdRegionPlot
-            :plot-rows="plotData"
-            :search-session="searchSession"
-            :plot-overlays-state="plotOverlaysState"
-            :plot-margin="plotMargin"
-            :plot-markers="plotMarkers"
-            :utils="utils"
-            @toggle-star-variant="$emit('toggle-star-variant', $event)"
-            @set-reference-variant="$emit('set-reference-variant', $event)"
-        />
+    <div v-if="hasSeriesData" class="vks-assoc-ld-plot">
+        <div v-if="showTabs" class="vks-assoc-ld-tab-bar">
+            <div class="vks-assoc-ld-tabs" role="tablist" aria-label="Ancestry LD plots">
+                <button
+                    v-for="series in plotSeries"
+                    :key="series.ancestry"
+                    type="button"
+                    class="vks-assoc-ld-tab"
+                    :class="{ 'is-active': series.ancestry === activeAncestry }"
+                    role="tab"
+                    :aria-selected="series.ancestry === activeAncestry ? 'true' : 'false'"
+                    :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                    @click="activeAncestry = series.ancestry"
+                >
+                    <span class="vks-assoc-ld-tab-code">{{ series.ancestry }}</span>
+                    <span class="vks-assoc-ld-tab-label">{{ series.label }}</span>
+                    <span class="vks-assoc-ld-tab-count">{{ series.rows.length.toLocaleString() }}</span>
+                </button>
+            </div>
+        </div>
+        <p v-else-if="activeSeries" class="vks-assoc-ld-single-label">
+            {{ activeSeries.label }}
+            <span class="vks-assoc-ld-single-count">
+                ({{ activeSeries.rows.length.toLocaleString() }})
+            </span>
+        </p>
+        <div
+            class="vks-assoc-ld-panel"
+            :class="{ 'is-tabbed': showTabs }"
+            role="tabpanel"
+        >
+            <VariantSifterLdRegionPlot
+                v-if="activePlotData"
+                :key="activeAncestry"
+                :plot-rows="activePlotData"
+                :search-session="searchSession"
+                :plot-overlays-state="plotOverlaysState"
+                :plot-margin="plotMargin"
+                :plot-markers="plotMarkers"
+                :utils="utils"
+                @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                @set-reference-variant="$emit('set-reference-variant', $event)"
+            />
+            <p v-else class="vks-assoc-ld-empty">
+                No LD points for {{ activeSeries?.label || "this ancestry" }}.
+            </p>
+        </div>
     </div>
 </template>
 
 <script>
 import VariantSifterLdRegionPlot from "./VariantSifterLdRegionPlot.vue";
+import {
+    buildAssociationPlotSeries,
+    primaryAssociationAncestry,
+} from "./variantSifterAssociationsApi.js";
 import { associationRowsToPlotData } from "./variantSifterAssociationsPlotData.js";
 import { VARIANT_SIFTER_PLOT_MARGIN } from "./variantSifterAssociationsPlotConfig.js";
 
@@ -25,6 +65,14 @@ export default {
     },
     props: {
         rows: {
+            type: Array,
+            default: () => [],
+        },
+        primaryAncestry: {
+            type: String,
+            default: null,
+        },
+        selectedAncestries: {
             type: Array,
             default: () => [],
         },
@@ -54,12 +102,58 @@ export default {
             default: null,
         },
     },
+    data() {
+        return {
+            activeAncestry: null,
+        };
+    },
     computed: {
-        plotData() {
-            return associationRowsToPlotData(this.rows);
+        resolvedPrimaryAncestry() {
+            return this.primaryAncestry || primaryAssociationAncestry(this.searchSession);
+        },
+        plotSeries() {
+            return buildAssociationPlotSeries({
+                rows: this.rows,
+                primaryAncestry: this.resolvedPrimaryAncestry,
+                selectedAncestries: this.selectedAncestries,
+            }).filter((series) => series.rows.length > 0);
+        },
+        showTabs() {
+            return this.plotSeries.length > 1;
+        },
+        hasSeriesData() {
+            return this.plotSeries.length > 0;
+        },
+        activeSeries() {
+            return (
+                this.plotSeries.find((series) => series.ancestry === this.activeAncestry) ||
+                this.plotSeries[0] ||
+                null
+            );
+        },
+        activePlotData() {
+            if (!this.activeSeries?.rows?.length) {
+                return null;
+            }
+            return associationRowsToPlotData(this.activeSeries.rows);
         },
         plotMargin() {
             return VARIANT_SIFTER_PLOT_MARGIN;
+        },
+    },
+    watch: {
+        plotSeries: {
+            immediate: true,
+            handler(series) {
+                const codes = series.map((entry) => entry.ancestry);
+                if (!codes.length) {
+                    this.activeAncestry = null;
+                    return;
+                }
+                if (!codes.includes(this.activeAncestry)) {
+                    this.activeAncestry = codes[0];
+                }
+            },
         },
     },
 };
@@ -67,6 +161,103 @@ export default {
 
 <style scoped>
 .vks-assoc-ld-plot {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.vks-assoc-ld-tab-bar {
+    border-bottom: 1px solid #dddddd;
+    margin-bottom: 0;
+}
+
+.vks-assoc-ld-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.vks-assoc-ld-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #dddddd;
+    border-bottom: none;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    margin: 0 4px -1px 0;
+    padding: 6px 12px;
+    background: #eeeeee;
+    color: #0069d9;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.3;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.vks-assoc-ld-tab:hover {
+    background: #f5f5f5;
+}
+
+.vks-assoc-ld-tab.is-active {
+    background: #ffffff;
+    border-color: #dddddd;
+    border-bottom: 1px solid #ffffff;
+    color: #333333;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.vks-assoc-ld-tab-code {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.vks-assoc-ld-tab-label {
+    font-weight: inherit;
+}
+
+.vks-assoc-ld-tab-count {
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+.vks-assoc-ld-tab.is-active .vks-assoc-ld-tab-count {
+    opacity: 0.85;
+}
+
+.vks-assoc-ld-single-label {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-assoc-ld-single-count {
+    font-weight: 500;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assoc-ld-panel {
+    background: #ffffff;
+    padding: 0;
+}
+
+.vks-assoc-ld-panel.is-tabbed {
+    border: 1px solid #dddddd;
+    border-top: none;
+    padding: 8px 4px 4px;
+}
+
+.vks-assoc-ld-empty {
+    margin: 0;
+    padding: 16px 10px;
+    font-size: 13px;
+    color: var(--cfde-muted, #6b6b6b);
+    text-align: center;
 }
 </style>

@@ -121,6 +121,7 @@
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
                     @toggle-star-variant="onToggleStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
+                    @toggle-association-ancestry="onToggleAssociationAncestry"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
@@ -161,8 +162,13 @@ import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssi
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
 import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
 import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
-import { parseRegionParam, formatRegion, formatSearchSessionLabel } from "./kpVariantSifter/variantSifterSearchUtils.js";
-import { fetchAssociations } from "./kpVariantSifter/variantSifterAssociationsApi.js";
+import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
+import {
+    associationRowAncestry,
+    fetchAssociations,
+    primaryAssociationAncestry,
+    probeAncestryAssociationAvailability,
+} from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
 import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
 import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
@@ -190,7 +196,7 @@ import {
     filterGenesInRegion,
     genomicRegionsEqual,
     isRegionZoomOutBlocked,
-    mergeAssociationRowsByVariantId,
+    mergeAssociationRowsByVariantAndAncestry,
     mergeGenesByName,
     mergeRecombData,
     resolveActiveDataRegion,
@@ -273,6 +279,12 @@ function emptyAssociationsState() {
         index: null,
         query: null,
         filtersIndex: createFiltersIndex(),
+        ancestryAvailability: [],
+        ancestryAvailabilityLoading: false,
+        ancestryAvailabilityError: null,
+        selectedAncestries: [],
+        ancestrySeriesLoading: {},
+        ancestrySeriesErrors: {},
     };
 }
 
@@ -373,6 +385,7 @@ export default Vue.component("kp-variant-sifter", {
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
             globalEnrichmentRequestToken: 0,
+            pendingSubAncestries: [],
             lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
@@ -986,8 +999,53 @@ export default Vue.component("kp-variant-sifter", {
                         if (formattedRows.length) {
                             extendedAssociationRows = true;
                         }
-                        mergedRows = mergeAssociationRowsByVariantId(mergedRows, formattedRows);
+                        mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                            mergedRows,
+                            formattedRows,
+                            primaryAssociationAncestry(this.searchSession)
+                        );
                         this.flushStreamedAssociationRows(mergedRows, activeRegion, gapRegion);
+
+                        for (const ancestry of this.associationsState.selectedAncestries || []) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            if (!ancestry || ancestry === primaryAssociationAncestry(this.searchSession)) {
+                                continue;
+                            }
+                            try {
+                                const ancestrySession = {
+                                    ...gapSession,
+                                    ancestry,
+                                };
+                                const ancestryResult = await fetchAssociations(
+                                    ancestrySession,
+                                    host
+                                );
+                                const ancestryRows = formatAssociationRows(
+                                    ancestryResult.rows,
+                                    ancestrySession
+                                );
+                                if (ancestryRows.length) {
+                                    extendedAssociationRows = true;
+                                }
+                                mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                                    mergedRows,
+                                    ancestryRows,
+                                    primaryAssociationAncestry(this.searchSession)
+                                );
+                                this.flushStreamedAssociationRows(
+                                    mergedRows,
+                                    activeRegion,
+                                    gapRegion
+                                );
+                            } catch (ancestryError) {
+                                console.warn(
+                                    `Variant Sifter ${ancestry} association gap fetch failed`,
+                                    ancestryError
+                                );
+                            }
+                        }
                     } catch (assocError) {
                         associationFetchFailed = true;
                         console.warn("Variant Sifter association gap fetch failed", assocError);
@@ -1330,6 +1388,9 @@ export default Vue.component("kp-variant-sifter", {
             this.afterSessionRestored(restored);
         },
         afterSessionRestored(restored) {
+            if (restored.searchSession) {
+                this.probeAncestryAssociationAvailabilityForSession(restored.searchSession);
+            }
             if (restored.globalEnrichmentState) {
                 this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.DONE);
                 this.maybeRunBackgroundGeFilter();
@@ -1453,6 +1514,7 @@ export default Vue.component("kp-variant-sifter", {
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
             this.lastCredibleSetsListRegion = null;
+            this.pendingSubAncestries = [];
             this.dataRegion = null;
             this.regionShiftBp = 0;
             this.regionLoadProgress = emptyRegionLoadProgress();
@@ -1472,9 +1534,10 @@ export default Vue.component("kp-variant-sifter", {
                 phenotype: undefined,
                 region: undefined,
                 ancestry: undefined,
+                sub_ancestries: undefined,
             });
         },
-        onStartSearch(session) {
+        onStartSearch(session, { subAncestries = [] } = {}) {
             if (regionExceedsActiveDataLimit(session.region)) {
                 this.welcomeInitialValues = {
                     phenotype: session.phenotype?.name || "",
@@ -1489,6 +1552,10 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             this.searchSession = session;
+            this.pendingSubAncestries = parseSubAncestriesParam(
+                subAncestries,
+                session.ancestry || "Mixed"
+            );
             this.assistantActionToken += 1;
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
@@ -1745,6 +1812,7 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
 
+            const primary = primaryAssociationAncestry(this.searchSession);
             const refRow = resolveLdReferenceRow(rows, {
                 refVariant: this.plotOverlaysState.refVariant,
                 refVariantUserSet: this.plotOverlaysState.refVariantUserSet,
@@ -1766,20 +1834,49 @@ export default Vue.component("kp-variant-sifter", {
             };
 
             try {
-                const rowsWithLd = await enrichAssociationRowsWithLdScoresForRef(
-                    rows,
-                    {
+                const ancestries = [
+                    primary,
+                    ...(this.associationsState.selectedAncestries || []),
+                ].filter((code, index, all) => code && all.indexOf(code) === index);
+
+                let enrichedRows = [];
+                for (const ancestry of ancestries) {
+                    if (isCancelled()) {
+                        return false;
+                    }
+                    const seriesRows = rows.filter(
+                        (row) => associationRowAncestry(row, primary) === ancestry
+                    );
+                    if (!seriesRows.length) {
+                        continue;
+                    }
+                    const ancestrySession = {
                         ...this.searchSession,
+                        ancestry: ancestry === "Mixed" ? null : ancestry,
                         region: activeRegion,
-                    },
-                    refRow,
-                    activeRegion
-                );
+                    };
+                    if (ancestry === primary) {
+                        ancestrySession.ancestry = this.searchSession.ancestry;
+                    }
+                    const seriesWithLd = await enrichAssociationRowsWithLdScoresForRef(
+                        seriesRows,
+                        ancestrySession,
+                        refRow,
+                        activeRegion
+                    );
+                    enrichedRows = enrichedRows.concat(seriesWithLd);
+                }
+
                 if (isCancelled()) {
                     return false;
                 }
 
-                const ldAvailable = rowsWithLd.some(
+                enrichedRows = mergeAssociationRowsByVariantAndAncestry(
+                    [],
+                    enrichedRows,
+                    primary
+                );
+                const ldAvailable = enrichedRows.some(
                     (row) => row.LDS != null && !Number.isNaN(row.LDS)
                 );
                 this.associationsState = {
@@ -1788,7 +1885,7 @@ export default Vue.component("kp-variant-sifter", {
                     ldError: ldAvailable
                         ? null
                         : "LD scores could not be loaded for the extended region.",
-                    rows: filterAssociationRowsInRegion(rowsWithLd, activeRegion),
+                    rows: filterAssociationRowsInRegion(enrichedRows, activeRegion),
                 };
                 this.plotOverlaysState = {
                     ...this.plotOverlaysState,
@@ -2042,6 +2139,206 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             this.closeRegionLoadProgressIfSettled();
+            if (!associationFailed) {
+                this.probeAncestryAssociationAvailabilityForSession(session);
+            }
+            // Primary page data is loaded; now fetch URL/session sub-ancestries.
+            this.loadPendingSubAncestries();
+        },
+        async loadPendingSubAncestries() {
+            const pending = parseSubAncestriesParam(
+                this.pendingSubAncestries,
+                primaryAssociationAncestry(this.searchSession)
+            );
+            this.pendingSubAncestries = [];
+            if (!pending.length || !this.searchSession) {
+                this.syncUrlSearchParams(this.searchSession);
+                return;
+            }
+
+            const token = this.associationsRequestToken;
+            for (const ancestry of pending) {
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+                if ((this.associationsState.selectedAncestries || []).includes(ancestry)) {
+                    continue;
+                }
+                await this.loadAssociationAncestrySeries(ancestry);
+            }
+            if (token === this.associationsRequestToken) {
+                this.syncUrlSearchParams(this.searchSession);
+            }
+        },
+        async probeAncestryAssociationAvailabilityForSession(session) {
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const token = this.associationsRequestToken;
+            if (!session?.phenotype || !session?.region || !host) {
+                return;
+            }
+
+            this.associationsState = {
+                ...this.associationsState,
+                ancestryAvailabilityLoading: true,
+                ancestryAvailabilityError: null,
+            };
+
+            try {
+                const availability = await probeAncestryAssociationAvailability(session, host);
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+                this.associationsState = {
+                    ...this.associationsState,
+                    ancestryAvailability: availability,
+                    ancestryAvailabilityLoading: false,
+                    ancestryAvailabilityError: null,
+                };
+            } catch (error) {
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+                console.warn("Variant Sifter ancestry availability probe failed", error);
+                this.associationsState = {
+                    ...this.associationsState,
+                    ancestryAvailability: [],
+                    ancestryAvailabilityLoading: false,
+                    ancestryAvailabilityError:
+                        "Could not check ancestry-specific association availability.",
+                };
+            }
+        },
+        async onToggleAssociationAncestry(ancestry) {
+            const primary = primaryAssociationAncestry(this.searchSession);
+            if (!ancestry || ancestry === primary || !this.searchSession) {
+                return;
+            }
+
+            const selected = this.associationsState.selectedAncestries || [];
+            if (selected.includes(ancestry)) {
+                this.associationsState = {
+                    ...this.associationsState,
+                    selectedAncestries: selected.filter((code) => code !== ancestry),
+                    rows: this.associationsState.rows.filter(
+                        (row) => associationRowAncestry(row, primary) !== ancestry
+                    ),
+                    ancestrySeriesErrors: {
+                        ...this.associationsState.ancestrySeriesErrors,
+                        [ancestry]: null,
+                    },
+                };
+                this.syncUrlSearchParams(this.searchSession);
+                return;
+            }
+
+            await this.loadAssociationAncestrySeries(ancestry);
+            this.syncUrlSearchParams(this.searchSession);
+        },
+        async loadAssociationAncestrySeries(ancestry) {
+            const primary = primaryAssociationAncestry(this.searchSession);
+            if (!ancestry || ancestry === primary || !this.searchSession) {
+                return false;
+            }
+            if ((this.associationsState.selectedAncestries || []).includes(ancestry)) {
+                return true;
+            }
+
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            if (!host) {
+                return false;
+            }
+
+            const token = this.associationsRequestToken;
+            const selected = this.associationsState.selectedAncestries || [];
+            this.associationsState = {
+                ...this.associationsState,
+                ancestrySeriesLoading: {
+                    ...this.associationsState.ancestrySeriesLoading,
+                    [ancestry]: true,
+                },
+                ancestrySeriesErrors: {
+                    ...this.associationsState.ancestrySeriesErrors,
+                    [ancestry]: null,
+                },
+            };
+
+            try {
+                const ancestrySession = {
+                    ...this.searchSession,
+                    ancestry,
+                    region: this.dataRegion || this.searchSession.region,
+                };
+                const result = await fetchAssociations(ancestrySession, host);
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+
+                let formattedRows = formatAssociationRows(result.rows, ancestrySession);
+                try {
+                    const refRow = resolveLdReferenceRow(this.associationsState.rows, {
+                        refVariant: this.plotOverlaysState?.refVariant,
+                        refVariantUserSet: this.plotOverlaysState?.refVariantUserSet,
+                    });
+                    if (refRow) {
+                        formattedRows = await enrichAssociationRowsWithLdScoresForRef(
+                            formattedRows,
+                            ancestrySession,
+                            refRow,
+                            ancestrySession.region
+                        );
+                    } else {
+                        formattedRows = await enrichAssociationRowsWithLdScores(
+                            formattedRows,
+                            ancestrySession
+                        );
+                    }
+                } catch (ldError) {
+                    console.warn(`Variant Sifter ${ancestry} LD enrich failed`, ldError);
+                }
+
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+
+                const mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                    this.associationsState.rows,
+                    formattedRows,
+                    primary
+                );
+                this.associationsState = {
+                    ...this.associationsState,
+                    selectedAncestries: [...selected, ancestry],
+                    rows: mergedRows,
+                    ancestrySeriesLoading: {
+                        ...this.associationsState.ancestrySeriesLoading,
+                        [ancestry]: false,
+                    },
+                    ancestrySeriesErrors: {
+                        ...this.associationsState.ancestrySeriesErrors,
+                        [ancestry]: formattedRows.length
+                            ? null
+                            : "No associations returned for this ancestry.",
+                    },
+                };
+                return true;
+            } catch (error) {
+                if (token !== this.associationsRequestToken) {
+                    return false;
+                }
+                console.warn(`Variant Sifter ${ancestry} associations load failed`, error);
+                this.associationsState = {
+                    ...this.associationsState,
+                    ancestrySeriesLoading: {
+                        ...this.associationsState.ancestrySeriesLoading,
+                        [ancestry]: false,
+                    },
+                    ancestrySeriesErrors: {
+                        ...this.associationsState.ancestrySeriesErrors,
+                        [ancestry]: "Failed to load associations for this ancestry.",
+                    },
+                };
+                return false;
+            }
         },
         applyUrlSearchParams() {
             if (this.canvasActive || this.searchSession) {
@@ -2070,14 +2367,22 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            this.onStartSearch({
-                phenotype,
-                ancestry: params.ancestry || null,
-                region,
-                regionLabel: formatRegion(region),
-                geneOrVariantQuery: params.region,
-                regionExpandBp: null,
-            });
+            this.onStartSearch(
+                {
+                    phenotype,
+                    ancestry: params.ancestry || null,
+                    region,
+                    regionLabel: formatRegion(region),
+                    geneOrVariantQuery: params.region,
+                    regionExpandBp: null,
+                },
+                {
+                    subAncestries: parseSubAncestriesParam(
+                        params.sub_ancestries,
+                        params.ancestry || "Mixed"
+                    ),
+                }
+            );
         },
         syncUrlSearchParams(session) {
             if (!this.utilsBox?.keyParams || !session?.phenotype || !session?.regionLabel) {
@@ -2093,6 +2398,15 @@ export default Vue.component("kp-variant-sifter", {
             } else {
                 nextParams.ancestry = undefined;
             }
+
+            const selected = this.associationsState?.selectedAncestries || [];
+            const pending = this.pendingSubAncestries || [];
+            const subAncestries = parseSubAncestriesParam(
+                [...selected, ...pending],
+                session.ancestry || "Mixed"
+            );
+            const subParam = formatSubAncestriesParam(subAncestries);
+            nextParams.sub_ancestries = subParam || undefined;
 
             this.utilsBox.keyParams.set(nextParams);
         },

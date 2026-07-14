@@ -1,6 +1,6 @@
 <template>
     <div ref="container" class="vks-association-region-plot">
-        <div class="vks-association-region-plot-legend">
+        <div v-if="showLegend" class="vks-association-region-plot-legend">
             <span class="vks-legend-item">
                 <span class="plot-legend-dot" style="background-color: #824099cc"></span>
                 <span>Reference variant</span>
@@ -123,6 +123,10 @@ export default {
         plotRows: {
             type: Array,
             default: () => [],
+        },
+        showLegend: {
+            type: Boolean,
+            default: true,
         },
         region: {
             type: Object,

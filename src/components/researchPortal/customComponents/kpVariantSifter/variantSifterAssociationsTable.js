@@ -56,10 +56,13 @@ export function formatAssociationRows(rawRows, searchSession = null) {
             formatted.EAF = raw.EAF;
         }
 
-        if (!formatted.Ancestry && sessionAncestry && sessionAncestry !== "Mixed") {
+        // Tag by the series we fetched. Combined (`Mixed` / null) always maps to
+        // Mixed so multi-ancestry plot splitting does not drop primary rows that
+        // carry a raw BioIndex ancestry field.
+        if (sessionAncestry && sessionAncestry !== "Mixed") {
             formatted.Ancestry = sessionAncestry;
-        } else if (!formatted.Ancestry && raw.ancestry) {
-            formatted.Ancestry = raw.ancestry;
+        } else {
+            formatted.Ancestry = "Mixed";
         }
 
         const zScore = deriveZScore(formatted, raw);

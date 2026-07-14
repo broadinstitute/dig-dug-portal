@@ -8,10 +8,10 @@ import {
     snapshotGlobalEnrichmentForExport,
 } from "./variantSifterGlobalEnrichmentData.js";
 
-export const VKS_SESSION_VERSION = 6;
+export const VKS_SESSION_VERSION = 7;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -35,6 +35,12 @@ export function validateSessionExportReady({
     }
     if (associationsState?.ldLoading) {
         throw new Error("LD scores are still loading. Wait before exporting.");
+    }
+    if (
+        associationsState?.ancestrySeriesLoading &&
+        Object.values(associationsState.ancestrySeriesLoading).some(Boolean)
+    ) {
+        throw new Error("Ancestry association data is still loading. Wait before exporting.");
     }
     if (!associationsState?.rows?.length) {
         throw new Error("No association data to export. Wait for data to load first.");
@@ -114,6 +120,7 @@ export function exportVariantSifterSession({
             index: associationsState.index,
             query: associationsState.query,
             ldError: associationsState.ldError || null,
+            selectedAncestries: [...(associationsState.selectedAncestries || [])],
             filtersIndex: cloneFiltersIndex(
                 associationsState.filtersIndex || createFiltersIndex()
             ),
@@ -382,6 +389,20 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         regionExpandBp: exportedSearch.regionExpandBp ?? null,
     };
 
+    const primaryAncestry = searchSession.ancestry || "Mixed";
+    const inferredSelectedAncestries = Array.from(
+        new Set(
+            (exportedAssociations.rows || [])
+                .map((row) => row?.Ancestry)
+                .filter((code) => code && code !== primaryAncestry && code !== "Mixed")
+        )
+    );
+    const selectedAncestries = Array.isArray(exportedAssociations.selectedAncestries)
+        ? exportedAssociations.selectedAncestries.filter(
+              (code) => code && code !== primaryAncestry
+          )
+        : inferredSelectedAncestries;
+
     const associationsState = {
         loading: false,
         ldLoading: false,
@@ -391,6 +412,12 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         index: exportedAssociations.index ?? null,
         query: exportedAssociations.query ?? null,
         filtersIndex: normalizeFiltersIndex(exportedAssociations.filtersIndex),
+        ancestryAvailability: [],
+        ancestryAvailabilityLoading: false,
+        ancestryAvailabilityError: null,
+        selectedAncestries,
+        ancestrySeriesLoading: {},
+        ancestrySeriesErrors: {},
     };
 
     const ui = payload.ui || {};

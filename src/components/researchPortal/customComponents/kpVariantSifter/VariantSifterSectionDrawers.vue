@@ -35,10 +35,19 @@
                         :utils="utils"
                         :ld-loading="associationsState.ldLoading"
                         :ld-error="associationsState.ldError"
+                        :ancestry-bubbles="ancestryBubbles"
+                        :primary-ancestry="primaryAncestry"
+                        :selected-ancestries="associationsState.selectedAncestries"
+                        :ancestry-series-loading="associationsState.ancestrySeriesLoading"
+                        :ancestry-availability-loading="
+                            associationsState.ancestryAvailabilityLoading
+                        "
+                        :ancestry-availability-error="associationsState.ancestryAvailabilityError"
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
                         :starred-variant-ids="starredVariantIds"
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
+                        @toggle-ancestry="$emit('toggle-association-ancestry', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
@@ -103,6 +112,10 @@
 
 <script>
 import { drawerTabLabel, drawerTabHeight, sectionById } from "./variantSifterSections.js";
+import {
+    availableAncestryBubbles,
+    primaryAssociationAncestry,
+} from "./variantSifterAssociationsApi.js";
 import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.vue";
 
 import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
@@ -141,6 +154,11 @@ export default {
                 index: null,
                 query: null,
                 filtersIndex: null,
+                ancestryAvailability: [],
+                ancestryAvailabilityLoading: false,
+                ancestryAvailabilityError: null,
+                selectedAncestries: [],
+                ancestrySeriesLoading: {},
             }),
         },
         plotOverlaysState: {
@@ -232,6 +250,15 @@ export default {
         },
         openSection() {
             return sectionById(this.openDrawerId);
+        },
+        primaryAncestry() {
+            return primaryAssociationAncestry(this.searchSession);
+        },
+        ancestryBubbles() {
+            return availableAncestryBubbles(
+                this.associationsState?.ancestryAvailability,
+                this.primaryAncestry
+            );
         },
     },
     methods: {

@@ -1,41 +1,70 @@
 <template>
     <div class="vks-associations-plot">
-        <div v-if="loading && !plotData && !hideLoadingStatus" class="vks-associations-plot-status">
+        <div v-if="loading && !hasPlotSeriesData && !hideLoadingStatus" class="vks-associations-plot-status">
             Loading associations…
         </div>
         <div
-            v-else-if="error && !plotData"
+            v-else-if="error && !hasPlotSeriesData"
             class="vks-associations-plot-error"
             role="alert"
         >
             {{ error }}
         </div>
-        <div v-else-if="!plotData" class="vks-associations-plot-status">
+        <div v-else-if="!hasPlotSeriesData" class="vks-associations-plot-status">
             No association data to plot for this locus.
         </div>
         <template v-else>
             <div ref="plotStack" class="vks-associations-plot-stack">
-                <VariantSifterAssociationRegionPlot
-                    :plot-rows="plotData"
-                    :recomb-peak-intervals="recombPeakIntervals"
-                    :region="searchSession?.region"
-                    :search-session="searchSession"
-                    :region-zoom="regionZoom"
-                    :region-shift-bp="regionShiftBp"
-                    :region-view-area="regionViewArea"
-                    :view-region="viewRegion"
-                    :plot-overlays-state="plotOverlaysState"
-                    :plot-margin="plotMargin"
-                    :shared-canvas-width="stackCanvasWidth"
-                    :plot-markers="plotMarkers"
-                    :utils="utils"
-                    @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
-                    @update:regionViewArea="$emit('update:regionViewArea', $event)"
-                    @pan-end="$emit('pan-end')"
-                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
-                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
-                    @set-reference-variant="$emit('set-reference-variant', $event)"
-                />
+                <div
+                    v-for="series in plotSeries"
+                    :key="`assoc-${series.ancestry}`"
+                    class="vks-associations-plot-series"
+                >
+                    <div
+                        v-if="showAncestryHeaders"
+                        class="vks-associations-ancestry-header"
+                    >
+                        <span
+                            class="vks-associations-ancestry-bubble"
+                            :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                        >
+                            <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
+                            <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
+                            <span class="vks-associations-ancestry-bubble-count">
+                                {{ series.rows.length.toLocaleString() }}
+                            </span>
+                        </span>
+                    </div>
+                    <div
+                        v-if="!series.rows.length"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline"
+                    >
+                        No association points for {{ series.label }}.
+                    </div>
+                    <VariantSifterAssociationRegionPlot
+                        v-else
+                        :plot-rows="series.plotData"
+                        :show-legend="series.ancestry === firstPlotSeriesAncestry"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        :region="searchSession?.region"
+                        :search-session="searchSession"
+                        :region-zoom="regionZoom"
+                        :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
+                        :view-region="viewRegion"
+                        :plot-overlays-state="plotOverlaysState"
+                        :plot-margin="plotMargin"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-markers="plotMarkers"
+                        :utils="utils"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
+                    />
+                </div>
                 <VariantSifterCredibleSetsTrack
                     v-if="hasSelectedCredibleSets"
                     :selected-sets="credibleSetsTrackData"
@@ -122,6 +151,10 @@ import {
     VARIANT_SIFTER_PLOT_MARGIN,
 } from "./variantSifterAssociationsPlotConfig.js";
 import {
+    buildAssociationPlotSeries,
+    primaryAssociationAncestry,
+} from "./variantSifterAssociationsApi.js";
+import {
     buildGeneTypeOptions,
     filterGenesByTypes,
 } from "./variantSifterGenesFilter.js";
@@ -159,6 +192,10 @@ export default {
             type: Array,
             default: () => [],
         },
+        selectedAncestries: {
+            type: Array,
+            default: () => [],
+        },
         loading: {
             type: Boolean,
             default: false,
@@ -184,10 +221,6 @@ export default {
             default: null,
         },
         regionZoom: {
-            type: Number,
-            default: 0,
-        },
-        regionViewArea: {
             type: Number,
             default: 0,
         },
@@ -255,8 +288,31 @@ export default {
         },
     },
     computed: {
+        primaryAncestry() {
+            return primaryAssociationAncestry(this.searchSession);
+        },
+        plotSeries() {
+            return buildAssociationPlotSeries({
+                rows: this.rows,
+                primaryAncestry: this.primaryAncestry,
+                selectedAncestries: this.selectedAncestries,
+            }).map((series) => ({
+                ...series,
+                plotData: associationRowsToPlotData(series.rows),
+            }));
+        },
+        showAncestryHeaders() {
+            return this.plotSeries.length > 1;
+        },
+        firstPlotSeriesAncestry() {
+            const firstWithRows = this.plotSeries.find((series) => series.rows.length > 0);
+            return firstWithRows?.ancestry || null;
+        },
         plotData() {
             return associationRowsToPlotData(this.rows);
+        },
+        hasPlotSeriesData() {
+            return this.plotSeries.some((series) => series.rows.length > 0);
         },
         plotMargin() {
             return VARIANT_SIFTER_PLOT_MARGIN;
@@ -459,6 +515,51 @@ export default {
     min-height: 280px;
     padding: 0 8px;
     position: relative;
+}
+
+.vks-associations-plot-series + .vks-associations-plot-series {
+    margin-top: 10px;
+}
+
+.vks-associations-ancestry-header {
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.vks-associations-ancestry-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 5px 10px;
+    border: 1px solid var(--cfde-blue, #2c5c97);
+    border-radius: 999px;
+    background: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.vks-associations-ancestry-bubble-code {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.vks-associations-ancestry-bubble-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+.vks-associations-ancestry-bubble-count {
+    opacity: 0.9;
+    font-variant-numeric: tabular-nums;
+}
+
+.vks-associations-plot-status--inline {
+    min-height: 0;
+    padding: 12px 0 18px;
 }
 
 .vks-genes-track-slot {

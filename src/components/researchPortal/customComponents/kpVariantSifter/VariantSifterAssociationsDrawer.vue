@@ -2,6 +2,16 @@
     <div class="vks-assoc-drawer research-data-table-wrapper">
         <p v-if="drawerStatusLabel" class="vks-assoc-meta">{{ drawerStatusLabel }}</p>
 
+        <VariantSifterAncestryBubbles
+            :bubbles="ancestryBubbles"
+            :primary-ancestry="primaryAncestry"
+            :selected-ancestries="selectedAncestries"
+            :series-loading="ancestrySeriesLoading"
+            :loading="ancestryAvailabilityLoading"
+            :error="ancestryAvailabilityError"
+            @toggle-ancestry="$emit('toggle-ancestry', $event)"
+        />
+
         <div v-if="loading && !hideLoadingStatus" class="vks-assoc-status">Loading associations…</div>
         <div v-else-if="error" class="vks-assoc-error" role="alert">
             {{ error }}
@@ -12,6 +22,8 @@
         <template v-else>
             <VariantSifterAssociationsLdPlot
                 :rows="filteredRows"
+                :primary-ancestry="primaryAncestry"
+                :selected-ancestries="selectedAncestries"
                 :search-session="searchSession"
                 :plot-overlays-state="plotOverlaysState"
                 :plot-markers="plotMarkers"
@@ -171,12 +183,14 @@ import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableForma
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 import VariantSifterAssociationsFilters from "./VariantSifterAssociationsFilters.vue";
 import VariantSifterAssociationsLdPlot from "./VariantSifterAssociationsLdPlot.vue";
+import VariantSifterAncestryBubbles from "./VariantSifterAncestryBubbles.vue";
 
 export default {
     name: "VariantSifterAssociationsDrawer",
     components: {
         VariantSifterAssociationsFilters,
         VariantSifterAssociationsLdPlot,
+        VariantSifterAncestryBubbles,
     },
     props: {
         rows: {
@@ -196,6 +210,30 @@ export default {
             default: false,
         },
         error: {
+            type: String,
+            default: null,
+        },
+        ancestryBubbles: {
+            type: Array,
+            default: () => [],
+        },
+        primaryAncestry: {
+            type: String,
+            default: "Mixed",
+        },
+        selectedAncestries: {
+            type: Array,
+            default: () => [],
+        },
+        ancestrySeriesLoading: {
+            type: Object,
+            default: () => ({}),
+        },
+        ancestryAvailabilityLoading: {
+            type: Boolean,
+            default: false,
+        },
+        ancestryAvailabilityError: {
             type: String,
             default: null,
         },

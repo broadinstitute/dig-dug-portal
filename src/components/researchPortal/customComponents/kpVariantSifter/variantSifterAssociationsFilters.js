@@ -48,6 +48,12 @@ export const ASSOCIATIONS_FILTERS = [
         type: "dropdown",
         "label in bubble": "true",
     },
+    {
+        field: "Ancestry",
+        label: "Ancestry",
+        type: "dropdown",
+        "label in bubble": "true",
+    },
 ];
 
 function hasFieldValue(value) {
