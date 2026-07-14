@@ -1,6 +1,7 @@
 import {
     VKS_ANNOTATION_COLORS,
     annotationColorForKey,
+    filterGeTissuesForDisplay,
     formatGeTissueStatLabel,
     isGeAnnotationEmphasized,
     isGeTissueEmphasized,
@@ -110,6 +111,7 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
         llmRelevance = null,
         enabledMutedAnnotations = [],
         enabledMutedTissues = [],
+        showFilteredTissuesInTracks = false,
         xAxisBandHover = false,
         livePositionMarkerX = null,
     } = options;
@@ -125,7 +127,11 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
     const plotTop = margin.top + VKS_ANNO_TRACK_STATS_HEADER;
     const plotWidth = canvasWidth - margin.left * 2;
     const tissues = annoData[annotation] || {};
-    const tissueKeys = Object.keys(tissues).sort();
+    const tissueKeys = filterGeTissuesForDisplay(Object.keys(tissues).sort(), {
+        llmRelevance,
+        enabledMutedTissues,
+        showFilteredTissuesInTracks,
+    });
     const plotHeight = tissueKeys.length * VKS_ANNO_TRACK_PER_TISSUE;
     const markerPlotHeight = VKS_ANNO_TRACK_STATS_HEADER + plotHeight;
     const regionStart = Number(visibleRegion.start);

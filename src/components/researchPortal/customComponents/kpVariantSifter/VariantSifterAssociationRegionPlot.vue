@@ -414,7 +414,7 @@ export default {
                 type: "asso",
                 utils: this.utils,
                 yAxisLabel: "-log10(p-value)",
-                xAxisLabel: "Chromosome",
+                xAxisLabel: "",
             });
 
             renderTrackHighlightBands(ctx, {

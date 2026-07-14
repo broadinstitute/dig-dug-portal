@@ -66,6 +66,9 @@
                         "
                         @update:enabledMutedTissues="$emit('update:geEnabledMutedTissues', $event)"
                         @update:selectedAnnotations="$emit('update:geSelectedAnnotations', $event)"
+                        @update:showFilteredTissuesInTracks="
+                            $emit('update:geShowFilteredTissuesInTracks', $event)
+                        "
                     />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>

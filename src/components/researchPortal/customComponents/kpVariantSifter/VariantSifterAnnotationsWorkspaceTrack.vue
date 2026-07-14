@@ -43,6 +43,7 @@ import {
     annotationsForPlot,
     buildGeTissueStatsForAnnotation,
     computeAnnotationWorkspaceTrackHeight,
+    filterGeTissuesForDisplay,
     VKS_ANNO_TRACK_PER_TISSUE,
     VKS_ANNO_TRACK_STATS_HEADER,
 } from "./variantSifterGlobalEnrichmentData.js";
@@ -181,7 +182,14 @@ export default {
             if (!this.activeAnnotation) {
                 return [];
             }
-            return Object.keys(this.annoData[this.activeAnnotation] || {}).sort();
+            const tissues = Object.keys(this.annoData[this.activeAnnotation] || {}).sort();
+            return filterGeTissuesForDisplay(tissues, {
+                llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
+                enabledMutedTissues: this.globalEnrichmentState?.enabledMutedTissues || [],
+                showFilteredTissuesInTracks: Boolean(
+                    this.globalEnrichmentState?.showFilteredTissuesInTracks
+                ),
+            });
         },
         trackLayoutHeight() {
             return computeAnnotationWorkspaceTrackHeight(this.tissueKeys.length);
@@ -265,15 +273,21 @@ export default {
         },
         "globalEnrichmentState.llmRelevance": {
             handler() {
+                this.clearSelectedTissueIfFiltered();
                 this.renderTrack();
             },
             deep: true,
         },
         "globalEnrichmentState.enabledMutedTissues": {
             handler() {
+                this.clearSelectedTissueIfFiltered();
                 this.renderTrack();
             },
             deep: true,
+        },
+        "globalEnrichmentState.showFilteredTissuesInTracks"() {
+            this.clearSelectedTissueIfFiltered();
+            this.renderTrack();
         },
     },
     mounted() {
@@ -293,6 +307,14 @@ export default {
         }
     },
     methods: {
+        clearSelectedTissueIfFiltered() {
+            if (
+                this.selectedTissue &&
+                !this.tissueKeys.includes(this.selectedTissue)
+            ) {
+                this.selectedTissue = null;
+            }
+        },
         setActiveAnnotation(annotation) {
             this.activeAnnotation = annotation;
         },
@@ -356,6 +378,9 @@ export default {
                 enabledMutedAnnotations:
                     this.globalEnrichmentState?.enabledMutedAnnotations || [],
                 enabledMutedTissues: this.globalEnrichmentState?.enabledMutedTissues || [],
+                showFilteredTissuesInTracks: Boolean(
+                    this.globalEnrichmentState?.showFilteredTissuesInTracks
+                ),
                 xAxisBandHover: this.xAxisBandHover,
                 livePositionMarkerX: this.livePositionMarkerX,
             });

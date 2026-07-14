@@ -41,6 +41,8 @@
             aria-hidden="true"
         ></div>
 
+        <VariantSifterWorkspaceGuide v-if="canvasActive" />
+
         <input
             ref="sessionImportInput"
             type="file"
@@ -124,6 +126,7 @@
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
                     @update:geEnabledMutedTissues="onGeEnabledMutedTissuesUpdate"
+                    @update:geShowFilteredTissuesInTracks="onGeShowFilteredTissuesInTracksUpdate"
                     @update:geSelectedAnnotations="onGeSelectedAnnotationsUpdate"
                 />
             </div>
@@ -150,6 +153,7 @@ import Vue from "vue";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
 import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
+import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
 import VariantSifterViewportControls from "./kpVariantSifter/VariantSifterViewportControls.vue";
 import VariantSifterCanvas from "./kpVariantSifter/VariantSifterCanvas.vue";
 import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionDrawers.vue";
@@ -201,7 +205,17 @@ import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
-import { buildAnnoDataFromRows, buildGeLlmLoadingState, buildGeLlmRelevanceShowAllState, emptyGeLlmRelevanceState, extractGeCatalog, isGeLlmFilterComplete } from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
+import {
+    applyGlobalEnrichmentAnnoRows,
+    buildAnnoDataFromRows,
+    buildGeLlmLoadingState,
+    buildGeLlmRelevanceShowAllState,
+    emptyGeLlmRelevanceState,
+    extractGeCatalog,
+    filterAnnoRowsInRegion,
+    isGeLlmFilterComplete,
+    mergeAnnoRows,
+} from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
 import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
     buildGeRelevanceIntroMessage,
@@ -307,6 +321,7 @@ function emptyGlobalEnrichmentState() {
         enabledMutedAnnotations: [],
         enabledMutedTissues: [],
         selectedAnnotations: [],
+        showFilteredTissuesInTracks: false,
     };
 }
 
@@ -317,6 +332,7 @@ export default Vue.component("kp-variant-sifter", {
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
+        VariantSifterWorkspaceGuide,
         VariantSifterViewportControls,
         VariantSifterCanvas,
         VariantSifterSectionDrawers,
@@ -829,6 +845,23 @@ export default Vue.component("kp-variant-sifter", {
                 ...this.plotOverlaysState,
                 recombData,
             };
+            this.applyGlobalEnrichmentDataRegion(nextDataRegion);
+        },
+        applyGlobalEnrichmentDataRegion(targetDataRegion) {
+            const state = this.globalEnrichmentState;
+            if (!state?.annoRows?.length || !targetDataRegion) {
+                return;
+            }
+
+            const annoRows = filterAnnoRowsInRegion(state.annoRows, targetDataRegion);
+            this.globalEnrichmentState = applyGlobalEnrichmentAnnoRows(state, annoRows);
+        },
+        flushStreamedAnnoRows(mergedAnnoRows, activeRegion) {
+            const annoRows = filterAnnoRowsInRegion(mergedAnnoRows, activeRegion);
+            this.globalEnrichmentState = {
+                ...applyGlobalEnrichmentAnnoRows(this.globalEnrichmentState, annoRows),
+                loading: false,
+            };
         },
         setRegionLoadStep(stepId, status) {
             this.regionLoadProgress = patchRegionLoadStep(
@@ -925,6 +958,7 @@ export default Vue.component("kp-variant-sifter", {
             let mergedRows = this.associationsState.rows;
             let mergedGenes = this.genesState.data || [];
             let mergedRecomb = this.plotOverlaysState.recombData;
+            let mergedAnnoRows = this.globalEnrichmentState?.annoRows || [];
             let extendedAssociationRows = false;
             let associationFetchFailed = false;
 
@@ -979,6 +1013,7 @@ export default Vue.component("kp-variant-sifter", {
 
                 this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.LOADING);
                 this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.LOADING);
 
                 await Promise.all([
                     (async () => {
@@ -1040,6 +1075,42 @@ export default Vue.component("kp-variant-sifter", {
                         this.setRegionLoadStep(
                             "recomb",
                             recombFetchFailed && !mergedRecomb?.position?.length
+                                ? VKS_REGION_LOAD_STATUS.FAILED
+                                : VKS_REGION_LOAD_STATUS.DONE
+                        );
+                    })(),
+                    (async () => {
+                        let annoFetchFailed = false;
+                        for (const gap of gaps) {
+                            if (token !== this.regionExtendToken) {
+                                return;
+                            }
+                            const gapRegion = {
+                                chr: activeRegion.chr,
+                                start: gap.start,
+                                end: gap.end,
+                            };
+                            try {
+                                const newAnnoRows = await fetchLocusAnnotations(gapRegion, host);
+                                if (newAnnoRows?.length) {
+                                    mergedAnnoRows = mergeAnnoRows(mergedAnnoRows, newAnnoRows);
+                                    this.flushStreamedAnnoRows(mergedAnnoRows, activeRegion);
+                                }
+                            } catch (annoError) {
+                                annoFetchFailed = true;
+                                console.warn(
+                                    "Variant Sifter annotation gap fetch failed",
+                                    annoError
+                                );
+                            }
+                        }
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.flushStreamedAnnoRows(mergedAnnoRows, activeRegion);
+                        this.setRegionLoadStep(
+                            "globalEnrichment",
+                            annoFetchFailed && !mergedAnnoRows.length
                                 ? VKS_REGION_LOAD_STATUS.FAILED
                                 : VKS_REGION_LOAD_STATUS.DONE
                         );
@@ -2203,6 +2274,12 @@ export default Vue.component("kp-variant-sifter", {
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
                 enabledMutedTissues: [...enabledMutedTissues],
+            };
+        },
+        onGeShowFilteredTissuesInTracksUpdate(showFilteredTissuesInTracks) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                showFilteredTissuesInTracks: Boolean(showFilteredTissuesInTracks),
             };
         },
     },

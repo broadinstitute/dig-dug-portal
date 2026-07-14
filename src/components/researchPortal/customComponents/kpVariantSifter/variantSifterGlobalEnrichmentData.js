@@ -71,6 +71,78 @@ export function buildAnnoDataFromRows(rows = []) {
     );
 }
 
+export function annoRowKey(row) {
+    if (!row) {
+        return "";
+    }
+    return [row.annotation, row.tissue, row.start, row.end, row.state ?? ""].join("|");
+}
+
+export function filterAnnoRowsInRegion(rows, region) {
+    if (!Array.isArray(rows) || !region) {
+        return rows || [];
+    }
+
+    const start = Number(region.start);
+    const end = Number(region.end);
+    return rows.filter((row) => {
+        const rowStart = Number(row.start);
+        const rowEnd = Number(row.end);
+        return (
+            Number.isFinite(rowStart) &&
+            Number.isFinite(rowEnd) &&
+            rowStart <= end &&
+            rowEnd >= start
+        );
+    });
+}
+
+export function mergeAnnoRows(existingRows, incomingRows) {
+    const byKey = new Map();
+
+    (existingRows || []).forEach((row) => {
+        const key = annoRowKey(row);
+        if (key) {
+            byKey.set(key, row);
+        }
+    });
+
+    (incomingRows || []).forEach((row) => {
+        const key = annoRowKey(row);
+        if (key) {
+            byKey.set(key, row);
+        }
+    });
+
+    return Array.from(byKey.values()).sort((left, right) => {
+        const startDiff = Number(left.start) - Number(right.start);
+        if (startDiff) {
+            return startDiff;
+        }
+        return String(left.annotation).localeCompare(String(right.annotation));
+    });
+}
+
+export function applyGlobalEnrichmentAnnoRows(state, annoRows) {
+    const annoData = buildAnnoDataFromRows(annoRows);
+    const catalog = extractGeCatalog(annoData);
+    const hasData = Object.keys(annoData).length > 0;
+
+    return {
+        ...state,
+        annoRows,
+        annoData,
+        catalog,
+        selectedAnnotations: resolveSelectedGeAnnotations(
+            state?.selectedAnnotations,
+            catalog.annotations
+        ),
+        error: hasData
+            ? null
+            : state?.error || "No regulatory annotations were found for this locus.",
+    };
+}
+
 export function sortedAnnotationKeys(annoData = {}) {
     return Object.keys(annoData).sort();
 }
@@ -155,6 +227,7 @@ export function snapshotGlobalEnrichmentForExport(state) {
         enabledMutedAnnotations: [...(state.enabledMutedAnnotations || [])],
         enabledMutedTissues: [...(state.enabledMutedTissues || [])],
         selectedAnnotations: [...(state.selectedAnnotations || [])],
+        showFilteredTissuesInTracks: Boolean(state.showFilteredTissuesInTracks),
     };
 }
 
@@ -203,6 +276,7 @@ export function normalizeGlobalEnrichmentFromSession(exported) {
                   : [],
             catalog.annotations
         ),
+        showFilteredTissuesInTracks: Boolean(exported.showFilteredTissuesInTracks),
     };
 }
 
@@ -282,6 +356,23 @@ export function listMutedGeTissues(tissues = [], { llmRelevance, enabledMutedTis
         (tissue) =>
             !llmRelevance.relevantTissues.includes(tissue) &&
             !enabledMutedTissues.includes(tissue)
+    );
+}
+
+/** Tissues to show on workspace annotation tracks. */
+export function filterGeTissuesForDisplay(
+    tissues = [],
+    {
+        llmRelevance,
+        enabledMutedTissues = [],
+        showFilteredTissuesInTracks = false,
+    } = {}
+) {
+    if (showFilteredTissuesInTracks || !llmRelevance?.llmUsed) {
+        return tissues;
+    }
+    return tissues.filter((tissue) =>
+        isGeTissueEmphasized(tissue, { llmRelevance, enabledMutedTissues })
     );
 }
 
@@ -504,13 +595,110 @@ export function formatGeTissueStatLabel(stats, utils) {
     if (!stats) {
         return null;
     }
+    return `${formatGePValueLabel(stats.rawPValue, utils)} / ${formatGeFoldLabel(stats.fold)}`;
+}
 
+export function formatGePValueLabel(rawPValue, utils) {
+    if (rawPValue == null || Number.isNaN(Number(rawPValue))) {
+        return "—";
+    }
     const pValueFormatter = utils?.Formatters?.pValueFormatter;
-    const pValueLabel = pValueFormatter
-        ? pValueFormatter(stats.rawPValue)
-        : String(stats.rawPValue);
-    const foldLabel = Number(stats.fold).toFixed(3);
-    return `${pValueLabel} / ${foldLabel}`;
+    if (pValueFormatter) {
+        return pValueFormatter(rawPValue);
+    }
+    return String(rawPValue);
+}
+
+export function formatGeFoldLabel(fold) {
+    if (fold == null || Number.isNaN(Number(fold))) {
+        return "—";
+    }
+    return Number(fold).toFixed(3);
+}
+
+/**
+ * Tissue rows × annotation columns for the GE drawer table.
+ * Rows are sorted by the lowest p-value across annotations for each tissue.
+ */
+export function buildGeTissueTableModel({
+    geRows = [],
+    annoData = {},
+    phenotype,
+    ancestry,
+    annotations = [],
+    utils = null,
+}) {
+    if (!phenotype || !annotations.length) {
+        return { annotations: [], rows: [] };
+    }
+
+    const statsByAnnotation = {};
+    annotations.forEach((annotation) => {
+        statsByAnnotation[annotation] = buildGeTissueStatsForAnnotation({
+            geRows,
+            annotation,
+            phenotype,
+            ancestry,
+        });
+    });
+
+    const tissueSet = new Set();
+    annotations.forEach((annotation) => {
+        Object.keys(annoData[annotation] || {}).forEach((tissue) => {
+            tissueSet.add(tissue);
+        });
+    });
+
+    const rows = [...tissueSet].map((tissue) => {
+        const cells = {};
+        let minPValue = null;
+
+        annotations.forEach((annotation) => {
+            const stats = statsByAnnotation[annotation]?.[tissue] || null;
+            if (!stats) {
+                cells[annotation] = null;
+                return;
+            }
+
+            cells[annotation] = {
+                rawPValue: stats.rawPValue,
+                fold: stats.fold,
+                pValueLabel: formatGePValueLabel(stats.rawPValue, utils),
+                foldLabel: formatGeFoldLabel(stats.fold),
+            };
+
+            if (minPValue == null || stats.rawPValue < minPValue) {
+                minPValue = stats.rawPValue;
+            }
+        });
+
+        return {
+            tissue,
+            cells,
+            minPValue,
+        };
+    });
+
+    rows.sort((left, right) => {
+        if (left.minPValue == null && right.minPValue == null) {
+            return left.tissue.localeCompare(right.tissue);
+        }
+        if (left.minPValue == null) {
+            return 1;
+        }
+        if (right.minPValue == null) {
+            return -1;
+        }
+        if (left.minPValue !== right.minPValue) {
+            return left.minPValue - right.minPValue;
+        }
+        return left.tissue.localeCompare(right.tissue);
+    });
+
+    return {
+        annotations: [...annotations],
+        rows,
+    };
 }
 
 export const VKS_ANNO_TRACK_PER_TISSUE = 24;

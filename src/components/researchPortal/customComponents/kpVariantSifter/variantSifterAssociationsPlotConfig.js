@@ -45,7 +45,7 @@ export function buildAssociationsRegionPlotConfig(searchSession) {
         "y axis field": "-log10(P-Value)",
         "render by": "Variant ID",
         "y axis label": "-log10(p-value)",
-        "x axis label": "Chromosome",
+        "x axis label": "",
         "hover content": ["P-Value", "Beta", "Z Score"],
         height: 120,
         "star key": null,

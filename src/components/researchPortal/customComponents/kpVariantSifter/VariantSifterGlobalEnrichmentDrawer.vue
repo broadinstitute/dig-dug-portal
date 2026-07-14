@@ -78,6 +78,22 @@
                 </div>
             </div>
 
+            <div v-if="llmRelevance.llmUsed" class="vks-ge-track-filter">
+                <label class="vks-ge-track-filter-label">
+                    <input
+                        type="checkbox"
+                        class="vks-ge-track-filter-input"
+                        :checked="showFilteredTissuesInTracks"
+                        @change="onToggleShowFilteredTissuesInTracks"
+                    />
+                    <span>Show filtered tissues in annotation tracks</span>
+                </label>
+                <p class="vks-ge-track-filter-hint">
+                    Filtered tissues appear dimmed when shown. When off, they are hidden
+                    from the workspace tracks.
+                </p>
+            </div>
+
             <ul class="vks-ge-legend-list" role="group" aria-label="Annotation types">
                 <li
                     v-for="(annotation, index) in annotationOptions"
@@ -106,6 +122,14 @@
                 :selected-annotations="selectedAnnotations"
                 :utils="utils"
             />
+
+            <VariantSifterGlobalEnrichmentTable
+                :annotations="geTableModel.annotations"
+                :rows="geTableModel.rows"
+                :subtitle="geTableSubtitle"
+                :llm-relevance="llmRelevance"
+                :enabled-muted-tissues="enabledMutedTissues"
+            />
         </template>
         <p v-else class="vks-ge-drawer-hint">
             No regulatory annotations were found for this locus.
@@ -115,7 +139,9 @@
 
 <script>
 import VariantSifterGlobalEnrichmentPlot from "./VariantSifterGlobalEnrichmentPlot.vue";
+import VariantSifterGlobalEnrichmentTable from "./VariantSifterGlobalEnrichmentTable.vue";
 import {
+    buildGeTissueTableModel,
     isGeAnnotationEmphasized,
     listMutedGeAnnotations,
     listMutedGeTissues,
@@ -129,6 +155,7 @@ export default {
     name: "VariantSifterGlobalEnrichmentDrawer",
     components: {
         VariantSifterGlobalEnrichmentPlot,
+        VariantSifterGlobalEnrichmentTable,
     },
     props: {
         globalEnrichmentState: {
@@ -151,6 +178,7 @@ export default {
                 enabledMutedAnnotations: [],
                 enabledMutedTissues: [],
                 selectedAnnotations: [],
+                showFilteredTissuesInTracks: false,
             }),
         },
         searchSession: {
@@ -199,6 +227,9 @@ export default {
         enabledMutedTissues() {
             return this.globalEnrichmentState?.enabledMutedTissues || [];
         },
+        showFilteredTissuesInTracks() {
+            return Boolean(this.globalEnrichmentState?.showFilteredTissuesInTracks);
+        },
         annotationOptions() {
             return sortedAnnotationKeys(this.globalEnrichmentState?.annoData || {});
         },
@@ -225,6 +256,24 @@ export default {
         },
         hasMutedItems() {
             return this.mutedAnnotationOptions.length > 0 || this.mutedTissueOptions.length > 0;
+        },
+        geTableModel() {
+            return buildGeTissueTableModel({
+                geRows: this.globalEnrichmentState?.geRows || [],
+                annoData: this.globalEnrichmentState?.annoData || {},
+                phenotype: this.searchSession?.phenotype?.name || "",
+                ancestry: this.searchSession?.ancestry || "Mixed",
+                annotations: this.selectedAnnotations,
+                utils: this.utils,
+            });
+        },
+        geTableSubtitle() {
+            const phenotype = this.searchSession?.phenotype?.name;
+            if (!phenotype) {
+                return "";
+            }
+            const ancestry = this.searchSession?.ancestry || "Mixed";
+            return `Sorted by p-value. ${phenotype} (${ancestry}).`;
         },
     },
     methods: {
@@ -274,6 +323,12 @@ export default {
                 next.delete(tissue);
             }
             this.$emit("update:enabledMutedTissues", [...next].sort());
+        },
+        onToggleShowFilteredTissuesInTracks(event) {
+            this.$emit(
+                "update:showFilteredTissuesInTracks",
+                Boolean(event?.target?.checked)
+            );
         },
     },
 };
@@ -361,6 +416,40 @@ export default {
     margin: 0 0 10px;
     padding: 0;
     list-style: none;
+}
+
+.vks-ge-track-filter {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #fcfbfa;
+}
+
+.vks-ge-track-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #33363d;
+    cursor: pointer;
+}
+
+.vks-ge-track-filter-input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.vks-ge-track-filter-hint {
+    margin: 6px 0 0 22px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #666666;
 }
 
 .vks-ge-legend-item.is-muted {
