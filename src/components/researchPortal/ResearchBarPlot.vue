@@ -111,7 +111,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
 

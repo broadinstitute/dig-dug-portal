@@ -31,3 +31,4 @@ pnpm-lock.yaml
 
 public/data/
 .vs/
+.claude/settings.local.json

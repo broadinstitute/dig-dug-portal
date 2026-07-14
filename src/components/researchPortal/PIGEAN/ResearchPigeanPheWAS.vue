@@ -243,7 +243,7 @@
 
 <script>
 import Vue from "vue";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";

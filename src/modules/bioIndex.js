@@ -5,7 +5,7 @@ import {
     closeAlert
 } from "@/components/Alert";
 
-import { merge } from "lodash";
+import { merge } from "@/utils/lodashUtils";
 import { BIO_INDEX_HOST } from '@/utils/bioIndexUtils'
 
 // Override the base module with an extended object that may contain
