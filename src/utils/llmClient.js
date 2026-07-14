@@ -137,7 +137,19 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     }
 
     if (!response.ok) {
-      onError?.(new Error("Fetch error"));
+      let detail = "";
+      try {
+        detail = String((await response.text()) || "").slice(0, 300);
+      } catch (readError) {
+        detail = "";
+      }
+      onError?.(
+        new Error(
+          `LLM request failed (${response.status} ${response.statusText})${
+            detail ? `: ${detail}` : ""
+          }`
+        )
+      );
       return;
     }
 
@@ -196,7 +208,19 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     }
 
     if (!response.ok) {
-      onError?.(new Error("Fetch error"));
+      let detail = "";
+      try {
+        detail = String((await response.text()) || "").slice(0, 300);
+      } catch (readError) {
+        detail = "";
+      }
+      onError?.(
+        new Error(
+          `LLM request failed (${response.status} ${response.statusText})${
+            detail ? `: ${detail}` : ""
+          }`
+        )
+      );
       return;
     }
 
