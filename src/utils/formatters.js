@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+import { sanitizeHtml, sanitizeToText } from "./sanitizeUtils";
 
 function alleleFormatter(reference, alt) {
     if (reference.length > 3) {
@@ -747,7 +747,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
             }
         }
 
-        return cellValue;
+        // The HTML built above interpolates data values unescaped and is
+        // rendered via v-html by table/card components, so sanitize it here
+        // at the formatter boundary.
+        return sanitizeHtml(cellValue);
     } else {
         return VALUE;
     }
@@ -775,18 +778,21 @@ function replaceWithParams(STR, PARAMS) {
 
         Object.keys(queryParams).map(key => {
             if (paramKeys.includes(key)) {
-                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : queryParams[key];
+                // Raw query-param values are attacker-controlled and callers
+                // render this string via v-html, so reduce them to plain text
+                // before substitution; config-authored markup in STR (and
+                // values mapped through the trusted PARAMS config) stays intact.
+                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : sanitizeToText(queryParams[key]);
                 replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
             }
         })
 
-        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
+        // Only mark unresolved $placeholder keys; literal dollar amounts like
+        // "$100k" are left alone.
+        replacedSTR = replacedSTR.replace(/\$(?=[A-Za-z_])/g, '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
     }
 
-    // This string is substituted with raw URL query-param values and rendered
-    // via v-html by callers, so sanitize it to prevent reflected XSS while
-    // preserving the intentional formatting markup above.
-    return (!!replacedSTR) ? DOMPurify.sanitize(replacedSTR) : replacedSTR;
+    return replacedSTR;
 }
 
 

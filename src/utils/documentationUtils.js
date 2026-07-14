@@ -1,5 +1,5 @@
 import { marked } from "marked";
-import DOMPurify from "dompurify";
+import { sanitizeHtml } from "./sanitizeUtils";
 
 function findTemplateTagsFromContent(content) {
     let regexp = /{{([A-Za-z]+)}}/g;
@@ -81,7 +81,7 @@ function makeConverter(content, contentFill, name) {
                 String(rendered),
                 name_and_class_extensions
             );
-            return DOMPurify.sanitize(withClasses);
+            return sanitizeHtml(withClasses);
         },
     };
 }
