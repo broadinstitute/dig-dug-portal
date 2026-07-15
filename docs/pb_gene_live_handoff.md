@@ -157,7 +157,8 @@ Response shape:
     "n_positive_burden": 84,
     "min_carriers": 5,
     "status": "ok",
-    "model_version": "portal_huber_rlm_v0"
+    "model_version": "portal_huber_rlm_v1",
+    "pathogenicity_score_version": "loftee_hc_alphamissense_revel_v1"
   }
 }
 ```
@@ -172,10 +173,10 @@ service and not a statistically approved final model.
 
 The following decisions remain open and must not be hidden during handoff:
 
-1. `portal_huber_rlm_v0` currently uses MASS `summary.rlm`-style standard errors and a two-sided normal approximation. It is not HC3.
+1. `portal_huber_rlm_v1` uses Pathogenic Score priority `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`, MASS `summary.rlm`-style standard errors, and a two-sided normal approximation. It is not HC3.
 2. Covariates are currently empty. Age band, sex, and PC1-PC10 require a versioned method decision and parity validation before use.
 3. `min_carriers` currently gates on samples with X > 0. This may differ from the number of actual carriers when scores are zero or missing.
-4. The exact Pathogenic Score provenance, version, valid range, and missing-score policy require data-owner sign-off.
+4. Pathogenic Score version `loftee_hc_alphamissense_revel_v1` is explicit, but its production BioIndex provenance still requires data-owner sign-off.
 5. The FDR family must be request-scoped and explicitly returned. The BH helper exists, but production response assembly is not implemented here.
 6. Production uses the complete current Gene Page carrier-variant set from BioIndex. The private CEP152/DMD validation used a nonsynonymous evidence subset and must not silently redefine the production variant universe.
 

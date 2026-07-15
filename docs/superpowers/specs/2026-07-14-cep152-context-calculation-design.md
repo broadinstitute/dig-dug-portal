@@ -54,7 +54,7 @@ Temporary extracts go under a private temporary or server working directory.
    `0/1` and `1/1` each contribute the variant score once. A DMD carrier also
    contributes once regardless of X-chromosome allele dosage or ploidy.
    Duplicate sample-variant rows contribute once.
-7. Fit the provisional `portal_huber_rlm_v0` model `Y ~ X` only when at least
+7. Fit the provisional `portal_huber_rlm_v1` model `Y ~ X` only when at least
    five samples have `X > 0`.
 
 ## Undefined Pathogenic Scores
@@ -62,12 +62,12 @@ Temporary extracts go under a private temporary or server working directory.
 A missing Pathogenic Score means undefined, not zero.
 
 - All CEP152 and DMD variants remain eligible for the variant Match Score.
-- The evidence generator stores undefined scores as numeric zero. Reconstruct
-  whether the existing score is defined from its provenance fields: `LoF=HC`
-  or a finite `Alphamissense` value means defined; neither means `No_score`.
+- Reconstruct score provenance using version
+  `loftee_hc_alphamissense_revel_v1`: `LoF=HC` gives 1, otherwise use a finite
+  AlphaMissense value, otherwise a finite REVEL value, otherwise `No_score`.
 - Validate the reconstructed value against the stored `pathogenicity_score`.
-  This recovers the existing score provenance and does not introduce a new
-  scoring rule or use REVEL as a fallback.
+  A defined numeric zero remains scored; an undefined `No_score` value is not
+  interpreted as biological zero.
 - Only variants with a defined Pathogenic Score contribute to X.
 - The result reports `n_variants_total`, `n_variants_scored`,
   `n_variants_unscored`, and score coverage.
@@ -75,8 +75,8 @@ A missing Pathogenic Score means undefined, not zero.
   any variant for that gene is unscored.
 - If no variants are scored or fewer than five samples have positive X, Beta
   and P-value are null with an explicit status.
-- No fallback score, presence-only burden, or annotation-derived scoring rule
-  is introduced in this validation.
+- No ClinVar, consequence, genotype-dosage, or presence-only fallback is
+  introduced in this validation.
 
 ## Outputs and privacy boundary
 

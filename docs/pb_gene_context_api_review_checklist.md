@@ -49,6 +49,7 @@ python3 scripts/context_api_fast.py
 - [x] Gene burden uses carrier presence, not genotype dosage; `0/1` and `1/1` each contribute once.
 - [x] Multiple distinct carried variants are summed and duplicate sample-variant rows are deduplicated.
 - [x] Gene burden X is built directly from existing `gene-samples` BioIndex rows; `alt_dosage` and `weighted_score` are ignored.
+- [x] Pathogenic Score priority is `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`; defined numeric zero remains scored.
 - [x] The Huber RLM implementation matches one fixed `MASS::rlm`/`summary.rlm` reference example for Beta, standard error, and P-value.
 - [x] Constant, singular, under-supported, invalid-SE, and non-converged fits return an explicit status rather than silently switching models.
 - [x] BH adjustment matches a fixed known example and preserves input order.
@@ -77,10 +78,11 @@ python3 scripts/context_api_fast.py
 - [ ] Confirm that the variant set is every variant returned by the complete current gene search, including continuation pages.
 - [ ] Confirm that the private CEP152/DMD nonsynonymous validation subset does not redefine the production BioIndex variant universe.
 - [ ] Confirm the production BioIndex client follows every `/api/bio/cont` token before calculating X.
-- [x] Portal v0 uses binary carrier presence; genotype dosage and zygosity do not change the weight.
+- [x] Portal v1 uses binary carrier presence; genotype dosage and zygosity do not change the weight.
 - [ ] Confirm carrier classification for haploid/hemizygous, multi-allelic, no-call, and low-quality genotype records at the upstream carrier API boundary.
-- [ ] Confirm the exact Pathogenic Score field, scale, valid range, and version.
-- [ ] Decide whether a missing Pathogenic Score contributes zero or causes the variant to be excluded; report the number excluded/unscored.
+- [x] Use Pathogenic Score version `loftee_hc_alphamissense_revel_v1`; LoFTEE HC is 1 and AlphaMissense/REVEL are finite values in `[0,1]`.
+- [x] Exclude `No_score` variants from X and report the number unscored; do not treat them as biological score zero.
+- [ ] Confirm that production `gene-samples` rows were generated with this exact score version.
 - [ ] Verify on individual samples that `X_i = sum(I(carrier_iv) * Pathogenic Score_v)` without duplicated sample-variant contributions.
 
 ### 4. Minimum carrier rule — product/statistical blocker

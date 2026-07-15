@@ -83,10 +83,21 @@ Use the existing private BioIndex `gene-samples` query as the source. Query by H
 | `sample_id` | Align the carrier with the full CRDC sample/Y vector |
 | `variant_id` | Deduplicate one contribution per sample and distinct variant |
 | `pathogenicity_score` | Pathogenic Score added to X |
-| `score_source` | Treat `No_score` as unscored and report it diagnostically |
-| `GT`, `alt_dosage`, `weighted_score` | Available for provenance/QA, but not used to calculate portal v0 X |
+| `score_source` | `LoFTEE_HC`, `AlphaMissense`, `REVEL`, or `No_score` provenance |
+| `GT`, `alt_dosage`, `weighted_score` | Available for provenance/QA, but not used to calculate portal v1 X |
 
 No new burden-specific BioIndex is required while these fields remain available. `gene-variants2` can continue to supplement display annotations, but it is not needed to construct X when `gene-samples.pathogenicity_score` is present.
+
+Pathogenic Score version `loftee_hc_alphamissense_revel_v1` uses this exact
+priority:
+
+1. `LoF=HC` gives score 1.
+2. Otherwise, use a finite AlphaMissense value in `[0,1]`.
+3. Otherwise, use a finite REVEL value in `[0,1]`.
+4. Otherwise, mark the variant `No_score`.
+
+A defined numeric zero remains a scored value. `No_score` is undefined and is
+excluded from X rather than being interpreted as biological score zero.
 
 ```text
 X_i = sum(I(sample i carries variant v) * Pathogenic_Score_v)
@@ -98,9 +109,9 @@ Rules:
 - A sample carrying multiple distinct variants receives the sum of their Pathogenic Scores.
 - Duplicate rows for the same sample and variant contribute only once.
 - Samples without a qualifying carrier record receive X=0.
-- Genotype dosage and zygosity are not weights in portal model v0.
+- Genotype dosage and zygosity are not weights in portal model v1.
 - Do not add a second ClinVar, consequence, or rarity filter in the burden function. The upstream gene-result variant set is the source of truth.
-- A missing/non-numeric Pathogenic Score contributes zero and must be counted in a diagnostic field such as `n_variants_unscored`.
+- A `No_score` variant is excluded from X and must be counted in `n_variants_unscored`.
 
 Python interface:
 
@@ -167,7 +178,8 @@ Result example:
   "min_carriers": 5,
   "iterations": 7,
   "status": "ok",
-  "model_version": "portal_huber_rlm_v0",
+  "model_version": "portal_huber_rlm_v1",
+  "pathogenicity_score_version": "loftee_hc_alphamissense_revel_v1",
   "model": "Huber RLM",
   "formula": "Y ~ X",
   "covariates": [],
@@ -237,7 +249,10 @@ For a single-gene Gene Page request, the test family contains one test, so BH-FD
 
 ## Planned method changes
 
-`portal_huber_rlm_v0` is provisional. Candidate future covariates include age band, sex, and PC1-PC10, but they must not be added silently.
+`portal_huber_rlm_v1` is provisional. It differs from v0 only because REVEL is
+now the third-priority Pathogenic Score source used to construct X. Candidate
+future covariates include age band, sex, and PC1-PC10, but they must not be
+added silently.
 
 When the method changes:
 
