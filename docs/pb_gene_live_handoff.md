@@ -203,11 +203,14 @@ The aggregate CEP152/DMD results are local validation evidence only. Helen's
 implementation should follow the documented endpoint contract and validate it
 against approved backend data.
 
+Aggregate 2025 REVEL fallback execution and validation results are recorded in
+`docs/pb_gene_revel_fallback_20260715_validation.md`.
+
 ## Verification snapshot
 
-Checked locally on 2026-07-14:
+Checked locally on 2026-07-15:
 
 - 32 context, calculation, validation, and UI tests passed.
-- `npm run build` completed with the pre-existing `tabix-reader` warning.
+- The production build completed with pre-existing project warnings.
 - `git diff --check` passed.
 - No private VCF, HPO matrix, sample-level audit, or aggregate validation fixture was added to Git.
