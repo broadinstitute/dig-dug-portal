@@ -44,6 +44,13 @@ export default {
                         { id: "downloadTable", label: "Download variant table" },
                     ],
                 },
+                {
+                    id: "help",
+                    label: "Help",
+                    items: [
+                        { id: "gettingAround", label: "Getting Around" },
+                    ],
+                },
             ],
         };
     },

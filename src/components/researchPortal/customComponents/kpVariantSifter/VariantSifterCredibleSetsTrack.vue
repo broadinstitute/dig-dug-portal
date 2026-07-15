@@ -15,6 +15,13 @@
                 @mouseup="onMouseUp"
                 @click="onCanvasClick"
             ></canvas>
+            <VariantSifterZoomCenterMarker
+                :region-view-area="regionViewArea"
+                :region-zoom="regionZoom"
+                :plot-margin="margin"
+                placement="track"
+                @update:regionViewArea="$emit('update:regionViewArea', $event)"
+            />
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"
@@ -31,11 +38,12 @@
 
 <script>
 import VariantSifterVariantDotMenu from "./VariantSifterVariantDotMenu.vue";
+import VariantSifterZoomCenterMarker from "./VariantSifterZoomCenterMarker.vue";
 import { VARIANT_SIFTER_CS_TRACK_MARGIN } from "./variantSifterAssociationsPlotConfig.js";
 import {
     computeViewRegion,
     computeVisibleWindowWidth,
-    panRegionShiftFromDrag,
+    resolveHandPanFromDrag,
 } from "./variantSifterRegionPan.js";
 import {
     canvasXToGenomicPosition,
@@ -63,6 +71,7 @@ export default {
     name: "VariantSifterCredibleSetsTrack",
     components: {
         VariantSifterVariantDotMenu,
+        VariantSifterZoomCenterMarker,
     },
     props: {
         selectedSets: {
@@ -127,6 +136,8 @@ export default {
             isPanning: false,
             panStartX: 0,
             panStartRegionShiftBp: 0,
+            panStartRegionViewArea: 0,
+            panDidChangeShift: false,
             panMoved: false,
             dotMenuOpen: false,
             dotMenuRow: null,
@@ -455,8 +466,10 @@ export default {
             }
             this.isPanning = true;
             this.panMoved = false;
+            this.panDidChangeShift = false;
             this.panStartX = event.clientX;
             this.panStartRegionShiftBp = this.regionShiftBp;
+            this.panStartRegionViewArea = this.regionViewArea;
             this.hideTooltip();
             this.closeDotMenu();
             document.addEventListener("mousemove", this.onDocumentMouseMove);
@@ -470,13 +483,22 @@ export default {
             if (Math.abs(deltaX) > 3) {
                 this.panMoved = true;
             }
-            const nextShiftBp = panRegionShiftFromDrag(
-                this.panStartRegionShiftBp,
-                deltaX,
-                this.plotWidth,
-                this.visibleWidthBp
-            );
-            this.$emit("update:regionShiftBp", nextShiftBp);
+            const pan = resolveHandPanFromDrag({
+                regionZoom: this.regionZoom,
+                panStartRegionViewArea: this.panStartRegionViewArea,
+                panStartRegionShiftBp: this.panStartRegionShiftBp,
+                deltaXPixels: deltaX,
+                plotWidthPx: this.plotWidth,
+                visibleWidthBp: this.visibleWidthBp,
+            });
+            if (pan.mode === "viewArea") {
+                this.$emit("update:regionViewArea", pan.regionViewArea);
+                return;
+            }
+            if (pan.regionShiftBp !== this.regionShiftBp) {
+                this.panDidChangeShift = true;
+            }
+            this.$emit("update:regionShiftBp", pan.regionShiftBp);
         },
         onDocumentMouseUp() {
             this.stopPanning();
@@ -491,10 +513,14 @@ export default {
             if (this.panMoved) {
                 this.suppressClick = true;
             }
+            const didChangeShift = this.panDidChangeShift;
             this.isPanning = false;
             this.panMoved = false;
+            this.panDidChangeShift = false;
             this.endPanListeners();
-            this.$emit("pan-end");
+            if (didChangeShift) {
+                this.$emit("pan-end");
+            }
         },
         endPanListeners() {
             document.removeEventListener("mousemove", this.onDocumentMouseMove);
@@ -547,6 +573,9 @@ export default {
             const row = hit.row;
             tooltip.innerHTML = [
                 `<strong>${row["Variant ID"] || ""}</strong>`,
+                hit.label || hit.credibleSetId
+                    ? `CS: ${hit.label || hit.credibleSetId}`
+                    : null,
                 hit.ppa != null ? `PPA: ${hit.ppa}` : null,
                 row["P-Value"] != null ? `P-Value: ${row["P-Value"]}` : null,
             ]

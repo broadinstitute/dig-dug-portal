@@ -33,32 +33,56 @@ export function variantOverlapsRegion(variant, region) {
     return position >= region.start && position <= region.end;
 }
 
+export function resolveCredibleSetVariantList(setState) {
+    if (!setState) {
+        return [];
+    }
+    if (Array.isArray(setState.rawVariants) && setState.rawVariants.length) {
+        return setState.rawVariants;
+    }
+    return setState.formattedVariants || [];
+}
+
+/**
+ * Count loaded vs in-region variants for a selected credible set.
+ */
+export function countCredibleSetVariantsInRegion(setState, region) {
+    const variants = resolveCredibleSetVariantList(setState);
+    const loaded = variants.length;
+    if (!region || !loaded) {
+        return { loaded, inRegion: 0 };
+    }
+    const inRegion = variants.reduce(
+        (count, variant) => count + (variantOverlapsRegion(variant, region) ? 1 : 0),
+        0
+    );
+    return { loaded, inRegion };
+}
+
 export function credibleSetStateOverlapsRegion(setState, region) {
     if (!setState || !region) {
         return false;
     }
 
-    const variants = setState.rawVariants?.length
-        ? setState.rawVariants
-        : setState.formattedVariants || [];
-
-    return variants.some((variant) => variantOverlapsRegion(variant, region));
+    return resolveCredibleSetVariantList(setState).some((variant) =>
+        variantOverlapsRegion(variant, region)
+    );
 }
 
 /**
  * Drop selected credible sets whose loaded variants no longer overlap the region.
  */
 export function pruneCredibleSetsForRegion(credibleSetsState, region) {
-    const selectedIds = (credibleSetsState?.selectedIds || []).filter((credibleSetId) => {
-        const setState = credibleSetsState?.variantsBySet?.[credibleSetId];
+    const selectedIds = (credibleSetsState?.selectedIds || []).filter((selectionKey) => {
+        const setState = credibleSetsState?.variantsBySet?.[selectionKey];
         return credibleSetStateOverlapsRegion(setState, region);
     });
 
     const variantsBySet = {};
-    selectedIds.forEach((credibleSetId) => {
-        const setState = credibleSetsState?.variantsBySet?.[credibleSetId];
+    selectedIds.forEach((selectionKey) => {
+        const setState = credibleSetsState?.variantsBySet?.[selectionKey];
         if (setState) {
-            variantsBySet[credibleSetId] = setState;
+            variantsBySet[selectionKey] = setState;
         }
     });
 

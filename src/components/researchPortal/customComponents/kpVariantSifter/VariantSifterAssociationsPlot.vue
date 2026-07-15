@@ -10,50 +10,83 @@
         >
             {{ error }}
         </div>
-        <div v-else-if="!hasPlotSeriesData" class="vks-associations-plot-status">
+        <div
+            v-else-if="!loading && !hasPlotSeriesData"
+            class="vks-associations-plot-status"
+        >
             No association data to plot for this locus.
         </div>
-        <template v-else>
+        <template v-else-if="hasPlotSeriesData">
             <div ref="plotStack" class="vks-associations-plot-stack">
-                <div
-                    v-for="series in plotSeries"
-                    :key="`assoc-${series.ancestry}`"
-                    class="vks-associations-plot-series"
-                >
+                <div v-if="showAssociationsSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Associations</h3>
+                    </header>
                     <div
-                        v-if="showAncestryHeaders"
-                        class="vks-associations-ancestry-header"
+                        v-for="series in plotSeries"
+                        :key="`assoc-${series.ancestry}`"
+                        class="vks-associations-plot-series"
                     >
-                        <span
-                            class="vks-associations-ancestry-bubble"
-                            :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                        <div
+                            v-if="showAncestryHeaders"
+                            class="vks-associations-ancestry-header"
                         >
-                            <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
-                            <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
-                            <span class="vks-associations-ancestry-bubble-count">
-                                {{ series.rows.length.toLocaleString() }}
+                            <span
+                                class="vks-associations-ancestry-bubble"
+                                :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                            >
+                                <span class="vks-associations-ancestry-bubble-code">{{ series.ancestry }}</span>
+                                <span class="vks-associations-ancestry-bubble-label">{{ series.label }}</span>
+                                <span class="vks-associations-ancestry-bubble-count">
+                                    {{ series.rows.length.toLocaleString() }}
+                                </span>
                             </span>
-                        </span>
+                        </div>
+                        <div
+                            v-if="!series.rows.length"
+                            class="vks-associations-plot-status vks-associations-plot-status--inline"
+                        >
+                            No association points for {{ series.label }}.
+                        </div>
+                        <VariantSifterAssociationRegionPlot
+                            v-else
+                            :plot-rows="series.plotData"
+                            :show-legend="series.ancestry === firstPlotSeriesAncestry"
+                            :recomb-peak-intervals="recombPeakIntervals"
+                            :region="searchSession?.region"
+                            :search-session="searchSession"
+                            :region-zoom="regionZoom"
+                            :region-shift-bp="regionShiftBp"
+                            :region-view-area="regionViewArea"
+                            :view-region="viewRegion"
+                            :plot-overlays-state="plotOverlaysState"
+                            :plot-margin="plotMargin"
+                            :shared-canvas-width="stackCanvasWidth"
+                            :plot-markers="plotMarkers"
+                            :utils="utils"
+                            @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                            @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                            @pan-end="$emit('pan-end')"
+                            @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                            @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                            @set-reference-variant="$emit('set-reference-variant', $event)"
+                        />
                     </div>
-                    <div
-                        v-if="!series.rows.length"
-                        class="vks-associations-plot-status vks-associations-plot-status--inline"
-                    >
-                        No association points for {{ series.label }}.
-                    </div>
-                    <VariantSifterAssociationRegionPlot
-                        v-else
-                        :plot-rows="series.plotData"
-                        :show-legend="series.ancestry === firstPlotSeriesAncestry"
+                </div>
+                <div v-if="showCredibleSetsSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Credible sets</h3>
+                    </header>
+                    <VariantSifterCredibleSetsTrack
+                        :selected-sets="credibleSetsTrackData"
                         :recomb-peak-intervals="recombPeakIntervals"
+                        :color-by-set-id="credibleSetColors"
                         :region="searchSession?.region"
-                        :search-session="searchSession"
+                        :view-region="viewRegion"
                         :region-zoom="regionZoom"
                         :region-shift-bp="regionShiftBp"
                         :region-view-area="regionViewArea"
-                        :view-region="viewRegion"
-                        :plot-overlays-state="plotOverlaysState"
-                        :plot-margin="plotMargin"
+                        :search-session="searchSession"
                         :shared-canvas-width="stackCanvasWidth"
                         :plot-markers="plotMarkers"
                         :utils="utils"
@@ -65,45 +98,79 @@
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                     />
                 </div>
-                <VariantSifterCredibleSetsTrack
-                    v-if="hasSelectedCredibleSets"
-                    :selected-sets="credibleSetsTrackData"
-                    :recomb-peak-intervals="recombPeakIntervals"
-                    :color-by-set-id="credibleSetColors"
-                    :region="searchSession?.region"
-                    :view-region="viewRegion"
-                    :region-zoom="regionZoom"
-                    :region-shift-bp="regionShiftBp"
-                    :region-view-area="regionViewArea"
-                    :search-session="searchSession"
-                    :shared-canvas-width="stackCanvasWidth"
-                    :plot-markers="plotMarkers"
-                    :utils="utils"
-                    @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
-                    @pan-end="$emit('pan-end')"
-                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
-                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
-                    @set-reference-variant="$emit('set-reference-variant', $event)"
-                />
-                <VariantSifterAnnotationsWorkspaceTrack
-                    v-if="hasAnnotationTrackData"
-                    :global-enrichment-state="globalEnrichmentState"
-                    :search-session="searchSession"
-                    :region="searchSession?.region"
-                    :view-region="viewRegion"
-                    :region-zoom="regionZoom"
-                    :region-shift-bp="regionShiftBp"
-                    :region-view-area="regionViewArea"
-                    :shared-canvas-width="stackCanvasWidth"
-                    :plot-markers="plotMarkers"
-                    :recomb-peak-intervals="recombPeakIntervals"
-                    :utils="utils"
-                    @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
-                    @pan-end="$emit('pan-end')"
-                    @toggle-position-marker="$emit('toggle-position-marker', $event)"
-                />
+                <div v-if="showGlobalEnrichmentSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Global enrichment</h3>
+                    </header>
+                    <VariantSifterAnnotationsWorkspaceTrack
+                        :global-enrichment-state="globalEnrichmentState"
+                        :search-session="searchSession"
+                        :region="searchSession?.region"
+                        :view-region="viewRegion"
+                        :region-zoom="regionZoom"
+                        :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-markers="plotMarkers"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        :utils="utils"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @update:selectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
+                        @update:biosampleFilterOptions="
+                            $emit('update:geBiosampleFilterOptions', $event)
+                        "
+                    />
+                </div>
+                <div v-if="showV2gSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">Variant-to-gene links</h3>
+                    </header>
+                    <VariantSifterV2gTrack
+                        :v2g-state="v2gState"
+                        :region="searchSession?.region"
+                        :view-region="viewRegion"
+                        :region-zoom="regionZoom"
+                        :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-margin="plotMargin"
+                        :plot-markers="plotMarkers"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                    />
+                </div>
+                <div v-if="showS2gSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">SNP 2 gene links</h3>
+                    </header>
+                    <VariantSifterV2gTrack
+                        :v2g-state="s2gState"
+                        :region="searchSession?.region"
+                        :view-region="viewRegion"
+                        :region-zoom="regionZoom"
+                        :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-margin="plotMargin"
+                        :plot-markers="plotMarkers"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        empty-message="Load SNP-to-gene links from the SNP 2 gene panel."
+                        legend-aria-label="SNP-to-gene methods"
+                        loading-status-template="Loading SNP-to-gene links…"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                    />
+                </div>
             </div>
-            <div class="vks-genes-track-slot">
+            <div v-if="showGenesSection" class="vks-genes-track-slot">
                 <div
                     v-if="genesDockPinned"
                     class="vks-genes-track-spacer"
@@ -146,6 +213,7 @@ import VariantSifterGenesTrack from "./VariantSifterGenesTrack.vue";
 import VariantSifterCredibleSetsTrack from "./VariantSifterCredibleSetsTrack.vue";
 import VariantSifterAssociationRegionPlot from "./VariantSifterAssociationRegionPlot.vue";
 import VariantSifterAnnotationsWorkspaceTrack from "./VariantSifterAnnotationsWorkspaceTrack.vue";
+import VariantSifterV2gTrack from "./VariantSifterV2gTrack.vue";
 import { associationRowsToPlotData } from "./variantSifterAssociationsPlotData.js";
 import {
     VARIANT_SIFTER_PLOT_MARGIN,
@@ -169,6 +237,9 @@ import {
     collectOverflowScrollTargets,
     shouldPinGenesTrackDock,
 } from "./variantSifterGenesTrackDock.js";
+import { hasV2gTrackData } from "./variantSifterV2gData.js";
+import { hasS2gTrackData } from "./variantSifterS2gData.js";
+import { isSectionVisible } from "./variantSifterToolSettings.js";
 
 export default {
     name: "VariantSifterAssociationsPlot",
@@ -177,6 +248,7 @@ export default {
         VariantSifterCredibleSetsTrack,
         VariantSifterAssociationRegionPlot,
         VariantSifterAnnotationsWorkspaceTrack,
+        VariantSifterV2gTrack,
     },
     data() {
         return {
@@ -286,6 +358,32 @@ export default {
                 selectedAnnotations: [],
             }),
         },
+        v2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        s2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        visibleSectionIds: {
+            type: Array,
+            default: null,
+        },
     },
     computed: {
         primaryAncestry() {
@@ -353,11 +451,54 @@ export default {
                 (annotation) => Object.keys(annoData[annotation] || {}).length > 0
             );
         },
+        showV2gWorkspaceSection() {
+            if (hasV2gTrackData(this.v2gState) || this.v2gState?.loadingTissue) {
+                return true;
+            }
+            return (this.v2gState?.selectedTissues || []).length > 0;
+        },
+        showS2gWorkspaceSection() {
+            return hasS2gTrackData(this.s2gState) || Boolean(this.s2gState?.loadingTissue);
+        },
+        showAssociationsSection() {
+            return isSectionVisible(this.visibleSectionIds, "associations");
+        },
+        showCredibleSetsSection() {
+            return (
+                isSectionVisible(this.visibleSectionIds, "credible-sets") &&
+                this.hasSelectedCredibleSets
+            );
+        },
+        showGlobalEnrichmentSection() {
+            return (
+                isSectionVisible(this.visibleSectionIds, "global-enrichment") &&
+                this.hasAnnotationTrackData
+            );
+        },
+        showV2gSection() {
+            return (
+                isSectionVisible(this.visibleSectionIds, "variant-to-gene-links") &&
+                this.showV2gWorkspaceSection
+            );
+        },
+        showS2gSection() {
+            return (
+                isSectionVisible(this.visibleSectionIds, "snp2gene-links") &&
+                this.showS2gWorkspaceSection
+            );
+        },
+        showGenesSection() {
+            return isSectionVisible(this.visibleSectionIds, "genes");
+        },
         credibleSetsTrackData() {
-            return (this.credibleSetsState?.selectedIds || []).map((credibleSetId) => {
-                const setState = this.credibleSetsState?.variantsBySet?.[credibleSetId];
+            return (this.credibleSetsState?.selectedIds || []).map((selectionKey) => {
+                const setState = this.credibleSetsState?.variantsBySet?.[selectionKey];
+                const meta = setState?.meta || {};
                 return {
-                    credibleSetId,
+                    selectionKey,
+                    credibleSetId: meta.credibleSetId || selectionKey,
+                    label: meta.label || meta.credibleSetId || selectionKey,
+                    ancestry: meta.ancestry || "Mixed",
                     variants: setState?.rawVariants || [],
                     formattedVariants: setState?.formattedVariants || [],
                 };
@@ -489,13 +630,16 @@ export default {
                 : {};
         },
         onGenesTrackLayout({ height }) {
-            const nextHeight = Number(height) || 0;
-            if (this.genesTrackHeight === nextHeight) {
+            this.$nextTick(() => {
+                const dockHeight = this.$refs.genesDock?.offsetHeight;
+                const nextHeight = Number(dockHeight) || Number(height) || 0;
+                if (this.genesTrackHeight === nextHeight) {
+                    this.scheduleGenesDockPinUpdate();
+                    return;
+                }
+                this.genesTrackHeight = nextHeight;
                 this.scheduleGenesDockPinUpdate();
-                return;
-            }
-            this.genesTrackHeight = nextHeight;
-            this.scheduleGenesDockPinUpdate();
+            });
         },
         updateStackCanvasWidth() {
             this.stackCanvasWidth = measureVksPlotStackCanvasWidth(this.$refs.plotStack);
@@ -515,6 +659,24 @@ export default {
     min-height: 280px;
     padding: 0 8px;
     position: relative;
+}
+
+.vks-plot-section + .vks-plot-section {
+    margin-top: 6px;
+}
+
+.vks-plot-section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 6px 4px;
+}
+
+.vks-plot-section-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cfde-blue, #2c5c97);
 }
 
 .vks-associations-plot-series + .vks-associations-plot-series {

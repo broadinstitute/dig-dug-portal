@@ -504,7 +504,7 @@ export default {
 
 .vks-assoc-meta {
     margin: 0;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     color: var(--cfde-muted, #6b6b6b);
 }
@@ -530,7 +530,7 @@ export default {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 14px;
-    font-size: 12px;
+    font-size: 13px;
     position: relative;
 }
 
@@ -541,7 +541,7 @@ export default {
 
 .number-per-page {
     margin-left: 4px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .convert-2-csv {
@@ -592,7 +592,7 @@ export default {
 .research-data-table >>> thead > tr > th.sortable-th {
     color: #007bff;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 13px;
     overflow: visible;
 }
 
@@ -610,7 +610,7 @@ export default {
     border: none !important;
     border-left: solid 1px #eee !important;
     border-bottom: solid 1px #ddd !important;
-    font-size: 12px;
+    font-size: 13px;
     height: 27px;
     vertical-align: middle;
 }
@@ -642,7 +642,7 @@ export default {
     left: 0;
     bottom: auto;
     margin-left: 0;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 400;
     line-height: 1.4;
     pointer-events: none;

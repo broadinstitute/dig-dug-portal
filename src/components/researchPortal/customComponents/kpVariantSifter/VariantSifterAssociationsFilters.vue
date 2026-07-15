@@ -228,7 +228,7 @@ export default {
 }
 
 .vks-assoc-filter-col .label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     margin-bottom: 2px;
     white-space: nowrap;
@@ -239,7 +239,7 @@ export default {
     width: 118px;
     min-width: 118px;
     height: 30px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 2px 6px;
 }
 

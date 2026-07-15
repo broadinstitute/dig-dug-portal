@@ -116,8 +116,10 @@ export function renderCredibleSetsTrack(ctx, options) {
 
     let dotsInRegion = 0;
 
-    selectedSets.forEach(({ credibleSetId, variants, formattedVariants }) => {
-        const color = colorBySetId?.[credibleSetId] || "#32AFD550";
+    selectedSets.forEach(
+        ({ selectionKey, credibleSetId, label, variants, formattedVariants }) => {
+        const colorKey = selectionKey || credibleSetId;
+        const color = colorBySetId?.[colorKey] || "#32AFD550";
         (variants || []).forEach((variant, index) => {
             const position = Number(variant.position ?? variant.Position);
             const ppa = Number(variant.PPA ?? variant.posteriorProbability ?? 0);
@@ -137,7 +139,9 @@ export function renderCredibleSetsTrack(ctx, options) {
                 x: xPos,
                 y: yPos,
                 row: formattedRow,
+                selectionKey: colorKey,
                 credibleSetId,
+                label: label || credibleSetId,
                 ppa,
             });
 
@@ -148,7 +152,8 @@ export function renderCredibleSetsTrack(ctx, options) {
             }
             dotsInRegion += 1;
         });
-    });
+    }
+    );
 
     if (dotsInRegion === 0) {
         ctx.font = "28px Arial";

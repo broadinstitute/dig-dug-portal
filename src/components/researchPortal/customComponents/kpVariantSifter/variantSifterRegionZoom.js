@@ -8,6 +8,11 @@ export const VKS_REGION_ZOOM_STEP = 1;
 /** Center-neutral slider: negative = zoom out, positive = zoom in. */
 export const VKS_REGION_ZOOM_SLIDER_MIN = -100;
 export const VKS_REGION_ZOOM_SLIDER_MAX = 100;
+/**
+ * Snap slider to 0 when within this distance of center on release
+ * (10% of each half of the −100…100 range).
+ */
+export const VKS_REGION_ZOOM_SLIDER_SNAP = 10;
 
 export const VKS_REGION_VIEW_AREA_MIN = -100;
 export const VKS_REGION_VIEW_AREA_MAX = 100;
@@ -20,8 +25,10 @@ function clampSliderZoomOut(value) {
     return Math.max(0, Math.min(100, Math.round(zoomOut)));
 }
 
-export function zoomFromSliderValue(sliderValue) {
-    const value = Math.round(Number(sliderValue) || 0);
+export function zoomFromSliderValue(sliderValue, { snap = false } = {}) {
+    const value = snap
+        ? snapZoomSliderValue(sliderValue)
+        : Math.round(Number(sliderValue) || 0);
     if (value < 0) {
         const magnitude = Math.min(100, Math.abs(value));
         return {
@@ -41,6 +48,19 @@ export function zoomFromSliderValue(sliderValue) {
         regionZoom: VKS_REGION_ZOOM_MIN,
         regionZoomOut: 0,
     };
+}
+
+/** Snap near-center slider values to 0 for a stable no-zoom detent. */
+export function snapZoomSliderValue(
+    sliderValue,
+    snapThreshold = VKS_REGION_ZOOM_SLIDER_SNAP
+) {
+    const value = Math.round(Number(sliderValue) || 0);
+    const threshold = Math.max(0, Math.round(Number(snapThreshold) || 0));
+    if (Math.abs(value) <= threshold) {
+        return 0;
+    }
+    return value;
 }
 
 export function sliderValueFromZoom(regionZoom = 0, regionZoomOut = 0) {
@@ -148,12 +168,13 @@ export function plotFractionFromRegionViewArea(regionViewArea) {
 /**
  * Layout for the draggable zoom-center triangle in CSS pixels.
  * Canvas uses 2× internal pixels; containerWidthPx is the display width.
+ * Plot content matches association canvases: [left, width - left] (symmetric
+ * left-margin gutters), not config rightMargin (y-axis tick/label gutter).
  */
 export function computeZoomCenterMarkerLayout(containerWidthPx, plotMargin, regionViewArea) {
     const margin = normalizePlotMargin(plotMargin);
     const left = margin.left / 2;
-    const right = margin.right / 2;
-    const plotWidth = Math.max(0, Number(containerWidthPx) - left - right);
+    const plotWidth = Math.max(0, Number(containerWidthPx) - left * 2);
     const fraction = plotFractionFromRegionViewArea(regionViewArea);
     return {
         marginLeftPx: left,
@@ -184,10 +205,17 @@ export const VKS_ZOOM_CENTER_MARKER_GAP_ABOVE_RECOMB_100_PX = 10;
 
 /**
  * Vertical position (CSS px from canvas top) for the zoom-center triangle.
- * Aligns the tip 10px above the right-axis “100” recomb tick (renderPlotAxis).
+ * - `recomb`: tip 10px above the right-axis “100” recomb tick (association plot)
+ * - `track`: tip near the top plot-margin band (credible sets / annotations / genes)
  */
-export function computeZoomCenterMarkerTopPx(plotMargin) {
+export function computeZoomCenterMarkerTopPx(plotMargin, placement = "recomb") {
     const margin = normalizePlotMargin(plotMargin);
+    if (placement === "track") {
+        const topCss = margin.top / 2;
+        // Keep a few CSS px below the container top so the triangle clears tabs /
+        // section chrome when top margin is tight.
+        return Math.max(6, topCss - VKS_ZOOM_CENTER_MARKER_HEIGHT_PX - 4);
+    }
     const recomb100TickInternalY = margin.top + 5;
     const recomb100TickDisplayY = recomb100TickInternalY / 2;
     return (

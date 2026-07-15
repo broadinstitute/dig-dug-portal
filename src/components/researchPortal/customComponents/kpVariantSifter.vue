@@ -21,17 +21,21 @@
                 {{ searchSessionLabel }}
             </p>
             <VariantSifterViewportControls
+                v-if="canvasActive"
+                class="vks-header-controls"
                 :region-zoom="regionZoom"
                 :region-zoom-out="regionZoomOut"
                 :zoom-out-at-limit="zoomOutAtLimit"
                 :region-view-area="regionViewArea"
                 :data-table-open="dataTableOpen"
                 :ai-assistant-open="aiAssistantOpen"
+                :settings-open="settingsOpen"
                 @update:regionZoom="onRegionZoomUpdate"
                 @update:regionZoomOut="onRegionZoomOutUpdate"
                 @zoom-slider-commit="onRegionZoomSliderCommit"
                 @update:dataTableOpen="dataTableOpen = $event"
                 @toggle-assistant="aiAssistantOpen = !aiAssistantOpen"
+                @toggle-settings="settingsOpen = !settingsOpen"
             />
         </header>
         <div
@@ -41,7 +45,11 @@
             aria-hidden="true"
         ></div>
 
-        <VariantSifterWorkspaceGuide v-if="canvasActive" />
+        <VariantSifterWorkspaceGuide
+            v-if="canvasActive"
+            :open="workspaceGuideOpen"
+            @close="workspaceGuideOpen = false"
+        />
 
         <input
             ref="sessionImportInput"
@@ -55,6 +63,7 @@
             <div class="vks-stage">
                 <VariantSifterCanvas
                     :sections="sections"
+                    :visible-section-ids="visibleSectionIds"
                     :canvas-active="canvasActive"
                     :welcome-open="welcomeOpen"
                     :phenotypes="phenotypes"
@@ -74,6 +83,8 @@
                     :credible-set-colors="credibleSetDotColors"
                     :credible-set-pill-colors="credibleSetPillColors"
                     :global-enrichment-state="globalEnrichmentState"
+                    :v2g-state="v2gState"
+                    :s2g-state="s2gState"
                     :region-load-progress-active="regionLoadProgress.active"
                     @update:regionShiftBp="onRegionShiftBpUpdate"
                     @update:regionViewArea="onRegionViewAreaUpdate"
@@ -82,6 +93,8 @@
                     @toggle-star-variant="onToggleStarVariant"
                     @set-reference-variant="onSetReferenceVariant"
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
+                    @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
+                    @update:geBiosampleFilterOptions="onGeBiosampleFilterOptionsUpdate"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
                     @close-data-table="dataTableOpen = false"
@@ -96,14 +109,18 @@
                     :execution-progress-label="assistantState.executionProgressLabel"
                     :llm-available="assistantState.llmAvailable"
                     :can-run-actions="assistantCanRunActions"
+                    :plan="assistantState.plan"
+                    :step-states="assistantState.stepStates"
                     @close="aiAssistantOpen = false"
                     @update:activeTab="onAssistantActiveTabUpdate"
-                    @run-action="onAssistantRunAction"
+                    @execute-all="onAssistantExecuteAll"
+                    @execute-step="onAssistantExecuteStep"
+                    @plan-request="onAssistantPlanRequest"
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
                 <VariantSifterSectionDrawers
-                    :sections="sections"
+                    :sections="visibleSections"
                     :open-drawer-id="openDrawerId"
                     :search-session="searchSession"
                     :associations-state="associationsState"
@@ -113,6 +130,9 @@
                     :credible-set-pill-colors="credibleSetPillColors"
                     :genes-state="genesState"
                     :global-enrichment-state="globalEnrichmentState"
+                    :v2g-state="v2gState"
+                    :s2g-state="s2gState"
+                    :view-region="viewRegion"
                     :utils="utilsBox"
                     :region-load-progress-active="regionLoadProgress.active"
                     :rail-pinned="chromePinned"
@@ -126,9 +146,25 @@
                     @remove-credible-set="onRemoveCredibleSet"
                     @update:genesSelectedTypes="onGenesSelectedTypesUpdate"
                     @update:geEnabledMutedAnnotations="onGeEnabledMutedAnnotationsUpdate"
-                    @update:geEnabledMutedTissues="onGeEnabledMutedTissuesUpdate"
-                    @update:geShowFilteredTissuesInTracks="onGeShowFilteredTissuesInTracksUpdate"
+                    @update:geEnabledMutedAnnotationTissues="
+                        onGeEnabledMutedAnnotationTissuesUpdate
+                    "
+                    @update:geDisabledAnnotationTissues="
+                        onGeDisabledAnnotationTissuesUpdate
+                    "
                     @update:geSelectedAnnotations="onGeSelectedAnnotationsUpdate"
+                    @update:geTissueTrackSort="onGeTissueTrackSortUpdate"
+                    @update:geTrackPValueMax="onGeTrackPValueMaxUpdate"
+                    @update:geSelectedMethods="onGeSelectedMethodsUpdate"
+                    @update:geSelectedSources="onGeSelectedSourcesUpdate"
+                    @update:v2gSelectedTissues="onV2gSelectedTissuesUpdate"
+                    @update:v2gDeselectedMethods="onV2gDeselectedMethodsUpdate"
+                    @update:v2gDeselectedGenes="onV2gDeselectedGenesUpdate"
+                    @update:v2gViewMode="onV2gViewModeUpdate"
+                    @load-s2g="onS2gLoad"
+                    @clear-s2g="onS2gClear"
+                    @update:s2gDeselectedMethods="onS2gDeselectedMethodsUpdate"
+                    @update:s2gDeselectedGenes="onS2gDeselectedGenesUpdate"
                 />
             </div>
         </div>
@@ -146,6 +182,16 @@
             @close="exportSessionOpen = false"
             @export="onExportSessionConfirm"
         />
+
+        <VariantSifterSettingsPanel
+            :open="settingsOpen"
+            :sections="sections"
+            :visible-section-ids="visibleSectionIds"
+            :search-session="searchSession"
+            :bio-index-host="bioIndexHost"
+            @close="settingsOpen = false"
+            @update:visibleSectionIds="onVisibleSectionIdsUpdate"
+        />
     </div>
 </template>
 
@@ -161,7 +207,13 @@ import VariantSifterSectionDrawers from "./kpVariantSifter/VariantSifterSectionD
 import VariantSifterAiAssistantPanel from "./kpVariantSifter/VariantSifterAiAssistantPanel.vue";
 import VariantSifterExportSessionModal from "./kpVariantSifter/VariantSifterExportSessionModal.vue";
 import VariantSifterRegionLoadBubble from "./kpVariantSifter/VariantSifterRegionLoadBubble.vue";
+import VariantSifterSettingsPanel from "./kpVariantSifter/VariantSifterSettingsPanel.vue";
 import { VARIANT_SIFTER_SECTIONS } from "./kpVariantSifter/variantSifterSections.js";
+import {
+    defaultVisibleSectionIds,
+    isSectionVisible,
+    normalizeVisibleSectionIds,
+} from "./kpVariantSifter/variantSifterToolSettings.js";
 import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAncestriesParam, parseSubAncestriesParam } from "./kpVariantSifter/variantSifterSearchUtils.js";
 import {
     associationRowAncestry,
@@ -185,7 +237,14 @@ import {
     readSessionFile,
     saveJsonBundle,
 } from "./kpVariantSifter/variantSifterSession.js";
-import { clampRegionZoom, clampRegionViewArea } from "./kpVariantSifter/variantSifterRegionZoom.js";
+import {
+    clampRegionZoom,
+    clampRegionViewArea,
+    sliderValueFromZoom,
+    zoomFromSliderValue,
+    VKS_REGION_ZOOM_SLIDER_MAX,
+    VKS_REGION_ZOOM_SLIDER_MIN,
+} from "./kpVariantSifter/variantSifterRegionZoom.js";
 import {
     cloneGenomicRegion,
     computeActiveRegion,
@@ -211,6 +270,20 @@ import {
     fetchGlobalEnrichment,
     fetchLocusAnnotations,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentApi.js";
+import { fetchGeneLinks } from "./kpVariantSifter/variantSifterV2gApi.js";
+import { fetchVariantLinks } from "./kpVariantSifter/variantSifterS2gApi.js";
+import {
+    collectGenesFromTissueData,
+    collectMethodsFromTissueData,
+    emptyV2gState,
+    normalizeV2gViewMode,
+} from "./kpVariantSifter/variantSifterV2gData.js";
+import {
+    buildS2gTissueData,
+    emptyS2gState,
+    hasS2gTrackData,
+    VKS_S2G_TISSUE_LABEL,
+} from "./kpVariantSifter/variantSifterS2gData.js";
 import {
     applyGlobalEnrichmentAnnoRows,
     buildAnnoDataFromRows,
@@ -219,23 +292,34 @@ import {
     emptyGeLlmRelevanceState,
     extractGeCatalog,
     filterAnnoRowsInRegion,
-    isGeLlmFilterComplete,
     mergeAnnoRows,
+    normalizeGeFilterStringList,
+    normalizeGeSelectedBiosamples,
+    normalizeGeTissueTrackSort,
+    normalizeGeTrackPValueMax,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
 import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
     buildGeRelevanceIntroMessage,
+    buildGeRelevanceOfferMessage,
     buildGeRelevanceReportMessage,
     buildGeRelevanceRunningMessage,
 } from "./kpVariantSifter/variantSifterAssistantGeRelevance.js";
 import {
     appendAssistantEntries,
+    createAssistantMessage,
+    createAssistantPlan,
     createAssistantStatusMessage,
     createAssistantStepMessage,
+    createUserMessage,
     emptyAssistantState,
     removePendingAssistantEntry,
     replacePendingAssistantEntry,
 } from "./kpVariantSifter/variantSifterAssistantConversation.js";
+import {
+    findAssistantAction,
+    matchVksAssistantRequest,
+} from "./kpVariantSifter/variantSifterAssistantActionCatalog.js";
 import { fetchRecombinationRate } from "./kpVariantSifter/variantSifterPlotShared.js";
 import {
     pickLeadVariantRow,
@@ -245,11 +329,16 @@ import {
 import { buildAssociationsRegionPlotConfig } from "./kpVariantSifter/variantSifterAssociationsPlotConfig.js";
 import {
     fetchCredibleSetsList,
+    fetchCredibleSetsListForAncestries,
     fetchCredibleSetVariants,
+    mergeCredibleSetAvailableLists,
+    tagCredibleSetEntries,
 } from "./kpVariantSifter/variantSifterCredibleSetsApi.js";
 import {
     credibleSetOptionLabel,
+    credibleSetShortLabel,
     formatCredibleVariantRows,
+    makeCredibleSetSelectionKey,
 } from "./kpVariantSifter/variantSifterCredibleSetsFormat.js";
 import { buildCredibleSetColorMap } from "./kpVariantSifter/variantSifterCredibleSetsColors.js";
 import { pruneCredibleSetsForRegion } from "./kpVariantSifter/variantSifterCredibleSetsRegion.js";
@@ -331,9 +420,16 @@ function emptyGlobalEnrichmentState() {
         catalog: { annotations: [], tissues: [], pairCount: 0 },
         llmRelevance: emptyGeLlmRelevanceState(),
         enabledMutedAnnotations: [],
-        enabledMutedTissues: [],
+        enabledMutedAnnotationTissues: {},
+        disabledAnnotationTissues: {},
         selectedAnnotations: [],
-        showFilteredTissuesInTracks: false,
+        tissueTrackSort: "alphabetical",
+        geTrackPValueMax: 0.5,
+        selectedMethods: null,
+        selectedSources: null,
+        selectedBiosamples: [],
+        biosampleMethodOptions: [],
+        biosampleSourceOptions: [],
     };
 }
 
@@ -351,10 +447,13 @@ export default Vue.component("kp-variant-sifter", {
         VariantSifterAiAssistantPanel,
         VariantSifterExportSessionModal,
         VariantSifterRegionLoadBubble,
+        VariantSifterSettingsPanel,
     },
     data() {
         return {
             sections: VARIANT_SIFTER_SECTIONS,
+            visibleSectionIds: defaultVisibleSectionIds(),
+            settingsOpen: false,
             canvasActive: false,
             welcomeOpen: true,
             searchSession: null,
@@ -380,15 +479,20 @@ export default Vue.component("kp-variant-sifter", {
             plotMarkersState: emptyPlotMarkersState(),
             credibleSetsState: emptyCredibleSetsState(),
             globalEnrichmentState: emptyGlobalEnrichmentState(),
+            v2gState: emptyV2gState(),
+            s2gState: emptyS2gState(),
             associationsRequestToken: 0,
             genesRequestToken: 0,
             plotOverlaysRequestToken: 0,
             credibleSetsRequestToken: 0,
             globalEnrichmentRequestToken: 0,
+            v2gRequestToken: 0,
+            s2gRequestToken: 0,
             pendingSubAncestries: [],
             lastCredibleSetsListRegion: null,
             exportSessionOpen: false,
             exportSessionBusy: false,
+            workspaceGuideOpen: false,
             chromePinned: false,
             headerHeightPx: 53,
             pinnedChromeStyle: {
@@ -400,6 +504,14 @@ export default Vue.component("kp-variant-sifter", {
     computed: {
         phenotypes() {
             return this.phenotypesInUse || [];
+        },
+        bioIndexHost() {
+            return this.utilsBox?.uiUtils?.biDomain?.() || "";
+        },
+        visibleSections() {
+            return this.sections.filter((section) =>
+                isSectionVisible(this.visibleSectionIds, section.id)
+            );
         },
         exportSessionDefaultFilename() {
             if (!this.searchSession) {
@@ -429,17 +541,22 @@ export default Vue.component("kp-variant-sifter", {
             if (gePairs > 0) {
                 parts.push(`${gePairs.toLocaleString()} GE pairs`);
             }
+            const v2gTissues = (this.v2gState?.selectedTissues || []).length;
+            if (v2gTissues > 0) {
+                parts.push(
+                    v2gTissues === 1 ? "1 V2G tissue" : `${v2gTissues} V2G tissues`
+                );
+            }
+            if (hasS2gTrackData(this.s2gState)) {
+                parts.push("SNP 2 gene links");
+            }
             return parts.join(" · ");
         },
         searchSessionLabel() {
             return formatSearchSessionLabel(this.searchSession);
         },
         assistantCanRunActions() {
-            const catalog = this.globalEnrichmentState?.catalog;
-            return Boolean(
-                this.searchSession &&
-                    (catalog?.annotations?.length || catalog?.tissues?.length)
-            );
+            return Boolean(this.searchSession || this.canvasActive);
         },
         activeRegion() {
             if (!this.searchSession?.region) {
@@ -698,6 +815,10 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         onRegionShiftBpUpdate(nextShiftBp) {
+            // Locus translate + gap fetch only when not zoomed in.
+            if (this.regionZoom > 0) {
+                return;
+            }
             const viewport = clampRegionViewportForDataLimit(
                 this.searchSession?.region,
                 {
@@ -731,12 +852,17 @@ export default Vue.component("kp-variant-sifter", {
                 this.syncUrlSearchParams(this.searchSession);
             }
 
+            // Zoom-out commit / unzoomed locus pan: collapse slider to identity.
+            // Do not clear zoom-in; Hand pan while zoomed never reaches here.
             this.regionZoom = 0;
             this.regionZoomOut = 0;
             this.regionViewArea = 0;
             this.pendingPanSliderReset = false;
         },
         onRegionPanEnd() {
+            if (this.regionZoom > 0) {
+                return;
+            }
             this.scheduleRegionDataSync(0);
         },
         onTogglePositionMarker(position) {
@@ -1252,6 +1378,19 @@ export default Vue.component("kp-variant-sifter", {
             }
             if (payload.action === "importSession") {
                 this.openSessionImport();
+                return;
+            }
+            if (payload.action === "gettingAround") {
+                this.workspaceGuideOpen = true;
+            }
+        },
+        onVisibleSectionIdsUpdate(ids) {
+            this.visibleSectionIds = normalizeVisibleSectionIds(ids, this.sections);
+            if (
+                this.openDrawerId &&
+                !isSectionVisible(this.visibleSectionIds, this.openDrawerId)
+            ) {
+                this.openDrawerId = null;
             }
         },
         exportSession() {
@@ -1264,6 +1403,8 @@ export default Vue.component("kp-variant-sifter", {
                     plotMarkersState: this.plotMarkersState,
                     credibleSetsState: this.credibleSetsState,
                     globalEnrichmentState: this.globalEnrichmentState,
+                    v2gState: this.v2gState,
+                    s2gState: this.s2gState,
                     regionZoom: this.regionZoom,
                     regionZoomOut: this.regionZoomOut,
                     regionViewArea: this.regionViewArea,
@@ -1271,6 +1412,7 @@ export default Vue.component("kp-variant-sifter", {
                     dataRegion: this.dataRegion,
                     openDrawerId: this.openDrawerId,
                     dataTableOpen: this.dataTableOpen,
+                    visibleSectionIds: this.visibleSectionIds,
                 });
                 this.exportSessionOpen = true;
             } catch (error) {
@@ -1291,6 +1433,8 @@ export default Vue.component("kp-variant-sifter", {
                     plotMarkersState: this.plotMarkersState,
                     credibleSetsState: this.credibleSetsState,
                     globalEnrichmentState: this.globalEnrichmentState,
+                    v2gState: this.v2gState,
+                    s2gState: this.s2gState,
                     regionZoom: this.regionZoom,
                     regionZoomOut: this.regionZoomOut,
                     regionViewArea: this.regionViewArea,
@@ -1298,6 +1442,7 @@ export default Vue.component("kp-variant-sifter", {
                     dataRegion: this.dataRegion,
                     openDrawerId: this.openDrawerId,
                     dataTableOpen: this.dataTableOpen,
+                    visibleSectionIds: this.visibleSectionIds,
                 });
                 this.exportSessionBusy = true;
                 const result = await saveJsonBundle(filename, payload);
@@ -1366,7 +1511,11 @@ export default Vue.component("kp-variant-sifter", {
                 restored.credibleSetsState || emptyCredibleSetsState();
             this.globalEnrichmentState =
                 restored.globalEnrichmentState || emptyGlobalEnrichmentState();
+            this.v2gState = restored.v2gState || emptyV2gState();
+            this.s2gState = restored.s2gState || emptyS2gState();
             this.globalEnrichmentRequestToken += 1;
+            this.v2gRequestToken += 1;
+            this.s2gRequestToken += 1;
             this.regionZoom = restored.regionZoom ?? 0;
             this.regionViewArea = restored.regionViewArea ?? 0;
             this.regionShiftBp = viewport.regionShiftBp;
@@ -1380,6 +1529,16 @@ export default Vue.component("kp-variant-sifter", {
                 restored.regionShiftBp ?? restored.viewOffsetBp ?? 0
             );
             this.openDrawerId = restored.openDrawerId;
+            this.visibleSectionIds = normalizeVisibleSectionIds(
+                restored.visibleSectionIds,
+                this.sections
+            );
+            if (
+                this.openDrawerId &&
+                !isSectionVisible(this.visibleSectionIds, this.openDrawerId)
+            ) {
+                this.openDrawerId = null;
+            }
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.welcomeInitialValues = null;
@@ -1393,33 +1552,45 @@ export default Vue.component("kp-variant-sifter", {
             }
             if (restored.globalEnrichmentState) {
                 this.setRegionLoadStep("globalEnrichment", VKS_REGION_LOAD_STATUS.DONE);
-                this.maybeRunBackgroundGeFilter();
                 return;
             }
-            this.loadGlobalEnrichmentForSession(restored.searchSession, {
-                runFilterWhenReady: true,
-                silentFilter: true,
-            });
+            this.loadGlobalEnrichmentForSession(restored.searchSession);
         },
-        maybeRunBackgroundGeFilter() {
-            const catalog = this.globalEnrichmentState?.catalog;
-            if (
-                !this.searchSession ||
-                !catalog?.tissues?.length ||
-                isGeLlmFilterComplete(this.globalEnrichmentState?.llmRelevance)
-            ) {
+        offerGeTissueClassifyAction(session, catalog) {
+            if (!session || !catalog?.tissues?.length) {
                 return;
             }
-            this.$nextTick(() => {
-                this.runAssistantAction("filter_ge_relevance", {
-                    auto: true,
-                    silent: true,
-                });
-            });
+            const action = findAssistantAction("filter_ge_relevance");
+            this.refreshAssistantLlmHealth();
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                executing: false,
+                executionProgressLabel: "",
+                plan: createAssistantPlan(
+                    [
+                        {
+                            id: "step-filter-ge-relevance",
+                            actionId: "filter_ge_relevance",
+                            label:
+                                action?.label ||
+                                "Classify tissues by phenotype relevance",
+                        },
+                    ],
+                    { executeLabel: "Execute" }
+                ),
+                stepStates: { "step-filter-ge-relevance": "pending" },
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(
+                        buildGeRelevanceOfferMessage(session, catalog)
+                    ),
+                ]),
+            };
         },
         async loadGlobalEnrichmentForSession(
             session,
-            { runFilterWhenReady = false, silentFilter = false, requestToken } = {}
+            { offerClassifyAction = false, requestToken } = {}
         ) {
             if (!session?.region) {
                 return false;
@@ -1464,8 +1635,20 @@ export default Vue.component("kp-variant-sifter", {
                     catalog,
                     llmRelevance: emptyGeLlmRelevanceState(),
                     enabledMutedAnnotations: [],
-                    enabledMutedTissues: [],
+                    enabledMutedAnnotationTissues: {},
+                    disabledAnnotationTissues: {},
                     selectedAnnotations: [...catalog.annotations],
+                    tissueTrackSort: normalizeGeTissueTrackSort(
+                        this.globalEnrichmentState?.tissueTrackSort
+                    ),
+                    geTrackPValueMax: normalizeGeTrackPValueMax(
+                        this.globalEnrichmentState?.geTrackPValueMax
+                    ),
+                    selectedMethods: null,
+                    selectedSources: null,
+                    selectedBiosamples: [],
+                    biosampleMethodOptions: [],
+                    biosampleSourceOptions: [],
                 };
                 this.setRegionLoadStep(
                     "globalEnrichment",
@@ -1474,13 +1657,12 @@ export default Vue.component("kp-variant-sifter", {
                         : VKS_REGION_LOAD_STATUS.FAILED
                 );
 
-                if (runFilterWhenReady && Object.keys(annoData).length) {
+                if (offerClassifyAction && Object.keys(annoData).length && catalog.tissues?.length) {
                     this.$nextTick(() => {
-                        this.runAssistantAction("filter_ge_relevance", {
-                            auto: true,
-                            silent: silentFilter,
-                            requestToken: geToken,
-                        });
+                        if (geToken !== this.globalEnrichmentRequestToken) {
+                            return;
+                        }
+                        this.offerGeTissueClassifyAction(session, catalog);
                     });
                 }
                 return true;
@@ -1503,6 +1685,8 @@ export default Vue.component("kp-variant-sifter", {
             this.plotOverlaysRequestToken += 1;
             this.credibleSetsRequestToken += 1;
             this.globalEnrichmentRequestToken += 1;
+            this.v2gRequestToken += 1;
+            this.s2gRequestToken += 1;
             this.assistantActionToken += 1;
             this.searchSession = null;
             this.associationsState = emptyAssociationsState();
@@ -1511,6 +1695,8 @@ export default Vue.component("kp-variant-sifter", {
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
             this.globalEnrichmentState = emptyGlobalEnrichmentState();
+            this.v2gState = emptyV2gState();
+            this.s2gState = emptyS2gState();
             this.assistantState = emptyAssistantState();
             this.aiAssistantOpen = false;
             this.lastCredibleSetsListRegion = null;
@@ -1521,6 +1707,8 @@ export default Vue.component("kp-variant-sifter", {
             this.resetRegionViewport();
             this.openDrawerId = null;
             this.dataTableOpen = false;
+            this.settingsOpen = false;
+            this.visibleSectionIds = defaultVisibleSectionIds(this.sections);
             this.welcomeInitialValues = null;
             this.welcomeOpen = true;
             this.canvasActive = false;
@@ -1569,6 +1757,10 @@ export default Vue.component("kp-variant-sifter", {
             this.plotMarkersState = emptyPlotMarkersState();
             this.credibleSetsState = emptyCredibleSetsState();
             this.globalEnrichmentState = emptyGlobalEnrichmentState();
+            this.v2gState = emptyV2gState();
+            this.s2gState = emptyS2gState();
+            this.v2gRequestToken += 1;
+            this.s2gRequestToken += 1;
             this.lastCredibleSetsListRegion = null;
             this.canvasActive = true;
             this.welcomeOpen = false;
@@ -1622,7 +1814,13 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             try {
-                const available = await fetchCredibleSetsList(session, host);
+                const selectedAncestries =
+                    this.associationsState.selectedAncestries || [];
+                const available = await fetchCredibleSetsListForAncestries(
+                    session,
+                    host,
+                    selectedAncestries
+                );
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
                 }
@@ -1661,11 +1859,8 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
         },
-        async onAddCredibleSet({ credibleSetId, phenotype }) {
+        async onAddCredibleSet({ credibleSetId, phenotype, ancestry }) {
             if (!credibleSetId || !this.searchSession) {
-                return;
-            }
-            if (this.credibleSetsState.selectedIds.includes(credibleSetId)) {
                 return;
             }
 
@@ -1674,14 +1869,37 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            const availableEntry = this.credibleSetsState.available.find(
-                (entry) => entry.credibleSetId === credibleSetId
-            );
+            const resolvedAncestry = ancestry || "Mixed";
+            const availableEntry =
+                this.credibleSetsState.available.find(
+                    (entry) =>
+                        entry.credibleSetId === credibleSetId &&
+                        (entry.ancestry || "Mixed") === resolvedAncestry
+                ) ||
+                this.credibleSetsState.available.find(
+                    (entry) => entry.credibleSetId === credibleSetId
+                );
             const resolvedPhenotype = phenotype || availableEntry?.phenotype || null;
+            const entryAncestry = availableEntry?.ancestry || resolvedAncestry;
+            const selectionKey = makeCredibleSetSelectionKey(
+                credibleSetId,
+                entryAncestry
+            );
+
+            if (this.credibleSetsState.selectedIds.includes(selectionKey)) {
+                return;
+            }
+
+            const metaEntry = availableEntry || {
+                credibleSetId,
+                phenotype: resolvedPhenotype,
+                ancestry: entryAncestry,
+            };
+            const label = credibleSetShortLabel(metaEntry);
 
             this.credibleSetsState = {
                 ...this.credibleSetsState,
-                selectedIds: [...this.credibleSetsState.selectedIds, credibleSetId],
+                selectedIds: [...this.credibleSetsState.selectedIds, selectionKey],
                 variantsLoading: true,
                 variantsError: null,
             };
@@ -1690,7 +1908,8 @@ export default Vue.component("kp-variant-sifter", {
                 const rawVariants = await fetchCredibleSetVariants(
                     this.searchSession,
                     credibleSetId,
-                    host
+                    host,
+                    { ancestry: entryAncestry }
                 );
                 const formattedVariants = formatCredibleVariantRows(rawVariants);
                 this.credibleSetsState = {
@@ -1698,13 +1917,14 @@ export default Vue.component("kp-variant-sifter", {
                     variantsLoading: false,
                     variantsBySet: {
                         ...this.credibleSetsState.variantsBySet,
-                        [credibleSetId]: {
+                        [selectionKey]: {
                             meta: {
+                                selectionKey,
                                 credibleSetId,
                                 phenotype: resolvedPhenotype,
-                                label: credibleSetOptionLabel(
-                                    availableEntry || { credibleSetId }
-                                ),
+                                ancestry: entryAncestry,
+                                label,
+                                optionLabel: credibleSetOptionLabel(metaEntry),
                             },
                             rawVariants,
                             formattedVariants,
@@ -1718,21 +1938,82 @@ export default Vue.component("kp-variant-sifter", {
                     variantsLoading: false,
                     variantsError: "Failed to load credible variants for this set.",
                     selectedIds: this.credibleSetsState.selectedIds.filter(
-                        (id) => id !== credibleSetId
+                        (id) => id !== selectionKey
                     ),
                 };
             }
         },
-        onRemoveCredibleSet(credibleSetId) {
-            if (!credibleSetId) {
+        async mergeCredibleSetsForAncestry(ancestry) {
+            if (!ancestry || ancestry === "Mixed" || !this.searchSession) {
+                return;
+            }
+
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            if (!host) {
+                return;
+            }
+
+            const session = {
+                ...this.searchSession,
+                region: this.dataRegion || this.searchSession.region,
+            };
+
+            try {
+                const tagged = tagCredibleSetEntries(
+                    await fetchCredibleSetsList(session, host, { ancestry }),
+                    ancestry
+                );
+                const withoutAncestry = (this.credibleSetsState.available || []).filter(
+                    (entry) => (entry.ancestry || "Mixed") !== ancestry
+                );
+                this.credibleSetsState = {
+                    ...this.credibleSetsState,
+                    available: mergeCredibleSetAvailableLists([withoutAncestry, tagged]),
+                };
+            } catch (error) {
+                console.warn(
+                    `Variant Sifter ${ancestry} credible sets list failed`,
+                    error
+                );
+            }
+        },
+        removeCredibleSetsForAncestry(ancestry) {
+            if (!ancestry || ancestry === "Mixed") {
+                return;
+            }
+
+            const available = (this.credibleSetsState.available || []).filter(
+                (entry) => (entry.ancestry || "Mixed") !== ancestry
+            );
+            const nextVariantsBySet = { ...this.credibleSetsState.variantsBySet };
+            const selectedIds = (this.credibleSetsState.selectedIds || []).filter(
+                (selectionKey) => {
+                    const meta = nextVariantsBySet[selectionKey]?.meta;
+                    if ((meta?.ancestry || "Mixed") === ancestry) {
+                        delete nextVariantsBySet[selectionKey];
+                        return false;
+                    }
+                    return true;
+                }
+            );
+
+            this.credibleSetsState = {
+                ...this.credibleSetsState,
+                available,
+                selectedIds,
+                variantsBySet: nextVariantsBySet,
+            };
+        },
+        onRemoveCredibleSet(selectionKey) {
+            if (!selectionKey) {
                 return;
             }
             const nextVariantsBySet = { ...this.credibleSetsState.variantsBySet };
-            delete nextVariantsBySet[credibleSetId];
+            delete nextVariantsBySet[selectionKey];
             this.credibleSetsState = {
                 ...this.credibleSetsState,
                 selectedIds: this.credibleSetsState.selectedIds.filter(
-                    (id) => id !== credibleSetId
+                    (id) => id !== selectionKey
                 ),
                 variantsBySet: nextVariantsBySet,
                 variantsError: null,
@@ -2052,7 +2333,10 @@ export default Vue.component("kp-variant-sifter", {
                         listLoading: true,
                     };
                     try {
-                        const available = await fetchCredibleSetsList(session, host);
+                        const available = tagCredibleSetEntries(
+                            await fetchCredibleSetsList(session, host),
+                            "Mixed"
+                        );
                         if (credibleSetsToken !== this.credibleSetsRequestToken) {
                             return;
                         }
@@ -2076,8 +2360,7 @@ export default Vue.component("kp-variant-sifter", {
                 })(),
                 (async () => {
                     await this.loadGlobalEnrichmentForSession(session, {
-                        runFilterWhenReady: true,
-                        silentFilter: false,
+                        offerClassifyAction: true,
                         requestToken: globalEnrichmentToken,
                     });
                 })(),
@@ -2227,6 +2510,7 @@ export default Vue.component("kp-variant-sifter", {
                         [ancestry]: null,
                     },
                 };
+                this.removeCredibleSetsForAncestry(ancestry);
                 this.syncUrlSearchParams(this.searchSession);
                 return;
             }
@@ -2320,6 +2604,7 @@ export default Vue.component("kp-variant-sifter", {
                             : "No associations returned for this ancestry.",
                     },
                 };
+                await this.mergeCredibleSetsForAncestry(ancestry);
                 return true;
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
@@ -2438,10 +2723,181 @@ export default Vue.component("kp-variant-sifter", {
                 activeTab,
             };
         },
-        onAssistantRunAction(actionId) {
-            this.runAssistantAction(actionId, { auto: false });
+        onAssistantExecuteAll() {
+            const steps = this.assistantState?.plan?.steps || [];
+            const next = steps.find(
+                (step) => (this.assistantState.stepStates || {})[step.id] !== "done"
+            );
+            if (next) {
+                this.runAssistantAction(next.actionId, {
+                    auto: false,
+                    stepId: next.id,
+                });
+            }
         },
-        async runAssistantAction(actionId, { auto = false, requestToken, silent = false } = {}) {
+        onAssistantExecuteStep(stepId) {
+            const step = (this.assistantState?.plan?.steps || []).find(
+                (item) => item.id === stepId
+            );
+            if (!step) {
+                return;
+            }
+            this.runAssistantAction(step.actionId, { auto: false, stepId: step.id });
+        },
+        onAssistantPlanRequest({ text } = {}) {
+            const requestText = String(text || "").trim();
+            if (!requestText) {
+                return;
+            }
+
+            const matches = matchVksAssistantRequest(requestText);
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createUserMessage(requestText),
+                ]),
+            };
+
+            if (!matches.length) {
+                this.assistantState = {
+                    ...this.assistantState,
+                    plan: null,
+                    stepStates: {},
+                    threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                        createAssistantMessage(
+                            "I could not match that to a Variant Sifter action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance” or “Open Global enrich.”",
+                            { isClarify: true }
+                        ),
+                    ]),
+                };
+                return;
+            }
+
+            if (matches.length === 1 && matches[0].id !== "filter_ge_relevance") {
+                const action = matches[0];
+                this.assistantState = {
+                    ...this.assistantState,
+                    plan: null,
+                    stepStates: {},
+                    threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                        createAssistantMessage(`Running “${action.label}”.`),
+                    ]),
+                };
+                this.runAssistantAction(action.id, { auto: false });
+                return;
+            }
+
+            const plan = createAssistantPlan(
+                matches.map((action) => ({
+                    id: `step-${action.id}`,
+                    actionId: action.id,
+                    label: action.label,
+                })),
+                { executeLabel: matches.length > 1 ? "Execute all" : "Execute" }
+            );
+            const stepStates = {};
+            (plan?.steps || []).forEach((step) => {
+                stepStates[step.id] = "pending";
+            });
+            this.assistantState = {
+                ...this.assistantState,
+                plan,
+                stepStates,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantMessage(
+                        matches.length === 1
+                            ? `Matched “${matches[0].label}”. Run Execute below when you are ready.`
+                            : `Matched ${matches.length} actions. Review the steps below, then Execute.`
+                    ),
+                ]),
+            };
+        },
+        markAssistantStepState(stepId, status) {
+            if (!stepId) {
+                return;
+            }
+            this.assistantState = {
+                ...this.assistantState,
+                stepStates: {
+                    ...(this.assistantState.stepStates || {}),
+                    [stepId]: status,
+                },
+            };
+        },
+        applyAssistantZoomStep(direction) {
+            const step = 10;
+            const delta = direction < 0 ? -step : step;
+            const current = sliderValueFromZoom(this.regionZoom, this.regionZoomOut);
+            let next = Math.max(
+                VKS_REGION_ZOOM_SLIDER_MIN,
+                Math.min(VKS_REGION_ZOOM_SLIDER_MAX, current + delta)
+            );
+            if (next < 0 && this.zoomOutAtLimit) {
+                next = Math.max(next, current < 0 ? current : 0);
+            }
+            const { regionZoom, regionZoomOut } = zoomFromSliderValue(next);
+            this.onRegionZoomUpdate(regionZoom);
+            this.onRegionZoomOutUpdate(regionZoomOut);
+            this.onRegionZoomSliderCommit();
+        },
+        async runAssistantAction(actionId, { auto = false, requestToken, silent = false, stepId } = {}) {
+            if (actionId === "export_session") {
+                this.exportSession();
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "import_session") {
+                this.openSessionImport();
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "reset_search") {
+                this.resetSearch();
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "zoom_in") {
+                this.applyAssistantZoomStep(1);
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "zoom_out") {
+                this.applyAssistantZoomStep(-1);
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "toggle_data_table") {
+                this.dataTableOpen = !this.dataTableOpen;
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "open_getting_around") {
+                this.workspaceGuideOpen = true;
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "open_global_enrichment") {
+                this.openDrawerId = "global-enrichment";
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "open_associations") {
+                this.openDrawerId = "associations";
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "open_credible_sets") {
+                this.openDrawerId = "credible-sets";
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
+            if (actionId === "open_genes") {
+                this.openDrawerId = "genes";
+                this.markAssistantStepState(stepId, "done");
+                return;
+            }
             if (actionId !== "filter_ge_relevance") {
                 return;
             }
@@ -2459,6 +2915,7 @@ export default Vue.component("kp-variant-sifter", {
             const actionToken = ++this.assistantActionToken;
             const runningLabel = buildGeRelevanceRunningMessage();
             const annotationLabels = catalog.annotations || [];
+            this.markAssistantStepState(stepId, "running");
 
             if (!silent) {
                 this.aiAssistantOpen = true;
@@ -2510,14 +2967,19 @@ export default Vue.component("kp-variant-sifter", {
                     ...this.globalEnrichmentState,
                     llmRelevance,
                     enabledMutedAnnotations: [],
-                    enabledMutedTissues: [],
+                    enabledMutedAnnotationTissues: {},
+                    disabledAnnotationTissues: {},
                 };
+
+                this.markAssistantStepState(stepId, "done");
 
                 if (!silent) {
                     const report = buildGeRelevanceReportMessage({
                         session,
                         catalog,
                         llmRelevance,
+                        annoData: this.globalEnrichmentState?.annoData || {},
+                        geRows: this.globalEnrichmentState?.geRows || [],
                     });
                     this.assistantState = {
                         ...this.assistantState,
@@ -2545,13 +3007,14 @@ export default Vue.component("kp-variant-sifter", {
                 console.warn("Variant Sifter GE LLM relevance failed", error);
                 const errorMessage =
                     error?.message ||
-                    "LLM relevance filtering is unavailable; showing all tissues and annotations.";
+                    "LLM relevance filtering is unavailable; using enrichment p-value filtering only.";
                 this.globalEnrichmentState = {
                     ...this.globalEnrichmentState,
                     llmRelevance: buildGeLlmRelevanceShowAllState(annotationLabels, {
                         error: errorMessage,
                     }),
                 };
+                this.markAssistantStepState(stepId, "error");
                 if (!silent) {
                     this.assistantState = {
                         ...this.assistantState,
@@ -2559,7 +3022,7 @@ export default Vue.component("kp-variant-sifter", {
                         executionProgressLabel: "",
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
-                            `${errorMessage} Showing full global enrichment data.`,
+                            `${errorMessage} Annotation tracks show tissues with enrichment p < 0.5 for each annotation.`,
                             { isClarify: true }
                         ),
                     };
@@ -2584,16 +3047,307 @@ export default Vue.component("kp-variant-sifter", {
                 enabledMutedAnnotations: [...enabledMutedAnnotations],
             };
         },
-        onGeEnabledMutedTissuesUpdate(enabledMutedTissues) {
+        onGeEnabledMutedAnnotationTissuesUpdate(enabledMutedAnnotationTissues) {
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
-                enabledMutedTissues: [...enabledMutedTissues],
+                enabledMutedAnnotationTissues: {
+                    ...(enabledMutedAnnotationTissues || {}),
+                },
             };
         },
-        onGeShowFilteredTissuesInTracksUpdate(showFilteredTissuesInTracks) {
+        onGeDisabledAnnotationTissuesUpdate(disabledAnnotationTissues) {
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
-                showFilteredTissuesInTracks: Boolean(showFilteredTissuesInTracks),
+                disabledAnnotationTissues: {
+                    ...(disabledAnnotationTissues || {}),
+                },
+            };
+        },
+        onGeTissueTrackSortUpdate(tissueTrackSort) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                tissueTrackSort: normalizeGeTissueTrackSort(tissueTrackSort),
+            };
+        },
+        onGeTrackPValueMaxUpdate(geTrackPValueMax) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                geTrackPValueMax: normalizeGeTrackPValueMax(geTrackPValueMax),
+                enabledMutedAnnotationTissues: {},
+                disabledAnnotationTissues: {},
+            };
+        },
+        onGeSelectedMethodsUpdate(selectedMethods) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                selectedMethods: normalizeGeFilterStringList(selectedMethods),
+            };
+        },
+        onGeSelectedSourcesUpdate(selectedSources) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                selectedSources: normalizeGeFilterStringList(selectedSources),
+            };
+        },
+        pruneV2gDeselections(tissueData, deselectedMethods, deselectedGenes) {
+            const methods = new Set(collectMethodsFromTissueData(tissueData));
+            const genes = new Set(collectGenesFromTissueData(tissueData));
+            return {
+                deselectedMethods: (deselectedMethods || []).filter((method) =>
+                    methods.has(method)
+                ),
+                deselectedGenes: (deselectedGenes || []).filter((gene) => genes.has(gene)),
+            };
+        },
+        async onV2gSelectedTissuesUpdate(selectedTissues) {
+            const nextSelected = Array.isArray(selectedTissues)
+                ? [...new Set(selectedTissues.filter(Boolean))]
+                : [];
+            const prevSelected = this.v2gState?.selectedTissues || [];
+            const prevData = { ...(this.v2gState?.tissueData || {}) };
+            const removed = prevSelected.filter((tissue) => !nextSelected.includes(tissue));
+            removed.forEach((tissue) => {
+                delete prevData[tissue];
+            });
+
+            const pruned = this.pruneV2gDeselections(
+                prevData,
+                this.v2gState?.deselectedMethods,
+                this.v2gState?.deselectedGenes
+            );
+
+            this.v2gState = {
+                ...this.v2gState,
+                selectedTissues: nextSelected,
+                tissueData: prevData,
+                tissueErrors: Object.fromEntries(
+                    Object.entries(this.v2gState?.tissueErrors || {}).filter(([tissue]) =>
+                        nextSelected.includes(tissue)
+                    )
+                ),
+                error: null,
+                ...pruned,
+            };
+
+            const toFetch = nextSelected.filter((tissue) => !Array.isArray(prevData[tissue]));
+            if (!toFetch.length) {
+                return;
+            }
+
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const region = this.dataRegion || this.searchSession?.region;
+            if (!host || !region) {
+                this.v2gState = {
+                    ...this.v2gState,
+                    error: host
+                        ? "No region is available for gene-links."
+                        : "BioIndex host is not available.",
+                    selectedTissues: nextSelected.filter((tissue) =>
+                        Array.isArray(this.v2gState.tissueData?.[tissue])
+                    ),
+                };
+                return;
+            }
+
+            const token = ++this.v2gRequestToken;
+            for (const tissue of toFetch) {
+                if (token !== this.v2gRequestToken) {
+                    return;
+                }
+                this.v2gState = {
+                    ...this.v2gState,
+                    loadingTissue: tissue,
+                    error: null,
+                };
+                try {
+                    const rows = await fetchGeneLinks(tissue, region, host);
+                    if (token !== this.v2gRequestToken) {
+                        return;
+                    }
+                    if (!rows.length) {
+                        const tissueErrors = {
+                            ...(this.v2gState.tissueErrors || {}),
+                            [tissue]: `${tissue} has no linked genes.`,
+                        };
+                        const selectedWithoutEmpty = (
+                            this.v2gState.selectedTissues || []
+                        ).filter((entry) => entry !== tissue);
+                        this.v2gState = {
+                            ...this.v2gState,
+                            loadingTissue: null,
+                            selectedTissues: selectedWithoutEmpty,
+                            tissueErrors,
+                            error: tissueErrors[tissue],
+                        };
+                        continue;
+                    }
+                    const tissueData = {
+                        ...(this.v2gState.tissueData || {}),
+                        [tissue]: rows,
+                    };
+                    const nextPruned = this.pruneV2gDeselections(
+                        tissueData,
+                        this.v2gState.deselectedMethods,
+                        this.v2gState.deselectedGenes
+                    );
+                    this.v2gState = {
+                        ...this.v2gState,
+                        loadingTissue: null,
+                        tissueData,
+                        error: null,
+                        ...nextPruned,
+                    };
+                } catch (error) {
+                    if (token !== this.v2gRequestToken) {
+                        return;
+                    }
+                    console.warn("Variant Sifter gene-links fetch failed", tissue, error);
+                    const selectedWithoutFailed = (this.v2gState.selectedTissues || []).filter(
+                        (entry) => entry !== tissue
+                    );
+                    this.v2gState = {
+                        ...this.v2gState,
+                        loadingTissue: null,
+                        selectedTissues: selectedWithoutFailed,
+                        error: `Failed to load gene links for ${tissue}.`,
+                    };
+                }
+            }
+
+            if (token === this.v2gRequestToken) {
+                this.v2gState = {
+                    ...this.v2gState,
+                    loadingTissue: null,
+                };
+            }
+        },
+        onV2gDeselectedMethodsUpdate(deselectedMethods) {
+            this.v2gState = {
+                ...this.v2gState,
+                deselectedMethods: Array.isArray(deselectedMethods)
+                    ? [...deselectedMethods]
+                    : [],
+            };
+        },
+        onV2gDeselectedGenesUpdate(deselectedGenes) {
+            this.v2gState = {
+                ...this.v2gState,
+                deselectedGenes: Array.isArray(deselectedGenes) ? [...deselectedGenes] : [],
+            };
+        },
+        onV2gViewModeUpdate(viewMode) {
+            this.v2gState = {
+                ...this.v2gState,
+                viewMode: normalizeV2gViewMode(viewMode),
+            };
+        },
+        async onS2gLoad() {
+            const region = this.viewRegion || this.searchSession?.region;
+            if (!region) {
+                return;
+            }
+            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const token = ++this.s2gRequestToken;
+            this.s2gState = {
+                ...this.s2gState,
+                loadingTissue: VKS_S2G_TISSUE_LABEL,
+                error: null,
+            };
+            try {
+                const rows = await fetchVariantLinks(region, host);
+                if (token !== this.s2gRequestToken) {
+                    return;
+                }
+                if (!rows.length) {
+                    this.s2gState = {
+                        ...emptyS2gState(),
+                        error: "No SNP-to-gene links found in this region.",
+                    };
+                    return;
+                }
+                const tissueData = buildS2gTissueData(rows);
+                const methods = collectMethodsFromTissueData(tissueData);
+                const genes = collectGenesFromTissueData(tissueData);
+                const deselectedMethods = (this.s2gState.deselectedMethods || []).filter(
+                    (method) => methods.includes(method)
+                );
+                const deselectedGenes = (this.s2gState.deselectedGenes || []).filter((gene) =>
+                    genes.includes(gene)
+                );
+                this.s2gState = {
+                    ...this.s2gState,
+                    loadingTissue: null,
+                    tissueData,
+                    selectedTissues: [VKS_S2G_TISSUE_LABEL],
+                    error: null,
+                    tissueErrors: {},
+                    deselectedMethods,
+                    deselectedGenes,
+                    viewMode: "tracks",
+                };
+            } catch (error) {
+                if (token !== this.s2gRequestToken) {
+                    return;
+                }
+                console.warn("Variant Sifter variant-links fetch failed", error);
+                this.s2gState = {
+                    ...this.s2gState,
+                    loadingTissue: null,
+                    error: "Failed to load SNP-to-gene links for this region.",
+                };
+            }
+        },
+        onS2gClear() {
+            this.s2gRequestToken += 1;
+            this.s2gState = emptyS2gState();
+        },
+        onS2gDeselectedMethodsUpdate(deselectedMethods) {
+            this.s2gState = {
+                ...this.s2gState,
+                deselectedMethods: Array.isArray(deselectedMethods)
+                    ? [...deselectedMethods]
+                    : [],
+            };
+        },
+        onS2gDeselectedGenesUpdate(deselectedGenes) {
+            this.s2gState = {
+                ...this.s2gState,
+                deselectedGenes: Array.isArray(deselectedGenes) ? [...deselectedGenes] : [],
+            };
+        },
+        onGeSelectedBiosamplesUpdate(selectedBiosamples) {
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                selectedBiosamples: normalizeGeSelectedBiosamples(selectedBiosamples),
+            };
+        },
+        onGeBiosampleFilterOptionsUpdate(options = {}) {
+            const nextMethods = [
+                ...new Set([
+                    ...(this.globalEnrichmentState?.biosampleMethodOptions || []),
+                    ...(Array.isArray(options.methods) ? options.methods : []),
+                ]),
+            ].sort();
+            const nextSources = [
+                ...new Set([
+                    ...(this.globalEnrichmentState?.biosampleSourceOptions || []),
+                    ...(Array.isArray(options.sources) ? options.sources : []),
+                ]),
+            ].sort();
+            const prevMethods = this.globalEnrichmentState?.biosampleMethodOptions || [];
+            const prevSources = this.globalEnrichmentState?.biosampleSourceOptions || [];
+            if (
+                nextMethods.length === prevMethods.length &&
+                nextSources.length === prevSources.length &&
+                nextMethods.every((item, index) => item === prevMethods[index]) &&
+                nextSources.every((item, index) => item === prevSources[index])
+            ) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                biosampleMethodOptions: nextMethods,
+                biosampleSourceOptions: nextSources,
             };
         },
     },
@@ -2641,6 +3395,7 @@ export default Vue.component("kp-variant-sifter", {
 
 .vks-header-session {
     margin: 0;
+    grid-column: 2;
     justify-self: center;
     max-width: min(560px, 42vw);
     overflow: hidden;
@@ -2653,7 +3408,9 @@ export default Vue.component("kp-variant-sifter", {
     text-align: center;
 }
 
+.vks-header-controls,
 .vks-header >>> .vks-viewport-controls {
+    grid-column: 3;
     justify-self: end;
     margin-left: 0;
 }

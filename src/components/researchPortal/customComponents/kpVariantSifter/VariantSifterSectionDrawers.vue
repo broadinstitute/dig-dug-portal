@@ -55,6 +55,7 @@
                         v-else-if="openSection.id === 'credible-sets'"
                         :credible-sets-state="credibleSetsState"
                         :color-by-set-id="credibleSetPillColors"
+                        :search-session="searchSession"
                         :utils="utils"
                         @add-set="$emit('add-credible-set', $event)"
                         @remove-set="$emit('remove-credible-set', $event)"
@@ -73,11 +74,38 @@
                         @update:enabledMutedAnnotations="
                             $emit('update:geEnabledMutedAnnotations', $event)
                         "
-                        @update:enabledMutedTissues="$emit('update:geEnabledMutedTissues', $event)"
-                        @update:selectedAnnotations="$emit('update:geSelectedAnnotations', $event)"
-                        @update:showFilteredTissuesInTracks="
-                            $emit('update:geShowFilteredTissuesInTracks', $event)
+                        @update:enabledMutedAnnotationTissues="
+                            $emit('update:geEnabledMutedAnnotationTissues', $event)
                         "
+                        @update:disabledAnnotationTissues="
+                            $emit('update:geDisabledAnnotationTissues', $event)
+                        "
+                        @update:selectedAnnotations="$emit('update:geSelectedAnnotations', $event)"
+                        @update:tissueTrackSort="$emit('update:geTissueTrackSort', $event)"
+                        @update:geTrackPValueMax="$emit('update:geTrackPValueMax', $event)"
+                        @update:selectedMethods="$emit('update:geSelectedMethods', $event)"
+                        @update:selectedSources="$emit('update:geSelectedSources', $event)"
+                    />
+                    <VariantSifterV2gDrawer
+                        v-else-if="openSection.id === 'variant-to-gene-links'"
+                        :v2g-state="v2gState"
+                        :global-enrichment-state="globalEnrichmentState"
+                        :search-session="searchSession"
+                        :view-region="viewRegion"
+                        @update:selectedTissues="$emit('update:v2gSelectedTissues', $event)"
+                        @update:deselectedMethods="$emit('update:v2gDeselectedMethods', $event)"
+                        @update:deselectedGenes="$emit('update:v2gDeselectedGenes', $event)"
+                        @update:viewMode="$emit('update:v2gViewMode', $event)"
+                    />
+                    <VariantSifterS2gDrawer
+                        v-else-if="openSection.id === 'snp2gene-links'"
+                        :s2g-state="s2gState"
+                        :search-session="searchSession"
+                        :view-region="viewRegion"
+                        @load="$emit('load-s2g')"
+                        @clear="$emit('clear-s2g')"
+                        @update:deselectedMethods="$emit('update:s2gDeselectedMethods', $event)"
+                        @update:deselectedGenes="$emit('update:s2gDeselectedGenes', $event)"
                     />
                     <template v-else>
                         <p class="vks-section-drawer-note">{{ openSection.description }}</p>
@@ -121,6 +149,8 @@ import VariantSifterAssociationsDrawer from "./VariantSifterAssociationsDrawer.v
 import VariantSifterCredibleSetsDrawer from "./VariantSifterCredibleSetsDrawer.vue";
 import VariantSifterGenesDrawer from "./VariantSifterGenesDrawer.vue";
 import VariantSifterGlobalEnrichmentDrawer from "./VariantSifterGlobalEnrichmentDrawer.vue";
+import VariantSifterV2gDrawer from "./VariantSifterV2gDrawer.vue";
+import VariantSifterS2gDrawer from "./VariantSifterS2gDrawer.vue";
 
 export default {
     name: "VariantSifterSectionDrawers",
@@ -129,6 +159,8 @@ export default {
         VariantSifterCredibleSetsDrawer,
         VariantSifterGenesDrawer,
         VariantSifterGlobalEnrichmentDrawer,
+        VariantSifterV2gDrawer,
+        VariantSifterS2gDrawer,
     },
     props: {
         sections: {
@@ -226,8 +258,38 @@ export default {
                     rationaleById: {},
                 },
                 enabledMutedAnnotations: [],
-                enabledMutedTissues: [],
+                enabledMutedAnnotationTissues: {},
+                disabledAnnotationTissues: {},
+                tissueTrackSort: "alphabetical",
             }),
+        },
+        v2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                tissueErrors: {},
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        s2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                tissueErrors: {},
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        viewRegion: {
+            type: Object,
+            default: null,
         },
         regionLoadProgressActive: {
             type: Boolean,

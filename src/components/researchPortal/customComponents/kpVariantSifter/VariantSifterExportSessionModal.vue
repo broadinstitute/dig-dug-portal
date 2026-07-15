@@ -45,7 +45,7 @@
             <div class="vks-export-actions">
                 <button
                     type="button"
-                    class="vks-export-btn vks-export-btn-secondary"
+                    class="vks-ui-btn vks-ui-btn--secondary"
                     :disabled="exporting"
                     @click="$emit('close')"
                 >
@@ -53,7 +53,7 @@
                 </button>
                 <button
                     type="button"
-                    class="vks-export-btn vks-export-btn-primary"
+                    class="vks-ui-btn vks-ui-btn--accent"
                     :disabled="!canExport || exporting"
                     @click="onExport"
                 >
@@ -185,7 +185,7 @@ export default {
     border-radius: 8px;
     border: 1px solid #ead9c8;
     background: #fff9f3;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     color: var(--cfde-ink, #33363d);
 }
@@ -208,7 +208,7 @@ export default {
 
 .vks-export-summary {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
 }
 
@@ -217,31 +217,5 @@ export default {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
-}
-
-.vks-export-btn {
-    border: none;
-    border-radius: 999px;
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.vks-export-btn-secondary {
-    background: #ffffff;
-    color: var(--cfde-blue, #2c5c97);
-    border: 1px solid var(--cfde-border, #e6e1d6);
-}
-
-.vks-export-btn-primary {
-    background: var(--cfde-orange, #e07b39);
-    color: #ffffff;
-}
-
-.vks-export-btn-primary:disabled,
-.vks-export-btn-secondary:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
 }
 </style>

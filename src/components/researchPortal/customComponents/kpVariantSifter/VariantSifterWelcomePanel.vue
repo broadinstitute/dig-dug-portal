@@ -84,7 +84,7 @@
                                 type="text"
                                 class="vks-welcome-input"
                                 autocomplete="off"
-                                placeholder="e.g. PCSK9, rs11716727, chr1:100000-200000"
+                                placeholder="e.g. PCSK9, rs11716727, chr1:155000000, chr1:100000-200000"
                                 @focus="onGeneOrVariantFocus"
                                 @input="onGeneOrVariantInput"
                             />
@@ -105,16 +105,14 @@
                                     <span class="vks-welcome-suggestion-label">
                                         {{ gene }}
                                     </span>
-                                    <span class="vks-welcome-suggestion-meta">
-                                        Gene
-                                    </span>
                                 </button>
                             </div>
                         </div>
                         <p class="vks-welcome-hint">
-                            Genes and variants are converted to a genomic region for
-                            the locus view. You can also enter a region directly as
-                            chr:start-end.
+                            Genes, variants, and locations are converted to a genomic
+                            region for the locus view. Enter a location as
+                            <strong>chr:position</strong> (e.g. chr1:155000000), or a
+                            region as <strong>chr:start-end</strong>.
                         </p>
                     </div>
 
@@ -396,7 +394,7 @@ export default {
 
             if (!this.geneOrVariantQuery.trim()) {
                 this.errorMessage =
-                    "Enter a gene, variant, or genomic region (chr:start-end).";
+                    "Enter a gene, variant, location (chr:position), or region (chr:start-end).";
                 return;
             }
 
@@ -415,7 +413,7 @@ export default {
 
                 if (!region) {
                     this.errorMessage =
-                        "Could not resolve that gene, variant, or region. Check the format and try again.";
+                        "Could not resolve that gene, variant, location, or region. Check the format and try again.";
                     return;
                 }
 
@@ -532,7 +530,7 @@ export default {
 
 .vks-welcome-hint {
     margin: 6px 0 0;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     color: var(--cfde-muted, #6b6b6b);
 }
@@ -584,7 +582,7 @@ export default {
 }
 
 .vks-welcome-suggestion-meta {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--cfde-muted, #6b6b6b);
 }
 

@@ -7,6 +7,27 @@ export function emptyAssistantState() {
         executing: false,
         executionProgressLabel: "",
         llmAvailable: null,
+        plan: null,
+        stepStates: {},
+    };
+}
+
+export function createUserMessage(text) {
+    entryCounter += 1;
+    return {
+        id: `user-${entryCounter}`,
+        role: "user",
+        text: String(text || "").trim(),
+    };
+}
+
+export function createAssistantMessage(text, { isClarify = false } = {}) {
+    entryCounter += 1;
+    return {
+        id: `assistant-${entryCounter}`,
+        role: "assistant",
+        text: String(text || "").trim(),
+        isClarify,
     };
 }
 
@@ -57,4 +78,21 @@ export function removePendingAssistantEntry(entries = []) {
         return list.slice(0, -1);
     }
     return list;
+}
+
+export function createAssistantPlan(steps = [], { executeLabel = "Execute" } = {}) {
+    const normalizedSteps = (steps || [])
+        .filter((step) => step?.actionId || step?.id)
+        .map((step, index) => ({
+            id: step.id || `step-${step.actionId || index}`,
+            actionId: step.actionId || step.id,
+            label: step.label || step.actionId || `Step ${index + 1}`,
+        }));
+    if (!normalizedSteps.length) {
+        return null;
+    }
+    return {
+        executeLabel,
+        steps: normalizedSteps,
+    };
 }

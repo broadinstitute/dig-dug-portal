@@ -1,4 +1,8 @@
-import { clampRegionZoom, clampRegionViewArea } from "./variantSifterRegionZoom.js";
+import {
+    clampRegionZoom,
+    clampRegionViewArea,
+    panRegionViewAreaFromDrag,
+} from "./variantSifterRegionZoom.js";
 import { applyRegionExpand } from "./variantSifterSearchUtils.js";
 
 /**
@@ -502,6 +506,44 @@ export function panRegionShiftFromDrag(
     const bpPerPixel = visibleWidthBp / plotWidthPx;
     const deltaBp = deltaXPixels * bpPerPixel;
     return currentShiftBp - deltaBp;
+}
+
+/**
+ * Hand-drag pan policy:
+ * - zoom == 0: translate the searched locus (`regionShiftBp`); may fetch gaps
+ * - zoom > 0: only slide the magnified window (`regionViewArea`) within the
+ *   searched region; no locus shift / data refetch
+ */
+export function resolveHandPanFromDrag({
+    regionZoom = 0,
+    panStartRegionViewArea = 0,
+    panStartRegionShiftBp = 0,
+    deltaXPixels,
+    plotWidthPx,
+    visibleWidthBp,
+}) {
+    if (clampRegionZoom(regionZoom) > 0) {
+        return {
+            mode: "viewArea",
+            regionViewArea: panRegionViewAreaFromDrag(
+                panStartRegionViewArea,
+                deltaXPixels,
+                plotWidthPx
+            ),
+            regionShiftBp: Number(panStartRegionShiftBp) || 0,
+        };
+    }
+
+    return {
+        mode: "shift",
+        regionViewArea: clampRegionViewArea(panStartRegionViewArea),
+        regionShiftBp: panRegionShiftFromDrag(
+            panStartRegionShiftBp,
+            deltaXPixels,
+            plotWidthPx,
+            visibleWidthBp
+        ),
+    };
 }
 
 export function filterAssociationRowsInRegion(rows, region) {

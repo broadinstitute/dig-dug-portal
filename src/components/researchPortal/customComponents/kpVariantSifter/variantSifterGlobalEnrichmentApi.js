@@ -20,3 +20,17 @@ export async function fetchLocusAnnotations(region, host) {
     const data = await query("regions", regionQuery, { host });
     return Array.isArray(data) ? data : [];
 }
+
+/**
+ * Biosample-level annotation intervals for one tissue within a locus
+ * (`tissue-regions?q=tissue,chr:start-end`).
+ */
+export async function fetchTissueRegions(tissue, region, host) {
+    const regionQuery = formatRegion(region);
+    if (!tissue || !regionQuery) {
+        return [];
+    }
+
+    const data = await query("tissue-regions", `${tissue},${regionQuery}`, { host });
+    return Array.isArray(data) ? data : [];
+}

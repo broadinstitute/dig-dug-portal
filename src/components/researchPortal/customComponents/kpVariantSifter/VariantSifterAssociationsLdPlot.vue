@@ -165,17 +165,17 @@ export default {
 }
 
 .vks-assoc-ld-tab-bar {
-    border-bottom: 1px solid #dddddd;
-    margin-bottom: 0;
+    margin-bottom: 8px;
 }
 
 .vks-assoc-ld-tabs {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 0;
+    gap: 4px;
     margin: 0;
-    padding: 0;
+    padding: 3px;
+    border-radius: var(--vks-radius-md, 8px);
+    background: var(--cfde-header-bg, #f6f5f2);
 }
 
 .vks-assoc-ld-tab {
@@ -183,31 +183,27 @@ export default {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    border: 1px solid #dddddd;
-    border-bottom: none;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    margin: 0 4px -1px 0;
-    padding: 6px 12px;
-    background: #eeeeee;
-    color: #0069d9;
+    border: none;
+    border-radius: var(--vks-radius-sm, 6px);
+    margin: 0;
+    padding: 7px 10px;
+    background: transparent;
+    color: var(--cfde-muted, #6b6b6b);
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.3;
     cursor: pointer;
     white-space: nowrap;
 }
 
 .vks-assoc-ld-tab:hover {
-    background: #f5f5f5;
+    color: var(--cfde-ink, #33363d);
 }
 
 .vks-assoc-ld-tab.is-active {
-    background: #ffffff;
-    border-color: #dddddd;
-    border-bottom: 1px solid #ffffff;
-    color: #333333;
-    font-weight: 600;
+    background: var(--cfde-bg, #ffffff);
+    color: var(--cfde-ink, #33363d);
+    box-shadow: 0 1px 3px rgba(20, 22, 30, 0.08);
     z-index: 1;
 }
 

@@ -1,4 +1,4 @@
-/* Shared Variant Sifter workspace tokens (CFDE Knowledge Center palette). */
+/* Shared Variant Sifter workspace tokens + UI chrome (CFDE Knowledge Center). */
 .kp-variant-sifter-workspace {
     --cfde-orange: #e07b39;
     --cfde-orange-dark: #c2662b;
@@ -9,6 +9,10 @@
     --cfde-header-bg: #f6f5f2;
     --cfde-ink: #33363d;
     --cfde-muted: #6b6b6b;
+    --vks-danger: #b42318;
+    --vks-danger-bg: #fdebec;
+    --vks-radius-sm: 6px;
+    --vks-radius-md: 8px;
     --vks-toolbar-row: 28px;
     --vks-toolbar-gap: 12px;
     --vks-toolbar-icon: 17px;
@@ -18,4 +22,213 @@
     --vks-side-panel-inset: 12px;
     --vks-side-panel-top: var(--vks-side-panel-inset);
     font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* —— Segmented panel tabs (drawers, settings, assistant) —— */
+.kp-variant-sifter-workspace .vks-ui-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 12px;
+    padding: 3px;
+    border-radius: var(--vks-radius-md);
+    background: var(--cfde-header-bg);
+}
+
+.kp-variant-sifter-workspace .vks-ui-tab {
+    flex: 1;
+    min-width: 0;
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--cfde-muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 7px 10px;
+    border-radius: var(--vks-radius-sm);
+    cursor: pointer;
+}
+
+.kp-variant-sifter-workspace .vks-ui-tab.is-active {
+    background: var(--cfde-bg);
+    color: var(--cfde-ink);
+    box-shadow: 0 1px 3px rgba(20, 22, 30, 0.08);
+}
+
+.kp-variant-sifter-workspace .vks-ui-tab:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.kp-variant-sifter-workspace .vks-ui-tab-panel {
+    margin-bottom: 16px;
+}
+
+/* —— Buttons —— */
+.kp-variant-sifter-workspace .vks-ui-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--cfde-border);
+    border-radius: var(--vks-radius-sm);
+    background: var(--cfde-bg);
+    color: var(--cfde-ink);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn:hover:not(:disabled) {
+    background: rgba(44, 92, 151, 0.08);
+    border-color: var(--cfde-blue);
+    color: var(--cfde-blue);
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn--secondary {
+    color: var(--cfde-blue);
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn--primary {
+    background: var(--cfde-blue);
+    border-color: var(--cfde-blue);
+    color: #ffffff;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn--primary:hover:not(:disabled) {
+    background: #244d7e;
+    border-color: #244d7e;
+    color: #ffffff;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn--accent {
+    background: var(--cfde-orange);
+    border-color: var(--cfde-orange);
+    color: #ffffff;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn--accent:hover:not(:disabled) {
+    background: var(--cfde-orange-dark);
+    border-color: var(--cfde-orange-dark);
+    color: #ffffff;
+}
+
+.kp-variant-sifter-workspace .vks-ui-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+/* —— Typography / status —— */
+.kp-variant-sifter-workspace .vks-ui-intro {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-muted);
+}
+
+.kp-variant-sifter-workspace .vks-ui-hint,
+.kp-variant-sifter-workspace .vks-ui-status {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-muted);
+}
+
+.kp-variant-sifter-workspace .vks-ui-error {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--vks-danger);
+}
+
+.kp-variant-sifter-workspace .vks-ui-error--boxed {
+    padding: 8px 10px;
+    border-radius: var(--vks-radius-sm);
+    background: var(--vks-danger-bg);
+}
+
+.kp-variant-sifter-workspace .vks-ui-section-title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--cfde-ink);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.kp-variant-sifter-workspace .vks-ui-section {
+    margin: 0 0 18px;
+}
+
+/* —— Selection chips —— */
+.kp-variant-sifter-workspace .vks-ui-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kp-variant-sifter-workspace .vks-ui-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--cfde-border);
+    background: var(--cfde-header-bg);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-ink);
+}
+
+.kp-variant-sifter-workspace .vks-ui-chip-remove {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0 2px;
+    color: var(--cfde-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.kp-variant-sifter-workspace .vks-ui-chip-remove:hover {
+    color: var(--cfde-ink);
+}
+
+/* —— Filter checkbox lists —— */
+.kp-variant-sifter-workspace .vks-ui-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kp-variant-sifter-workspace .vks-ui-filter-item {
+    margin: 0;
+}
+
+.kp-variant-sifter-workspace .vks-ui-filter-item label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--cfde-ink);
+    cursor: pointer;
 }

@@ -33,6 +33,9 @@
                         :credible-set-colors="credibleSetColors"
                         :credible-set-pill-colors="credibleSetPillColors"
                         :global-enrichment-state="globalEnrichmentState"
+                        :v2g-state="v2gState"
+                        :s2g-state="s2gState"
+                        :visible-section-ids="visibleSectionIds"
                         :utils="utils"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
@@ -40,6 +43,10 @@
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
+                        @update:geSelectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
+                        @update:geBiosampleFilterOptions="
+                            $emit('update:geBiosampleFilterOptions', $event)
+                        "
                     />
                     <VariantSifterTrackStrip
                         v-else
@@ -193,6 +200,32 @@ export default {
                 catalog: { annotations: [] },
                 selectedAnnotations: [],
             }),
+        },
+        v2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        s2gState: {
+            type: Object,
+            default: () => ({
+                tissueData: {},
+                selectedTissues: [],
+                loadingTissue: null,
+                error: null,
+                deselectedMethods: [],
+                deselectedGenes: [],
+            }),
+        },
+        visibleSectionIds: {
+            type: Array,
+            default: null,
         },
         regionLoadProgressActive: {
             type: Boolean,

@@ -1,15 +1,15 @@
 <template>
     <div class="vks-genes-drawer">
-        <p class="vks-genes-drawer-intro">
+        <p class="vks-ui-intro">
             Choose which gene biotypes appear on the genes track for this locus.
         </p>
 
-        <div v-if="loading" class="vks-genes-drawer-status">Loading genes…</div>
-        <div v-else-if="error" class="vks-genes-drawer-error" role="alert">
+        <div v-if="loading" class="vks-ui-status">Loading genes…</div>
+        <div v-else-if="error" class="vks-ui-error" role="alert">
             {{ error }}
         </div>
         <template v-else-if="!geneTypeOptions.length">
-            <p class="vks-genes-drawer-hint">No gene biotypes are available for this locus.</p>
+            <p class="vks-ui-hint">No gene biotypes are available for this locus.</p>
         </template>
         <template v-else>
             <div class="vks-genes-select-row">
@@ -33,22 +33,22 @@
                         {{ formatGeneTypeLabel(geneType) }}
                     </option>
                 </select>
-                <p class="vks-genes-drawer-hint">
+                <p class="vks-ui-hint">
                     Hold {{ modifierLabel }} to select multiple types. Default is coding
                     genes only.
                 </p>
-                <div class="vks-genes-quick-actions">
-                    <button type="button" class="vks-genes-quick-btn" @click="selectCodingOnly">
+                <div class="vks-ui-btn-row">
+                    <button type="button" class="vks-ui-btn vks-ui-btn--secondary" @click="selectCodingOnly">
                         Coding only
                     </button>
-                    <button type="button" class="vks-genes-quick-btn" @click="selectAllTypes">
+                    <button type="button" class="vks-ui-btn vks-ui-btn--secondary" @click="selectAllTypes">
                         All types
                     </button>
                 </div>
             </div>
 
             <div class="vks-genes-legend">
-                <p class="vks-genes-legend-title">Color key</p>
+                <p class="vks-ui-section-title">Color key</p>
                 <ul class="vks-genes-legend-list">
                     <li
                         v-for="geneType in geneTypeOptions"
@@ -65,7 +65,7 @@
                 </ul>
             </div>
 
-            <p class="vks-genes-drawer-meta">
+            <p class="vks-ui-status">
                 Showing {{ visibleGeneCount.toLocaleString() }} of
                 {{ totalGeneCount.toLocaleString() }} genes in this locus.
             </p>
@@ -176,21 +176,7 @@ export default {
 </script>
 
 <style scoped>
-.vks-genes-drawer-intro,
-.vks-genes-drawer-hint,
-.vks-genes-drawer-meta,
-.vks-genes-drawer-status {
-    margin: 0 0 12px;
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--cfde-muted, #6b6b6b);
-}
 
-.vks-genes-drawer-error {
-    margin: 0;
-    font-size: 13px;
-    color: #b42318;
-}
 
 .vks-genes-select-row {
     display: flex;
@@ -212,36 +198,8 @@ export default {
     font-size: 13px;
 }
 
-.vks-genes-quick-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.vks-genes-quick-btn {
-    padding: 4px 10px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 6px;
-    background: #ffffff;
-    color: var(--cfde-blue, #2c5c97);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.vks-genes-quick-btn:hover {
-    background: rgba(44, 92, 151, 0.08);
-}
-
 .vks-genes-legend {
     margin-bottom: 12px;
-}
-
-.vks-genes-legend-title {
-    margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--cfde-ink, #33363d);
 }
 
 .vks-genes-legend-list {
@@ -257,7 +215,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.35;
     color: var(--cfde-ink, #33363d);
 }

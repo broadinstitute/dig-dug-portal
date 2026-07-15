@@ -7,11 +7,24 @@ import {
     normalizeGlobalEnrichmentFromSession,
     snapshotGlobalEnrichmentForExport,
 } from "./variantSifterGlobalEnrichmentData.js";
+import {
+    normalizeV2gFromSession,
+    snapshotV2gForExport,
+} from "./variantSifterV2gData.js";
+import {
+    normalizeS2gFromSession,
+    snapshotS2gForExport,
+} from "./variantSifterS2gData.js";
+import {
+    defaultVisibleSectionIds,
+    normalizeVisibleSectionIds,
+} from "./variantSifterToolSettings.js";
+import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
 
-export const VKS_SESSION_VERSION = 7;
+export const VKS_SESSION_VERSION = 8;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -29,6 +42,8 @@ export function validateSessionExportReady({
     genesState,
     plotOverlaysState,
     globalEnrichmentState,
+    v2gState,
+    s2gState,
 }) {
     if (associationsState?.loading) {
         throw new Error("Association data is still loading. Wait before exporting.");
@@ -64,6 +79,16 @@ export function validateSessionExportReady({
             "Global enrichment tissue filtering is still running. Wait before exporting."
         );
     }
+    if (v2gState?.loadingTissue) {
+        throw new Error(
+            "Variant-to-gene links are still loading. Wait before exporting."
+        );
+    }
+    if (s2gState?.loadingTissue) {
+        throw new Error(
+            "SNP-to-gene links are still loading. Wait before exporting."
+        );
+    }
 }
 
 /**
@@ -78,6 +103,8 @@ export function exportVariantSifterSession({
     plotMarkersState = null,
     credibleSetsState = null,
     globalEnrichmentState = null,
+    v2gState = null,
+    s2gState = null,
     regionZoom = 0,
     regionZoomOut = 0,
     regionViewArea = 0,
@@ -86,12 +113,15 @@ export function exportVariantSifterSession({
     dataRegion = null,
     openDrawerId = null,
     dataTableOpen = false,
+    visibleSectionIds = null,
 }) {
     validateSessionExportReady({
         associationsState,
         genesState,
         plotOverlaysState,
         globalEnrichmentState,
+        v2gState,
+        s2gState,
     });
 
     if (!searchSession?.phenotype || !searchSession?.region) {
@@ -146,6 +176,8 @@ export function exportVariantSifterSession({
               }
             : null,
         globalEnrichment: snapshotGlobalEnrichmentForExport(globalEnrichmentState),
+        variantToGene: snapshotV2gForExport(v2gState),
+        snp2Gene: snapshotS2gForExport(s2gState),
         ui: {
             regionZoom,
             regionZoomOut,
@@ -161,6 +193,10 @@ export function exportVariantSifterSession({
                 : null,
             openDrawerId,
             dataTableOpen: Boolean(dataTableOpen),
+            visibleSectionIds: normalizeVisibleSectionIds(
+                visibleSectionIds,
+                VARIANT_SIFTER_SECTIONS
+            ),
         },
     };
 }
@@ -456,6 +492,8 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         plotMarkersState: normalizePlotMarkersState(payload),
         credibleSetsState: normalizeCredibleSetsState(payload),
         globalEnrichmentState: normalizeGlobalEnrichmentFromSession(payload.globalEnrichment),
+        v2gState: normalizeV2gFromSession(payload.variantToGene),
+        s2gState: normalizeS2gFromSession(payload.snp2Gene),
         regionZoom,
         regionZoomOut,
         regionViewArea,
@@ -464,6 +502,9 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         dataRegion,
         openDrawerId: ui.openDrawerId ?? null,
         dataTableOpen: Boolean(ui.dataTableOpen),
+        visibleSectionIds: Array.isArray(ui.visibleSectionIds)
+            ? normalizeVisibleSectionIds(ui.visibleSectionIds, VARIANT_SIFTER_SECTIONS)
+            : defaultVisibleSectionIds(VARIANT_SIFTER_SECTIONS),
         importedFromSnapshot: true,
     };
 }

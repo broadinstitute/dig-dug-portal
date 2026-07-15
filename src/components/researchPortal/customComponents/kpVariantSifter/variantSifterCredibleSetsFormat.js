@@ -52,14 +52,60 @@ export function formatCredibleVariantRows(rawRows) {
     });
 }
 
+export function normalizeCredibleSetAncestry(ancestry) {
+    return ancestry && ancestry !== "Mixed" ? ancestry : "Mixed";
+}
+
+/**
+ * Stable key for a selected credible set. Same credibleSetId can exist under
+ * Mixed and ancestry-specific lists (e.g. SA), so ancestry is part of the key.
+ */
+export function makeCredibleSetSelectionKey(credibleSetId, ancestry = "Mixed") {
+    if (!credibleSetId) {
+        return "";
+    }
+    return `${credibleSetId}::${normalizeCredibleSetAncestry(ancestry)}`;
+}
+
+export function parseCredibleSetSelectionKey(selectionKey) {
+    const raw = String(selectionKey || "");
+    const sep = raw.lastIndexOf("::");
+    if (sep < 0) {
+        return { credibleSetId: raw, ancestry: "Mixed" };
+    }
+    return {
+        credibleSetId: raw.slice(0, sep),
+        ancestry: normalizeCredibleSetAncestry(raw.slice(sep + 2)),
+    };
+}
+
 export function credibleSetOptionLabel(entry) {
     if (!entry?.credibleSetId) {
         return "";
     }
+    const ancestry =
+        entry.ancestry && entry.ancestry !== "Mixed"
+            ? `Ancestry: ${entry.ancestry}`
+            : null;
     const method = entry.method ? `Method: ${entry.method}` : null;
     const pmid = entry.pmid ? `PMID: ${entry.pmid}` : null;
-    const suffix = [method, pmid].filter(Boolean).join(", ");
+    const suffix = [ancestry, method, pmid].filter(Boolean).join(", ");
     return suffix ? `${entry.credibleSetId} (${suffix})` : entry.credibleSetId;
+}
+
+/** Compact label for pills, tooltips, and table columns. */
+export function credibleSetShortLabel(entry) {
+    if (!entry?.credibleSetId) {
+        return "";
+    }
+    const parts = [entry.credibleSetId];
+    if (entry.phenotype) {
+        parts.push(entry.phenotype);
+    }
+    if (entry.ancestry && entry.ancestry !== "Mixed") {
+        parts.push(entry.ancestry);
+    }
+    return parts.join(", ");
 }
 
 export function credibleSetColorKey(credibleSetId, phenotype) {

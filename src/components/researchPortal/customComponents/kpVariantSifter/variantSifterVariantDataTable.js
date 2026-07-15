@@ -1,4 +1,5 @@
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
+import { variantOverlapsRegion } from "./variantSifterCredibleSetsRegion.js";
 
 const CS_KEY_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["key field"];
 const CS_PPA_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["PPA"];
@@ -74,11 +75,16 @@ export function buildVariantDataTableView(associationRows, credibleSetsState) {
     }
 
     const associationByKey = indexAssociationRows(associationRows);
-    const topRows = [...baseTopRows, ...selectedIds, "Credible Set"];
+    const columnKeys = selectedIds.map((selectionKey) => {
+        const meta = credibleSetsState.variantsBySet?.[selectionKey]?.meta;
+        return meta?.label || meta?.credibleSetId || selectionKey;
+    });
+    const topRows = [...baseTopRows, ...columnKeys, "Credible Set"];
     const mergedRows = {};
 
-    selectedIds.forEach((credibleSetId) => {
-        const setState = credibleSetsState.variantsBySet?.[credibleSetId];
+    selectedIds.forEach((selectionKey, index) => {
+        const setState = credibleSetsState.variantsBySet?.[selectionKey];
+        const columnKey = columnKeys[index];
         const csRows = setState?.formattedVariants || [];
 
         csRows.forEach((csRow) => {
@@ -99,7 +105,7 @@ export function buildVariantDataTableView(associationRows, credibleSetsState) {
             }
 
             if (ppa != null) {
-                mergedRows[variantKey][credibleSetId] = ppa;
+                mergedRows[variantKey][columnKey] = ppa;
                 const previous = mergedRows[variantKey]["Credible Set"];
                 if (previous == null || (typeof ppa === "number" && ppa > previous)) {
                     mergedRows[variantKey]["Credible Set"] = ppa;
@@ -117,8 +123,8 @@ export function buildVariantDataTableView(associationRows, credibleSetsState) {
         },
     };
 
-    selectedIds.forEach((credibleSetId) => {
-        tableFormat["column formatting"][credibleSetId] = { type: ["scientific notation"] };
+    columnKeys.forEach((columnKey) => {
+        tableFormat["column formatting"][columnKey] = { type: ["scientific notation"] };
     });
 
     return {
@@ -131,15 +137,24 @@ export function buildVariantDataTableView(associationRows, credibleSetsState) {
 
 /**
  * Flatten credible variants from all selected sets for the CS panel table.
+ * When `region` is provided, only variants overlapping that region are included.
  */
-export function buildCredibleVariantsPanelRows(credibleSetsState) {
+export function buildCredibleVariantsPanelRows(credibleSetsState, region = null) {
     const selectedIds = credibleSetsState?.selectedIds || [];
     const rows = [];
 
-    selectedIds.forEach((credibleSetId) => {
-        const setState = credibleSetsState.variantsBySet?.[credibleSetId];
+    selectedIds.forEach((selectionKey) => {
+        const setState = credibleSetsState.variantsBySet?.[selectionKey];
         const meta = setState?.meta || {};
-        (setState?.formattedVariants || []).forEach((variantRow) => {
+        const credibleSetId = meta.credibleSetId || selectionKey;
+        const formatted = setState?.formattedVariants || [];
+        const raw = setState?.rawVariants || [];
+
+        formatted.forEach((variantRow, index) => {
+            const regionSource = raw[index] || variantRow;
+            if (region && !variantOverlapsRegion(regionSource, region)) {
+                return;
+            }
             rows.push({
                 ...variantRow,
                 credibleSetId,

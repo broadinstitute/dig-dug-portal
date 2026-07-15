@@ -88,8 +88,16 @@ export const REGION_EXPAND_OPTIONS = [
 const REGION_RANGE_REGEXP =
     /^(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)\s*-\s*(\d+)$/i;
 
+/** Single genomic coordinate, e.g. `chr1:100000` or `1:100000`. */
+const REGION_LOCATION_REGEXP =
+    /^(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)$/i;
+
 function isRegionRangeQuery(query) {
-    return REGION_RANGE_REGEXP.test(query.trim().replace(/,/g, ""));
+    return REGION_RANGE_REGEXP.test(String(query || "").trim().replace(/,/g, ""));
+}
+
+function isRegionLocationQuery(query) {
+    return REGION_LOCATION_REGEXP.test(String(query || "").trim().replace(/,/g, ""));
 }
 
 function isVariantQuery(query) {
@@ -97,7 +105,10 @@ function isVariantQuery(query) {
     return (
         /^rs\d+/i.test(trimmed) ||
         variantUtils.parseVariant(trimmed) != null ||
-        (/[:_]/.test(trimmed) && /\d/.test(trimmed) && !isRegionRangeQuery(trimmed))
+        (/[:_]/.test(trimmed) &&
+            /\d/.test(trimmed) &&
+            !isRegionRangeQuery(trimmed) &&
+            !isRegionLocationQuery(trimmed))
     );
 }
 
@@ -107,7 +118,11 @@ export function isGeneLookupQuery(query) {
     if (trimmed.length < 2) {
         return false;
     }
-    return !isRegionRangeQuery(trimmed) && !isVariantQuery(trimmed);
+    return (
+        !isRegionRangeQuery(trimmed) &&
+        !isRegionLocationQuery(trimmed) &&
+        !isVariantQuery(trimmed)
+    );
 }
 
 /** Gene symbol autocomplete via BioIndex `/api/bio/match/gene`. */
@@ -195,9 +210,26 @@ function parseRegionRange(query) {
     };
 }
 
+function parseRegionLocation(query) {
+    const match = query.trim().replace(/,/g, "").match(REGION_LOCATION_REGEXP);
+    if (!match) {
+        return null;
+    }
+
+    const position = parseInt(match[2], 10);
+    if (Number.isNaN(position)) {
+        return null;
+    }
+
+    return {
+        chr: match[1],
+        position,
+    };
+}
+
 /**
- * Resolve a gene, variant, or chr:start-end string into a locus region.
- * Gene and variant queries are converted to regions; optional expandBp widens further.
+ * Resolve a gene, variant, chr:start-end range, or chr:position location into a locus region.
+ * Gene, variant, and location queries are converted to regions; optional expandBp widens further.
  */
 export async function resolveGeneOrVariantToRegion(
     query,
@@ -215,6 +247,24 @@ export async function resolveGeneOrVariantToRegion(
             { ...region, sourceQuery: trimmed, sourceType: "region" },
             expandBp
         );
+    }
+
+    if (isRegionLocationQuery(trimmed)) {
+        const location = parseRegionLocation(trimmed);
+        if (!location) {
+            return null;
+        }
+        // Treat a point like a variant locus: expand around it (default ±50 kb).
+        const region = regionAroundPosition(
+            location.chr,
+            location.position,
+            expandBp || 100000
+        );
+        return {
+            ...region,
+            sourceQuery: trimmed,
+            sourceType: "location",
+        };
     }
 
     if (isVariantQuery(trimmed)) {
@@ -281,6 +331,19 @@ export function parseRegionParam(regionParam) {
     const text = String(regionParam).trim();
     if (isRegionRangeQuery(text)) {
         return parseRegionRange(text);
+    }
+
+    if (isRegionLocationQuery(text)) {
+        const location = parseRegionLocation(text);
+        if (!location) {
+            return null;
+        }
+        const region = regionAroundPosition(location.chr, location.position, 100000);
+        return {
+            ...region,
+            sourceQuery: text,
+            sourceType: "location",
+        };
     }
 
     const colonSplit = text.split(":");

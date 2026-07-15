@@ -112,7 +112,7 @@ export default {
 
 .vks-variant-dot-menu-title {
     margin: 0 0 8px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--cfde-blue, #2c5c97);
     word-break: break-all;
@@ -127,7 +127,7 @@ export default {
     border-radius: 6px;
     background: #ffffff;
     color: var(--cfde-ink, #33363d);
-    font-size: 12px;
+    font-size: 13px;
     text-align: left;
     cursor: pointer;
 }

@@ -20,6 +20,9 @@ export const VKS_ANNOTATION_COLORS = [
     "#d4d4d450",
 ];
 
+/** Default GE / annotation region fill (first annotation blue). */
+export const VKS_GE_TRACK_REGION_COLOR = VKS_ANNOTATION_COLORS[0];
+
 export function negLog10PValue(pValue) {
     if (pValue == null || Number.isNaN(Number(pValue))) {
         return null;
@@ -63,6 +66,10 @@ export function buildAnnoDataFromRows(rows = []) {
             start: Number(row.start),
             end: Number(row.end),
             state: row.state,
+            biosample: row.biosample ?? "",
+            dataset: row.dataset ?? "",
+            method: row.method ?? "",
+            source: row.source ?? "",
         });
     });
 
@@ -225,9 +232,18 @@ export function snapshotGlobalEnrichmentForExport(state) {
             loading: false,
         },
         enabledMutedAnnotations: [...(state.enabledMutedAnnotations || [])],
-        enabledMutedTissues: [...(state.enabledMutedTissues || [])],
+        enabledMutedAnnotationTissues: normalizeEnabledMutedAnnotationTissues(
+            state.enabledMutedAnnotationTissues
+        ),
+        disabledAnnotationTissues: normalizeDisabledAnnotationTissues(
+            state.disabledAnnotationTissues
+        ),
         selectedAnnotations: [...(state.selectedAnnotations || [])],
-        showFilteredTissuesInTracks: Boolean(state.showFilteredTissuesInTracks),
+        tissueTrackSort: normalizeGeTissueTrackSort(state.tissueTrackSort),
+        geTrackPValueMax: normalizeGeTrackPValueMax(state.geTrackPValueMax),
+        selectedMethods: normalizeGeFilterStringList(state.selectedMethods),
+        selectedSources: normalizeGeFilterStringList(state.selectedSources),
+        selectedBiosamples: normalizeGeSelectedBiosamples(state.selectedBiosamples),
     };
 }
 
@@ -265,9 +281,12 @@ export function normalizeGlobalEnrichmentFromSession(exported) {
         enabledMutedAnnotations: Array.isArray(exported.enabledMutedAnnotations)
             ? exported.enabledMutedAnnotations
             : [],
-        enabledMutedTissues: Array.isArray(exported.enabledMutedTissues)
-            ? exported.enabledMutedTissues
-            : [],
+        enabledMutedAnnotationTissues: normalizeEnabledMutedAnnotationTissues(
+            exported.enabledMutedAnnotationTissues
+        ),
+        disabledAnnotationTissues: normalizeDisabledAnnotationTissues(
+            exported.disabledAnnotationTissues
+        ),
         selectedAnnotations: resolveSelectedGeAnnotations(
             exported.selectedAnnotations?.length
                 ? exported.selectedAnnotations
@@ -276,8 +295,74 @@ export function normalizeGlobalEnrichmentFromSession(exported) {
                   : [],
             catalog.annotations
         ),
-        showFilteredTissuesInTracks: Boolean(exported.showFilteredTissuesInTracks),
+        tissueTrackSort: normalizeGeTissueTrackSort(exported.tissueTrackSort),
+        geTrackPValueMax: normalizeGeTrackPValueMax(exported.geTrackPValueMax),
+        selectedMethods: normalizeGeFilterStringList(exported.selectedMethods),
+        selectedSources: normalizeGeFilterStringList(exported.selectedSources),
+        selectedBiosamples: normalizeGeSelectedBiosamples(exported.selectedBiosamples),
     };
+}
+
+/** { [annotation]: string[] } of force-shown track tissues. */
+export function normalizeEnabledMutedAnnotationTissues(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    Object.keys(value)
+        .sort()
+        .forEach((annotation) => {
+            const tissues = value[annotation];
+            if (!Array.isArray(tissues) || !tissues.length) {
+                return;
+            }
+            next[annotation] = [...new Set(tissues.filter(Boolean))].sort();
+        });
+    return next;
+}
+
+/** { [annotation]: string[] } of force-hidden track tissues. */
+export function normalizeDisabledAnnotationTissues(value) {
+    return normalizeEnabledMutedAnnotationTissues(value);
+}
+
+export function isGeAnnotationTissueForceEnabled(
+    annotation,
+    tissue,
+    enabledMutedAnnotationTissues = {}
+) {
+    if (!annotation || !tissue) {
+        return false;
+    }
+    const tissues = enabledMutedAnnotationTissues?.[annotation];
+    return Array.isArray(tissues) && tissues.includes(tissue);
+}
+
+export function isGeAnnotationTissueForceDisabled(
+    annotation,
+    tissue,
+    disabledAnnotationTissues = {}
+) {
+    return isGeAnnotationTissueForceEnabled(
+        annotation,
+        tissue,
+        disabledAnnotationTissues
+    );
+}
+
+export function listForceEnabledTissues(enabledMutedAnnotationTissues = {}) {
+    const tissues = new Set();
+    Object.values(enabledMutedAnnotationTissues || {}).forEach((list) => {
+        if (!Array.isArray(list)) {
+            return;
+        }
+        list.forEach((tissue) => {
+            if (tissue) {
+                tissues.add(tissue);
+            }
+        });
+    });
+    return [...tissues].sort();
 }
 
 export function hasGlobalEnrichmentSnapshotData(state) {
@@ -305,22 +390,60 @@ export function isGeAnnotationEmphasized(
     return enabledMutedAnnotations.includes(annotation);
 }
 
-export function isGeTissueEmphasized(tissue, { llmRelevance, enabledMutedTissues = [] } = {}) {
+export function isGeTissueEmphasized(
+    tissue,
+    {
+        llmRelevance,
+        enabledMutedAnnotationTissues = {},
+        // Legacy flat list still accepted for older sessions / table props.
+        enabledMutedTissues = [],
+    } = {}
+) {
     if (!llmRelevance?.llmUsed) {
         return true;
     }
     if (llmRelevance.relevantTissues.includes(tissue)) {
         return true;
     }
-    return enabledMutedTissues.includes(tissue);
+    if (enabledMutedTissues.includes(tissue)) {
+        return true;
+    }
+    return listForceEnabledTissues(enabledMutedAnnotationTissues).includes(tissue);
 }
 
 export function isGePointEmphasized(
     point,
-    { llmRelevance, enabledMutedAnnotations = [], enabledMutedTissues = [] } = {}
+    {
+        llmRelevance,
+        enabledMutedAnnotations = [],
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
+        enabledMutedTissues = [],
+    } = {}
 ) {
     if (!point) {
         return true;
+    }
+    if (
+        isGeAnnotationTissueForceDisabled(
+            point.annotation,
+            point.tissue,
+            disabledAnnotationTissues
+        )
+    ) {
+        return false;
+    }
+    if (
+        isGeAnnotationTissueForceEnabled(
+            point.annotation,
+            point.tissue,
+            enabledMutedAnnotationTissues
+        )
+    ) {
+        return isGeAnnotationEmphasized(point.annotation, {
+            llmRelevance,
+            enabledMutedAnnotations,
+        });
     }
     return (
         isGeAnnotationEmphasized(point.annotation, {
@@ -329,6 +452,7 @@ export function isGePointEmphasized(
         }) &&
         isGeTissueEmphasized(point.tissue, {
             llmRelevance,
+            enabledMutedAnnotationTissues,
             enabledMutedTissues,
         })
     );
@@ -348,32 +472,507 @@ export function listMutedGeAnnotations(
     );
 }
 
-export function listMutedGeTissues(tissues = [], { llmRelevance, enabledMutedTissues = [] } = {}) {
+export function listMutedGeTissues(
+    tissues = [],
+    { llmRelevance, enabledMutedAnnotationTissues = {}, enabledMutedTissues = [] } = {}
+) {
     if (!llmRelevance?.llmUsed) {
         return [];
     }
+    const forceEnabled = new Set([
+        ...enabledMutedTissues,
+        ...listForceEnabledTissues(enabledMutedAnnotationTissues),
+    ]);
     return tissues.filter(
         (tissue) =>
-            !llmRelevance.relevantTissues.includes(tissue) &&
-            !enabledMutedTissues.includes(tissue)
+            !llmRelevance.relevantTissues.includes(tissue) && !forceEnabled.has(tissue)
     );
 }
 
-/** Tissues to show on workspace annotation tracks. */
+/** Default max raw enrichment p-value for tissues shown on workspace annotation tracks. */
+export const GE_TRACK_P_VALUE_MAX = 0.5;
+
+export function normalizeGeTrackPValueMax(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return GE_TRACK_P_VALUE_MAX;
+    }
+    return parsed;
+}
+
+export function normalizeGeFilterStringList(value) {
+    if (value == null) {
+        return null;
+    }
+    if (!Array.isArray(value)) {
+        return null;
+    }
+    return [...new Set(value.map((item) => String(item ?? "")).filter(Boolean))].sort();
+}
+
+export function biosampleSelectionKey(tissue, biosample) {
+    return `${tissue || ""}:::${biosample || ""}`;
+}
+
+export function normalizeGeSelectedBiosamples(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return [
+        ...new Set(
+            value
+                .map((item) => {
+                    if (typeof item === "string" && item.includes(":::")) {
+                        return item;
+                    }
+                    if (item && typeof item === "object") {
+                        return biosampleSelectionKey(item.tissue, item.biosample);
+                    }
+                    return "";
+                })
+                .filter(Boolean)
+        ),
+    ].sort();
+}
+
+export function listUniqueRegionPropValues(regions = [], prop) {
+    const values = new Set();
+    (regions || []).forEach((region) => {
+        const value = region?.[prop];
+        if (value == null || value === "") {
+            return;
+        }
+        values.add(String(value));
+    });
+    return [...values].sort();
+}
+
+export function regionPassesGeMethodSourceFilter(
+    region,
+    { selectedMethods = null, selectedSources = null } = {}
+) {
+    if (Array.isArray(selectedMethods)) {
+        const method = region?.method == null || region.method === "" ? "" : String(region.method);
+        if (!method || !selectedMethods.includes(method)) {
+            return false;
+        }
+    }
+    if (Array.isArray(selectedSources)) {
+        const source = region?.source == null || region.source === "" ? "" : String(region.source);
+        if (!source || !selectedSources.includes(source)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export function tissueMeetsGeTrackPValue(
+    tissue,
+    geTissueStats = {},
+    pValueMax = GE_TRACK_P_VALUE_MAX
+) {
+    const rawPValue = geTissueStats?.[tissue]?.rawPValue;
+    if (rawPValue == null || Number.isNaN(Number(rawPValue))) {
+        return false;
+    }
+    return Number(rawPValue) < normalizeGeTrackPValueMax(pValueMax);
+}
+
+/**
+ * Default track visibility for one tissue under one annotation:
+ * relevant (when LLM succeeded) AND enrichment p < threshold for that annotation.
+ * If AI classification failed / was not applied: enrichment p < threshold only.
+ */
+export function tissuePassesDefaultGeTrackFilter(
+    tissue,
+    { geTissueStats = {}, llmRelevance = null, pValueMax = GE_TRACK_P_VALUE_MAX } = {}
+) {
+    if (!tissueMeetsGeTrackPValue(tissue, geTissueStats, pValueMax)) {
+        return false;
+    }
+    if (!llmRelevance?.llmUsed) {
+        return true;
+    }
+    return llmRelevance.relevantTissues.includes(tissue);
+}
+
+export function isGeTissueShownOnTrack(
+    tissue,
+    {
+        annotation,
+        geTissueStats = {},
+        llmRelevance = null,
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
+        pValueMax = GE_TRACK_P_VALUE_MAX,
+    } = {}
+) {
+    if (
+        isGeAnnotationTissueForceEnabled(
+            annotation,
+            tissue,
+            enabledMutedAnnotationTissues
+        )
+    ) {
+        return true;
+    }
+    if (
+        isGeAnnotationTissueForceDisabled(
+            annotation,
+            tissue,
+            disabledAnnotationTissues
+        )
+    ) {
+        return false;
+    }
+    return tissuePassesDefaultGeTrackFilter(tissue, {
+        geTissueStats,
+        llmRelevance,
+        pValueMax,
+    });
+}
+
+/**
+ * Tissues to show on workspace annotation tracks for a single annotation.
+ * Uses that annotation's enrichment p-values only.
+ */
 export function filterGeTissuesForDisplay(
     tissues = [],
     {
+        annotation,
         llmRelevance,
-        enabledMutedTissues = [],
-        showFilteredTissuesInTracks = false,
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
+        geTissueStats = {},
+        pValueMax = GE_TRACK_P_VALUE_MAX,
     } = {}
 ) {
-    if (showFilteredTissuesInTracks || !llmRelevance?.llmUsed) {
-        return tissues;
-    }
     return tissues.filter((tissue) =>
-        isGeTissueEmphasized(tissue, { llmRelevance, enabledMutedTissues })
+        isGeTissueShownOnTrack(tissue, {
+            annotation,
+            geTissueStats,
+            llmRelevance,
+            enabledMutedAnnotationTissues,
+            disabledAnnotationTissues,
+            pValueMax,
+        })
     );
+}
+
+export const GE_TISSUE_TRACK_SORT = {
+    ALPHABETICAL: "alphabetical",
+    P_VALUE: "pValue",
+    FOLD: "fold",
+};
+
+export const GE_TISSUE_TRACK_SORT_OPTIONS = [
+    { id: GE_TISSUE_TRACK_SORT.ALPHABETICAL, label: "Alphabetical" },
+    { id: GE_TISSUE_TRACK_SORT.P_VALUE, label: "P-value (low first)" },
+    { id: GE_TISSUE_TRACK_SORT.FOLD, label: "Fold (high first)" },
+];
+
+export function normalizeGeTissueTrackSort(value) {
+    const allowed = new Set(Object.values(GE_TISSUE_TRACK_SORT));
+    return allowed.has(value) ? value : GE_TISSUE_TRACK_SORT.ALPHABETICAL;
+}
+
+export function sortGeTissuesForDisplay(
+    tissues = [],
+    { sort = GE_TISSUE_TRACK_SORT.ALPHABETICAL, geTissueStats = {} } = {}
+) {
+    const list = [...tissues];
+    const mode = normalizeGeTissueTrackSort(sort);
+
+    if (mode === GE_TISSUE_TRACK_SORT.P_VALUE) {
+        return list.sort((left, right) => {
+            const leftP = geTissueStats[left]?.rawPValue;
+            const rightP = geTissueStats[right]?.rawPValue;
+            const leftMissing = leftP == null || Number.isNaN(Number(leftP));
+            const rightMissing = rightP == null || Number.isNaN(Number(rightP));
+            if (leftMissing && rightMissing) {
+                return left.localeCompare(right);
+            }
+            if (leftMissing) {
+                return 1;
+            }
+            if (rightMissing) {
+                return -1;
+            }
+            if (Number(leftP) !== Number(rightP)) {
+                return Number(leftP) - Number(rightP);
+            }
+            return left.localeCompare(right);
+        });
+    }
+
+    if (mode === GE_TISSUE_TRACK_SORT.FOLD) {
+        return list.sort((left, right) => {
+            const leftFold = geTissueStats[left]?.fold;
+            const rightFold = geTissueStats[right]?.fold;
+            const leftMissing = leftFold == null || Number.isNaN(Number(leftFold));
+            const rightMissing = rightFold == null || Number.isNaN(Number(rightFold));
+            if (leftMissing && rightMissing) {
+                return left.localeCompare(right);
+            }
+            if (leftMissing) {
+                return 1;
+            }
+            if (rightMissing) {
+                return -1;
+            }
+            if (Number(leftFold) !== Number(rightFold)) {
+                return Number(rightFold) - Number(leftFold);
+            }
+            return left.localeCompare(right);
+        });
+    }
+
+    return list.sort((left, right) => left.localeCompare(right));
+}
+
+/** Filter then sort tissues for annotation track display. */
+export function resolveGeTissuesForDisplay(tissues = [], options = {}) {
+    return sortGeTissuesForDisplay(filterGeTissuesForDisplay(tissues, options), options);
+}
+
+/**
+ * Tissues hidden from each annotation track by default (not relevant and/or
+ * p ≥ threshold for that annotation). Force-enabled tissues stay listed so
+ * the muted panel checkbox can remain checked.
+ */
+export function listTrackFilteredGeTissuesByAnnotation({
+    annoData = {},
+    geRows = [],
+    phenotype,
+    ancestry,
+    annotations = null,
+    llmRelevance = null,
+    pValueMax = GE_TRACK_P_VALUE_MAX,
+} = {}) {
+    const annotationKeys = Array.isArray(annotations)
+        ? annotations
+        : sortedAnnotationKeys(annoData);
+
+    return annotationKeys
+        .map((annotation) => {
+            const tissues = Object.keys(annoData[annotation] || {}).sort();
+            if (!tissues.length) {
+                return null;
+            }
+            const geTissueStats = buildGeTissueStatsForAnnotation({
+                geRows,
+                annotation,
+                phenotype,
+                ancestry,
+            });
+            const filteredTissues = tissues.filter(
+                (tissue) =>
+                    !tissuePassesDefaultGeTrackFilter(tissue, {
+                        geTissueStats,
+                        llmRelevance,
+                        pValueMax,
+                    })
+            );
+            if (!filteredTissues.length) {
+                return null;
+            }
+            return { annotation, tissues: filteredTissues };
+        })
+        .filter(Boolean);
+}
+
+export function countTrackFilteredGeTissues(groups = []) {
+    return groups.reduce((total, group) => total + (group?.tissues?.length || 0), 0);
+}
+
+export function setEnabledMutedAnnotationTissue(
+    enabledMutedAnnotationTissues = {},
+    annotation,
+    tissue,
+    enabled
+) {
+    const next = normalizeEnabledMutedAnnotationTissues(enabledMutedAnnotationTissues);
+    if (!annotation || !tissue) {
+        return next;
+    }
+    const current = new Set(next[annotation] || []);
+    if (enabled) {
+        current.add(tissue);
+    } else {
+        current.delete(tissue);
+    }
+    if (current.size) {
+        next[annotation] = [...current].sort();
+    } else {
+        delete next[annotation];
+    }
+    return next;
+}
+
+export function setDisabledAnnotationTissue(
+    disabledAnnotationTissues = {},
+    annotation,
+    tissue,
+    disabled
+) {
+    return setEnabledMutedAnnotationTissue(
+        disabledAnnotationTissues,
+        annotation,
+        tissue,
+        disabled
+    );
+}
+
+/**
+ * Update force-show / force-hide maps so `shown` matches the checkbox for one tissue.
+ */
+export function setAnnotationTissueShown({
+    enabledMutedAnnotationTissues = {},
+    disabledAnnotationTissues = {},
+    annotation,
+    tissue,
+    shown,
+    defaultShown,
+}) {
+    let enabled = setEnabledMutedAnnotationTissue(
+        enabledMutedAnnotationTissues,
+        annotation,
+        tissue,
+        false
+    );
+    let disabled = setDisabledAnnotationTissue(
+        disabledAnnotationTissues,
+        annotation,
+        tissue,
+        false
+    );
+
+    if (shown && !defaultShown) {
+        enabled = setEnabledMutedAnnotationTissue(enabled, annotation, tissue, true);
+    } else if (!shown && defaultShown) {
+        disabled = setDisabledAnnotationTissue(disabled, annotation, tissue, true);
+    }
+
+    return {
+        enabledMutedAnnotationTissues: enabled,
+        disabledAnnotationTissues: disabled,
+    };
+}
+
+/** All tissues present in annoData for each annotation (sorted). */
+export function listAllGeTissuesByAnnotation(annoData = {}, annotations = null) {
+    const annotationKeys = Array.isArray(annotations)
+        ? annotations
+        : sortedAnnotationKeys(annoData);
+
+    return annotationKeys
+        .map((annotation) => {
+            const tissues = Object.keys(annoData[annotation] || {}).sort();
+            if (!tissues.length) {
+                return null;
+            }
+            return { annotation, tissues };
+        })
+        .filter(Boolean);
+}
+
+/**
+ * Force-enable every tissue that is not in the default initial selection.
+ * Clears all force-hidden overrides.
+ */
+export function buildSelectAllAnnotationTissueOverrides({
+    annoData = {},
+    geRows = [],
+    phenotype,
+    ancestry,
+    annotations = null,
+    llmRelevance = null,
+    pValueMax = GE_TRACK_P_VALUE_MAX,
+} = {}) {
+    const annotationKeys = Array.isArray(annotations)
+        ? annotations
+        : sortedAnnotationKeys(annoData);
+    const enabledMutedAnnotationTissues = {};
+
+    annotationKeys.forEach((annotation) => {
+        const tissues = Object.keys(annoData[annotation] || {});
+        if (!tissues.length) {
+            return;
+        }
+        const geTissueStats = buildGeTissueStatsForAnnotation({
+            geRows,
+            annotation,
+            phenotype,
+            ancestry,
+        });
+        const forceEnabled = tissues
+            .filter(
+                (tissue) =>
+                    !tissuePassesDefaultGeTrackFilter(tissue, {
+                        geTissueStats,
+                        llmRelevance,
+                        pValueMax,
+                    })
+            )
+            .sort();
+        if (forceEnabled.length) {
+            enabledMutedAnnotationTissues[annotation] = forceEnabled;
+        }
+    });
+
+    return {
+        enabledMutedAnnotationTissues,
+        disabledAnnotationTissues: {},
+    };
+}
+
+/**
+ * Force-hide every tissue that is in the default initial selection.
+ * Clears all force-shown overrides.
+ */
+export function buildDeselectAllAnnotationTissueOverrides({
+    annoData = {},
+    geRows = [],
+    phenotype,
+    ancestry,
+    annotations = null,
+    llmRelevance = null,
+    pValueMax = GE_TRACK_P_VALUE_MAX,
+} = {}) {
+    const annotationKeys = Array.isArray(annotations)
+        ? annotations
+        : sortedAnnotationKeys(annoData);
+    const disabledAnnotationTissues = {};
+
+    annotationKeys.forEach((annotation) => {
+        const tissues = Object.keys(annoData[annotation] || {});
+        if (!tissues.length) {
+            return;
+        }
+        const geTissueStats = buildGeTissueStatsForAnnotation({
+            geRows,
+            annotation,
+            phenotype,
+            ancestry,
+        });
+        const forceDisabled = tissues
+            .filter((tissue) =>
+                tissuePassesDefaultGeTrackFilter(tissue, {
+                    geTissueStats,
+                    llmRelevance,
+                    pValueMax,
+                })
+            )
+            .sort();
+        if (forceDisabled.length) {
+            disabledAnnotationTissues[annotation] = forceDisabled;
+        }
+    });
+
+    return {
+        enabledMutedAnnotationTissues: {},
+        disabledAnnotationTissues,
+    };
 }
 
 export function mutedAnnotationColor(color) {
@@ -619,6 +1218,8 @@ export function formatGeFoldLabel(fold) {
 /**
  * Tissue rows × annotation columns for the GE drawer table.
  * Rows are sorted by the lowest p-value across annotations for each tissue.
+ * When `filterByTissueVisibility` is true, only tissues currently shown on at
+ * least one selected annotation track are included (and cells respect visibility).
  */
 export function buildGeTissueTableModel({
     geRows = [],
@@ -627,6 +1228,11 @@ export function buildGeTissueTableModel({
     ancestry,
     annotations = [],
     utils = null,
+    llmRelevance = null,
+    enabledMutedAnnotationTissues = {},
+    disabledAnnotationTissues = {},
+    filterByTissueVisibility = false,
+    pValueMax = GE_TRACK_P_VALUE_MAX,
 }) {
     if (!phenotype || !annotations.length) {
         return { annotations: [], rows: [] };
@@ -645,7 +1251,22 @@ export function buildGeTissueTableModel({
     const tissueSet = new Set();
     annotations.forEach((annotation) => {
         Object.keys(annoData[annotation] || {}).forEach((tissue) => {
-            tissueSet.add(tissue);
+            if (!filterByTissueVisibility) {
+                tissueSet.add(tissue);
+                return;
+            }
+            if (
+                isGeTissueShownOnTrack(tissue, {
+                    annotation,
+                    geTissueStats: statsByAnnotation[annotation] || {},
+                    llmRelevance,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    pValueMax,
+                })
+            ) {
+                tissueSet.add(tissue);
+            }
         });
     });
 
@@ -656,6 +1277,21 @@ export function buildGeTissueTableModel({
         annotations.forEach((annotation) => {
             const stats = statsByAnnotation[annotation]?.[tissue] || null;
             if (!stats) {
+                cells[annotation] = null;
+                return;
+            }
+
+            if (
+                filterByTissueVisibility &&
+                !isGeTissueShownOnTrack(tissue, {
+                    annotation,
+                    geTissueStats: statsByAnnotation[annotation] || {},
+                    llmRelevance,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    pValueMax,
+                })
+            ) {
                 cells[annotation] = null;
                 return;
             }
@@ -701,8 +1337,119 @@ export function buildGeTissueTableModel({
     };
 }
 
+/**
+ * Format locus annotation rows for the Enriched Regions table (sorted by start).
+ */
+export function buildEnrichedRegionsTableRows(annoRows = [], options = {}) {
+    const annotations =
+        options.annotations && options.annotations.length
+            ? options.annotations
+            : sortedAnnotationKeys(
+                  Object.fromEntries(
+                      (annoRows || [])
+                          .filter((row) => row?.annotation)
+                          .map((row) => [row.annotation, true])
+                  )
+              );
+    const annotationSet = new Set(annotations);
+    const isTissueVisible =
+        typeof options.isTissueVisible === "function"
+            ? options.isTissueVisible
+            : null;
+
+    const rows = (annoRows || [])
+        .filter((row) => {
+            const annotation = row?.annotation || "";
+            if (!annotationSet.has(annotation)) {
+                return false;
+            }
+            if (!isTissueVisible) {
+                return true;
+            }
+            return isTissueVisible(annotation, row?.tissue || "");
+        })
+        .map((row, index) => {
+            const chromosome = row?.chromosome ?? row?.chr ?? "";
+            const start = Number(row?.start);
+            const end = Number(row?.end);
+            const annotation = row?.annotation || "";
+            const regionLabel =
+                chromosome && Number.isFinite(start) && Number.isFinite(end)
+                    ? `${chromosome}:${Math.round(start)}-${Math.round(end)}`
+                    : "—";
+
+            return {
+                key: `${annoRowKey(row)}|${index}`,
+                start: Number.isFinite(start) ? start : Number.POSITIVE_INFINITY,
+                region: regionLabel,
+                annotation,
+                annotationColor: solidAnnotationColor(
+                    annotationColorForKey(annotation, annotations, VKS_ANNOTATION_COLORS)
+                ),
+                tissue: row?.tissue || "—",
+                biosample: row?.biosample || "—",
+                state: row?.state || "—",
+                dataset: row?.dataset || "—",
+                method: row?.method || "—",
+                source: row?.source || "—",
+            };
+        })
+        .sort((left, right) => {
+            if (left.start !== right.start) {
+                return left.start - right.start;
+            }
+            return String(left.region).localeCompare(String(right.region));
+        });
+
+    return rows;
+}
+
 export const VKS_ANNO_TRACK_PER_TISSUE = 24;
 export const VKS_ANNO_TRACK_STATS_HEADER = 24;
+/** Canvas-space gap (~5 CSS px at 2x) between last tissue row and x-axis line. */
+export const VKS_ANNO_TRACK_X_AXIS_GAP = 10;
+/** Canvas-space gap (~15 CSS px at 2x) between track plot and Fold column. */
+export const VKS_ANNO_TRACK_FOLD_GAP = 30;
+/** Title band for the selected-tissue biosample tracks panel. */
+export const VKS_ANNO_BIOSAMPLE_TITLE_H = 36;
+/** Canvas-space gap (15 CSS px at 2x) between biosample title and first track. */
+export const VKS_ANNO_BIOSAMPLE_TITLE_GAP = 30;
+
+/**
+ * Group locus annotation regions by biosample (sorted alphabetically).
+ * Empty / missing biosample labels use "—".
+ */
+export function groupAnnoRegionsByBiosample(regions = []) {
+    const byBiosample = new Map();
+
+    (regions || []).forEach((region) => {
+        if (!region) {
+            return;
+        }
+        const biosample =
+            region.biosample == null || region.biosample === ""
+                ? "—"
+                : String(region.biosample);
+        if (!byBiosample.has(biosample)) {
+            byBiosample.set(biosample, []);
+        }
+        byBiosample.get(biosample).push(region);
+    });
+
+    return [...byBiosample.keys()]
+        .sort((left, right) => left.localeCompare(right))
+        .map((biosample) => ({
+            biosample,
+            regions: byBiosample.get(biosample) || [],
+        }));
+}
+
+export function listBiosamplesForAnnotationTissue(annoData = {}, annotation, tissue) {
+    if (!annotation || !tissue) {
+        return [];
+    }
+    return groupAnnoRegionsByBiosample(annoData?.[annotation]?.[tissue]?.region || []);
+}
 
 export function computeAnnotationWorkspaceTrackHeight(tissueCount) {
     const { topMargin, bottomMargin } = VARIANT_SIFTER_ANNO_TRACK_MARGIN;
@@ -713,6 +1460,22 @@ export function computeAnnotationWorkspaceTrackHeight(tissueCount) {
         topMargin +
         bottomMargin +
         VKS_ANNO_TRACK_STATS_HEADER +
-        tissueCount * VKS_ANNO_TRACK_PER_TISSUE
+        tissueCount * VKS_ANNO_TRACK_PER_TISSUE +
+        VKS_ANNO_TRACK_X_AXIS_GAP
+    );
+}
+
+export function computeAnnotationBiosampleTrackHeight(biosampleCount) {
+    const { topMargin, bottomMargin } = VARIANT_SIFTER_ANNO_TRACK_MARGIN;
+    if (!biosampleCount) {
+        return topMargin + bottomMargin + VKS_ANNO_BIOSAMPLE_TITLE_H;
+    }
+    return (
+        topMargin +
+        bottomMargin +
+        VKS_ANNO_BIOSAMPLE_TITLE_H +
+        VKS_ANNO_BIOSAMPLE_TITLE_GAP +
+        biosampleCount * VKS_ANNO_TRACK_PER_TISSUE +
+        VKS_ANNO_TRACK_X_AXIS_GAP
     );
 }

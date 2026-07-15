@@ -1,6 +1,8 @@
 import {
     annotationColorForKey,
     isGeAnnotationEmphasized,
+    isGeAnnotationTissueForceDisabled,
+    isGeAnnotationTissueForceEnabled,
     isGePointEmphasized,
     isGeTissueEmphasized,
     mutedAnnotationColor,
@@ -124,6 +126,8 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         utils,
         llmRelevance = null,
         enabledMutedAnnotations = [],
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
         enabledMutedTissues = [],
     } = options;
 
@@ -189,6 +193,8 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         const emphasized = isGePointEmphasized(point, {
             llmRelevance,
             enabledMutedAnnotations,
+            enabledMutedAnnotationTissues,
+            disabledAnnotationTissues,
             enabledMutedTissues,
         });
         const baseColor = annotationColorForKey(point.annotation, annotations, colors);
@@ -277,6 +283,8 @@ export function renderAnnotationsPlot(ctx, options) {
         utils,
         llmRelevance = null,
         enabledMutedAnnotations = [],
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
         enabledMutedTissues = [],
     } = options;
 
@@ -327,10 +335,25 @@ export function renderAnnotationsPlot(ctx, options) {
 
         tissueKeys.forEach((tissue, tissueIndex) => {
             const regions = tissues[tissue]?.region || [];
-            const tissueEmphasized = isGeTissueEmphasized(tissue, {
-                llmRelevance,
-                enabledMutedTissues,
-            });
+            const forceDisabled = isGeAnnotationTissueForceDisabled(
+                annotation,
+                tissue,
+                disabledAnnotationTissues
+            );
+            const forceEnabled = isGeAnnotationTissueForceEnabled(
+                annotation,
+                tissue,
+                enabledMutedAnnotationTissues
+            );
+            const tissueEmphasized = forceDisabled
+                ? false
+                : forceEnabled
+                  ? true
+                  : isGeTissueEmphasized(tissue, {
+                        llmRelevance,
+                        enabledMutedAnnotationTissues,
+                        enabledMutedTissues,
+                    });
             const emphasized = annotationEmphasized && tissueEmphasized;
             const barColor = emphasized
                 ? annotationColorForKey(annotation, annotations, colors)

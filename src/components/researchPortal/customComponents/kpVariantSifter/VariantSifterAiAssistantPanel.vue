@@ -21,12 +21,12 @@
                     &times;
                 </button>
             </div>
-            <div class="vks-assistant-tabs" role="tablist" aria-label="Assistant sections">
+            <div class="vks-ui-tabs" role="tablist" aria-label="Assistant sections">
                 <button
                     id="vks-assistant-tab-request"
                     type="button"
                     role="tab"
-                    class="vks-assistant-tab"
+                    class="vks-ui-tab"
                     :class="{ 'is-active': activeTab === 'request' }"
                     :aria-selected="activeTab === 'request' ? 'true' : 'false'"
                     aria-controls="vks-assistant-panel-request"
@@ -39,7 +39,7 @@
                     id="vks-assistant-tab-actions"
                     type="button"
                     role="tab"
-                    class="vks-assistant-tab"
+                    class="vks-ui-tab"
                     :class="{ 'is-active': activeTab === 'actions' }"
                     :aria-selected="activeTab === 'actions' ? 'true' : 'false'"
                     aria-controls="vks-assistant-panel-actions"
@@ -49,12 +49,21 @@
                     Actions
                 </button>
             </div>
+            <p v-if="activeTab === 'request' && !hasThread" class="vks-assistant-autocomplete-hint">
+                Suggestions appear as you type. Hover or use
+                <kbd class="vks-assistant-kbd">↑</kbd><kbd class="vks-assistant-kbd">↓</kbd>
+                to see the full name above the list for long labels. Press
+                <kbd class="vks-assistant-kbd">Tab</kbd> or
+                <kbd class="vks-assistant-kbd">Enter</kbd> to accept,
+                <kbd class="vks-assistant-kbd">Esc</kbd> to close.
+            </p>
             <p v-if="activeTab === 'request' && !hasThread" class="vks-assistant-intro">
-                Automated assistant steps for this workspace appear here as actions run.
+                Describe workspace changes in plain language. Suggested steps appear here; run them
+                when you are ready.
             </p>
             <p v-else-if="activeTab === 'actions'" class="vks-assistant-intro">
-                Available assistant actions for Variant Sifter. Use Run to execute an action
-                on the current search session.
+                What you can ask for on the Request tab. Type similar requests in your own words —
+                this list does not run actions directly.
             </p>
         </header>
 
@@ -67,15 +76,18 @@
             class="vks-assistant-body"
         >
             <div v-if="!hasThread" class="vks-assistant-welcome">
-                <p class="vks-assistant-welcome-lead">When global enrichment loads, the assistant will:</p>
+                <p class="vks-assistant-welcome-lead">You can ask things like:</p>
                 <ul class="vks-assistant-examples">
-                    <li>List annotation×tissue pairs in this locus</li>
-                    <li>Ask the LLM which tissues are relevant to your phenotype and ancestry</li>
-                    <li>Report what was highlighted vs muted on the GE plot</li>
+                    <li
+                        v-for="(example, index) in welcomeExamples"
+                        :key="`welcome-example-${index}`"
+                    >
+                        {{ example }}
+                    </li>
                 </ul>
                 <p v-if="llmAvailable === false" class="vks-assistant-llm-note" role="note">
-                    LLM service is not available. Relevance filtering will be skipped until the
-                    interactive API is configured.
+                    LLM service is not available. Relevance classification and other LLM actions
+                    cannot run until the interactive API is configured.
                 </p>
             </div>
 
@@ -103,6 +115,47 @@
                     </span>
                     <p>{{ entry.text }}</p>
                 </div>
+
+                <div v-if="hasPlan" class="vks-assistant-plan">
+                    <button
+                        type="button"
+                        class="vks-assistant-execute-all"
+                        :disabled="!canExecutePlan"
+                        @click="onExecuteAll"
+                    >
+                        {{ plan.executeLabel || "Execute" }}
+                    </button>
+                    <ol class="vks-assistant-steps">
+                        <li
+                            v-for="(step, index) in plan.steps"
+                            :key="step.id"
+                            class="vks-assistant-step"
+                        >
+                            <div class="vks-assistant-step-main">
+                                <span
+                                    class="vks-assistant-step-status"
+                                    :class="`is-${stepStatus(step.id)}`"
+                                    :aria-label="stepStatusLabel(step.id)"
+                                />
+                                <span class="vks-assistant-step-label">
+                                    {{ index + 1 }}. {{ step.label }}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                class="vks-ui-btn vks-ui-btn--secondary vks-assistant-step-run"
+                                :disabled="
+                                    executing ||
+                                        !canRunActions ||
+                                        stepStatus(step.id) === 'done'
+                                "
+                                @click="$emit('execute-step', step.id)"
+                            >
+                                Run
+                            </button>
+                        </li>
+                    </ol>
+                </div>
             </div>
         </div>
 
@@ -114,43 +167,40 @@
             class="vks-assistant-body vks-assistant-actions-panel"
         >
             <section
-                v-for="group in actionCatalog"
-                :key="group.group"
-                class="vks-assistant-action-group"
+                v-for="section in actionCatalogSections"
+                :key="section.section"
+                class="vks-assistant-action-section"
             >
-                <h3 class="vks-assistant-action-group-title">{{ group.group }}</h3>
-                <ul class="vks-assistant-action-list">
-                    <li
-                        v-for="action in group.actions"
-                        :key="action.id"
-                        class="vks-assistant-action-item"
-                    >
-                        <div class="vks-assistant-action-head">
+                <h2 class="vks-assistant-action-section-title">{{ section.section }}</h2>
+                <p class="vks-assistant-action-section-intro">{{ section.intro }}</p>
+                <section
+                    v-for="group in section.groups"
+                    :key="`${section.section}-${group.group}`"
+                    class="vks-assistant-action-group"
+                >
+                    <h3 class="vks-assistant-action-group-title">{{ group.group }}</h3>
+                    <ul class="vks-assistant-action-list">
+                        <li
+                            v-for="action in group.actions"
+                            :key="action.id"
+                            class="vks-assistant-action-item"
+                        >
                             <span class="vks-assistant-action-label">{{ action.label }}</span>
-                            <button
-                                v-if="action.runnable"
-                                type="button"
-                                class="vks-assistant-action-run"
-                                :disabled="executing || !canRunActions"
-                                @click="$emit('run-action', action.id)"
-                            >
-                                Run
-                            </button>
-                        </div>
-                        <p class="vks-assistant-action-desc">{{ action.description }}</p>
-                        <template v-if="action.examples && action.examples.length">
-                            <p class="vks-assistant-action-examples-label">Example uses</p>
-                            <ul class="vks-assistant-action-examples">
-                                <li
-                                    v-for="(example, index) in action.examples"
-                                    :key="`${action.id}-${index}`"
-                                >
-                                    {{ example }}
-                                </li>
-                            </ul>
-                        </template>
-                    </li>
-                </ul>
+                            <p class="vks-assistant-action-desc">{{ action.description }}</p>
+                            <template v-if="action.examples && action.examples.length">
+                                <p class="vks-assistant-action-examples-label">Example requests</p>
+                                <ul class="vks-assistant-action-examples">
+                                    <li
+                                        v-for="(example, index) in action.examples"
+                                        :key="`${action.id}-${index}`"
+                                    >
+                                        {{ example }}
+                                    </li>
+                                </ul>
+                            </template>
+                        </li>
+                    </ul>
+                </section>
             </section>
         </div>
 
@@ -170,11 +220,113 @@
                 <span class="vks-assistant-execution-progress-fill" aria-hidden="true" />
             </div>
         </div>
+
+        <footer v-if="activeTab === 'request'" class="vks-assistant-footer">
+            <label class="vks-assistant-input-label" for="vks-assistant-input">
+                Your request
+            </label>
+            <div class="vks-assistant-input-wrap">
+                <textarea
+                    id="vks-assistant-input"
+                    ref="requestInput"
+                    v-model="draft"
+                    class="vks-assistant-input"
+                    rows="3"
+                    :disabled="executing"
+                    placeholder="e.g. Zoom in, Classify tissues by phenotype relevance"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    aria-autocomplete="list"
+                    :aria-expanded="showAutocomplete ? 'true' : 'false'"
+                    aria-controls="vks-assistant-suggest"
+                    @input="onDraftInput"
+                    @keydown="onDraftKeydown"
+                    @click="updateAutocomplete"
+                    @focus="updateAutocomplete"
+                    @blur="onDraftBlur"
+                />
+                <div v-if="showAutocomplete" class="vks-assistant-suggest-wrap">
+                    <div
+                        v-if="showSuggestionPreview"
+                        class="vks-assistant-suggest-preview"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <span class="vks-assistant-suggest-preview-label">
+                            {{ previewSuggestionLabel }}
+                        </span>
+                        <span
+                            v-if="previewSuggestionHint"
+                            class="vks-assistant-suggest-preview-hint"
+                        >
+                            {{ previewSuggestionHint }}
+                        </span>
+                    </div>
+                    <ul
+                        id="vks-assistant-suggest"
+                        class="vks-assistant-suggest"
+                        role="listbox"
+                        aria-label="Matching assistant actions"
+                    >
+                        <li
+                            v-for="(item, index) in autocompleteSuggestions"
+                            :key="item.id"
+                            role="presentation"
+                        >
+                            <button
+                                type="button"
+                                class="vks-assistant-suggest-item"
+                                :class="{ 'is-active': index === suggestHighlight }"
+                                role="option"
+                                :aria-selected="index === suggestHighlight ? 'true' : 'false'"
+                                :title="suggestionFullLabel(item)"
+                                @mouseenter="suggestHoverIndex = index"
+                                @mouseleave="suggestHoverIndex = -1"
+                                @mousedown.prevent="selectSuggestion(item)"
+                            >
+                                <span class="vks-assistant-suggest-label">{{ item.label }}</span>
+                                <span
+                                    class="vks-assistant-suggest-hint"
+                                    :class="{
+                                        'vks-assistant-suggest-hint--action':
+                                            item.kind === 'action',
+                                        'vks-assistant-suggest-hint--phrase':
+                                            item.kind === 'phrase',
+                                    }"
+                                >
+                                    {{ item.hint }}
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <button
+                type="button"
+                class="vks-ui-btn vks-ui-btn--primary vks-assistant-send"
+                :disabled="!draft.trim() || executing"
+                @click="onSubmitRequest"
+            >
+                Run
+            </button>
+        </footer>
     </aside>
 </template>
 
 <script>
-import { VKS_ASSISTANT_ACTION_CATALOG } from "./variantSifterAssistantActionCatalog.js";
+import {
+    buildVksAssistantWelcomeExamples,
+    VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
+} from "./variantSifterAssistantActionCatalog.js";
+import {
+    assistantSuggestFullLabel,
+    buildVksAssistantAutocompleteSuggestions,
+    getActiveToken,
+    replaceActiveToken,
+    shouldShowAssistantSuggestPreview,
+} from "./variantSifterAssistantActionSuggest.js";
 
 export default {
     name: "VariantSifterAiAssistantPanel",
@@ -207,17 +359,73 @@ export default {
             type: Boolean,
             default: false,
         },
-        actionCatalog: {
-            type: Array,
-            default: () => VKS_ASSISTANT_ACTION_CATALOG,
+        plan: {
+            type: Object,
+            default: null,
         },
+        stepStates: {
+            type: Object,
+            default: () => ({}),
+        },
+        actionCatalogSections: {
+            type: Array,
+            default: () => VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
+        },
+    },
+    data() {
+        return {
+            draft: "",
+            welcomeExamples: buildVksAssistantWelcomeExamples(),
+            autocompleteSuggestions: [],
+            suggestHighlight: -1,
+            suggestHoverIndex: -1,
+            suggestTokenStart: 0,
+            suggestTokenEnd: 0,
+        };
     },
     computed: {
         hasThread() {
             return this.threadEntries.length > 0;
         },
+        hasPlan() {
+            return Boolean(this.plan?.steps?.length);
+        },
+        canExecutePlan() {
+            return (
+                this.canRunActions &&
+                !this.executing &&
+                this.hasPlan &&
+                this.plan.steps.some((step) => this.stepStatus(step.id) !== "done")
+            );
+        },
         showExecutionProgress() {
             return Boolean(this.executing && this.executionProgressLabel);
+        },
+        showAutocomplete() {
+            return this.autocompleteSuggestions.length > 0 && this.activeTab === "request";
+        },
+        previewSuggestionIndex() {
+            if (this.suggestHoverIndex >= 0) {
+                return this.suggestHoverIndex;
+            }
+            if (this.suggestHighlight >= 0) {
+                return this.suggestHighlight;
+            }
+            return -1;
+        },
+        previewSuggestionLabel() {
+            const item = this.autocompleteSuggestions[this.previewSuggestionIndex];
+            return item ? this.suggestionFullLabel(item) : "";
+        },
+        previewSuggestionHint() {
+            const item = this.autocompleteSuggestions[this.previewSuggestionIndex];
+            return item?.hint || "";
+        },
+        showSuggestionPreview() {
+            return shouldShowAssistantSuggestPreview(
+                this.autocompleteSuggestions,
+                this.previewSuggestionIndex
+            );
         },
     },
     watch: {
@@ -227,11 +435,165 @@ export default {
             },
             deep: true,
         },
-        executing() {
+        plan: {
+            handler() {
+                this.$nextTick(() => this.scrollMessagePanelToEnd());
+            },
+            deep: true,
+        },
+        executing(isExecuting) {
+            if (isExecuting) {
+                this.closeAutocomplete();
+            }
             this.$nextTick(() => this.scrollMessagePanelToEnd());
+        },
+        open(isOpen) {
+            if (isOpen) {
+                this.$nextTick(() => this.scrollMessagePanelToEnd());
+            } else {
+                this.closeAutocomplete();
+            }
         },
     },
     methods: {
+        stepStatus(stepId) {
+            return this.stepStates?.[stepId] || "pending";
+        },
+        stepStatusLabel(stepId) {
+            const status = this.stepStatus(stepId);
+            if (status === "done") {
+                return "Completed";
+            }
+            if (status === "running") {
+                return "Running";
+            }
+            if (status === "error") {
+                return "Failed";
+            }
+            return "Pending";
+        },
+        getRequestInput() {
+            return this.$refs.requestInput || null;
+        },
+        closeAutocomplete() {
+            this.autocompleteSuggestions = [];
+            this.suggestHighlight = -1;
+            this.suggestHoverIndex = -1;
+        },
+        updateAutocomplete() {
+            const input = this.getRequestInput();
+            if (!input || this.executing) {
+                this.closeAutocomplete();
+                return;
+            }
+            const { token, start, end } = getActiveToken(this.draft, input.selectionStart);
+            const matches = buildVksAssistantAutocompleteSuggestions({ token });
+            this.suggestTokenStart = start;
+            this.suggestTokenEnd = end;
+            this.autocompleteSuggestions = matches;
+            this.suggestHighlight = matches.length ? 0 : -1;
+            this.suggestHoverIndex = -1;
+        },
+        suggestionFullLabel(item) {
+            return assistantSuggestFullLabel(item);
+        },
+        scrollActiveSuggestionIntoView() {
+            this.$nextTick(() => {
+                const active = this.$el?.querySelector?.(
+                    ".vks-assistant-suggest-item.is-active"
+                );
+                active?.scrollIntoView?.({ block: "nearest" });
+            });
+        },
+        onDraftInput() {
+            this.updateAutocomplete();
+        },
+        onDraftBlur() {
+            window.setTimeout(() => {
+                this.closeAutocomplete();
+            }, 120);
+        },
+        onDraftKeydown(event) {
+            if (this.autocompleteSuggestions.length) {
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    this.suggestHighlight = Math.min(
+                        this.suggestHighlight + 1,
+                        this.autocompleteSuggestions.length - 1
+                    );
+                    this.scrollActiveSuggestionIntoView();
+                    return;
+                }
+                if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    this.suggestHighlight = Math.max(this.suggestHighlight - 1, 0);
+                    this.scrollActiveSuggestionIntoView();
+                    return;
+                }
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    this.closeAutocomplete();
+                    return;
+                }
+                if (event.key === "Tab" && this.suggestHighlight >= 0) {
+                    event.preventDefault();
+                    this.selectSuggestion(this.autocompleteSuggestions[this.suggestHighlight]);
+                    return;
+                }
+                if (event.key === "Enter" && !event.shiftKey && this.suggestHighlight >= 0) {
+                    event.preventDefault();
+                    this.selectSuggestion(this.autocompleteSuggestions[this.suggestHighlight]);
+                    return;
+                }
+            }
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                if (this.canExecutePlan && !String(this.draft || "").trim()) {
+                    this.onExecuteAll();
+                    return;
+                }
+                this.onSubmitRequest();
+            }
+        },
+        selectSuggestion(item) {
+            if (!item?.insertText) {
+                return;
+            }
+            const replacement =
+                item.kind === "action" ? `${item.insertText} ` : String(item.insertText);
+            const { text, caret } = replaceActiveToken(
+                this.draft,
+                this.suggestTokenStart,
+                this.suggestTokenEnd,
+                replacement
+            );
+            this.draft = text;
+            this.closeAutocomplete();
+            this.$nextTick(() => {
+                const input = this.getRequestInput();
+                if (input) {
+                    input.focus();
+                    if (typeof input.setSelectionRange === "function") {
+                        input.setSelectionRange(caret, caret);
+                    }
+                }
+            });
+        },
+        onExecuteAll() {
+            if (!this.canExecutePlan) {
+                return;
+            }
+            this.$emit("execute-all");
+        },
+        onSubmitRequest() {
+            const text = String(this.draft || "").trim();
+            if (!text || this.executing) {
+                return;
+            }
+            this.$emit("plan-request", { text });
+            this.draft = "";
+            this.closeAutocomplete();
+        },
         scrollMessagePanelToEnd() {
             const panel = this.$refs.messageScroll;
             if (!panel) {
@@ -245,18 +607,19 @@ export default {
 
 <style scoped>
 .vks-assistant-panel {
-    position: absolute;
-    top: var(--vks-side-panel-top, 12px);
+    position: fixed;
+    top: 0;
     right: calc(var(--vks-drawer-tab-width, 30px) + var(--vks-side-panel-inset, 12px));
-    bottom: var(--vks-side-panel-inset, 12px);
     z-index: 25;
     display: flex;
     flex-direction: column;
     width: min(380px, calc(100% - 24px));
     max-width: 420px;
+    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 12px;
+    border-radius: 12px 0 0 12px;
     background: #ffffff;
     box-shadow: 0 8px 32px rgba(20, 22, 30, 0.16);
     pointer-events: auto;
@@ -298,43 +661,30 @@ export default {
     cursor: not-allowed;
 }
 
-.vks-assistant-tabs {
-    display: flex;
-    gap: 4px;
-    margin-top: 12px;
-    padding: 3px;
-    border-radius: 8px;
-    background: #f6f5f2;
-}
-
-.vks-assistant-tab {
-    flex: 1;
-    border: none;
-    background: transparent;
-    color: var(--cfde-muted, #6b6b6b);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 7px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.vks-assistant-tab.is-active {
-    background: #ffffff;
-    color: var(--cfde-ink, #33363d);
-    box-shadow: 0 1px 3px rgba(20, 22, 30, 0.08);
-}
-
-.vks-assistant-tab:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .vks-assistant-intro {
     margin: 10px 0 0;
     font-size: 13px;
     line-height: 1.5;
     color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-autocomplete-hint {
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-kbd {
+    display: inline-block;
+    margin: 0 2px;
+    padding: 1px 5px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 4px;
+    background: #f6f5f2;
+    font-size: 11px;
+    font-family: inherit;
+    line-height: 1.35;
 }
 
 .vks-assistant-body {
@@ -367,7 +717,7 @@ export default {
 
 .vks-assistant-llm-note {
     margin: 12px 0 0;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     color: #a34b2d;
 }
@@ -409,6 +759,88 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
+.vks-assistant-plan {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.vks-assistant-execute-all {
+    width: 100%;
+    border: none;
+    background: #f0c3a8;
+    color: #5a2e16;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.vks-assistant-execute-all:hover:not(:disabled) {
+    filter: brightness(0.98);
+}
+
+.vks-assistant-execute-all:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.vks-assistant-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vks-assistant-step {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.vks-assistant-step-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.vks-assistant-step-status {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--cfde-blue, #2c5c97);
+}
+
+.vks-assistant-step-status.is-done {
+    background: #3d7a5f;
+}
+
+.vks-assistant-step-status.is-running {
+    background: var(--cfde-orange, #e07b39);
+}
+
+.vks-assistant-step-status.is-error {
+    background: #b42318;
+}
+
+.vks-assistant-step-label {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-step-run {
+    flex-shrink: 0;
+}
+
 .vks-assistant-execution-progress {
     flex-shrink: 0;
     padding: 10px 18px 12px;
@@ -418,7 +850,7 @@ export default {
 
 .vks-assistant-execution-progress-label {
     margin: 0 0 8px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);
@@ -449,8 +881,163 @@ export default {
     }
 }
 
+.vks-assistant-footer {
+    flex-shrink: 0;
+    padding: 12px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+    background: #ffffff;
+}
+
+.vks-assistant-input-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-input-wrap {
+    position: relative;
+}
+
+.vks-assistant-suggest-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 4px);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vks-assistant-suggest-preview {
+    padding: 8px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #f8fafc;
+    box-shadow: 0 4px 16px rgba(20, 22, 30, 0.1);
+}
+
+.vks-assistant-suggest-preview-label {
+    display: block;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.vks-assistant-suggest-preview-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-suggest {
+    margin: 0;
+    padding: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    list-style: none;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(20, 22, 30, 0.12);
+}
+
+.vks-assistant-suggest-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.vks-assistant-suggest-item:hover,
+.vks-assistant-suggest-item.is-active {
+    background: #eef4fb;
+}
+
+.vks-assistant-suggest-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vks-assistant-suggest-hint {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.vks-assistant-suggest-hint--action {
+    color: var(--cfde-orange, #e07b39);
+}
+
+.vks-assistant-suggest-hint--phrase {
+    color: #6b5b95;
+}
+
+.vks-assistant-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    resize: vertical;
+    min-height: 72px;
+}
+
+.vks-assistant-input:disabled {
+    opacity: 0.65;
+}
+
+.vks-assistant-send {
+    align-self: flex-end;
+}
+
 .vks-assistant-actions-panel {
     padding-top: 4px;
+}
+
+.vks-assistant-action-section + .vks-assistant-action-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.vks-assistant-action-section-title {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-action-section-intro {
+    margin: 0 0 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-assistant-action-group + .vks-assistant-action-group {
@@ -482,13 +1069,6 @@ export default {
     background: #faf9f7;
 }
 
-.vks-assistant-action-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-}
-
 .vks-assistant-action-label {
     display: block;
     font-size: 13px;
@@ -496,32 +1076,9 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
-.vks-assistant-action-run {
-    flex-shrink: 0;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    background: #ffffff;
-    color: var(--cfde-blue, #2c5c97);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.vks-assistant-action-run:hover:not(:disabled) {
-    background: var(--cfde-blue, #2c5c97);
-    color: #ffffff;
-    border-color: var(--cfde-blue, #2c5c97);
-}
-
-.vks-assistant-action-run:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
 .vks-assistant-action-examples-label {
     margin: 8px 0 4px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -538,7 +1095,7 @@ export default {
 .vks-assistant-action-examples {
     margin: 6px 0 0;
     padding-left: 1.1rem;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.4;
     color: var(--cfde-ink, #33363d);
 }

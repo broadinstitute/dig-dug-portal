@@ -45,6 +45,12 @@ export default {
             type: Object,
             default: () => VARIANT_SIFTER_PLOT_MARGIN,
         },
+        /** `recomb` for association plot; `track` for other workspace visualizers. */
+        placement: {
+            type: String,
+            default: "recomb",
+            validator: (value) => value === "recomb" || value === "track",
+        },
     },
     data() {
         return {
@@ -54,7 +60,7 @@ export default {
     },
     computed: {
         markerTopPx() {
-            return computeZoomCenterMarkerTopPx(this.plotMargin);
+            return computeZoomCenterMarkerTopPx(this.plotMargin, this.placement);
         },
         markerStyle() {
             const layout = computeZoomCenterMarkerLayout(

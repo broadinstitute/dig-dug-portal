@@ -65,14 +65,6 @@ export default {
                 ancestry: this.searchSession.ancestry || "Mixed",
             });
         },
-        plotTitle() {
-            const phenotype = this.searchSession?.phenotype?.name;
-            const ancestry = this.searchSession?.ancestry || "Mixed";
-            if (!phenotype) {
-                return "";
-            }
-            return `${phenotype}(${ancestry})`;
-        },
     },
     watch: {
         plotModel: {
@@ -99,7 +91,13 @@ export default {
             },
             deep: true,
         },
-        "globalEnrichmentState.enabledMutedTissues": {
+        "globalEnrichmentState.enabledMutedAnnotationTissues": {
+            handler() {
+                this.$nextTick(() => this.renderPlot());
+            },
+            deep: true,
+        },
+        "globalEnrichmentState.disabledAnnotationTissues": {
             handler() {
                 this.$nextTick(() => this.renderPlot());
             },
@@ -139,13 +137,15 @@ export default {
                 plotModel: this.plotModel,
                 canvasWidth,
                 canvasHeight,
-                title: this.plotTitle,
                 selectedAnnotations: this.selectedAnnotations,
                 utils: this.utils,
                 llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
                 enabledMutedAnnotations:
                     this.globalEnrichmentState?.enabledMutedAnnotations || [],
-                enabledMutedTissues: this.globalEnrichmentState?.enabledMutedTissues || [],
+                enabledMutedAnnotationTissues:
+                    this.globalEnrichmentState?.enabledMutedAnnotationTissues || {},
+                disabledAnnotationTissues:
+                    this.globalEnrichmentState?.disabledAnnotationTissues || {},
             });
         },
         findDotAtCanvasPoint(x, y) {

@@ -81,7 +81,13 @@ export default {
             },
             deep: true,
         },
-        "globalEnrichmentState.enabledMutedTissues": {
+        "globalEnrichmentState.enabledMutedAnnotationTissues": {
+            handler() {
+                this.$nextTick(() => this.renderPlot());
+            },
+            deep: true,
+        },
+        "globalEnrichmentState.disabledAnnotationTissues": {
             handler() {
                 this.$nextTick(() => this.renderPlot());
             },
@@ -125,7 +131,10 @@ export default {
                 llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
                 enabledMutedAnnotations:
                     this.globalEnrichmentState?.enabledMutedAnnotations || [],
-                enabledMutedTissues: this.globalEnrichmentState?.enabledMutedTissues || [],
+                enabledMutedAnnotationTissues:
+                    this.globalEnrichmentState?.enabledMutedAnnotationTissues || {},
+                disabledAnnotationTissues:
+                    this.globalEnrichmentState?.disabledAnnotationTissues || {},
             });
         },
     },

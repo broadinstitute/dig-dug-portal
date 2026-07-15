@@ -1,14 +1,18 @@
 import {
-    VKS_ANNOTATION_COLORS,
-    annotationColorForKey,
-    filterGeTissuesForDisplay,
-    formatGeTissueStatLabel,
+    formatGeFoldLabel,
+    groupAnnoRegionsByBiosample,
     isGeAnnotationEmphasized,
     isGeTissueEmphasized,
-    mutedAnnotationColor,
-    solidAnnotationColor,
+    regionPassesGeMethodSourceFilter,
+    resolveGeTissuesForDisplay,
+    biosampleSelectionKey,
+    VKS_ANNO_BIOSAMPLE_TITLE_GAP,
+    VKS_ANNO_BIOSAMPLE_TITLE_H,
+    VKS_ANNO_TRACK_FOLD_GAP,
     VKS_ANNO_TRACK_PER_TISSUE,
     VKS_ANNO_TRACK_STATS_HEADER,
+    VKS_ANNO_TRACK_X_AXIS_GAP,
+    VKS_GE_TRACK_REGION_COLOR,
 } from "./variantSifterGlobalEnrichmentData.js";
 import {
     normalizePlotMargin,
@@ -48,7 +52,19 @@ function truncateTextToWidth(ctx, text, maxWidth) {
 }
 
 function renderWorkspaceAnnotationAxis(ctx, options) {
-    const { plotLeft, plotTop, plotWidth, plotHeight, xMin, xMax, utils, bump } = options;
+    const {
+        plotLeft,
+        plotTop,
+        plotWidth,
+        plotHeight,
+        xMin,
+        xMax,
+        utils,
+        bump,
+        axisGap = VKS_ANNO_TRACK_X_AXIS_GAP,
+    } = options;
+
+    const axisY = plotTop + plotHeight + axisGap;
 
     ctx.save();
     ctx.strokeStyle = "#000000";
@@ -58,7 +74,12 @@ function renderWorkspaceAnnotationAxis(ctx, options) {
 
     ctx.beginPath();
     ctx.moveTo(plotLeft - bump, plotTop);
-    ctx.lineTo(plotLeft - bump, plotTop + plotHeight);
+    ctx.lineTo(plotLeft - bump, axisY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(plotLeft - bump, axisY);
+    ctx.lineTo(plotLeft + plotWidth, axisY);
     ctx.stroke();
 
     const xStep = Math.ceil((xMax - xMin) / 5);
@@ -69,14 +90,14 @@ function renderWorkspaceAnnotationAxis(ctx, options) {
     for (let i = 0; i < 6; i += 1) {
         const tickX = plotLeft + i * xTickDistance;
         ctx.beginPath();
-        ctx.moveTo(tickX, plotTop + plotHeight);
-        ctx.lineTo(tickX, plotTop + plotHeight + bump);
+        ctx.moveTo(tickX, axisY);
+        ctx.lineTo(tickX, axisY + bump);
         ctx.stroke();
         ctx.textAlign = "center";
         ctx.fillText(
             formatAxisTick(xMin + i * xStep, xDecimal, utils),
             tickX,
-            plotTop + plotHeight + bump * 3
+            axisY + bump * 3
         );
     }
 
@@ -89,31 +110,30 @@ export function setupAnnotationsWorkspaceCanvas(canvas, canvasWidth, canvasHeigh
 
 /**
  * Render one annotation's tissue rows for the workspace track stack.
- * Returns tissue row hit regions for hover / selection.
+ * Returns tissue row hit regions (with nested enriched-region hits) for hover / selection.
  */
 export function renderAnnotationsWorkspaceTrack(ctx, options) {
     const {
         annoData = {},
         annotation,
-        annotations = [],
         visibleRegion,
         canvasWidth,
         canvasHeight,
         margin: plotMargin,
         geTissueStats = {},
-        phenotype,
-        ancestry,
         utils,
-        colors = VKS_ANNOTATION_COLORS,
         recombPeakIntervals = [],
         plotMarkers,
         selectedTissue = null,
+        selectedTissues = null,
         llmRelevance = null,
         enabledMutedAnnotations = [],
-        enabledMutedTissues = [],
-        showFilteredTissuesInTracks = false,
+        enabledMutedAnnotationTissues = {},
+        disabledAnnotationTissues = {},
         xAxisBandHover = false,
         livePositionMarkerX = null,
+        tissueTrackSort = "alphabetical",
+        pValueMax = 0.5,
     } = options;
 
     const tissueHits = [];
@@ -127,24 +147,27 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
     const plotTop = margin.top + VKS_ANNO_TRACK_STATS_HEADER;
     const plotWidth = canvasWidth - margin.left * 2;
     const tissues = annoData[annotation] || {};
-    const tissueKeys = filterGeTissuesForDisplay(Object.keys(tissues).sort(), {
+    const tissueKeys = resolveGeTissuesForDisplay(Object.keys(tissues), {
+        annotation,
         llmRelevance,
-        enabledMutedTissues,
-        showFilteredTissuesInTracks,
+        enabledMutedAnnotationTissues,
+        disabledAnnotationTissues,
+        geTissueStats,
+        sort: tissueTrackSort,
+        pValueMax,
     });
     const plotHeight = tissueKeys.length * VKS_ANNO_TRACK_PER_TISSUE;
-    const markerPlotHeight = VKS_ANNO_TRACK_STATS_HEADER + plotHeight;
+    const markerPlotHeight =
+        VKS_ANNO_TRACK_STATS_HEADER + plotHeight + VKS_ANNO_TRACK_X_AXIS_GAP;
     const regionStart = Number(visibleRegion.start);
     const regionEnd = Number(visibleRegion.end);
     const bump = margin.bump;
-    const baseAnnotationColor = annotationColorForKey(annotation, annotations, colors);
     const annotationEmphasized = isGeAnnotationEmphasized(annotation, {
         llmRelevance,
         enabledMutedAnnotations,
     });
-    const ancestryLabel = ancestry || "Mixed";
-    const statsColumnLeft = plotLeft + plotWidth + 12;
     const tissueLabelMaxWidth = Math.max(40, plotLeft - 14);
+    const foldColumnLeft = plotLeft + plotWidth + VKS_ANNO_TRACK_FOLD_GAP;
 
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -169,15 +192,16 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
         xMax: regionEnd,
         utils,
         bump,
+        axisGap: VKS_ANNO_TRACK_X_AXIS_GAP,
     });
 
     ctx.fillStyle = "#000000";
     ctx.font = "22px Arial";
-    ctx.textAlign = "right";
+    ctx.textAlign = "start";
     ctx.textBaseline = "middle";
     ctx.fillText(
-        `${phenotype} (${ancestryLabel})`,
-        canvasWidth - margin.right + 180,
+        "Fold",
+        foldColumnLeft,
         margin.top + VKS_ANNO_TRACK_STATS_HEADER / 2
     );
 
@@ -187,15 +211,14 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
         const regions = tissues[tissue]?.region || [];
         const tissueEmphasized = isGeTissueEmphasized(tissue, {
             llmRelevance,
-            enabledMutedTissues,
+            enabledMutedAnnotationTissues,
         });
         const emphasized = annotationEmphasized && tissueEmphasized;
-        const isSelected = selectedTissue === tissue;
-        const barColor = isSelected
-            ? "#EE3124"
-            : emphasized
-              ? baseAnnotationColor
-              : mutedAnnotationColor(baseAnnotationColor);
+        const isSelected = Array.isArray(selectedTissues)
+            ? selectedTissues.includes(tissue)
+            : selectedTissue === tissue;
+        const barColor = isSelected ? "#EE3124" : VKS_GE_TRACK_REGION_COLOR;
+        const regionHits = [];
 
         if (tissueIndex % 2 === 0) {
             ctx.fillStyle = emphasized ? "#00000010" : "#00000006";
@@ -219,6 +242,21 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
 
             ctx.fillStyle = barColor;
             ctx.fillRect(xPosStart, renderHeight, width, VKS_ANNO_TRACK_PER_TISSUE - 1);
+
+            regionHits.push({
+                tissue,
+                start: Number(region.start),
+                end: Number(region.end),
+                state: region.state ?? "",
+                biosample: region.biosample ?? "",
+                dataset: region.dataset ?? "",
+                method: region.method ?? "",
+                source: region.source ?? "",
+                xStart: xPosStart,
+                xEnd: xPosStart + width,
+                yTop: renderHeight,
+                yBottom: renderHeight + VKS_ANNO_TRACK_PER_TISSUE,
+            });
         });
 
         ctx.fillStyle = emphasized ? "#000000" : "#8a8a8a";
@@ -231,29 +269,14 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
             renderHeight + VKS_ANNO_TRACK_PER_TISSUE / 2
         );
 
-        const stats = geTissueStats[tissue];
-        const statLabel = formatGeTissueStatLabel(stats, utils);
-        if (statLabel) {
-            if (stats.rank < 5) {
-                ctx.fillStyle = solidAnnotationColor(baseAnnotationColor);
-                ctx.beginPath();
-                ctx.arc(statsColumnLeft - 10, renderHeight + VKS_ANNO_TRACK_PER_TISSUE / 2, 6, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-
-            if (stats.rawPValue < 0.05) {
-                ctx.fillStyle = "#FF9999";
-                ctx.beginPath();
-                ctx.arc(statsColumnLeft - 20, renderHeight + VKS_ANNO_TRACK_PER_TISSUE / 2, 6, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-
-            ctx.fillStyle = "#000000";
+        const foldLabel = formatGeFoldLabel(geTissueStats[tissue]?.fold);
+        if (foldLabel && foldLabel !== "—") {
+            ctx.fillStyle = emphasized ? "#000000" : "#8a8a8a";
             ctx.font = "22px Arial";
             ctx.textAlign = "start";
             ctx.fillText(
-                statLabel,
-                statsColumnLeft,
+                foldLabel,
+                foldColumnLeft,
                 renderHeight + VKS_ANNO_TRACK_PER_TISSUE / 2
             );
         }
@@ -262,6 +285,7 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
             tissue,
             yTop: renderHeight,
             yBottom: renderHeight + VKS_ANNO_TRACK_PER_TISSUE,
+            regions: regionHits,
         });
 
         renderHeight += VKS_ANNO_TRACK_PER_TISSUE;
@@ -297,5 +321,239 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
 }
 
 export function findAnnotationTissueHitAtY(tissueHits, y) {
+    if (!Array.isArray(tissueHits) || y == null) {
+        return null;
+    }
     return tissueHits.find((hit) => y >= hit.yTop && y < hit.yBottom) || null;
+}
+
+export function findAnnotationRegionHitAtPoint(tissueHits, x, y) {
+    if (!Array.isArray(tissueHits) || x == null || y == null) {
+        return null;
+    }
+    for (const tissueHit of tissueHits) {
+        if (y < tissueHit.yTop || y >= tissueHit.yBottom) {
+            continue;
+        }
+        const regions = tissueHit.regions || [];
+        for (let index = regions.length - 1; index >= 0; index -= 1) {
+            const region = regions[index];
+            if (x >= region.xStart && x <= region.xEnd) {
+                return region;
+            }
+        }
+    }
+    return null;
+}
+
+export function formatAnnotationEnrichedRegionLabel(region) {
+    if (!region) {
+        return "";
+    }
+    const start = Number(region.start);
+    const end = Number(region.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        return "";
+    }
+    return `${Math.round(start)}-${Math.round(end)}`;
+}
+
+export function formatAnnotationRegionStateLabel(state) {
+    if (state == null || state === "") {
+        return "state: —";
+    }
+    return `state: ${state}`;
+}
+
+export function formatAnnotationRegionMetaLabel(label, value) {
+    if (value == null || value === "") {
+        return `${label}: —`;
+    }
+    return `${label}: ${value}`;
+}
+
+/**
+ * Render per-biosample tracks for one selected annotation + tissue.
+ * Returns biosample row hits with nested enriched-region hits for hover.
+ */
+export function renderAnnotationBiosampleTracks(ctx, options) {
+    const {
+        regions = [],
+        annotation,
+        tissue,
+        visibleRegion,
+        canvasWidth,
+        canvasHeight,
+        margin: plotMargin,
+        utils,
+        recombPeakIntervals = [],
+        plotMarkers,
+        selectedBiosamples = [],
+        selectedMethods = null,
+        selectedSources = null,
+        xAxisBandHover = false,
+        livePositionMarkerX = null,
+    } = options;
+
+    const biosampleHits = [];
+
+    if (!ctx || !canvasWidth || !canvasHeight || !visibleRegion || !annotation || !tissue) {
+        return biosampleHits;
+    }
+
+    const margin = normalizePlotMargin(plotMargin);
+    const plotLeft = margin.left;
+    const plotTop = margin.top + VKS_ANNO_BIOSAMPLE_TITLE_H + VKS_ANNO_BIOSAMPLE_TITLE_GAP;
+    const plotWidth = canvasWidth - margin.left * 2;
+    const filteredRegions = (regions || []).filter((region) =>
+        regionPassesGeMethodSourceFilter(region, { selectedMethods, selectedSources })
+    );
+    const biosampleGroups = groupAnnoRegionsByBiosample(filteredRegions);
+    const plotHeight = biosampleGroups.length * VKS_ANNO_TRACK_PER_TISSUE;
+    const markerPlotHeight =
+        VKS_ANNO_BIOSAMPLE_TITLE_H +
+        VKS_ANNO_BIOSAMPLE_TITLE_GAP +
+        plotHeight +
+        VKS_ANNO_TRACK_X_AXIS_GAP;
+    const regionStart = Number(visibleRegion.start);
+    const regionEnd = Number(visibleRegion.end);
+    const bump = margin.bump;
+    const selectedBiosampleSet = new Set(selectedBiosamples || []);
+    const tissueLabelMaxWidth = Math.max(40, plotLeft - 14);
+    const title = `${annotation} / ${tissue}`;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    ctx.fillStyle = "#000000";
+    ctx.font = "28px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(
+        truncateTextToWidth(ctx, title, canvasWidth - 24),
+        12,
+        margin.top + VKS_ANNO_BIOSAMPLE_TITLE_H / 2 + 4
+    );
+
+    if (recombPeakIntervals.length && plotHeight > 0) {
+        renderTrackHighlightBands(ctx, {
+            intervals: recombPeakIntervals,
+            visibleRegion,
+            margin,
+            plotWidth,
+            plotHeight,
+            bandTop: plotTop,
+            bandHeight: plotHeight,
+        });
+    }
+
+    if (plotHeight > 0) {
+        renderWorkspaceAnnotationAxis(ctx, {
+            plotLeft,
+            plotTop,
+            plotWidth,
+            plotHeight,
+            xMin: regionStart,
+            xMax: regionEnd,
+            utils,
+            bump,
+        });
+    }
+
+    let renderHeight = plotTop;
+
+    biosampleGroups.forEach((group, biosampleIndex) => {
+        const { biosample } = group;
+        const regionHits = [];
+        const isSelected = selectedBiosampleSet.has(
+            biosampleSelectionKey(tissue, biosample)
+        );
+        const barColor = isSelected ? "#EE3124" : VKS_GE_TRACK_REGION_COLOR;
+
+        if (biosampleIndex % 2 === 0) {
+            ctx.fillStyle = "#00000010";
+            ctx.fillRect(plotLeft, renderHeight, plotWidth, VKS_ANNO_TRACK_PER_TISSUE);
+        }
+
+        (group.regions || []).forEach((region) => {
+            if (region.end < regionStart || region.start > regionEnd) {
+                return;
+            }
+
+            const xPosStart = Math.max(
+                plotLeft,
+                genomicPositionToCanvasX(region.start, visibleRegion, margin, plotWidth)
+            );
+            const xPosEnd = Math.min(
+                plotLeft + plotWidth,
+                genomicPositionToCanvasX(region.end, visibleRegion, margin, plotWidth)
+            );
+            const width = Math.max(2, xPosEnd - xPosStart);
+
+            ctx.fillStyle = barColor;
+            ctx.fillRect(xPosStart, renderHeight, width, VKS_ANNO_TRACK_PER_TISSUE - 1);
+
+            regionHits.push({
+                tissue,
+                biosample,
+                start: Number(region.start),
+                end: Number(region.end),
+                state: region.state ?? "",
+                dataset: region.dataset ?? "",
+                method: region.method ?? "",
+                source: region.source ?? "",
+                xStart: xPosStart,
+                xEnd: xPosStart + width,
+                yTop: renderHeight,
+                yBottom: renderHeight + VKS_ANNO_TRACK_PER_TISSUE,
+            });
+        });
+
+        ctx.fillStyle = "#000000";
+        ctx.font = "24px Arial";
+        ctx.textAlign = "start";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+            truncateTextToWidth(ctx, biosample, tissueLabelMaxWidth),
+            10,
+            renderHeight + VKS_ANNO_TRACK_PER_TISSUE / 2
+        );
+
+        biosampleHits.push({
+            tissue,
+            biosample,
+            yTop: renderHeight,
+            yBottom: renderHeight + VKS_ANNO_TRACK_PER_TISSUE,
+            regions: regionHits,
+        });
+
+        renderHeight += VKS_ANNO_TRACK_PER_TISSUE;
+    });
+
+    renderPlotMarkerLines(ctx, {
+        starredVariants: plotMarkers?.starredVariants || [],
+        positionMarkers: plotMarkers?.positionMarkers || [],
+        visibleRegion,
+        margin,
+        plotWidth,
+        plotHeight: markerPlotHeight,
+        canvasHeight,
+    });
+
+    if (xAxisBandHover && plotHeight > 0) {
+        renderXAxisBandHoverHighlight(ctx, {
+            margin,
+            plotWidth,
+            plotHeight: markerPlotHeight,
+            canvasHeight,
+        });
+    }
+
+    if (livePositionMarkerX != null && plotHeight > 0) {
+        renderLivePositionGuideline(ctx, livePositionMarkerX, {
+            margin,
+            plotHeight: markerPlotHeight,
+        });
+    }
+
+    return biosampleHits;
 }

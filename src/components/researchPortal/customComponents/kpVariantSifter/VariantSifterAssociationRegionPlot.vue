@@ -91,7 +91,7 @@ import VariantSifterZoomCenterMarker from "./VariantSifterZoomCenterMarker.vue";
 import {
     computeViewRegion,
     computeVisibleWindowWidth,
-    panRegionShiftFromDrag,
+    resolveHandPanFromDrag,
 } from "./variantSifterRegionPan.js";
 import {
     VKS_PLOT_DISPLAY_HEIGHT,
@@ -199,6 +199,8 @@ export default {
             isPanning: false,
             panStartX: 0,
             panStartRegionShiftBp: 0,
+            panStartRegionViewArea: 0,
+            panDidChangeShift: false,
             panMoved: false,
             dotMenuOpen: false,
             dotMenuRow: null,
@@ -644,8 +646,10 @@ export default {
             }
             this.isPanning = true;
             this.panMoved = false;
+            this.panDidChangeShift = false;
             this.panStartX = event.clientX;
             this.panStartRegionShiftBp = this.regionShiftBp;
+            this.panStartRegionViewArea = this.regionViewArea;
             this.hideTooltip();
             this.closeDotMenu();
             document.addEventListener("mousemove", this.onDocumentMouseMove);
@@ -659,13 +663,22 @@ export default {
             if (Math.abs(deltaX) > 3) {
                 this.panMoved = true;
             }
-            const nextShiftBp = panRegionShiftFromDrag(
-                this.panStartRegionShiftBp,
-                deltaX,
-                this.plotWidth,
-                this.visibleWidthBp
-            );
-            this.$emit("update:regionShiftBp", nextShiftBp);
+            const pan = resolveHandPanFromDrag({
+                regionZoom: this.regionZoom,
+                panStartRegionViewArea: this.panStartRegionViewArea,
+                panStartRegionShiftBp: this.panStartRegionShiftBp,
+                deltaXPixels: deltaX,
+                plotWidthPx: this.plotWidth,
+                visibleWidthBp: this.visibleWidthBp,
+            });
+            if (pan.mode === "viewArea") {
+                this.$emit("update:regionViewArea", pan.regionViewArea);
+                return;
+            }
+            if (pan.regionShiftBp !== this.regionShiftBp) {
+                this.panDidChangeShift = true;
+            }
+            this.$emit("update:regionShiftBp", pan.regionShiftBp);
         },
         onDocumentMouseUp() {
             this.stopPanning();
@@ -677,10 +690,14 @@ export default {
             if (!this.isPanning) {
                 return;
             }
+            const didChangeShift = this.panDidChangeShift;
             this.isPanning = false;
             this.panMoved = false;
+            this.panDidChangeShift = false;
             this.endPanListeners();
-            this.$emit("pan-end");
+            if (didChangeShift) {
+                this.$emit("pan-end");
+            }
         },
         endPanListeners() {
             document.removeEventListener("mousemove", this.onDocumentMouseMove);
@@ -774,8 +791,8 @@ export default {
 }
 
 .vks-association-region-plot-legend {
-    text-align: center;
-    padding: 4px 0 20px;
+    text-align: left;
+    padding: 4px 6px 20px;
     font-size: 12px;
     color: #333333;
 }
