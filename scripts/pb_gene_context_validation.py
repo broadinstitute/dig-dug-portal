@@ -89,13 +89,19 @@ def load_overlap_roster(path):
 
 
 def reconstruct_pathogenic_score(row):
-    """Recover whether the existing stored score was defined, without a fallback."""
+    """Reconstruct the versioned Pathogenic Score from annotation provenance."""
     lof = str(row.get("LoF") or row.get("lof") or "").strip().upper()
     alpha = _finite_float(row.get("Alphamissense", row.get("AlphaMissense")))
+    revel = _finite_float(row.get("REVEL", row.get("revel")))
+    for label, value in (("AlphaMissense", alpha), ("REVEL", revel)):
+        if value is not None and not 0 <= value <= 1:
+            raise ValueError(f"{label} outside [0,1]")
     if lof == "HC":
-        score, source = 1.0, "LoF_HC"
+        score, source = 1.0, "LoFTEE_HC"
     elif alpha is not None:
         score, source = alpha, "AlphaMissense"
+    elif revel is not None:
+        score, source = revel, "REVEL"
     else:
         score, source = None, "No_score"
 

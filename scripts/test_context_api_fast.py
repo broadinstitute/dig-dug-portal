@@ -56,7 +56,8 @@ class GeneBurdenTest(unittest.TestCase):
         self.assertAlmostEqual(result["beta"], 1.01237430338601, places=6)
         self.assertAlmostEqual(result["standard_error"], 0.0432243888701358, places=6)
         self.assertAlmostEqual(result["p_value"], 2.58909919542769e-121, delta=1e-125)
-        self.assertEqual(result["model_version"], "portal_huber_rlm_v0")
+        self.assertEqual(result["model_version"], "portal_huber_rlm_v1")
+        self.assertEqual(result["pathogenicity_score_version"], "loftee_hc_alphamissense_revel_v1")
         self.assertEqual(result["covariates"], [])
 
     def test_returns_no_statistic_when_carrier_support_is_too_small(self):

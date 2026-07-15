@@ -10,7 +10,8 @@ import numpy as np
 from scipy.stats import norm
 
 
-MODEL_VERSION = "portal_huber_rlm_v0"
+MODEL_VERSION = "portal_huber_rlm_v1"
+PATHOGENICITY_SCORE_VERSION = "loftee_hc_alphamissense_revel_v1"
 
 
 def benjamini_hochberg(p_values):
@@ -148,6 +149,7 @@ def gene_burden_test(
         "iterations": 0,
         "status": "invalid_data",
         "model_version": MODEL_VERSION,
+        "pathogenicity_score_version": PATHOGENICITY_SCORE_VERSION,
         "model": "Huber RLM",
         "formula": "Y ~ X" + (" + " + " + ".join(covariate_names) if covariate_names else ""),
         "covariates": covariate_names,
