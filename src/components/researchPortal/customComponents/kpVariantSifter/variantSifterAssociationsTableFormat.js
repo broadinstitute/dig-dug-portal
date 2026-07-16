@@ -71,6 +71,8 @@ export const ASSOCIATIONS_TABLE_FORMAT = {
             "Impact of the variant for overlapping genes or transcripts, as predicted by the Ensembl Variant Effect Predictor (VEP)",
         "Credible Set":
             "Posterior Probability of Association for the variant in the selected credible set(s)",
+        "Cred. sets":
+            "Highest Posterior Probability of Association among mapped credible sets. Click to expand matched sets.",
     },
     "locus field": "Locus",
     "star column": "Variant ID",

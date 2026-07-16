@@ -49,73 +49,21 @@
                 @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
             />
 
-            <div class="vks-data-table-view-total">
-                Total rows: {{ displayRows.length.toLocaleString() }}
-            </div>
-
-            <div class="table-ui-wrapper">
-                <label>
-                    Rows per page:
-                    <select v-model="perPageNumber" class="number-per-page">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="40">40</option>
-                        <option value="100">100</option>
-                        <option value="0">All</option>
-                    </select>
-                </label>
-                <div
-                    class="convert-2-csv btn-sm"
-                    @click="exportCsv"
-                >
-                    Save as CSV
-                </div>
-                <div
-                    class="convert-2-csv btn-sm"
-                    @click="exportJson"
-                >
-                    Save as JSON
-                </div>
-                <div
-                    class="convert-2-csv btn-sm"
-                    @click="showHidePanel"
-                >
-                    show/hide columns
-                </div>
-                <div
-                    v-if="showColumnsPanel"
-                    id="vksShowHideColumnsBox"
-                    class="vks-show-hide-columns-box"
-                >
-                    <div
-                        class="show-hide-columns-box-close"
-                        @click="showHidePanel"
-                    >
-                        <b-icon icon="x-circle-fill"></b-icon>
+            <VariantSifterTableSettings
+                :per-page="Number(perPageNumber)"
+                :columns="mappedTopRows"
+                :visible-columns="visibleColumns"
+                @update:perPage="onPerPageUpdate"
+                @export-csv="exportCsv"
+                @export-json="exportJson"
+                @update:columnVisible="onColumnVisibleUpdate"
+            >
+                <template #before>
+                    <div class="vks-data-table-view-total">
+                        Total rows: {{ displayRows.length.toLocaleString() }}
                     </div>
-                    <h4 style="text-align: center">Show/hide columns</h4>
-                    <div class="table-wrapper">
-                        <table class="table table-sm">
-                            <tbody>
-                                <tr
-                                    v-for="column in mappedTopRows"
-                                    :key="column"
-                                >
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            :id="getColumnId(column)"
-                                            :checked="isColumnVisible(column)"
-                                            @change="toggleColumn(column, $event)"
-                                        />
-                                        <span> {{ column }}</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                </template>
+            </VariantSifterTableSettings>
 
             <div class="vks-assoc-table-wrap">
                 <table
@@ -148,27 +96,59 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr
-                            v-for="(row, rowIndex) in pagedRows"
-                            :key="row['Variant ID'] + '-' + rowIndex"
-                        >
-                            <td v-if="starColumn">
-                                <b-icon
-                                    :icon="isStarred(row) ? 'star-fill' : 'star'"
-                                    :style="{
-                                        color: isStarred(row) ? '#ffcc00' : '#aaaaaa',
-                                        cursor: 'pointer',
-                                    }"
-                                    @click="toggleStar(row)"
-                                ></b-icon>
-                            </td>
-                            <td
-                                v-for="column in visibleTopRows"
-                                :key="column"
-                                :class="getColumnId(column)"
-                                v-html="formatCell(row, column)"
-                            ></td>
-                        </tr>
+                        <template v-for="(row, rowIndex) in pagedRows">
+                            <tr :key="row['Variant ID'] + '-' + rowIndex">
+                                <td v-if="starColumn">
+                                    <b-icon
+                                        :icon="isStarred(row) ? 'star-fill' : 'star'"
+                                        :style="{
+                                            color: isStarred(row) ? '#ffcc00' : '#aaaaaa',
+                                            cursor: 'pointer',
+                                        }"
+                                        @click="toggleStar(row)"
+                                    ></b-icon>
+                                </td>
+                                <td
+                                    v-for="column in visibleTopRows"
+                                    :key="`${row['Variant ID']}-${rowIndex}-${column}`"
+                                    :class="getColumnId(column)"
+                                >
+                                    <button
+                                        v-if="
+                                            isExpandableMappingColumn(column) &&
+                                                hasMappingGroup(row, column)
+                                        "
+                                        type="button"
+                                        class="vks-mapping-ppa-button"
+                                        :class="{
+                                            'is-open': isMappingExpanded(row, column),
+                                        }"
+                                        :style="{ color: mappingColumnColor(column) }"
+                                        @click.stop="toggleMappingExpand(row, column)"
+                                    >
+                                        {{ formatExpandableValue(row, column) }}
+                                    </button>
+                                    <span
+                                        v-else
+                                        v-html="formatCell(row, column)"
+                                    ></span>
+                                </td>
+                            </tr>
+                            <tr
+                                v-if="expandedGroupIdForRow(row)"
+                                :key="`${row['Variant ID']}-${rowIndex}-details`"
+                                class="vks-mapping-details-row"
+                            >
+                                <td :colspan="mappingDetailColspan">
+                                    <VariantSifterMappingRowDetails
+                                        :details="expandedDetailsForRow(row)"
+                                        :group-id="expandedGroupIdForRow(row)"
+                                        :title="expandedTitleForRow(row)"
+                                        :utils="utils"
+                                    />
+                                </td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -188,16 +168,22 @@
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
 import {
+    applyWorkspaceMappingToAssociationRows,
     buildMappedVariantDataTableView,
     collectMappingCategories,
+    getMappingDetailsForGroup,
+    mappingGroupColor,
+    mappingGroupLabel,
     normalizeMappingMode,
     normalizeMappingState,
-    applyWorkspaceMappingToAssociationRows,
+    VKS_CRED_SETS_COLUMN,
 } from "./variantSifterMappingData.js";
 import VariantSifterAssociationsFilters from "./VariantSifterAssociationsFilters.vue";
 import VariantSifterAssociationsLdPlot from "./VariantSifterAssociationsLdPlot.vue";
 import VariantSifterAncestryBubbles from "./VariantSifterAncestryBubbles.vue";
 import VariantSifterMappingBar from "./VariantSifterMappingBar.vue";
+import VariantSifterMappingRowDetails from "./VariantSifterMappingRowDetails.vue";
+import VariantSifterTableSettings from "./VariantSifterTableSettings.vue";
 
 export default {
     name: "VariantSifterAssociationsDrawer",
@@ -206,6 +192,8 @@ export default {
         VariantSifterAssociationsLdPlot,
         VariantSifterAncestryBubbles,
         VariantSifterMappingBar,
+        VariantSifterMappingRowDetails,
+        VariantSifterTableSettings,
     },
     props: {
         rows: {
@@ -336,12 +324,12 @@ export default {
             tableFormat: ASSOCIATIONS_TABLE_FORMAT,
             topRows,
             visibleColumns,
-            showColumnsPanel: false,
             perPageNumber: "10",
             currentPage: 1,
             sortKey: null,
             sortDirection: "asc",
             showStarredOnly: false,
+            expandedMappingKeys: {},
         };
     },
     computed: {
@@ -392,6 +380,9 @@ export default {
             return this.mappedTopRows.filter(
                 (column) => this.visibleColumns[column] !== false
             );
+        },
+        mappingDetailColspan() {
+            return this.visibleTopRows.length + (this.starColumn ? 1 : 0);
         },
         mappingCategoryKey() {
             return this.mappingCategories.map((category) => category.id).join("|");
@@ -490,6 +481,7 @@ export default {
             this.currentPage = 1;
             this.sortKey = null;
             this.sortDirection = "asc";
+            this.expandedMappingKeys = {};
         },
         queryString() {
             this.currentPage = 1;
@@ -524,8 +516,11 @@ export default {
         isColumnVisible(column) {
             return this.visibleColumns[column] !== false;
         },
-        toggleColumn(column, event) {
-            this.$set(this.visibleColumns, column, event.target.checked);
+        onColumnVisibleUpdate({ column, visible }) {
+            this.$set(this.visibleColumns, column, Boolean(visible));
+        },
+        onPerPageUpdate(perPage) {
+            this.perPageNumber = String(perPage);
         },
         emitMappingState(patch = {}) {
             this.$emit(
@@ -566,9 +561,6 @@ export default {
                     this.$set(this.visibleColumns, column, true);
                 }
             });
-        },
-        showHidePanel() {
-            this.showColumnsPanel = !this.showColumnsPanel;
         },
         applySorting(key) {
             if (this.sortKey === key) {
@@ -618,6 +610,85 @@ export default {
 
             return value;
         },
+        variantKey(row) {
+            return String(row?.["Variant ID"] || row?.varId || "");
+        },
+        mappingGroupIdForColumn(column) {
+            return (
+                this.activeTableFormat?.["column formatting"]?.[column]
+                    ?.mappingGroupId ||
+                (column === VKS_CRED_SETS_COLUMN ? "credible-sets" : null)
+            );
+        },
+        isExpandableMappingColumn(column) {
+            const formatting =
+                this.activeTableFormat?.["column formatting"]?.[column];
+            return Boolean(
+                formatting?.type?.includes("expandable mapping") ||
+                    column === VKS_CRED_SETS_COLUMN
+            );
+        },
+        hasMappingGroup(row, column) {
+            const groupId = this.mappingGroupIdForColumn(column);
+            return Boolean(
+                groupId && getMappingDetailsForGroup(row, groupId).length
+            );
+        },
+        mappingExpandKey(row, column) {
+            const groupId = this.mappingGroupIdForColumn(column);
+            return `${this.variantKey(row)}:::${groupId || column}`;
+        },
+        isMappingExpanded(row, column) {
+            return Boolean(this.expandedMappingKeys[this.mappingExpandKey(row, column)]);
+        },
+        toggleMappingExpand(row, column) {
+            const key = this.mappingExpandKey(row, column);
+            this.$set(this.expandedMappingKeys, key, !this.expandedMappingKeys[key]);
+        },
+        expandedGroupIdForRow(row) {
+            const variantKey = this.variantKey(row);
+            const prefix = `${variantKey}:::`;
+            const openKey = Object.keys(this.expandedMappingKeys).find(
+                (key) => key.startsWith(prefix) && this.expandedMappingKeys[key]
+            );
+            return openKey ? openKey.slice(prefix.length) : null;
+        },
+        expandedDetailsForRow(row) {
+            const groupId = this.expandedGroupIdForRow(row);
+            return groupId ? getMappingDetailsForGroup(row, groupId) : [];
+        },
+        expandedTitleForRow(row) {
+            const groupId = this.expandedGroupIdForRow(row);
+            if (groupId === "credible-sets") {
+                return "Mapped credible sets";
+            }
+            return `Mapped ${mappingGroupLabel(groupId)} features`;
+        },
+        mappingColumnColor(column) {
+            return mappingGroupColor(this.mappingGroupIdForColumn(column));
+        },
+        formatExpandableValue(row, column) {
+            const value = row[column];
+            if (value == null || value === "") {
+                return "";
+            }
+            const format = this.activeTableFormat;
+            const columnFormatting = format["column formatting"]?.[column];
+            if (columnFormatting && this.utils?.Formatters?.BYORColumnFormatter) {
+                return this.utils.Formatters.BYORColumnFormatter(
+                    value,
+                    column,
+                    format,
+                    null,
+                    null,
+                    row
+                );
+            }
+            if (typeof value === "number") {
+                return value.toExponential(2);
+            }
+            return String(value);
+        },
         exportCsv() {
             if (!this.utils?.uiUtils?.saveByorCsv) {
                 return;
@@ -660,61 +731,10 @@ export default {
 }
 
 .vks-data-table-view-total {
-    margin: 0 0 6px;
+    margin: 0;
     font-size: 13px;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);
-}
-
-.table-ui-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 14px;
-    font-size: 13px;
-    position: relative;
-}
-
-.table-ui-wrapper label {
-    margin: 0;
-    white-space: nowrap;
-}
-
-.number-per-page {
-    margin-left: 4px;
-    font-size: 13px;
-}
-
-.convert-2-csv {
-    cursor: pointer;
-    color: #007bff;
-    white-space: nowrap;
-}
-
-.convert-2-csv:hover {
-    color: #004bcf;
-    text-decoration: underline;
-}
-
-.vks-show-hide-columns-box {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    z-index: 10;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    min-width: 220px;
-}
-
-.show-hide-columns-box-close {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    cursor: pointer;
-    color: #888;
 }
 
 .vks-assoc-table-wrap {
@@ -792,5 +812,28 @@ export default {
 
 .byor-tooltip:hover .tooltiptext {
     visibility: visible;
+}
+
+.vks-mapping-ppa-button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.vks-mapping-ppa-button.is-open {
+    text-decoration: none;
+}
+
+.vks-mapping-details-row > td {
+    padding: 0 !important;
+    height: auto !important;
+    background: transparent !important;
+    border-top: 0 !important;
 }
 </style>

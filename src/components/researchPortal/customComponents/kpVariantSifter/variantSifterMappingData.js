@@ -28,6 +28,41 @@ import {
 const CS_KEY_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["key field"];
 const CS_PPA_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["PPA"];
 
+/** Single table column for max PPA across matched credible sets (replaces per-set columns). */
+export const VKS_CRED_SETS_COLUMN = "Cred. sets";
+
+export const VKS_MAPPING_GROUP_COLORS = {
+    "credible-sets": "#32AFD5",
+    "global-enrichment": "#2c5c97",
+    biosamples: "#048845",
+    "variant-to-gene-links": "#7b4ea3",
+    "snp2gene-links": "#e07b39",
+};
+
+export const VKS_MAPPING_GROUP_LABELS = {
+    "credible-sets": "CS",
+    "global-enrichment": "GE",
+    biosamples: "GE",
+    "variant-to-gene-links": "V2G",
+    "snp2gene-links": "S2G",
+};
+
+export function mappingGroupColor(groupId) {
+    return VKS_MAPPING_GROUP_COLORS[groupId] || "#6b6b6b";
+}
+
+export function mappingGroupLabel(groupId) {
+    return VKS_MAPPING_GROUP_LABELS[groupId] || "Map";
+}
+
+export function getMappingDetailsForGroup(row, groupId) {
+    const details = Array.isArray(row?.mappingDetails) ? row.mappingDetails : [];
+    if (!groupId) {
+        return details;
+    }
+    return details.filter((entry) => entry?.groupId === groupId);
+}
+
 export const VKS_MAPPING_MODES = [
     { id: "or", label: "Or" },
     { id: "and", label: "And" },
@@ -367,6 +402,32 @@ function resolveCsPpa(csRow) {
     return Number.isNaN(numeric) ? value : numeric;
 }
 
+function resolveCsPValue(csRow) {
+    const value = csRow?.["P-Value"] ?? csRow?.pValue ?? csRow?.pvalue;
+    if (value == null || value === "") {
+        return null;
+    }
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? value : numeric;
+}
+
+function appendMappingDetail(row, detail) {
+    const next = { ...row };
+    const details = Array.isArray(next.mappingDetails) ? [...next.mappingDetails] : [];
+    const duplicate = details.some(
+        (entry) =>
+            entry?.groupId === detail.groupId &&
+            entry?.label === detail.label &&
+            entry?.ppa === detail.ppa &&
+            entry?.overlap === detail.overlap
+    );
+    if (!duplicate) {
+        details.push(detail);
+    }
+    next.mappingDetails = details;
+    return next;
+}
+
 function positionOverlapsRegions(position, regions = []) {
     const pos = Number(position);
     if (!Number.isFinite(pos) || !regions.length) {
@@ -619,6 +680,7 @@ export function collectMappingCategories({
         }
         const variantIds = new Set();
         const ppaByVariant = {};
+        const pValueByVariant = {};
         formatted.forEach((csRow) => {
             const keys = [];
             if (csRow?.[CS_KEY_FIELD]) {
@@ -628,10 +690,14 @@ export function collectMappingCategories({
                 keys.push(String(csRow.varId));
             }
             const ppa = resolveCsPpa(csRow);
+            const pValue = resolveCsPValue(csRow);
             keys.forEach((key) => {
                 variantIds.add(key);
                 if (ppa != null) {
                     ppaByVariant[key] = ppa;
+                }
+                if (pValue != null) {
+                    pValueByVariant[key] = pValue;
                 }
             });
         });
@@ -646,7 +712,7 @@ export function collectMappingCategories({
             kind: "membership",
             variantIds,
             ppaByVariant,
-            columnKey: meta.label || meta.credibleSetId || selectionKey,
+            pValueByVariant,
         });
     });
 
@@ -825,21 +891,37 @@ function rowMatchesCategory(row, category) {
 }
 
 function enrichRowForCategory(row, category) {
-    const next = { ...row };
+    let next = { ...row };
     if (category.kind === "membership") {
         const keys = [...rowVariantKeys(row)];
         let ppa = null;
+        let pValue = null;
         for (const key of keys) {
-            if (category.ppaByVariant?.[key] != null) {
+            if (ppa == null && category.ppaByVariant?.[key] != null) {
                 ppa = category.ppaByVariant[key];
-                break;
+            }
+            if (pValue == null && category.pValueByVariant?.[key] != null) {
+                pValue = category.pValueByVariant[key];
             }
         }
-        if (ppa != null && category.columnKey) {
-            next[category.columnKey] = ppa;
-            const previous = next["Credible Set"];
-            if (previous == null || (typeof ppa === "number" && ppa > previous)) {
-                next["Credible Set"] = ppa;
+        if (ppa == null && pValue == null) {
+            return next;
+        }
+        next = appendMappingDetail(next, {
+            groupId: category.groupId || "credible-sets",
+            groupLabel: mappingGroupLabel(category.groupId || "credible-sets"),
+            label: category.label,
+            ppa,
+            pValue,
+        });
+        if (ppa != null) {
+            const previous = next[VKS_CRED_SETS_COLUMN];
+            if (
+                previous == null ||
+                (typeof ppa === "number" &&
+                    (typeof previous !== "number" || ppa > previous))
+            ) {
+                next[VKS_CRED_SETS_COLUMN] = ppa;
             }
         }
         return next;
@@ -860,6 +942,14 @@ function enrichRowForCategory(row, category) {
         next.overStart = overlap.start;
         next.overEnd = overlap.end;
         next["Annotation Overlap"] = `${overlap.start}-${overlap.end}`;
+        next = appendMappingDetail(next, {
+            groupId: category.groupId || "global-enrichment",
+            groupLabel: mappingGroupLabel(category.groupId),
+            label: category.label,
+            overlap: `${overlap.start}-${overlap.end}`,
+            ppa: null,
+            pValue: null,
+        });
     }
     return next;
 }
@@ -882,9 +972,9 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
     }
 
     const combineMode = normalizeMappingMode(mode);
-    const membershipColumns = selected
-        .filter((category) => category.kind === "membership" && category.columnKey)
-        .map((category) => category.columnKey);
+    const hasMembershipCategories = selected.some(
+        (category) => category.kind === "membership"
+    );
     const hasRegionCategories = selected.some((category) => category.kind === "region");
 
     const filtered = [];
@@ -908,13 +998,8 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
     });
 
     const topRows = [...ASSOCIATIONS_TABLE_FORMAT["top rows"]];
-    membershipColumns.forEach((columnKey) => {
-        if (!topRows.includes(columnKey)) {
-            topRows.push(columnKey);
-        }
-    });
-    if (membershipColumns.length && !topRows.includes("Credible Set")) {
-        topRows.push("Credible Set");
+    if (hasMembershipCategories && !topRows.includes(VKS_CRED_SETS_COLUMN)) {
+        topRows.push(VKS_CRED_SETS_COLUMN);
     }
     if (hasRegionCategories && !topRows.includes("Annotation Overlap")) {
         topRows.push("Annotation Overlap");
@@ -926,18 +1011,19 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
     const tableFormat = {
         ...ASSOCIATIONS_TABLE_FORMAT,
         "top rows": topRows,
+        "tool tips": {
+            ...ASSOCIATIONS_TABLE_FORMAT["tool tips"],
+            [VKS_CRED_SETS_COLUMN]:
+                "Highest Posterior Probability of Association among mapped credible sets. Click to expand matched sets.",
+        },
         "column formatting": {
             ...ASSOCIATIONS_TABLE_FORMAT["column formatting"],
         },
     };
-    membershipColumns.forEach((columnKey) => {
-        tableFormat["column formatting"][columnKey] = {
-            type: ["scientific notation"],
-        };
-    });
-    if (membershipColumns.length) {
-        tableFormat["column formatting"]["Credible Set"] = {
-            type: ["scientific notation"],
+    if (hasMembershipCategories) {
+        tableFormat["column formatting"][VKS_CRED_SETS_COLUMN] = {
+            type: ["scientific notation", "expandable mapping"],
+            mappingGroupId: "credible-sets",
         };
     }
 
