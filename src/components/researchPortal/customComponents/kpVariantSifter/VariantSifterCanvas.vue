@@ -36,6 +36,7 @@
                         :v2g-state="v2gState"
                         :s2g-state="s2gState"
                         :visible-section-ids="visibleSectionIds"
+                        :workspace-mapping-filter="workspaceMappingFilter"
                         :utils="utils"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
@@ -44,9 +45,17 @@
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
                         @update:geSelectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
+                        @update:geActiveAnnotation="$emit('update:geActiveAnnotation', $event)"
+                        @update:geSelectedTissues="$emit('update:geSelectedTissues', $event)"
                         @update:geBiosampleFilterOptions="
                             $emit('update:geBiosampleFilterOptions', $event)
                         "
+                        @update:geBiosampleTissueRegions="
+                            $emit('update:geBiosampleTissueRegions', $event)
+                        "
+                        @update:geBiosampleLoading="$emit('update:geBiosampleLoading', $event)"
+                        @update:v2gSelectedLinks="$emit('update:v2gSelectedLinks', $event)"
+                        @update:s2gSelectedLinks="$emit('update:s2gSelectedLinks', $event)"
                     />
                     <VariantSifterTrackStrip
                         v-else
@@ -59,10 +68,17 @@
                 :open="dataTableOpen"
                 :association-rows="associationsState.rows"
                 :credible-sets-state="credibleSetsState"
+                :global-enrichment-state="globalEnrichmentState"
+                :v2g-state="v2gState"
+                :s2g-state="s2gState"
+                :mapping-state="mappingState"
+                :workspace-mapping-filter="workspaceMappingFilter"
                 :utils="utils"
                 :starred-variant-ids="starredVariantIds"
                 @close="$emit('close-data-table')"
                 @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                @update:mappingState="$emit('update:mappingState', $event)"
+                @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
             />
         </div>
     </div>
@@ -75,6 +91,7 @@ import VariantSifterDataTableModal from "./VariantSifterDataTableModal.vue";
 import VariantSifterWelcomePanel from "./VariantSifterWelcomePanel.vue";
 import { drawerRailMinHeight, sectionHasCanvasTrack } from "./variantSifterSections.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
+import { applyWorkspaceMappingToAssociationRows } from "./variantSifterMappingData.js";
 
 export default {
     name: "VariantSifterCanvas",
@@ -132,6 +149,17 @@ export default {
         dataTableOpen: {
             type: Boolean,
             default: false,
+        },
+        mappingState: {
+            type: Object,
+            default: () => ({
+                selectedCategoryIds: [],
+                mappingMode: "or",
+            }),
+        },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
         },
         associationsState: {
             type: Object,
@@ -243,7 +271,11 @@ export default {
             if (!rows?.length) {
                 return [];
             }
-            return applyAssociationsFilters(rows, filtersIndex);
+            const filtered = applyAssociationsFilters(rows, filtersIndex);
+            return applyWorkspaceMappingToAssociationRows(
+                filtered,
+                this.workspaceMappingFilter
+            );
         },
         viewportStyle() {
             return {

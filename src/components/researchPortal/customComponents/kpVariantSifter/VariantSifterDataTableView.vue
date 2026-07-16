@@ -3,7 +3,9 @@
         <p v-if="note" class="vks-data-table-view-note">{{ note }}</p>
         <div v-if="!rows.length" class="vks-data-table-view-empty">{{ emptyMessage }}</div>
         <template v-else>
-            <div class="table-total-rows">Total rows: {{ rows.length }}</div>
+            <div class="vks-data-table-view-total">
+                Total rows: {{ rows.length.toLocaleString() }}
+            </div>
             <div class="vks-data-table-view-wrap">
                 <table
                     class="table table-sm research-data-table"
@@ -251,7 +253,19 @@ export default {
     color: var(--cfde-muted, #6b6b6b);
 }
 
+.vks-data-table-view-total {
+    float: none;
+    clear: both;
+    display: block;
+    margin: 0 0 8px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
 .vks-data-table-view-wrap {
+    clear: both;
     overflow-x: auto;
 }
 

@@ -38,16 +38,22 @@
                 @update:filtersIndex="$emit('update:filtersIndex', $event)"
             />
 
-            <div class="table-total-rows">Total rows: {{ displayRows.length }}</div>
+            <VariantSifterMappingBar
+                :categories="mappingCategories"
+                :selected-category-ids="selectedCategoryIds"
+                :mapping-mode="mappingMode"
+                :workspace-filter-active="Boolean(workspaceMappingFilter?.active)"
+                :workspace-filter-row-count="workspaceMappingFilter?.rowCount || 0"
+                @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
+                @update:mappingMode="onMappingModeUpdate"
+                @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
+            />
+
+            <div class="vks-data-table-view-total">
+                Total rows: {{ displayRows.length.toLocaleString() }}
+            </div>
 
             <div class="table-ui-wrapper">
-                <label>
-                    Compare annotated regions:
-                    <select v-model="filterTissueType" class="number-per-page">
-                        <option value="or">Or</option>
-                        <option value="and">And</option>
-                    </select>
-                </label>
                 <label>
                     Rows per page:
                     <select v-model="perPageNumber" class="number-per-page">
@@ -92,7 +98,7 @@
                         <table class="table table-sm">
                             <tbody>
                                 <tr
-                                    v-for="column in topRows"
+                                    v-for="column in mappedTopRows"
                                     :key="column"
                                 >
                                     <td>
@@ -135,9 +141,9 @@
                             >
                                 <span>{{ column }}</span>
                                 <span
-                                    v-if="tableFormat['tool tips'][column]"
+                                    v-if="activeTableFormat['tool tips']?.[column]"
                                     class="tooltiptext"
-                                >{{ tableFormat["tool tips"][column] }}</span>
+                                >{{ activeTableFormat["tool tips"][column] }}</span>
                             </th>
                         </tr>
                     </thead>
@@ -181,9 +187,17 @@
 <script>
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
 import { applyAssociationsFilters } from "./variantSifterAssociationsFilters.js";
+import {
+    buildMappedVariantDataTableView,
+    collectMappingCategories,
+    normalizeMappingMode,
+    normalizeMappingState,
+    applyWorkspaceMappingToAssociationRows,
+} from "./variantSifterMappingData.js";
 import VariantSifterAssociationsFilters from "./VariantSifterAssociationsFilters.vue";
 import VariantSifterAssociationsLdPlot from "./VariantSifterAssociationsLdPlot.vue";
 import VariantSifterAncestryBubbles from "./VariantSifterAncestryBubbles.vue";
+import VariantSifterMappingBar from "./VariantSifterMappingBar.vue";
 
 export default {
     name: "VariantSifterAssociationsDrawer",
@@ -191,6 +205,7 @@ export default {
         VariantSifterAssociationsFilters,
         VariantSifterAssociationsLdPlot,
         VariantSifterAncestryBubbles,
+        VariantSifterMappingBar,
     },
     props: {
         rows: {
@@ -282,6 +297,33 @@ export default {
             type: Array,
             default: () => [],
         },
+        credibleSetsState: {
+            type: Object,
+            default: null,
+        },
+        globalEnrichmentState: {
+            type: Object,
+            default: null,
+        },
+        v2gState: {
+            type: Object,
+            default: null,
+        },
+        s2gState: {
+            type: Object,
+            default: null,
+        },
+        mappingState: {
+            type: Object,
+            default: () => ({
+                selectedCategoryIds: [],
+                mappingMode: "or",
+            }),
+        },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
         const topRows = ASSOCIATIONS_TABLE_FORMAT["top rows"];
@@ -295,7 +337,6 @@ export default {
             topRows,
             visibleColumns,
             showColumnsPanel: false,
-            filterTissueType: "or",
             perPageNumber: "10",
             currentPage: 1,
             sortKey: null,
@@ -304,14 +345,56 @@ export default {
         };
     },
     computed: {
-        filteredRows() {
+        selectedCategoryIds() {
+            return normalizeMappingState(this.mappingState).selectedCategoryIds;
+        },
+        mappingMode() {
+            return normalizeMappingState(this.mappingState).mappingMode;
+        },
+        mappingCategories() {
+            return collectMappingCategories({
+                credibleSetsState: this.credibleSetsState,
+                globalEnrichmentState: this.globalEnrichmentState,
+                v2gState: this.v2gState,
+                s2gState: this.s2gState,
+            });
+        },
+        columnFilteredRows() {
             return applyAssociationsFilters(this.rows, this.filtersIndex);
         },
+        filteredRows() {
+            // LD plot follows workspace mapping filter when applied.
+            return applyWorkspaceMappingToAssociationRows(
+                this.columnFilteredRows,
+                this.workspaceMappingFilter
+            );
+        },
+        tableRows() {
+            return this.mappedTableView.rows;
+        },
+        mappedTableView() {
+            return buildMappedVariantDataTableView(this.columnFilteredRows, {
+                mappingCategories: this.mappingCategories,
+                selectedCategoryIds: this.selectedCategoryIds,
+                mappingMode: this.mappingMode,
+            });
+        },
+        mappedTopRows() {
+            return this.mappedTableView.topRows || this.topRows;
+        },
+        activeTableFormat() {
+            return this.mappedTableView.tableFormat || this.tableFormat;
+        },
         starColumn() {
-            return this.tableFormat["star column"];
+            return this.activeTableFormat["star column"];
         },
         visibleTopRows() {
-            return this.topRows.filter((column) => this.visibleColumns[column]);
+            return this.mappedTopRows.filter(
+                (column) => this.visibleColumns[column] !== false
+            );
+        },
+        mappingCategoryKey() {
+            return this.mappingCategories.map((category) => category.id).join("|");
         },
         drawerStatusLabel() {
             const parts = [];
@@ -326,7 +409,7 @@ export default {
             return parts.filter(Boolean).join(" · ");
         },
         sortedRows() {
-            const sourceRows = this.filteredRows;
+            const sourceRows = this.tableRows;
 
             if (!this.sortKey) {
                 return [...sourceRows];
@@ -395,7 +478,7 @@ export default {
         exportRows() {
             return this.displayRows.map((row) => {
                 const out = {};
-                this.topRows.forEach((column) => {
+                this.mappedTopRows.forEach((column) => {
                     out[column] = row[column];
                 });
                 return out;
@@ -417,6 +500,22 @@ export default {
         showStarredOnly() {
             this.currentPage = 1;
         },
+        selectedCategoryIds() {
+            this.currentPage = 1;
+        },
+        mappingMode() {
+            this.currentPage = 1;
+        },
+        mappingCategoryKey() {
+            this.pruneSelectedCategories();
+            this.ensureMappedColumnsVisible();
+        },
+        mappedTopRows: {
+            immediate: true,
+            handler() {
+                this.ensureMappedColumnsVisible();
+            },
+        },
     },
     methods: {
         getColumnId(label) {
@@ -427,6 +526,46 @@ export default {
         },
         toggleColumn(column, event) {
             this.$set(this.visibleColumns, column, event.target.checked);
+        },
+        emitMappingState(patch = {}) {
+            this.$emit(
+                "update:mappingState",
+                normalizeMappingState({
+                    selectedCategoryIds: this.selectedCategoryIds,
+                    mappingMode: this.mappingMode,
+                    ...patch,
+                })
+            );
+        },
+        onSelectedCategoryIdsUpdate(selectedCategoryIds) {
+            this.emitMappingState({ selectedCategoryIds });
+        },
+        onMappingModeUpdate(mappingMode) {
+            this.emitMappingState({
+                mappingMode: normalizeMappingMode(mappingMode),
+            });
+        },
+        pruneSelectedCategories() {
+            const availableIds = new Set(
+                this.mappingCategories.map((category) => category.id)
+            );
+            const next = (this.selectedCategoryIds || []).filter((id) =>
+                availableIds.has(id)
+            );
+            if (
+                next.length === this.selectedCategoryIds.length &&
+                next.every((id, index) => id === this.selectedCategoryIds[index])
+            ) {
+                return;
+            }
+            this.emitMappingState({ selectedCategoryIds: next });
+        },
+        ensureMappedColumnsVisible() {
+            (this.mappedTopRows || []).forEach((column) => {
+                if (this.visibleColumns[column] === undefined) {
+                    this.$set(this.visibleColumns, column, true);
+                }
+            });
         },
         showHidePanel() {
             this.showColumnsPanel = !this.showColumnsPanel;
@@ -455,7 +594,8 @@ export default {
                 return "";
             }
 
-            const columnFormatting = this.tableFormat["column formatting"]?.[column];
+            const format = this.activeTableFormat;
+            const columnFormatting = format["column formatting"]?.[column];
             if (columnFormatting?.type?.includes("link")) {
                 const linkValue =
                     column === "Variant ID" && row.varId ? row.varId : value;
@@ -469,7 +609,7 @@ export default {
                 return this.utils.Formatters.BYORColumnFormatter(
                     value,
                     column,
-                    this.tableFormat,
+                    format,
                     null,
                     null,
                     row
@@ -519,7 +659,8 @@ export default {
     color: #b42318;
 }
 
-.table-total-rows {
+.vks-data-table-view-total {
+    margin: 0 0 6px;
     font-size: 13px;
     font-weight: 600;
     color: var(--cfde-ink, #33363d);

@@ -243,7 +243,16 @@ export function snapshotGlobalEnrichmentForExport(state) {
         geTrackPValueMax: normalizeGeTrackPValueMax(state.geTrackPValueMax),
         selectedMethods: normalizeGeFilterStringList(state.selectedMethods),
         selectedSources: normalizeGeFilterStringList(state.selectedSources),
+        activeAnnotation: state.activeAnnotation || null,
+        selectedTissues: Array.isArray(state.selectedTissues)
+            ? [...new Set(state.selectedTissues.filter(Boolean))]
+            : [],
         selectedBiosamples: normalizeGeSelectedBiosamples(state.selectedBiosamples),
+        biosampleMethodOptions: normalizeGeOptionList(state.biosampleMethodOptions),
+        biosampleSourceOptions: normalizeGeOptionList(state.biosampleSourceOptions),
+        biosampleRegionsByAnnotation: normalizeGeBiosampleRegionsByAnnotation(
+            state.biosampleRegionsByAnnotation
+        ),
     };
 }
 
@@ -299,7 +308,16 @@ export function normalizeGlobalEnrichmentFromSession(exported) {
         geTrackPValueMax: normalizeGeTrackPValueMax(exported.geTrackPValueMax),
         selectedMethods: normalizeGeFilterStringList(exported.selectedMethods),
         selectedSources: normalizeGeFilterStringList(exported.selectedSources),
+        activeAnnotation: exported.activeAnnotation || null,
+        selectedTissues: Array.isArray(exported.selectedTissues)
+            ? [...new Set(exported.selectedTissues.filter(Boolean))]
+            : [],
         selectedBiosamples: normalizeGeSelectedBiosamples(exported.selectedBiosamples),
+        biosampleMethodOptions: normalizeGeOptionList(exported.biosampleMethodOptions),
+        biosampleSourceOptions: normalizeGeOptionList(exported.biosampleSourceOptions),
+        biosampleRegionsByAnnotation: normalizeGeBiosampleRegionsByAnnotation(
+            exported.biosampleRegionsByAnnotation
+        ),
     };
 }
 
@@ -533,6 +551,102 @@ export function normalizeGeSelectedBiosamples(value) {
                 .filter(Boolean)
         ),
     ].sort();
+}
+
+export function normalizeGeOptionList(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return [...new Set(value.map((item) => String(item ?? "")).filter(Boolean))].sort();
+}
+
+function normalizeGeBiosampleRegionRow(row) {
+    if (!row || typeof row !== "object") {
+        return null;
+    }
+    const start = Number(row.start);
+    const end = Number(row.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        return null;
+    }
+    return {
+        start,
+        end,
+        state: row.state ?? "",
+        biosample: row.biosample ?? "",
+        dataset: row.dataset ?? "",
+        method: row.method ?? "",
+        source: row.source ?? "",
+        annotation: row.annotation ?? "",
+    };
+}
+
+/**
+ * { [annotation]: { [tissue]: { regionKey, rows[] } } } of fetched tissue-regions.
+ */
+export function normalizeGeBiosampleRegionsByAnnotation(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    Object.keys(value).forEach((annotation) => {
+        if (!annotation) {
+            return;
+        }
+        const byTissue = value[annotation];
+        if (!byTissue || typeof byTissue !== "object" || Array.isArray(byTissue)) {
+            return;
+        }
+        const tissues = {};
+        Object.keys(byTissue).forEach((tissue) => {
+            if (!tissue) {
+                return;
+            }
+            const entry = byTissue[tissue];
+            const rows = Array.isArray(entry?.rows)
+                ? entry.rows
+                : Array.isArray(entry)
+                  ? entry
+                  : [];
+            const normalizedRows = rows
+                .map((row) => normalizeGeBiosampleRegionRow(row))
+                .filter(Boolean);
+            if (!normalizedRows.length && !entry?.regionKey) {
+                return;
+            }
+            tissues[tissue] = {
+                regionKey: entry?.regionKey ? String(entry.regionKey) : "",
+                rows: normalizedRows,
+            };
+        });
+        if (Object.keys(tissues).length) {
+            next[annotation] = tissues;
+        }
+    });
+    return next;
+}
+
+export function upsertGeBiosampleTissueRegions(
+    current,
+    { annotation, tissue, regionKey, rows } = {}
+) {
+    if (!annotation || !tissue) {
+        return normalizeGeBiosampleRegionsByAnnotation(current);
+    }
+    const base = normalizeGeBiosampleRegionsByAnnotation(current);
+    const normalizedRows = (Array.isArray(rows) ? rows : [])
+        .map((row) => normalizeGeBiosampleRegionRow(row))
+        .filter(Boolean);
+    return {
+        ...base,
+        [annotation]: {
+            ...(base[annotation] || {}),
+            [tissue]: {
+                regionKey: regionKey ? String(regionKey) : "",
+                rows: normalizedRows,
+            },
+        },
+    };
 }
 
 export function listUniqueRegionPropValues(regions = [], prop) {

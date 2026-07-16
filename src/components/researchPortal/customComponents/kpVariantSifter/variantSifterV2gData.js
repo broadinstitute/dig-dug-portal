@@ -47,8 +47,46 @@ export function emptyV2gState() {
         tissueErrors: {},
         deselectedMethods: [],
         deselectedGenes: [],
+        selectedLinks: [],
         viewMode: VKS_V2G_DEFAULT_VIEW_MODE,
     };
+}
+
+export function v2gLinkSelectionKey(tissue, gene, method) {
+    return `${tissue || ""}:::${gene || ""}:::${method || ""}`;
+}
+
+export function normalizeV2gSelectedLinks(value) {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return [
+        ...new Set(
+            value
+                .map((item) => {
+                    if (typeof item === "string" && item.includes(":::")) {
+                        return item;
+                    }
+                    if (item && typeof item === "object") {
+                        return v2gLinkSelectionKey(
+                            item.tissue,
+                            item.targetGene || item.gene,
+                            item.method
+                        );
+                    }
+                    return "";
+                })
+                .filter((key) => {
+                    const parts = key.split(":::");
+                    return (
+                        parts.length === 3 &&
+                        parts[0] &&
+                        parts[1] &&
+                        parts[2]
+                    );
+                })
+        ),
+    ].sort();
 }
 
 function normalizeStringList(value) {
@@ -97,6 +135,7 @@ export function snapshotV2gForExport(state) {
                 : {},
         deselectedMethods: normalizeStringList(state.deselectedMethods),
         deselectedGenes: normalizeStringList(state.deselectedGenes),
+        selectedLinks: normalizeV2gSelectedLinks(state.selectedLinks),
         viewMode: normalizeV2gViewMode(state.viewMode),
     };
 }
@@ -124,6 +163,7 @@ export function normalizeV2gFromSession(exported) {
                 : {},
         deselectedMethods: normalizeStringList(exported.deselectedMethods),
         deselectedGenes: normalizeStringList(exported.deselectedGenes),
+        selectedLinks: normalizeV2gSelectedLinks(exported.selectedLinks),
         viewMode: normalizeV2gViewMode(exported.viewMode),
     };
 }

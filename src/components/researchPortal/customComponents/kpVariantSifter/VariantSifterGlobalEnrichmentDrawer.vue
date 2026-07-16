@@ -454,9 +454,13 @@ export default {
                 geTrackPValueMax: GE_TRACK_P_VALUE_MAX,
                 selectedMethods: null,
                 selectedSources: null,
+                activeAnnotation: null,
+                selectedTissues: [],
                 selectedBiosamples: [],
                 biosampleMethodOptions: [],
                 biosampleSourceOptions: [],
+                biosampleRegionsByAnnotation: {},
+                biosampleLoading: false,
             }),
         },
         searchSession: {

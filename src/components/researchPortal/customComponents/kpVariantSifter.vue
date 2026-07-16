@@ -75,6 +75,8 @@
                     :region-view-area="regionViewArea"
                     :view-region="viewRegion"
                     :data-table-open="dataTableOpen"
+                    :mapping-state="mappingState"
+                    :workspace-mapping-filter="workspaceMappingFilter"
                     :associations-state="associationsState"
                     :genes-state="genesState"
                     :plot-overlays-state="plotOverlaysState"
@@ -94,7 +96,15 @@
                     @set-reference-variant="onSetReferenceVariant"
                     @update:associationsFiltersIndex="onAssociationsFiltersIndexUpdate"
                     @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
+                    @update:geActiveAnnotation="onGeActiveAnnotationUpdate"
+                    @update:geSelectedTissues="onGeSelectedTissuesUpdate"
                     @update:geBiosampleFilterOptions="onGeBiosampleFilterOptionsUpdate"
+                    @update:geBiosampleTissueRegions="onGeBiosampleTissueRegionsUpdate"
+                    @update:geBiosampleLoading="onGeBiosampleLoadingUpdate"
+                    @update:mappingState="onMappingStateUpdate"
+                    @update:workspaceFilterActive="onWorkspaceFilterActiveUpdate"
+                    @update:v2gSelectedLinks="onV2gSelectedLinksUpdate"
+                    @update:s2gSelectedLinks="onS2gSelectedLinksUpdate"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
                     @close-data-table="dataTableOpen = false"
@@ -132,6 +142,8 @@
                     :global-enrichment-state="globalEnrichmentState"
                     :v2g-state="v2gState"
                     :s2g-state="s2gState"
+                    :mapping-state="mappingState"
+                    :workspace-mapping-filter="workspaceMappingFilter"
                     :view-region="viewRegion"
                     :utils="utilsBox"
                     :region-load-progress-active="regionLoadProgress.active"
@@ -157,14 +169,18 @@
                     @update:geTrackPValueMax="onGeTrackPValueMaxUpdate"
                     @update:geSelectedMethods="onGeSelectedMethodsUpdate"
                     @update:geSelectedSources="onGeSelectedSourcesUpdate"
+                    @update:mappingState="onMappingStateUpdate"
+                    @update:workspaceFilterActive="onWorkspaceFilterActiveUpdate"
                     @update:v2gSelectedTissues="onV2gSelectedTissuesUpdate"
                     @update:v2gDeselectedMethods="onV2gDeselectedMethodsUpdate"
                     @update:v2gDeselectedGenes="onV2gDeselectedGenesUpdate"
+                    @update:v2gSelectedLinks="onV2gSelectedLinksUpdate"
                     @update:v2gViewMode="onV2gViewModeUpdate"
                     @load-s2g="onS2gLoad"
                     @clear-s2g="onS2gClear"
                     @update:s2gDeselectedMethods="onS2gDeselectedMethodsUpdate"
                     @update:s2gDeselectedGenes="onS2gDeselectedGenesUpdate"
+                    @update:s2gSelectedLinks="onS2gSelectedLinksUpdate"
                 />
             </div>
         </div>
@@ -297,7 +313,17 @@ import {
     normalizeGeSelectedBiosamples,
     normalizeGeTissueTrackSort,
     normalizeGeTrackPValueMax,
+    upsertGeBiosampleTissueRegions,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
+import {
+    emptyMappingState,
+    normalizeMappingState,
+    emptyWorkspaceMappingFilter,
+    normalizeWorkspaceMappingFilter,
+    buildWorkspaceMappingFilter,
+    collectMappingCategories,
+} from "./kpVariantSifter/variantSifterMappingData.js";
+import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
     buildGeRelevanceIntroMessage,
@@ -427,9 +453,13 @@ function emptyGlobalEnrichmentState() {
         geTrackPValueMax: 0.5,
         selectedMethods: null,
         selectedSources: null,
+        activeAnnotation: null,
+        selectedTissues: [],
         selectedBiosamples: [],
         biosampleMethodOptions: [],
         biosampleSourceOptions: [],
+        biosampleRegionsByAnnotation: {},
+        biosampleLoading: false,
     };
 }
 
@@ -469,6 +499,8 @@ export default Vue.component("kp-variant-sifter", {
             regionPanSyncTimer: null,
             pendingPanSliderReset: false,
             dataTableOpen: false,
+            mappingState: emptyMappingState(),
+            workspaceMappingFilter: emptyWorkspaceMappingFilter(),
             aiAssistantOpen: false,
             assistantState: emptyAssistantState(),
             assistantActionToken: 0,
@@ -1413,6 +1445,8 @@ export default Vue.component("kp-variant-sifter", {
                     openDrawerId: this.openDrawerId,
                     dataTableOpen: this.dataTableOpen,
                     visibleSectionIds: this.visibleSectionIds,
+                    mappingState: this.mappingState,
+                    workspaceMappingFilter: this.workspaceMappingFilter,
                 });
                 this.exportSessionOpen = true;
             } catch (error) {
@@ -1443,6 +1477,8 @@ export default Vue.component("kp-variant-sifter", {
                     openDrawerId: this.openDrawerId,
                     dataTableOpen: this.dataTableOpen,
                     visibleSectionIds: this.visibleSectionIds,
+                    mappingState: this.mappingState,
+                    workspaceMappingFilter: this.workspaceMappingFilter,
                 });
                 this.exportSessionBusy = true;
                 const result = await saveJsonBundle(filename, payload);
@@ -1543,6 +1579,12 @@ export default Vue.component("kp-variant-sifter", {
             this.welcomeOpen = false;
             this.welcomeInitialValues = null;
             this.dataTableOpen = restored.dataTableOpen ?? false;
+            this.mappingState = normalizeMappingState(restored.mappingState);
+            this.workspaceMappingFilter = normalizeWorkspaceMappingFilter(
+                restored.workspaceMappingFilter
+            );
+            this.assistantState = emptyAssistantState();
+            this.aiAssistantOpen = false;
             this.syncUrlSearchParams(restored.searchSession);
             this.afterSessionRestored(restored);
         },
@@ -1646,9 +1688,13 @@ export default Vue.component("kp-variant-sifter", {
                     ),
                     selectedMethods: null,
                     selectedSources: null,
+                    activeAnnotation: null,
+                    selectedTissues: [],
                     selectedBiosamples: [],
                     biosampleMethodOptions: [],
                     biosampleSourceOptions: [],
+                    biosampleRegionsByAnnotation: {},
+                    biosampleLoading: false,
                 };
                 this.setRegionLoadStep(
                     "globalEnrichment",
@@ -1707,6 +1753,8 @@ export default Vue.component("kp-variant-sifter", {
             this.resetRegionViewport();
             this.openDrawerId = null;
             this.dataTableOpen = false;
+            this.mappingState = emptyMappingState();
+            this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.settingsOpen = false;
             this.visibleSectionIds = defaultVisibleSectionIds(this.sections);
             this.welcomeInitialValues = null;
@@ -1759,6 +1807,8 @@ export default Vue.component("kp-variant-sifter", {
             this.globalEnrichmentState = emptyGlobalEnrichmentState();
             this.v2gState = emptyV2gState();
             this.s2gState = emptyS2gState();
+            this.mappingState = emptyMappingState();
+            this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
             this.v2gRequestToken += 1;
             this.s2gRequestToken += 1;
             this.lastCredibleSetsListRegion = null;
@@ -3316,9 +3366,167 @@ export default Vue.component("kp-variant-sifter", {
             };
         },
         onGeSelectedBiosamplesUpdate(selectedBiosamples) {
+            const next = normalizeGeSelectedBiosamples(selectedBiosamples);
+            const prev = this.globalEnrichmentState?.selectedBiosamples || [];
+            if (
+                next.length === prev.length &&
+                next.every((item, index) => item === prev[index])
+            ) {
+                return;
+            }
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
-                selectedBiosamples: normalizeGeSelectedBiosamples(selectedBiosamples),
+                selectedBiosamples: next,
+            };
+        },
+        onGeActiveAnnotationUpdate(activeAnnotation) {
+            const nextAnnotation = activeAnnotation || null;
+            if (this.globalEnrichmentState?.activeAnnotation === nextAnnotation) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                activeAnnotation: nextAnnotation,
+                selectedTissues: [],
+                selectedBiosamples: [],
+                biosampleLoading: false,
+            };
+        },
+        onGeSelectedTissuesUpdate(selectedTissues) {
+            const next = Array.isArray(selectedTissues)
+                ? [...new Set(selectedTissues.filter(Boolean))]
+                : [];
+            const prev = this.globalEnrichmentState?.selectedTissues || [];
+            if (
+                next.length === prev.length &&
+                next.every((item, index) => item === prev[index])
+            ) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                selectedTissues: next,
+            };
+        },
+        onGeBiosampleTissueRegionsUpdate(payload = {}) {
+            const previous = this.globalEnrichmentState?.biosampleRegionsByAnnotation;
+            const next = upsertGeBiosampleTissueRegions(previous, payload);
+            const annotation = payload?.annotation;
+            const tissue = payload?.tissue;
+            const prevEntry = annotation && tissue ? previous?.[annotation]?.[tissue] : null;
+            const nextEntry = annotation && tissue ? next?.[annotation]?.[tissue] : null;
+            if (
+                prevEntry &&
+                nextEntry &&
+                prevEntry.regionKey === nextEntry.regionKey &&
+                prevEntry.rows?.length === nextEntry.rows?.length
+            ) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                biosampleRegionsByAnnotation: next,
+            };
+        },
+        onGeBiosampleLoadingUpdate(isLoading) {
+            const next = Boolean(isLoading);
+            if (Boolean(this.globalEnrichmentState?.biosampleLoading) === next) {
+                return;
+            }
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                biosampleLoading: next,
+            };
+        },
+        onMappingStateUpdate(mappingState) {
+            const next = normalizeMappingState(mappingState);
+            const prev = normalizeMappingState(this.mappingState);
+            if (
+                next.mappingMode === prev.mappingMode &&
+                next.selectedCategoryIds.length === prev.selectedCategoryIds.length &&
+                next.selectedCategoryIds.every(
+                    (id, index) => id === prev.selectedCategoryIds[index]
+                )
+            ) {
+                return;
+            }
+            this.mappingState = next;
+            if (normalizeWorkspaceMappingFilter(this.workspaceMappingFilter)) {
+                if (!next.selectedCategoryIds.length) {
+                    this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
+                    return;
+                }
+                this.applyWorkspaceMappingFilter({ quiet: true });
+            }
+        },
+        onWorkspaceFilterActiveUpdate(active) {
+            if (active) {
+                this.applyWorkspaceMappingFilter({ quiet: false });
+                return;
+            }
+            this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
+        },
+        applyWorkspaceMappingFilter({ quiet = false } = {}) {
+            // Layer 3 only: build a derived filter snapshot from current mapping
+            // selections + association rows. Does not mutate loaded data or chip/track
+            // selections (layers 1 and 2).
+            if (!this.mappingState?.selectedCategoryIds?.length) {
+                this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
+                if (!quiet) {
+                    window.alert(
+                        "Select one or more mapping categories before filtering the workspace."
+                    );
+                }
+                return;
+            }
+            const categories = collectMappingCategories({
+                credibleSetsState: this.credibleSetsState,
+                globalEnrichmentState: this.globalEnrichmentState,
+                v2gState: this.v2gState,
+                s2gState: this.s2gState,
+            });
+            const filter = buildWorkspaceMappingFilter(this.associationsState.rows, {
+                mappingCategories: categories,
+                selectedCategoryIds: this.mappingState.selectedCategoryIds,
+                mappingMode: this.mappingState.mappingMode,
+            });
+            if (!filter) {
+                this.workspaceMappingFilter = emptyWorkspaceMappingFilter();
+                if (!quiet) {
+                    window.alert(
+                        "No mapped variants matched the selected categories."
+                    );
+                }
+                return;
+            }
+            this.workspaceMappingFilter = filter;
+        },
+        onV2gSelectedLinksUpdate(selectedLinks) {
+            const next = normalizeV2gSelectedLinks(selectedLinks);
+            const prev = normalizeV2gSelectedLinks(this.v2gState?.selectedLinks);
+            if (
+                next.length === prev.length &&
+                next.every((key, index) => key === prev[index])
+            ) {
+                return;
+            }
+            this.v2gState = {
+                ...this.v2gState,
+                selectedLinks: next,
+            };
+        },
+        onS2gSelectedLinksUpdate(selectedLinks) {
+            const next = normalizeV2gSelectedLinks(selectedLinks);
+            const prev = normalizeV2gSelectedLinks(this.s2gState?.selectedLinks);
+            if (
+                next.length === prev.length &&
+                next.every((key, index) => key === prev[index])
+            ) {
+                return;
+            }
+            this.s2gState = {
+                ...this.s2gState,
+                selectedLinks: next,
             };
         },
         onGeBiosampleFilterOptionsUpdate(options = {}) {

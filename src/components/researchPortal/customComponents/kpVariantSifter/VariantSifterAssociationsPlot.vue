@@ -104,6 +104,7 @@
                     </header>
                     <VariantSifterAnnotationsWorkspaceTrack
                         :global-enrichment-state="globalEnrichmentState"
+                        :workspace-mapping-filter="workspaceMappingFilter"
                         :search-session="searchSession"
                         :region="searchSession?.region"
                         :view-region="viewRegion"
@@ -119,9 +120,15 @@
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
                         @update:selectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
+                        @update:activeAnnotation="$emit('update:geActiveAnnotation', $event)"
+                        @update:selectedTissues="$emit('update:geSelectedTissues', $event)"
                         @update:biosampleFilterOptions="
                             $emit('update:geBiosampleFilterOptions', $event)
                         "
+                        @update:biosampleTissueRegions="
+                            $emit('update:geBiosampleTissueRegions', $event)
+                        "
+                        @update:biosampleLoading="$emit('update:geBiosampleLoading', $event)"
                     />
                 </div>
                 <div v-if="showV2gSection" class="vks-plot-section">
@@ -130,6 +137,7 @@
                     </header>
                     <VariantSifterV2gTrack
                         :v2g-state="v2gState"
+                        :workspace-mapping-filter="workspaceMappingFilter"
                         :region="searchSession?.region"
                         :view-region="viewRegion"
                         :region-zoom="regionZoom"
@@ -143,6 +151,7 @@
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @update:selectedLinks="$emit('update:v2gSelectedLinks', $event)"
                     />
                 </div>
                 <div v-if="showS2gSection" class="vks-plot-section">
@@ -151,6 +160,7 @@
                     </header>
                     <VariantSifterV2gTrack
                         :v2g-state="s2gState"
+                        :workspace-mapping-filter="workspaceMappingFilter"
                         :region="searchSession?.region"
                         :view-region="viewRegion"
                         :region-zoom="regionZoom"
@@ -167,6 +177,7 @@
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
                         @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @update:selectedLinks="$emit('update:s2gSelectedLinks', $event)"
                     />
                 </div>
             </div>
@@ -240,6 +251,7 @@ import {
 import { hasV2gTrackData } from "./variantSifterV2gData.js";
 import { hasS2gTrackData } from "./variantSifterS2gData.js";
 import { isSectionVisible } from "./variantSifterToolSettings.js";
+import { variantMatchesWorkspaceMapping } from "./variantSifterMappingData.js";
 
 export default {
     name: "VariantSifterAssociationsPlot",
@@ -384,6 +396,10 @@ export default {
             type: Array,
             default: null,
         },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
+        },
     },
     computed: {
         primaryAncestry() {
@@ -494,13 +510,54 @@ export default {
             return (this.credibleSetsState?.selectedIds || []).map((selectionKey) => {
                 const setState = this.credibleSetsState?.variantsBySet?.[selectionKey];
                 const meta = setState?.meta || {};
+                const rawVariants = setState?.rawVariants || [];
+                const formattedVariants = setState?.formattedVariants || [];
+                const nextVariants = [];
+                const nextFormatted = [];
+                if (rawVariants.length) {
+                    rawVariants.forEach((variant, index) => {
+                        const formatted = formattedVariants[index];
+                        if (
+                            !variantMatchesWorkspaceMapping(
+                                variant,
+                                this.workspaceMappingFilter
+                            ) &&
+                            !(
+                                formatted &&
+                                variantMatchesWorkspaceMapping(
+                                    formatted,
+                                    this.workspaceMappingFilter
+                                )
+                            )
+                        ) {
+                            return;
+                        }
+                        nextVariants.push(variant);
+                        if (formatted) {
+                            nextFormatted.push(formatted);
+                        }
+                    });
+                } else {
+                    formattedVariants.forEach((formatted) => {
+                        if (
+                            !variantMatchesWorkspaceMapping(
+                                formatted,
+                                this.workspaceMappingFilter
+                            )
+                        ) {
+                            return;
+                        }
+                        nextFormatted.push(formatted);
+                        nextVariants.push(formatted);
+                    });
+                }
                 return {
                     selectionKey,
                     credibleSetId: meta.credibleSetId || selectionKey,
                     label: meta.label || meta.credibleSetId || selectionKey,
                     ancestry: meta.ancestry || "Mixed",
-                    variants: setState?.rawVariants || [],
-                    formattedVariants: setState?.formattedVariants || [],
+                    variants: nextVariants,
+                    formattedVariants: nextFormatted,
                 };
             });
         },

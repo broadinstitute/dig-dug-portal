@@ -46,10 +46,20 @@
                         :plot-overlays-state="plotOverlaysState"
                         :plot-markers="plotMarkers"
                         :starred-variant-ids="starredVariantIds"
+                        :credible-sets-state="credibleSetsState"
+                        :global-enrichment-state="globalEnrichmentState"
+                        :v2g-state="v2gState"
+                        :s2g-state="s2gState"
+                        :mapping-state="mappingState"
+                        :workspace-mapping-filter="workspaceMappingFilter"
                         @update:filtersIndex="$emit('update:associationsFiltersIndex', $event)"
                         @toggle-ancestry="$emit('toggle-association-ancestry', $event)"
                         @toggle-star-variant="$emit('toggle-star-variant', $event)"
                         @set-reference-variant="$emit('set-reference-variant', $event)"
+                        @update:mappingState="$emit('update:mappingState', $event)"
+                        @update:workspaceFilterActive="
+                            $emit('update:workspaceFilterActive', $event)
+                        "
                     />
                     <VariantSifterCredibleSetsDrawer
                         v-else-if="openSection.id === 'credible-sets'"
@@ -286,6 +296,17 @@ export default {
                 deselectedMethods: [],
                 deselectedGenes: [],
             }),
+        },
+        mappingState: {
+            type: Object,
+            default: () => ({
+                selectedCategoryIds: [],
+                mappingMode: "or",
+            }),
+        },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
         },
         viewRegion: {
             type: Object,

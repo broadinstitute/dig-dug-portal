@@ -20,6 +20,16 @@
                 </button>
             </header>
             <div class="vks-data-table-body">
+                <VariantSifterMappingBar
+                    :categories="mappingCategories"
+                    :selected-category-ids="selectedCategoryIds"
+                    :mapping-mode="mappingMode"
+                    :workspace-filter-active="Boolean(workspaceMappingFilter?.active)"
+                    :workspace-filter-row-count="workspaceMappingFilter?.rowCount || 0"
+                    @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
+                    @update:mappingMode="onMappingModeUpdate"
+                    @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
+                />
                 <VariantSifterDataTableView
                     :rows="tableView.rows"
                     :top-rows="tableView.topRows"
@@ -29,7 +39,7 @@
                     :show-star-column="true"
                     :note="tableNote"
                     empty-message="No variant rows match the current filters."
-                    :default-per-page="20"
+                    :default-per-page="10"
                     @toggle-star-variant="$emit('toggle-star-variant', $event)"
                 />
             </div>
@@ -39,12 +49,19 @@
 
 <script>
 import VariantSifterDataTableView from "./VariantSifterDataTableView.vue";
-import { buildVariantDataTableView } from "./variantSifterVariantDataTable.js";
+import VariantSifterMappingBar from "./VariantSifterMappingBar.vue";
+import {
+    buildMappedVariantDataTableView,
+    collectMappingCategories,
+    normalizeMappingMode,
+    normalizeMappingState,
+} from "./variantSifterMappingData.js";
 
 export default {
     name: "VariantSifterDataTableModal",
     components: {
         VariantSifterDataTableView,
+        VariantSifterMappingBar,
     },
     props: {
         open: {
@@ -62,6 +79,29 @@ export default {
                 variantsBySet: {},
             }),
         },
+        globalEnrichmentState: {
+            type: Object,
+            default: null,
+        },
+        v2gState: {
+            type: Object,
+            default: null,
+        },
+        s2gState: {
+            type: Object,
+            default: null,
+        },
+        mappingState: {
+            type: Object,
+            default: () => ({
+                selectedCategoryIds: [],
+                mappingMode: "or",
+            }),
+        },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
+        },
         utils: {
             type: Object,
             default: null,
@@ -72,15 +112,86 @@ export default {
         },
     },
     computed: {
+        selectedCategoryIds() {
+            return normalizeMappingState(this.mappingState).selectedCategoryIds;
+        },
+        mappingMode() {
+            return normalizeMappingState(this.mappingState).mappingMode;
+        },
+        mappingCategories() {
+            return collectMappingCategories({
+                credibleSetsState: this.credibleSetsState,
+                globalEnrichmentState: this.globalEnrichmentState,
+                v2gState: this.v2gState,
+                s2gState: this.s2gState,
+            });
+        },
+        mappingCategoryIds() {
+            return this.mappingCategories.map((category) => category.id).join("|");
+        },
         tableView() {
-            return buildVariantDataTableView(this.associationRows, this.credibleSetsState);
+            return buildMappedVariantDataTableView(this.associationRows, {
+                mappingCategories: this.mappingCategories,
+                selectedCategoryIds: this.selectedCategoryIds,
+                mappingMode: this.mappingMode,
+            });
         },
         tableNote() {
-            if (!this.tableView.filteredByCredibleSets) {
-                return "All loaded association variants. Select credible sets to filter rows to set membership and add PPA columns.";
+            if (!this.tableView.filtered) {
+                if (this.mappingCategories.length) {
+                    return "All loaded association variants. Select mapping categories above to intersect associations with workspace features.";
+                }
+                return "All loaded association variants. Load credible sets, enrichment tissues, or gene-link tracks to enable mapping.";
             }
-            const setCount = this.credibleSetsState?.selectedIds?.length || 0;
-            return `Showing ${this.tableView.rows.length.toLocaleString()} variant(s) that overlap selected credible set membership and loaded associations (${setCount} set${setCount === 1 ? "" : "s"}).`;
+            const selectedCount = this.selectedCategoryIds.length;
+            const modeLabel = normalizeMappingMode(this.mappingMode) === "and" ? "And" : "Or";
+            return `Showing ${this.tableView.rows.length.toLocaleString()} variant(s) mapped with ${selectedCount} selected categor${
+                selectedCount === 1 ? "y" : "ies"
+            } (${modeLabel}).`;
+        },
+    },
+    watch: {
+        open(isOpen) {
+            if (isOpen) {
+                this.pruneOrDefaultSelection();
+            }
+        },
+        mappingCategoryIds() {
+            if (this.open) {
+                this.pruneOrDefaultSelection();
+            }
+        },
+    },
+    methods: {
+        emitMappingState(patch = {}) {
+            this.$emit(
+                "update:mappingState",
+                normalizeMappingState({
+                    selectedCategoryIds: this.selectedCategoryIds,
+                    mappingMode: this.mappingMode,
+                    ...patch,
+                })
+            );
+        },
+        onSelectedCategoryIdsUpdate(selectedCategoryIds) {
+            this.emitMappingState({ selectedCategoryIds });
+        },
+        onMappingModeUpdate(mappingMode) {
+            this.emitMappingState({
+                mappingMode: normalizeMappingMode(mappingMode),
+            });
+        },
+        /** Keep only still-valid selections; never auto-select categories. */
+        pruneOrDefaultSelection() {
+            const availableIds = new Set(
+                this.mappingCategories.map((category) => category.id)
+            );
+            const retained = (this.selectedCategoryIds || []).filter((id) =>
+                availableIds.has(id)
+            );
+            if (retained.length !== this.selectedCategoryIds.length) {
+                this.emitMappingState({ selectedCategoryIds: retained });
+            }
         },
     },
 };
@@ -88,24 +199,26 @@ export default {
 
 <style scoped>
 .vks-data-table-modal {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 8;
+    z-index: 1200;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 2.5vh 2.5vw;
     background: rgba(20, 22, 30, 0.28);
 }
 
 .vks-data-table-panel {
-    width: min(960px, 100%);
-    max-height: 55%;
+    width: 95%;
+    height: 95%;
+    max-width: none;
+    max-height: none;
     display: flex;
     flex-direction: column;
     background: #ffffff;
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 12px 40px rgba(20, 22, 30, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(20, 22, 30, 0.22);
     overflow: hidden;
 }
 
@@ -114,6 +227,7 @@ export default {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    flex-shrink: 0;
     padding: 12px 16px;
     border-bottom: 1px solid var(--cfde-border, #e6e1d6);
 }
@@ -136,6 +250,8 @@ export default {
 }
 
 .vks-data-table-body {
+    flex: 1;
+    min-height: 0;
     overflow: auto;
     padding: 14px 16px 18px;
 }

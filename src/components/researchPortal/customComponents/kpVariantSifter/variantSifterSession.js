@@ -16,15 +16,19 @@ import {
     snapshotS2gForExport,
 } from "./variantSifterS2gData.js";
 import {
+    normalizeMappingState,
+    normalizeWorkspaceMappingFilter,
+} from "./variantSifterMappingData.js";
+import {
     defaultVisibleSectionIds,
     normalizeVisibleSectionIds,
 } from "./variantSifterToolSettings.js";
 import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
 
-export const VKS_SESSION_VERSION = 8;
+export const VKS_SESSION_VERSION = 9;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -89,6 +93,11 @@ export function validateSessionExportReady({
             "SNP-to-gene links are still loading. Wait before exporting."
         );
     }
+    if (globalEnrichmentState?.biosampleLoading) {
+        throw new Error(
+            "Selected GE biosample tracks are still loading. Wait before exporting."
+        );
+    }
 }
 
 /**
@@ -114,6 +123,8 @@ export function exportVariantSifterSession({
     openDrawerId = null,
     dataTableOpen = false,
     visibleSectionIds = null,
+    mappingState = null,
+    workspaceMappingFilter = null,
 }) {
     validateSessionExportReady({
         associationsState,
@@ -197,6 +208,9 @@ export function exportVariantSifterSession({
                 visibleSectionIds,
                 VARIANT_SIFTER_SECTIONS
             ),
+            mapping: normalizeMappingState(mappingState),
+            workspaceMappingFilter:
+                normalizeWorkspaceMappingFilter(workspaceMappingFilter),
         },
     };
 }
@@ -505,6 +519,10 @@ export function importVariantSifterSession(payload, phenotypes = []) {
         visibleSectionIds: Array.isArray(ui.visibleSectionIds)
             ? normalizeVisibleSectionIds(ui.visibleSectionIds, VARIANT_SIFTER_SECTIONS)
             : defaultVisibleSectionIds(VARIANT_SIFTER_SECTIONS),
+        mappingState: normalizeMappingState(ui.mapping || payload.mapping),
+        workspaceMappingFilter: normalizeWorkspaceMappingFilter(
+            ui.workspaceMappingFilter || payload.workspaceMappingFilter
+        ),
         importedFromSnapshot: true,
     };
 }

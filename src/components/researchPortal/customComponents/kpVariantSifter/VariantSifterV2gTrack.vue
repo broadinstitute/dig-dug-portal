@@ -107,14 +107,21 @@ import {
     collectGenesFromTissueData,
     collectMethodsFromTissueData,
     hasV2gTrackData,
+    normalizeV2gSelectedLinks,
     normalizeV2gViewMode,
     solidV2gMethodColor,
+    v2gLinkSelectionKey,
     v2gMethodColor,
     VKS_V2G_METHOD_COLORS,
 } from "./variantSifterV2gData.js";
 import {
+    filterRegionsByMappedPositions,
+    normalizeWorkspaceMappingFilter,
+} from "./variantSifterMappingData.js";
+import {
     computeV2gCanvasHeight,
     computeV2gGeneConnectionCanvasHeight,
+    findV2gTrackRowAtY,
     renderV2gArcs,
     renderV2gRibbons,
     renderV2gTracks,
@@ -191,10 +198,15 @@ export default {
             type: String,
             default: "Loading gene links for {tissue}…",
         },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
         return {
             hitRegions: [],
+            trackRows: [],
             hoveredHit: null,
             hoverAnchorX: 0,
             hoverAnchorY: 0,
@@ -247,11 +259,38 @@ export default {
             }));
         },
         renderData() {
-            return buildV2gRenderData(
+            const base = buildV2gRenderData(
                 this.tissueData,
                 this.v2gState?.deselectedMethods,
                 this.v2gState?.deselectedGenes
             );
+            const filter = normalizeWorkspaceMappingFilter(this.workspaceMappingFilter);
+            if (!filter) {
+                return base;
+            }
+            const next = {};
+            Object.entries(base || {}).forEach(([tissue, genes]) => {
+                const nextGenes = {};
+                Object.entries(genes || {}).forEach(([gene, methods]) => {
+                    const nextMethods = {};
+                    Object.entries(methods || {}).forEach(([method, links]) => {
+                        const filtered = filterRegionsByMappedPositions(links, filter);
+                        if (filtered.length) {
+                            nextMethods[method] = filtered;
+                        }
+                    });
+                    if (Object.keys(nextMethods).length) {
+                        nextGenes[gene] = nextMethods;
+                    }
+                });
+                if (Object.keys(nextGenes).length) {
+                    next[tissue] = nextGenes;
+                }
+            });
+            return next;
+        },
+        selectedLinks() {
+            return normalizeV2gSelectedLinks(this.v2gState?.selectedLinks);
         },
         genesArr() {
             return collectGenesFromTissueData(this.tissueData).filter(
@@ -318,6 +357,12 @@ export default {
             deep: true,
         },
         recombPeakIntervals: {
+            handler() {
+                this.renderTrack();
+            },
+            deep: true,
+        },
+        selectedLinks: {
             handler() {
                 this.renderTrack();
             },
@@ -531,19 +576,80 @@ export default {
                 return;
             }
             const { x, y } = canvasPointerPosition(event, canvas);
-            if (!this.isInXAxisInteractionZone(x, y)) {
+            if (this.isInXAxisInteractionZone(x, y)) {
+                const position = canvasXToGenomicPosition(
+                    x,
+                    this.canvasWidth,
+                    this.margin,
+                    this.visibleRegion
+                );
+                if (position != null) {
+                    this.$emit("toggle-position-marker", position);
+                }
                 return;
             }
-            const position = canvasXToGenomicPosition(
-                x,
-                this.canvasWidth,
-                this.margin,
-                this.visibleRegion
+            this.selectTrackAtCanvasPoint(x, y);
+        },
+        selectTrackAtCanvasPoint(x, y) {
+            // Prefer a specific bar/ribbon hit (method-level), else full track row.
+            const barHit = this.hitRegions.find(
+                (region) =>
+                    y >= region.yTop &&
+                    y <= region.yBottom &&
+                    x >= region.xLeft &&
+                    x <= region.xRight
             );
-            if (position == null) {
+            if (barHit?.tissue && barHit?.targetGene && barHit?.method) {
+                this.toggleSelectedLinkKeys([
+                    v2gLinkSelectionKey(
+                        barHit.tissue,
+                        barHit.targetGene,
+                        barHit.method
+                    ),
+                ]);
+                return true;
+            }
+
+            const rowHit = findV2gTrackRowAtY(this.trackRows, y);
+            if (!rowHit?.tissue || !rowHit?.targetGene) {
+                return false;
+            }
+            if (rowHit.method) {
+                this.toggleSelectedLinkKeys([
+                    v2gLinkSelectionKey(
+                        rowHit.tissue,
+                        rowHit.targetGene,
+                        rowHit.method
+                    ),
+                ]);
+                return true;
+            }
+            const methods = Array.isArray(rowHit.methods) ? rowHit.methods : [];
+            if (!methods.length) {
+                return false;
+            }
+            this.toggleSelectedLinkKeys(
+                methods.map((method) =>
+                    v2gLinkSelectionKey(rowHit.tissue, rowHit.targetGene, method)
+                )
+            );
+            return true;
+        },
+        toggleSelectedLinkKeys(keys) {
+            const nextKeys = normalizeV2gSelectedLinks(keys);
+            if (!nextKeys.length) {
                 return;
             }
-            this.$emit("toggle-position-marker", position);
+            const selected = new Set(this.selectedLinks);
+            const allSelected = nextKeys.every((key) => selected.has(key));
+            nextKeys.forEach((key) => {
+                if (allSelected) {
+                    selected.delete(key);
+                } else {
+                    selected.add(key);
+                }
+            });
+            this.$emit("update:selectedLinks", [...selected].sort());
         },
         onMouseDown(event) {
             if (!this.canPan || event.button !== 0) {
@@ -593,24 +699,33 @@ export default {
             }
             this.$emit("update:regionShiftBp", pan.regionShiftBp);
         },
-        onDocumentMouseUp() {
-            this.stopPanning();
+        onDocumentMouseUp(event) {
+            this.stopPanning(event);
         },
-        onMouseUp() {
-            this.stopPanning();
+        onMouseUp(event) {
+            this.stopPanning(event);
         },
-        stopPanning() {
+        stopPanning(event) {
             if (!this.isPanning) {
                 return;
             }
-            if (this.panMoved) {
-                this.suppressClick = true;
-            }
+            const panMoved = this.panMoved;
             const didChangeShift = this.panDidChangeShift;
             this.isPanning = false;
             this.panMoved = false;
             this.panDidChangeShift = false;
             this.endPanListeners();
+
+            // Select on a click-like mouseup so trackpad jitter / drag listeners
+            // don't swallow the subsequent click event.
+            if (!panMoved && event && this.$refs.canvas && this.syncPlotMetrics()) {
+                const { x, y } = canvasPointerPosition(event, this.$refs.canvas);
+                if (!this.isInXAxisInteractionZone(x, y)) {
+                    this.selectTrackAtCanvasPoint(x, y);
+                }
+            }
+            this.suppressClick = true;
+
             if (didChangeShift) {
                 this.$emit("pan-end");
             }
@@ -624,6 +739,7 @@ export default {
             const container = this.$refs.container;
             if (!canvas || !container || !this.hasRenderData || !this.visibleRegion) {
                 this.hitRegions = [];
+                this.trackRows = [];
                 this.canvasWidth = 0;
                 this.plotWidth = 0;
                 this.layoutCanvasHeight = 0;
@@ -646,6 +762,7 @@ export default {
 
             let canvasHeight;
             let hitRegions = [];
+            let trackRows = [];
 
             if (this.viewMode === "ribbons" || this.viewMode === "arcs") {
                 canvasHeight =
@@ -669,8 +786,9 @@ export default {
                     plotWidth,
                     margin,
                     methodColors: VKS_V2G_METHOD_COLORS,
+                    selectedLinks: this.selectedLinks,
                 };
-                ({ hitRegions } =
+                ({ hitRegions, trackRows } =
                     this.viewMode === "arcs"
                         ? renderV2gArcs(ctx, connectionOptions)
                         : renderV2gRibbons(ctx, connectionOptions));
@@ -693,12 +811,14 @@ export default {
                     plotWidth,
                     margin,
                     methodColors: VKS_V2G_METHOD_COLORS,
+                    selectedLinks: this.selectedLinks,
                 });
-                ({ hitRegions } = renderResult);
+                ({ hitRegions, trackRows } = renderResult);
                 this.paintTrackMarkers(ctx);
             }
 
-            this.hitRegions = hitRegions;
+            this.hitRegions = hitRegions || [];
+            this.trackRows = trackRows || [];
         },
     },
 };

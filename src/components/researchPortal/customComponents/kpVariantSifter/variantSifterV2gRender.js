@@ -1,10 +1,47 @@
 import {
     collectGenesFromTissueData,
     collectMethodsFromTissueData,
+    normalizeV2gSelectedLinks,
+    v2gLinkSelectionKey,
     VKS_V2G_METHOD_COLORS,
 } from "./variantSifterV2gData.js";
 
 const SPACE_BY = 20;
+const SELECTED_TRACK_FILL = "#EE312428";
+const SELECTED_TRACK_BAR = "#EE3124";
+
+function selectedLinkSet(selectedLinks) {
+    return new Set(normalizeV2gSelectedLinks(selectedLinks));
+}
+
+function isLinkTrackSelected(tissue, gene, method, selectedSet) {
+    if (!selectedSet?.size || !tissue || !gene || !method) {
+        return false;
+    }
+    return selectedSet.has(v2gLinkSelectionKey(tissue, gene, method));
+}
+
+function isGeneTrackSelected(tissue, gene, methods, selectedSet) {
+    if (!selectedSet?.size || !tissue || !gene) {
+        return false;
+    }
+    const methodList = Array.isArray(methods) ? methods : [];
+    if (!methodList.length) {
+        return false;
+    }
+    return methodList.some((method) =>
+        isLinkTrackSelected(tissue, gene, method, selectedSet)
+    );
+}
+
+export function findV2gTrackRowAtY(trackRows, y) {
+    if (!Array.isArray(trackRows) || y == null) {
+        return null;
+    }
+    return (
+        trackRows.find((row) => y >= row.yTop && y < row.yBottom) || null
+    );
+}
 
 function formatAxisTick(position, xMaxMinGap) {
     const decimals = xMaxMinGap <= 1 ? 2 : xMaxMinGap <= 50 ? 1 : 0;
@@ -74,15 +111,18 @@ export function renderV2gTracks(ctx, options) {
         plotWidth,
         margin,
         methodColors = VKS_V2G_METHOD_COLORS,
+        selectedLinks = [],
     } = options;
 
     const methodsArr = collectMethodsFromTissueData(tissueData);
     const genesArr = collectGenesFromTissueData(tissueData);
     const tissues = Object.keys(renderData).sort();
     const hitRegions = [];
+    const trackRows = [];
+    const selectedSet = selectedLinkSet(selectedLinks);
 
     if (!tissues.length || !plotWidth || regionEnd <= regionStart) {
-        return { hitRegions, canvasHeight: 0 };
+        return { hitRegions, trackRows, canvasHeight: 0 };
     }
 
     const tissueTitleH = SPACE_BY * 2;
@@ -154,6 +194,33 @@ export function renderV2gTracks(ctx, options) {
                 const colorIndex = methodsArr.indexOf(mKey);
                 const methodColor = methodColors[colorIndex % methodColors.length];
 
+                // Full-width row hit so users can select the track even where no bars are drawn.
+                const rowSelected = isLinkTrackSelected(
+                    tissue,
+                    gKey,
+                    mKey,
+                    selectedSet
+                );
+                trackRows.push({
+                    yTop: renderHeight,
+                    yBottom: renderHeight + perMethod,
+                    xLeft: margin.left,
+                    xRight: margin.left + plotWidth,
+                    targetGene: gKey,
+                    method: mKey,
+                    tissue,
+                });
+
+                if (rowSelected) {
+                    ctx.fillStyle = SELECTED_TRACK_FILL;
+                    ctx.fillRect(
+                        margin.left,
+                        renderHeight,
+                        plotWidth,
+                        perMethod - 2
+                    );
+                }
+
                 mValue.forEach((m) => {
                     if (!(m.start <= regionEnd && m.end >= regionStart)) {
                         return;
@@ -166,7 +233,7 @@ export function renderV2gTracks(ctx, options) {
                     xPosEnd = Math.min(margin.left + plotWidth, xPosEnd);
                     const xPosWidth = Math.max(2, xPosEnd - xPosStart);
 
-                    ctx.fillStyle = methodColor;
+                    ctx.fillStyle = rowSelected ? SELECTED_TRACK_BAR : methodColor;
                     ctx.fillRect(xPosStart, renderHeight, xPosWidth, perMethod - 2);
 
                     hitRegions.push({
@@ -174,8 +241,8 @@ export function renderV2gTracks(ctx, options) {
                         yBottom: renderHeight + perMethod,
                         xLeft: xPosStart,
                         xRight: xPosStart + xPosWidth,
-                        targetGene: m.targetGene,
-                        method: m.method,
+                        targetGene: m.targetGene || gKey,
+                        method: m.method || mKey,
                         biosample: m.biosample,
                         start: m.start,
                         end: m.end,
@@ -208,7 +275,7 @@ export function renderV2gTracks(ctx, options) {
         renderHeight += btwnTissues;
     });
 
-    return { hitRegions, canvasHeight };
+    return { hitRegions, trackRows, canvasHeight };
 }
 
 export function computeV2gCanvasHeight(renderData, tissueData) {
@@ -392,13 +459,16 @@ function renderV2gGeneConnectionTracks(ctx, options, connectionMode) {
         plotWidth,
         margin,
         methodColors = VKS_V2G_METHOD_COLORS,
+        selectedLinks = [],
     } = options;
 
     const tissues = Object.keys(renderData).sort();
     const hitRegions = [];
+    const trackRows = [];
+    const selectedSet = selectedLinkSet(selectedLinks);
 
     if (!tissues.length || !plotWidth || regionEnd <= regionStart) {
-        return { hitRegions, canvasHeight: 0 };
+        return { hitRegions, trackRows, canvasHeight: 0 };
     }
 
     const tissueTitleH = SPACE_BY * 2;
@@ -427,8 +497,33 @@ function renderV2gGeneConnectionTracks(ctx, options, connectionMode) {
             const links = flattenGeneMethodLinks(tissueGenes[gene]);
             const trackTop = renderHeight + RIBBON_BAND;
             const yBase = trackTop;
+            const methodsForGene = Object.keys(tissueGenes[gene] || {}).sort();
 
-            if (geneIndex % 2 === 0) {
+            const geneSelected = isGeneTrackSelected(
+                tissue,
+                gene,
+                methodsForGene,
+                selectedSet
+            );
+            trackRows.push({
+                yTop: renderHeight,
+                yBottom: renderHeight + RIBBON_BAND + perMethod,
+                xLeft: margin.left,
+                xRight: margin.left + plotWidth,
+                targetGene: gene,
+                tissue,
+                methods: methodsForGene,
+            });
+
+            if (geneSelected) {
+                ctx.fillStyle = SELECTED_TRACK_FILL;
+                ctx.fillRect(
+                    margin.left,
+                    renderHeight,
+                    plotWidth,
+                    RIBBON_BAND + perMethod
+                );
+            } else if (geneIndex % 2 === 0) {
                 ctx.fillStyle = "#00000008";
                 ctx.fillRect(
                     margin.left,
@@ -579,7 +674,7 @@ function renderV2gGeneConnectionTracks(ctx, options, connectionMode) {
         renderHeight += btwnTissues;
     });
 
-    return { hitRegions, canvasHeight };
+    return { hitRegions, trackRows, canvasHeight };
 }
 
 /**

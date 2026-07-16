@@ -176,6 +176,11 @@ import {
     VKS_ANNO_TRACK_X_AXIS_GAP,
 } from "./variantSifterGlobalEnrichmentData.js";
 import {
+    buildMappedAnnoDataView,
+    buildMappedBiosampleRegionsView,
+    normalizeWorkspaceMappingFilter,
+} from "./variantSifterMappingData.js";
+import {
     computeViewRegion,
     computeVisibleWindowWidth,
     resolveHandPanFromDrag,
@@ -262,11 +267,13 @@ export default {
             type: Object,
             default: null,
         },
+        workspaceMappingFilter: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
         return {
-            activeAnnotation: null,
-            selectedTissues: [],
             tissueHits: [],
             biosampleHitsByTissue: {},
             biosampleRowsByTissue: {},
@@ -294,6 +301,14 @@ export default {
         };
     },
     computed: {
+        activeAnnotation() {
+            return this.globalEnrichmentState?.activeAnnotation || null;
+        },
+        selectedTissues() {
+            return Array.isArray(this.globalEnrichmentState?.selectedTissues)
+                ? this.globalEnrichmentState.selectedTissues
+                : [];
+        },
         margin() {
             return normalizePlotMargin(VARIANT_SIFTER_ANNO_TRACK_MARGIN);
         },
@@ -364,9 +379,18 @@ export default {
             return Boolean(region.dataset || region.method || region.source);
         },
         annoData() {
+            // Layer 1: raw loaded GE annotation data (never mutated by mapping).
             return this.globalEnrichmentState?.annoData || {};
         },
+        displayAnnoData() {
+            // Layer 3: derived view for rendering only. Leaves annoData + selections intact.
+            return buildMappedAnnoDataView(
+                this.annoData,
+                this.workspaceMappingFilter
+            );
+        },
         annotations() {
+            // Annotation tabs follow loaded data (layer 1), not the temporary mapped view.
             return annotationsForPlot(
                 this.annoData,
                 this.globalEnrichmentState?.selectedAnnotations
@@ -396,11 +420,32 @@ export default {
             }
             return computeVisibleWindowWidth(this.region, this.regionZoom);
         },
-        tissueKeys() {
+        availableTissueKeys() {
+            // Layer 1+GE display rules: tissues available for selection / mapping chips.
             if (!this.activeAnnotation) {
                 return [];
             }
             const tissues = Object.keys(this.annoData[this.activeAnnotation] || {});
+            return resolveGeTissuesForDisplay(tissues, {
+                annotation: this.activeAnnotation,
+                llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
+                enabledMutedAnnotationTissues:
+                    this.globalEnrichmentState?.enabledMutedAnnotationTissues || {},
+                disabledAnnotationTissues:
+                    this.globalEnrichmentState?.disabledAnnotationTissues || {},
+                geTissueStats: this.geTissueStats,
+                sort: this.tissueTrackSort,
+                pValueMax: this.geTrackPValueMax,
+            });
+        },
+        tissueKeys() {
+            // Layer 3 render list: may be a subset while workspace filter is on.
+            if (!this.activeAnnotation) {
+                return [];
+            }
+            const tissues = Object.keys(
+                this.displayAnnoData[this.activeAnnotation] || {}
+            );
             return resolveGeTissuesForDisplay(tissues, {
                 annotation: this.activeAnnotation,
                 llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
@@ -421,7 +466,17 @@ export default {
                 return [];
             }
             const selected = new Set(this.selectedTissues);
-            return this.tissueKeys.filter((tissue) => selected.has(tissue));
+            // Biosample sections follow the currently displayed (possibly filtered) tissues.
+            const tissues = this.tissueKeys.filter((tissue) => selected.has(tissue));
+            const filter = normalizeWorkspaceMappingFilter(this.workspaceMappingFilter);
+            if (!filter) {
+                return tissues;
+            }
+            return tissues.filter(
+                (tissue) =>
+                    this.isBiosampleLoading(tissue) ||
+                    this.biosampleGroupsForTissue(tissue).length > 0
+            );
         },
         markerPlotHeight() {
             return (
@@ -447,31 +502,45 @@ export default {
         hasTrackData() {
             return this.annotations.length > 0 && this.tissueKeys.length > 0;
         },
+        annotationKeys() {
+            return this.annotations.join("|");
+        },
     },
     watch: {
-        annotations: {
-            handler(nextAnnotations) {
+        annotationKeys: {
+            handler(nextKeys) {
+                const nextAnnotations = nextKeys ? nextKeys.split("|") : [];
                 if (!nextAnnotations.length) {
-                    this.activeAnnotation = null;
-                    this.selectedTissues = [];
+                    if (this.activeAnnotation) {
+                        this.setActiveAnnotation(null);
+                    }
+                    if (this.selectedTissues.length) {
+                        this.setSelectedTissues([]);
+                    }
                     return;
                 }
                 if (!nextAnnotations.includes(this.activeAnnotation)) {
-                    this.activeAnnotation = nextAnnotations[0];
-                    this.selectedTissues = [];
+                    this.setActiveAnnotation(nextAnnotations[0]);
                 }
                 this.$nextTick(() => this.renderTrack());
             },
             immediate: true,
         },
-        activeAnnotation() {
-            this.selectedTissues = [];
+        activeAnnotation(next, previous) {
+            // Skip the initial sync and no-op identity changes to avoid reset/render storms.
+            if (next === previous) {
+                return;
+            }
             this.resetBiosampleUiState();
             this.clearRegionHover();
-            this.$emit("update:selectedBiosamples", []);
             this.$nextTick(() => this.renderTrack());
         },
-        selectedTissues() {
+        selectedTissues(next, previous) {
+            const nextKey = Array.isArray(next) ? next.join("|") : "";
+            const previousKey = Array.isArray(previous) ? previous.join("|") : "";
+            if (nextKey === previousKey) {
+                return;
+            }
             this.clearRegionHover();
             this.$nextTick(() => {
                 this.renderTrack();
@@ -479,7 +548,12 @@ export default {
                 this.pruneSelectedBiosamples();
             });
         },
-        selectedBiosamples() {
+        selectedBiosamples(next, previous) {
+            const nextKey = Array.isArray(next) ? next.join("|") : "";
+            const previousKey = Array.isArray(previous) ? previous.join("|") : "";
+            if (nextKey === previousKey) {
+                return;
+            }
             this.$nextTick(() => this.renderBiosampleTracks());
         },
         selectedMethods() {
@@ -565,6 +639,17 @@ export default {
             },
             deep: true,
         },
+        workspaceMappingFilter: {
+            handler() {
+                // Layer 3 only: re-render derived views. Never prune GE/biosample
+                // selections (layer 2) or rewrite loaded annoData (layer 1).
+                this.$nextTick(() => {
+                    this.renderTrack();
+                    this.renderBiosampleTracks();
+                });
+            },
+            deep: true,
+        },
     },
     mounted() {
         this.renderTrack();
@@ -588,14 +673,29 @@ export default {
                 return;
             }
             const next = this.selectedTissues.filter((tissue) =>
-                this.tissueKeys.includes(tissue)
+                this.availableTissueKeys.includes(tissue)
             );
             if (next.length !== this.selectedTissues.length) {
-                this.selectedTissues = next;
+                this.setSelectedTissues(next);
             }
         },
         setActiveAnnotation(annotation) {
-            this.activeAnnotation = annotation;
+            const next = annotation || null;
+            if (next === this.activeAnnotation) {
+                return;
+            }
+            this.$emit("update:activeAnnotation", next);
+        },
+        setSelectedTissues(next) {
+            const normalized = Array.isArray(next) ? [...next] : [];
+            const current = this.selectedTissues || [];
+            if (
+                normalized.length === current.length &&
+                normalized.every((tissue, index) => tissue === current[index])
+            ) {
+                return;
+            }
+            this.$emit("update:selectedTissues", normalized);
         },
         annotationColor(annotation) {
             return solidAnnotationColor(
@@ -651,7 +751,8 @@ export default {
         biosampleErrorForTissue(tissue) {
             return this.biosampleErrorByTissue[tissue] || "";
         },
-        biosampleRegionsForTissue(tissue) {
+        rawBiosampleRegionsForTissue(tissue) {
+            // Layer 1: cached / loaded biosample regions (unfiltered).
             if (!this.activeAnnotation || !tissue) {
                 return [];
             }
@@ -662,12 +763,36 @@ export default {
             }
             return this.annoData?.[this.activeAnnotation]?.[tissue]?.region || [];
         },
+        biosampleRegionsForTissue(tissue) {
+            // Layer 3: derived biosample view for rendering only.
+            if (!this.activeAnnotation || !tissue) {
+                return [];
+            }
+            return buildMappedBiosampleRegionsView(
+                this.rawBiosampleRegionsForTissue(tissue),
+                {
+                    filter: this.workspaceMappingFilter,
+                    annotation: this.activeAnnotation,
+                    tissue,
+                }
+            );
+        },
         biosampleGroupsForTissue(tissue) {
             if (!this.activeAnnotation || !tissue) {
                 return [];
             }
-            const regions = this.biosampleRegionsForTissue(tissue);
-            return groupAnnoRegionsByBiosample(regions);
+            return groupAnnoRegionsByBiosample(
+                this.biosampleRegionsForTissue(tissue)
+            );
+        },
+        availableBiosampleGroupsForTissue(tissue) {
+            // Layer 1+2 availability for selections / mapping chips.
+            if (!this.activeAnnotation || !tissue) {
+                return [];
+            }
+            return groupAnnoRegionsByBiosample(
+                this.rawBiosampleRegionsForTissue(tissue)
+            );
         },
         biosampleCanvasRef(tissue) {
             const ref = this.$refs[`biosampleCanvas_${tissue}`];
@@ -697,7 +822,7 @@ export default {
             const canvasHeight = this.trackLayoutHeight;
             const ctx = setupAnnotationsWorkspaceCanvas(canvas, canvasWidth, canvasHeight);
             this.tissueHits = renderAnnotationsWorkspaceTrack(ctx, {
-                annoData: this.annoData,
+                annoData: this.displayAnnoData,
                 annotation: this.activeAnnotation,
                 visibleRegion: this.visibleRegion,
                 canvasWidth,
@@ -761,11 +886,11 @@ export default {
             }
 
             const cacheKey = this.biosampleCacheKey(tissue, searchRegion);
-            const applyRows = (rows) => {
+            const applyRows = (rows, { persist = true } = {}) => {
                 const filtered = (rows || []).filter(
-                    (row) => row?.annotation === annotation
+                    (row) => !row?.annotation || row.annotation === annotation
                 );
-                this.$set(this.biosampleRowsByTissue, tissue, filtered.map((row) => ({
+                const normalized = filtered.map((row) => ({
                     start: Number(row.start),
                     end: Number(row.end),
                     state: row.state ?? "",
@@ -773,18 +898,51 @@ export default {
                     dataset: row.dataset ?? "",
                     method: row.method ?? "",
                     source: row.source ?? "",
-                })));
+                    annotation: row.annotation || annotation,
+                }));
+                this.$set(this.biosampleRowsByTissue, tissue, normalized);
                 this.$set(this.biosampleLoadedKeyByTissue, tissue, cacheKey);
                 this.syncBiosampleFilterOptions(
                     this.biosampleRowsByTissue[tissue] || []
                 );
+                if (persist) {
+                    this.$emit("update:biosampleTissueRegions", {
+                        annotation,
+                        tissue,
+                        regionKey: cacheKey,
+                        rows: normalized,
+                    });
+                }
                 this.$nextTick(() => this.renderBiosampleTracks());
             };
+
+            const stored =
+                this.globalEnrichmentState?.biosampleRegionsByAnnotation?.[
+                    annotation
+                ]?.[tissue];
+            if (
+                stored &&
+                Array.isArray(stored.rows) &&
+                (!cacheKey || !stored.regionKey || stored.regionKey === cacheKey)
+            ) {
+                if (cacheKey) {
+                    this.biosampleCache = {
+                        ...this.biosampleCache,
+                        [cacheKey]: stored.rows,
+                    };
+                }
+                this.$set(this.biosampleLoadingByTissue, tissue, false);
+                this.$set(this.biosampleErrorByTissue, tissue, null);
+                applyRows(stored.rows, { persist: false });
+                this.emitBiosampleLoadingState();
+                return;
+            }
 
             if (cacheKey && this.biosampleCache[cacheKey]) {
                 this.$set(this.biosampleLoadingByTissue, tissue, false);
                 this.$set(this.biosampleErrorByTissue, tissue, null);
                 applyRows(this.biosampleCache[cacheKey]);
+                this.emitBiosampleLoadingState();
                 return;
             }
 
@@ -794,6 +952,9 @@ export default {
             const host = this.utils?.uiUtils?.biDomain?.();
             if (!host) {
                 this.$set(this.biosampleLoadingByTissue, tissue, false);
+                // Persist annotation-overlap fallback so export still has regions.
+                applyRows(this.annoData?.[annotation]?.[tissue]?.region || []);
+                this.emitBiosampleLoadingState();
                 return;
             }
 
@@ -801,6 +962,7 @@ export default {
                 (this.biosampleRequestTokenByTissue[tissue] || 0) + 1;
             this.$set(this.biosampleRequestTokenByTissue, tissue, requestToken);
             this.$set(this.biosampleLoadingByTissue, tissue, true);
+            this.emitBiosampleLoadingState();
 
             try {
                 const rows = await fetchTissueRegions(tissue, searchRegion, host);
@@ -816,6 +978,7 @@ export default {
                 this.$set(this.biosampleLoadingByTissue, tissue, false);
                 this.$set(this.biosampleErrorByTissue, tissue, null);
                 applyRows(rows);
+                this.emitBiosampleLoadingState();
             } catch (error) {
                 if (requestToken !== this.biosampleRequestTokenByTissue[tissue]) {
                     return;
@@ -824,8 +987,18 @@ export default {
                 this.$set(this.biosampleLoadingByTissue, tissue, false);
                 this.$set(this.biosampleErrorByTissue, tissue, null);
                 this.$delete(this.biosampleLoadedKeyByTissue, tissue);
-                this.$nextTick(() => this.renderBiosampleTracks());
+                applyRows(this.annoData?.[annotation]?.[tissue]?.region || []);
+                this.emitBiosampleLoadingState();
             }
+        },
+        emitBiosampleLoadingState() {
+            const loading = Object.values(this.biosampleLoadingByTissue || {}).some(
+                Boolean
+            );
+            if (Boolean(this.globalEnrichmentState?.biosampleLoading) === loading) {
+                return;
+            }
+            this.$emit("update:biosampleLoading", loading);
         },
         renderBiosampleTracks() {
             if (!this.orderedSelectedTissues.length || !this.visibleRegion) {
@@ -864,7 +1037,7 @@ export default {
                     canvasHeight
                 );
                 nextHits[tissue] = renderAnnotationBiosampleTracks(ctx, {
-                    regions: this.biosampleRegionsForTissue(tissue),
+                    regions: groups.flatMap((group) => group.regions || []),
                     annotation: this.activeAnnotation,
                     tissue,
                     visibleRegion: this.visibleRegion,
@@ -897,18 +1070,29 @@ export default {
             });
         },
         setSelectedBiosamples(next) {
-            this.$emit(
-                "update:selectedBiosamples",
-                normalizeGeSelectedBiosamples(next)
-            );
+            const normalized = normalizeGeSelectedBiosamples(next);
+            const current = this.selectedBiosamples || [];
+            if (
+                normalized.length === current.length &&
+                normalized.every((item, index) => item === current[index])
+            ) {
+                return;
+            }
+            this.$emit("update:selectedBiosamples", normalized);
         },
         pruneSelectedBiosamples() {
             if (!this.selectedBiosamples.length) {
                 return;
             }
             const allowed = new Set();
-            this.orderedSelectedTissues.forEach((tissue) => {
-                this.biosampleGroupsForTissue(tissue).forEach((group) => {
+            const selected = new Set(this.selectedTissues);
+            // Prune only against layer-1 availability (e.g. tissue deselected), never
+            // against the temporary workspace mapping view.
+            this.availableTissueKeys.forEach((tissue) => {
+                if (!selected.has(tissue)) {
+                    return;
+                }
+                this.availableBiosampleGroupsForTissue(tissue).forEach((group) => {
                     allowed.add(biosampleSelectionKey(tissue, group.biosample));
                 });
             });
@@ -1040,7 +1224,9 @@ export default {
                 } else {
                     selected.add(tissue);
                 }
-                this.selectedTissues = this.tissueKeys.filter((key) => selected.has(key));
+                this.setSelectedTissues(
+                    this.availableTissueKeys.filter((key) => selected.has(key))
+                );
             }
         },
         onMouseDown(event) {
