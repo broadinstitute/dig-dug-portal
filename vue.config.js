@@ -357,6 +357,19 @@ if (process.env.NODE_ENV === "production") {
 }
 
 module.exports = {
+    css: {
+        loaderOptions: {
+            // .vue style blocks reference /css/*.css and /images/* as
+            // absolute paths served from `public/`, not webpack modules.
+            // css-loader v6+ tries to resolve those as module requests by
+            // default, so disable url()/@import resolution to keep them
+            // untouched, matching webpack 4's css-loader behavior.
+            css: {
+                url: false,
+                import: false,
+            },
+        },
+    },
     devServer: {
         writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
         headers: {
