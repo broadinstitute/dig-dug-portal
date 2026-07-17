@@ -127,6 +127,7 @@
                     :can-run-actions="assistantCanRunActions"
                     :plan="assistantState.plan"
                     :step-states="assistantState.stepStates"
+                    :panel-style="assistantPanelStyle"
                     @close="aiAssistantOpen = false"
                     @update:activeTab="onAssistantActiveTabUpdate"
                     @execute-all="onAssistantExecuteAll"
@@ -551,6 +552,7 @@ export default Vue.component("kp-variant-sifter", {
             workspaceGuideOpen: false,
             chromePinned: false,
             headerHeightPx: 53,
+            assistantPanelTopPx: 53,
             pinnedChromeStyle: {
                 header: {},
                 drawer: {},
@@ -558,6 +560,13 @@ export default Vue.component("kp-variant-sifter", {
         };
     },
     computed: {
+        assistantPanelStyle() {
+            return {
+                top: `${this.assistantPanelTopPx}px`,
+                bottom: "30px",
+                height: "auto",
+            };
+        },
         phenotypes() {
             return projectPhenotypes(this.projectId, this.phenotypesInUse || []);
         },
@@ -849,13 +858,23 @@ export default Vue.component("kp-variant-sifter", {
         updateChromePin() {
             const workspace = this.$refs.workspace;
             const header = this.$refs.vksHeader;
-            if (!workspace || !header) {
+            if (!header) {
+                return;
+            }
+
+            const headerHeight = header.offsetHeight || 53;
+            this.headerHeightPx = headerHeight;
+            const headerRect = header.getBoundingClientRect();
+            this.assistantPanelTopPx = Math.max(
+                0,
+                Math.round(headerRect.bottom)
+            );
+
+            if (!workspace) {
                 return;
             }
 
             const workspaceRect = workspace.getBoundingClientRect();
-            const headerHeight = header.offsetHeight || 53;
-            this.headerHeightPx = headerHeight;
 
             const shouldPin =
                 this.canvasActive &&

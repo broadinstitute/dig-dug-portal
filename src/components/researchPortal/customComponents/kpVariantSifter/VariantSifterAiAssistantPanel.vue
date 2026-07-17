@@ -2,6 +2,7 @@
     <aside
         v-if="open"
         class="vks-assistant-panel"
+        :style="panelStyle"
         role="dialog"
         aria-modal="false"
         aria-labelledby="vks-assistant-title"
@@ -359,6 +360,10 @@ export default {
             type: Boolean,
             default: false,
         },
+        panelStyle: {
+            type: Object,
+            default: () => ({}),
+        },
         plan: {
             type: Object,
             default: null,
@@ -608,15 +613,15 @@ export default {
 <style scoped>
 .vks-assistant-panel {
     position: fixed;
-    top: 0;
+    top: 53px;
     right: calc(var(--vks-drawer-tab-width, 30px) + var(--vks-side-panel-inset, 12px));
+    bottom: 30px;
     z-index: 25;
     display: flex;
     flex-direction: column;
     width: min(380px, calc(100% - 24px));
     max-width: 420px;
-    height: 100vh;
-    height: 100dvh;
+    height: auto;
     overflow: hidden;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 12px 0 0 12px;
