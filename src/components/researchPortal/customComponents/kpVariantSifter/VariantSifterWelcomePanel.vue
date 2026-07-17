@@ -169,7 +169,6 @@
 <script>
 import {
     REGION_EXPAND_OPTIONS,
-    VARIANT_SIFTER_ANCESTRY_OPTIONS,
     ancestryLabel,
     filterPhenotypes,
     formatRegion,
@@ -177,6 +176,10 @@ import {
     lookupGeneMatches,
     resolveGeneOrVariantToRegion,
 } from "./variantSifterSearchUtils.js";
+import {
+    projectAncestryOptions,
+    VKS_PROJECT_DEFAULT_ID,
+} from "./variantSifterProjects.js";
 import {
     activeRegionDataLimitMessage,
     regionExceedsActiveDataLimit,
@@ -199,6 +202,14 @@ export default {
         initialValues: {
             type: Object,
             default: null,
+        },
+        projectId: {
+            type: String,
+            default: VKS_PROJECT_DEFAULT_ID,
+        },
+        bioIndexHost: {
+            type: String,
+            default: "",
         },
     },
     data() {
@@ -224,12 +235,14 @@ export default {
             submitting: false,
             resolvedRegionLabel: "",
             regionExpandOptions: REGION_EXPAND_OPTIONS,
-            ancestryOptions: VARIANT_SIFTER_ANCESTRY_OPTIONS,
         };
     },
     computed: {
         phenotypeSuggestions() {
             return filterPhenotypes(this.phenotypes, this.phenotypeQuery);
+        },
+        ancestryOptions() {
+            return projectAncestryOptions(this.projectId);
         },
     },
     watch: {
@@ -242,6 +255,31 @@ export default {
                 }
                 this.applyInitialValues(values);
             },
+        },
+        projectId() {
+            if (!this.ancestryOptions.includes(this.selectedAncestry)) {
+                this.selectedAncestry = "Mixed";
+            }
+            if (
+                this.selectedPhenotype &&
+                !(this.phenotypes || []).some(
+                    (entry) => entry.name === this.selectedPhenotype.name
+                )
+            ) {
+                this.phenotypeQuery = "";
+                this.selectedPhenotype = null;
+            }
+        },
+        phenotypes() {
+            if (
+                this.selectedPhenotype &&
+                !(this.phenotypes || []).some(
+                    (entry) => entry.name === this.selectedPhenotype.name
+                )
+            ) {
+                this.phenotypeQuery = "";
+                this.selectedPhenotype = null;
+            }
         },
         geneOrVariantQuery() {
             this.resolvedRegionLabel = "";
@@ -345,7 +383,11 @@ export default {
             }
 
             const token = ++this.geneLookupToken;
-            const matches = await lookupGeneMatches(query);
+            const matches = await lookupGeneMatches(
+                query,
+                10,
+                this.bioIndexHost || null
+            );
             if (token !== this.geneLookupToken) {
                 return;
             }
@@ -408,7 +450,8 @@ export default {
                 const region = await resolveGeneOrVariantToRegion(
                     this.geneOrVariantQuery,
                     this.utils.regionUtils,
-                    this.regionExpandBp
+                    this.regionExpandBp,
+                    this.bioIndexHost || null
                 );
 
                 if (!region) {

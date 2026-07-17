@@ -115,6 +115,7 @@
                         :plot-markers="plotMarkers"
                         :recomb-peak-intervals="recombPeakIntervals"
                         :utils="utils"
+                        :tissue-regions-host="tissueRegionsHost"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
@@ -353,6 +354,10 @@ export default {
         utils: {
             type: Object,
             default: null,
+        },
+        tissueRegionsHost: {
+            type: String,
+            default: "",
         },
         credibleSetsState: {
             type: Object,

@@ -25,10 +25,10 @@ import {
 } from "./variantSifterToolSettings.js";
 import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
 
-export const VKS_SESSION_VERSION = 9;
+export const VKS_SESSION_VERSION = 10;
 export const VKS_SESSION_APP = "kp-variant-sifter";
 
-const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const SUPPORTED_SESSION_VERSIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 function emptyPlotOverlaysSnapshot() {
     return {
@@ -105,6 +105,7 @@ export function validateSessionExportReady({
  * Includes every data layer needed to restore the current view without API calls.
  */
 export function exportVariantSifterSession({
+    projectId = "",
     searchSession,
     associationsState,
     genesState = null,
@@ -143,6 +144,7 @@ export function exportVariantSifterSession({
         version: VKS_SESSION_VERSION,
         app: VKS_SESSION_APP,
         exportedAt: new Date().toISOString(),
+        projectId: projectId || "",
         searchSession: {
             phenotypeName: searchSession.phenotype.name,
             phenotypeDescription: searchSession.phenotype.description || null,
@@ -499,6 +501,7 @@ export function importVariantSifterSession(payload, phenotypes = []) {
             : { ...searchSession.region };
 
     return {
+        projectId: payload.projectId || "",
         searchSession,
         associationsState,
         genesState: normalizeGenesState(payload),

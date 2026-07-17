@@ -50,6 +50,34 @@
                     aria-labelledby="vks-settings-tab-settings"
                 >
                     <section class="vks-settings-section">
+                        <h3 class="vks-ui-section-title">Project</h3>
+                        <p class="vks-ui-hint">
+                            Project selects the BioIndex data source and the available
+                            phenotypes and ancestries. It can also be set with the
+                            <code>project</code> URL parameter (for example
+                            <code>&amp;project=giant</code>). Changing project clears the
+                            current workspace search.
+                        </p>
+                        <label class="vks-settings-project-label" for="vks-settings-project">
+                            Active project
+                            <select
+                                id="vks-settings-project"
+                                class="vks-settings-project-select"
+                                :value="projectId"
+                                @change="onProjectChange"
+                            >
+                                <option
+                                    v-for="project in projectOptions"
+                                    :key="project.id || 'default'"
+                                    :value="project.id"
+                                >
+                                    {{ project.label }}
+                                </option>
+                            </select>
+                        </label>
+                    </section>
+
+                    <section class="vks-settings-section">
                         <h3 class="vks-ui-section-title">Show / Hide sections</h3>
                         <p class="vks-ui-hint">
                             Uncheck a section to hide it on the workspace and from the
@@ -155,6 +183,11 @@ import {
     VKS_SETTINGS_TABS,
 } from "./variantSifterToolSettings.js";
 import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
+import {
+    listVksProjects,
+    normalizeProjectId,
+    VKS_PROJECT_DEFAULT_ID,
+} from "./variantSifterProjects.js";
 
 export default {
     name: "VariantSifterSettingsPanel",
@@ -179,19 +212,45 @@ export default {
             type: String,
             default: "",
         },
+        defaultBioIndexHost: {
+            type: String,
+            default: "",
+        },
+        projectId: {
+            type: String,
+            default: VKS_PROJECT_DEFAULT_ID,
+        },
+        resolveHostForIndex: {
+            type: Function,
+            default: null,
+        },
     },
     data() {
         return {
             tabs: VKS_SETTINGS_TABS,
             activeTab: "settings",
+            projectOptions: listVksProjects(),
         };
     },
     computed: {
         apis() {
-            return buildToolApis(this.bioIndexHost);
+            return buildToolApis(this.bioIndexHost, {
+                projectId: this.projectId,
+                defaultBioIndexHost: this.defaultBioIndexHost || this.bioIndexHost,
+                resolveHostForIndex: this.resolveHostForIndex,
+            });
         },
         informationRows() {
-            return buildToolInformation({ searchSession: this.searchSession });
+            return [
+                {
+                    label: "Project",
+                    value:
+                        this.projectOptions.find(
+                            (project) => project.id === this.projectId
+                        )?.label || "Default (KP)",
+                },
+                ...buildToolInformation({ searchSession: this.searchSession }),
+            ];
         },
     },
     watch: {
@@ -210,6 +269,12 @@ export default {
     methods: {
         isVisible(sectionId) {
             return this.visibleSectionIds.includes(sectionId);
+        },
+        onProjectChange(event) {
+            this.$emit(
+                "update:projectId",
+                normalizeProjectId(event?.target?.value)
+            );
         },
         onToggleSection(sectionId, event) {
             const checked = Boolean(event?.target?.checked);
@@ -319,6 +384,27 @@ export default {
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+.vks-settings-project-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-settings-project-select {
+    max-width: 280px;
+    height: 34px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--cfde-ink, #33363d);
+    font-size: 13px;
+    padding: 0 8px;
 }
 
 .vks-settings-section-item {

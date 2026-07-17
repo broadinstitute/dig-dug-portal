@@ -69,6 +69,9 @@
                     :phenotypes="phenotypes"
                     :utils="utilsBox"
                     :welcome-initial-values="welcomeInitialValues"
+                    :project-id="projectId"
+                    :gene-lookup-bio-index-host="bioIndexHostFor('gene')"
+                    :tissue-regions-host="bioIndexHostFor('tissue-regions')"
                     :search-session="searchSession"
                     :region-zoom="regionZoom"
                     :region-shift-bp="regionShiftBp"
@@ -209,8 +212,12 @@
             :visible-section-ids="visibleSectionIds"
             :search-session="searchSession"
             :bio-index-host="bioIndexHost"
+            :default-bio-index-host="defaultBioIndexHost"
+            :project-id="projectId"
+            :resolve-host-for-index="bioIndexHostFor"
             @close="settingsOpen = false"
             @update:visibleSectionIds="onVisibleSectionIdsUpdate"
+            @update:projectId="onProjectIdUpdate"
         />
     </div>
 </template>
@@ -331,6 +338,13 @@ import {
     collectMappingCategories,
     parseMappingCategoryId,
 } from "./kpVariantSifter/variantSifterMappingData.js";
+import {
+    normalizeProjectId,
+    projectPhenotypes,
+    resolveProjectBioIndexHost,
+    resolveProjectPrimaryBioIndexHost,
+    VKS_PROJECT_DEFAULT_ID,
+} from "./kpVariantSifter/variantSifterProjects.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
@@ -497,6 +511,7 @@ export default Vue.component("kp-variant-sifter", {
             welcomeOpen: true,
             searchSession: null,
             welcomeInitialValues: null,
+            projectId: VKS_PROJECT_DEFAULT_ID,
             regionZoom: 0,
             regionZoomOut: 0,
             regionViewArea: 0,
@@ -544,10 +559,16 @@ export default Vue.component("kp-variant-sifter", {
     },
     computed: {
         phenotypes() {
-            return this.phenotypesInUse || [];
+            return projectPhenotypes(this.projectId, this.phenotypesInUse || []);
+        },
+        defaultBioIndexHost() {
+            return this.utilsBox?.uiUtils?.biDomain?.() || "";
         },
         bioIndexHost() {
-            return this.utilsBox?.uiUtils?.biDomain?.() || "";
+            return resolveProjectPrimaryBioIndexHost(
+                this.projectId,
+                this.defaultBioIndexHost
+            );
         },
         visibleSections() {
             return this.sections.filter((section) =>
@@ -657,6 +678,7 @@ export default Vue.component("kp-variant-sifter", {
         },
     },
     mounted() {
+        this.applyProjectFromUrl();
         this.applyUrlSearchParams();
         this.$nextTick(() => this.setupChromePin());
         this.refreshAssistantLlmHealth();
@@ -674,6 +696,7 @@ export default Vue.component("kp-variant-sifter", {
     },
     watch: {
         phenotypes() {
+            this.applyProjectFromUrl();
             this.applyUrlSearchParams();
         },
         canvasActive() {
@@ -684,6 +707,47 @@ export default Vue.component("kp-variant-sifter", {
         },
     },
     methods: {
+        bioIndexHostFor(index) {
+            return resolveProjectBioIndexHost(
+                index,
+                this.projectId,
+                this.defaultBioIndexHost
+            );
+        },
+        applyProjectFromUrl() {
+            const params = this.utilsBox?.keyParams;
+            if (!params) {
+                return;
+            }
+            const next = normalizeProjectId(params.project);
+            if (next === this.projectId) {
+                return;
+            }
+            if (this.searchSession || this.canvasActive) {
+                return;
+            }
+            this.projectId = next;
+        },
+        syncUrlProjectParam() {
+            if (!this.utilsBox?.keyParams) {
+                return;
+            }
+            this.utilsBox.keyParams.set({
+                project: this.projectId || undefined,
+            });
+        },
+        onProjectIdUpdate(projectId) {
+            const next = normalizeProjectId(projectId);
+            if (next === this.projectId) {
+                return;
+            }
+            const hadSession = Boolean(this.searchSession || this.canvasActive);
+            this.projectId = next;
+            this.syncUrlProjectParam();
+            if (hadSession) {
+                this.resetSearch();
+            }
+        },
         scheduleChromePinUpdate() {
             if (this.chromePinFrame) {
                 return;
@@ -1128,8 +1192,10 @@ export default Vue.component("kp-variant-sifter", {
                 this.regionLoadDismissTimer = null;
             }
             this.regionLoadProgress = startRegionLoadProgress();
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
-            if (!host) {
+            const associationsHost = this.bioIndexHostFor("associations");
+            const genesHost = this.bioIndexHostFor("genes");
+            const regionsHost = this.bioIndexHostFor("regions");
+            if (!associationsHost) {
                 this.regionLoadProgress = finishRegionLoadProgress(this.regionLoadProgress);
                 return;
             }
@@ -1161,7 +1227,7 @@ export default Vue.component("kp-variant-sifter", {
                     };
 
                     try {
-                        const result = await fetchAssociations(gapSession, host);
+                        const result = await fetchAssociations(gapSession, associationsHost, this.projectId);
                         const formattedRows = formatAssociationRows(result.rows, gapSession);
                         if (formattedRows.length) {
                             extendedAssociationRows = true;
@@ -1187,7 +1253,8 @@ export default Vue.component("kp-variant-sifter", {
                                 };
                                 const ancestryResult = await fetchAssociations(
                                     ancestrySession,
-                                    host
+                                    associationsHost,
+                                    this.projectId
                                 );
                                 const ancestryRows = formatAssociationRows(
                                     ancestryResult.rows,
@@ -1254,7 +1321,8 @@ export default Vue.component("kp-variant-sifter", {
                             try {
                                 const newGenes = await fetchGenesTrackData(
                                     gapRegion,
-                                    plotConfig["genome reference"]
+                                    plotConfig["genome reference"],
+                                    genesHost
                                 );
                                 mergedGenes = mergeGenesByName(mergedGenes, newGenes);
                                 this.flushStreamedGenes(mergedGenes, activeRegion);
@@ -1316,7 +1384,7 @@ export default Vue.component("kp-variant-sifter", {
                                 end: gap.end,
                             };
                             try {
-                                const newAnnoRows = await fetchLocusAnnotations(gapRegion, host);
+                                const newAnnoRows = await fetchLocusAnnotations(gapRegion, regionsHost);
                                 if (newAnnoRows?.length) {
                                     mergedAnnoRows = mergeAnnoRows(mergedAnnoRows, newAnnoRows);
                                     this.flushStreamedAnnoRows(mergedAnnoRows, activeRegion);
@@ -1437,6 +1505,7 @@ export default Vue.component("kp-variant-sifter", {
         exportSession() {
             try {
                 exportVariantSifterSession({
+                    projectId: this.projectId,
                     searchSession: this.searchSession,
                     associationsState: this.associationsState,
                     genesState: this.genesState,
@@ -1469,6 +1538,7 @@ export default Vue.component("kp-variant-sifter", {
 
             try {
                 const payload = exportVariantSifterSession({
+                    projectId: this.projectId,
                     searchSession: this.searchSession,
                     associationsState: this.associationsState,
                     genesState: this.genesState,
@@ -1515,7 +1585,14 @@ export default Vue.component("kp-variant-sifter", {
 
             try {
                 const payload = await readSessionFile(file);
-                const restored = importVariantSifterSession(payload, this.phenotypes);
+                const projectId = normalizeProjectId(payload.projectId);
+                const phenotypes = projectPhenotypes(
+                    projectId,
+                    this.phenotypesInUse || []
+                );
+                const restored = importVariantSifterSession(payload, phenotypes);
+                this.projectId = projectId;
+                this.syncUrlProjectParam();
                 this.applyImportedSession(restored);
             } catch (error) {
                 window.alert(error.message || "Could not import session.");
@@ -1526,6 +1603,10 @@ export default Vue.component("kp-variant-sifter", {
         applyImportedSession(restored) {
             if (regionExceedsActiveDataLimit(restored.searchSession?.region)) {
                 throw new Error(activeRegionDataLimitMessage());
+            }
+
+            if (restored.projectId != null) {
+                this.projectId = normalizeProjectId(restored.projectId);
             }
 
             const limitRegion = resolveZoomOutLimitRegion(
@@ -1648,8 +1729,9 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const geToken = requestToken ?? ++this.globalEnrichmentRequestToken;
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
-            if (!host) {
+            const geHost = this.bioIndexHostFor("global-enrichment");
+            const regionsHost = this.bioIndexHostFor("regions");
+            if (!geHost && !regionsHost) {
                 this.globalEnrichmentState = {
                     ...emptyGlobalEnrichmentState(),
                     error: "BioIndex host is not available.",
@@ -1666,8 +1748,8 @@ export default Vue.component("kp-variant-sifter", {
 
             try {
                 const [geRows, annoRows] = await Promise.all([
-                    fetchGlobalEnrichment(session, host),
-                    fetchLocusAnnotations(session.region, host),
+                    fetchGlobalEnrichment(session, geHost),
+                    fetchLocusAnnotations(session.region, regionsHost),
                 ]);
                 if (geToken !== this.globalEnrichmentRequestToken) {
                     return false;
@@ -1782,6 +1864,7 @@ export default Vue.component("kp-variant-sifter", {
                 ancestry: undefined,
                 sub_ancestries: undefined,
             });
+            this.syncUrlProjectParam();
         },
         onStartSearch(session, { subAncestries = [] } = {}) {
             if (regionExceedsActiveDataLimit(session.region)) {
@@ -1861,7 +1944,7 @@ export default Vue.component("kp-variant-sifter", {
                 this.lastCredibleSetsListRegion = null;
             }
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("credible-sets");
             if (!host) {
                 if (token !== this.credibleSetsRequestToken) {
                     return false;
@@ -1924,7 +2007,7 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("credible-variants");
             if (!host) {
                 return;
             }
@@ -2008,7 +2091,7 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("credible-sets");
             if (!host) {
                 return;
             }
@@ -2090,7 +2173,8 @@ export default Vue.component("kp-variant-sifter", {
                 const plotConfig = buildAssociationsRegionPlotConfig(session);
                 const data = await fetchGenesTrackData(
                     session.region,
-                    plotConfig["genome reference"]
+                    plotConfig["genome reference"],
+                    this.bioIndexHostFor("genes")
                 );
                 if (token !== this.genesRequestToken) {
                     return;
@@ -2260,7 +2344,7 @@ export default Vue.component("kp-variant-sifter", {
             this.regionLoadProgress = startRegionLoadProgress();
             this.associationsState = emptyAssociationsState();
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("associations");
             if (!host) {
                 this.associationsState = {
                     ...emptyAssociationsState(),
@@ -2278,7 +2362,7 @@ export default Vue.component("kp-variant-sifter", {
 
             this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.LOADING);
             try {
-                const result = await fetchAssociations(session, host);
+                const result = await fetchAssociations(session, host, this.projectId);
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
@@ -2329,7 +2413,8 @@ export default Vue.component("kp-variant-sifter", {
                     try {
                         const data = await fetchGenesTrackData(
                             session.region,
-                            plotConfig["genome reference"]
+                            plotConfig["genome reference"],
+                            this.bioIndexHostFor("genes")
                         );
                         if (genesToken !== this.genesRequestToken) {
                             return;
@@ -2514,7 +2599,7 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         async probeAncestryAssociationAvailabilityForSession(session) {
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("ancestry-associations");
             const token = this.associationsRequestToken;
             if (!session?.phenotype || !session?.region || !host) {
                 return;
@@ -2527,7 +2612,11 @@ export default Vue.component("kp-variant-sifter", {
             };
 
             try {
-                const availability = await probeAncestryAssociationAvailability(session, host);
+                const availability = await probeAncestryAssociationAvailability(
+                    session,
+                    host,
+                    this.projectId
+                );
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
@@ -2587,7 +2676,7 @@ export default Vue.component("kp-variant-sifter", {
                 return true;
             }
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("ancestry-associations");
             if (!host) {
                 return false;
             }
@@ -2612,7 +2701,7 @@ export default Vue.component("kp-variant-sifter", {
                     ancestry,
                     region: this.dataRegion || this.searchSession.region,
                 };
-                const result = await fetchAssociations(ancestrySession, host);
+                const result = await fetchAssociations(ancestrySession, host, this.projectId);
                 if (token !== this.associationsRequestToken) {
                     return false;
                 }
@@ -2737,6 +2826,7 @@ export default Vue.component("kp-variant-sifter", {
             const nextParams = {
                 phenotype: session.phenotype.name,
                 region: session.regionLabel,
+                project: this.projectId || undefined,
             };
             if (session.ancestry) {
                 nextParams.ancestry = session.ancestry;
@@ -3259,7 +3349,7 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("gene-links");
             const region = this.dataRegion || this.searchSession?.region;
             if (!host || !region) {
                 this.v2gState = {
@@ -3371,7 +3461,7 @@ export default Vue.component("kp-variant-sifter", {
             if (!region) {
                 return;
             }
-            const host = this.utilsBox?.uiUtils?.biDomain?.();
+            const host = this.bioIndexHostFor("variant-links");
             const token = ++this.s2gRequestToken;
             this.s2gState = {
                 ...this.s2gState,

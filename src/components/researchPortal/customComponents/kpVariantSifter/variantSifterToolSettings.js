@@ -1,5 +1,6 @@
 import { VARIANT_SIFTER_SECTIONS } from "./variantSifterSections.js";
 import { LD_SERVER_DEFAULTS } from "./variantSifterLdServer.js";
+import { resolveProjectQueryIndex } from "./variantSifterProjects.js";
 
 export const VKS_DEFAULT_GENOME_BUILD = "GRCh37";
 
@@ -177,14 +178,52 @@ function joinBioIndexUrl(host, path) {
 }
 
 /**
- * Resolve API catalog entries to full URLs using the portal BioIndex host.
- * Absolute paths (portaldev, LD server) are left unchanged.
+ * Resolve API catalog entries to full URLs using the portal BioIndex host
+ * and optional project-specific host routing.
  */
-export function buildToolApis(bioIndexHost) {
-    return VKS_TOOL_APIS.map((api) => ({
-        ...api,
-        url: joinBioIndexUrl(bioIndexHost, api.path),
-    }));
+export function buildToolApis(
+    bioIndexHost,
+    {
+        projectId = "",
+        defaultBioIndexHost = null,
+        resolveHostForIndex = null,
+    } = {}
+) {
+    const fallback = defaultBioIndexHost || bioIndexHost;
+    return VKS_TOOL_APIS.map((api) => {
+        let host = bioIndexHost;
+        if (typeof resolveHostForIndex === "function") {
+            host = resolveHostForIndex(api.name) || fallback;
+        } else if (projectId) {
+            host = fallback;
+        }
+        const resolvedName = resolveProjectQueryIndex(api.name, projectId);
+        const path =
+            resolvedName !== api.name &&
+            typeof api.path === "string" &&
+            api.path.includes(`/query/${api.name}`)
+                ? api.path.replace(`/query/${api.name}`, `/query/${resolvedName}`)
+                : api.path;
+        const service =
+            host && fallback && host !== fallback
+                ? `Project BioIndex (${host})`
+                : api.service;
+        return {
+            ...api,
+            name: resolvedName,
+            path,
+            query:
+                resolvedName === "associations" &&
+                api.id === "ancestry-associations"
+                    ? "phenotype,ancestry,chr:start-end (via associations)"
+                    : api.query,
+            service:
+                /^https?:\/\//i.test(api.path) || api.id === "ld-server"
+                    ? api.service
+                    : service,
+            url: joinBioIndexUrl(host || fallback, path),
+        };
+    });
 }
 
 export function buildToolInformation({ searchSession = null, genomeBuild = VKS_DEFAULT_GENOME_BUILD } = {}) {

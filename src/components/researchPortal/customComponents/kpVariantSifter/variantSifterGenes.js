@@ -66,13 +66,21 @@ async function fetchAllGeneAnnotations(geneNames, genomeReference) {
  * Fetch gene track annotation for a genomic region (full locus, not zoom window).
  * Annotation lookups are batched to avoid URL length limits on large loci.
  */
-export async function fetchGenesTrackData(region, genomeReference = "GRCh37") {
+export async function fetchGenesTrackData(
+    region,
+    genomeReference = "GRCh37",
+    host = null
+) {
     const regionString = typeof region === "string" ? region : formatRegion(region);
     if (!regionString) {
         return [];
     }
 
-    const queryUrl = `https://bioindex.hugeamp.org/api/bio/query/genes?q=${encodeURIComponent(regionString)}`;
+    const bioHost = String(host || "https://bioindex.hugeamp.org").replace(
+        /\/+$/,
+        ""
+    );
+    const queryUrl = `${bioHost}/api/bio/query/genes?q=${encodeURIComponent(regionString)}`;
 
     try {
         const genesText = await fetch(queryUrl).then((resp) => resp.text());

@@ -335,6 +335,10 @@ export default {
             type: Object,
             default: null,
         },
+        tissueRegionsHost: {
+            type: String,
+            default: "",
+        },
         workspaceMappingFilter: {
             type: Object,
             default: null,
@@ -1162,7 +1166,8 @@ export default {
             this.$set(this.biosampleErrorByTissue, tissue, null);
             this.$nextTick(() => this.renderBiosampleTracks());
 
-            const host = this.utils?.uiUtils?.biDomain?.();
+            const host =
+                this.tissueRegionsHost || this.utils?.uiUtils?.biDomain?.();
             if (!host) {
                 this.$set(this.biosampleLoadingByTissue, tissue, false);
                 // Persist annotation-overlap fallback so export still has regions.

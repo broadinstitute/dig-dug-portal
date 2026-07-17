@@ -6,6 +6,8 @@
                 :phenotypes="phenotypes"
                 :utils="utils"
                 :initial-values="welcomeInitialValues"
+                :project-id="projectId"
+                :bio-index-host="geneLookupBioIndexHost"
                 @start-search="$emit('start-search', $event)"
                 @import-session="$emit('import-session')"
             />
@@ -38,6 +40,7 @@
                         :visible-section-ids="visibleSectionIds"
                         :workspace-mapping-filter="workspaceMappingFilter"
                         :utils="utils"
+                        :tissue-regions-host="tissueRegionsHost"
                         @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
                         @update:regionViewArea="$emit('update:regionViewArea', $event)"
                         @pan-end="$emit('pan-end')"
@@ -128,6 +131,18 @@ export default {
         welcomeInitialValues: {
             type: Object,
             default: null,
+        },
+        projectId: {
+            type: String,
+            default: "",
+        },
+        geneLookupBioIndexHost: {
+            type: String,
+            default: "",
+        },
+        tissueRegionsHost: {
+            type: String,
+            default: "",
         },
         searchSession: {
             type: Object,

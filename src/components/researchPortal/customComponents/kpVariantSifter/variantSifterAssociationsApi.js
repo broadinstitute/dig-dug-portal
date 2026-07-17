@@ -2,15 +2,22 @@ import { query, request } from "@/utils/bioIndexUtils";
 import {
     ancestryLabel,
     formatRegion,
-    VARIANT_SIFTER_ANCESTRY_OPTIONS,
 } from "./variantSifterSearchUtils.js";
+import {
+    getProjectConfig,
+    projectAncestryOptions,
+    resolveProjectQueryIndex,
+    VKS_PROJECT_DEFAULT_ID,
+} from "./variantSifterProjects.js";
 
 /**
- * Ancestry codes that can be probed / loaded via ancestry-associations.
- * Mixed uses the combined `associations` index instead.
+ * Ancestry codes that can be probed / loaded via ancestry-specific association queries.
+ * Mixed uses the combined `associations` index without an ancestry key.
  */
-export function ancestryAssociationCodes() {
-    return VARIANT_SIFTER_ANCESTRY_OPTIONS.filter((code) => code && code !== "Mixed");
+export function ancestryAssociationCodes(projectId = VKS_PROJECT_DEFAULT_ID) {
+    return projectAncestryOptions(projectId).filter(
+        (code) => code && code !== "Mixed"
+    );
 }
 
 export function primaryAssociationAncestry(session) {
@@ -18,29 +25,47 @@ export function primaryAssociationAncestry(session) {
 }
 
 /**
- * Mixed ancestry uses the combined associations index; specific ancestries
- * use ancestry-associations.
+ * Mixed ancestry uses associations without ancestry key.
+ * Specific ancestries use ancestry-associations on KP, or associations
+ * with phenotype,ancestry,region on projects like Giant.
  */
-export function resolveAssociationsRequest(session) {
+export function resolveAssociationsRequest(
+    session,
+    projectId = VKS_PROJECT_DEFAULT_ID
+) {
     const region = formatRegion(session.region);
     const phenotype = session.phenotype.name;
     const ancestry = session.ancestry;
+    getProjectConfig(projectId);
 
     if (ancestry && ancestry !== "Mixed") {
+        const index = resolveProjectQueryIndex(
+            "ancestry-associations",
+            projectId
+        );
         return {
-            index: "ancestry-associations",
+            index,
             q: `${phenotype},${ancestry},${region}`,
+            logicalIndex: "ancestry-associations",
         };
     }
 
     return {
         index: "associations",
         q: `${phenotype},${region}`,
+        logicalIndex: "associations",
     };
 }
 
-export async function fetchAssociations(session, host) {
-    const { index, q } = resolveAssociationsRequest(session);
+export async function fetchAssociations(
+    session,
+    host,
+    projectId = VKS_PROJECT_DEFAULT_ID
+) {
+    const { index, q, logicalIndex } = resolveAssociationsRequest(
+        session,
+        projectId
+    );
     const data = await query(index, q, { host });
     const rows = Array.isArray(data) ? data : [];
 
@@ -50,16 +75,22 @@ export async function fetchAssociations(session, host) {
         return pA - pB;
     });
 
-    return { index, q, rows };
+    return { index: logicalIndex || index, q, rows };
 }
 
-export async function fetchAssociationsForRegion(session, region, host) {
+export async function fetchAssociationsForRegion(
+    session,
+    region,
+    host,
+    projectId = VKS_PROJECT_DEFAULT_ID
+) {
     return fetchAssociations(
         {
             ...session,
             region,
         },
-        host
+        host,
+        projectId
     );
 }
 
@@ -92,19 +123,24 @@ export function ancestryAssociationsCountQuery(phenotype, ancestry, region) {
 /**
  * Probe which specific ancestries have association data for this phenotype × region.
  */
-export async function probeAncestryAssociationAvailability(session, host) {
+export async function probeAncestryAssociationAvailability(
+    session,
+    host,
+    projectId = VKS_PROJECT_DEFAULT_ID
+) {
     const phenotype = session?.phenotype;
     const region = session?.region;
     if (!phenotype?.name || !region || !host) {
         return [];
     }
 
-    const codes = ancestryAssociationCodes();
+    const codes = ancestryAssociationCodes(projectId);
+    const index = resolveProjectQueryIndex("ancestry-associations", projectId);
     const results = await Promise.all(
         codes.map(async (code) => {
             const q = ancestryAssociationsCountQuery(phenotype, code, region);
             try {
-                const count = await countBioIndex("ancestry-associations", q, host);
+                const count = await countBioIndex(index, q, host);
                 return {
                     code,
                     label: ancestryLabel(code),

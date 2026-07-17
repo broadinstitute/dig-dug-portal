@@ -126,14 +126,17 @@ export function isGeneLookupQuery(query) {
 }
 
 /** Gene symbol autocomplete via BioIndex `/api/bio/match/gene`. */
-export async function lookupGeneMatches(query, limit = 10) {
+export async function lookupGeneMatches(query, limit = 10, host = null) {
     const trimmed = String(query || "").trim();
     if (!isGeneLookupQuery(trimmed)) {
         return [];
     }
 
     try {
-        const matches = await match("gene", trimmed, { limit });
+        const matches = await match("gene", trimmed, {
+            limit,
+            ...(host ? { host } : {}),
+        });
         return Array.isArray(matches) ? matches : [];
     } catch (error) {
         console.warn("Variant Sifter gene lookup failed", error);
@@ -141,7 +144,7 @@ export async function lookupGeneMatches(query, limit = 10) {
     }
 }
 
-async function lookupVariantPosition(variantQuery) {
+async function lookupVariantPosition(variantQuery, host = null) {
     let parsed = variantUtils.parseVariant(variantQuery.trim());
     if (!parsed && /^rs\d+/i.test(variantQuery.trim())) {
         parsed = variantQuery.trim();
@@ -150,9 +153,10 @@ async function lookupVariantPosition(variantQuery) {
         return null;
     }
 
+    const lookupHost = host || BIO_INDEX_HOST;
     if (parsed.startsWith("rs")) {
         const json = await fetch(
-            `${BIO_INDEX_HOST}/api/bio/varIdLookup/${parsed}`
+            `${lookupHost}/api/bio/varIdLookup/${parsed}`
         ).then((resp) => resp.json());
         if (!json?.data?.varid) {
             return null;
@@ -234,7 +238,8 @@ function parseRegionLocation(query) {
 export async function resolveGeneOrVariantToRegion(
     query,
     regionUtils,
-    expandBp = null
+    expandBp = null,
+    host = null
 ) {
     const trimmed = String(query || "").trim();
     if (!trimmed) {
@@ -268,7 +273,7 @@ export async function resolveGeneOrVariantToRegion(
     }
 
     if (isVariantQuery(trimmed)) {
-        const variantPos = await lookupVariantPosition(trimmed);
+        const variantPos = await lookupVariantPosition(trimmed, host);
         if (!variantPos) {
             return null;
         }
