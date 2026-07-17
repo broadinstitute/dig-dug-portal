@@ -83,17 +83,21 @@
                                 </td>
                             </tr>
                             <tr
-                                v-if="expandedGroupIdForRow(row)"
+                                v-if="expandedPanelsForRow(row).length"
                                 :key="`${rowKey(row, rowIndex)}-details`"
                                 class="vks-mapping-details-row"
                             >
                                 <td :colspan="detailColspan">
-                                    <VariantSifterMappingRowDetails
-                                        :details="expandedDetailsForRow(row)"
-                                        :group-id="expandedGroupIdForRow(row)"
-                                        :title="expandedTitleForRow(row)"
-                                        :utils="utils"
-                                    />
+                                    <div class="vks-mapping-details-stack">
+                                        <VariantSifterMappingRowDetails
+                                            v-for="panel in expandedPanelsForRow(row)"
+                                            :key="panel.groupId"
+                                            :details="panel.details"
+                                            :group-id="panel.groupId"
+                                            :title="panel.title"
+                                            :utils="utils"
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </template>
@@ -113,13 +117,21 @@
 
 <script>
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
+import { sortAssociationRowsByPValueAndVariantId } from "./variantSifterAssociationsTable.js";
 import VariantSifterMappingRowDetails from "./VariantSifterMappingRowDetails.vue";
 import VariantSifterTableSettings from "./VariantSifterTableSettings.vue";
 import {
     getMappingDetailsForGroup,
+    mappingDetailGroupIdsForColumn,
     mappingGroupColor,
+    mappingGroupIdForColumn,
     mappingGroupLabel,
+    VKS_ANNOTATION_OVERLAP_COLUMN,
+    VKS_BIOSAMPLE_OVERLAP_COLUMN,
     VKS_CRED_SETS_COLUMN,
+    VKS_V2G_COLUMN,
+    VKS_S2G_COLUMN,
+    hasMultipleCredSets,
 } from "./variantSifterMappingData.js";
 
 export default {
@@ -169,7 +181,7 @@ export default {
     data() {
         return {
             currentPage: 1,
-            sortKey: null,
+            sortKey: "P-Value",
             sortDirection: "asc",
             showStarredOnly: false,
             perPage: this.defaultPerPage,
@@ -200,8 +212,12 @@ export default {
             });
         },
         sortedRows() {
-            if (!this.sortKey) {
-                return [...this.rows];
+            if (!this.sortKey || this.sortKey === "P-Value") {
+                return sortAssociationRowsByPValueAndVariantId(this.rows, {
+                    ascending: this.sortKey
+                        ? this.sortDirection === "asc"
+                        : true,
+                });
             }
 
             const key = this.sortKey;
@@ -232,7 +248,9 @@ export default {
                 const aVal = a[key];
                 const bVal = b[key];
                 if (aVal === bVal) {
-                    return 0;
+                    return String(a["Variant ID"] || a.varId || "").localeCompare(
+                        String(b["Variant ID"] || b.varId || "")
+                    );
                 }
                 const cmp = aVal > bVal ? 1 : -1;
                 return ascending ? cmp : -cmp;
@@ -259,7 +277,7 @@ export default {
     watch: {
         rows() {
             this.currentPage = 1;
-            this.sortKey = null;
+            this.sortKey = "P-Value";
             this.sortDirection = "asc";
             this.expandedMappingKeys = {};
         },
@@ -315,16 +333,17 @@ export default {
             this.currentPage = 1;
         },
         mappingGroupIdForColumn(column) {
-            return (
-                this.tableFormat?.["column formatting"]?.[column]?.mappingGroupId ||
-                (column === VKS_CRED_SETS_COLUMN ? "credible-sets" : null)
-            );
+            return mappingGroupIdForColumn(column, this.tableFormat);
         },
         isExpandableMappingColumn(column) {
             const formatting = this.tableFormat?.["column formatting"]?.[column];
             return Boolean(
                 formatting?.type?.includes("expandable mapping") ||
-                    column === VKS_CRED_SETS_COLUMN
+                    column === VKS_CRED_SETS_COLUMN ||
+                    column === VKS_ANNOTATION_OVERLAP_COLUMN ||
+                    column === VKS_BIOSAMPLE_OVERLAP_COLUMN ||
+                    column === VKS_V2G_COLUMN ||
+                    column === VKS_S2G_COLUMN
             );
         },
         hasMappingGroup(row, column) {
@@ -342,26 +361,68 @@ export default {
         },
         toggleMappingExpand(row, column) {
             const key = this.mappingExpandKey(row, column);
-            this.$set(this.expandedMappingKeys, key, !this.expandedMappingKeys[key]);
+            this.$set(
+                this.expandedMappingKeys,
+                key,
+                !this.expandedMappingKeys[key]
+            );
         },
-        expandedGroupIdForRow(row) {
+        expandedGroupIdsForRow(row) {
             const variantKey = this.variantKey(row);
             const prefix = `${variantKey}:::`;
-            const openKey = Object.keys(this.expandedMappingKeys).find(
-                (key) => key.startsWith(prefix) && this.expandedMappingKeys[key]
-            );
-            return openKey ? openKey.slice(prefix.length) : null;
+            return Object.keys(this.expandedMappingKeys)
+                .filter(
+                    (key) =>
+                        key.startsWith(prefix) && this.expandedMappingKeys[key]
+                )
+                .map((key) => key.slice(prefix.length))
+                .filter(Boolean);
         },
-        expandedDetailsForRow(row) {
-            const groupId = this.expandedGroupIdForRow(row);
-            return groupId ? getMappingDetailsForGroup(row, groupId) : [];
-        },
-        expandedTitleForRow(row) {
-            const groupId = this.expandedGroupIdForRow(row);
+        mappingTitleForGroup(groupId) {
             if (groupId === "credible-sets") {
                 return "Mapped credible sets";
             }
+            if (groupId === "global-enrichment") {
+                return "Mapped tissue overlaps";
+            }
+            if (groupId === "biosamples") {
+                return "Mapped biosample overlaps";
+            }
+            if (groupId === "variant-to-gene-links") {
+                return "Mapped variant-to-gene links";
+            }
+            if (groupId === "snp2gene-links") {
+                return "Mapped SNP-to-gene links";
+            }
             return `Mapped ${mappingGroupLabel(groupId)} features`;
+        },
+        detailsForGroup(row, groupId) {
+            const column =
+                groupId === "credible-sets"
+                    ? VKS_CRED_SETS_COLUMN
+                    : groupId === "global-enrichment"
+                      ? VKS_ANNOTATION_OVERLAP_COLUMN
+                      : groupId === "biosamples"
+                        ? VKS_BIOSAMPLE_OVERLAP_COLUMN
+                        : groupId === "variant-to-gene-links"
+                          ? VKS_V2G_COLUMN
+                          : groupId === "snp2gene-links"
+                            ? VKS_S2G_COLUMN
+                            : null;
+            const detailGroupIds = column
+                ? mappingDetailGroupIdsForColumn(column, this.tableFormat)
+                : [groupId];
+            return getMappingDetailsForGroup(
+                row,
+                detailGroupIds.length ? detailGroupIds : groupId
+            );
+        },
+        expandedPanelsForRow(row) {
+            return this.expandedGroupIdsForRow(row).map((groupId) => ({
+                groupId,
+                title: this.mappingTitleForGroup(groupId),
+                details: this.detailsForGroup(row, groupId),
+            }));
         },
         mappingColumnColor(column) {
             return mappingGroupColor(this.mappingGroupIdForColumn(column));
@@ -372,8 +433,12 @@ export default {
                 return "";
             }
             const columnFormatting = this.tableFormat["column formatting"]?.[column];
-            if (columnFormatting && this.utils?.Formatters?.BYORColumnFormatter) {
-                return this.utils.Formatters.BYORColumnFormatter(
+            let display = "";
+            if (
+                columnFormatting?.type?.includes("scientific notation") &&
+                this.utils?.Formatters?.BYORColumnFormatter
+            ) {
+                display = this.utils.Formatters.BYORColumnFormatter(
                     value,
                     column,
                     this.tableFormat,
@@ -381,11 +446,19 @@ export default {
                     null,
                     row
                 );
+            } else if (typeof value === "number") {
+                display = value.toExponential(2);
+            } else {
+                display = String(value);
             }
-            if (typeof value === "number") {
-                return value.toExponential(2);
+            if (
+                column === VKS_CRED_SETS_COLUMN &&
+                hasMultipleCredSets(row) &&
+                display
+            ) {
+                return `${display}+`;
             }
-            return String(value);
+            return display;
         },
         formatCell(row, column) {
             const value = row[column];
@@ -471,5 +544,11 @@ export default {
     height: auto !important;
     background: transparent !important;
     border-top: 0 !important;
+}
+
+.vks-mapping-details-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 </style>

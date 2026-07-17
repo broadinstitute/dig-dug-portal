@@ -20,6 +20,7 @@
  */
 
 import { ASSOCIATIONS_TABLE_FORMAT } from "./variantSifterAssociationsTableFormat.js";
+import { resolveSelectedTissuesByAnnotation } from "./variantSifterGlobalEnrichmentData.js";
 import {
     normalizeV2gSelectedLinks,
     v2gLinkSelectionKey,
@@ -30,6 +31,10 @@ const CS_PPA_FIELD = ASSOCIATIONS_TABLE_FORMAT["custom table"]["Credible Set"]["
 
 /** Single table column for max PPA across matched credible sets (replaces per-set columns). */
 export const VKS_CRED_SETS_COLUMN = "Cred. sets";
+export const VKS_ANNOTATION_OVERLAP_COLUMN = "Annotation Overlap";
+export const VKS_BIOSAMPLE_OVERLAP_COLUMN = "Biosample Overlap";
+export const VKS_V2G_COLUMN = "V2G";
+export const VKS_S2G_COLUMN = "S2G";
 
 export const VKS_MAPPING_GROUP_COLORS = {
     "credible-sets": "#32AFD5",
@@ -47,6 +52,45 @@ export const VKS_MAPPING_GROUP_LABELS = {
     "snp2gene-links": "S2G",
 };
 
+export const VKS_MAPPING_DETAIL_COLUMNS = {
+    "credible-sets": [
+        { key: "label", label: "Cred. set" },
+        { key: "ppa", label: "PPA", format: "scientific" },
+        { key: "pValue", label: "P-value", format: "scientific" },
+    ],
+    "global-enrichment": [
+        { key: "tissue", label: "Tissue" },
+        { key: "biosample", label: "Biosample" },
+        { key: "annotation", label: "Annotation" },
+        { key: "region", label: "Region" },
+        { key: "method", label: "Method" },
+        { key: "source", label: "Source" },
+        { key: "dataset", label: "Dataset" },
+    ],
+    biosamples: [
+        { key: "tissue", label: "Tissue" },
+        { key: "biosample", label: "Biosample" },
+        { key: "annotation", label: "Annotation" },
+        { key: "region", label: "Region" },
+        { key: "method", label: "Method" },
+        { key: "source", label: "Source" },
+        { key: "dataset", label: "Dataset" },
+    ],
+    "variant-to-gene-links": [
+        { key: "tissue", label: "Tissue" },
+        { key: "biosample", label: "Biosample" },
+        { key: "gene", label: "Gene" },
+        { key: "method", label: "Method" },
+        { key: "region", label: "Regulatory element" },
+        { key: "promoter", label: "Promoter" },
+    ],
+    "snp2gene-links": [
+        { key: "gene", label: "Gene" },
+        { key: "method", label: "Method" },
+        { key: "region", label: "Regulatory element" },
+    ],
+};
+
 export function mappingGroupColor(groupId) {
     return VKS_MAPPING_GROUP_COLORS[groupId] || "#6b6b6b";
 }
@@ -55,12 +99,127 @@ export function mappingGroupLabel(groupId) {
     return VKS_MAPPING_GROUP_LABELS[groupId] || "Map";
 }
 
+export function mappingDetailColumnsForGroup(groupId) {
+    return (
+        VKS_MAPPING_DETAIL_COLUMNS[groupId] ||
+        VKS_MAPPING_DETAIL_COLUMNS["credible-sets"]
+    );
+}
+
 export function getMappingDetailsForGroup(row, groupId) {
     const details = Array.isArray(row?.mappingDetails) ? row.mappingDetails : [];
     if (!groupId) {
         return details;
     }
-    return details.filter((entry) => entry?.groupId === groupId);
+    const groupIds = Array.isArray(groupId) ? groupId : [groupId];
+    if (!groupIds.length) {
+        return details;
+    }
+    const allowed = new Set(groupIds.filter(Boolean));
+    return details.filter((entry) => allowed.has(entry?.groupId));
+}
+
+export function mappingDetailGroupIdsForColumn(column, tableFormat = null) {
+    const formatting = tableFormat?.["column formatting"]?.[column];
+    if (Array.isArray(formatting?.mappingDetailGroupIds)) {
+        return formatting.mappingDetailGroupIds.filter(Boolean);
+    }
+    const groupId = mappingGroupIdForColumn(column, tableFormat);
+    return groupId ? [groupId] : [];
+}
+
+export function mappingGroupIdForColumn(column, tableFormat = null) {
+    const fromFormat =
+        tableFormat?.["column formatting"]?.[column]?.mappingGroupId || null;
+    if (fromFormat) {
+        return fromFormat;
+    }
+    if (column === VKS_CRED_SETS_COLUMN) {
+        return "credible-sets";
+    }
+    if (column === VKS_ANNOTATION_OVERLAP_COLUMN) {
+        return "global-enrichment";
+    }
+    if (column === VKS_BIOSAMPLE_OVERLAP_COLUMN) {
+        return "biosamples";
+    }
+    if (column === VKS_V2G_COLUMN) {
+        return "variant-to-gene-links";
+    }
+    if (column === VKS_S2G_COLUMN) {
+        return "snp2gene-links";
+    }
+    return null;
+}
+
+/**
+ * Parse a mapping chip id back to its workspace selection source.
+ * Ids: cs:… | ge:anno:::tissue | ge-bs:anno:::tissue:::biosample | v2g:… | s2g:…
+ */
+export function parseMappingCategoryId(categoryId) {
+    const id = String(categoryId || "");
+    if (!id) {
+        return null;
+    }
+    if (id.startsWith("cs:")) {
+        return {
+            source: "credible-sets",
+            selectionKey: id.slice("cs:".length),
+        };
+    }
+    if (id.startsWith("ge-bs:")) {
+        const [annotation, tissue, biosample] = id
+            .slice("ge-bs:".length)
+            .split(":::");
+        if (!annotation || !tissue || biosample == null || biosample === "") {
+            return null;
+        }
+        return {
+            source: "biosamples",
+            annotation,
+            tissue,
+            biosample,
+            selectionKey: `${tissue}:::${biosample}`,
+        };
+    }
+    if (id.startsWith("ge:")) {
+        const [annotation, tissue] = id.slice("ge:".length).split(":::");
+        if (!annotation || !tissue) {
+            return null;
+        }
+        return {
+            source: "global-enrichment",
+            annotation,
+            tissue,
+        };
+    }
+    if (id.startsWith("v2g:")) {
+        const [tissue, gene, method] = id.slice("v2g:".length).split(":::");
+        if (!tissue || !gene || !method) {
+            return null;
+        }
+        return {
+            source: "variant-to-gene-links",
+            tissue,
+            gene,
+            method,
+            selectionKey: v2gLinkSelectionKey(tissue, gene, method),
+        };
+    }
+    if (id.startsWith("s2g:")) {
+        const [tissue, gene, method] = id.slice("s2g:".length).split(":::");
+        if (!tissue || !gene || !method) {
+            return null;
+        }
+        return {
+            source: "snp2gene-links",
+            tissue,
+            gene,
+            method,
+            selectionKey: v2gLinkSelectionKey(tissue, gene, method),
+        };
+    }
+    return null;
 }
 
 export const VKS_MAPPING_MODES = [
@@ -418,8 +577,13 @@ function appendMappingDetail(row, detail) {
         (entry) =>
             entry?.groupId === detail.groupId &&
             entry?.label === detail.label &&
-            entry?.ppa === detail.ppa &&
-            entry?.overlap === detail.overlap
+            entry?.region === detail.region &&
+            entry?.tissue === detail.tissue &&
+            entry?.biosample === detail.biosample &&
+            entry?.method === detail.method &&
+            entry?.source === detail.source &&
+            entry?.dataset === detail.dataset &&
+            entry?.ppa === detail.ppa
     );
     if (!duplicate) {
         details.push(detail);
@@ -429,38 +593,168 @@ function appendMappingDetail(row, detail) {
 }
 
 function positionOverlapsRegions(position, regions = []) {
-    const pos = Number(position);
-    if (!Number.isFinite(pos) || !regions.length) {
-        return false;
-    }
-    return regions.some((region) => {
-        const start = Number(region.start);
-        const end = Number(region.end);
-        if (!Number.isFinite(start) || !Number.isFinite(end)) {
-            return false;
-        }
-        return pos >= Math.min(start, end) && pos <= Math.max(start, end);
-    });
+    return findAllOverlappingRegions(position, regions).length > 0;
 }
 
-function findOverlappingRegion(position, regions = []) {
+function findAllOverlappingRegions(position, regions = []) {
     const pos = Number(position);
-    if (!Number.isFinite(pos)) {
+    if (!Number.isFinite(pos) || !regions.length) {
+        return [];
+    }
+    return (regions || [])
+        .map((region) => {
+            const start = Number(region?.start);
+            const end = Number(region?.end);
+            if (!Number.isFinite(start) || !Number.isFinite(end)) {
+                return null;
+            }
+            const lo = Math.min(start, end);
+            const hi = Math.max(start, end);
+            if (pos < lo || pos > hi) {
+                return null;
+            }
+            return {
+                ...region,
+                start: lo,
+                end: hi,
+                overlapLength: hi - lo + 1,
+            };
+        })
+        .filter(Boolean);
+}
+
+function formatOverlapDisplay(details = []) {
+    const withRegions = (details || []).filter(
+        (entry) =>
+            entry?.regionStart != null &&
+            entry?.regionEnd != null &&
+            Number.isFinite(Number(entry.regionStart)) &&
+            Number.isFinite(Number(entry.regionEnd))
+    );
+    if (!withRegions.length) {
+        return "";
+    }
+    const sorted = [...withRegions].sort((left, right) => {
+        const leftLen =
+            Number(left.regionEnd) - Number(left.regionStart);
+        const rightLen =
+            Number(right.regionEnd) - Number(right.regionStart);
+        return rightLen - leftLen;
+    });
+    const best = sorted[0];
+    const label = `${best.regionStart}-${best.regionEnd}`;
+    return sorted.length > 1 ? `${label}+` : label;
+}
+
+const LINK_GENE_DISPLAY_LIMIT = 3;
+
+function formatLinkGeneDisplay(details = []) {
+    const genes = [];
+    const seen = new Set();
+    (details || []).forEach((entry) => {
+        const gene = String(entry?.gene || "").trim();
+        if (!gene || seen.has(gene)) {
+            return;
+        }
+        seen.add(gene);
+        genes.push(gene);
+    });
+    if (!genes.length) {
+        return "";
+    }
+    genes.sort((left, right) => left.localeCompare(right));
+    if (genes.length <= LINK_GENE_DISPLAY_LIMIT) {
+        return genes.join(", ");
+    }
+    return `${genes.slice(0, LINK_GENE_DISPLAY_LIMIT).join(", ")}+`;
+}
+
+function formatPromoterRange(start, end) {
+    const lo = Number(start);
+    const hi = Number(end);
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
+        return "";
+    }
+    return `${Math.min(lo, hi)}-${Math.max(lo, hi)}`;
+}
+
+function finalizeRegionOverlapColumns(row) {
+    const next = { ...row };
+    const details = Array.isArray(next.mappingDetails) ? next.mappingDetails : [];
+    const annotationDetails = details.filter(
+        (entry) => entry?.groupId === "global-enrichment"
+    );
+    const biosampleDetails = details.filter(
+        (entry) => entry?.groupId === "biosamples"
+    );
+    const v2gDetails = details.filter(
+        (entry) => entry?.groupId === "variant-to-gene-links"
+    );
+    const s2gDetails = details.filter(
+        (entry) => entry?.groupId === "snp2gene-links"
+    );
+    const annotationDisplay = formatOverlapDisplay(annotationDetails);
+    const biosampleDisplay = formatOverlapDisplay(biosampleDetails);
+    const v2gDisplay = formatLinkGeneDisplay(v2gDetails);
+    const s2gDisplay = formatLinkGeneDisplay(s2gDetails);
+    if (annotationDisplay) {
+        next[VKS_ANNOTATION_OVERLAP_COLUMN] = annotationDisplay;
+    }
+    if (biosampleDisplay) {
+        next[VKS_BIOSAMPLE_OVERLAP_COLUMN] = biosampleDisplay;
+    }
+    if (v2gDisplay) {
+        next[VKS_V2G_COLUMN] = v2gDisplay;
+    }
+    if (s2gDisplay) {
+        next[VKS_S2G_COLUMN] = s2gDisplay;
+    }
+    return next;
+}
+
+export function hasMultipleCredSets(row) {
+    return (
+        (row?.mappingDetails || []).filter(
+            (detail) => detail?.groupId === "credible-sets"
+        ).length > 1
+    );
+}
+
+function normalizeRegionMeta(region, defaults = {}) {
+    const start = Number(region?.start);
+    const end = Number(region?.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
         return null;
     }
-    for (const region of regions) {
-        const start = Number(region.start);
-        const end = Number(region.end);
-        if (!Number.isFinite(start) || !Number.isFinite(end)) {
-            continue;
-        }
-        const lo = Math.min(start, end);
-        const hi = Math.max(start, end);
-        if (pos >= lo && pos <= hi) {
-            return { start: lo, end: hi };
-        }
-    }
-    return null;
+    const lo = Math.min(start, end);
+    const hi = Math.max(start, end);
+    const biosampleDefault =
+        defaults.biosample == null || defaults.biosample === ""
+            ? ""
+            : String(defaults.biosample);
+    const biosample =
+        region?.biosample == null || region.biosample === ""
+            ? biosampleDefault
+            : String(region.biosample);
+    return {
+        start: lo,
+        end: hi,
+        annotation: region?.annotation || defaults.annotation || "",
+        tissue: region?.tissue || defaults.tissue || "",
+        biosample,
+        method:
+            region?.method == null || region.method === ""
+                ? ""
+                : String(region.method),
+        source:
+            region?.source == null || region.source === ""
+                ? ""
+                : String(region.source),
+        dataset:
+            region?.dataset == null || region.dataset === ""
+                ? ""
+                : String(region.dataset),
+    };
 }
 
 function collectRegionsFromAnnoAnnotationTissue(annoData, annotation, tissue) {
@@ -469,16 +763,10 @@ function collectRegionsFromAnnoAnnotationTissue(annoData, annotation, tissue) {
         return [];
     }
     return entry.region
-        .map((region) => ({
-            start: Number(region.start),
-            end: Number(region.end),
-        }))
-        .filter(
-            (region) =>
-                Number.isFinite(region.start) &&
-                Number.isFinite(region.end) &&
-                region.end >= region.start
-        );
+        .map((region) =>
+            normalizeRegionMeta(region, { annotation, tissue })
+        )
+        .filter(Boolean);
 }
 
 function collectRegionsForBiosample(
@@ -523,16 +811,10 @@ function collectRegionsForBiosample(
             }
             return true;
         })
-        .map((region) => ({
-            start: Number(region.start),
-            end: Number(region.end),
-        }))
-        .filter(
-            (region) =>
-                Number.isFinite(region.start) &&
-                Number.isFinite(region.end) &&
-                region.end >= region.start
-        );
+        .map((region) =>
+            normalizeRegionMeta(region, { annotation, tissue, biosample: target })
+        )
+        .filter(Boolean);
 }
 
 function formatGeTissueLabel(annotation, tissue) {
@@ -543,18 +825,10 @@ function formatGeBiosampleLabel(annotation, tissue, biosample) {
     return `${annotation} : ${tissue} : ${biosample}`;
 }
 
-function collectRegionsFromLinkRows(rows = []) {
+function collectRegionsFromLinkRows(rows = [], defaults = {}) {
     return (Array.isArray(rows) ? rows : [])
-        .map((row) => ({
-            start: Number(row.start),
-            end: Number(row.end),
-        }))
-        .filter(
-            (region) =>
-                Number.isFinite(region.start) &&
-                Number.isFinite(region.end) &&
-                region.end >= region.start
-        );
+        .map((row) => normalizeRegionMeta(row, defaults))
+        .filter(Boolean);
 }
 
 function filterLinkRows(rows = [], deselectedMethods = [], deselectedGenes = []) {
@@ -632,7 +906,27 @@ function appendLinkTrackCategories(
                     Number.isFinite(end) &&
                     end >= start
                 ) {
-                    byKey.get(key).regions.push({ start, end });
+                    byKey.get(key).regions.push({
+                        start,
+                        end,
+                        tissue,
+                        gene,
+                        method,
+                        biosample:
+                            row.biosample == null || row.biosample === ""
+                                ? ""
+                                : String(row.biosample),
+                        targetGeneStart: row.targetGeneStart,
+                        targetGeneEnd: row.targetGeneEnd,
+                        source:
+                            row.source == null || row.source === ""
+                                ? ""
+                                : String(row.source),
+                        dataset:
+                            row.dataset == null || row.dataset === ""
+                                ? ""
+                                : String(row.dataset),
+                    });
                 }
             });
             [...byKey.values()]
@@ -717,34 +1011,38 @@ export function collectMappingCategories({
     });
 
     const annoData = globalEnrichmentState?.annoData;
-    const activeAnnotation = globalEnrichmentState?.activeAnnotation || null;
-    const selectedGeTissues = Array.isArray(globalEnrichmentState?.selectedTissues)
-        ? globalEnrichmentState.selectedTissues.filter(Boolean)
-        : [];
-    if (annoData && activeAnnotation && selectedGeTissues.length) {
-        selectedGeTissues.forEach((tissue) => {
+    const selectedTissuesByAnnotation = resolveSelectedTissuesByAnnotation({
+        selectedTissuesByAnnotation:
+            globalEnrichmentState?.selectedTissuesByAnnotation,
+        selectedTissues: globalEnrichmentState?.selectedTissues,
+        activeAnnotation: globalEnrichmentState?.activeAnnotation,
+    });
+    Object.keys(selectedTissuesByAnnotation).forEach((annotation) => {
+        const tissues = selectedTissuesByAnnotation[annotation] || [];
+        tissues.forEach((tissue) => {
             const regions = collectRegionsFromAnnoAnnotationTissue(
                 annoData,
-                activeAnnotation,
+                annotation,
                 tissue
             );
             if (!regions.length) {
                 return;
             }
             categories.push({
-                id: `ge:${activeAnnotation}:::${tissue}`,
+                id: `ge:${annotation}:::${tissue}`,
                 group: "Global enrichment",
                 groupId: "global-enrichment",
-                label: formatGeTissueLabel(activeAnnotation, tissue),
+                label: formatGeTissueLabel(annotation, tissue),
                 kind: "region",
                 regions,
             });
         });
-    }
+    });
 
     const selectedBiosamples = Array.isArray(globalEnrichmentState?.selectedBiosamples)
         ? globalEnrichmentState.selectedBiosamples.filter(Boolean)
         : [];
+    const activeAnnotation = globalEnrichmentState?.activeAnnotation || null;
     if (annoData && activeAnnotation && selectedBiosamples.length) {
         selectedBiosamples.forEach((selectionKey) => {
             const separator = selectionKey.indexOf(":::");
@@ -798,7 +1096,12 @@ export function collectMappingCategories({
                             }
                         }
                         return true;
-                    })
+                    }),
+                    {
+                        annotation: activeAnnotation,
+                        tissue,
+                        biosample: target,
+                    }
                 );
             }
             if (!regions.length) {
@@ -927,11 +1230,49 @@ function enrichRowForCategory(row, category) {
         return next;
     }
 
-    const overlap = findOverlappingRegion(
+    const overlaps = findAllOverlappingRegions(
         row.Position ?? row.position,
         category.regions
     );
-    if (overlap) {
+    if (!overlaps.length) {
+        return next;
+    }
+
+    const groupId = category.groupId || "global-enrichment";
+    const isGeOverlap =
+        groupId === "global-enrichment" || groupId === "biosamples";
+    const isLinkOverlap =
+        groupId === "variant-to-gene-links" || groupId === "snp2gene-links";
+
+    if (isLinkOverlap) {
+        overlaps.forEach((overlap) => {
+            const region = `${overlap.start}-${overlap.end}`;
+            const detail = {
+                groupId,
+                groupLabel: mappingGroupLabel(groupId),
+                label: category.label,
+                tissue: overlap.tissue || "",
+                biosample: overlap.biosample || "",
+                gene: overlap.gene || "",
+                method: overlap.method || "",
+                region,
+                regionStart: overlap.start,
+                regionEnd: overlap.end,
+                ppa: null,
+                pValue: null,
+            };
+            if (groupId === "variant-to-gene-links") {
+                detail.promoter = formatPromoterRange(
+                    overlap.targetGeneStart,
+                    overlap.targetGeneEnd
+                );
+            }
+            next = appendMappingDetail(next, detail);
+        });
+        return next;
+    }
+
+    if (!isGeOverlap) {
         const existing = next["Mapped features"]
             ? String(next["Mapped features"]).split(", ")
             : [];
@@ -939,18 +1280,39 @@ function enrichRowForCategory(row, category) {
             existing.push(category.label);
         }
         next["Mapped features"] = existing.join(", ");
-        next.overStart = overlap.start;
-        next.overEnd = overlap.end;
-        next["Annotation Overlap"] = `${overlap.start}-${overlap.end}`;
+        const first = overlaps[0];
+        next.overStart = first.start;
+        next.overEnd = first.end;
         next = appendMappingDetail(next, {
-            groupId: category.groupId || "global-enrichment",
-            groupLabel: mappingGroupLabel(category.groupId),
+            groupId,
+            groupLabel: mappingGroupLabel(groupId),
             label: category.label,
-            overlap: `${overlap.start}-${overlap.end}`,
+            overlap: `${first.start}-${first.end}`,
             ppa: null,
             pValue: null,
         });
+        return next;
     }
+
+    overlaps.forEach((overlap) => {
+        const region = `${overlap.start}-${overlap.end}`;
+        next = appendMappingDetail(next, {
+            groupId,
+            groupLabel: mappingGroupLabel(groupId),
+            label: category.label,
+            tissue: overlap.tissue || "",
+            biosample: overlap.biosample || "",
+            annotation: overlap.annotation || "",
+            region,
+            regionStart: overlap.start,
+            regionEnd: overlap.end,
+            method: overlap.method || "",
+            source: overlap.source || "",
+            dataset: overlap.dataset || "",
+            ppa: null,
+            pValue: null,
+        });
+    });
     return next;
 }
 
@@ -975,7 +1337,26 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
     const hasMembershipCategories = selected.some(
         (category) => category.kind === "membership"
     );
-    const hasRegionCategories = selected.some((category) => category.kind === "region");
+    const hasAnnotationOverlap = selected.some(
+        (category) => category.groupId === "global-enrichment"
+    );
+    const hasBiosampleOverlap = selected.some(
+        (category) => category.groupId === "biosamples"
+    );
+    const hasV2gOverlap = selected.some(
+        (category) => category.groupId === "variant-to-gene-links"
+    );
+    const hasS2gOverlap = selected.some(
+        (category) => category.groupId === "snp2gene-links"
+    );
+    const hasLinkRegionCategories = selected.some(
+        (category) =>
+            category.kind === "region" &&
+            category.groupId !== "global-enrichment" &&
+            category.groupId !== "biosamples" &&
+            category.groupId !== "variant-to-gene-links" &&
+            category.groupId !== "snp2gene-links"
+    );
 
     const filtered = [];
     rows.forEach((row) => {
@@ -994,6 +1375,7 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
                 next = enrichRowForCategory(next, category);
             }
         });
+        next = finalizeRegionOverlapColumns(next);
         filtered.push(next);
     });
 
@@ -1001,10 +1383,25 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
     if (hasMembershipCategories && !topRows.includes(VKS_CRED_SETS_COLUMN)) {
         topRows.push(VKS_CRED_SETS_COLUMN);
     }
-    if (hasRegionCategories && !topRows.includes("Annotation Overlap")) {
-        topRows.push("Annotation Overlap");
+    if (
+        hasAnnotationOverlap &&
+        !topRows.includes(VKS_ANNOTATION_OVERLAP_COLUMN)
+    ) {
+        topRows.push(VKS_ANNOTATION_OVERLAP_COLUMN);
     }
-    if (hasRegionCategories && !topRows.includes("Mapped features")) {
+    if (
+        hasBiosampleOverlap &&
+        !topRows.includes(VKS_BIOSAMPLE_OVERLAP_COLUMN)
+    ) {
+        topRows.push(VKS_BIOSAMPLE_OVERLAP_COLUMN);
+    }
+    if (hasV2gOverlap && !topRows.includes(VKS_V2G_COLUMN)) {
+        topRows.push(VKS_V2G_COLUMN);
+    }
+    if (hasS2gOverlap && !topRows.includes(VKS_S2G_COLUMN)) {
+        topRows.push(VKS_S2G_COLUMN);
+    }
+    if (hasLinkRegionCategories && !topRows.includes("Mapped features")) {
         topRows.push("Mapped features");
     }
 
@@ -1015,6 +1412,14 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
             ...ASSOCIATIONS_TABLE_FORMAT["tool tips"],
             [VKS_CRED_SETS_COLUMN]:
                 "Highest Posterior Probability of Association among mapped credible sets. Click to expand matched sets.",
+            [VKS_ANNOTATION_OVERLAP_COLUMN]:
+                "Largest overlapping annotation region among mapped global enrichment tissues. \"+\" means additional overlaps. Click to expand mapped tissue overlaps.",
+            [VKS_BIOSAMPLE_OVERLAP_COLUMN]:
+                "Largest overlapping biosample region among mapped biosamples. \"+\" means additional overlaps. Click to expand mapped biosample overlaps.",
+            [VKS_V2G_COLUMN]:
+                "Mapped variant-to-gene target genes (up to 3 shown). \"+\" means additional genes. Click to expand mapped links.",
+            [VKS_S2G_COLUMN]:
+                "Mapped SNP-to-gene target genes (up to 3 shown). \"+\" means additional genes. Click to expand mapped links.",
         },
         "column formatting": {
             ...ASSOCIATIONS_TABLE_FORMAT["column formatting"],
@@ -1024,6 +1429,30 @@ export function applyMappingFilter(associationRows, categories = [], mode = "or"
         tableFormat["column formatting"][VKS_CRED_SETS_COLUMN] = {
             type: ["scientific notation", "expandable mapping"],
             mappingGroupId: "credible-sets",
+        };
+    }
+    if (hasAnnotationOverlap) {
+        tableFormat["column formatting"][VKS_ANNOTATION_OVERLAP_COLUMN] = {
+            type: ["expandable mapping"],
+            mappingGroupId: "global-enrichment",
+        };
+    }
+    if (hasBiosampleOverlap) {
+        tableFormat["column formatting"][VKS_BIOSAMPLE_OVERLAP_COLUMN] = {
+            type: ["expandable mapping"],
+            mappingGroupId: "biosamples",
+        };
+    }
+    if (hasV2gOverlap) {
+        tableFormat["column formatting"][VKS_V2G_COLUMN] = {
+            type: ["expandable mapping"],
+            mappingGroupId: "variant-to-gene-links",
+        };
+    }
+    if (hasS2gOverlap) {
+        tableFormat["column formatting"][VKS_S2G_COLUMN] = {
+            type: ["expandable mapping"],
+            mappingGroupId: "snp2gene-links",
         };
     }
 

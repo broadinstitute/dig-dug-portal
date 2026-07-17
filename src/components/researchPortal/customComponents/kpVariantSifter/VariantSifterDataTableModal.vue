@@ -29,6 +29,7 @@
                     @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
                     @update:mappingMode="onMappingModeUpdate"
                     @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
+                    @remove-category="$emit('remove-mapping-category', $event)"
                 />
                 <VariantSifterDataTableView
                     :rows="tableView.rows"

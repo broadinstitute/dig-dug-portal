@@ -24,19 +24,18 @@
                 <table class="vks-v2g-table">
                     <thead>
                         <tr>
-                            <th>Tissue</th>
+                            <th v-if="showTissueBiosample">Tissue</th>
+                            <th v-if="showTissueBiosample">Biosample</th>
                             <th>Gene</th>
                             <th>Method</th>
-                            <th>Biosample</th>
-                            <th>Start</th>
-                            <th>End</th>
-                            <th>Promoter start</th>
-                            <th>Promoter end</th>
+                            <th>Regulatory element</th>
+                            <th v-if="showPromoter">Promoter</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="row in pagedRows" :key="row.id">
-                            <td>{{ row.tissue }}</td>
+                            <td v-if="showTissueBiosample">{{ row.tissue }}</td>
+                            <td v-if="showTissueBiosample">{{ row.biosample }}</td>
                             <td>{{ row.targetGene }}</td>
                             <td>
                                 <span
@@ -46,11 +45,10 @@
                                     {{ row.method }}
                                 </span>
                             </td>
-                            <td>{{ row.biosample }}</td>
-                            <td>{{ formatCoord(row.start) }}</td>
-                            <td>{{ formatCoord(row.end) }}</td>
-                            <td>{{ formatCoord(row.targetGeneStart) }}</td>
-                            <td>{{ formatCoord(row.targetGeneEnd) }}</td>
+                            <td>{{ formatRange(row.start, row.end) }}</td>
+                            <td v-if="showPromoter">
+                                {{ formatRange(row.targetGeneStart, row.targetGeneEnd) }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -89,6 +87,14 @@ export default {
             type: String,
             default: "",
         },
+        showPromoter: {
+            type: Boolean,
+            default: true,
+        },
+        showTissueBiosample: {
+            type: Boolean,
+            default: true,
+        },
     },
     data() {
         return {
@@ -120,9 +126,20 @@ export default {
     methods: {
         formatCoord(value) {
             if (value == null || value === "") {
-                return "—";
+                return "";
             }
             return Number(value).toLocaleString();
+        },
+        formatRange(start, end) {
+            const left = this.formatCoord(start);
+            const right = this.formatCoord(end);
+            if (!left && !right) {
+                return "—";
+            }
+            if (!left || !right) {
+                return left || right;
+            }
+            return `${left}–${right}`;
         },
         methodColor(method) {
             return solidV2gMethodColor(

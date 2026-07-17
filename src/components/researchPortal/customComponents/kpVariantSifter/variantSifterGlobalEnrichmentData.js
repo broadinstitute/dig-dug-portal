@@ -244,9 +244,19 @@ export function snapshotGlobalEnrichmentForExport(state) {
         selectedMethods: normalizeGeFilterStringList(state.selectedMethods),
         selectedSources: normalizeGeFilterStringList(state.selectedSources),
         activeAnnotation: state.activeAnnotation || null,
-        selectedTissues: Array.isArray(state.selectedTissues)
-            ? [...new Set(state.selectedTissues.filter(Boolean))]
-            : [],
+        selectedTissuesByAnnotation: resolveSelectedTissuesByAnnotation({
+            selectedTissuesByAnnotation: state.selectedTissuesByAnnotation,
+            selectedTissues: state.selectedTissues,
+            activeAnnotation: state.activeAnnotation,
+        }),
+        selectedTissues: selectedTissuesForAnnotation(
+            resolveSelectedTissuesByAnnotation({
+                selectedTissuesByAnnotation: state.selectedTissuesByAnnotation,
+                selectedTissues: state.selectedTissues,
+                activeAnnotation: state.activeAnnotation,
+            }),
+            state.activeAnnotation
+        ),
         selectedBiosamples: normalizeGeSelectedBiosamples(state.selectedBiosamples),
         biosampleMethodOptions: normalizeGeOptionList(state.biosampleMethodOptions),
         biosampleSourceOptions: normalizeGeOptionList(state.biosampleSourceOptions),
@@ -309,9 +319,19 @@ export function normalizeGlobalEnrichmentFromSession(exported) {
         selectedMethods: normalizeGeFilterStringList(exported.selectedMethods),
         selectedSources: normalizeGeFilterStringList(exported.selectedSources),
         activeAnnotation: exported.activeAnnotation || null,
-        selectedTissues: Array.isArray(exported.selectedTissues)
-            ? [...new Set(exported.selectedTissues.filter(Boolean))]
-            : [],
+        selectedTissuesByAnnotation: resolveSelectedTissuesByAnnotation({
+            selectedTissuesByAnnotation: exported.selectedTissuesByAnnotation,
+            selectedTissues: exported.selectedTissues,
+            activeAnnotation: exported.activeAnnotation,
+        }),
+        selectedTissues: selectedTissuesForAnnotation(
+            resolveSelectedTissuesByAnnotation({
+                selectedTissuesByAnnotation: exported.selectedTissuesByAnnotation,
+                selectedTissues: exported.selectedTissues,
+                activeAnnotation: exported.activeAnnotation,
+            }),
+            exported.activeAnnotation
+        ),
         selectedBiosamples: normalizeGeSelectedBiosamples(exported.selectedBiosamples),
         biosampleMethodOptions: normalizeGeOptionList(exported.biosampleMethodOptions),
         biosampleSourceOptions: normalizeGeOptionList(exported.biosampleSourceOptions),
@@ -337,6 +357,89 @@ export function normalizeEnabledMutedAnnotationTissues(value) {
             next[annotation] = [...new Set(tissues.filter(Boolean))].sort();
         });
     return next;
+}
+
+/** { [annotation]: string[] } of user-selected tissues for GE tracks / plot. */
+export function normalizeSelectedTissuesByAnnotation(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    Object.keys(value)
+        .sort()
+        .forEach((annotation) => {
+            if (!annotation) {
+                return;
+            }
+            const tissues = value[annotation];
+            if (!Array.isArray(tissues) || !tissues.length) {
+                return;
+            }
+            next[annotation] = [...new Set(tissues.filter(Boolean))];
+        });
+    return next;
+}
+
+export function selectedTissuesForAnnotation(map, annotation) {
+    if (!annotation) {
+        return [];
+    }
+    const tissues = normalizeSelectedTissuesByAnnotation(map)[annotation];
+    return Array.isArray(tissues) ? [...tissues] : [];
+}
+
+export function setSelectedTissuesForAnnotation(map, annotation, tissues) {
+    const next = normalizeSelectedTissuesByAnnotation(map);
+    if (!annotation) {
+        return next;
+    }
+    const list = [
+        ...new Set((Array.isArray(tissues) ? tissues : []).filter(Boolean)),
+    ];
+    if (!list.length) {
+        delete next[annotation];
+    } else {
+        next[annotation] = list;
+    }
+    return next;
+}
+
+export function listSelectedTissueKeysByAnnotation(map) {
+    const normalized = normalizeSelectedTissuesByAnnotation(map);
+    const keys = [];
+    Object.keys(normalized).forEach((annotation) => {
+        normalized[annotation].forEach((tissue) => {
+            keys.push(`${annotation}:::${tissue}`);
+        });
+    });
+    return keys;
+}
+
+/**
+ * Prefer the per-annotation map. Fall back to legacy flat selectedTissues +
+ * activeAnnotation so older sessions keep working.
+ */
+export function resolveSelectedTissuesByAnnotation({
+    selectedTissuesByAnnotation = null,
+    selectedTissues = null,
+    activeAnnotation = null,
+} = {}) {
+    const normalized = normalizeSelectedTissuesByAnnotation(
+        selectedTissuesByAnnotation
+    );
+    if (Object.keys(normalized).length) {
+        return normalized;
+    }
+    if (
+        activeAnnotation &&
+        Array.isArray(selectedTissues) &&
+        selectedTissues.length
+    ) {
+        return {
+            [activeAnnotation]: [...new Set(selectedTissues.filter(Boolean))],
+        };
+    }
+    return {};
 }
 
 /** { [annotation]: string[] } of force-hidden track tissues. */
@@ -1114,6 +1217,9 @@ function upsertGePoint(pointMap, point) {
 
     if (point.pValue > existing.pValue) {
         existing.pValue = point.pValue;
+        if (point.rawPValue != null) {
+            existing.rawPValue = point.rawPValue;
+        }
     }
     if (point.fold > existing.fold) {
         existing.fold = point.fold;
@@ -1146,6 +1252,7 @@ export function buildGePlotModel({ geRows = [], annoData = {}, phenotype, ancest
             annotation: row.annotation,
             tissue: row.tissue,
             pValue,
+            rawPValue: row.pValue,
             fold,
             annotationIndex: annotations.indexOf(row.annotation),
         });

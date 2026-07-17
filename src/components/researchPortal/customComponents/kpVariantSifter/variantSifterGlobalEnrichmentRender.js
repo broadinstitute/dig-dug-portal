@@ -129,6 +129,7 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         enabledMutedAnnotationTissues = {},
         disabledAnnotationTissues = {},
         enabledMutedTissues = [],
+        selectedTissueKeys = null,
     } = options;
 
     const dotPositions = [];
@@ -155,6 +156,12 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         Array.isArray(selectedAnnotations) && selectedAnnotations.length
             ? new Set(selectedAnnotations)
             : null;
+    const selectedTissueSet =
+        selectedTissueKeys instanceof Set
+            ? selectedTissueKeys
+            : Array.isArray(selectedTissueKeys)
+              ? new Set(selectedTissueKeys)
+              : null;
 
     const plotLeft = GE_PLOT_MARGIN.left;
     const plotTop = GE_PLOT_MARGIN.top + 28;
@@ -203,17 +210,28 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         const xPos = plotLeft + (point.pValue - xMin) * xPosByPixel;
         const yPos = plotTop + plotHeight - (point.fold - yMin) * yPosByPixel;
         const radius = emphasized ? 8 : 6;
+        const tissueKey = `${point.annotation}:::${point.tissue}`;
+        const isSelected = Boolean(selectedTissueSet?.has(tissueKey));
 
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(xPos, yPos, radius, 0, Math.PI * 2);
         ctx.fill();
 
+        if (isSelected) {
+            ctx.strokeStyle = "#1f2430";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(xPos, yPos, radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
         dotPositions.push({
             x: xPos,
             y: yPos,
             radius,
             point,
+            isSelected,
         });
 
         const shouldLabel =

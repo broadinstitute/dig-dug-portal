@@ -9,7 +9,8 @@
             clear your mapping/track selections. <strong>Or</strong> keeps variants
             that match any checked category; <strong>And</strong> keeps only variants
             that match every checked category. Turn the filter off to restore the full
-            workspace view with the same selections.
+            workspace view with the same selections. Click a chip to apply or cancel
+            mapping; click <strong>×</strong> to remove that option from the list.
         </p>
 
         <div class="vks-mapping-bar-controls">
@@ -71,17 +72,35 @@
         >
             <p class="vks-ui-section-title">{{ group.label }}</p>
             <div class="vks-mapping-bar-chips" role="group" :aria-label="group.label">
-                <button
+                <div
                     v-for="category in group.categories"
                     :key="category.id"
-                    type="button"
                     class="vks-mapping-bar-chip"
                     :class="{ 'is-selected': isSelected(category.id) }"
-                    :aria-pressed="isSelected(category.id) ? 'true' : 'false'"
-                    @click="toggleCategory(category.id)"
                 >
-                    {{ category.label }}
-                </button>
+                    <button
+                        type="button"
+                        class="vks-mapping-bar-chip-toggle"
+                        :aria-pressed="isSelected(category.id) ? 'true' : 'false'"
+                        :title="
+                            isSelected(category.id)
+                                ? 'Cancel mapping for this option'
+                                : 'Apply mapping for this option'
+                        "
+                        @click="toggleCategory(category.id)"
+                    >
+                        {{ category.label }}
+                    </button>
+                    <button
+                        type="button"
+                        class="vks-mapping-bar-chip-remove"
+                        :aria-label="`Remove ${category.label}`"
+                        title="Remove this option"
+                        @click.stop="removeCategory(category.id)"
+                    >
+                        ×
+                    </button>
+                </div>
             </div>
         </section>
     </div>
@@ -140,6 +159,9 @@ export default {
                 next.add(categoryId);
             }
             this.$emit("update:selectedCategoryIds", [...next]);
+        },
+        removeCategory(categoryId) {
+            this.$emit("remove-category", categoryId);
         },
         selectAll() {
             this.$emit(
@@ -259,7 +281,10 @@ export default {
 }
 
 .vks-mapping-bar-chip {
-    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
     border: 1px solid var(--cfde-border, #e6e1d6);
     border-radius: 999px;
     background: #ffffff;
@@ -267,8 +292,35 @@ export default {
     font-size: 12px;
     font-weight: 600;
     line-height: 1.3;
-    padding: 5px 10px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.vks-mapping-bar-chip-toggle {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 5px 6px 5px 10px;
     cursor: pointer;
+    text-align: left;
+    min-width: 0;
+}
+
+.vks-mapping-bar-chip-remove {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--cfde-muted, #6b6b6b);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 5px 9px 5px 4px;
+    cursor: pointer;
+    flex: 0 0 auto;
 }
 
 .vks-mapping-bar-chip:hover {
@@ -276,9 +328,21 @@ export default {
     color: var(--cfde-blue, #2c5c97);
 }
 
+.vks-mapping-bar-chip:hover .vks-mapping-bar-chip-remove {
+    color: var(--cfde-blue, #2c5c97);
+}
+
 .vks-mapping-bar-chip.is-selected {
     background: var(--cfde-blue, #2c5c97);
     border-color: var(--cfde-blue, #2c5c97);
+    color: #ffffff;
+}
+
+.vks-mapping-bar-chip.is-selected .vks-mapping-bar-chip-remove {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.vks-mapping-bar-chip.is-selected .vks-mapping-bar-chip-remove:hover {
     color: #ffffff;
 }
 </style>

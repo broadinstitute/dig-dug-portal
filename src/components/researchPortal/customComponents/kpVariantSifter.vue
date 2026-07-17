@@ -98,6 +98,8 @@
                     @update:geSelectedBiosamples="onGeSelectedBiosamplesUpdate"
                     @update:geActiveAnnotation="onGeActiveAnnotationUpdate"
                     @update:geSelectedTissues="onGeSelectedTissuesUpdate"
+                    @update:geSelectedAnnotations="onGeSelectedAnnotationsUpdate"
+                    @select-ge-plot-tissue="onSelectGePlotTissue"
                     @update:geBiosampleFilterOptions="onGeBiosampleFilterOptionsUpdate"
                     @update:geBiosampleTissueRegions="onGeBiosampleTissueRegionsUpdate"
                     @update:geBiosampleLoading="onGeBiosampleLoadingUpdate"
@@ -107,6 +109,7 @@
                     @update:s2gSelectedLinks="onS2gSelectedLinksUpdate"
                     @add-credible-set="onAddCredibleSet"
                     @remove-credible-set="onRemoveCredibleSet"
+                    @remove-mapping-category="onRemoveMappingCategory"
                     @close-data-table="dataTableOpen = false"
                     @start-search="onStartSearch"
                     @import-session="openSessionImport"
@@ -171,6 +174,7 @@
                     @update:geSelectedSources="onGeSelectedSourcesUpdate"
                     @update:mappingState="onMappingStateUpdate"
                     @update:workspaceFilterActive="onWorkspaceFilterActiveUpdate"
+                    @remove-mapping-category="onRemoveMappingCategory"
                     @update:v2gSelectedTissues="onV2gSelectedTissuesUpdate"
                     @update:v2gDeselectedMethods="onV2gDeselectedMethodsUpdate"
                     @update:v2gDeselectedGenes="onV2gDeselectedGenesUpdate"
@@ -313,6 +317,9 @@ import {
     normalizeGeSelectedBiosamples,
     normalizeGeTissueTrackSort,
     normalizeGeTrackPValueMax,
+    resolveSelectedTissuesByAnnotation,
+    selectedTissuesForAnnotation,
+    setSelectedTissuesForAnnotation,
     upsertGeBiosampleTissueRegions,
 } from "./kpVariantSifter/variantSifterGlobalEnrichmentData.js";
 import {
@@ -322,6 +329,7 @@ import {
     normalizeWorkspaceMappingFilter,
     buildWorkspaceMappingFilter,
     collectMappingCategories,
+    parseMappingCategoryId,
 } from "./kpVariantSifter/variantSifterMappingData.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
@@ -455,6 +463,7 @@ function emptyGlobalEnrichmentState() {
         selectedSources: null,
         activeAnnotation: null,
         selectedTissues: [],
+        selectedTissuesByAnnotation: {},
         selectedBiosamples: [],
         biosampleMethodOptions: [],
         biosampleSourceOptions: [],
@@ -1690,6 +1699,7 @@ export default Vue.component("kp-variant-sifter", {
                     selectedSources: null,
                     activeAnnotation: null,
                     selectedTissues: [],
+                    selectedTissuesByAnnotation: {},
                     selectedBiosamples: [],
                     biosampleMethodOptions: [],
                     biosampleSourceOptions: [],
@@ -3091,6 +3101,71 @@ export default Vue.component("kp-variant-sifter", {
                 selectedAnnotations: [...selectedAnnotations],
             };
         },
+        onSelectGePlotTissue({
+            annotation,
+            tissue,
+            selected = true,
+            selectedAnnotations,
+            selectedTissues,
+            enabledMutedAnnotationTissues,
+            disabledAnnotationTissues,
+        } = {}) {
+            if (!annotation || !tissue) {
+                return;
+            }
+            const nextMap = setSelectedTissuesForAnnotation(
+                this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                annotation,
+                selected
+                    ? [
+                          ...new Set([
+                              ...selectedTissuesForAnnotation(
+                                  this.globalEnrichmentState
+                                      ?.selectedTissuesByAnnotation,
+                                  annotation
+                              ),
+                              tissue,
+                          ]),
+                      ]
+                    : selectedTissuesForAnnotation(
+                          this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                          annotation
+                      ).filter((item) => item !== tissue)
+            );
+            // Prefer explicit list from the plot handler when provided.
+            const resolvedMap = Array.isArray(selectedTissues)
+                ? setSelectedTissuesForAnnotation(
+                      this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                      annotation,
+                      selectedTissues
+                  )
+                : nextMap;
+            const nextActive = selected
+                ? annotation
+                : this.globalEnrichmentState.activeAnnotation || annotation;
+            this.globalEnrichmentState = {
+                ...this.globalEnrichmentState,
+                selectedAnnotations: Array.isArray(selectedAnnotations)
+                    ? [...selectedAnnotations]
+                    : this.globalEnrichmentState.selectedAnnotations,
+                enabledMutedAnnotationTissues: {
+                    ...(enabledMutedAnnotationTissues ||
+                        this.globalEnrichmentState.enabledMutedAnnotationTissues ||
+                        {}),
+                },
+                disabledAnnotationTissues: {
+                    ...(disabledAnnotationTissues ||
+                        this.globalEnrichmentState.disabledAnnotationTissues ||
+                        {}),
+                },
+                activeAnnotation: nextActive,
+                selectedTissuesByAnnotation: resolvedMap,
+                selectedTissues: selectedTissuesForAnnotation(
+                    resolvedMap,
+                    nextActive
+                ),
+            };
+        },
         onGeEnabledMutedAnnotationsUpdate(enabledMutedAnnotations) {
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
@@ -3384,10 +3459,20 @@ export default Vue.component("kp-variant-sifter", {
             if (this.globalEnrichmentState?.activeAnnotation === nextAnnotation) {
                 return;
             }
+            const tissueMap = resolveSelectedTissuesByAnnotation({
+                selectedTissuesByAnnotation:
+                    this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                selectedTissues: this.globalEnrichmentState?.selectedTissues,
+                activeAnnotation: this.globalEnrichmentState?.activeAnnotation,
+            });
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
                 activeAnnotation: nextAnnotation,
-                selectedTissues: [],
+                selectedTissuesByAnnotation: tissueMap,
+                selectedTissues: selectedTissuesForAnnotation(
+                    tissueMap,
+                    nextAnnotation
+                ),
                 selectedBiosamples: [],
                 biosampleLoading: false,
             };
@@ -3396,15 +3481,25 @@ export default Vue.component("kp-variant-sifter", {
             const next = Array.isArray(selectedTissues)
                 ? [...new Set(selectedTissues.filter(Boolean))]
                 : [];
-            const prev = this.globalEnrichmentState?.selectedTissues || [];
+            const annotation = this.globalEnrichmentState?.activeAnnotation || null;
+            const prev = selectedTissuesForAnnotation(
+                this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                annotation
+            );
             if (
                 next.length === prev.length &&
                 next.every((item, index) => item === prev[index])
             ) {
                 return;
             }
+            const nextMap = setSelectedTissuesForAnnotation(
+                this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                annotation,
+                next
+            );
             this.globalEnrichmentState = {
                 ...this.globalEnrichmentState,
+                selectedTissuesByAnnotation: nextMap,
                 selectedTissues: next,
             };
         },
@@ -3437,6 +3532,98 @@ export default Vue.component("kp-variant-sifter", {
                 ...this.globalEnrichmentState,
                 biosampleLoading: next,
             };
+        },
+        onRemoveMappingCategory(categoryId) {
+            const parsed = parseMappingCategoryId(categoryId);
+            if (!parsed) {
+                return;
+            }
+
+            const currentIds = normalizeMappingState(this.mappingState)
+                .selectedCategoryIds;
+            if (currentIds.includes(categoryId)) {
+                this.onMappingStateUpdate({
+                    ...normalizeMappingState(this.mappingState),
+                    selectedCategoryIds: currentIds.filter(
+                        (id) => id !== categoryId
+                    ),
+                });
+            }
+
+            if (parsed.source === "credible-sets") {
+                this.onRemoveCredibleSet(parsed.selectionKey);
+                return;
+            }
+
+            if (parsed.source === "global-enrichment") {
+                const prevMap = resolveSelectedTissuesByAnnotation({
+                    selectedTissuesByAnnotation:
+                        this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                    selectedTissues: this.globalEnrichmentState?.selectedTissues,
+                    activeAnnotation: this.globalEnrichmentState?.activeAnnotation,
+                });
+                const current = selectedTissuesForAnnotation(
+                    prevMap,
+                    parsed.annotation
+                );
+                if (!current.includes(parsed.tissue)) {
+                    return;
+                }
+                const nextTissues = current.filter(
+                    (tissue) => tissue !== parsed.tissue
+                );
+                const nextMap = setSelectedTissuesForAnnotation(
+                    prevMap,
+                    parsed.annotation,
+                    nextTissues
+                );
+                const activeAnnotation =
+                    this.globalEnrichmentState?.activeAnnotation || null;
+                const tissuePrefix = `${parsed.tissue}:::`;
+                const nextBiosamples = (
+                    this.globalEnrichmentState?.selectedBiosamples || []
+                ).filter((key) => !String(key).startsWith(tissuePrefix));
+                this.globalEnrichmentState = {
+                    ...this.globalEnrichmentState,
+                    selectedTissuesByAnnotation: nextMap,
+                    selectedTissues: selectedTissuesForAnnotation(
+                        nextMap,
+                        activeAnnotation
+                    ),
+                    selectedBiosamples: normalizeGeSelectedBiosamples(
+                        nextBiosamples
+                    ),
+                };
+                return;
+            }
+
+            if (parsed.source === "biosamples") {
+                const prev =
+                    this.globalEnrichmentState?.selectedBiosamples || [];
+                const next = prev.filter(
+                    (key) => key !== parsed.selectionKey
+                );
+                if (next.length === prev.length) {
+                    return;
+                }
+                this.onGeSelectedBiosamplesUpdate(next);
+                return;
+            }
+
+            if (parsed.source === "variant-to-gene-links") {
+                const next = normalizeV2gSelectedLinks(
+                    this.v2gState?.selectedLinks
+                ).filter((key) => key !== parsed.selectionKey);
+                this.onV2gSelectedLinksUpdate(next);
+                return;
+            }
+
+            if (parsed.source === "snp2gene-links") {
+                const next = normalizeV2gSelectedLinks(
+                    this.s2gState?.selectedLinks
+                ).filter((key) => key !== parsed.selectionKey);
+                this.onS2gSelectedLinksUpdate(next);
+            }
         },
         onMappingStateUpdate(mappingState) {
             const next = normalizeMappingState(mappingState);

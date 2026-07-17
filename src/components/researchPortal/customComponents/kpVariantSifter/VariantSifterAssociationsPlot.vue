@@ -122,6 +122,10 @@
                         @update:selectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
                         @update:activeAnnotation="$emit('update:geActiveAnnotation', $event)"
                         @update:selectedTissues="$emit('update:geSelectedTissues', $event)"
+                        @update:selectedAnnotations="
+                            $emit('update:geSelectedAnnotations', $event)
+                        "
+                        @select-plot-tissue="$emit('select-ge-plot-tissue', $event)"
                         @update:biosampleFilterOptions="
                             $emit('update:geBiosampleFilterOptions', $event)
                         "

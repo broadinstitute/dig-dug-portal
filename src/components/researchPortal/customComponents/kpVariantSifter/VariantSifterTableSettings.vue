@@ -17,70 +17,82 @@
             </button>
         </div>
 
-        <div v-if="open" class="vks-table-settings-panel table-ui-wrapper">
-            <label class="vks-table-settings-per-page">
-                Rows per page:
-                <select
-                    class="number-per-page"
-                    :value="String(perPage)"
-                    @change="onPerPageChange"
-                >
-                    <option
-                        v-for="option in perPageOptions"
-                        :key="option.value"
-                        :value="String(option.value)"
-                    >
-                        {{ option.label }}
-                    </option>
-                </select>
-            </label>
-            <button type="button" class="convert-2-csv btn-sm" @click="$emit('export-csv')">
-                Save as CSV
-            </button>
-            <button type="button" class="convert-2-csv btn-sm" @click="$emit('export-json')">
-                Save as JSON
-            </button>
-            <button
-                type="button"
-                class="convert-2-csv btn-sm"
-                @click="showColumnsPanel = !showColumnsPanel"
-            >
-                show/hide columns
-            </button>
-            <div v-if="showColumnsPanel" class="vks-show-hide-columns-box">
-                <button
-                    type="button"
-                    class="show-hide-columns-box-close"
-                    aria-label="Close column visibility"
-                    @click="showColumnsPanel = false"
-                >
-                    <b-icon icon="x-circle-fill"></b-icon>
-                </button>
-                <h4>Show/hide columns</h4>
-                <div class="table-wrapper">
-                    <table class="table table-sm">
-                        <tbody>
-                            <tr v-for="column in columns" :key="column">
-                                <td>
-                                    <label class="vks-table-settings-column-label">
-                                        <input
-                                            type="checkbox"
-                                            :checked="isColumnVisible(column)"
-                                            @change="onColumnToggle(column, $event)"
-                                        />
-                                        <span>{{ column }}</span>
-                                    </label>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <div v-if="open" class="vks-table-settings-panel">
+            <section class="vks-table-settings-group" aria-labelledby="vks-table-settings-table">
+                <h4 id="vks-table-settings-table" class="vks-table-settings-group-title">
+                    Table
+                </h4>
+                <div class="vks-table-settings-group-body">
+                    <label class="vks-table-settings-per-page">
+                        Rows per page
+                        <select
+                            class="number-per-page"
+                            :value="String(perPage)"
+                            @change="onPerPageChange"
+                        >
+                            <option
+                                v-for="option in perPageOptions"
+                                :key="option.value"
+                                :value="String(option.value)"
+                            >
+                                {{ option.label }}
+                            </option>
+                        </select>
+                    </label>
+                    <div class="vks-table-settings-columns">
+                        <div class="vks-table-settings-columns-label">Columns</div>
+                        <div class="vks-table-settings-columns-list">
+                            <label
+                                v-for="column in toggleableColumns"
+                                :key="column"
+                                class="vks-table-settings-column-label"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :checked="isColumnVisible(column)"
+                                    @change="onColumnToggle(column, $event)"
+                                />
+                                <span>{{ column }}</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <section class="vks-table-settings-group" aria-labelledby="vks-table-settings-data">
+                <h4 id="vks-table-settings-data" class="vks-table-settings-group-title">
+                    Data
+                </h4>
+                <div class="vks-table-settings-group-body vks-table-settings-data-actions">
+                    <button
+                        type="button"
+                        class="convert-2-csv btn-sm"
+                        @click="$emit('export-csv')"
+                    >
+                        Save as CSV
+                    </button>
+                    <button
+                        type="button"
+                        class="convert-2-csv btn-sm"
+                        @click="$emit('export-json')"
+                    >
+                        Save as JSON
+                    </button>
+                </div>
+            </section>
         </div>
     </div>
 </template>
 
 <script>
+import {
+    VKS_ANNOTATION_OVERLAP_COLUMN,
+    VKS_BIOSAMPLE_OVERLAP_COLUMN,
+    VKS_CRED_SETS_COLUMN,
+    VKS_V2G_COLUMN,
+    VKS_S2G_COLUMN,
+} from "./variantSifterMappingData.js";
+
 const DEFAULT_PER_PAGE_OPTIONS = [
     { value: 10, label: "10" },
     { value: 20, label: "20" },
@@ -88,6 +100,15 @@ const DEFAULT_PER_PAGE_OPTIONS = [
     { value: 100, label: "100" },
     { value: 0, label: "All" },
 ];
+
+const MAPPING_COLUMNS = new Set([
+    VKS_CRED_SETS_COLUMN,
+    VKS_ANNOTATION_OVERLAP_COLUMN,
+    VKS_BIOSAMPLE_OVERLAP_COLUMN,
+    VKS_V2G_COLUMN,
+    VKS_S2G_COLUMN,
+    "Mapped features",
+]);
 
 export default {
     name: "VariantSifterTableSettings",
@@ -112,14 +133,13 @@ export default {
     data() {
         return {
             open: false,
-            showColumnsPanel: false,
         };
     },
-    watch: {
-        open(isOpen) {
-            if (!isOpen) {
-                this.showColumnsPanel = false;
-            }
+    computed: {
+        toggleableColumns() {
+            return (this.columns || []).filter(
+                (column) => column && !MAPPING_COLUMNS.has(column)
+            );
         },
     },
     methods: {
@@ -186,22 +206,41 @@ export default {
 
 .vks-table-settings-panel {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 10px;
+    flex-direction: column;
+    gap: 14px;
     width: 100%;
     margin-top: 8px;
-    padding: 8px 0 4px;
+    padding: 12px 0 4px;
     border-top: 1px solid var(--cfde-border, #e6e1d6);
     font-size: 12px;
-    position: relative;
+}
+
+.vks-table-settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vks-table-settings-group-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-table-settings-group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .vks-table-settings-per-page {
     margin: 0;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     white-space: nowrap;
     color: var(--cfde-ink, #33363d);
 }
@@ -221,6 +260,49 @@ export default {
     background-color: #eee;
 }
 
+.vks-table-settings-columns {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vks-table-settings-columns-label {
+    color: var(--cfde-ink, #33363d);
+    font-weight: 600;
+}
+
+.vks-table-settings-columns-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    max-height: 220px;
+    overflow: auto;
+    padding: 8px 10px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.vks-table-settings-column-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--cfde-ink, #33363d);
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.vks-table-settings-data-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+}
+
 .convert-2-csv {
     appearance: none;
     border: solid 1px #aaa;
@@ -237,47 +319,5 @@ export default {
 .convert-2-csv:hover {
     cursor: pointer;
     background-color: #eee;
-}
-
-.vks-show-hide-columns-box {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    z-index: 20;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    min-width: 220px;
-    max-height: 280px;
-    overflow: auto;
-}
-
-.vks-show-hide-columns-box h4 {
-    margin: 0 20px 10px 0;
-    text-align: center;
-    font-size: 13px;
-}
-
-.show-hide-columns-box-close {
-    appearance: none;
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    border: 0;
-    background: transparent;
-    padding: 0;
-    cursor: pointer;
-    color: #888;
-}
-
-.vks-table-settings-column-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 12px;
-    cursor: pointer;
 }
 </style>

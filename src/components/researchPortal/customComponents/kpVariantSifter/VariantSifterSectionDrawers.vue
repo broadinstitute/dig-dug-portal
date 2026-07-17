@@ -1,9 +1,18 @@
 <template>
     <div
         class="vks-section-drawers"
-        :class="{ 'is-rail-pinned': railPinned }"
+        :class="{
+            'is-rail-pinned': railPinned,
+            'has-open': Boolean(openSection),
+        }"
         :style="railPinStyle"
     >
+        <div
+            v-if="openSection"
+            class="vks-section-drawer-backdrop"
+            role="presentation"
+            @click="$emit('toggle-drawer', openDrawerId)"
+        ></div>
         <aside
             class="vks-section-drawer-panel"
             :class="{ 'is-open': Boolean(openSection) }"
@@ -60,6 +69,7 @@
                         @update:workspaceFilterActive="
                             $emit('update:workspaceFilterActive', $event)
                         "
+                        @remove-mapping-category="$emit('remove-mapping-category', $event)"
                     />
                     <VariantSifterCredibleSetsDrawer
                         v-else-if="openSection.id === 'credible-sets'"
@@ -370,6 +380,18 @@ export default {
     pointer-events: none;
 }
 
+.vks-section-drawers.has-open {
+    z-index: 30;
+}
+
+.vks-section-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: auto;
+    background: rgba(24, 26, 32, 0.45);
+}
+
 .vks-section-drawer-tabs {
     position: absolute;
     top: 0;
@@ -381,6 +403,7 @@ export default {
     gap: 8px;
     padding: 12px 0;
     width: var(--vks-drawer-tab-width, 30px);
+    z-index: 2;
 }
 
 .vks-section-drawer-tab {

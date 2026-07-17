@@ -1,124 +1,179 @@
 <template>
     <div ref="container" class="vks-anno-workspace-track">
         <p v-if="annotations.length" class="vks-anno-workspace-guide">
-            Tracks show tissues with enrichment
-            p&nbsp;&lt;&nbsp;{{ geTrackPValueMax }} for the selected annotation
-            <template v-if="llmRelevanceUsed">
-                that were classified as phenotype-relevant
+            <template v-if="isAnnotationsOverview">
+                Global enrichment by annotation type for the searched phenotype and locus.
+                Select an annotation tab to browse tissue and biosample tracks.
             </template>
-            . Open
-            <strong>Global enrich.</strong>
-            →
-            <strong>Settings / Filters</strong>
-            to adjust the p-value threshold, or
-            <strong>Tissues</strong>
-            to re-enable filtered tissues. Optional LLM tissue classification is offered in
-            <strong>Assist</strong>
-            as an executable step on the Request tab.
+            <template v-else>
+                Tracks show tissues with enrichment
+                p&nbsp;&lt;&nbsp;{{ geTrackPValueMax }} for the selected annotation
+                <template v-if="llmRelevanceUsed">
+                    that were classified as phenotype-relevant
+                </template>
+                . Open
+                <strong>Global enrich.</strong>
+                →
+                <strong>Settings / Filters</strong>
+                to adjust the p-value threshold, or
+                <strong>Tissues</strong>
+                to re-enable filtered tissues. Optional LLM tissue classification is offered in
+                <strong>Assist</strong>
+                as an executable step on the Request tab.
+            </template>
         </p>
-        <div v-if="annotations.length > 1" class="vks-anno-workspace-tab-bar">
+        <div v-if="annotations.length" class="vks-anno-workspace-tab-bar">
             <div class="vks-anno-workspace-tabs" role="tablist" aria-label="Annotation tracks">
                 <button
-                    v-for="(annotation, index) in annotations"
+                    type="button"
+                    class="vks-anno-workspace-tab vks-anno-workspace-tab--overview"
+                    :class="{ 'is-active': isAnnotationsOverview }"
+                    role="tab"
+                    :aria-selected="isAnnotationsOverview"
+                    @click="showAnnotationsOverview"
+                >
+                    Annotations
+                </button>
+                <button
+                    v-for="annotation in annotations"
                     :key="annotation"
                     type="button"
                     class="vks-anno-workspace-tab"
-                    :class="{ 'is-active': annotation === activeAnnotation }"
+                    :class="{ 'is-active': isAnnotationTrackActive(annotation) }"
                     :style="annotationTabStyle(annotation)"
                     role="tab"
-                    :aria-selected="annotation === activeAnnotation"
-                    @click="setActiveAnnotation(annotation)"
+                    :aria-selected="isAnnotationTrackActive(annotation)"
+                    @click="showAnnotationTrack(annotation)"
                 >
                     {{ annotation }}
                 </button>
             </div>
         </div>
-        <p
-            v-else-if="activeAnnotation"
-            class="vks-anno-workspace-title"
-            :style="{ color: annotationColor(activeAnnotation) }"
-        >
-            {{ activeAnnotation }}
-        </p>
-        <div ref="trackPanel" class="vks-anno-workspace-panel">
-            <canvas
-                ref="canvas"
-                class="vks-anno-workspace-canvas"
-                :class="{
-                    'is-pannable': canPan,
-                    'is-x-axis-hover': xAxisBandHover,
-                    'is-region-hover': Boolean(hoveredRegion),
-                }"
-                @mousedown="onMouseDown"
-                @mousemove="onMouseMove"
-                @mouseout="onMouseOut"
-                @mouseup="onMouseUp"
-                @click="onCanvasClick"
-            ></canvas>
-            <VariantSifterZoomCenterMarker
-                :region-view-area="regionViewArea"
-                :region-zoom="regionZoom"
-                :plot-margin="margin"
-                placement="track"
-                @update:regionViewArea="$emit('update:regionViewArea', $event)"
-            />
-            <div
-                v-if="orderedSelectedTissues.length"
-                class="vks-anno-biosample-section"
-            >
-                <p class="vks-anno-biosample-intro">
-                    Filter associated variants by location within regulatory regions
-                    annotated in specific tissue or cell types within the tissue
-                    categories selected above.
-                </p>
-                <div
-                    v-for="tissue in orderedSelectedTissues"
-                    :key="tissue"
-                    class="vks-anno-biosample-group"
+
+        <div v-if="isAnnotationsOverview" class="vks-anno-workspace-overview">
+            <section class="vks-anno-workspace-legend">
+                <p class="vks-ui-section-title">Annotations</p>
+                <ul
+                    class="vks-ge-legend-list"
+                    role="group"
+                    aria-label="Annotation types"
                 >
-                    <p
-                        v-if="isBiosampleLoading(tissue)"
-                        class="vks-anno-biosample-empty"
+                    <li
+                        v-for="(annotation, index) in annotationOptions"
+                        :key="annotation"
+                        class="vks-ge-legend-item"
+                        :class="{ 'is-muted': !isAnnotationSelected(annotation) }"
                     >
-                        Loading biosample tracks for
-                        {{ activeAnnotation }} / {{ tissue }}…
+                        <label class="vks-ge-legend-checkbox">
+                            <input
+                                type="checkbox"
+                                class="vks-ge-legend-input"
+                                :checked="isAnnotationSelected(annotation)"
+                                :style="{ accentColor: legendSolidColor(annotation, index) }"
+                                @change="onToggleAnnotation(annotation, $event)"
+                            />
+                            <span class="vks-ge-legend-label">
+                                {{ annotation }}
+                            </span>
+                        </label>
+                    </li>
+                </ul>
+            </section>
+            <p class="vks-anno-workspace-plot-hint">
+                Click a tissue point for options. Choose
+                <strong>Select tissue</strong>
+                to add it on that annotation track and load biosample tracks.
+            </p>
+            <VariantSifterGlobalEnrichmentPlot
+                :global-enrichment-state="globalEnrichmentState"
+                :search-session="searchSession"
+                :selected-annotations="selectedAnnotations"
+                :selected-tissues-by-annotation="selectedTissuesByAnnotation"
+                :utils="utils"
+                @toggle-tissue-selection="onToggleTissueSelectionFromPlot"
+            />
+        </div>
+        <template v-else>
+            <div ref="trackPanel" class="vks-anno-workspace-panel">
+                <canvas
+                    ref="canvas"
+                    class="vks-anno-workspace-canvas"
+                    :class="{
+                        'is-pannable': canPan,
+                        'is-x-axis-hover': xAxisBandHover,
+                        'is-region-hover': Boolean(hoveredRegion),
+                    }"
+                    @mousedown="onMouseDown"
+                    @mousemove="onMouseMove"
+                    @mouseout="onMouseOut"
+                    @mouseup="onMouseUp"
+                    @click="onCanvasClick"
+                ></canvas>
+                <VariantSifterZoomCenterMarker
+                    :region-view-area="regionViewArea"
+                    :region-zoom="regionZoom"
+                    :plot-margin="margin"
+                    placement="track"
+                    @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                />
+                <div
+                    v-if="orderedSelectedTissues.length"
+                    class="vks-anno-biosample-section"
+                >
+                    <p class="vks-anno-biosample-intro">
+                        Filter associated variants by location within regulatory regions
+                        annotated in specific tissue or cell types within the tissue
+                        categories selected above.
                     </p>
-                    <p
-                        v-else-if="biosampleErrorForTissue(tissue)"
-                        class="vks-anno-biosample-empty"
+                    <div
+                        v-for="tissue in orderedSelectedTissues"
+                        :key="tissue"
+                        class="vks-anno-biosample-group"
                     >
-                        {{ biosampleErrorForTissue(tissue) }}
-                    </p>
-                    <p
-                        v-else-if="!biosampleGroupsForTissue(tissue).length"
-                        class="vks-anno-biosample-empty"
-                    >
-                        No biosample regions found for
-                        {{ activeAnnotation }} / {{ tissue }}.
-                    </p>
-                    <canvas
-                        v-show="
-                            !isBiosampleLoading(tissue) &&
-                                !biosampleErrorForTissue(tissue) &&
-                                biosampleGroupsForTissue(tissue).length
-                        "
-                        :ref="'biosampleCanvas_' + tissue"
-                        class="vks-anno-workspace-canvas vks-anno-biosample-canvas"
-                        :class="{
-                            'is-region-hover': Boolean(hoveredRegion),
-                        }"
-                        @click="onBiosampleCanvasClick($event, tissue)"
-                        @mousemove="onBiosampleMouseMove($event, tissue)"
-                        @mouseout="onBiosampleMouseOut"
-                    ></canvas>
+                        <p
+                            v-if="isBiosampleLoading(tissue)"
+                            class="vks-anno-biosample-empty"
+                        >
+                            Loading biosample tracks for
+                            {{ activeAnnotation }} / {{ tissue }}…
+                        </p>
+                        <p
+                            v-else-if="biosampleErrorForTissue(tissue)"
+                            class="vks-anno-biosample-empty"
+                        >
+                            {{ biosampleErrorForTissue(tissue) }}
+                        </p>
+                        <p
+                            v-else-if="!biosampleGroupsForTissue(tissue).length"
+                            class="vks-anno-biosample-empty"
+                        >
+                            No biosample regions found for
+                            {{ activeAnnotation }} / {{ tissue }}.
+                        </p>
+                        <canvas
+                            v-show="
+                                !isBiosampleLoading(tissue) &&
+                                    !biosampleErrorForTissue(tissue) &&
+                                    biosampleGroupsForTissue(tissue).length
+                            "
+                            :ref="'biosampleCanvas_' + tissue"
+                            class="vks-anno-workspace-canvas vks-anno-biosample-canvas"
+                            :class="{
+                                'is-region-hover': Boolean(hoveredRegion),
+                                'is-x-axis-hover': xAxisBandHover,
+                            }"
+                            @click="onBiosampleCanvasClick($event, tissue)"
+                            @mousemove="onBiosampleMouseMove($event, tissue)"
+                            @mouseout="onBiosampleMouseOut"
+                        ></canvas>
+                    </div>
                 </div>
-            </div>
-            <div
-                v-if="hoveredRegion"
-                ref="infoPanel"
-                class="vks-anno-workspace-info-panel"
-                role="status"
-            >
+                <div
+                    v-if="hoveredRegion"
+                    ref="infoPanel"
+                    class="vks-anno-workspace-info-panel"
+                    role="status"
+                >
                 <p class="vks-anno-workspace-info-tissue">{{ hoveredRegion.tissue }}</p>
                 <p class="vks-anno-workspace-info-line">
                     {{ enrichedRegionLabel }}
@@ -150,6 +205,7 @@
                 </template>
             </div>
         </div>
+        </template>
     </div>
 </template>
 
@@ -163,14 +219,24 @@ import {
     computeAnnotationBiosampleTrackHeight,
     computeAnnotationWorkspaceTrackHeight,
     groupAnnoRegionsByBiosample,
+    isGeAnnotationEmphasized,
+    isGeTissueShownOnTrack,
     listUniqueRegionPropValues,
     normalizeGeFilterStringList,
     normalizeGeSelectedBiosamples,
     normalizeGeTissueTrackSort,
     normalizeGeTrackPValueMax,
     resolveGeTissuesForDisplay,
+    resolveSelectedGeAnnotations,
+    resolveSelectedTissuesByAnnotation,
+    selectedTissuesForAnnotation,
+    setAnnotationTissueShown,
     solidAnnotationColor,
+    sortedAnnotationKeys,
+    tissuePassesDefaultGeTrackFilter,
     VKS_ANNOTATION_COLORS,
+    VKS_ANNO_BIOSAMPLE_TITLE_GAP,
+    VKS_ANNO_BIOSAMPLE_TITLE_H,
     VKS_ANNO_TRACK_PER_TISSUE,
     VKS_ANNO_TRACK_STATS_HEADER,
     VKS_ANNO_TRACK_X_AXIS_GAP,
@@ -209,11 +275,13 @@ import {
 import { fetchTissueRegions } from "./variantSifterGlobalEnrichmentApi.js";
 import { formatRegion } from "./variantSifterSearchUtils.js";
 import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
+import VariantSifterGlobalEnrichmentPlot from "./VariantSifterGlobalEnrichmentPlot.vue";
 import VariantSifterZoomCenterMarker from "./VariantSifterZoomCenterMarker.vue";
 
 export default {
     name: "VariantSifterAnnotationsWorkspaceTrack",
     components: {
+        VariantSifterGlobalEnrichmentPlot,
         VariantSifterZoomCenterMarker,
     },
     props: {
@@ -274,6 +342,7 @@ export default {
     },
     data() {
         return {
+            workspacePanel: "annotations",
             tissueHits: [],
             biosampleHitsByTissue: {},
             biosampleRowsByTissue: {},
@@ -301,6 +370,9 @@ export default {
         };
     },
     computed: {
+        isAnnotationsOverview() {
+            return this.workspacePanel === "annotations";
+        },
         activeAnnotation() {
             return this.globalEnrichmentState?.activeAnnotation || null;
         },
@@ -308,6 +380,14 @@ export default {
             return Array.isArray(this.globalEnrichmentState?.selectedTissues)
                 ? this.globalEnrichmentState.selectedTissues
                 : [];
+        },
+        selectedTissuesByAnnotation() {
+            return resolveSelectedTissuesByAnnotation({
+                selectedTissuesByAnnotation:
+                    this.globalEnrichmentState?.selectedTissuesByAnnotation,
+                selectedTissues: this.selectedTissues,
+                activeAnnotation: this.activeAnnotation,
+            });
         },
         margin() {
             return normalizePlotMargin(VARIANT_SIFTER_ANNO_TRACK_MARGIN);
@@ -394,6 +474,15 @@ export default {
             return annotationsForPlot(
                 this.annoData,
                 this.globalEnrichmentState?.selectedAnnotations
+            );
+        },
+        annotationOptions() {
+            return sortedAnnotationKeys(this.annoData);
+        },
+        selectedAnnotations() {
+            return resolveSelectedGeAnnotations(
+                this.globalEnrichmentState?.selectedAnnotations,
+                this.annotationOptions
             );
         },
         phenotype() {
@@ -510,16 +599,21 @@ export default {
         annotationKeys: {
             handler(nextKeys) {
                 const nextAnnotations = nextKeys ? nextKeys.split("|") : [];
+                // Hiding annotations via the legend only affects plot/tab visibility.
+                // Never clear tissue selections — users may toggle annotations to
+                // declutter the plot without cancelling selected tissues.
                 if (!nextAnnotations.length) {
-                    if (this.activeAnnotation) {
-                        this.setActiveAnnotation(null);
-                    }
-                    if (this.selectedTissues.length) {
-                        this.setSelectedTissues([]);
-                    }
+                    this.$nextTick(() => this.renderTrack());
                     return;
                 }
-                if (!nextAnnotations.includes(this.activeAnnotation)) {
+                if (!this.activeAnnotation) {
+                    this.setActiveAnnotation(nextAnnotations[0]);
+                } else if (
+                    !nextAnnotations.includes(this.activeAnnotation) &&
+                    !this.isAnnotationsOverview
+                ) {
+                    // On a track tab whose annotation was hidden, move to a
+                    // visible tab. Parent restores that annotation's saved tissues.
                     this.setActiveAnnotation(nextAnnotations[0]);
                 }
                 this.$nextTick(() => this.renderTrack());
@@ -686,6 +780,21 @@ export default {
             }
             this.$emit("update:activeAnnotation", next);
         },
+        isAnnotationTrackActive(annotation) {
+            return (
+                !this.isAnnotationsOverview &&
+                annotation === this.activeAnnotation
+            );
+        },
+        showAnnotationsOverview() {
+            this.workspacePanel = "annotations";
+            this.clearRegionHover();
+        },
+        showAnnotationTrack(annotation) {
+            this.workspacePanel = "track";
+            this.setActiveAnnotation(annotation);
+            this.$nextTick(() => this.renderTrack());
+        },
         setSelectedTissues(next) {
             const normalized = Array.isArray(next) ? [...next] : [];
             const current = this.selectedTissues || [];
@@ -708,6 +817,110 @@ export default {
                 color,
                 borderTopColor: color,
             };
+        },
+        isAnnotationSelected(annotation) {
+            return this.selectedAnnotations.includes(annotation);
+        },
+        legendSolidColor(annotation, index) {
+            const baseColor =
+                VKS_ANNOTATION_COLORS[index % VKS_ANNOTATION_COLORS.length];
+            return solidAnnotationColor(
+                isGeAnnotationEmphasized(annotation, {
+                    llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
+                    enabledMutedAnnotations:
+                        this.globalEnrichmentState?.enabledMutedAnnotations || [],
+                })
+                    ? baseColor
+                    : `${baseColor.slice(0, 7)}55`
+            );
+        },
+        onToggleAnnotation(annotation, event) {
+            const checked = Boolean(event?.target?.checked);
+            const next = new Set(this.selectedAnnotations);
+            if (checked) {
+                next.add(annotation);
+            } else {
+                next.delete(annotation);
+            }
+            const ordered = this.annotationOptions.filter((item) => next.has(item));
+            this.$emit("update:selectedAnnotations", ordered);
+        },
+        onToggleTissueSelectionFromPlot({
+            annotation,
+            tissue,
+            selected = true,
+        } = {}) {
+            if (!annotation || !tissue) {
+                return;
+            }
+
+            const nextSelectedAnnotations = this.selectedAnnotations.includes(
+                annotation
+            )
+                ? [...this.selectedAnnotations]
+                : this.annotationOptions.filter(
+                      (item) =>
+                          item === annotation ||
+                          this.selectedAnnotations.includes(item)
+                  );
+
+            const geTissueStats = buildGeTissueStatsForAnnotation({
+                geRows: this.globalEnrichmentState?.geRows || [],
+                annotation,
+                phenotype: this.phenotype,
+                ancestry: this.ancestry,
+            });
+            const llmRelevance = this.globalEnrichmentState?.llmRelevance || null;
+            const pValueMax = this.geTrackPValueMax;
+            const enabledMutedAnnotationTissues =
+                this.globalEnrichmentState?.enabledMutedAnnotationTissues || {};
+            const disabledAnnotationTissues =
+                this.globalEnrichmentState?.disabledAnnotationTissues || {};
+            const defaultShown = tissuePassesDefaultGeTrackFilter(tissue, {
+                geTissueStats,
+                llmRelevance,
+                pValueMax,
+            });
+            const tissueShown = isGeTissueShownOnTrack(tissue, {
+                annotation,
+                geTissueStats,
+                llmRelevance,
+                enabledMutedAnnotationTissues,
+                disabledAnnotationTissues,
+                pValueMax,
+            });
+            let nextEnabledMuted = enabledMutedAnnotationTissues;
+            let nextDisabled = disabledAnnotationTissues;
+            if (selected && !tissueShown) {
+                const nextVisibility = setAnnotationTissueShown({
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    annotation,
+                    tissue,
+                    shown: true,
+                    defaultShown,
+                });
+                nextEnabledMuted = nextVisibility.enabledMutedAnnotationTissues;
+                nextDisabled = nextVisibility.disabledAnnotationTissues;
+            }
+
+            const currentForAnnotation = selectedTissuesForAnnotation(
+                this.selectedTissuesByAnnotation,
+                annotation
+            );
+            const nextSelectedTissues = selected
+                ? [...new Set([...currentForAnnotation, tissue])]
+                : currentForAnnotation.filter((item) => item !== tissue);
+
+            this.$emit("select-plot-tissue", {
+                annotation,
+                tissue,
+                selected,
+                selectedAnnotations: nextSelectedAnnotations,
+                selectedTissues: nextSelectedTissues,
+                enabledMutedAnnotationTissues: nextEnabledMuted,
+                disabledAnnotationTissues: nextDisabled,
+            });
         },
         onResize() {
             this.renderTrack();
@@ -800,7 +1013,7 @@ export default {
         },
         renderTrack() {
             const canvas = this.$refs.canvas;
-            if (!canvas || !this.hasTrackData || !this.visibleRegion) {
+            if (this.isAnnotationsOverview || !canvas || !this.hasTrackData || !this.visibleRegion) {
                 if (canvas) {
                     canvas.height = 0;
                     canvas.style.height = "0";
@@ -1050,10 +1263,45 @@ export default {
                     selectedBiosamples: this.selectedBiosamples,
                     selectedMethods: this.selectedMethods,
                     selectedSources: this.selectedSources,
+                    xAxisBandHover: this.xAxisBandHover,
+                    livePositionMarkerX: this.livePositionMarkerX,
                 });
             });
 
             this.biosampleHitsByTissue = nextHits;
+        },
+        biosampleMarkerPlotHeight(tissue) {
+            const count = this.biosampleGroupsForTissue(tissue).length;
+            if (!count) {
+                return VKS_ANNO_BIOSAMPLE_TITLE_H;
+            }
+            return (
+                VKS_ANNO_BIOSAMPLE_TITLE_H +
+                VKS_ANNO_BIOSAMPLE_TITLE_GAP +
+                count * VKS_ANNO_TRACK_PER_TISSUE +
+                VKS_ANNO_TRACK_X_AXIS_GAP
+            );
+        },
+        isInBiosampleXAxisInteractionZone(x, y, tissue, canvas) {
+            if (!canvas?.width || !canvas?.height) {
+                return false;
+            }
+            return isCanvasPointInXAxisInteractionZone(
+                x,
+                y,
+                canvas.width,
+                canvas.height,
+                this.margin,
+                this.biosampleMarkerPlotHeight(tissue)
+            );
+        },
+        syncBiosamplePlotMetrics(canvas) {
+            if (!canvas?.width) {
+                return false;
+            }
+            this.canvasWidth = canvas.width;
+            this.plotWidth = canvas.width - this.margin.left * 2;
+            return true;
         },
         syncBiosampleFilterOptions(regions = null) {
             const list = Array.isArray(regions)
@@ -1106,7 +1354,22 @@ export default {
             if (!canvas || !this.visibleRegion) {
                 return;
             }
-            const { y } = canvasPointerPosition(event, canvas);
+            const { x, y } = canvasPointerPosition(event, canvas);
+            if (this.isInBiosampleXAxisInteractionZone(x, y, tissue, canvas)) {
+                if (!this.syncBiosamplePlotMetrics(canvas)) {
+                    return;
+                }
+                const position = canvasXToGenomicPosition(
+                    x,
+                    this.canvasWidth,
+                    this.margin,
+                    this.visibleRegion
+                );
+                if (position != null) {
+                    this.$emit("toggle-position-marker", position);
+                }
+                return;
+            }
             const biosampleHit = findAnnotationTissueHitAtY(
                 this.biosampleHitsByTissue[tissue] || [],
                 y
@@ -1357,6 +1620,19 @@ export default {
             }
 
             const { x, y } = canvasPointerPosition(event, canvas);
+            if (this.isInBiosampleXAxisInteractionZone(x, y, tissue, canvas)) {
+                this.clearRegionHover();
+                if (!this.syncBiosamplePlotMetrics(canvas)) {
+                    return;
+                }
+                this.updateXAxisHover(x);
+                return;
+            }
+
+            if (this.xAxisBandHover) {
+                this.clearXAxisHover();
+            }
+
             const regionHit = findAnnotationRegionHitAtPoint(
                 this.biosampleHitsByTissue[tissue] || [],
                 x,
@@ -1372,7 +1648,16 @@ export default {
             this.hoveredRegion = regionHit;
             this.$nextTick(() => this.positionInfoPanel());
         },
-        onBiosampleMouseOut() {
+        onBiosampleMouseOut(event) {
+            if (
+                event?.relatedTarget &&
+                (this.$refs.trackPanel?.contains(event.relatedTarget) ||
+                    this.$refs.container?.contains(event.relatedTarget))
+            ) {
+                this.clearRegionHover();
+                return;
+            }
+            this.clearXAxisHover();
             this.clearRegionHover();
         },
     },
@@ -1435,6 +1720,68 @@ export default {
     color: var(--cfde-ink, #33363d);
     box-shadow: 0 1px 3px rgba(20, 22, 30, 0.08);
     z-index: 1;
+}
+
+.vks-anno-workspace-tab--overview.is-active {
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-anno-workspace-overview {
+    margin-top: 4px;
+}
+
+.vks-anno-workspace-legend {
+    margin: 0 0 10px;
+}
+
+.vks-anno-workspace-plot-hint {
+    margin: 0 0 8px;
+    padding: 0 2px;
+    color: var(--cfde-muted, #6b6b6b);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.vks-anno-workspace-legend .vks-ui-section-title {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-ge-legend-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vks-ge-legend-item.is-muted {
+    opacity: 0.55;
+}
+
+.vks-ge-legend-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 13px;
+    color: #33363d;
+}
+
+.vks-ge-legend-input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.vks-ge-legend-label {
+    line-height: 1.3;
 }
 
 .vks-anno-workspace-title {

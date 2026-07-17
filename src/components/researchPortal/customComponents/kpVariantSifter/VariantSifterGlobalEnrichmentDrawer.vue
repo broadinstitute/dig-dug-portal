@@ -30,25 +30,16 @@
             </div>
 
             <div
-                v-show="activeTab === 'annotations'"
-                id="vks-ge-panel-annotations"
+                v-show="activeTab === 'tissues'"
+                id="vks-ge-panel-tissues"
                 class="vks-ui-tab-panel"
                 role="tabpanel"
-                aria-labelledby="vks-ge-tab-annotations"
+                aria-labelledby="vks-ge-tab-tissues"
             >
-                <p v-if="llmRelevance.llmUsed" class="vks-ui-hint">
-                    Annotation tracks show tissues classified as relevant with enrichment
-                    p &lt; {{ geTrackPValueMax }} for that annotation. Re-enable filtered
-                    tissues in the Tissues tab.
-                </p>
-                <p v-else-if="llmRelevance.error" class="vks-ui-hint" role="status">
-                    {{ llmRelevance.error }} Annotation tracks show tissues with enrichment
-                    p &lt; {{ geTrackPValueMax }} for each annotation.
-                </p>
-                <p v-else class="vks-ui-hint" role="status">
-                    Annotation tracks show tissues with enrichment p &lt;
-                    {{ geTrackPValueMax }} for each annotation. Optionally classify
-                    tissues by phenotype relevance from the Assist panel.
+                <p class="vks-ui-hint">
+                    All tissues available for each annotation. Checked tissues are shown
+                    on that annotation track. Reset restores the initial AI / p-value
+                    selection.
                 </p>
 
                 <div
@@ -76,49 +67,6 @@
                         </li>
                     </ul>
                 </div>
-
-                <ul class="vks-ge-legend-list" role="group" aria-label="Annotation types">
-                    <li
-                        v-for="(annotation, index) in annotationOptions"
-                        :key="annotation"
-                        class="vks-ge-legend-item"
-                        :class="{ 'is-muted': !isAnnotationSelected(annotation) }"
-                    >
-                        <label class="vks-ge-legend-checkbox">
-                            <input
-                                type="checkbox"
-                                class="vks-ge-legend-input"
-                                :checked="isAnnotationSelected(annotation)"
-                                :style="{ accentColor: legendSolidColor(annotation, index) }"
-                                @change="onToggleAnnotation(annotation, $event)"
-                            />
-                            <span class="vks-ge-legend-label">
-                                {{ annotation }}
-                            </span>
-                        </label>
-                    </li>
-                </ul>
-
-                <VariantSifterGlobalEnrichmentPlot
-                    :global-enrichment-state="globalEnrichmentState"
-                    :search-session="searchSession"
-                    :selected-annotations="selectedAnnotations"
-                    :utils="utils"
-                />
-            </div>
-
-            <div
-                v-show="activeTab === 'tissues'"
-                id="vks-ge-panel-tissues"
-                class="vks-ui-tab-panel"
-                role="tabpanel"
-                aria-labelledby="vks-ge-tab-tissues"
-            >
-                <p class="vks-ui-hint">
-                    All tissues available for each annotation. Checked tissues are shown
-                    on that annotation track. Reset restores the initial AI / p-value
-                    selection.
-                </p>
 
                 <div class="vks-ge-tissue-actions">
                     <label class="vks-ge-tissue-select-all">
@@ -382,7 +330,6 @@
 </template>
 
 <script>
-import VariantSifterGlobalEnrichmentPlot from "./VariantSifterGlobalEnrichmentPlot.vue";
 import VariantSifterGlobalEnrichmentTable from "./VariantSifterGlobalEnrichmentTable.vue";
 import VariantSifterEnrichedRegionsTable from "./VariantSifterEnrichedRegionsTable.vue";
 import {
@@ -411,7 +358,6 @@ import {
 } from "./variantSifterGlobalEnrichmentData.js";
 
 const GE_DRAWER_TABS = [
-    { id: "annotations", label: "Annotations" },
     { id: "tissues", label: "Tissues" },
     { id: "settings", label: "Settings / Filters" },
 ];
@@ -424,7 +370,6 @@ const GE_TABLE_TABS = [
 export default {
     name: "VariantSifterGlobalEnrichmentDrawer",
     components: {
-        VariantSifterGlobalEnrichmentPlot,
         VariantSifterGlobalEnrichmentTable,
         VariantSifterEnrichedRegionsTable,
     },
@@ -478,7 +423,7 @@ export default {
     },
     data() {
         return {
-            activeTab: "annotations",
+            activeTab: "tissues",
             activeTableTab: "global-enrichment",
             tabs: GE_DRAWER_TABS,
             tableTabs: GE_TABLE_TABS,

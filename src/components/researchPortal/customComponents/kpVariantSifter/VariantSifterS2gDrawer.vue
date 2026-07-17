@@ -131,6 +131,8 @@
                 :rows="tableRows"
                 :tissue-data="tissueData"
                 :subtitle="tableSubtitle"
+                :show-promoter="false"
+                :show-tissue-biosample="false"
             />
         </div>
     </div>

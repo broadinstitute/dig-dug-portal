@@ -7,22 +7,28 @@
             <thead>
                 <tr>
                     <th
-                        v-for="column in columns"
-                        :key="column"
+                        v-for="column in detailColumns"
+                        :key="column.key"
                         :style="{
                             backgroundColor: accentColor,
                             color: '#ffffff',
                         }"
                     >
-                        {{ column }}
+                        {{ column.label }}
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(entry, index) in details" :key="`${entry.label}-${index}`">
-                    <td>{{ entry.label || "—" }}</td>
-                    <td>{{ formatValue(entry.ppa) }}</td>
-                    <td>{{ formatValue(entry.pValue) }}</td>
+                <tr
+                    v-for="(entry, index) in details"
+                    :key="`${entry.label || entry.region || 'detail'}-${index}`"
+                >
+                    <td
+                        v-for="column in detailColumns"
+                        :key="`${column.key}-${index}`"
+                    >
+                        {{ formatCell(entry, column) }}
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -30,7 +36,10 @@
 </template>
 
 <script>
-import { mappingGroupColor } from "./variantSifterMappingData.js";
+import {
+    mappingDetailColumnsForGroup,
+    mappingGroupColor,
+} from "./variantSifterMappingData.js";
 
 export default {
     name: "VariantSifterMappingRowDetails",
@@ -49,7 +58,7 @@ export default {
         },
         columns: {
             type: Array,
-            default: () => ["Cred. set", "PPA", "P-value"],
+            default: null,
         },
         utils: {
             type: Object,
@@ -60,9 +69,32 @@ export default {
         accentColor() {
             return mappingGroupColor(this.groupId);
         },
+        detailColumns() {
+            if (Array.isArray(this.columns) && this.columns.length) {
+                if (typeof this.columns[0] === "string") {
+                    return this.columns.map((label, index) => ({
+                        key: `col-${index}`,
+                        label,
+                        format: index > 0 ? "scientific" : null,
+                    }));
+                }
+                return this.columns;
+            }
+            return mappingDetailColumnsForGroup(this.groupId);
+        },
     },
     methods: {
-        formatValue(value) {
+        formatCell(entry, column) {
+            const value = entry?.[column.key];
+            if (value == null || value === "") {
+                return "—";
+            }
+            if (column.format === "scientific") {
+                return this.formatScientific(value);
+            }
+            return String(value);
+        },
+        formatScientific(value) {
             if (value == null || value === "") {
                 return "—";
             }

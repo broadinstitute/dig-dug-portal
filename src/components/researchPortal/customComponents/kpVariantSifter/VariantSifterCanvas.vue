@@ -47,6 +47,8 @@
                         @update:geSelectedBiosamples="$emit('update:geSelectedBiosamples', $event)"
                         @update:geActiveAnnotation="$emit('update:geActiveAnnotation', $event)"
                         @update:geSelectedTissues="$emit('update:geSelectedTissues', $event)"
+                        @update:geSelectedAnnotations="$emit('update:geSelectedAnnotations', $event)"
+                        @select-ge-plot-tissue="$emit('select-ge-plot-tissue', $event)"
                         @update:geBiosampleFilterOptions="
                             $emit('update:geBiosampleFilterOptions', $event)
                         "
@@ -79,6 +81,7 @@
                 @toggle-star-variant="$emit('toggle-star-variant', $event)"
                 @update:mappingState="$emit('update:mappingState', $event)"
                 @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
+                @remove-mapping-category="$emit('remove-mapping-category', $event)"
             />
         </div>
     </div>
