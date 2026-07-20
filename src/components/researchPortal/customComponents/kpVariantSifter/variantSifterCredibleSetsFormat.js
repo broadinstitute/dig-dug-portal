@@ -18,7 +18,6 @@ export const CREDIBLE_VARIANTS_DATA_CONVERT = [
 
 export const CREDIBLE_VARIANTS_TABLE_COLUMNS = [
     "Variant ID",
-    "rsID",
     "Position",
     "PPA",
     "P-Value",

@@ -1,51 +1,90 @@
 <template>
-    <div v-if="hasSeriesData" class="vks-assoc-ld-plot">
-        <div v-if="showTabs" class="vks-assoc-ld-tab-bar">
-            <div class="vks-assoc-ld-tabs" role="tablist" aria-label="Ancestry LD plots">
-                <button
-                    v-for="series in plotSeries"
-                    :key="series.ancestry"
-                    type="button"
-                    class="vks-assoc-ld-tab"
-                    :class="{ 'is-active': series.ancestry === activeAncestry }"
-                    role="tab"
-                    :aria-selected="series.ancestry === activeAncestry ? 'true' : 'false'"
-                    :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
-                    @click="activeAncestry = series.ancestry"
-                >
-                    <span class="vks-assoc-ld-tab-code">{{ series.ancestry }}</span>
-                    <span class="vks-assoc-ld-tab-label">{{ series.label }}</span>
-                    <span class="vks-assoc-ld-tab-count">{{ series.rows.length.toLocaleString() }}</span>
-                </button>
+    <div v-if="hasSeriesData" class="vks-assoc-ld-plot" :class="{ 'is-stack': isStacked }">
+        <template v-if="isStacked">
+            <div
+                v-for="series in plotSeries"
+                :key="series.ancestry"
+                class="vks-assoc-ld-stack-item"
+            >
+                <header class="vks-assoc-ld-stack-head">
+                    <h4 class="vks-assoc-ld-stack-title">
+                        {{ series.label }}
+                        <span class="vks-assoc-ld-stack-code">({{ series.ancestry }})</span>
+                    </h4>
+                    <span class="vks-assoc-ld-stack-count">
+                        {{ series.rows.length.toLocaleString() }} associations
+                    </span>
+                </header>
+                <div class="vks-assoc-ld-panel">
+                    <VariantSifterLdRegionPlot
+                        v-if="plotDataForSeries(series)"
+                        :plot-rows="plotDataForSeries(series)"
+                        :search-session="searchSession"
+                        :plot-overlays-state="plotOverlaysState"
+                        :plot-margin="plotMargin"
+                        :plot-markers="plotMarkers"
+                        :highlight-variant-id="hoveredVariantId"
+                        :utils="utils"
+                        @hover-variant="onHoverVariant"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
+                    />
+                    <p v-else class="vks-assoc-ld-empty">
+                        No LD points for {{ series.label }}.
+                    </p>
+                </div>
             </div>
-        </div>
-        <p v-else-if="activeSeries" class="vks-assoc-ld-single-label">
-            {{ activeSeries.label }}
-            <span class="vks-assoc-ld-single-count">
-                ({{ activeSeries.rows.length.toLocaleString() }})
-            </span>
-        </p>
-        <div
-            class="vks-assoc-ld-panel"
-            :class="{ 'is-tabbed': showTabs }"
-            role="tabpanel"
-        >
-            <VariantSifterLdRegionPlot
-                v-if="activePlotData"
-                :key="activeAncestry"
-                :plot-rows="activePlotData"
-                :search-session="searchSession"
-                :plot-overlays-state="plotOverlaysState"
-                :plot-margin="plotMargin"
-                :plot-markers="plotMarkers"
-                :utils="utils"
-                @toggle-star-variant="$emit('toggle-star-variant', $event)"
-                @set-reference-variant="$emit('set-reference-variant', $event)"
-            />
-            <p v-else class="vks-assoc-ld-empty">
-                No LD points for {{ activeSeries?.label || "this ancestry" }}.
+        </template>
+        <template v-else>
+            <div v-if="showTabs" class="vks-assoc-ld-tab-bar">
+                <div class="vks-assoc-ld-tabs" role="tablist" aria-label="Ancestry LD plots">
+                    <button
+                        v-for="series in plotSeries"
+                        :key="series.ancestry"
+                        type="button"
+                        class="vks-assoc-ld-tab"
+                        :class="{ 'is-active': series.ancestry === activeAncestry }"
+                        role="tab"
+                        :aria-selected="series.ancestry === activeAncestry ? 'true' : 'false'"
+                        :title="`${series.label} · ${series.rows.length.toLocaleString()} associations`"
+                        @click="activeAncestry = series.ancestry"
+                    >
+                        <span class="vks-assoc-ld-tab-code">{{ series.ancestry }}</span>
+                        <span class="vks-assoc-ld-tab-label">{{ series.label }}</span>
+                        <span class="vks-assoc-ld-tab-count">{{ series.rows.length.toLocaleString() }}</span>
+                    </button>
+                </div>
+            </div>
+            <p v-else-if="activeSeries" class="vks-assoc-ld-single-label">
+                {{ activeSeries.label }}
+                <span class="vks-assoc-ld-single-count">
+                    ({{ activeSeries.rows.length.toLocaleString() }})
+                </span>
             </p>
-        </div>
+            <div
+                class="vks-assoc-ld-panel"
+                :class="{ 'is-tabbed': showTabs }"
+                role="tabpanel"
+            >
+                <VariantSifterLdRegionPlot
+                    v-if="activePlotData"
+                    :key="activeAncestry"
+                    :plot-rows="activePlotData"
+                    :search-session="searchSession"
+                    :plot-overlays-state="plotOverlaysState"
+                    :plot-margin="plotMargin"
+                    :plot-markers="plotMarkers"
+                    :highlight-variant-id="hoveredVariantId"
+                    :utils="utils"
+                    @hover-variant="onHoverVariant"
+                    @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                    @set-reference-variant="$emit('set-reference-variant', $event)"
+                />
+                <p v-else class="vks-assoc-ld-empty">
+                    No LD points for {{ activeSeries?.label || "this ancestry" }}.
+                </p>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -97,6 +136,10 @@ export default {
                 positionMarkers: [],
             }),
         },
+        layout: {
+            type: String,
+            default: "tabs",
+        },
         utils: {
             type: Object,
             default: null,
@@ -105,9 +148,13 @@ export default {
     data() {
         return {
             activeAncestry: null,
+            hoveredVariantId: null,
         };
     },
     computed: {
+        isStacked() {
+            return this.layout === "stack";
+        },
         resolvedPrimaryAncestry() {
             return this.primaryAncestry || primaryAssociationAncestry(this.searchSession);
         },
@@ -119,7 +166,7 @@ export default {
             }).filter((series) => series.rows.length > 0);
         },
         showTabs() {
-            return this.plotSeries.length > 1;
+            return !this.isStacked && this.plotSeries.length > 1;
         },
         hasSeriesData() {
             return this.plotSeries.length > 0;
@@ -132,10 +179,7 @@ export default {
             );
         },
         activePlotData() {
-            if (!this.activeSeries?.rows?.length) {
-                return null;
-            }
-            return associationRowsToPlotData(this.activeSeries.rows);
+            return this.plotDataForSeries(this.activeSeries);
         },
         plotMargin() {
             return VARIANT_SIFTER_PLOT_MARGIN;
@@ -156,12 +200,62 @@ export default {
             },
         },
     },
+    methods: {
+        plotDataForSeries(series) {
+            if (!series?.rows?.length) {
+                return null;
+            }
+            return associationRowsToPlotData(series.rows);
+        },
+        onHoverVariant(variantId) {
+            this.hoveredVariantId = variantId || null;
+        },
+    },
 };
 </script>
 
 <style scoped>
 .vks-assoc-ld-plot {
     margin-bottom: 12px;
+}
+
+.vks-assoc-ld-plot.is-stack {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vks-assoc-ld-stack-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vks-assoc-ld-stack-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 12px;
+}
+
+.vks-assoc-ld-stack-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assoc-ld-stack-code {
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assoc-ld-stack-count {
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+    font-variant-numeric: tabular-nums;
 }
 
 .vks-assoc-ld-tab-bar {

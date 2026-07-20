@@ -1,14 +1,34 @@
 <template>
-    <div>
-        <div class="filtering-ui-wrapper">
-            <h4 class="card-title filter">Filter data</h4>
-            <div class="filtering-ui-content row vks-assoc-filter-row">
+    <div class="vks-assoc-filters">
+        <div v-if="activeFilterCount > 1" class="vks-assoc-filter-reset-row">
+            <button
+                type="button"
+                class="btn btn-warning btn-sm vks-assoc-filter-reset"
+                @click="clearAllFilters"
+            >
+                Clear all filters
+            </button>
+        </div>
+
+        <div class="vks-assoc-filter-columns">
+            <section
+                v-for="group in filterGroups"
+                :key="group.id"
+                class="vks-assoc-filter-column"
+            >
+                <h4 class="vks-assoc-filter-column-title">{{ group.label }}</h4>
                 <div
-                    v-for="filter in filters"
+                    v-for="filter in group.filters"
                     :key="filter.field"
-                    class="col vks-assoc-filter-col"
+                    class="vks-assoc-filter-field"
+                    :class="{ 'is-checkbox': filter.type === 'checkbox' }"
                 >
-                    <div class="label" v-html="filter.label"></div>
+                    <div
+                        v-if="showFieldLabel(group, filter)"
+                        class="vks-assoc-filter-label"
+                    >
+                        {{ filter.label }}
+                    </div>
                     <template
                         v-if="
                             filter.type === 'search' ||
@@ -18,60 +38,63 @@
                     >
                         <input
                             type="text"
-                            class="form-control"
+                            class="form-control vks-assoc-filter-input"
                             :id="inputId(filter.field)"
+                            :list="
+                                filter.type === 'search'
+                                    ? datalistId(filter.field)
+                                    : null
+                            "
+                            :value="textFilterValue(filter)"
                             @change="onFilterInput($event, filter)"
                         />
-                    </template>
-                    <template v-else-if="filter.type === 'dropdown'">
-                        <select
-                            :id="inputId(filter.field)"
-                            class="custom-select"
-                            @change="onFilterInput($event, filter)"
+                        <datalist
+                            v-if="filter.type === 'search'"
+                            :id="datalistId(filter.field)"
                         >
-                            <option value=""></option>
                             <option
-                                v-for="option in dropdownOptions(filter.field)"
-                                :key="option"
+                                v-for="option in searchSuggestions(filter.field)"
+                                :key="`${filter.field}-${option}`"
                                 :value="option"
+                            ></option>
+                        </datalist>
+                    </template>
+                    <template v-else-if="filter.type === 'checkbox'">
+                        <div
+                            class="vks-assoc-filter-checkboxes"
+                            role="group"
+                            :aria-label="filter.label"
+                        >
+                            <label
+                                v-for="option in checkboxOptions(filter.field)"
+                                :key="`${filter.field}-${option}`"
+                                class="vks-assoc-filter-check"
                             >
-                                {{ option }}
-                            </option>
-                        </select>
+                                <input
+                                    type="checkbox"
+                                    :checked="isCheckboxSelected(filter.field, option)"
+                                    @change="onCheckboxToggle(filter, option, $event)"
+                                />
+                                <span>{{ option }}</span>
+                            </label>
+                            <p
+                                v-if="!checkboxOptions(filter.field).length"
+                                class="vks-assoc-filter-empty"
+                            >
+                                No options available.
+                            </p>
+                        </div>
                     </template>
                 </div>
-            </div>
+            </section>
         </div>
-
-        <b-container class="search-fields-wrapper" fluid>
-            <div
-                v-for="(filterState, field, index) in activeFiltersIndex"
-                :key="field"
-                :class="'search-field f-' + index"
-            >
-                <b-badge
-                    v-for="(value, badgeIndex) in uniqueSearchValues(filterState.search)"
-                    :key="field + '-' + value"
-                    pill
-                    :class="'btn search-bubble ' + badgeIndex"
-                    @click="removeFilter(field, badgeIndex)"
-                    v-html="bubbleLabel(filterState, value)"
-                ></b-badge>
-            </div>
-            <b-badge
-                v-if="activeFilterCount > 1"
-                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
-                @click="clearAllFilters"
-            >
-                Clear all search
-            </b-badge>
-        </b-container>
     </div>
 </template>
 
 <script>
 import {
     ASSOCIATIONS_FILTERS,
+    ASSOCIATIONS_FILTER_GROUPS,
     applyAssociationsFilters,
     buildFilterOptions,
     cloneFiltersIndex,
@@ -98,12 +121,28 @@ export default {
         activeFiltersIndex() {
             return this.filtersIndex || createFiltersIndex(this.filters);
         },
+        filterByField() {
+            const map = {};
+            this.filters.forEach((filter) => {
+                map[filter.field] = filter;
+            });
+            return map;
+        },
+        filterGroups() {
+            return ASSOCIATIONS_FILTER_GROUPS.map((group) => ({
+                ...group,
+                filters: group.fields
+                    .map((field) => this.filterByField[field])
+                    .filter(Boolean),
+            }));
+        },
         filteredRows() {
             return applyAssociationsFilters(this.rows, this.activeFiltersIndex);
         },
         activeFilterCount() {
             return Object.values(this.activeFiltersIndex).reduce(
-                (count, filter) => count + (filter.search?.length || 0),
+                (count, filter) =>
+                    count + ((filter.search || []).length > 0 ? 1 : 0),
                 0
             );
         },
@@ -120,61 +159,75 @@ export default {
         inputId(field) {
             return `vks_assoc_filter_${this.getColumnId(field)}`;
         },
+        datalistId(field) {
+            return `${this.inputId(field)}_list`;
+        },
         getColumnId(label) {
             return label.replace(/\W/g, "").toLowerCase();
         },
-        dropdownOptions(field) {
+        showFieldLabel(group, filter) {
+            if (filter.type === "checkbox" && group.fields.length === 1) {
+                return false;
+            }
+            return true;
+        },
+        checkboxOptions(field) {
             return buildFilterOptions(this.rows, field);
         },
-        uniqueSearchValues(values) {
-            return (values || []).filter(
-                (value, index, array) => array.indexOf(value) === index
-            );
+        searchSuggestions(field) {
+            return buildFilterOptions(this.rows, field).slice(0, 500);
         },
-        bubbleLabel(filterState, value) {
-            if (filterState["label in bubble"]) {
-                return `${filterState.field}: ${value}&nbsp;<span class="remove">X</span>`;
-            }
-            return `${value}&nbsp;<span class="remove">X</span>`;
+        isCheckboxSelected(field, option) {
+            return (this.activeFiltersIndex[field]?.search || []).includes(option);
+        },
+        textFilterValue(filter) {
+            const values = this.activeFiltersIndex[filter.field]?.search || [];
+            return values.join(", ");
         },
         emitFiltersIndex(nextIndex) {
             this.$emit("update:filtersIndex", nextIndex);
         },
         onFilterInput(event, filter) {
             const searchValue = event.target.value.trim();
-            event.target.value = "";
-
-            if (!searchValue) {
-                return;
-            }
-
             const field = filter.field;
             const nextIndex = cloneFiltersIndex(this.activeFiltersIndex);
             const filterState = nextIndex[field];
 
+            if (!searchValue) {
+                filterState.search = [];
+                this.emitFiltersIndex(nextIndex);
+                return;
+            }
+
             if (filter.type === "search") {
-                searchValue.split(",").forEach((term) => {
-                    const trimmed = term.trim();
-                    if (trimmed && !filterState.search.includes(trimmed)) {
-                        filterState.search.push(trimmed);
-                    }
-                });
+                filterState.search = searchValue
+                    .split(",")
+                    .map((term) => term.trim())
+                    .filter(Boolean)
+                    .filter(
+                        (term, index, array) => array.indexOf(term) === index
+                    );
             } else if (
                 filter.type === "search lower than" ||
                 filter.type === "search greater than"
             ) {
                 filterState.search = [searchValue];
-            } else if (filter.type === "dropdown") {
-                if (!filterState.search.includes(searchValue)) {
-                    filterState.search.push(searchValue);
-                }
             }
 
             this.emitFiltersIndex(nextIndex);
         },
-        removeFilter(field, index) {
+        onCheckboxToggle(filter, option, event) {
             const nextIndex = cloneFiltersIndex(this.activeFiltersIndex);
-            nextIndex[field].search.splice(index, 1);
+            const filterState = nextIndex[filter.field];
+            const checked = Boolean(event?.target?.checked);
+            const index = filterState.search.indexOf(option);
+
+            if (checked && index < 0) {
+                filterState.search.push(option);
+            } else if (!checked && index >= 0) {
+                filterState.search.splice(index, 1);
+            }
+
             this.emitFiltersIndex(nextIndex);
         },
         clearAllFilters() {
@@ -189,100 +242,98 @@ export default {
 </script>
 
 <style scoped>
-.filtering-ui-wrapper {
-    border: solid 1px #ddd;
-    border-radius: 5px;
-    background-color: #efefef;
-    text-align: center;
+.vks-assoc-filters {
+    margin-bottom: 4px;
+}
+
+.vks-assoc-filter-reset-row {
+    display: flex;
+    justify-content: flex-start;
     margin-bottom: 10px;
-    padding: 8px 6px 6px;
-    position: relative;
 }
 
-.filtering-ui-wrapper > h4.card-title {
-    position: absolute;
-    font-size: 13px;
-    font-weight: bold;
-    color: #aaaaaa;
-    left: 5px;
-    top: 3px;
-    margin: 0;
-}
-
-.vks-assoc-filter-row {
-    justify-content: flex-end;
-    margin: 0;
-    padding-top: 14px;
-}
-
-.vks-assoc-filter-col {
-    flex: 0 0 auto;
-    width: auto;
-    max-width: none;
-    padding: 0 6px 4px;
-    vertical-align: bottom;
-}
-
-.vks-assoc-filter-col:last-child {
-    padding-right: 10px;
-}
-
-.vks-assoc-filter-col .label {
+.vks-assoc-filter-reset {
     font-size: 13px;
     font-weight: 700;
-    margin-bottom: 2px;
-    white-space: nowrap;
+    padding: 6px 14px;
 }
 
-.vks-assoc-filter-col .form-control,
-.vks-assoc-filter-col .custom-select {
-    width: 118px;
-    min-width: 118px;
+.vks-assoc-filter-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 24px;
+    margin-bottom: 10px;
+}
+
+.vks-assoc-filter-column {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 25px;
+}
+
+.vks-assoc-filter-column-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cfde-blue, #2c5c97);
+}
+
+.vks-assoc-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vks-assoc-filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assoc-filter-input {
+    width: 100%;
+    max-width: 180px;
     height: 30px;
     font-size: 13px;
     padding: 2px 6px;
 }
 
-.search-fields-wrapper {
-    margin-bottom: 8px;
-    padding: 0;
-    min-height: 1px;
+.vks-assoc-filter-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow: auto;
+    padding: 2px 0;
 }
 
-.search-fields-wrapper .search-bubble {
+.vks-assoc-filter-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
     font-size: 12px;
-    font-weight: 400;
-    margin: 0 3px 4px;
+    line-height: 1.35;
+    color: var(--cfde-ink, #33363d);
     cursor: pointer;
 }
 
-.search-fields-wrapper .clear-all-filters-bubble {
-    background-color: #ff0000;
-    color: #fff;
+.vks-assoc-filter-check input {
+    margin: 2px 0 0;
+    flex: 0 0 auto;
 }
 
-.search-field.f-0 .search-bubble {
-    background-color: #66bbff;
+.vks-assoc-filter-empty {
+    margin: 0;
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
 }
-.search-field.f-1 .search-bubble {
-    background-color: #ffcc66;
-}
-.search-field.f-2 .search-bubble {
-    background-color: #99dd99;
-}
-.search-field.f-3 .search-bubble {
-    background-color: #ff99cc;
-}
-.search-field.f-4 .search-bubble {
-    background-color: #cc99ff;
-}
-.search-field.f-5 .search-bubble {
-    background-color: #99ccff;
-}
-.search-field.f-6 .search-bubble {
-    background-color: #ff9966;
-}
-.search-field.f-7 .search-bubble {
-    background-color: #cccccc;
+
+@media (max-width: 900px) {
+    .vks-assoc-filter-columns {
+        grid-template-columns: 1fr;
+    }
 }
 </style>

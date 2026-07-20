@@ -1,10 +1,5 @@
 <template>
-    <div class="vks-v2g-drawer">
-        <p class="vks-ui-intro">
-            Tissue-specific variant-to-gene linking evidence for this locus. Select
-            tissues to show tracks in the workspace; bars are colored by linking method.
-        </p>
-
+    <div class="vks-v2g-drawer research-data-table-wrapper">
         <div v-if="loadingTissue" class="vks-ui-status">
             Loading gene links for {{ loadingTissue }}…
         </div>
@@ -12,185 +7,238 @@
             {{ error }}
         </div>
 
-        <div class="vks-ui-tabs" role="tablist" aria-label="Variant-to-gene panels">
-            <button
-                v-for="tab in tabs"
-                :id="`vks-v2g-tab-${tab.id}`"
-                :key="tab.id"
-                type="button"
-                role="tab"
-                class="vks-ui-tab"
-                :class="{ 'is-active': activeTab === tab.id }"
-                :aria-selected="activeTab === tab.id ? 'true' : 'false'"
-                :aria-controls="`vks-v2g-panel-${tab.id}`"
-                @click="activeTab = tab.id"
+        <section class="vks-drawer-section vks-drawer-section--controls">
+            <div
+                class="vks-ui-tabs"
+                role="tablist"
+                aria-label="Variant-to-gene controls"
             >
-                {{ tab.label }}
-            </button>
-        </div>
+                <button
+                    v-for="tab in controlTabs"
+                    :id="`vks-v2g-tab-${tab.id}`"
+                    :key="tab.id"
+                    type="button"
+                    role="tab"
+                    class="vks-ui-tab"
+                    :class="{ 'is-active': activeControlTab === tab.id }"
+                    :aria-selected="activeControlTab === tab.id ? 'true' : 'false'"
+                    :aria-controls="`vks-v2g-panel-${tab.id}`"
+                    @click="activeControlTab = tab.id"
+                >
+                    {{ tab.label }}
+                </button>
+            </div>
 
-        <div
-            v-show="activeTab === 'settings'"
-            id="vks-v2g-panel-settings"
-            class="vks-ui-tab-panel"
-            role="tabpanel"
-            aria-labelledby="vks-v2g-tab-settings"
-        >
-            <section class="vks-ui-section">
-                <p class="vks-ui-section-title">Visualization</p>
-                <div class="vks-v2g-view-mode" role="radiogroup" aria-label="V2G visualization">
-                    <label
-                        v-for="option in viewModeOptions"
-                        :key="option.id"
-                        class="vks-v2g-view-mode-option"
-                    >
-                        <input
-                            type="radio"
-                            name="vks-v2g-view-mode"
-                            :value="option.id"
-                            :checked="viewMode === option.id"
-                            @change="onViewModeChange(option.id)"
-                        />
-                        <span>{{ option.label }}</span>
-                    </label>
-                </div>
-                <p class="vks-ui-hint">
-                    Tracks view shows one row per gene and method. Ribbons and Arcs views
-                    show one row per gene (still colored by method), with region-to-region
-                    fills or 1px curves to promoters.
-                </p>
-            </section>
-
-            <section class="vks-ui-section">
-                <p class="vks-ui-section-title">Tissues</p>
-                <p class="vks-ui-hint">
-                    Hold {{ modifierLabel }} to select multiple tissues. Each selected
-                    tissue adds gene-links tracks to the workspace.
-                </p>
+            <div
+                v-show="activeControlTab === 'tissues'"
+                id="vks-v2g-panel-tissues"
+                class="vks-ui-tab-panel"
+                role="tabpanel"
+                aria-labelledby="vks-v2g-tab-tissues"
+            >
                 <div v-if="geLoading" class="vks-ui-status">
                     Loading tissue options…
                 </div>
                 <template v-else-if="tissueOptions.length">
-                    <select
-                        :id="tissueSelectId"
-                        :key="selectedTissuesKey"
-                        class="custom-select vks-v2g-tissue-select"
-                        multiple
-                        :size="tissueSelectSize"
-                        @change="onTissuesChange"
+                    <ul
+                        class="vks-v2g-tissue-list"
+                        role="group"
+                        aria-label="Tissues"
                     >
-                        <option
+                        <li
                             v-for="tissue in tissueOptions"
                             :key="tissue"
-                            :value="tissue"
-                            :selected="selectedTissues.includes(tissue)"
+                            class="vks-v2g-tissue-item"
                         >
-                            {{ tissue }}
-                        </option>
-                    </select>
+                            <label class="vks-v2g-tissue-check">
+                                <input
+                                    type="checkbox"
+                                    :checked="isTissueSelected(tissue)"
+                                    @change="onToggleTissue(tissue, $event)"
+                                />
+                                <span>{{ tissue }}</span>
+                            </label>
+                        </li>
+                    </ul>
                     <div class="vks-ui-btn-row">
                         <button
                             type="button"
                             class="vks-ui-btn vks-ui-btn--secondary"
+                            :disabled="!selectedTissues.length"
                             @click="clearTissues"
                         >
                             Clear tissues
                         </button>
                     </div>
-                    <ul v-if="selectedTissues.length" class="vks-ui-chip-list">
-                        <li
-                            v-for="tissue in selectedTissues"
-                            :key="tissue"
-                            class="vks-ui-chip"
-                        >
-                            <span>{{ tissue }}</span>
-                            <button
-                                type="button"
-                                class="vks-ui-chip-remove"
-                                :aria-label="`Remove ${tissue}`"
-                                @click="removeTissue(tissue)"
-                            >
-                                ×
-                            </button>
-                        </li>
-                    </ul>
                 </template>
-                <p v-else class="vks-ui-hint">
-                    Tissue options come from global enrichment for this phenotype. Run a
-                    phenotype search to populate them.
-                </p>
-            </section>
+            </div>
 
-            <template v-if="hasTrackData">
-                <div class="vks-ui-btn-row">
-                    <button
-                        type="button"
-                        class="vks-ui-btn vks-ui-btn--secondary"
-                        @click="selectAllFilters"
-                    >
-                        Select all
-                    </button>
-                    <button
-                        type="button"
-                        class="vks-ui-btn vks-ui-btn--secondary"
-                        @click="unselectAllFilters"
-                    >
-                        Unselect all
-                    </button>
-                </div>
-
-                <section v-if="methodOptions.length" class="vks-ui-section">
-                    <p class="vks-ui-section-title">Methods</p>
-                    <ul class="vks-ui-filter-list" role="group" aria-label="Methods">
-                        <li
-                            v-for="(method, index) in methodOptions"
-                            :key="method"
-                            class="vks-ui-filter-item"
+            <div
+                v-show="activeControlTab === 'filters'"
+                id="vks-v2g-panel-filters"
+                class="vks-ui-tab-panel"
+                role="tabpanel"
+                aria-labelledby="vks-v2g-tab-filters"
+            >
+                <template v-if="hasTrackData">
+                    <div v-if="methodOptions.length" class="vks-v2g-settings-block">
+                        <p class="vks-v2g-settings-label">Methods</p>
+                        <ul
+                            class="vks-v2g-filter-list"
+                            role="group"
+                            aria-label="Methods"
                         >
-                            <label
-                                class="vks-v2g-method-label"
-                                :style="{ borderBottomColor: methodColor(index) }"
+                            <li
+                                v-for="method in methodOptions"
+                                :key="method"
+                                class="vks-v2g-filter-item"
                             >
-                                <input
-                                    type="checkbox"
-                                    :checked="isMethodSelected(method)"
-                                    @change="onToggleMethod(method, $event)"
-                                />
-                                <span>{{ method }}</span>
-                            </label>
-                        </li>
-                    </ul>
-                </section>
+                                <label class="vks-v2g-filter-check">
+                                    <input
+                                        type="checkbox"
+                                        :checked="isMethodSelected(method)"
+                                        @change="onToggleMethod(method, $event)"
+                                    />
+                                    <span>{{ method }}</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
 
-                <section v-if="geneOptions.length" class="vks-ui-section">
-                    <p class="vks-ui-section-title">Genes</p>
-                    <ul class="vks-ui-filter-list" role="group" aria-label="Genes">
-                        <li
-                            v-for="gene in geneOptions"
-                            :key="gene"
-                            class="vks-ui-filter-item"
+                    <div v-if="geneOptions.length" class="vks-v2g-settings-block">
+                        <div class="vks-v2g-settings-head">
+                            <p class="vks-v2g-settings-label">Genes</p>
+                            <div class="vks-ui-btn-row vks-v2g-settings-actions">
+                                <button
+                                    type="button"
+                                    class="vks-ui-btn vks-ui-btn--secondary"
+                                    @click="selectAllGenes"
+                                >
+                                    Select all
+                                </button>
+                                <button
+                                    type="button"
+                                    class="vks-ui-btn vks-ui-btn--secondary"
+                                    @click="unselectAllGenes"
+                                >
+                                    Unselect all
+                                </button>
+                            </div>
+                        </div>
+                        <ul
+                            class="vks-v2g-filter-list"
+                            role="group"
+                            aria-label="Genes"
                         >
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    :checked="isGeneSelected(gene)"
-                                    @change="onToggleGene(gene, $event)"
-                                />
-                                <span>{{ gene }}</span>
-                            </label>
-                        </li>
-                    </ul>
-                </section>
-            </template>
-        </div>
+                            <li
+                                v-for="gene in geneOptions"
+                                :key="gene"
+                                class="vks-v2g-filter-item"
+                            >
+                                <label class="vks-v2g-filter-check">
+                                    <input
+                                        type="checkbox"
+                                        :checked="isGeneSelected(gene)"
+                                        @change="onToggleGene(gene, $event)"
+                                    />
+                                    <span>{{ gene }}</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
 
-        <div class="vks-v2g-table-block">
-            <VariantSifterV2gTable
-                :rows="tableRows"
-                :tissue-data="tissueData"
-                :subtitle="tableSubtitle"
-            />
-        </div>
+                    <div v-if="loadedTissueOptions.length" class="vks-v2g-settings-block">
+                        <p class="vks-v2g-settings-label">Tissue</p>
+                        <ul
+                            class="vks-v2g-filter-list"
+                            role="group"
+                            aria-label="Filter tissues"
+                        >
+                            <li
+                                v-for="tissue in loadedTissueOptions"
+                                :key="`filter-tissue-${tissue}`"
+                                class="vks-v2g-filter-item"
+                            >
+                                <label class="vks-v2g-filter-check">
+                                    <input
+                                        type="checkbox"
+                                        :checked="isFilterTissueSelected(tissue)"
+                                        @change="onToggleFilterTissue(tissue, $event)"
+                                    />
+                                    <span>{{ tissue }}</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div v-if="biosampleGroups.length" class="vks-v2g-settings-block">
+                        <div class="vks-v2g-settings-head">
+                            <p class="vks-v2g-settings-label">Biosamples</p>
+                            <div class="vks-ui-btn-row vks-v2g-settings-actions">
+                                <button
+                                    type="button"
+                                    class="vks-ui-btn vks-ui-btn--secondary"
+                                    @click="selectAllBiosamples"
+                                >
+                                    Select all
+                                </button>
+                                <button
+                                    type="button"
+                                    class="vks-ui-btn vks-ui-btn--secondary"
+                                    @click="unselectAllBiosamples"
+                                >
+                                    Unselect all
+                                </button>
+                            </div>
+                        </div>
+                        <div
+                            v-for="group in biosampleGroups"
+                            :key="`biosample-group-${group.tissue}`"
+                            class="vks-v2g-biosample-group"
+                        >
+                            <p class="vks-v2g-biosample-group-title">{{ group.tissue }}</p>
+                            <ul
+                                class="vks-v2g-filter-list"
+                                role="group"
+                                :aria-label="`Biosamples for ${group.tissue}`"
+                            >
+                                <li
+                                    v-for="biosample in group.biosamples"
+                                    :key="biosampleFilterKey(group.tissue, biosample)"
+                                    class="vks-v2g-filter-item"
+                                >
+                                    <label class="vks-v2g-filter-check">
+                                        <input
+                                            type="checkbox"
+                                            :checked="
+                                                isBiosampleSelected(group.tissue, biosample)
+                                            "
+                                            @change="
+                                                onToggleBiosample(
+                                                    group.tissue,
+                                                    biosample,
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                        <span>{{ biosample }}</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </section>
+
+        <section class="vks-drawer-section vks-drawer-section--table">
+            <div class="vks-v2g-table-section">
+                <VariantSifterV2gTable
+                    :rows="tableRows"
+                    :utils="utils"
+                />
+            </div>
+        </section>
     </div>
 </template>
 
@@ -198,19 +246,14 @@
 import VariantSifterV2gTable from "./VariantSifterV2gTable.vue";
 import {
     buildV2gTableRows,
+    collectBiosampleGroupsFromTissueData,
     collectGenesFromTissueData,
+    collectLoadedTissuesFromTissueData,
     collectMethodsFromTissueData,
     collectTissueOptionsFromGeRows,
     hasV2gTrackData,
-    normalizeV2gViewMode,
-    solidV2gMethodColor,
-    VKS_V2G_METHOD_COLORS,
-    VKS_V2G_VIEW_MODES,
+    v2gBiosampleFilterKey,
 } from "./variantSifterV2gData.js";
-
-const V2G_DRAWER_TABS = [{ id: "settings", label: "Settings / Filters" }];
-
-let v2gTissueSelectCounter = 0;
 
 export default {
     name: "VariantSifterV2gDrawer",
@@ -234,25 +277,21 @@ export default {
             type: Object,
             default: null,
         },
+        utils: {
+            type: Object,
+            default: null,
+        },
     },
     data() {
-        v2gTissueSelectCounter += 1;
         return {
-            tabs: V2G_DRAWER_TABS,
-            activeTab: "settings",
-            viewModeOptions: VKS_V2G_VIEW_MODES,
-            tissueSelectId: `vks-v2g-tissues-${v2gTissueSelectCounter}`,
-            isMac:
-                typeof navigator !== "undefined" && /Mac/i.test(navigator.platform),
+            activeControlTab: "tissues",
+            controlTabs: [
+                { id: "tissues", label: "Tissues" },
+                { id: "filters", label: "Filters / Settings" },
+            ],
         };
     },
     computed: {
-        modifierLabel() {
-            return this.isMac ? "⌘" : "Ctrl";
-        },
-        viewMode() {
-            return normalizeV2gViewMode(this.v2gState?.viewMode);
-        },
         geLoading() {
             return Boolean(this.globalEnrichmentState?.loading);
         },
@@ -263,12 +302,6 @@ export default {
             return Array.isArray(this.v2gState?.selectedTissues)
                 ? this.v2gState.selectedTissues
                 : [];
-        },
-        selectedTissuesKey() {
-            return this.selectedTissues.join("|");
-        },
-        tissueSelectSize() {
-            return Math.min(12, Math.max(4, this.tissueOptions.length || 4));
         },
         tissueData() {
             return this.v2gState?.tissueData || {};
@@ -281,6 +314,21 @@ export default {
         },
         error() {
             return this.v2gState?.error || null;
+        },
+        loadedTissueOptions() {
+            return collectLoadedTissuesFromTissueData(this.tissueData);
+        },
+        biosampleGroups() {
+            return collectBiosampleGroupsFromTissueData(this.tissueData);
+        },
+        biosampleFilterKeys() {
+            const keys = [];
+            this.biosampleGroups.forEach((group) => {
+                group.biosamples.forEach((biosample) => {
+                    keys.push(v2gBiosampleFilterKey(group.tissue, biosample));
+                });
+            });
+            return keys;
         },
         methodOptions() {
             return collectMethodsFromTissueData(this.tissueData);
@@ -298,31 +346,64 @@ export default {
                 ? this.v2gState.deselectedGenes
                 : [];
         },
+        deselectedTissues() {
+            return Array.isArray(this.v2gState?.deselectedTissues)
+                ? this.v2gState.deselectedTissues
+                : [];
+        },
+        deselectedBiosamples() {
+            return Array.isArray(this.v2gState?.deselectedBiosamples)
+                ? this.v2gState.deselectedBiosamples
+                : [];
+        },
         tableRows() {
             return buildV2gTableRows(
                 this.tissueData,
                 this.deselectedMethods,
-                this.deselectedGenes
+                this.deselectedGenes,
+                this.deselectedTissues,
+                this.deselectedBiosamples
             );
         },
-        tableSubtitle() {
-            const tissueCount = this.selectedTissues.length;
-            if (!tissueCount) {
-                return "Select tissues to load links.";
+    },
+    watch: {
+        loadedTissueOptions(tissues) {
+            const allowed = new Set(tissues || []);
+            const next = this.deselectedTissues.filter((tissue) => allowed.has(tissue));
+            if (
+                next.length === this.deselectedTissues.length &&
+                next.every((tissue, index) => tissue === this.deselectedTissues[index])
+            ) {
+                return;
             }
-            return `${this.tableRows.length.toLocaleString()} links across ${tissueCount} tissue${
-                tissueCount === 1 ? "" : "s"
-            }.`;
+            this.$emit("update:deselectedTissues", next);
+        },
+        biosampleFilterKeys(keys) {
+            const allowed = new Set(keys || []);
+            const next = this.deselectedBiosamples.filter((entry) => allowed.has(entry));
+            if (
+                next.length === this.deselectedBiosamples.length &&
+                next.every((entry, index) => entry === this.deselectedBiosamples[index])
+            ) {
+                return;
+            }
+            this.$emit("update:deselectedBiosamples", next);
         },
     },
     methods: {
-        methodColor(index) {
-            return solidV2gMethodColor(
-                VKS_V2G_METHOD_COLORS[index % VKS_V2G_METHOD_COLORS.length]
-            );
+        biosampleFilterKey(tissue, biosample) {
+            return v2gBiosampleFilterKey(tissue, biosample);
         },
-        onViewModeChange(viewMode) {
-            this.$emit("update:viewMode", normalizeV2gViewMode(viewMode));
+        isTissueSelected(tissue) {
+            return this.selectedTissues.includes(tissue);
+        },
+        isFilterTissueSelected(tissue) {
+            return !this.deselectedTissues.includes(tissue);
+        },
+        isBiosampleSelected(tissue, biosample) {
+            return !this.deselectedBiosamples.includes(
+                v2gBiosampleFilterKey(tissue, biosample)
+            );
         },
         isMethodSelected(method) {
             return !this.deselectedMethods.includes(method);
@@ -330,20 +411,42 @@ export default {
         isGeneSelected(gene) {
             return !this.deselectedGenes.includes(gene);
         },
-        onTissuesChange(event) {
-            const selected = Array.from(event.target.selectedOptions).map(
-                (option) => option.value
+        onToggleTissue(tissue, event) {
+            const checked = Boolean(event?.target?.checked);
+            const next = new Set(this.selectedTissues);
+            if (checked) {
+                next.add(tissue);
+            } else {
+                next.delete(tissue);
+            }
+            this.$emit(
+                "update:selectedTissues",
+                [...next].sort((a, b) => (a > b ? 1 : -1))
             );
-            this.$emit("update:selectedTissues", selected);
         },
         clearTissues() {
             this.$emit("update:selectedTissues", []);
         },
-        removeTissue(tissue) {
-            this.$emit(
-                "update:selectedTissues",
-                this.selectedTissues.filter((entry) => entry !== tissue)
-            );
+        onToggleFilterTissue(tissue, event) {
+            const checked = Boolean(event?.target?.checked);
+            const next = new Set(this.deselectedTissues);
+            if (checked) {
+                next.delete(tissue);
+            } else {
+                next.add(tissue);
+            }
+            this.$emit("update:deselectedTissues", [...next].sort());
+        },
+        onToggleBiosample(tissue, biosample, event) {
+            const checked = Boolean(event?.target?.checked);
+            const key = v2gBiosampleFilterKey(tissue, biosample);
+            const next = new Set(this.deselectedBiosamples);
+            if (checked) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            this.$emit("update:deselectedBiosamples", [...next].sort());
         },
         onToggleMethod(method, event) {
             const checked = Boolean(event?.target?.checked);
@@ -365,51 +468,133 @@ export default {
             }
             this.$emit("update:deselectedGenes", [...next].sort());
         },
-        selectAllFilters() {
-            this.$emit("update:deselectedMethods", []);
+        selectAllGenes() {
             this.$emit("update:deselectedGenes", []);
         },
-        unselectAllFilters() {
-            this.$emit("update:deselectedMethods", [...this.methodOptions]);
+        unselectAllGenes() {
             this.$emit("update:deselectedGenes", [...this.geneOptions]);
+        },
+        selectAllBiosamples() {
+            this.$emit("update:deselectedBiosamples", []);
+        },
+        unselectAllBiosamples() {
+            this.$emit("update:deselectedBiosamples", [...this.biosampleFilterKeys]);
         },
     },
 };
 </script>
 
 <style scoped>
-.vks-v2g-view-mode {
+.vks-v2g-drawer {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 18px;
+    min-height: 0;
 }
 
-.vks-v2g-view-mode-option {
+.vks-drawer-section--controls {
+    flex: 0 0 auto;
+}
+
+.vks-drawer-section--table {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vks-v2g-table-section {
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+}
+
+.vks-v2g-tissue-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 0 0 10px;
+    padding: 0;
+    list-style: none;
+}
+
+.vks-v2g-tissue-item {
+    margin: 0;
+}
+
+.vks-v2g-tissue-check,
+.vks-v2g-filter-check {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
     color: var(--cfde-ink, #33363d);
     cursor: pointer;
 }
 
-.vks-v2g-tissue-select {
-    width: 100%;
-    max-width: 100%;
-    min-height: 6rem;
-    margin-bottom: 8px;
-    font-size: 13px;
+.vks-v2g-tissue-check input,
+.vks-v2g-filter-check input {
+    margin: 0;
+    flex: 0 0 auto;
 }
 
-.vks-v2g-method-label {
-    padding-bottom: 2px;
-    border-bottom: 3px solid transparent;
+.vks-v2g-settings-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
-.vks-v2g-table-block {
-    margin-top: 8px;
-    padding-top: 16px;
-    border-top: 1px solid var(--cfde-border, #e6e1d6);
+.vks-v2g-settings-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+}
+
+.vks-v2g-settings-label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-v2g-settings-actions {
+    margin: 0;
+}
+
+.vks-v2g-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.vks-v2g-filter-item {
+    margin: 0;
+}
+
+.vks-v2g-biosample-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.vks-v2g-biosample-group + .vks-v2g-biosample-group {
+    margin-top: 10px;
+}
+
+.vks-v2g-biosample-group-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cfde-blue, #2c5c97);
 }
 </style>

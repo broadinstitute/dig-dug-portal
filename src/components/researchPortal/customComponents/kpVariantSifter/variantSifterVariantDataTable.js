@@ -159,6 +159,7 @@ export function buildCredibleVariantsPanelRows(credibleSetsState, region = null)
                 ...variantRow,
                 credibleSetId,
                 credibleSetLabel: meta.label || credibleSetId,
+                selectionKey,
             });
         });
     });

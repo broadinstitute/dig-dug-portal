@@ -76,6 +76,16 @@ export const VKS_TOOL_APIS = [
         sections: ["credible-sets"],
     },
     {
+        id: "c2ct-credible-set",
+        name: "c2ct-credible-set",
+        service: "KP BioIndex",
+        path: "/api/bio/query/c2ct-credible-set",
+        query: "phenotype[,ancestry],credibleSetId",
+        purpose:
+            "CS2CT tissue / annotation evidence for credible sets (assistant tissue classification).",
+        sections: ["global-enrichment", "credible-sets"],
+    },
+    {
         id: "genes",
         name: "genes",
         service: "KP BioIndex",

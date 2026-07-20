@@ -17,7 +17,7 @@
                 <strong>Settings / Filters</strong>
                 to adjust the p-value threshold, or
                 <strong>Tissues</strong>
-                to re-enable filtered tissues. Optional LLM tissue classification is offered in
+                to re-enable filtered tissues. Optional CS2CT tissue classification is offered in
                 <strong>Assist</strong>
                 as an executable step on the Request tab.
             </template>
@@ -35,7 +35,7 @@
                     Annotations
                 </button>
                 <button
-                    v-for="annotation in annotations"
+                    v-for="annotation in annotationTabs"
                     :key="annotation"
                     type="button"
                     class="vks-anno-workspace-tab"
@@ -45,7 +45,7 @@
                     :aria-selected="isAnnotationTrackActive(annotation)"
                     @click="showAnnotationTrack(annotation)"
                 >
-                    {{ annotation }}
+                    {{ annotationTabLabel(annotation) }}
                 </button>
             </div>
         </div>
@@ -62,13 +62,20 @@
                         v-for="(annotation, index) in annotationOptions"
                         :key="annotation"
                         class="vks-ge-legend-item"
-                        :class="{ 'is-muted': !isAnnotationSelected(annotation) }"
+                        :class="{
+                            'is-muted': !isAnnotationSelected(annotation),
+                            'is-empty': !hasRenderableTissues(annotation),
+                        }"
                     >
                         <label class="vks-ge-legend-checkbox">
                             <input
                                 type="checkbox"
                                 class="vks-ge-legend-input"
                                 :checked="isAnnotationSelected(annotation)"
+                                :disabled="
+                                    !hasRenderableTissues(annotation) &&
+                                        !isAnnotationSelected(annotation)
+                                "
                                 :style="{ accentColor: legendSolidColor(annotation, index) }"
                                 @change="onToggleAnnotation(annotation, $event)"
                             />
@@ -480,6 +487,49 @@ export default {
                 this.globalEnrichmentState?.selectedAnnotations
             );
         },
+        annotationTrackMeta() {
+            const llmRelevance = this.globalEnrichmentState?.llmRelevance || null;
+            const enabledMutedAnnotationTissues =
+                this.globalEnrichmentState?.enabledMutedAnnotationTissues || {};
+            const disabledAnnotationTissues =
+                this.globalEnrichmentState?.disabledAnnotationTissues || {};
+            const pValueMax = this.geTrackPValueMax;
+            const geRows = this.globalEnrichmentState?.geRows || [];
+            const selectedByAnnotation = this.selectedTissuesByAnnotation;
+            const meta = {};
+
+            this.annotationOptions.forEach((annotation) => {
+                const tissues = Object.keys(this.annoData[annotation] || {});
+                const geTissueStats = buildGeTissueStatsForAnnotation({
+                    geRows,
+                    annotation,
+                    phenotype: this.phenotype,
+                    ancestry: this.ancestry,
+                });
+                const displayable = resolveGeTissuesForDisplay(tissues, {
+                    annotation,
+                    llmRelevance,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                    geTissueStats,
+                    pValueMax,
+                });
+                const selected = selectedTissuesForAnnotation(
+                    selectedByAnnotation,
+                    annotation
+                );
+                meta[annotation] = {
+                    displayableCount: displayable.length,
+                    selectedCount: selected.length,
+                };
+            });
+            return meta;
+        },
+        annotationTabs() {
+            return this.annotations.filter(
+                (annotation) => this.selectedTissueCountForAnnotation(annotation) > 0
+            );
+        },
         annotationOptions() {
             return sortedAnnotationKeys(this.annoData);
         },
@@ -593,34 +643,54 @@ export default {
             return Boolean(this.visibleRegion && this.tissueKeys.length);
         },
         hasTrackData() {
-            return this.annotations.length > 0 && this.tissueKeys.length > 0;
+            return this.annotationTabs.length > 0 && this.tissueKeys.length > 0;
         },
         annotationKeys() {
             return this.annotations.join("|");
         },
+        annotationTabKeys() {
+            return this.annotationTabs.join("|");
+        },
     },
     watch: {
-        annotationKeys: {
+        annotationTabKeys: {
             handler(nextKeys) {
-                const nextAnnotations = nextKeys ? nextKeys.split("|") : [];
+                const nextAnnotations = nextKeys ? nextKeys.split("|").filter(Boolean) : [];
                 // Hiding annotations via the legend only affects plot/tab visibility.
                 // Never clear tissue selections — users may toggle annotations to
                 // declutter the plot without cancelling selected tissues.
                 if (!nextAnnotations.length) {
+                    if (!this.isAnnotationsOverview) {
+                        this.showAnnotationsOverview();
+                    }
                     this.$nextTick(() => this.renderTrack());
+                    return;
+                }
+                if (
+                    this.activeAnnotation &&
+                    !nextAnnotations.includes(this.activeAnnotation) &&
+                    !this.isAnnotationsOverview
+                ) {
+                    // On a track tab with no selected tissues, move to a visible tab.
+                    this.setActiveAnnotation(nextAnnotations[0]);
+                }
+                this.$nextTick(() => this.renderTrack());
+            },
+            immediate: true,
+        },
+        annotationKeys: {
+            handler() {
+                // Keep an active annotation available for tissue selection state even
+                // when no track tabs are shown yet (zero selected tissues).
+                const nextAnnotations = this.annotations;
+                if (!nextAnnotations.length) {
                     return;
                 }
                 if (!this.activeAnnotation) {
                     this.setActiveAnnotation(nextAnnotations[0]);
-                } else if (
-                    !nextAnnotations.includes(this.activeAnnotation) &&
-                    !this.isAnnotationsOverview
-                ) {
-                    // On a track tab whose annotation was hidden, move to a
-                    // visible tab. Parent restores that annotation's saved tissues.
+                } else if (!nextAnnotations.includes(this.activeAnnotation)) {
                     this.setActiveAnnotation(nextAnnotations[0]);
                 }
-                this.$nextTick(() => this.renderTrack());
             },
             immediate: true,
         },
@@ -825,6 +895,16 @@ export default {
         isAnnotationSelected(annotation) {
             return this.selectedAnnotations.includes(annotation);
         },
+        selectedTissueCountForAnnotation(annotation) {
+            return this.annotationTrackMeta[annotation]?.selectedCount || 0;
+        },
+        hasRenderableTissues(annotation) {
+            return (this.annotationTrackMeta[annotation]?.displayableCount || 0) > 0;
+        },
+        annotationTabLabel(annotation) {
+            const count = this.selectedTissueCountForAnnotation(annotation);
+            return `${annotation} (${count})`;
+        },
         legendSolidColor(annotation, index) {
             const baseColor =
                 VKS_ANNOTATION_COLORS[index % VKS_ANNOTATION_COLORS.length];
@@ -840,6 +920,12 @@ export default {
         },
         onToggleAnnotation(annotation, event) {
             const checked = Boolean(event?.target?.checked);
+            if (checked && !this.hasRenderableTissues(annotation)) {
+                if (event?.target) {
+                    event.target.checked = false;
+                }
+                return;
+            }
             const next = new Set(this.selectedAnnotations);
             if (checked) {
                 next.add(annotation);
@@ -881,6 +967,7 @@ export default {
             const disabledAnnotationTissues =
                 this.globalEnrichmentState?.disabledAnnotationTissues || {};
             const defaultShown = tissuePassesDefaultGeTrackFilter(tissue, {
+                annotation,
                 geTissueStats,
                 llmRelevance,
                 pValueMax,
@@ -1765,6 +1852,18 @@ export default {
 
 .vks-ge-legend-item.is-muted {
     opacity: 0.55;
+}
+
+.vks-ge-legend-item.is-empty {
+    opacity: 0.4;
+}
+
+.vks-ge-legend-item.is-empty .vks-ge-legend-checkbox {
+    cursor: not-allowed;
+}
+
+.vks-ge-legend-item.is-empty .vks-ge-legend-input:disabled {
+    cursor: not-allowed;
 }
 
 .vks-ge-legend-checkbox {

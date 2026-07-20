@@ -47,6 +47,8 @@ export function emptyV2gState() {
         tissueErrors: {},
         deselectedMethods: [],
         deselectedGenes: [],
+        deselectedTissues: [],
+        deselectedBiosamples: [],
         selectedLinks: [],
         viewMode: VKS_V2G_DEFAULT_VIEW_MODE,
     };
@@ -135,6 +137,8 @@ export function snapshotV2gForExport(state) {
                 : {},
         deselectedMethods: normalizeStringList(state.deselectedMethods),
         deselectedGenes: normalizeStringList(state.deselectedGenes),
+        deselectedTissues: normalizeStringList(state.deselectedTissues),
+        deselectedBiosamples: normalizeStringList(state.deselectedBiosamples),
         selectedLinks: normalizeV2gSelectedLinks(state.selectedLinks),
         viewMode: normalizeV2gViewMode(state.viewMode),
     };
@@ -163,6 +167,8 @@ export function normalizeV2gFromSession(exported) {
                 : {},
         deselectedMethods: normalizeStringList(exported.deselectedMethods),
         deselectedGenes: normalizeStringList(exported.deselectedGenes),
+        deselectedTissues: normalizeStringList(exported.deselectedTissues),
+        deselectedBiosamples: normalizeStringList(exported.deselectedBiosamples),
         selectedLinks: normalizeV2gSelectedLinks(exported.selectedLinks),
         viewMode: normalizeV2gViewMode(exported.viewMode),
     };
@@ -220,6 +226,65 @@ export function collectGenesFromTissueData(tissueData = {}) {
     return [...new Set(genes)].sort();
 }
 
+export function collectLoadedTissuesFromTissueData(tissueData = {}) {
+    return Object.keys(tissueData || {})
+        .filter((tissue) => Array.isArray(tissueData[tissue]) && tissueData[tissue].length)
+        .sort((a, b) => (a > b ? 1 : -1));
+}
+
+export function collectBiosamplesFromTissueData(tissueData = {}) {
+    const biosamples = [];
+    Object.values(tissueData || {}).forEach((rows) => {
+        (Array.isArray(rows) ? rows : []).forEach((row) => {
+            const biosample = row?.biosample;
+            if (biosample != null && String(biosample).trim() !== "") {
+                biosamples.push(String(biosample));
+            }
+        });
+    });
+    return [...new Set(biosamples)].sort((a, b) => (a > b ? 1 : -1));
+}
+
+/** Stable key for tissue-scoped biosample filter checkboxes. */
+export function v2gBiosampleFilterKey(tissue, biosample) {
+    return `${tissue || ""}:::${biosample || ""}`;
+}
+
+/**
+ * Biosamples grouped by tissue for filter UI.
+ * @returns {{ tissue: string, biosamples: string[] }[]}
+ */
+export function collectBiosampleGroupsFromTissueData(tissueData = {}) {
+    const groups = [];
+    Object.keys(tissueData || {})
+        .sort((a, b) => (a > b ? 1 : -1))
+        .forEach((tissue) => {
+            const rows = tissueData[tissue];
+            if (!Array.isArray(rows) || !rows.length) {
+                return;
+            }
+            const seen = new Set();
+            const biosamples = [];
+            rows.forEach((row) => {
+                const biosample = row?.biosample;
+                if (biosample == null || String(biosample).trim() === "") {
+                    return;
+                }
+                const label = String(biosample);
+                if (seen.has(label)) {
+                    return;
+                }
+                seen.add(label);
+                biosamples.push(label);
+            });
+            biosamples.sort((a, b) => (a > b ? 1 : -1));
+            if (biosamples.length) {
+                groups.push({ tissue, biosamples });
+            }
+        });
+    return groups;
+}
+
 export function v2gMethodColor(method, methods = [], colors = VKS_V2G_METHOD_COLORS) {
     const index = methods.indexOf(method);
     if (index < 0 || !colors.length) {
@@ -240,25 +305,39 @@ export function solidV2gMethodColor(colorWithAlpha) {
 
 /**
  * Nested render model: tissue → gene → method → link records[].
- * Genes/methods listed in deselected* are omitted (Research checkbox semantics).
+ * Genes/methods/tissues/biosamples listed in deselected* are omitted.
  */
 export function buildV2gRenderData(
     tissueData = {},
     deselectedMethods = [],
-    deselectedGenes = []
+    deselectedGenes = [],
+    deselectedTissues = [],
+    deselectedBiosamples = []
 ) {
     const removedGenes = new Set(deselectedGenes || []);
     const removedMethods = new Set(deselectedMethods || []);
+    const removedTissues = new Set(deselectedTissues || []);
+    const removedBiosamples = new Set(deselectedBiosamples || []);
     const renderObj = {};
 
     Object.entries(tissueData || {}).forEach(([tissue, rows]) => {
+        if (removedTissues.has(tissue)) {
+            return;
+        }
         (Array.isArray(rows) ? rows : []).forEach((row) => {
             const targetGene = row?.targetGene || row?.gene;
             const method = row?.method;
+            const biosample =
+                row?.biosample == null || String(row.biosample).trim() === ""
+                    ? null
+                    : String(row.biosample);
             if (!targetGene || !method) {
                 return;
             }
             if (removedGenes.has(targetGene) || removedMethods.has(method)) {
+                return;
+            }
+            if (biosample && removedBiosamples.has(v2gBiosampleFilterKey(tissue, biosample))) {
                 return;
             }
             if (!renderObj[tissue]) {
@@ -295,12 +374,16 @@ export function buildV2gRenderData(
 export function buildV2gMethodMergedData(
     tissueData = {},
     deselectedMethods = [],
-    deselectedGenes = []
+    deselectedGenes = [],
+    deselectedTissues = [],
+    deselectedBiosamples = []
 ) {
     const renderData = buildV2gRenderData(
         tissueData,
         deselectedMethods,
-        deselectedGenes
+        deselectedGenes,
+        deselectedTissues,
+        deselectedBiosamples
     );
     const merged = {};
     Object.entries(renderData).forEach(([tissue, genes]) => {
@@ -317,24 +400,38 @@ export function buildV2gMethodMergedData(
     return merged;
 }
 
-/** Flat table rows for the V2G data table (respects method/gene filters). */
+/** Flat table rows for the V2G data table (respects method/gene/tissue/biosample filters). */
 export function buildV2gTableRows(
     tissueData = {},
     deselectedMethods = [],
-    deselectedGenes = []
+    deselectedGenes = [],
+    deselectedTissues = [],
+    deselectedBiosamples = []
 ) {
     const removedGenes = new Set(deselectedGenes || []);
     const removedMethods = new Set(deselectedMethods || []);
+    const removedTissues = new Set(deselectedTissues || []);
+    const removedBiosamples = new Set(deselectedBiosamples || []);
     const rows = [];
 
     Object.entries(tissueData || {}).forEach(([tissue, linkRows]) => {
+        if (removedTissues.has(tissue)) {
+            return;
+        }
         (Array.isArray(linkRows) ? linkRows : []).forEach((row, index) => {
             const targetGene = row?.targetGene || row?.gene;
             const method = row?.method;
+            const biosample =
+                row?.biosample == null || String(row.biosample).trim() === ""
+                    ? null
+                    : String(row.biosample);
             if (!targetGene || !method) {
                 return;
             }
             if (removedGenes.has(targetGene) || removedMethods.has(method)) {
+                return;
+            }
+            if (biosample && removedBiosamples.has(v2gBiosampleFilterKey(tissue, biosample))) {
                 return;
             }
             rows.push({

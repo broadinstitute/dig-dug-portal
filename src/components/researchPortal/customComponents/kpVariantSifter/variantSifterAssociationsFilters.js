@@ -45,14 +45,33 @@ export const ASSOCIATIONS_FILTERS = [
     {
         field: "Consequence",
         label: "Consequence",
-        type: "dropdown",
+        type: "checkbox",
         "label in bubble": "true",
     },
     {
         field: "Ancestry",
         label: "Ancestry",
-        type: "dropdown",
+        type: "checkbox",
         "label in bubble": "true",
+    },
+];
+
+/** Column layout for the Associations filters panel. */
+export const ASSOCIATIONS_FILTER_GROUPS = [
+    {
+        id: "variants",
+        label: "Variants",
+        fields: ["Variant ID", "rsID", "Consequence"],
+    },
+    {
+        id: "scores",
+        label: "Scores",
+        fields: ["P-Value", "LDS", "EAF", "Beta", "Z Score"],
+    },
+    {
+        id: "ancestry",
+        label: "Ancestry",
+        fields: ["Ancestry"],
     },
 ];
 
@@ -86,7 +105,7 @@ function rowMatchesGreaterThan(row, field, search) {
     return typeof value === "number" && value >= threshold;
 }
 
-function rowMatchesDropdown(row, field, search) {
+function rowMatchesExact(row, field, search) {
     const value = row[field];
     if (!hasFieldValue(value)) {
         return false;
@@ -104,7 +123,8 @@ function rowMatchesFilter(row, filterDef, searchValues) {
             case "search greater than":
                 return rowMatchesGreaterThan(row, filterDef.field, search);
             case "dropdown":
-                return rowMatchesDropdown(row, filterDef.field, search);
+            case "checkbox":
+                return rowMatchesExact(row, filterDef.field, search);
             default:
                 return true;
         }
@@ -127,7 +147,7 @@ export function applyAssociationsFilters(rows, filtersIndex) {
             (value, index, array) => value !== "" && value != null && array.indexOf(value) === index
         );
 
-        if (!searches.length || filterDef.type === "checkbox") {
+        if (!searches.length) {
             return;
         }
 

@@ -87,8 +87,8 @@
                     </li>
                 </ul>
                 <p v-if="llmAvailable === false" class="vks-assistant-llm-note" role="note">
-                    LLM service is not available. Relevance classification and other LLM actions
-                    cannot run until the interactive API is configured.
+                    LLM service is not available. Tissue classification uses CS2CT and does
+                    not require the LLM.
                 </p>
             </div>
 
@@ -156,6 +156,75 @@
                             </button>
                         </li>
                     </ol>
+                </div>
+
+                <div
+                    v-if="cs2ctStarPrompt"
+                    class="vks-assistant-star-prompt"
+                    role="group"
+                    aria-label="Star CS2CT overlap lead SNPs"
+                >
+                    <p class="vks-assistant-star-prompt-lead">
+                        {{ cs2ctStarPrompt.message }}
+                    </p>
+                    <ul class="vks-assistant-star-options">
+                        <li class="vks-assistant-star-option">
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    :checked="allCs2ctStarOptionsSelected"
+                                    :disabled="executing"
+                                    @change="onToggleSelectAllStarOptions($event)"
+                                />
+                                <span>Select all</span>
+                            </label>
+                        </li>
+                        <li
+                            v-for="option in cs2ctStarPrompt.options"
+                            :key="option.credibleSetId"
+                            class="vks-assistant-star-option"
+                        >
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    :checked="isCs2ctStarOptionSelected(option.credibleSetId)"
+                                    :disabled="executing"
+                                    @change="
+                                        onToggleStarOption(
+                                            option.credibleSetId,
+                                            $event
+                                        )
+                                    "
+                                />
+                                <span>
+                                    {{ option.label }}
+                                    <span class="vks-assistant-star-option-meta">
+                                        ({{ option.variants.length }} SNP{{
+                                            option.variants.length === 1 ? "" : "s"
+                                        }})
+                                    </span>
+                                </span>
+                            </label>
+                        </li>
+                    </ul>
+                    <div class="vks-assistant-star-actions">
+                        <button
+                            type="button"
+                            class="vks-ui-btn vks-ui-btn--secondary"
+                            :disabled="executing"
+                            @click="$emit('dismiss-cs2ct-star')"
+                        >
+                            Skip
+                        </button>
+                        <button
+                            type="button"
+                            class="vks-ui-btn vks-ui-btn--primary"
+                            :disabled="executing || !selectedCs2ctStarIds.length"
+                            @click="onConfirmStarOptions"
+                        >
+                            Star selected
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -372,6 +441,10 @@ export default {
             type: Object,
             default: () => ({}),
         },
+        cs2ctStarPrompt: {
+            type: Object,
+            default: null,
+        },
         actionCatalogSections: {
             type: Array,
             default: () => VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
@@ -386,6 +459,7 @@ export default {
             suggestHoverIndex: -1,
             suggestTokenStart: 0,
             suggestTokenEnd: 0,
+            selectedCs2ctStarIds: [],
         };
     },
     computed: {
@@ -408,6 +482,15 @@ export default {
         },
         showAutocomplete() {
             return this.autocompleteSuggestions.length > 0 && this.activeTab === "request";
+        },
+        allCs2ctStarOptionsSelected() {
+            const options = this.cs2ctStarPrompt?.options || [];
+            if (!options.length) {
+                return false;
+            }
+            return options.every((option) =>
+                this.selectedCs2ctStarIds.includes(option.credibleSetId)
+            );
         },
         previewSuggestionIndex() {
             if (this.suggestHoverIndex >= 0) {
@@ -434,6 +517,18 @@ export default {
         },
     },
     watch: {
+        cs2ctStarPrompt: {
+            immediate: true,
+            handler(prompt) {
+                const options = prompt?.options || [];
+                this.selectedCs2ctStarIds = options.map(
+                    (option) => option.credibleSetId
+                );
+                if (prompt) {
+                    this.$nextTick(() => this.scrollMessagePanelToEnd());
+                }
+            },
+        },
         threadEntries: {
             handler() {
                 this.$nextTick(() => this.scrollMessagePanelToEnd());
@@ -476,6 +571,34 @@ export default {
                 return "Failed";
             }
             return "Pending";
+        },
+        isCs2ctStarOptionSelected(credibleSetId) {
+            return this.selectedCs2ctStarIds.includes(credibleSetId);
+        },
+        onToggleStarOption(credibleSetId, event) {
+            const checked = Boolean(event?.target?.checked);
+            if (checked) {
+                if (!this.selectedCs2ctStarIds.includes(credibleSetId)) {
+                    this.selectedCs2ctStarIds = [
+                        ...this.selectedCs2ctStarIds,
+                        credibleSetId,
+                    ];
+                }
+                return;
+            }
+            this.selectedCs2ctStarIds = this.selectedCs2ctStarIds.filter(
+                (id) => id !== credibleSetId
+            );
+        },
+        onToggleSelectAllStarOptions(event) {
+            const checked = Boolean(event?.target?.checked);
+            const options = this.cs2ctStarPrompt?.options || [];
+            this.selectedCs2ctStarIds = checked
+                ? options.map((option) => option.credibleSetId)
+                : [];
+        },
+        onConfirmStarOptions() {
+            this.$emit("confirm-cs2ct-star", [...this.selectedCs2ctStarIds]);
         },
         getRequestInput() {
             return this.$refs.requestInput || null;
@@ -790,6 +913,53 @@ export default {
 .vks-assistant-execute-all:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+}
+
+.vks-assistant-star-prompt {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-left: 3px solid var(--cfde-orange, #ee982d);
+    border-radius: 8px;
+    background: #faf9f7;
+}
+
+.vks-assistant-star-prompt-lead {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-star-options {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 180px;
+    overflow: auto;
+}
+
+.vks-assistant-star-option label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--cfde-ink, #33363d);
+    cursor: pointer;
+}
+
+.vks-assistant-star-option-meta {
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-star-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
 }
 
 .vks-assistant-steps {

@@ -129,8 +129,7 @@
         <div class="vks-s2g-table-block">
             <VariantSifterV2gTable
                 :rows="tableRows"
-                :tissue-data="tissueData"
-                :subtitle="tableSubtitle"
+                :utils="utils"
                 :show-promoter="false"
                 :show-tissue-biosample="false"
             />
@@ -167,6 +166,10 @@ export default {
             default: null,
         },
         viewRegion: {
+            type: Object,
+            default: null,
+        },
+        utils: {
             type: Object,
             default: null,
         },

@@ -182,7 +182,9 @@ export function emptyGeLlmRelevanceState() {
         filterComplete: false,
         relevantAnnotations: [],
         relevantTissues: [],
+        relevantTissuesByAnnotation: {},
         rationaleById: {},
+        source: null,
     };
 }
 
@@ -802,7 +804,12 @@ export function tissueMeetsGeTrackPValue(
  */
 export function tissuePassesDefaultGeTrackFilter(
     tissue,
-    { geTissueStats = {}, llmRelevance = null, pValueMax = GE_TRACK_P_VALUE_MAX } = {}
+    {
+        annotation = null,
+        geTissueStats = {},
+        llmRelevance = null,
+        pValueMax = GE_TRACK_P_VALUE_MAX,
+    } = {}
 ) {
     if (!tissueMeetsGeTrackPValue(tissue, geTissueStats, pValueMax)) {
         return false;
@@ -810,7 +817,15 @@ export function tissuePassesDefaultGeTrackFilter(
     if (!llmRelevance?.llmUsed) {
         return true;
     }
-    return llmRelevance.relevantTissues.includes(tissue);
+    const byAnnotation = llmRelevance.relevantTissuesByAnnotation;
+    if (
+        byAnnotation &&
+        annotation != null &&
+        Object.prototype.hasOwnProperty.call(byAnnotation, annotation)
+    ) {
+        return (byAnnotation[annotation] || []).includes(tissue);
+    }
+    return (llmRelevance.relevantTissues || []).includes(tissue);
 }
 
 export function isGeTissueShownOnTrack(
@@ -843,6 +858,7 @@ export function isGeTissueShownOnTrack(
         return false;
     }
     return tissuePassesDefaultGeTrackFilter(tissue, {
+        annotation,
         geTissueStats,
         llmRelevance,
         pValueMax,
@@ -985,6 +1001,7 @@ export function listTrackFilteredGeTissuesByAnnotation({
             const filteredTissues = tissues.filter(
                 (tissue) =>
                     !tissuePassesDefaultGeTrackFilter(tissue, {
+                        annotation,
                         geTissueStats,
                         llmRelevance,
                         pValueMax,
@@ -1126,6 +1143,7 @@ export function buildSelectAllAnnotationTissueOverrides({
             .filter(
                 (tissue) =>
                     !tissuePassesDefaultGeTrackFilter(tissue, {
+                        annotation,
                         geTissueStats,
                         llmRelevance,
                         pValueMax,
@@ -1175,6 +1193,7 @@ export function buildDeselectAllAnnotationTissueOverrides({
         const forceDisabled = tissues
             .filter((tissue) =>
                 tissuePassesDefaultGeTrackFilter(tissue, {
+                    annotation,
                     geTissueStats,
                     llmRelevance,
                     pValueMax,

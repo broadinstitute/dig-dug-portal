@@ -38,7 +38,7 @@
             >
                 <p class="vks-ui-hint">
                     All tissues available for each annotation. Checked tissues are shown
-                    on that annotation track. Reset restores the initial AI / p-value
+                    on that annotation track. Reset restores the initial CS2CT / p-value
                     selection.
                 </p>
 
@@ -626,6 +626,7 @@ export default {
         },
         isTissueDefaultShown(annotation, tissue, cache = null) {
             return tissuePassesDefaultGeTrackFilter(tissue, {
+                annotation,
                 geTissueStats: this.geTissueStatsForAnnotation(annotation, cache),
                 llmRelevance: this.llmRelevance,
                 pValueMax: this.geTrackPValueMax,

@@ -15,16 +15,38 @@ import { VARIANT_SIFTER_ANCESTRY_OPTIONS } from "./variantSifterSearchUtils.js";
 /** Empty string = default / no project. */
 export const VKS_PROJECT_DEFAULT_ID = "";
 
-export const VKS_GIANT_PHENOTYPE_NAMES = [
-    "BMI_GIANT",
-    "HEIGHT_GIANT",
-    "WHRadjBMI_female_GIANT",
-    "WHRadjBMI_GIANT",
-    "WHRadjBMI_male_GIANT",
-    "WHRU_female_GIANT",
-    "WHRU_GIANT",
-    "WHRU_male_GIANT",
-];
+/**
+ * Curated GIANT phenotype ids with display labels for search UI / header.
+ * `name` is the BioIndex phenotype key; `description` is the friendly label.
+ */
+export const VKS_GIANT_PHENOTYPE_INFO = {
+    BMI_GIANT: {
+        description: "Body Mass Index (GIANT)",
+    },
+    HEIGHT_GIANT: {
+        description: "Height (GIANT)",
+    },
+    WHRadjBMI_GIANT: {
+        description: "Waist Hip Ratio adjusted BMI (GIANT)",
+    },
+    WHRadjBMI_female_GIANT: {
+        description: "Waist Hip Ratio adjusted BMI, Female (GIANT)",
+    },
+    WHRadjBMI_male_GIANT: {
+        description: "Waist Hip Ratio adjusted BMI, Male (GIANT)",
+    },
+    WHRU_GIANT: {
+        description: "Waist Hip Ratio Unadjusted (GIANT)",
+    },
+    WHRU_female_GIANT: {
+        description: "Waist Hip Ratio Unadjusted, Female (GIANT)",
+    },
+    WHRU_male_GIANT: {
+        description: "Waist Hip Ratio Unadjusted, Male (GIANT)",
+    },
+};
+
+export const VKS_GIANT_PHENOTYPE_NAMES = Object.keys(VKS_GIANT_PHENOTYPE_INFO);
 
 export const VKS_GIANT_ANCESTRIES = ["Mixed", "AA", "EA", "HS", "SA", "EU"];
 
@@ -40,6 +62,7 @@ export const VKS_GIANT_BIOINDEX_INDEXES = new Set([
     "credible-variants",
     "global-enrichment",
     "gene-links",
+    "c2ct-credible-set",
 ]);
 
 /**
@@ -48,6 +71,7 @@ export const VKS_GIANT_BIOINDEX_INDEXES = new Set([
  * @property {string} label
  * @property {string|null} bioIndexHost  null → use portal default host
  * @property {string[]|null} phenotypeNames  null → use portal phenotypesInUse
+ * @property {Record<string, {description?: string, group?: string}>|null} phenotypeInfo
  * @property {string[]|null} ancestries  null → KP ancestry options
  * @property {Set<string>|null} bioIndexIndexes  null → all indexes on project host
  * @property {string} ancestryAssociationsIndex  index name for non-Mixed association queries
@@ -60,6 +84,7 @@ export const VKS_PROJECTS = [
         label: "Default (KP)",
         bioIndexHost: null,
         phenotypeNames: null,
+        phenotypeInfo: null,
         ancestries: null,
         bioIndexIndexes: null,
         ancestryAssociationsIndex: "ancestry-associations",
@@ -69,6 +94,7 @@ export const VKS_PROJECTS = [
         label: "GIANT",
         bioIndexHost: VKS_GIANT_BIOINDEX_HOST,
         phenotypeNames: VKS_GIANT_PHENOTYPE_NAMES,
+        phenotypeInfo: VKS_GIANT_PHENOTYPE_INFO,
         ancestries: VKS_GIANT_ANCESTRIES,
         bioIndexIndexes: VKS_GIANT_BIOINDEX_INDEXES,
         ancestryAssociationsIndex: "associations",
@@ -107,11 +133,41 @@ export function projectAncestryOptions(projectId = VKS_PROJECT_DEFAULT_ID) {
 }
 
 /**
+ * Merge portal phenotype row with optional project-curated display metadata.
+ */
+function resolveProjectPhenotypeEntry(name, portalEntry, phenotypeInfo) {
+    const key = String(name);
+    const info = phenotypeInfo?.[key] || null;
+    const curatedDescription = String(info?.description || "").trim();
+    const curatedGroup = String(info?.group || info?.category || "").trim();
+    const base = portalEntry
+        ? { ...portalEntry, name: portalEntry.name || key }
+        : { name: key, description: "" };
+
+    const portalDescription = String(base.description || "").trim();
+    const description =
+        curatedDescription ||
+        (portalDescription && portalDescription !== key ? portalDescription : "");
+
+    const next = {
+        ...base,
+        name: key,
+        description,
+    };
+    if (curatedGroup) {
+        next.group = curatedGroup;
+    }
+    return next;
+}
+
+/**
  * Phenotypes shown in search for the active project.
- * Curated name lists synthesize entries when portal phenotypes omit them.
+ * Curated name lists synthesize entries when portal phenotypes omit them,
+ * and can supply friendly descriptions / groups for display.
  */
 export function projectPhenotypes(projectId, portalPhenotypes = []) {
-    const names = getProjectConfig(projectId).phenotypeNames;
+    const config = getProjectConfig(projectId);
+    const names = config.phenotypeNames;
     const portal = Array.isArray(portalPhenotypes) ? portalPhenotypes : [];
     if (!Array.isArray(names) || !names.length) {
         return portal;
@@ -121,15 +177,9 @@ export function projectPhenotypes(projectId, portalPhenotypes = []) {
             .filter((entry) => entry?.name)
             .map((entry) => [String(entry.name), entry])
     );
-    return names.map((name) => {
-        const key = String(name);
-        return (
-            byName.get(key) || {
-                name: key,
-                description: key,
-            }
-        );
-    });
+    return names.map((name) =>
+        resolveProjectPhenotypeEntry(name, byName.get(String(name)), config.phenotypeInfo)
+    );
 }
 
 /**

@@ -2,16 +2,6 @@
     <div class="vks-assoc-drawer research-data-table-wrapper">
         <p v-if="drawerStatusLabel" class="vks-assoc-meta">{{ drawerStatusLabel }}</p>
 
-        <VariantSifterAncestryBubbles
-            :bubbles="ancestryBubbles"
-            :primary-ancestry="primaryAncestry"
-            :selected-ancestries="selectedAncestries"
-            :series-loading="ancestrySeriesLoading"
-            :loading="ancestryAvailabilityLoading"
-            :error="ancestryAvailabilityError"
-            @toggle-ancestry="$emit('toggle-ancestry', $event)"
-        />
-
         <div v-if="loading && !hideLoadingStatus" class="vks-assoc-status">Loading associations…</div>
         <div v-else-if="error" class="vks-assoc-error" role="alert">
             {{ error }}
@@ -20,151 +10,218 @@
             No associations returned for this locus.
         </div>
         <template v-else>
-            <VariantSifterAssociationsLdPlot
-                :rows="filteredRows"
-                :primary-ancestry="primaryAncestry"
-                :selected-ancestries="selectedAncestries"
-                :search-session="searchSession"
-                :plot-overlays-state="plotOverlaysState"
-                :plot-markers="plotMarkers"
-                :utils="utils"
-                @toggle-star-variant="$emit('toggle-star-variant', $event)"
-                @set-reference-variant="$emit('set-reference-variant', $event)"
-            />
-
-            <VariantSifterAssociationsFilters
-                :rows="rows"
-                :filters-index="filtersIndex"
-                @update:filtersIndex="$emit('update:filtersIndex', $event)"
-            />
-
-            <VariantSifterMappingBar
-                :categories="mappingCategories"
-                :selected-category-ids="selectedCategoryIds"
-                :mapping-mode="mappingMode"
-                :workspace-filter-active="Boolean(workspaceMappingFilter?.active)"
-                :workspace-filter-row-count="workspaceMappingFilter?.rowCount || 0"
-                @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
-                @update:mappingMode="onMappingModeUpdate"
-                @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
-                @remove-category="$emit('remove-mapping-category', $event)"
-            />
-
-            <VariantSifterTableSettings
-                :per-page="Number(perPageNumber)"
-                :columns="mappedTopRows"
-                :visible-columns="visibleColumns"
-                @update:perPage="onPerPageUpdate"
-                @export-csv="exportCsv"
-                @export-json="exportJson"
-                @update:columnVisible="onColumnVisibleUpdate"
-            >
-                <template #before>
-                    <div class="vks-data-table-view-total">
-                        Total rows: {{ displayRows.length.toLocaleString() }}
-                    </div>
-                </template>
-            </VariantSifterTableSettings>
-
-            <div class="vks-assoc-table-wrap">
-                <table
-                    class="table table-sm research-data-table vks-associations-table"
-                    cellpadding="0"
-                    cellspacing="0"
+            <section class="vks-drawer-section vks-drawer-section--controls">
+                <div
+                    class="vks-ui-tabs"
+                    role="tablist"
+                    aria-label="Associations controls"
                 >
-                    <thead>
-                        <tr>
-                            <th v-if="starColumn">
-                                <b-icon
-                                    :icon="showStarredOnly ? 'star-fill' : 'star'"
-                                    style="color: #ffcc00; cursor: pointer"
-                                    @click="toggleStarredOnly"
-                                ></b-icon>
-                            </th>
-                            <th
-                                v-for="column in visibleTopRows"
-                                :key="column"
-                                class="byor-tooltip sortable-th"
-                                :class="getColumnId(column)"
-                                @click="applySorting(column)"
-                            >
-                                <span>{{ column }}</span>
-                                <span
-                                    v-if="activeTableFormat['tool tips']?.[column]"
-                                    class="tooltiptext"
-                                >{{ activeTableFormat["tool tips"][column] }}</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template v-for="(row, rowIndex) in pagedRows">
-                            <tr :key="row['Variant ID'] + '-' + rowIndex">
-                                <td v-if="starColumn">
-                                    <b-icon
-                                        :icon="isStarred(row) ? 'star-fill' : 'star'"
-                                        :style="{
-                                            color: isStarred(row) ? '#ffcc00' : '#aaaaaa',
-                                            cursor: 'pointer',
-                                        }"
-                                        @click="toggleStar(row)"
-                                    ></b-icon>
-                                </td>
-                                <td
-                                    v-for="column in visibleTopRows"
-                                    :key="`${row['Variant ID']}-${rowIndex}-${column}`"
-                                    :class="getColumnId(column)"
-                                >
-                                    <button
-                                        v-if="
-                                            isExpandableMappingColumn(column) &&
-                                                hasMappingGroup(row, column)
-                                        "
-                                        type="button"
-                                        class="vks-mapping-ppa-button"
-                                        :class="{
-                                            'is-open': isMappingExpanded(row, column),
-                                        }"
-                                        :style="{ color: mappingColumnColor(column) }"
-                                        @click.stop="toggleMappingExpand(row, column)"
-                                    >
-                                        {{ formatExpandableValue(row, column) }}
-                                    </button>
-                                    <span
-                                        v-else
-                                        v-html="formatCell(row, column)"
-                                    ></span>
-                                </td>
-                            </tr>
-                            <tr
-                                v-if="expandedPanelsForRow(row).length"
-                                :key="`${row['Variant ID']}-${rowIndex}-details`"
-                                class="vks-mapping-details-row"
-                            >
-                                <td :colspan="mappingDetailColspan">
-                                    <div class="vks-mapping-details-stack">
-                                        <VariantSifterMappingRowDetails
-                                            v-for="panel in expandedPanelsForRow(row)"
-                                            :key="panel.groupId"
-                                            :details="panel.details"
-                                            :group-id="panel.groupId"
-                                            :title="panel.title"
-                                            :utils="utils"
-                                        />
-                                    </div>
-                                </td>
-                            </tr>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
+                    <button
+                        v-for="tab in controlTabs"
+                        :id="`vks-assoc-tab-${tab.id}`"
+                        :key="tab.id"
+                        type="button"
+                        role="tab"
+                        class="vks-ui-tab"
+                        :class="{ 'is-active': activeControlTab === tab.id }"
+                        :aria-selected="activeControlTab === tab.id ? 'true' : 'false'"
+                        :aria-controls="`vks-assoc-panel-${tab.id}`"
+                        @click="activeControlTab = tab.id"
+                    >
+                        {{ tab.label }}
+                    </button>
+                </div>
 
-            <b-pagination
-                v-if="perPageNumber !== '0' && perPageNumber !== 0"
-                v-model="currentPage"
-                class="pagination-sm justify-content-center vks-assoc-pagination"
-                :total-rows="displayRows.length"
-                :per-page="Number(perPageNumber)"
-            ></b-pagination>
+                <div
+                    v-show="activeControlTab === 'pvalue-ld'"
+                    id="vks-assoc-panel-pvalue-ld"
+                    class="vks-ui-tab-panel"
+                    role="tabpanel"
+                    aria-labelledby="vks-assoc-tab-pvalue-ld"
+                >
+                    <VariantSifterAssociationsLdPlot
+                        :rows="filteredRows"
+                        :primary-ancestry="primaryAncestry"
+                        :selected-ancestries="selectedAncestries"
+                        :search-session="searchSession"
+                        :plot-overlays-state="plotOverlaysState"
+                        :plot-markers="plotMarkers"
+                        layout="stack"
+                        :utils="utils"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
+                    />
+                </div>
+
+                <div
+                    v-show="activeControlTab === 'ancestries'"
+                    id="vks-assoc-panel-ancestries"
+                    class="vks-ui-tab-panel"
+                    role="tabpanel"
+                    aria-labelledby="vks-assoc-tab-ancestries"
+                >
+                    <p class="vks-ui-hint">
+                        Select an ancestry to load additional associations.
+                    </p>
+                    <VariantSifterAncestryBubbles
+                        :bubbles="ancestryBubbles"
+                        :primary-ancestry="primaryAncestry"
+                        :selected-ancestries="selectedAncestries"
+                        :series-loading="ancestrySeriesLoading"
+                        :loading="ancestryAvailabilityLoading"
+                        :error="ancestryAvailabilityError"
+                        @toggle-ancestry="$emit('toggle-ancestry', $event)"
+                    />
+                </div>
+
+                <div
+                    v-show="activeControlTab === 'filters'"
+                    id="vks-assoc-panel-filters"
+                    class="vks-ui-tab-panel"
+                    role="tabpanel"
+                    aria-labelledby="vks-assoc-tab-filters"
+                >
+                    <VariantSifterAssociationsFilters
+                        :rows="rows"
+                        :filters-index="filtersIndex"
+                        @update:filtersIndex="$emit('update:filtersIndex', $event)"
+                    />
+                </div>
+            </section>
+
+            <section class="vks-drawer-section vks-drawer-section--table">
+                <div class="vks-assoc-table-section">
+                    <VariantSifterMappingBar
+                        :categories="mappingCategories"
+                        :selected-category-ids="selectedCategoryIds"
+                        :mapping-mode="mappingMode"
+                        :workspace-filter-active="Boolean(workspaceMappingFilter?.active)"
+                        :workspace-filter-row-count="workspaceMappingFilter?.rowCount || 0"
+                        @update:selectedCategoryIds="onSelectedCategoryIdsUpdate"
+                        @update:mappingMode="onMappingModeUpdate"
+                        @update:workspaceFilterActive="$emit('update:workspaceFilterActive', $event)"
+                        @remove-category="$emit('remove-mapping-category', $event)"
+                    />
+
+                    <VariantSifterTableSettings
+                        :per-page="Number(perPageNumber)"
+                        :columns="mappedTopRows"
+                        :visible-columns="visibleColumns"
+                        @update:perPage="onPerPageUpdate"
+                        @export-csv="exportCsv"
+                        @export-json="exportJson"
+                        @update:columnVisible="onColumnVisibleUpdate"
+                    >
+                        <template #before>
+                            <div class="vks-data-table-view-total">
+                                Total rows: {{ displayRows.length.toLocaleString() }}
+                            </div>
+                        </template>
+                    </VariantSifterTableSettings>
+
+                    <div class="vks-assoc-table-block">
+                        <div class="vks-assoc-table-wrap">
+                            <table
+                                class="table table-sm research-data-table vks-associations-table"
+                                cellpadding="0"
+                                cellspacing="0"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th v-if="starColumn">
+                                            <b-icon
+                                                :icon="showStarredOnly ? 'star-fill' : 'star'"
+                                                style="color: #ffcc00; cursor: pointer"
+                                                @click="toggleStarredOnly"
+                                            ></b-icon>
+                                        </th>
+                                        <th
+                                            v-for="column in visibleTopRows"
+                                            :key="column"
+                                            class="byor-tooltip sortable-th"
+                                            :class="getColumnId(column)"
+                                            @click="applySorting(column)"
+                                        >
+                                            <span>{{ column }}</span>
+                                            <span
+                                                v-if="activeTableFormat['tool tips']?.[column]"
+                                                class="tooltiptext"
+                                            >{{ activeTableFormat["tool tips"][column] }}</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-for="(row, rowIndex) in pagedRows">
+                                        <tr :key="row['Variant ID'] + '-' + rowIndex">
+                                            <td v-if="starColumn">
+                                                <b-icon
+                                                    :icon="isStarred(row) ? 'star-fill' : 'star'"
+                                                    :style="{
+                                                        color: isStarred(row) ? '#ffcc00' : '#aaaaaa',
+                                                        cursor: 'pointer',
+                                                    }"
+                                                    @click="toggleStar(row)"
+                                                ></b-icon>
+                                            </td>
+                                            <td
+                                                v-for="column in visibleTopRows"
+                                                :key="`${row['Variant ID']}-${rowIndex}-${column}`"
+                                                :class="getColumnId(column)"
+                                            >
+                                                <button
+                                                    v-if="
+                                                        isExpandableMappingColumn(column) &&
+                                                            hasMappingGroup(row, column)
+                                                    "
+                                                    type="button"
+                                                    class="vks-mapping-ppa-button"
+                                                    :class="{
+                                                        'is-open': isMappingExpanded(row, column),
+                                                    }"
+                                                    :style="{ color: mappingColumnColor(column) }"
+                                                    @click.stop="toggleMappingExpand(row, column)"
+                                                >
+                                                    {{ formatExpandableValue(row, column) }}
+                                                </button>
+                                                <span
+                                                    v-else
+                                                    v-html="formatCell(row, column)"
+                                                ></span>
+                                            </td>
+                                        </tr>
+                                        <tr
+                                            v-if="expandedPanelsForRow(row).length"
+                                            :key="`${row['Variant ID']}-${rowIndex}-details`"
+                                            class="vks-mapping-details-row"
+                                        >
+                                            <td :colspan="mappingDetailColspan">
+                                                <div class="vks-mapping-details-stack">
+                                                    <VariantSifterMappingRowDetails
+                                                        v-for="panel in expandedPanelsForRow(row)"
+                                                        :key="panel.groupId"
+                                                        :details="panel.details"
+                                                        :group-id="panel.groupId"
+                                                        :title="panel.title"
+                                                        :utils="utils"
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <b-pagination
+                            v-if="perPageNumber !== '0' && perPageNumber !== 0"
+                            v-model="currentPage"
+                            class="pagination-sm justify-content-center vks-assoc-pagination"
+                            :total-rows="displayRows.length"
+                            :per-page="Number(perPageNumber)"
+                        ></b-pagination>
+                    </div>
+                </div>
+            </section>
         </template>
     </div>
 </template>
@@ -343,6 +400,12 @@ export default {
             sortDirection: "asc",
             showStarredOnly: false,
             expandedMappingKeys: {},
+            activeControlTab: "pvalue-ld",
+            controlTabs: [
+                { id: "pvalue-ld", label: "P-value vs LD" },
+                { id: "ancestries", label: "Other Ancestries" },
+                { id: "filters", label: "Filters" },
+            ],
         };
     },
     computed: {
@@ -401,16 +464,13 @@ export default {
             return this.mappingCategories.map((category) => category.id).join("|");
         },
         drawerStatusLabel() {
-            const parts = [];
-            if (this.indexName) {
-                parts.push(`(${this.indexName})`);
-            }
             if (this.ldLoading) {
-                parts.push("Loading LD scores…");
-            } else if (this.ldError) {
-                parts.push(this.ldError);
+                return "Loading LD scores…";
             }
-            return parts.filter(Boolean).join(" · ");
+            if (this.ldError) {
+                return this.ldError;
+            }
+            return "";
         },
         sortedRows() {
             const sourceRows = this.tableRows;
@@ -786,8 +846,35 @@ export default {
 .vks-assoc-drawer {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 18px;
     min-height: 0;
+}
+
+.vks-drawer-section--controls {
+    flex: 0 0 auto;
+}
+
+.vks-drawer-section--table {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vks-assoc-table-section {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-height: 0;
+}
+
+.vks-assoc-table-section > :not(.vks-assoc-table-block) {
+    align-self: stretch;
+    width: 100%;
 }
 
 .vks-assoc-meta {
@@ -814,17 +901,24 @@ export default {
     color: var(--cfde-ink, #33363d);
 }
 
-.vks-assoc-table-wrap {
-    flex: 1 1 auto;
+.vks-assoc-table-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
     min-height: 0;
-    overflow: auto;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 8px;
+}
+
+.vks-assoc-table-wrap {
+    width: 100%;
+    max-width: 100%;
 }
 
 .vks-assoc-pagination {
     flex: 0 0 auto;
-    margin: 4px 0 0;
+    margin: 8px 0 0;
+    width: auto;
 }
 
 .research-data-table >>> thead > tr > th.sortable-th {

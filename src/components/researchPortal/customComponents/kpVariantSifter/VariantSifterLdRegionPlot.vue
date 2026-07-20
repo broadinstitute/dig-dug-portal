@@ -80,6 +80,10 @@ export default {
                 positionMarkers: [],
             }),
         },
+        highlightVariantId: {
+            type: String,
+            default: null,
+        },
         utils: {
             type: Object,
             default: null,
@@ -144,6 +148,9 @@ export default {
                 this.renderPlot();
             },
             deep: true,
+        },
+        highlightVariantId() {
+            this.renderPlot();
         },
     },
     mounted() {
@@ -267,6 +274,7 @@ export default {
             });
 
             this.dotPositions = [];
+            const highlightedDots = [];
             this.plotRows.forEach((row) => {
                 const negLog10 = row["-log10(P-Value)"];
                 if (negLog10 == null || Number.isNaN(negLog10)) {
@@ -284,6 +292,9 @@ export default {
                 const variantId = row["Variant ID"];
                 const isRef = variantId === this.refVariant;
                 const isStarred = isVariantStarred(this.starredVariants, variantId);
+                const isHighlighted =
+                    Boolean(this.highlightVariantId) &&
+                    variantId === this.highlightVariantId;
 
                 this.dotPositions.push({
                     x: xPos,
@@ -299,7 +310,30 @@ export default {
                 } else {
                     renderPlotDot(ctx, xPos, yPos, dotColor);
                 }
+
+                if (isHighlighted) {
+                    highlightedDots.push({ x: xPos, y: yPos });
+                }
             });
+
+            highlightedDots.forEach((dot) => {
+                this.renderHoverHighlight(ctx, dot.x, dot.y);
+            });
+        },
+        renderHoverHighlight(ctx, xPos, yPos) {
+            const radius = VKS_DEFAULT_DOT_RADIUS + 5;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(xPos, yPos, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = "#111827";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(xPos, yPos, radius + 2, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
         },
         findDotAtCanvasPoint(x, y) {
             return this.dotPositions.find(
@@ -369,6 +403,11 @@ export default {
                 this.dotHover = isHovering;
             }
 
+            const hoveredId = hit?.row?.["Variant ID"] || null;
+            if (hoveredId !== this.highlightVariantId) {
+                this.$emit("hover-variant", hoveredId);
+            }
+
             if (!hit) {
                 this.hideTooltip();
                 return;
@@ -393,6 +432,9 @@ export default {
         onMouseOut() {
             this.dotHover = false;
             this.hideTooltip();
+            if (this.highlightVariantId) {
+                this.$emit("hover-variant", null);
+            }
         },
         hideTooltip() {
             const tooltip = this.$refs.tooltip;

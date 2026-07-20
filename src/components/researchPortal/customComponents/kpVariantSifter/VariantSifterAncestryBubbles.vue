@@ -1,11 +1,13 @@
 <template>
     <div class="vks-ancestry-bubbles">
-        <div class="vks-ancestry-bubbles-head">
-            <h4 class="vks-ancestry-bubbles-title">Ancestry associations</h4>
+        <div
+            v-if="loading || error || !bubbles.length"
+            class="vks-ancestry-bubbles-head"
+        >
             <span v-if="loading" class="vks-ancestry-bubbles-status">Checking availability…</span>
             <span v-else-if="error" class="vks-ancestry-bubbles-status is-error">{{ error }}</span>
             <span
-                v-else-if="!bubbles.length"
+                v-else
                 class="vks-ancestry-bubbles-status"
             >
                 No ancestry-specific association data for this locus.
@@ -27,17 +29,13 @@
                 :title="bubbleTitle(bubble)"
                 @click="$emit('toggle-ancestry', bubble.code)"
             >
-                <span class="vks-ancestry-bubble-code">{{ bubble.code }}</span>
                 <span class="vks-ancestry-bubble-label">{{ bubble.label }}</span>
+                <span class="vks-ancestry-bubble-code">{{ bubble.code }}</span>
                 <span v-if="bubble.count != null" class="vks-ancestry-bubble-count">
                     {{ formatCount(bubble.count) }}
                 </span>
             </button>
         </div>
-        <p v-if="bubbles.length" class="vks-ancestry-bubbles-hint">
-            Select an ancestry to load its associations plot and add rows to the table.
-            The primary search ancestry stays selected.
-        </p>
     </div>
 </template>
 
@@ -107,9 +105,8 @@ export default {
 
 <style scoped>
 .vks-ancestry-bubbles {
-    margin: 0 0 14px;
-    padding: 0 0 12px;
-    border-bottom: 1px solid var(--cfde-border, #e6e1d6);
+    margin: 0;
+    padding: 0;
 }
 
 .vks-ancestry-bubbles-head {
@@ -118,13 +115,6 @@ export default {
     align-items: baseline;
     gap: 8px 12px;
     margin-bottom: 8px;
-}
-
-.vks-ancestry-bubbles-title {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--cfde-blue, #2c5c97);
 }
 
 .vks-ancestry-bubbles-status {
@@ -169,6 +159,10 @@ export default {
     color: #ffffff;
 }
 
+.vks-ancestry-bubble.is-active:hover:not(:disabled) {
+    color: #ffffff;
+}
+
 .vks-ancestry-bubble.is-primary {
     cursor: default;
     opacity: 1;
@@ -198,12 +192,5 @@ export default {
 
 .vks-ancestry-bubble.is-active .vks-ancestry-bubble-count {
     opacity: 0.9;
-}
-
-.vks-ancestry-bubbles-hint {
-    margin: 8px 0 0;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--cfde-muted, #6b6b6b);
 }
 </style>

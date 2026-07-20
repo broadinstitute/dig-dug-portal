@@ -77,8 +77,10 @@
                         :color-by-set-id="credibleSetPillColors"
                         :search-session="searchSession"
                         :utils="utils"
+                        :starred-variant-ids="starredVariantIds"
                         @add-set="$emit('add-credible-set', $event)"
                         @remove-set="$emit('remove-credible-set', $event)"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
                     />
                     <VariantSifterGenesDrawer
                         v-else-if="openSection.id === 'genes'"
@@ -112,16 +114,21 @@
                         :global-enrichment-state="globalEnrichmentState"
                         :search-session="searchSession"
                         :view-region="viewRegion"
+                        :utils="utils"
                         @update:selectedTissues="$emit('update:v2gSelectedTissues', $event)"
                         @update:deselectedMethods="$emit('update:v2gDeselectedMethods', $event)"
                         @update:deselectedGenes="$emit('update:v2gDeselectedGenes', $event)"
-                        @update:viewMode="$emit('update:v2gViewMode', $event)"
+                        @update:deselectedTissues="$emit('update:v2gDeselectedTissues', $event)"
+                        @update:deselectedBiosamples="
+                            $emit('update:v2gDeselectedBiosamples', $event)
+                        "
                     />
                     <VariantSifterS2gDrawer
                         v-else-if="openSection.id === 'snp2gene-links'"
                         :s2g-state="s2gState"
                         :search-session="searchSession"
                         :view-region="viewRegion"
+                        :utils="utils"
                         @load="$emit('load-s2g')"
                         @clear="$emit('clear-s2g')"
                         @update:deselectedMethods="$emit('update:s2gDeselectedMethods', $event)"
@@ -293,6 +300,8 @@ export default {
                 tissueErrors: {},
                 deselectedMethods: [],
                 deselectedGenes: [],
+                deselectedTissues: [],
+                deselectedBiosamples: [],
             }),
         },
         s2gState: {
@@ -509,6 +518,13 @@ export default {
     min-height: 0;
     overflow-y: auto;
     padding: 10px 14px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.vks-section-drawer-body > * {
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .vks-section-drawer-note {

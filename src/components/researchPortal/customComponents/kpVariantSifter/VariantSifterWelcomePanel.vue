@@ -44,10 +44,13 @@
                                     @mousedown.prevent="selectPhenotype(phenotype)"
                                 >
                                     <span class="vks-welcome-suggestion-label">
-                                        {{ phenotype.description }}
+                                        {{ phenotypeSuggestionLabel(phenotype) }}
                                     </span>
-                                    <span class="vks-welcome-suggestion-meta">
-                                        {{ phenotype.name }}
+                                    <span
+                                        v-if="phenotypeSuggestionMeta(phenotype)"
+                                        class="vks-welcome-suggestion-meta"
+                                    >
+                                        {{ phenotypeSuggestionMeta(phenotype) }}
                                     </span>
                                 </button>
                             </div>
@@ -413,9 +416,36 @@ export default {
         },
         selectPhenotype(phenotype) {
             this.selectedPhenotype = phenotype;
-            this.phenotypeQuery = phenotype.description;
+            this.phenotypeQuery = this.phenotypeSuggestionLabel(phenotype);
             this.phenotypeListOpen = false;
             this.errorMessage = "";
+        },
+        phenotypeSuggestionLabel(phenotype) {
+            const description = String(phenotype?.description || "").trim();
+            if (description) {
+                return description;
+            }
+            return String(phenotype?.name || "").trim();
+        },
+        /**
+         * Secondary line: phenotype id when it differs from the label.
+         * Leave empty when there is no distinct category / id to show
+         * (e.g. GIANT curated ids with no portal description).
+         */
+        phenotypeSuggestionMeta(phenotype) {
+            const label = this.phenotypeSuggestionLabel(phenotype);
+            const name = String(phenotype?.name || "").trim();
+            const description = String(phenotype?.description || "").trim();
+            const group = String(
+                phenotype?.group || phenotype?.category || ""
+            ).trim();
+            if (group && group !== label) {
+                return group;
+            }
+            if (description && name && name !== label) {
+                return name;
+            }
+            return "";
         },
         async onSubmit() {
             this.errorMessage = "";

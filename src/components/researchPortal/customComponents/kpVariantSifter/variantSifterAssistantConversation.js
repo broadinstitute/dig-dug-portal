@@ -9,6 +9,7 @@ export function emptyAssistantState() {
         llmAvailable: null,
         plan: null,
         stepStates: {},
+        cs2ctStarPrompt: null,
     };
 }
 

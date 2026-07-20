@@ -127,12 +127,15 @@
                     :can-run-actions="assistantCanRunActions"
                     :plan="assistantState.plan"
                     :step-states="assistantState.stepStates"
+                    :cs2ct-star-prompt="assistantState.cs2ctStarPrompt"
                     :panel-style="assistantPanelStyle"
                     @close="aiAssistantOpen = false"
                     @update:activeTab="onAssistantActiveTabUpdate"
                     @execute-all="onAssistantExecuteAll"
                     @execute-step="onAssistantExecuteStep"
                     @plan-request="onAssistantPlanRequest"
+                    @confirm-cs2ct-star="onConfirmCs2ctStar"
+                    @dismiss-cs2ct-star="onDismissCs2ctStar"
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
@@ -182,6 +185,8 @@
                     @update:v2gSelectedTissues="onV2gSelectedTissuesUpdate"
                     @update:v2gDeselectedMethods="onV2gDeselectedMethodsUpdate"
                     @update:v2gDeselectedGenes="onV2gDeselectedGenesUpdate"
+                    @update:v2gDeselectedTissues="onV2gDeselectedTissuesUpdate"
+                    @update:v2gDeselectedBiosamples="onV2gDeselectedBiosamplesUpdate"
                     @update:v2gSelectedLinks="onV2gSelectedLinksUpdate"
                     @update:v2gViewMode="onV2gViewModeUpdate"
                     @load-s2g="onS2gLoad"
@@ -254,6 +259,8 @@ import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsF
 import { enrichAssociationRowsWithLdScores, enrichAssociationRowsWithLdScoresForRef } from "./kpVariantSifter/variantSifterLdServer.js";
 import {
     emptyPlotMarkersState,
+    createStarredVariant,
+    isVariantStarred,
     togglePositionMarker,
     toggleStarredVariant,
 } from "./kpVariantSifter/variantSifterPlotMarkers.js";
@@ -347,13 +354,15 @@ import {
     VKS_PROJECT_DEFAULT_ID,
 } from "./kpVariantSifter/variantSifterProjects.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
-import { fetchGeRelevanceFromLlm, fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
+import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
+    buildCs2ctStarPromptMessage,
     buildGeRelevanceIntroMessage,
     buildGeRelevanceOfferMessage,
     buildGeRelevanceReportMessage,
     buildGeRelevanceRunningMessage,
 } from "./kpVariantSifter/variantSifterAssistantGeRelevance.js";
+import { runCs2ctTissueClassification } from "./kpVariantSifter/variantSifterCs2ctClassify.js";
 import {
     appendAssistantEntries,
     createAssistantMessage,
@@ -1712,13 +1721,14 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
             const action = findAssistantAction("filter_ge_relevance");
-            this.refreshAssistantLlmHealth();
+            const credibleSetCount = (this.credibleSetsState?.available || []).length;
             this.aiAssistantOpen = true;
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
                 executing: false,
                 executionProgressLabel: "",
+                cs2ctStarPrompt: null,
                 plan: createAssistantPlan(
                     [
                         {
@@ -1734,7 +1744,9 @@ export default Vue.component("kp-variant-sifter", {
                 stepStates: { "step-filter-ge-relevance": "pending" },
                 threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                     createAssistantStepMessage(
-                        buildGeRelevanceOfferMessage(session, catalog)
+                        buildGeRelevanceOfferMessage(session, catalog, {
+                            credibleSetCount,
+                        })
                     ),
                 ]),
             };
@@ -3093,6 +3105,7 @@ export default Vue.component("kp-variant-sifter", {
                     activeTab: "request",
                     executing: true,
                     executionProgressLabel: runningLabel,
+                    cs2ctStarPrompt: null,
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantStepMessage(
                             buildGeRelevanceIntroMessage(session, catalog)
@@ -3108,11 +3121,28 @@ export default Vue.component("kp-variant-sifter", {
             };
 
             try {
-                const result = await fetchGeRelevanceFromLlm({
+                let availableSets = this.credibleSetsState?.available || [];
+                if (!availableSets.length) {
+                    await this.loadCredibleSetsList(session, {
+                        preserveSelection: true,
+                    });
+                    if (
+                        actionToken !== this.assistantActionToken ||
+                        geToken !== this.globalEnrichmentRequestToken
+                    ) {
+                        return;
+                    }
+                    availableSets = this.credibleSetsState?.available || [];
+                }
+
+                const classification = await runCs2ctTissueClassification({
                     session,
-                    annoData: this.globalEnrichmentState?.annoData || {},
-                    annotations: catalog.annotations,
-                    tissues: catalog.tissues,
+                    credibleSets: availableSets,
+                    host: this.bioIndexHostFor("c2ct-credible-set"),
+                    catalogTissues: catalog.tissues || [],
+                    catalogAnnotations: annotationLabels,
+                    associationRows: this.associationsState?.rows || [],
+                    region: this.dataRegion || session.region,
                 });
                 if (
                     actionToken !== this.assistantActionToken ||
@@ -3123,13 +3153,16 @@ export default Vue.component("kp-variant-sifter", {
 
                 const llmRelevance = {
                     loading: false,
-                    error: result.error || null,
-                    llmUsed: Boolean(result.llmUsed),
-                    tissueOnly: result.tissueOnly !== false,
-                    filterComplete: result.filterComplete !== false,
-                    relevantAnnotations: result.relevantAnnotations || annotationLabels,
-                    relevantTissues: result.relevantTissues || [],
-                    rationaleById: result.rationaleById || {},
+                    error: null,
+                    llmUsed: true,
+                    tissueOnly: true,
+                    filterComplete: true,
+                    relevantAnnotations: annotationLabels,
+                    relevantTissues: classification.relevantTissues || [],
+                    relevantTissuesByAnnotation:
+                        classification.relevantTissuesByAnnotation || {},
+                    rationaleById: {},
+                    source: "c2ct-credible-set",
                 };
 
                 this.globalEnrichmentState = {
@@ -3142,6 +3175,14 @@ export default Vue.component("kp-variant-sifter", {
 
                 this.markAssistantStepState(stepId, "done");
 
+                const starOptions = classification.starOptions || [];
+                const cs2ctStarPrompt = starOptions.length
+                    ? {
+                          message: buildCs2ctStarPromptMessage(starOptions),
+                          options: starOptions,
+                      }
+                    : null;
+
                 if (!silent) {
                     const report = buildGeRelevanceReportMessage({
                         session,
@@ -3149,21 +3190,24 @@ export default Vue.component("kp-variant-sifter", {
                         llmRelevance,
                         annoData: this.globalEnrichmentState?.annoData || {},
                         geRows: this.globalEnrichmentState?.geRows || [],
+                        classification,
                     });
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
+                        cs2ctStarPrompt,
                         threadEntries: appendAssistantEntries(
                             removePendingAssistantEntry(this.assistantState.threadEntries),
                             [createAssistantStepMessage(report)]
                         ),
                     };
-                } else if (this.assistantState.executing) {
+                } else {
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
+                        cs2ctStarPrompt,
                     };
                 }
             } catch (error) {
@@ -3173,10 +3217,10 @@ export default Vue.component("kp-variant-sifter", {
                 ) {
                     return;
                 }
-                console.warn("Variant Sifter GE LLM relevance failed", error);
+                console.warn("Variant Sifter CS2CT tissue classification failed", error);
                 const errorMessage =
                     error?.message ||
-                    "LLM relevance filtering is unavailable; using enrichment p-value filtering only.";
+                    "CS2CT tissue filtering is unavailable; using enrichment p-value filtering only.";
                 this.globalEnrichmentState = {
                     ...this.globalEnrichmentState,
                     llmRelevance: buildGeLlmRelevanceShowAllState(annotationLabels, {
@@ -3189,6 +3233,7 @@ export default Vue.component("kp-variant-sifter", {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
+                        cs2ctStarPrompt: null,
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
                             `${errorMessage} Annotation tracks show tissues with enrichment p < 0.5 for each annotation.`,
@@ -3200,9 +3245,71 @@ export default Vue.component("kp-variant-sifter", {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
+                        cs2ctStarPrompt: null,
                     };
                 }
             }
+        },
+        onConfirmCs2ctStar(selectedCredibleSetIds = []) {
+            const prompt = this.assistantState?.cs2ctStarPrompt;
+            const options = prompt?.options || [];
+            if (!options.length) {
+                this.onDismissCs2ctStar();
+                return;
+            }
+
+            const selected = new Set(
+                (Array.isArray(selectedCredibleSetIds)
+                    ? selectedCredibleSetIds
+                    : []
+                ).map(String)
+            );
+            let starred = [...(this.plotMarkersState.starredVariants || [])];
+            let added = 0;
+
+            options.forEach((option) => {
+                if (!selected.has(String(option.credibleSetId))) {
+                    return;
+                }
+                (option.variants || []).forEach((row) => {
+                    if (isVariantStarred(starred, row?.["Variant ID"])) {
+                        return;
+                    }
+                    const entry = createStarredVariant(row, "cs2ct");
+                    if (entry) {
+                        starred.push(entry);
+                        added += 1;
+                    }
+                });
+            });
+
+            this.plotMarkersState = {
+                ...this.plotMarkersState,
+                starredVariants: starred,
+            };
+            this.assistantState = {
+                ...this.assistantState,
+                cs2ctStarPrompt: null,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(
+                        added
+                            ? `Starred ${added} overlap lead SNP${added === 1 ? "" : "s"} from the selected credible sets.`
+                            : "No new overlap lead SNPs were starred (they may already be starred)."
+                    ),
+                ]),
+            };
+        },
+        onDismissCs2ctStar() {
+            if (!this.assistantState?.cs2ctStarPrompt) {
+                return;
+            }
+            this.assistantState = {
+                ...this.assistantState,
+                cs2ctStarPrompt: null,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage("Skipped starring CS2CT overlap lead SNPs."),
+                ]),
+            };
         },
         onGeSelectedAnnotationsUpdate(selectedAnnotations) {
             this.globalEnrichmentState = {
@@ -3467,6 +3574,22 @@ export default Vue.component("kp-variant-sifter", {
             this.v2gState = {
                 ...this.v2gState,
                 deselectedGenes: Array.isArray(deselectedGenes) ? [...deselectedGenes] : [],
+            };
+        },
+        onV2gDeselectedTissuesUpdate(deselectedTissues) {
+            this.v2gState = {
+                ...this.v2gState,
+                deselectedTissues: Array.isArray(deselectedTissues)
+                    ? [...deselectedTissues]
+                    : [],
+            };
+        },
+        onV2gDeselectedBiosamplesUpdate(deselectedBiosamples) {
+            this.v2gState = {
+                ...this.v2gState,
+                deselectedBiosamples: Array.isArray(deselectedBiosamples)
+                    ? [...deselectedBiosamples]
+                    : [],
             };
         },
         onV2gViewModeUpdate(viewMode) {

@@ -262,7 +262,9 @@ export default {
             const base = buildV2gRenderData(
                 this.tissueData,
                 this.v2gState?.deselectedMethods,
-                this.v2gState?.deselectedGenes
+                this.v2gState?.deselectedGenes,
+                this.v2gState?.deselectedTissues,
+                this.v2gState?.deselectedBiosamples
             );
             const filter = normalizeWorkspaceMappingFilter(this.workspaceMappingFilter);
             if (!filter) {

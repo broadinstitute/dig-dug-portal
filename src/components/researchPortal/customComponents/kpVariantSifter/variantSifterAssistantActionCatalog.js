@@ -107,7 +107,7 @@ export const VKS_ASSISTANT_ACTION_CATALOG_SECTIONS = [
     {
         section: "Research",
         intro:
-            "Requests that call the LLM or reason about which tissues matter for the phenotype. The assistant offers these as steps on the Request tab when Global enrichment loads.",
+            "Requests that reason about which tissues matter for the phenotype using CS2CT evidence. The assistant offers these as steps on the Request tab when Global enrichment loads.",
         groups: [
             {
                 group: "Global enrichment",
@@ -116,7 +116,7 @@ export const VKS_ASSISTANT_ACTION_CATALOG_SECTIONS = [
                         id: "filter_ge_relevance",
                         label: "Classify tissues by phenotype relevance",
                         description:
-                            "Optional. Ask the LLM which broad tissue categories are most plausible for the searched phenotype and ancestry. Annotation tracks then keep relevant tissues with enrichment p below the Settings / Filters threshold. If you skip this action, tracks keep tissues that pass the p-value filter only.",
+                            "Optional. Use CS2CT (c2ct-credible-set) for all credible sets in the locus to find phenotype-relevant tissues (overlap PPA ≥ 0.5, within the searched region). Annotation tracks then keep matched tissues with enrichment p below the Settings / Filters threshold. You can optionally star the filtered overlap lead SNPs by credible set afterward.",
                         runnable: true,
                         autoOnSearch: false,
                         examples: [

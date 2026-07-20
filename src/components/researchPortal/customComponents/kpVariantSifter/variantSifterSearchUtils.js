@@ -318,7 +318,10 @@ export function formatSearchSessionLabel(searchSession) {
         return "";
     }
 
-    const parts = [searchSession.phenotype?.description];
+    const phenotype =
+        String(searchSession.phenotype?.description || "").trim() ||
+        String(searchSession.phenotype?.name || "").trim();
+    const parts = [phenotype];
     if (searchSession.ancestry) {
         parts.push(searchSession.ancestry);
     }
@@ -393,6 +396,10 @@ export function filterPhenotypes(phenotypes, query, limit = 12) {
     });
 
     return matches
-        .sort((a, b) => a.description.length - b.description.length)
+        .sort(
+            (a, b) =>
+                String(a.description || a.name || "").length -
+                String(b.description || b.name || "").length
+        )
         .slice(0, limit);
 }
