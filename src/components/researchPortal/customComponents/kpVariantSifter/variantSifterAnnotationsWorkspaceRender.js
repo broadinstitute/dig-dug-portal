@@ -340,7 +340,21 @@ export function findAnnotationRegionHitAtPoint(tissueHits, x, y) {
         for (let index = regions.length - 1; index >= 0; index -= 1) {
             const region = regions[index];
             if (x >= region.xStart && x <= region.xEnd) {
-                return region;
+                // Prefer the explicit region biosample; fall back to the row
+                // (biosample-track) label so hover always matches the left label.
+                const rowBiosample = tissueHit.biosample;
+                const regionBiosample = region.biosample;
+                const biosample =
+                    regionBiosample == null || String(regionBiosample).trim() === ""
+                        ? rowBiosample == null
+                            ? ""
+                            : String(rowBiosample)
+                        : String(regionBiosample);
+                return {
+                    ...region,
+                    tissue: region.tissue || tissueHit.tissue || "",
+                    biosample,
+                };
             }
         }
     }

@@ -36,7 +36,7 @@
                             On the right of the header:
                             <strong>Region zoom</strong> expands or focuses the plotted interval;
                             the <strong>table</strong> button opens the variant data table; the
-                            <strong>AI</strong> button opens the assistant for guided filtering.
+                            <strong>Actions</strong> button opens guided filtering tools.
                         </li>
                     </ul>
                 </div>
