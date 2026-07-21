@@ -9,7 +9,7 @@
 import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
-import _ from "lodash"
+import { uniqBy } from "@/utils/lodashUtils";
 
 const makeGraph = (query_graph, knowledge_graph_results) => {
 
@@ -54,7 +54,7 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
 
     });
 
-    graph.nodes = _.uniqBy(graph.nodes, 'id')
+    graph.nodes = uniqBy(graph.nodes, 'id')
     return graph;
 };
 

@@ -9,7 +9,6 @@
 import Vue from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
-import _ from "lodash"
 import trapi from "./trapi"
 const makeLink = (from, to, label, index) => ({
   from, to, label, index

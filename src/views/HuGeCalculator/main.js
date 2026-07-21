@@ -18,7 +18,7 @@ import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import HugeCalTable from "@/components/HugeCalTable.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";

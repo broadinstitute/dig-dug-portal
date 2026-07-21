@@ -15,7 +15,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-import { isEqual } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
