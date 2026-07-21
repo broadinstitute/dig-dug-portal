@@ -10,29 +10,77 @@
             menu-class="vks-menu-list"
             toggle-class="vks-menu-toggle"
         >
-            <b-dropdown-item
-                v-for="item in menu.items"
-                :key="item.id"
-                @click="onSelect(menu, item)"
-            >
-                {{ item.label }}
-            </b-dropdown-item>
+            <template v-for="item in menu.items">
+                <b-dropdown-divider
+                    v-if="item.type === 'divider'"
+                    :key="item.id"
+                />
+                <b-dropdown-header
+                    v-else-if="item.type === 'header'"
+                    :key="item.id"
+                >
+                    {{ item.label }}
+                </b-dropdown-header>
+                <b-dropdown-item
+                    v-else
+                    :key="item.id"
+                    :disabled="Boolean(item.disabled)"
+                    :title="item.title || item.label"
+                    @click="onSelect(menu, item)"
+                >
+                    {{ item.label }}
+                </b-dropdown-item>
+            </template>
         </b-dropdown>
     </div>
 </template>
 
 <script>
+import { formatRecentSearchLabel } from "./variantSifterRecentSearches.js";
+
 export default {
     name: "VariantSifterMenuBar",
-    data() {
-        return {
-            menus: [
+    props: {
+        recentSearches: {
+            type: Array,
+            default: () => [],
+        },
+    },
+    computed: {
+        menus() {
+            const recentItems =
+                Array.isArray(this.recentSearches) && this.recentSearches.length
+                    ? this.recentSearches.map((entry, index) => {
+                          const label = formatRecentSearchLabel(entry);
+                          return {
+                              id: `recentSearch-${index}-${entry.timestamp || index}`,
+                              action: "applyRecentSearch",
+                              label,
+                              title: label,
+                              recentSearch: entry,
+                          };
+                      })
+                    : [
+                          {
+                              id: "recentSearchesEmpty",
+                              label: "No recent searches",
+                              disabled: true,
+                          },
+                      ];
+
+            return [
                 {
                     id: "search",
                     label: "Search",
                     items: [
                         { id: "resetSearch", label: "Reset search" },
-                        { id: "recentSearches", label: "Recent searches" },
+                        { id: "searchDivider", type: "divider" },
+                        {
+                            id: "recentSearchesHeader",
+                            type: "header",
+                            label: "Recent searches",
+                        },
+                        ...recentItems,
                     ],
                 },
                 {
@@ -41,25 +89,27 @@ export default {
                     items: [
                         { id: "importSession", label: "Import session" },
                         { id: "exportSession", label: "Export session" },
-                        { id: "downloadTable", label: "Download variant table" },
+                        { id: "exportHtmlReport", label: "Export HTML report" },
                     ],
                 },
                 {
                     id: "help",
                     label: "Help",
-                    items: [
-                        { id: "gettingAround", label: "Getting Around" },
-                    ],
+                    items: [{ id: "gettingAround", label: "Getting Around" }],
                 },
-            ],
-        };
+            ];
+        },
     },
     methods: {
         onSelect(menu, item) {
+            if (!item || item.disabled || item.type === "divider" || item.type === "header") {
+                return;
+            }
             this.$emit("action", {
                 menu: menu.id,
-                action: item.id,
+                action: item.action || item.id,
                 label: item.label,
+                recentSearch: item.recentSearch || null,
             });
         },
     },
@@ -96,12 +146,23 @@ export default {
 }
 
 .vks-menu >>> .vks-menu-list {
-    min-width: 200px;
+    min-width: 220px;
+    max-width: min(92vw, 420px);
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(20, 22, 30, 0.12);
 }
 
 .vks-menu >>> .dropdown-item {
     font-size: 13px;
+    white-space: normal;
+    line-height: 1.35;
+}
+
+.vks-menu >>> .dropdown-header {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cfde-muted, #6b6b6b);
 }
 </style>
