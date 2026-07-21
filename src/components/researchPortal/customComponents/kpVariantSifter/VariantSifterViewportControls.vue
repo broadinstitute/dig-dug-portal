@@ -62,12 +62,12 @@
                 type="button"
                 class="vks-control-btn vks-control-btn--assistant"
                 :class="{ 'is-active': aiAssistantOpen }"
-                title="Variant Sifter assistant"
-                aria-label="Variant Sifter assistant"
+                title="Variant Sifter actions"
+                aria-label="Variant Sifter actions"
                 :aria-expanded="aiAssistantOpen ? 'true' : 'false'"
                 @click="$emit('toggle-assistant')"
             >
-                <span class="vks-control-ai-label" aria-hidden="true">AI</span>
+                <span class="vks-control-ai-label" aria-hidden="true">Actions</span>
             </button>
             <button
                 type="button"
@@ -469,10 +469,16 @@ export default {
     font-size: var(--vks-toolbar-icon, 17px);
 }
 
+.vks-control-btn--assistant {
+    width: auto;
+    min-width: var(--vks-toolbar-row, 28px);
+    padding: 0 8px;
+}
+
 .vks-control-ai-label {
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     line-height: 1;
 }
 

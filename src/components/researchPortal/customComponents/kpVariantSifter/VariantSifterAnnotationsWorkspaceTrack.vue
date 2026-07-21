@@ -186,6 +186,12 @@
                     role="status"
                 >
                 <p class="vks-anno-workspace-info-tissue">{{ hoveredRegion.tissue }}</p>
+                <p
+                    v-if="hoveredRegionBiosampleName"
+                    class="vks-anno-workspace-info-line"
+                >
+                    biosample: {{ hoveredRegionBiosampleName }}
+                </p>
                 <p class="vks-anno-workspace-info-line">
                     {{ enrichedRegionLabel }}
                 </p>
@@ -204,12 +210,6 @@
                     </p>
                 </template>
                 <template v-else>
-                    <p
-                        v-if="enrichedRegionBiosampleLabel"
-                        class="vks-anno-workspace-info-line"
-                    >
-                        {{ enrichedRegionBiosampleLabel }}
-                    </p>
                     <p class="vks-anno-workspace-info-line">
                         {{ enrichedRegionStateLabel }}
                     </p>
@@ -438,12 +438,16 @@ export default {
         enrichedRegionLabel() {
             return formatAnnotationEnrichedRegionLabel(this.hoveredRegion);
         },
-        enrichedRegionBiosampleLabel() {
+        hoveredRegionBiosampleName() {
             const biosample = this.hoveredRegion?.biosample;
-            if (biosample == null || biosample === "") {
+            if (biosample == null) {
                 return "";
             }
-            return String(biosample);
+            const label = String(biosample).trim();
+            if (!label || label === "—") {
+                return "";
+            }
+            return label;
         },
         enrichedRegionStateLabel() {
             return formatAnnotationRegionStateLabel(this.hoveredRegion?.state);
@@ -1737,19 +1741,32 @@ export default {
                 this.clearXAxisHover();
             }
 
-            const regionHit = findAnnotationRegionHitAtPoint(
-                this.biosampleHitsByTissue[tissue] || [],
-                x,
-                y
-            );
+            const hits = this.biosampleHitsByTissue[tissue] || [];
+            const rowHit = findAnnotationTissueHitAtY(hits, y);
+            const regionHit = findAnnotationRegionHitAtPoint(hits, x, y);
             if (!regionHit) {
                 this.clearRegionHover();
                 return;
             }
 
+            // Biosample-track rows are labeled by biosample; always prefer the
+            // row label so the popup matches the track under the cursor.
+            const rowBiosample =
+                rowHit?.biosample == null ? "" : String(rowHit.biosample).trim();
+            const regionBiosample =
+                regionHit.biosample == null
+                    ? ""
+                    : String(regionHit.biosample).trim();
+            const biosample = rowBiosample || regionBiosample;
+
             this.hoverAnchorX = x;
             this.hoverAnchorY = y + canvas.offsetTop * 2;
-            this.hoveredRegion = regionHit;
+            this.hoveredRegion = {
+                ...regionHit,
+                tissue: regionHit.tissue || tissue,
+                biosample,
+                hoverSource: "biosample-track",
+            };
             this.$nextTick(() => this.positionInfoPanel());
         },
         onBiosampleMouseOut(event) {
@@ -1978,9 +1995,17 @@ export default {
 }
 
 .vks-anno-workspace-info-tissue {
-    margin: 0 0 6px;
+    margin: 0 0 2px;
     font-size: 13px;
     font-weight: 700;
+    line-height: 1.35;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-anno-workspace-info-biosample {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1.35;
     color: var(--cfde-ink, #33363d);
 }
