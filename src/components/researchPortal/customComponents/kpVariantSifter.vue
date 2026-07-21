@@ -135,10 +135,12 @@
                     @execute-all="onAssistantExecuteAll"
                     @execute-step="onAssistantExecuteStep"
                     @plan-request="onAssistantPlanRequest"
+                    @execute-catalog-action="onExecuteCatalogAction"
                     @confirm-cs2ct-star="onConfirmCs2ctStar"
                     @dismiss-cs2ct-star="onDismissCs2ctStar"
                     @confirm-understudied-star="onConfirmUnderstudiedStar"
                     @dismiss-understudied-star="onDismissUnderstudiedStar"
+                    @open-correlated-phenotype="onOpenCorrelatedPhenotype"
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
@@ -375,6 +377,14 @@ import {
     buildUnderstudiedStarPrompt,
     filterUnderstudiedBottomLineInRegion,
 } from "./kpVariantSifter/variantSifterAssistantUnderstudied.js";
+import {
+    buildGeneticCorrelationIntroMessage,
+    buildGeneticCorrelationPhenotypeGroups,
+    buildGeneticCorrelationResultEntry,
+    buildGeneticCorrelationRunningMessage,
+    fetchGeneticCorrelation,
+    filterSignificantGeneticCorrelations,
+} from "./kpVariantSifter/variantSifterAssistantGeneticCorrelation.js";
 import { runCs2ctTissueClassification } from "./kpVariantSifter/variantSifterCs2ctClassify.js";
 import {
     appendAssistantEntries,
@@ -385,6 +395,7 @@ import {
     createUserMessage,
     emptyAssistantState,
     replacePendingAssistantEntry,
+    clearAssistantResultEntries,
 } from "./kpVariantSifter/variantSifterAssistantConversation.js";
 import {
     findAssistantAction,
@@ -1842,6 +1853,9 @@ export default Vue.component("kp-variant-sifter", {
             if (actionId === "find_understudied_bottom_line") {
                 return "step-find-understudied-bottom-line";
             }
+            if (actionId === "find_genetic_correlations") {
+                return "step-find-genetic-correlations";
+            }
             return `step-${actionId}`;
         },
         isResearchActionStepDone(actionId) {
@@ -3097,6 +3111,42 @@ export default Vue.component("kp-variant-sifter", {
             }
             this.runAssistantAction(step.actionId, { auto: false, stepId: step.id });
         },
+        onExecuteCatalogAction(actionId) {
+            const action = findAssistantAction(actionId);
+            if (!action?.runnable || !this.searchSession) {
+                return;
+            }
+            const stepId = this.researchActionStepId(actionId);
+            const plan = createAssistantPlan(
+                [
+                    {
+                        id: stepId,
+                        actionId,
+                        label: action.label,
+                    },
+                ],
+                { executeLabel: "Execute" }
+            );
+            const clearedEntries = clearAssistantResultEntries(
+                this.assistantState.threadEntries
+            );
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                executing: false,
+                executionProgressLabel: "",
+                cs2ctStarPrompt: null,
+                understudiedStarPrompt: null,
+                plan,
+                stepStates: { [stepId]: "pending" },
+                threadEntries: appendAssistantEntries(clearedEntries, [
+                    createUserMessage(action.label),
+                    createAssistantMessage(`Running “${action.label}”.`),
+                ]),
+            };
+            this.runAssistantAction(actionId, { auto: false, stepId });
+        },
         onAssistantPlanRequest({ text } = {}) {
             const requestText = String(text || "").trim();
             if (!requestText) {
@@ -3104,11 +3154,16 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const matches = matchVksAssistantRequest(requestText);
+            const clearedEntries = clearAssistantResultEntries(
+                this.assistantState.threadEntries
+            );
             this.aiAssistantOpen = true;
             this.assistantState = {
                 ...this.assistantState,
                 activeTab: "request",
-                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                cs2ctStarPrompt: null,
+                understudiedStarPrompt: null,
+                threadEntries: appendAssistantEntries(clearedEntries, [
                     createUserMessage(requestText),
                 ]),
             };
@@ -3131,7 +3186,8 @@ export default Vue.component("kp-variant-sifter", {
             if (
                 matches.length === 1 &&
                 matches[0].id !== "filter_ge_relevance" &&
-                matches[0].id !== "find_understudied_bottom_line"
+                matches[0].id !== "find_understudied_bottom_line" &&
+                matches[0].id !== "find_genetic_correlations"
             ) {
                 const action = matches[0];
                 this.assistantState = {
@@ -3258,6 +3314,13 @@ export default Vue.component("kp-variant-sifter", {
             if (actionId === "find_understudied_bottom_line") {
                 await this.runFindUnderstudiedBottomLineAction({
                     auto,
+                    silent,
+                    stepId,
+                });
+                return;
+            }
+            if (actionId === "find_genetic_correlations") {
+                await this.runFindGeneticCorrelationsAction({
                     silent,
                     stepId,
                 });
@@ -3785,6 +3848,186 @@ export default Vue.component("kp-variant-sifter", {
                 ]),
             };
             this.offerRemainingResearchAction("find_understudied_bottom_line");
+        },
+        phenotypeMapForCorrelations() {
+            const map = {};
+            (this.phenotypes || []).forEach((phenotype) => {
+                if (phenotype?.name) {
+                    map[phenotype.name] = phenotype;
+                }
+            });
+            return map;
+        },
+        async runFindGeneticCorrelationsAction({ silent = false, stepId } = {}) {
+            const session = this.searchSession;
+            if (!session?.phenotype?.name) {
+                return;
+            }
+
+            const ancestries = this.listUnderstudiedTargetAncestries();
+            const actionToken = ++this.assistantActionToken;
+            const resolvedStepId =
+                stepId || this.researchActionStepId("find_genetic_correlations");
+            const runningLabel = buildGeneticCorrelationRunningMessage();
+            this.markAssistantStepState(resolvedStepId, "running");
+
+            const host =
+                this.bioIndexHostFor("genetic-correlation") ||
+                this.bioIndexHostFor("associations");
+            if (!host) {
+                this.markAssistantStepState(resolvedStepId, "error");
+                if (!silent) {
+                    this.aiAssistantOpen = true;
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        threadEntries: appendAssistantEntries(
+                            this.assistantState.threadEntries,
+                            [
+                                createAssistantStepMessage(
+                                    "BioIndex host is not available.",
+                                    { isClarify: true }
+                                ),
+                            ]
+                        ),
+                    };
+                }
+                return;
+            }
+
+            if (!silent) {
+                this.aiAssistantOpen = true;
+                this.assistantState = {
+                    ...this.assistantState,
+                    activeTab: "request",
+                    executing: true,
+                    executionProgressLabel: runningLabel,
+                    cs2ctStarPrompt: null,
+                    understudiedStarPrompt: null,
+                    threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                        createAssistantStatusMessage(
+                            buildGeneticCorrelationIntroMessage(session, ancestries),
+                            { pending: true, isStepResult: true }
+                        ),
+                    ]),
+                };
+            }
+
+            const phenotypeMap = this.phenotypeMapForCorrelations();
+            const groups = [];
+
+            try {
+                for (const ancestry of ancestries) {
+                    if (actionToken !== this.assistantActionToken) {
+                        return;
+                    }
+                    try {
+                        const { rows } = await fetchGeneticCorrelation(
+                            session.phenotype.name,
+                            ancestry,
+                            host
+                        );
+                        if (actionToken !== this.assistantActionToken) {
+                            return;
+                        }
+                        const filtered = filterSignificantGeneticCorrelations(rows, {
+                            phenotypeMap,
+                        });
+                        groups.push(
+                            buildGeneticCorrelationPhenotypeGroups({
+                                ancestry,
+                                rows: filtered,
+                                phenotypeMap,
+                            })
+                        );
+                    } catch (error) {
+                        console.warn(
+                            `Variant Sifter genetic correlation failed (${ancestry})`,
+                            error
+                        );
+                        groups.push({
+                            ancestry,
+                            phenotypes: [],
+                            error: error?.message || "Failed to load genetic correlations.",
+                        });
+                    }
+                }
+
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+
+                const result = buildGeneticCorrelationResultEntry({
+                    session,
+                    groups,
+                });
+                this.markAssistantStepState(resolvedStepId, "done");
+                if (!silent) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            result.text,
+                            { phenotypeGroups: result.phenotypeGroups }
+                        ),
+                    };
+                } else {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                    };
+                }
+            } catch (error) {
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+                console.warn("Variant Sifter genetic correlation search failed", error);
+                this.markAssistantStepState(resolvedStepId, "error");
+                if (!silent) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            error?.message ||
+                                "Could not load genetically correlated phenotypes.",
+                            { isClarify: true }
+                        ),
+                    };
+                } else if (this.assistantState.executing) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                    };
+                }
+            }
+        },
+        onOpenCorrelatedPhenotype(phenotype) {
+            if (!phenotype?.name || !this.searchSession?.regionLabel) {
+                return;
+            }
+            const url = new URL(window.location.href);
+            url.searchParams.set("phenotype", phenotype.name);
+            url.searchParams.set("region", this.searchSession.regionLabel);
+            if (this.projectId) {
+                url.searchParams.set("project", this.projectId);
+            } else {
+                url.searchParams.delete("project");
+            }
+            const ancestry = phenotype.ancestry || "Mixed";
+            if (ancestry && ancestry !== "Mixed") {
+                url.searchParams.set("ancestry", ancestry);
+            } else {
+                url.searchParams.set("ancestry", "Mixed");
+            }
+            url.searchParams.delete("sub_ancestries");
+            window.open(url.toString(), "_blank", "noopener,noreferrer");
         },
         onGeSelectedAnnotationsUpdate(selectedAnnotations) {
             this.globalEnrichmentState = {

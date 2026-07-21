@@ -34,7 +34,10 @@ export function createAssistantMessage(text, { isClarify = false } = {}) {
     };
 }
 
-export function createAssistantStepMessage(text, { isClarify = false } = {}) {
+export function createAssistantStepMessage(
+    text,
+    { isClarify = false, phenotypeGroups = null } = {}
+) {
     entryCounter += 1;
     return {
         id: `assistant-step-${entryCounter}`,
@@ -42,6 +45,7 @@ export function createAssistantStepMessage(text, { isClarify = false } = {}) {
         text: String(text || "").trim(),
         isStepResult: true,
         isClarify,
+        phenotypeGroups: Array.isArray(phenotypeGroups) ? phenotypeGroups : null,
     };
 }
 
@@ -63,7 +67,7 @@ export function appendAssistantEntries(entries = [], nextEntries = []) {
 export function replacePendingAssistantEntry(
     entries = [],
     text,
-    { isClarify = false, isStepResult = true } = {}
+    { isClarify = false, isStepResult = true, phenotypeGroups = null } = {}
 ) {
     const list = [...entries];
     const last = list[list.length - 1];
@@ -74,11 +78,12 @@ export function replacePendingAssistantEntry(
             pending: false,
             isClarify,
             isStepResult: Boolean(last.isStepResult || isStepResult),
+            phenotypeGroups: Array.isArray(phenotypeGroups) ? phenotypeGroups : null,
         };
         return list;
     }
     return appendAssistantEntries(list, [
-        createAssistantStatusMessage(text, { isClarify, isStepResult }),
+        createAssistantStepMessage(text, { isClarify, phenotypeGroups }),
     ]);
 }
 
@@ -89,6 +94,11 @@ export function removePendingAssistantEntry(entries = []) {
         return list.slice(0, -1);
     }
     return list;
+}
+
+/** Drop prior action Result entries so a new Plan stays visible. */
+export function clearAssistantResultEntries(entries = []) {
+    return (entries || []).filter((entry) => !entry?.isStepResult);
 }
 
 export function createAssistantPlan(steps = [], { executeLabel = "Execute" } = {}) {

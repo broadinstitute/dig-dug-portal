@@ -169,6 +169,54 @@
                     >
                         <span class="vks-assistant-message-label">Result</span>
                         <p>{{ entry.text }}</p>
+                        <div
+                            v-if="entry.phenotypeGroups && entry.phenotypeGroups.length"
+                            class="vks-assistant-phenotype-groups"
+                        >
+                            <section
+                                v-for="group in entry.phenotypeGroups"
+                                :key="`pheno-group-${group.ancestry}`"
+                                class="vks-assistant-phenotype-group"
+                            >
+                                <h4 class="vks-assistant-phenotype-group-title">
+                                    {{ group.ancestry }}
+                                    <span class="vks-assistant-phenotype-group-count">
+                                        ({{ group.phenotypes.length }})
+                                    </span>
+                                </h4>
+                                <ul
+                                    v-if="group.phenotypes.length"
+                                    class="vks-assistant-phenotype-list"
+                                >
+                                    <li
+                                        v-for="phenotype in group.phenotypes"
+                                        :key="`${group.ancestry}-${phenotype.name}`"
+                                        class="vks-assistant-phenotype-item"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="vks-assistant-phenotype-link"
+                                            :disabled="executing"
+                                            @click="
+                                                $emit(
+                                                    'open-correlated-phenotype',
+                                                    phenotype
+                                                )
+                                            "
+                                        >
+                                            {{ phenotype.description }}
+                                        </button>
+                                        <span class="vks-assistant-phenotype-meta">
+                                            p={{ formatCorrelationP(phenotype.pValue) }}
+                                            · Correlation={{ formatCorrelationRg(phenotype.rg) }}
+                                        </span>
+                                    </li>
+                                </ul>
+                                <p v-else class="vks-assistant-phenotype-empty">
+                                    None found for this ancestry.
+                                </p>
+                            </section>
+                        </div>
                     </div>
                 </div>
 
@@ -315,8 +363,23 @@
                             v-for="action in group.actions"
                             :key="action.id"
                             class="vks-assistant-action-item"
+                            :class="{
+                                'vks-assistant-action-item--runnable':
+                                    section.section === 'Research' && action.runnable,
+                            }"
                         >
-                            <span class="vks-assistant-action-label">{{ action.label }}</span>
+                            <div class="vks-assistant-action-item-head">
+                                <span class="vks-assistant-action-label">{{ action.label }}</span>
+                                <button
+                                    v-if="section.section === 'Research' && action.runnable"
+                                    type="button"
+                                    class="vks-ui-btn vks-ui-btn--primary vks-assistant-action-execute"
+                                    :disabled="executing || !canRunActions"
+                                    @click="$emit('execute-catalog-action', action.id)"
+                                >
+                                    Execute
+                                </button>
+                            </div>
                             <p class="vks-assistant-action-desc">{{ action.description }}</p>
                             <template v-if="action.examples && action.examples.length">
                                 <p class="vks-assistant-action-examples-label">Example requests</p>
@@ -462,6 +525,10 @@ import {
     formatUnderstudiedVariantLabel,
     VKS_UNDERSTUDIED_PREVIEW_COUNT,
 } from "./variantSifterAssistantUnderstudied.js";
+import {
+    formatGeneticCorrelationPValue,
+    formatGeneticCorrelationRg,
+} from "./variantSifterAssistantGeneticCorrelation.js";
 
 export default {
     name: "VariantSifterAiAssistantPanel",
@@ -702,6 +769,12 @@ export default {
         },
         formatUnderstudiedLabel(variant) {
             return formatUnderstudiedVariantLabel(variant);
+        },
+        formatCorrelationP(pValue) {
+            return formatGeneticCorrelationPValue(pValue);
+        },
+        formatCorrelationRg(rg) {
+            return formatGeneticCorrelationRg(rg);
         },
         getRequestInput() {
             return this.$refs.requestInput || null;
@@ -994,6 +1067,75 @@ export default {
 
 .vks-assistant-message--pending {
     opacity: 0.85;
+}
+
+.vks-assistant-phenotype-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.vks-assistant-phenotype-group-title {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-phenotype-group-count {
+    font-weight: 600;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-phenotype-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.vks-assistant-phenotype-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.vks-assistant-phenotype-link {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #007bff;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.vks-assistant-phenotype-link:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+.vks-assistant-phenotype-link:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.vks-assistant-phenotype-meta,
+.vks-assistant-phenotype-empty {
+    font-size: 12px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-phenotype-empty {
+    margin: 0;
 }
 
 .vks-assistant-message-label {
@@ -1426,11 +1568,25 @@ export default {
     background: #faf9f7;
 }
 
+.vks-assistant-action-item-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
 .vks-assistant-action-label {
     display: block;
     font-size: 13px;
     font-weight: 700;
     color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-action-execute {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.2;
 }
 
 .vks-assistant-action-examples-label {

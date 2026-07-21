@@ -14,7 +14,7 @@ export const VKS_ASSISTANT_ACTION_VERBS = [
     { verb: "import", label: "Import", keywords: ["import", "load"] },
     { verb: "reset", label: "Reset", keywords: ["reset", "clear", "new"] },
     { verb: "classify", label: "Classify", keywords: ["classify", "filter"] },
-    { verb: "find", label: "Find", keywords: ["find", "show", "understudied"] },
+    { verb: "find", label: "Find", keywords: ["find", "show", "understudied", "correlated"] },
     { verb: "toggle", label: "Toggle", keywords: ["toggle"] },
 ];
 

@@ -146,6 +146,24 @@ export const VKS_ASSISTANT_ACTION_CATALOG_SECTIONS = [
                     },
                 ],
             },
+            {
+                group: "Phenotypes",
+                actions: [
+                    {
+                        id: "find_genetic_correlations",
+                        label: "Find genetically correlated phenotypes",
+                        description:
+                            "Request-only. Load LDSC genetic correlations for the searching phenotype per loaded ancestry, keep phenotypes with p < 1e-5 (same high-significance highlight as the phenotype-page Genetic correlations table), list them in Assist grouped by ancestry, and open a phenotype in a new Variant Sifter tab on click.",
+                        runnable: true,
+                        autoOnSearch: false,
+                        examples: [
+                            "Find genetically correlated phenotypes",
+                            "Show genetic correlations",
+                            "Find correlated phenotypes",
+                        ],
+                    },
+                ],
+            },
         ],
     },
 ];
