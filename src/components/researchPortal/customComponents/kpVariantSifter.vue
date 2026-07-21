@@ -11,7 +11,10 @@
                     <span class="vks-mark">KP</span>
                     <span class="vks-title">Variant Sifter</span>
                 </div>
-                <VariantSifterMenuBar @action="onMenuAction" />
+                <VariantSifterMenuBar
+                    :recent-searches="recentSearches"
+                    @action="onMenuAction"
+                />
             </div>
             <p
                 v-if="searchSessionLabel"
@@ -359,6 +362,11 @@ import {
     resolveProjectPrimaryBioIndexHost,
     VKS_PROJECT_DEFAULT_ID,
 } from "./kpVariantSifter/variantSifterProjects.js";
+import {
+    loadRecentSearches,
+    pushRecentSearch,
+} from "./kpVariantSifter/variantSifterRecentSearches.js";
+import { exportVariantSifterHtmlReport } from "./kpVariantSifter/variantSifterHtmlReport.js";
 import { normalizeV2gSelectedLinks } from "./kpVariantSifter/variantSifterV2gData.js";
 import { fetchInteractiveLlmHealth } from "./kpVariantSifter/variantSifterGeRelevanceLlm.js";
 import {
@@ -545,6 +553,7 @@ export default Vue.component("kp-variant-sifter", {
             searchSession: null,
             welcomeInitialValues: null,
             projectId: VKS_PROJECT_DEFAULT_ID,
+            recentSearches: loadRecentSearches(),
             regionZoom: 0,
             regionZoomOut: 0,
             regionViewArea: 0,
@@ -1524,16 +1533,20 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         onMenuAction(payload) {
-            if (payload.action === "downloadTable") {
-                this.dataTableOpen = true;
-                return;
-            }
             if (payload.action === "resetSearch") {
                 this.resetSearch();
                 return;
             }
+            if (payload.action === "applyRecentSearch") {
+                this.applyRecentSearch(payload.recentSearch);
+                return;
+            }
             if (payload.action === "exportSession") {
                 this.exportSession();
+                return;
+            }
+            if (payload.action === "exportHtmlReport") {
+                this.exportHtmlReport();
                 return;
             }
             if (payload.action === "importSession") {
@@ -1543,6 +1556,55 @@ export default Vue.component("kp-variant-sifter", {
             if (payload.action === "gettingAround") {
                 this.workspaceGuideOpen = true;
             }
+        },
+        applyRecentSearch(entry) {
+            if (!entry?.phenotypeName || !entry?.region) {
+                return;
+            }
+
+            const nextProjectId = normalizeProjectId(entry.projectId);
+            if (nextProjectId !== this.projectId) {
+                this.projectId = nextProjectId;
+                this.syncUrlProjectParam();
+            }
+
+            const phenotypes = projectPhenotypes(
+                this.projectId,
+                this.phenotypesInUse || []
+            );
+            const phenotype = phenotypes.find(
+                (item) => item.name === entry.phenotypeName
+            );
+            if (!phenotype) {
+                this.welcomeInitialValues = {
+                    phenotype: entry.phenotypeName,
+                    ancestry: entry.ancestry || "",
+                    geneOrVariantQuery:
+                        entry.geneOrVariantQuery || entry.regionLabel || "",
+                    regionExpandBp: entry.regionExpandBp ?? null,
+                    errorMessage: `Phenotype "${entry.phenotypeName}" is not available in the current project.`,
+                };
+                this.welcomeOpen = true;
+                this.canvasActive = false;
+                return;
+            }
+
+            this.onStartSearch(
+                {
+                    phenotype,
+                    ancestry: entry.ancestry || null,
+                    region: {
+                        chr: entry.region.chr,
+                        start: Number(entry.region.start),
+                        end: Number(entry.region.end),
+                    },
+                    regionLabel: entry.regionLabel || formatRegion(entry.region),
+                    geneOrVariantQuery:
+                        entry.geneOrVariantQuery || entry.regionLabel || "",
+                    regionExpandBp: entry.regionExpandBp ?? null,
+                },
+                { subAncestries: entry.subAncestries || [] }
+            );
         },
         onVisibleSectionIdsUpdate(ids) {
             this.visibleSectionIds = normalizeVisibleSectionIds(ids, this.sections);
@@ -1580,6 +1642,47 @@ export default Vue.component("kp-variant-sifter", {
                 this.exportSessionOpen = true;
             } catch (error) {
                 window.alert(error.message || "Could not export session.");
+            }
+        },
+        async exportHtmlReport() {
+            if (!this.canvasActive || !this.searchSession) {
+                window.alert("Run a search before exporting an HTML report.");
+                return;
+            }
+
+            try {
+                // Close overlays that can cover tracks; canvases stay painted.
+                const wasDataTableOpen = this.dataTableOpen;
+                const wasAssistantOpen = this.aiAssistantOpen;
+                this.dataTableOpen = false;
+                this.aiAssistantOpen = false;
+                await this.$nextTick();
+
+                const result = await exportVariantSifterHtmlReport({
+                    rootEl: this.$refs.workspace || this.$el,
+                    searchSession: this.searchSession,
+                    projectId: this.projectId,
+                    viewRegion: this.viewRegion || this.searchSession.region,
+                    associationRows: this.associationsState?.rows || [],
+                    mappingState: this.mappingState,
+                    credibleSetsState: this.credibleSetsState,
+                    globalEnrichmentState: this.globalEnrichmentState,
+                    v2gState: this.v2gState,
+                    s2gState: this.s2gState,
+                    workspaceMappingFilter: this.workspaceMappingFilter,
+                });
+
+                this.dataTableOpen = wasDataTableOpen;
+                this.aiAssistantOpen = wasAssistantOpen;
+
+                if (!result?.ok && result?.reason === "cancelled") {
+                    return;
+                }
+                if (!result?.ok) {
+                    window.alert("Could not save the HTML report.");
+                }
+            } catch (error) {
+                window.alert(error?.message || "Could not export HTML report.");
             }
         },
         async onExportSessionConfirm({ filename }) {
@@ -2124,6 +2227,10 @@ export default Vue.component("kp-variant-sifter", {
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
+            this.recentSearches = pushRecentSearch(session, {
+                projectId: this.projectId,
+                subAncestries: this.pendingSubAncestries,
+            });
             this.loadInitialSearchData(session);
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
