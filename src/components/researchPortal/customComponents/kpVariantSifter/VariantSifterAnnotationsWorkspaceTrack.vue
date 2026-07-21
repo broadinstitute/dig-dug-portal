@@ -1995,17 +1995,9 @@ export default {
 }
 
 .vks-anno-workspace-info-tissue {
-    margin: 0 0 2px;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.35;
-    color: var(--cfde-ink, #33363d);
-}
-
-.vks-anno-workspace-info-biosample {
     margin: 0 0 6px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.35;
     color: var(--cfde-ink, #33363d);
 }
