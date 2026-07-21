@@ -210,10 +210,17 @@ export default {
             });
         },
         findDotAtCanvasPoint(x, y) {
-            return this.dotPositions.find((dot) => {
+            // Prefer the topmost (last drawn) overlapping dot so color and tooltip match.
+            let best = null;
+            for (let i = this.dotPositions.length - 1; i >= 0; i -= 1) {
+                const dot = this.dotPositions[i];
                 const hitRadius = dot.radius + 6;
-                return Math.hypot(dot.x - x, dot.y - y) <= hitRadius;
-            });
+                if (Math.hypot(dot.x - x, dot.y - y) <= hitRadius) {
+                    best = dot;
+                    break;
+                }
+            }
+            return best;
         },
         formatPValue(value) {
             if (value == null || value === "") {

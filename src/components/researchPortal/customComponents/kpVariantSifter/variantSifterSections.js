@@ -34,7 +34,7 @@ export const VARIANT_SIFTER_SECTIONS = [
     {
         id: "snp2gene-links",
         label: "SNP 2 gene links",
-        drawerLabel: "SNP 2 gene",
+        drawerLabel: "SNP-to-gene",
         shortLabel: "S2G",
         description: "SNP-to-gene link scores for the locus.",
         trackImplemented: false,

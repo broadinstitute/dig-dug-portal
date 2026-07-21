@@ -107,7 +107,7 @@ export const VKS_ASSISTANT_ACTION_CATALOG_SECTIONS = [
     {
         section: "Research",
         intro:
-            "Requests that reason about which tissues matter for the phenotype using CS2CT evidence. The assistant offers these as steps on the Request tab when Global enrichment loads.",
+            "Optional research steps offered when locus data loads. Tissue classification uses CS2CT; understudied bottom-line variants use phenotype-wide meta-analysis types for the active ancestry. Run one step, then the other remains available.",
         groups: [
             {
                 group: "Global enrichment",
@@ -124,6 +124,24 @@ export const VKS_ASSISTANT_ACTION_CATALOG_SECTIONS = [
                             "Highlight tissues relevant to type 2 diabetes",
                             "Mute unrelated tissues for this locus",
                             "Filter global enrichment by relevance",
+                        ],
+                    },
+                ],
+            },
+            {
+                group: "Associations",
+                actions: [
+                    {
+                        id: "find_understudied_bottom_line",
+                        label: "Find understudied bottom-line variants in this locus",
+                        description:
+                            "Optional. Load phenotype-wide associations for the active ancestry, keep variants that are genome-wide significant only in the Knowledge Portal bottom-line meta-analysis (not also in min_p / largest), restrict to the searched region, list them in Assist, and optionally star them.",
+                        runnable: true,
+                        autoOnSearch: false,
+                        examples: [
+                            "Find understudied bottom-line variants in this locus",
+                            "Show bottom-line only variants in the region",
+                            "Find understudied GWAS hits",
                         ],
                     },
                 ],
@@ -196,6 +214,7 @@ export function matchVksAssistantRequest(text) {
 export function buildVksAssistantWelcomeExamples() {
     return [
         "Classify tissues by phenotype relevance",
+        "Find understudied bottom-line variants in this locus",
         "Zoom in",
         "Zoom out",
         "Open Global enrich.",

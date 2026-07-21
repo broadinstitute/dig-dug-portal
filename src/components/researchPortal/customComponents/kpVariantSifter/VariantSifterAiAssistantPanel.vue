@@ -94,7 +94,7 @@
 
             <div v-else class="vks-assistant-thread" role="log" aria-live="polite">
                 <div
-                    v-for="entry in threadEntries"
+                    v-for="entry in conversationEntries"
                     :key="entry.id"
                     :class="[
                         'vks-assistant-message',
@@ -102,22 +102,16 @@
                             ? 'vks-assistant-message--user'
                             : 'vks-assistant-message--assistant',
                         entry.isClarify ? 'vks-assistant-message--clarify' : '',
-                        entry.isStepResult ? 'vks-assistant-message--step-result' : '',
                     ]"
                 >
                     <span class="vks-assistant-message-label">
-                        {{
-                            entry.role === "user"
-                                ? "You"
-                                : entry.isStepResult
-                                  ? "Step"
-                                  : "Assistant"
-                        }}
+                        {{ entry.role === "user" ? "You" : "Assistant" }}
                     </span>
                     <p>{{ entry.text }}</p>
                 </div>
 
                 <div v-if="hasPlan" class="vks-assistant-plan">
+                    <p class="vks-assistant-plan-title">Plan</p>
                     <button
                         type="button"
                         class="vks-assistant-execute-all"
@@ -156,6 +150,26 @@
                             </button>
                         </li>
                     </ol>
+                </div>
+
+                <div
+                    v-if="resultEntries.length"
+                    class="vks-assistant-results"
+                    aria-label="Action results"
+                >
+                    <div
+                        v-for="entry in resultEntries"
+                        :key="entry.id"
+                        :class="[
+                            'vks-assistant-message',
+                            'vks-assistant-message--result',
+                            entry.isClarify ? 'vks-assistant-message--clarify' : '',
+                            entry.pending ? 'vks-assistant-message--pending' : '',
+                        ]"
+                    >
+                        <span class="vks-assistant-message-label">Result</span>
+                        <p>{{ entry.text }}</p>
+                    </div>
                 </div>
 
                 <div
@@ -223,6 +237,53 @@
                             @click="onConfirmStarOptions"
                         >
                             Star selected
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    v-if="understudiedStarPrompt"
+                    class="vks-assistant-star-prompt"
+                    role="group"
+                    aria-label="Star understudied bottom-line variants"
+                >
+                    <p class="vks-assistant-star-prompt-lead">
+                        {{ understudiedStarPrompt.message }}
+                    </p>
+                    <ul class="vks-assistant-understudied-list">
+                        <li
+                            v-for="variant in visibleUnderstudiedVariants"
+                            :key="variant['Variant ID']"
+                            class="vks-assistant-understudied-item"
+                        >
+                            {{ formatUnderstudiedLabel(variant) }}
+                        </li>
+                    </ul>
+                    <button
+                        v-if="canExpandUnderstudiedList"
+                        type="button"
+                        class="vks-assistant-understudied-more"
+                        :disabled="executing"
+                        @click="understudiedListExpanded = true"
+                    >
+                        more…
+                    </button>
+                    <div class="vks-assistant-star-actions">
+                        <button
+                            type="button"
+                            class="vks-ui-btn vks-ui-btn--secondary"
+                            :disabled="executing"
+                            @click="$emit('dismiss-understudied-star')"
+                        >
+                            No
+                        </button>
+                        <button
+                            type="button"
+                            class="vks-ui-btn vks-ui-btn--primary"
+                            :disabled="executing"
+                            @click="$emit('confirm-understudied-star')"
+                        >
+                            Yes
                         </button>
                     </div>
                 </div>
@@ -303,7 +364,7 @@
                     class="vks-assistant-input"
                     rows="3"
                     :disabled="executing"
-                    placeholder="e.g. Zoom in, Classify tissues by phenotype relevance"
+                    placeholder="e.g. Zoom in, Find understudied bottom-line variants in this locus"
                     autocomplete="off"
                     autocorrect="off"
                     autocapitalize="off"
@@ -397,6 +458,10 @@ import {
     replaceActiveToken,
     shouldShowAssistantSuggestPreview,
 } from "./variantSifterAssistantActionSuggest.js";
+import {
+    formatUnderstudiedVariantLabel,
+    VKS_UNDERSTUDIED_PREVIEW_COUNT,
+} from "./variantSifterAssistantUnderstudied.js";
 
 export default {
     name: "VariantSifterAiAssistantPanel",
@@ -445,6 +510,10 @@ export default {
             type: Object,
             default: null,
         },
+        understudiedStarPrompt: {
+            type: Object,
+            default: null,
+        },
         actionCatalogSections: {
             type: Array,
             default: () => VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
@@ -460,11 +529,18 @@ export default {
             suggestTokenStart: 0,
             suggestTokenEnd: 0,
             selectedCs2ctStarIds: [],
+            understudiedListExpanded: false,
         };
     },
     computed: {
         hasThread() {
             return this.threadEntries.length > 0;
+        },
+        conversationEntries() {
+            return (this.threadEntries || []).filter((entry) => !entry.isStepResult);
+        },
+        resultEntries() {
+            return (this.threadEntries || []).filter((entry) => entry.isStepResult);
         },
         hasPlan() {
             return Boolean(this.plan?.steps?.length);
@@ -490,6 +566,21 @@ export default {
             }
             return options.every((option) =>
                 this.selectedCs2ctStarIds.includes(option.credibleSetId)
+            );
+        },
+        understudiedVariants() {
+            return this.understudiedStarPrompt?.variants || [];
+        },
+        visibleUnderstudiedVariants() {
+            if (this.understudiedListExpanded) {
+                return this.understudiedVariants;
+            }
+            return this.understudiedVariants.slice(0, VKS_UNDERSTUDIED_PREVIEW_COUNT);
+        },
+        canExpandUnderstudiedList() {
+            return (
+                !this.understudiedListExpanded &&
+                this.understudiedVariants.length > VKS_UNDERSTUDIED_PREVIEW_COUNT
             );
         },
         previewSuggestionIndex() {
@@ -524,6 +615,15 @@ export default {
                 this.selectedCs2ctStarIds = options.map(
                     (option) => option.credibleSetId
                 );
+                if (prompt) {
+                    this.$nextTick(() => this.scrollMessagePanelToEnd());
+                }
+            },
+        },
+        understudiedStarPrompt: {
+            immediate: true,
+            handler(prompt) {
+                this.understudiedListExpanded = false;
                 if (prompt) {
                     this.$nextTick(() => this.scrollMessagePanelToEnd());
                 }
@@ -599,6 +699,9 @@ export default {
         },
         onConfirmStarOptions() {
             this.$emit("confirm-cs2ct-star", [...this.selectedCs2ctStarIds]);
+        },
+        formatUnderstudiedLabel(variant) {
+            return formatUnderstudiedVariantLabel(variant);
         },
         getRequestInput() {
             return this.$refs.requestInput || null;
@@ -866,6 +969,33 @@ export default {
     color: var(--cfde-orange, #e07b39);
 }
 
+.vks-assistant-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cfde-border, #e6e1d6);
+}
+
+.vks-assistant-message--result {
+    padding: 10px 12px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 8px;
+    background: #f7f8fa;
+}
+
+.vks-assistant-message--result .vks-assistant-message-label {
+    color: var(--cfde-muted, #6b6b6b);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 11px;
+}
+
+.vks-assistant-message--pending {
+    opacity: 0.85;
+}
+
 .vks-assistant-message-label {
     font-size: 13px;
     font-weight: 600;
@@ -892,6 +1022,19 @@ export default {
     flex-direction: column;
     gap: 12px;
     margin-top: 4px;
+    padding: 12px;
+    border: 1px solid var(--cfde-border, #e6e1d6);
+    border-radius: 10px;
+    background: #fffaf4;
+}
+
+.vks-assistant-plan-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--cfde-muted, #6b6b6b);
 }
 
 .vks-assistant-execute-all {
@@ -953,6 +1096,45 @@ export default {
 
 .vks-assistant-star-option-meta {
     color: var(--cfde-muted, #6b6b6b);
+}
+
+.vks-assistant-understudied-list {
+    margin: 0;
+    padding: 0 0 0 18px;
+    list-style: disc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 180px;
+    overflow: auto;
+}
+
+.vks-assistant-understudied-item {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--cfde-ink, #33363d);
+}
+
+.vks-assistant-understudied-more {
+    appearance: none;
+    margin: 8px 0 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #007bff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+}
+
+.vks-assistant-understudied-more:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+.vks-assistant-understudied-more:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 .vks-assistant-star-actions {

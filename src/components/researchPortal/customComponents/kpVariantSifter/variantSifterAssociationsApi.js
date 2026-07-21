@@ -95,6 +95,45 @@ export async function fetchAssociationsForRegion(
 }
 
 /**
+ * Phenotype-wide top associations (same family as phenotype-page meta graph).
+ * Mixed / empty ancestry → `global-associations`; otherwise ancestry-global.
+ */
+export function resolveGlobalAssociationsRequest(session) {
+    const phenotype = session?.phenotype?.name;
+    if (!phenotype) {
+        return null;
+    }
+    const ancestry = session?.ancestry;
+    if (ancestry && ancestry !== "Mixed") {
+        return {
+            index: "ancestry-global-associations",
+            q: `${phenotype},${ancestry}`,
+            logicalIndex: "ancestry-global-associations",
+        };
+    }
+    return {
+        index: "global-associations",
+        q: phenotype,
+        logicalIndex: "global-associations",
+    };
+}
+
+export async function fetchGlobalAssociations(session, host, { limit = 1000 } = {}) {
+    const request = resolveGlobalAssociationsRequest(session);
+    if (!request) {
+        return { index: null, q: null, rows: [] };
+    }
+    const data = await query(request.index, request.q, { host, limit });
+    const rows = Array.isArray(data) ? data : [];
+    rows.sort((a, b) => {
+        const pA = a?.pValue ?? 1;
+        const pB = b?.pValue ?? 1;
+        return pA - pB;
+    });
+    return { index: request.logicalIndex, q: request.q, rows };
+}
+
+/**
  * BioIndex `/api/bio/count/{index}` — cheap availability probe (no full download).
  */
 export async function countBioIndex(index, q, host) {

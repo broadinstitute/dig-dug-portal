@@ -6,6 +6,7 @@ import {
     isGePointEmphasized,
     isGeTissueEmphasized,
     mutedAnnotationColor,
+    solidAnnotationColor,
     topGeLabelThresholds,
 } from "./variantSifterGlobalEnrichmentData.js";
 
@@ -168,10 +169,21 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
     const plotWidth = canvasWidth - GE_PLOT_MARGIN.left - GE_PLOT_MARGIN.right;
     const plotHeight =
         canvasHeight - plotTop - GE_PLOT_MARGIN.bottom;
-    const { xMin, xMax, yMin, yMax, points, annotations } = plotModel;
-    const xPosByPixel = plotWidth / (xMax - xMin || 1);
-    const yPosByPixel = plotHeight / (yMax - yMin || 1);
-    const { foldThreshold, pValueThreshold } = topGeLabelThresholds(points);
+    const { points, annotations } = plotModel;
+
+    // Omit not-relevant / muted points entirely (do not dim them).
+    const visiblePoints = (points || []).filter((point) => {
+        if (selectedSet && !selectedSet.has(point.annotation)) {
+            return false;
+        }
+        return isGePointEmphasized(point, {
+            llmRelevance,
+            enabledMutedAnnotations,
+            enabledMutedAnnotationTissues,
+            disabledAnnotationTissues,
+            enabledMutedTissues,
+        });
+    });
 
     if (title) {
         ctx.fillStyle = "#000000";
@@ -179,6 +191,41 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         ctx.textAlign = "left";
         ctx.fillText(title, 12, 32);
     }
+
+    if (!visiblePoints.length) {
+        ctx.fillStyle = "#666666";
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(
+            "No relevant enrichment points for the selected annotations.",
+            canvasWidth / 2,
+            canvasHeight / 2
+        );
+        return dotPositions;
+    }
+
+    let xMin = null;
+    let xMax = null;
+    let yMin = null;
+    let yMax = null;
+    visiblePoints.forEach((point) => {
+        xMin = xMin == null ? point.pValue : Math.min(xMin, point.pValue);
+        xMax = xMax == null ? point.pValue : Math.max(xMax, point.pValue);
+        yMin = yMin == null ? point.fold : Math.min(yMin, point.fold);
+        yMax = yMax == null ? point.fold : Math.max(yMax, point.fold);
+    });
+    if (xMin === xMax) {
+        xMin -= 0.5;
+        xMax += 0.5;
+    }
+    if (yMin === yMax) {
+        yMin -= 0.5;
+        yMax += 0.5;
+    }
+
+    const xPosByPixel = plotWidth / (xMax - xMin || 1);
+    const yPosByPixel = plotHeight / (yMax - yMin || 1);
+    const { foldThreshold, pValueThreshold } = topGeLabelThresholds(visiblePoints);
 
     renderGeAxis(ctx, {
         plotLeft,
@@ -192,24 +239,16 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         utils,
     });
 
-    points.forEach((point) => {
-        if (selectedSet && !selectedSet.has(point.annotation)) {
-            return;
-        }
-
-        const emphasized = isGePointEmphasized(point, {
-            llmRelevance,
-            enabledMutedAnnotations,
-            enabledMutedAnnotationTissues,
-            disabledAnnotationTissues,
-            enabledMutedTissues,
-        });
-        const baseColor = annotationColorForKey(point.annotation, annotations, colors);
-        const color = emphasized ? baseColor : mutedAnnotationColor(baseColor);
+    visiblePoints.forEach((point) => {
+        // Color index always uses the full annotation list so hues match legend checkboxes.
+        // 75% opacity (BF) keeps dots readable without going fully solid.
+        const color = `${solidAnnotationColor(
+            annotationColorForKey(point.annotation, annotations, colors)
+        )}BF`;
 
         const xPos = plotLeft + (point.pValue - xMin) * xPosByPixel;
         const yPos = plotTop + plotHeight - (point.fold - yMin) * yPosByPixel;
-        const radius = emphasized ? 8 : 6;
+        const radius = 8;
         const tissueKey = `${point.annotation}:::${point.tissue}`;
         const isSelected = Boolean(selectedTissueSet?.has(tissueKey));
 
@@ -235,9 +274,8 @@ export function renderGlobalEnrichmentPlot(ctx, options) {
         });
 
         const shouldLabel =
-            emphasized &&
-            ((foldThreshold != null && point.fold >= foldThreshold) ||
-                (pValueThreshold != null && point.pValue >= pValueThreshold));
+            (foldThreshold != null && point.fold >= foldThreshold) ||
+            (pValueThreshold != null && point.pValue >= pValueThreshold);
 
         if (!shouldLabel) {
             return;
@@ -368,14 +406,16 @@ export function renderAnnotationsPlot(ctx, options) {
                 : forceEnabled
                   ? true
                   : isGeTissueEmphasized(tissue, {
+                        annotation,
                         llmRelevance,
                         enabledMutedAnnotationTissues,
                         enabledMutedTissues,
                     });
             const emphasized = annotationEmphasized && tissueEmphasized;
+            const baseColor = annotationColorForKey(annotation, annotations, colors);
             const barColor = emphasized
-                ? annotationColorForKey(annotation, annotations, colors)
-                : mutedAnnotationColor(annotationColorForKey(annotation, annotations, colors));
+                ? solidAnnotationColor(baseColor)
+                : mutedAnnotationColor(baseColor);
 
             if (tissueIndex % 2 === 0) {
                 ctx.fillStyle = emphasized ? "#00000010" : "#00000006";

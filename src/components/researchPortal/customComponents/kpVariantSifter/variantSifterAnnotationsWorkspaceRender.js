@@ -210,6 +210,7 @@ export function renderAnnotationsWorkspaceTrack(ctx, options) {
     tissueKeys.forEach((tissue, tissueIndex) => {
         const regions = tissues[tissue]?.region || [];
         const tissueEmphasized = isGeTissueEmphasized(tissue, {
+            annotation,
             llmRelevance,
             enabledMutedAnnotationTissues,
         });

@@ -131,7 +131,6 @@
                         :utils="utils"
                         @load="$emit('load-s2g')"
                         @clear="$emit('clear-s2g')"
-                        @update:deselectedMethods="$emit('update:s2gDeselectedMethods', $event)"
                         @update:deselectedGenes="$emit('update:s2gDeselectedGenes', $event)"
                     />
                     <template v-else>

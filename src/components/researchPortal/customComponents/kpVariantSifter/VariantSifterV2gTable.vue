@@ -60,8 +60,8 @@
                 ></b-pagination>
             </div>
         </template>
-        <div v-else class="vks-v2g-table-empty">
-            No variant-to-gene links for the current tissue and filter selection.
+        <div v-else-if="emptyMessage" class="vks-v2g-table-empty">
+            {{ emptyMessage }}
         </div>
     </div>
 </template>
@@ -100,18 +100,29 @@ export default {
             type: Boolean,
             default: true,
         },
+        columns: {
+            type: Array,
+            default: null,
+        },
+        emptyMessage: {
+            type: String,
+            default: "No variant-to-gene links for the current tissue and filter selection.",
+        },
     },
     data() {
         return {
             perPageNumber: "10",
             currentPage: 1,
-            sortKey: "Tissue",
+            sortKey: "",
             sortDirection: "asc",
             visibleColumns: {},
         };
     },
     computed: {
         tableColumns() {
+            if (Array.isArray(this.columns) && this.columns.length) {
+                return this.columns.slice();
+            }
             return V2G_TABLE_COLUMNS.filter((column) => {
                 if (!this.showTissueBiosample && (column === "Tissue" || column === "Biosample")) {
                     return false;
@@ -121,6 +132,9 @@ export default {
                 }
                 return true;
             });
+        },
+        defaultSortKey() {
+            return this.tableColumns[0] || "";
         },
         visibleTableColumns() {
             return this.tableColumns.filter(
@@ -196,7 +210,7 @@ export default {
     watch: {
         rows() {
             this.currentPage = 1;
-            this.sortKey = "Tissue";
+            this.sortKey = this.defaultSortKey;
             this.sortDirection = "asc";
         },
         perPageNumber() {
@@ -210,6 +224,10 @@ export default {
                         this.$set(this.visibleColumns, column, true);
                     }
                 });
+                if (!this.sortKey || !(columns || []).includes(this.sortKey)) {
+                    this.sortKey = this.defaultSortKey;
+                    this.sortDirection = "asc";
+                }
             },
         },
     },

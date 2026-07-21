@@ -128,6 +128,7 @@
                     :plan="assistantState.plan"
                     :step-states="assistantState.stepStates"
                     :cs2ct-star-prompt="assistantState.cs2ctStarPrompt"
+                    :understudied-star-prompt="assistantState.understudiedStarPrompt"
                     :panel-style="assistantPanelStyle"
                     @close="aiAssistantOpen = false"
                     @update:activeTab="onAssistantActiveTabUpdate"
@@ -136,6 +137,8 @@
                     @plan-request="onAssistantPlanRequest"
                     @confirm-cs2ct-star="onConfirmCs2ctStar"
                     @dismiss-cs2ct-star="onDismissCs2ctStar"
+                    @confirm-understudied-star="onConfirmUnderstudiedStar"
+                    @dismiss-understudied-star="onDismissUnderstudiedStar"
                 />
             </div>
             <div v-if="canvasActive" class="vks-drawer-rail-slot">
@@ -251,6 +254,7 @@ import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAnce
 import {
     associationRowAncestry,
     fetchAssociations,
+    fetchGlobalAssociations,
     primaryAssociationAncestry,
     probeAncestryAssociationAvailability,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
@@ -362,6 +366,15 @@ import {
     buildGeRelevanceReportMessage,
     buildGeRelevanceRunningMessage,
 } from "./kpVariantSifter/variantSifterAssistantGeRelevance.js";
+import {
+    buildUnderstudiedIntroMessage,
+    buildUnderstudiedNoneFoundMessage,
+    buildUnderstudiedOfferMessage,
+    buildUnderstudiedReportMessage,
+    buildUnderstudiedRunningMessage,
+    buildUnderstudiedStarPrompt,
+    filterUnderstudiedBottomLineInRegion,
+} from "./kpVariantSifter/variantSifterAssistantUnderstudied.js";
 import { runCs2ctTissueClassification } from "./kpVariantSifter/variantSifterCs2ctClassify.js";
 import {
     appendAssistantEntries,
@@ -371,7 +384,6 @@ import {
     createAssistantStepMessage,
     createUserMessage,
     emptyAssistantState,
-    removePendingAssistantEntry,
     replacePendingAssistantEntry,
 } from "./kpVariantSifter/variantSifterAssistantConversation.js";
 import {
@@ -1720,8 +1732,31 @@ export default Vue.component("kp-variant-sifter", {
             if (!session || !catalog?.tissues?.length) {
                 return;
             }
-            const action = findAssistantAction("filter_ge_relevance");
+            const geAction = findAssistantAction("filter_ge_relevance");
+            const understudiedAction = findAssistantAction(
+                "find_understudied_bottom_line"
+            );
             const credibleSetCount = (this.credibleSetsState?.available || []).length;
+            const steps = [
+                {
+                    id: "step-filter-ge-relevance",
+                    actionId: "filter_ge_relevance",
+                    label:
+                        geAction?.label ||
+                        "Classify tissues by phenotype relevance",
+                },
+                {
+                    id: "step-find-understudied-bottom-line",
+                    actionId: "find_understudied_bottom_line",
+                    label:
+                        understudiedAction?.label ||
+                        "Find understudied bottom-line variants in this locus",
+                },
+            ];
+            const stepStates = {};
+            steps.forEach((step) => {
+                stepStates[step.id] = "pending";
+            });
             this.aiAssistantOpen = true;
             this.assistantState = {
                 ...this.assistantState,
@@ -1729,24 +1764,160 @@ export default Vue.component("kp-variant-sifter", {
                 executing: false,
                 executionProgressLabel: "",
                 cs2ctStarPrompt: null,
-                plan: createAssistantPlan(
-                    [
-                        {
-                            id: "step-filter-ge-relevance",
-                            actionId: "filter_ge_relevance",
-                            label:
-                                action?.label ||
-                                "Classify tissues by phenotype relevance",
-                        },
-                    ],
-                    { executeLabel: "Execute" }
-                ),
-                stepStates: { "step-filter-ge-relevance": "pending" },
+                understudiedStarPrompt: null,
+                understudiedAncestry: null,
+                plan: createAssistantPlan(steps, { executeLabel: "Execute" }),
+                stepStates,
                 threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
-                    createAssistantStepMessage(
+                    createAssistantMessage(
                         buildGeRelevanceOfferMessage(session, catalog, {
                             credibleSetCount,
                         })
+                    ),
+                    createAssistantMessage(buildUnderstudiedOfferMessage(session)),
+                ]),
+            };
+        },
+        offerUnderstudiedForAncestry(ancestry) {
+            if (!this.searchSession || !ancestry) {
+                return;
+            }
+            const understudiedAction = findAssistantAction(
+                "find_understudied_bottom_line"
+            );
+            if (!understudiedAction) {
+                return;
+            }
+
+            const stepId = this.researchActionStepId("find_understudied_bottom_line");
+            const existingSteps = this.assistantState?.plan?.steps || [];
+            const hasUnderstudiedStep = existingSteps.some(
+                (step) => step.actionId === "find_understudied_bottom_line"
+            );
+            const nextSteps = hasUnderstudiedStep
+                ? existingSteps
+                : [
+                      ...existingSteps,
+                      {
+                          id: stepId,
+                          actionId: "find_understudied_bottom_line",
+                          label: understudiedAction.label,
+                      },
+                  ];
+            const stepStates = {
+                ...(this.assistantState.stepStates || {}),
+                [stepId]: "pending",
+            };
+
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                executing: false,
+                executionProgressLabel: "",
+                understudiedStarPrompt: null,
+                understudiedAncestry: null,
+                plan: createAssistantPlan(nextSteps, { executeLabel: "Execute" }),
+                stepStates,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantMessage(
+                        [
+                            `${ancestry} association data is loaded.`,
+                            buildUnderstudiedOfferMessage({
+                                ...this.searchSession,
+                                ancestry: primaryAssociationAncestry(this.searchSession),
+                            }),
+                            `Loaded ancestries: ${this.listUnderstudiedTargetAncestries().join(
+                                ", "
+                            )}.`,
+                        ].join(" ")
+                    ),
+                ]),
+            };
+        },
+        researchActionStepId(actionId) {
+            if (actionId === "filter_ge_relevance") {
+                return "step-filter-ge-relevance";
+            }
+            if (actionId === "find_understudied_bottom_line") {
+                return "step-find-understudied-bottom-line";
+            }
+            return `step-${actionId}`;
+        },
+        isResearchActionStepDone(actionId) {
+            const stepId = this.researchActionStepId(actionId);
+            return (this.assistantState?.stepStates || {})[stepId] === "done";
+        },
+        offerRemainingResearchAction(completedActionId) {
+            const remainingId =
+                completedActionId === "filter_ge_relevance"
+                    ? "find_understudied_bottom_line"
+                    : completedActionId === "find_understudied_bottom_line"
+                      ? "filter_ge_relevance"
+                      : null;
+            if (!remainingId || this.isResearchActionStepDone(remainingId)) {
+                return;
+            }
+
+            if (
+                remainingId === "filter_ge_relevance" &&
+                !this.globalEnrichmentState?.catalog?.tissues?.length
+            ) {
+                return;
+            }
+
+            const remainingAction = findAssistantAction(remainingId);
+            if (!remainingAction || !this.searchSession) {
+                return;
+            }
+
+            const remainingStepId = this.researchActionStepId(remainingId);
+            const existingSteps = this.assistantState?.plan?.steps || [];
+            const hasRemainingStep = existingSteps.some(
+                (step) => step.actionId === remainingId
+            );
+            const nextSteps = hasRemainingStep
+                ? existingSteps
+                : [
+                      ...existingSteps,
+                      {
+                          id: remainingStepId,
+                          actionId: remainingId,
+                          label: remainingAction.label,
+                      },
+                  ];
+            const stepStates = {
+                ...(this.assistantState.stepStates || {}),
+            };
+            if (stepStates[remainingStepId] !== "done") {
+                stepStates[remainingStepId] = "pending";
+            }
+
+            const offerText = hasRemainingStep
+                ? `Optional next: run “${remainingAction.label}” from the steps above.`
+                : remainingId === "find_understudied_bottom_line"
+                  ? buildUnderstudiedOfferMessage(this.searchSession)
+                  : buildGeRelevanceOfferMessage(
+                        this.searchSession,
+                        this.globalEnrichmentState?.catalog,
+                        {
+                            credibleSetCount: (
+                                this.credibleSetsState?.available || []
+                            ).length,
+                        }
+                    );
+
+            this.aiAssistantOpen = true;
+            this.assistantState = {
+                ...this.assistantState,
+                activeTab: "request",
+                plan: createAssistantPlan(nextSteps, { executeLabel: "Execute" }),
+                stepStates,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantMessage(
+                        hasRemainingStep
+                            ? offerText
+                            : `Next optional step: ${remainingAction.label}. ${offerText}`
                     ),
                 ]),
             };
@@ -2785,6 +2956,7 @@ export default Vue.component("kp-variant-sifter", {
                     },
                 };
                 await this.mergeCredibleSetsForAncestry(ancestry);
+                this.offerUnderstudiedForAncestry(ancestry);
                 return true;
             } catch (error) {
                 if (token !== this.associationsRequestToken) {
@@ -2948,7 +3120,7 @@ export default Vue.component("kp-variant-sifter", {
                     stepStates: {},
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
                         createAssistantMessage(
-                            "I could not match that to a Variant Sifter action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance” or “Open Global enrich.”",
+                            "I could not match that to a Variant Sifter action yet. Browse the Actions tab for supported requests, or try phrasing like “Classify tissues by phenotype relevance”, “Find understudied bottom-line variants in this locus”, or “Open Global enrich.”",
                             { isClarify: true }
                         ),
                     ]),
@@ -2956,7 +3128,11 @@ export default Vue.component("kp-variant-sifter", {
                 return;
             }
 
-            if (matches.length === 1 && matches[0].id !== "filter_ge_relevance") {
+            if (
+                matches.length === 1 &&
+                matches[0].id !== "filter_ge_relevance" &&
+                matches[0].id !== "find_understudied_bottom_line"
+            ) {
                 const action = matches[0];
                 this.assistantState = {
                     ...this.assistantState,
@@ -3079,6 +3255,14 @@ export default Vue.component("kp-variant-sifter", {
                 this.markAssistantStepState(stepId, "done");
                 return;
             }
+            if (actionId === "find_understudied_bottom_line") {
+                await this.runFindUnderstudiedBottomLineAction({
+                    auto,
+                    silent,
+                    stepId,
+                });
+                return;
+            }
             if (actionId !== "filter_ge_relevance") {
                 return;
             }
@@ -3106,11 +3290,12 @@ export default Vue.component("kp-variant-sifter", {
                     executing: true,
                     executionProgressLabel: runningLabel,
                     cs2ctStarPrompt: null,
+                    understudiedStarPrompt: null,
                     threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
-                        createAssistantStepMessage(
-                            buildGeRelevanceIntroMessage(session, catalog)
+                        createAssistantStatusMessage(
+                            buildGeRelevanceIntroMessage(session, catalog),
+                            { pending: true, isStepResult: true }
                         ),
-                        createAssistantStatusMessage(runningLabel, { pending: true }),
                     ]),
                 };
             }
@@ -3197,18 +3382,26 @@ export default Vue.component("kp-variant-sifter", {
                         executing: false,
                         executionProgressLabel: "",
                         cs2ctStarPrompt,
-                        threadEntries: appendAssistantEntries(
-                            removePendingAssistantEntry(this.assistantState.threadEntries),
-                            [createAssistantStepMessage(report)]
+                        understudiedStarPrompt: null,
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            report
                         ),
                     };
+                    if (!cs2ctStarPrompt) {
+                        this.offerRemainingResearchAction("filter_ge_relevance");
+                    }
                 } else {
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
                         cs2ctStarPrompt,
+                        understudiedStarPrompt: null,
                     };
+                    if (!cs2ctStarPrompt) {
+                        this.offerRemainingResearchAction("filter_ge_relevance");
+                    }
                 }
             } catch (error) {
                 if (
@@ -3234,19 +3427,244 @@ export default Vue.component("kp-variant-sifter", {
                         executing: false,
                         executionProgressLabel: "",
                         cs2ctStarPrompt: null,
+                        understudiedStarPrompt: null,
                         threadEntries: replacePendingAssistantEntry(
                             this.assistantState.threadEntries,
                             `${errorMessage} Annotation tracks show tissues with enrichment p < 0.5 for each annotation.`,
                             { isClarify: true }
                         ),
                     };
+                    this.offerRemainingResearchAction("filter_ge_relevance");
                 } else if (this.assistantState.executing) {
                     this.assistantState = {
                         ...this.assistantState,
                         executing: false,
                         executionProgressLabel: "",
                         cs2ctStarPrompt: null,
+                        understudiedStarPrompt: null,
                     };
+                    this.offerRemainingResearchAction("filter_ge_relevance");
+                }
+            }
+        },
+        listUnderstudiedTargetAncestries() {
+            const primary = primaryAssociationAncestry(this.searchSession) || "Mixed";
+            const selected = this.associationsState?.selectedAncestries || [];
+            const codes = [];
+            const add = (ancestry) => {
+                if (ancestry && !codes.includes(ancestry)) {
+                    codes.push(ancestry);
+                }
+            };
+
+            add(primary);
+            selected.forEach(add);
+
+            // Also include ancestries present in loaded association rows
+            // (covers cases where series data is present but selection lists lag).
+            (this.associationsState?.rows || []).forEach((row) => {
+                add(associationRowAncestry(row, primary));
+            });
+
+            return codes.length ? codes : ["Mixed"];
+        },
+        async runFindUnderstudiedBottomLineAction({
+            silent = false,
+            stepId,
+        } = {}) {
+            const baseSession = this.searchSession;
+            if (!baseSession?.phenotype?.name || !baseSession?.region) {
+                return;
+            }
+
+            const ancestries = this.listUnderstudiedTargetAncestries();
+            const actionToken = ++this.assistantActionToken;
+            const resolvedStepId =
+                stepId || this.researchActionStepId("find_understudied_bottom_line");
+            this.markAssistantStepState(resolvedStepId, "running");
+
+            const host =
+                this.bioIndexHostFor("global-associations") ||
+                this.bioIndexHostFor("associations");
+            if (!host) {
+                if (!silent) {
+                    this.aiAssistantOpen = true;
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        understudiedStarPrompt: null,
+                        understudiedAncestry: null,
+                        threadEntries: appendAssistantEntries(
+                            this.assistantState.threadEntries,
+                            [
+                                createAssistantStepMessage(
+                                    "BioIndex host is not available.",
+                                    { isClarify: true }
+                                ),
+                            ]
+                        ),
+                    };
+                }
+                this.markAssistantStepState(resolvedStepId, "error");
+                this.offerRemainingResearchAction("find_understudied_bottom_line");
+                return;
+            }
+
+            const allStarRows = [];
+            let hadError = false;
+
+            if (!silent) {
+                this.aiAssistantOpen = true;
+                this.assistantState = {
+                    ...this.assistantState,
+                    activeTab: "request",
+                    executing: true,
+                    cs2ctStarPrompt: null,
+                    understudiedStarPrompt: null,
+                };
+            }
+
+            try {
+                for (let index = 0; index < ancestries.length; index += 1) {
+                    if (actionToken !== this.assistantActionToken) {
+                        return;
+                    }
+                    const ancestry = ancestries[index];
+                    const session = { ...baseSession, ancestry };
+                    const intro = buildUnderstudiedIntroMessage(session);
+                    const runningLabel = buildUnderstudiedRunningMessage();
+
+                    if (!silent) {
+                        this.assistantState = {
+                            ...this.assistantState,
+                            executing: true,
+                            executionProgressLabel: runningLabel,
+                            threadEntries: appendAssistantEntries(
+                                this.assistantState.threadEntries,
+                                [
+                                    createAssistantStatusMessage(intro, {
+                                        pending: true,
+                                        isStepResult: true,
+                                    }),
+                                ]
+                            ),
+                        };
+                    }
+
+                    try {
+                        const { rows } = await fetchGlobalAssociations(session, host, {
+                            limit: 1000,
+                        });
+                        if (actionToken !== this.assistantActionToken) {
+                            return;
+                        }
+
+                        const matched = filterUnderstudiedBottomLineInRegion(
+                            rows,
+                            session.region
+                        );
+                        matched.forEach((row) => {
+                            const starRow = {
+                                ...row,
+                                ancestry,
+                            };
+                            allStarRows.push(starRow);
+                        });
+
+                        if (!silent) {
+                            const report = matched.length
+                                ? buildUnderstudiedReportMessage(session, matched)
+                                : buildUnderstudiedNoneFoundMessage(session);
+                            this.assistantState = {
+                                ...this.assistantState,
+                                threadEntries: replacePendingAssistantEntry(
+                                    this.assistantState.threadEntries,
+                                    report
+                                ),
+                            };
+                        }
+                    } catch (error) {
+                        if (actionToken !== this.assistantActionToken) {
+                            return;
+                        }
+                        hadError = true;
+                        console.warn(
+                            `Variant Sifter understudied bottom-line search failed (${ancestry})`,
+                            error
+                        );
+                        const errorMessage =
+                            error?.message ||
+                            `Could not load phenotype-wide associations for ${ancestry}.`;
+                        if (!silent) {
+                            this.assistantState = {
+                                ...this.assistantState,
+                                threadEntries: replacePendingAssistantEntry(
+                                    this.assistantState.threadEntries,
+                                    errorMessage,
+                                    { isClarify: true }
+                                ),
+                            };
+                        }
+                    }
+                }
+
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+
+                const understudiedStarPrompt = buildUnderstudiedStarPrompt(allStarRows);
+                this.markAssistantStepState(
+                    resolvedStepId,
+                    hadError && !allStarRows.length ? "error" : "done"
+                );
+
+                this.assistantState = {
+                    ...this.assistantState,
+                    executing: false,
+                    executionProgressLabel: "",
+                    understudiedStarPrompt: silent ? null : understudiedStarPrompt,
+                    understudiedAncestry: null,
+                };
+
+                if (!silent && !understudiedStarPrompt) {
+                    this.offerRemainingResearchAction("find_understudied_bottom_line");
+                }
+            } catch (error) {
+                if (actionToken !== this.assistantActionToken) {
+                    return;
+                }
+                console.warn(
+                    "Variant Sifter understudied bottom-line search failed",
+                    error
+                );
+                const errorMessage =
+                    error?.message ||
+                    "Could not load phenotype-wide associations for understudied bottom-line variants.";
+                this.markAssistantStepState(resolvedStepId, "error");
+                if (!silent) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        understudiedStarPrompt: null,
+                        understudiedAncestry: null,
+                        threadEntries: replacePendingAssistantEntry(
+                            this.assistantState.threadEntries,
+                            errorMessage,
+                            { isClarify: true }
+                        ),
+                    };
+                    this.offerRemainingResearchAction("find_understudied_bottom_line");
+                } else if (this.assistantState.executing) {
+                    this.assistantState = {
+                        ...this.assistantState,
+                        executing: false,
+                        executionProgressLabel: "",
+                        understudiedStarPrompt: null,
+                        understudiedAncestry: null,
+                    };
+                    this.offerRemainingResearchAction("find_understudied_bottom_line");
                 }
             }
         },
@@ -3298,6 +3716,7 @@ export default Vue.component("kp-variant-sifter", {
                     ),
                 ]),
             };
+            this.offerRemainingResearchAction("filter_ge_relevance");
         },
         onDismissCs2ctStar() {
             if (!this.assistantState?.cs2ctStarPrompt) {
@@ -3310,6 +3729,62 @@ export default Vue.component("kp-variant-sifter", {
                     createAssistantStepMessage("Skipped starring CS2CT overlap lead SNPs."),
                 ]),
             };
+            this.offerRemainingResearchAction("filter_ge_relevance");
+        },
+        onConfirmUnderstudiedStar() {
+            const prompt = this.assistantState?.understudiedStarPrompt;
+            const variants = prompt?.variants || [];
+            if (!variants.length) {
+                this.onDismissUnderstudiedStar();
+                return;
+            }
+
+            let starred = [...(this.plotMarkersState.starredVariants || [])];
+            let added = 0;
+            variants.forEach((row) => {
+                if (isVariantStarred(starred, row?.["Variant ID"])) {
+                    return;
+                }
+                const entry = createStarredVariant(row, "understudied-bottom-line");
+                if (entry) {
+                    starred.push(entry);
+                    added += 1;
+                }
+            });
+
+            this.plotMarkersState = {
+                ...this.plotMarkersState,
+                starredVariants: starred,
+            };
+            this.assistantState = {
+                ...this.assistantState,
+                understudiedStarPrompt: null,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(
+                        added
+                            ? `Starred ${added} understudied bottom-line variant${
+                                  added === 1 ? "" : "s"
+                              }.`
+                            : "No new understudied bottom-line variants were starred (they may already be starred)."
+                    ),
+                ]),
+            };
+            this.offerRemainingResearchAction("find_understudied_bottom_line");
+        },
+        onDismissUnderstudiedStar() {
+            if (!this.assistantState?.understudiedStarPrompt) {
+                return;
+            }
+            this.assistantState = {
+                ...this.assistantState,
+                understudiedStarPrompt: null,
+                threadEntries: appendAssistantEntries(this.assistantState.threadEntries, [
+                    createAssistantStepMessage(
+                        "Skipped starring understudied bottom-line variants."
+                    ),
+                ]),
+            };
+            this.offerRemainingResearchAction("find_understudied_bottom_line");
         },
         onGeSelectedAnnotationsUpdate(selectedAnnotations) {
             this.globalEnrichmentState = {

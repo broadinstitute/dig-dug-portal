@@ -42,6 +42,7 @@ import {
     resolveRowLdScore,
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
+    VKS_LD_REFERENCE_COLOR,
 } from "./variantSifterPlotShared.js";
 import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
 
@@ -304,7 +305,7 @@ export default {
                 });
 
                 if (isRef) {
-                    renderDiamond(ctx, xPos, yPos, dotColor);
+                    renderDiamond(ctx, xPos, yPos, VKS_LD_REFERENCE_COLOR);
                 } else if (isStarred) {
                     renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {

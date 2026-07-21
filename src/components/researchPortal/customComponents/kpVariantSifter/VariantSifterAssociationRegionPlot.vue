@@ -2,11 +2,15 @@
     <div ref="container" class="vks-association-region-plot">
         <div v-if="showLegend" class="vks-association-region-plot-legend">
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" style="background-color: #824099cc"></span>
+                <span class="plot-legend-diamond" aria-hidden="true"></span>
                 <span>Reference variant</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" style="background-color: #d0363360"></span>
+                <span class="plot-legend-dot" style="background-color: #82409950"></span>
+                <span>r2 == 1</span>
+            </span>
+            <span class="vks-legend-item">
+                <span class="plot-legend-dot" style="background-color: #d0363350"></span>
                 <span>1 &gt; r2 &gt;= 0.8</span>
             </span>
             <span class="vks-legend-item">
@@ -14,15 +18,15 @@
                 <span>0.8 &gt; r2 &gt;= 0.6</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" style="background-color: #4db05240"></span>
+                <span class="plot-legend-dot" style="background-color: #4db05250"></span>
                 <span>0.6 &gt; r2 &gt;= 0.4</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" style="background-color: #32afd530"></span>
+                <span class="plot-legend-dot" style="background-color: #32afd550"></span>
                 <span>0.4 &gt; r2 &gt;= 0.2</span>
             </span>
             <span class="vks-legend-item">
-                <span class="plot-legend-dot" style="background-color: #2074b620"></span>
+                <span class="plot-legend-dot" style="background-color: #2074b650"></span>
                 <span>0.2 &gt; r2 &gt; 0</span>
             </span>
             <span class="vks-legend-item">
@@ -110,6 +114,7 @@ import {
     resolveRowLdScore,
     setupPlotCanvas,
     VKS_DEFAULT_DOT_RADIUS,
+    VKS_LD_REFERENCE_COLOR,
 } from "./variantSifterPlotShared.js";
 import { positionAnchoredPopupElement } from "./variantSifterPopupPosition.js";
 
@@ -470,7 +475,7 @@ export default {
                 });
 
                 if (isRef) {
-                    renderDiamond(ctx, xPos, yPos, dotColor);
+                    renderDiamond(ctx, xPos, yPos, VKS_LD_REFERENCE_COLOR);
                 } else if (isStarred) {
                     renderStarDot(ctx, xPos, yPos, dotColor);
                 } else {
@@ -815,6 +820,16 @@ export default {
     border-radius: 0;
     flex-shrink: 0;
     vertical-align: middle;
+}
+
+.plot-legend-diamond {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    background-color: #824099;
+    transform: rotate(45deg);
 }
 
 .vks-association-region-plot-canvas {

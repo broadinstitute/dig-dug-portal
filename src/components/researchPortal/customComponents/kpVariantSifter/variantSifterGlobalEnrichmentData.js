@@ -516,6 +516,7 @@ export function isGeAnnotationEmphasized(
 export function isGeTissueEmphasized(
     tissue,
     {
+        annotation = null,
         llmRelevance,
         enabledMutedAnnotationTissues = {},
         // Legacy flat list still accepted for older sessions / table props.
@@ -525,13 +526,37 @@ export function isGeTissueEmphasized(
     if (!llmRelevance?.llmUsed) {
         return true;
     }
-    if (llmRelevance.relevantTissues.includes(tissue)) {
+    if (
+        annotation &&
+        isGeAnnotationTissueForceEnabled(
+            annotation,
+            tissue,
+            enabledMutedAnnotationTissues
+        )
+    ) {
         return true;
     }
-    if (enabledMutedTissues.includes(tissue)) {
+    const byAnnotation = llmRelevance.relevantTissuesByAnnotation;
+    if (
+        byAnnotation &&
+        annotation != null &&
+        Object.prototype.hasOwnProperty.call(byAnnotation, annotation)
+    ) {
+        return (byAnnotation[annotation] || []).includes(tissue);
+    }
+    if ((llmRelevance.relevantTissues || []).includes(tissue)) {
         return true;
     }
-    return listForceEnabledTissues(enabledMutedAnnotationTissues).includes(tissue);
+    // Legacy global unmute list (no annotation context).
+    if (!annotation && enabledMutedTissues.includes(tissue)) {
+        return true;
+    }
+    if (!annotation) {
+        return listForceEnabledTissues(enabledMutedAnnotationTissues).includes(
+            tissue
+        );
+    }
+    return false;
 }
 
 export function isGePointEmphasized(
@@ -574,6 +599,7 @@ export function isGePointEmphasized(
             enabledMutedAnnotations,
         }) &&
         isGeTissueEmphasized(point.tissue, {
+            annotation: point.annotation,
             llmRelevance,
             enabledMutedAnnotationTissues,
             enabledMutedTissues,
@@ -1575,6 +1601,98 @@ export function buildGeTissueTableModel({
         annotations: [...annotations],
         rows,
     };
+}
+
+/**
+ * Tissues that appear as dots on the annotations overview plot for one annotation.
+ * Matches plot emphasis rules (not the track p-value filter alone).
+ */
+export function listGePlotVisibleTissuesForAnnotation({
+    annotation,
+    annoData = {},
+    geRows = [],
+    phenotype,
+    ancestry,
+    llmRelevance = null,
+    enabledMutedAnnotations = [],
+    enabledMutedAnnotationTissues = {},
+    disabledAnnotationTissues = {},
+} = {}) {
+    if (!annotation || !phenotype) {
+        return [];
+    }
+    const stats = buildGeTissueStatsForAnnotation({
+        geRows,
+        annotation,
+        phenotype,
+        ancestry,
+    });
+    return Object.keys(annoData[annotation] || {})
+        .filter((tissue) => {
+            if (!stats[tissue]) {
+                return false;
+            }
+            return isGePointEmphasized(
+                { annotation, tissue },
+                {
+                    llmRelevance,
+                    enabledMutedAnnotations,
+                    enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues,
+                }
+            );
+        })
+        .sort();
+}
+
+/** Single-annotation GE table rows: Tissue / P-value / Fold. */
+export function buildGeAnnotationTissueTableRows({
+    annotation,
+    tissues = [],
+    geRows = [],
+    phenotype,
+    ancestry,
+    utils = null,
+} = {}) {
+    if (!annotation || !phenotype) {
+        return [];
+    }
+    const allowed = new Set(tissues || []);
+    const stats = buildGeTissueStatsForAnnotation({
+        geRows,
+        annotation,
+        phenotype,
+        ancestry,
+    });
+    const rows = [...allowed]
+        .filter((tissue) => stats[tissue])
+        .map((tissue) => {
+            const tissueStats = stats[tissue];
+            return {
+                tissue,
+                rawPValue: tissueStats.rawPValue,
+                fold: tissueStats.fold,
+                pValueLabel: formatGePValueLabel(tissueStats.rawPValue, utils),
+                foldLabel: formatGeFoldLabel(tissueStats.fold),
+            };
+        });
+
+    rows.sort((left, right) => {
+        if (left.rawPValue == null && right.rawPValue == null) {
+            return left.tissue.localeCompare(right.tissue);
+        }
+        if (left.rawPValue == null) {
+            return 1;
+        }
+        if (right.rawPValue == null) {
+            return -1;
+        }
+        if (left.rawPValue !== right.rawPValue) {
+            return left.rawPValue - right.rawPValue;
+        }
+        return left.tissue.localeCompare(right.tissue);
+    });
+    return rows;
 }
 
 /**

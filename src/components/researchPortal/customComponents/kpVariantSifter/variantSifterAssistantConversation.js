@@ -10,6 +10,8 @@ export function emptyAssistantState() {
         plan: null,
         stepStates: {},
         cs2ctStarPrompt: null,
+        understudiedStarPrompt: null,
+        understudiedAncestry: null,
     };
 }
 
@@ -43,13 +45,14 @@ export function createAssistantStepMessage(text, { isClarify = false } = {}) {
     };
 }
 
-export function createAssistantStatusMessage(text, { pending = false } = {}) {
+export function createAssistantStatusMessage(text, { pending = false, isStepResult = false } = {}) {
     entryCounter += 1;
     return {
         id: `assistant-status-${entryCounter}`,
         role: "assistant",
         text: String(text || "").trim(),
         pending,
+        isStepResult,
     };
 }
 
@@ -57,7 +60,11 @@ export function appendAssistantEntries(entries = [], nextEntries = []) {
     return [...entries, ...nextEntries.filter((entry) => String(entry?.text || "").trim())];
 }
 
-export function replacePendingAssistantEntry(entries = [], text, { isClarify = false } = {}) {
+export function replacePendingAssistantEntry(
+    entries = [],
+    text,
+    { isClarify = false, isStepResult = true } = {}
+) {
     const list = [...entries];
     const last = list[list.length - 1];
     if (last?.role === "assistant" && last.pending) {
@@ -66,10 +73,13 @@ export function replacePendingAssistantEntry(entries = [], text, { isClarify = f
             text: String(text || "").trim(),
             pending: false,
             isClarify,
+            isStepResult: Boolean(last.isStepResult || isStepResult),
         };
         return list;
     }
-    return appendAssistantEntries(list, [createAssistantStatusMessage(text, { isClarify })]);
+    return appendAssistantEntries(list, [
+        createAssistantStatusMessage(text, { isClarify, isStepResult }),
+    ]);
 }
 
 export function removePendingAssistantEntry(entries = []) {

@@ -3,7 +3,11 @@
         <p v-if="annotations.length" class="vks-anno-workspace-guide">
             <template v-if="isAnnotationsOverview">
                 Global enrichment by annotation type for the searched phenotype and locus.
-                Select an annotation tab to browse tissue and biosample tracks.
+                Tabs list annotation types that have tissues shown under
+                <strong>Global enrich. → Tissues</strong>.
+                Use
+                <strong>Select tissue</strong>
+                on a plot point to load biosample tracks.
             </template>
             <template v-else>
                 Tracks show tissues with enrichment
@@ -59,7 +63,7 @@
                     aria-label="Annotation types"
                 >
                     <li
-                        v-for="(annotation, index) in annotationOptions"
+                        v-for="annotation in annotationOptions"
                         :key="annotation"
                         class="vks-ge-legend-item"
                         :class="{
@@ -76,11 +80,11 @@
                                     !hasRenderableTissues(annotation) &&
                                         !isAnnotationSelected(annotation)
                                 "
-                                :style="{ accentColor: legendSolidColor(annotation, index) }"
+                                    :style="{ accentColor: legendSolidColor(annotation) }"
                                 @change="onToggleAnnotation(annotation, $event)"
                             />
                             <span class="vks-ge-legend-label">
-                                {{ annotation }}
+                                {{ annotationTabLabel(annotation) }}
                             </span>
                         </label>
                     </li>
@@ -526,8 +530,9 @@ export default {
             return meta;
         },
         annotationTabs() {
+            // Tabs follow tissue *filters* (shown on track), not biosample selections.
             return this.annotations.filter(
-                (annotation) => this.selectedTissueCountForAnnotation(annotation) > 0
+                (annotation) => this.shownTissueCountForAnnotation(annotation) > 0
             );
         },
         annotationOptions() {
@@ -882,7 +887,11 @@ export default {
         },
         annotationColor(annotation) {
             return solidAnnotationColor(
-                annotationColorForKey(annotation, this.annotations, VKS_ANNOTATION_COLORS)
+                annotationColorForKey(
+                    annotation,
+                    this.annotationOptions,
+                    VKS_ANNOTATION_COLORS
+                )
             );
         },
         annotationTabStyle(annotation) {
@@ -895,19 +904,22 @@ export default {
         isAnnotationSelected(annotation) {
             return this.selectedAnnotations.includes(annotation);
         },
-        selectedTissueCountForAnnotation(annotation) {
-            return this.annotationTrackMeta[annotation]?.selectedCount || 0;
+        shownTissueCountForAnnotation(annotation) {
+            return this.annotationTrackMeta[annotation]?.displayableCount || 0;
         },
         hasRenderableTissues(annotation) {
-            return (this.annotationTrackMeta[annotation]?.displayableCount || 0) > 0;
+            return this.shownTissueCountForAnnotation(annotation) > 0;
         },
         annotationTabLabel(annotation) {
-            const count = this.selectedTissueCountForAnnotation(annotation);
+            const count = this.shownTissueCountForAnnotation(annotation);
             return `${annotation} (${count})`;
         },
-        legendSolidColor(annotation, index) {
-            const baseColor =
-                VKS_ANNOTATION_COLORS[index % VKS_ANNOTATION_COLORS.length];
+        legendSolidColor(annotation) {
+            const baseColor = annotationColorForKey(
+                annotation,
+                this.annotationOptions,
+                VKS_ANNOTATION_COLORS
+            );
             return solidAnnotationColor(
                 isGeAnnotationEmphasized(annotation, {
                     llmRelevance: this.globalEnrichmentState?.llmRelevance || null,
@@ -915,7 +927,7 @@ export default {
                         this.globalEnrichmentState?.enabledMutedAnnotations || [],
                 })
                     ? baseColor
-                    : `${baseColor.slice(0, 7)}55`
+                    : `${solidAnnotationColor(baseColor)}55`
             );
         },
         onToggleAnnotation(annotation, event) {

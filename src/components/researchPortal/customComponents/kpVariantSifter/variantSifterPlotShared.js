@@ -10,8 +10,11 @@ export const VKS_LD_DOT_COLORS = [
     "#4DB05250",
     "#EE982D50",
     "#D0363350",
-    "#824099cc",
+    "#82409950",
 ];
+
+/** Solid purple for the reference-variant diamond marker. */
+export const VKS_LD_REFERENCE_COLOR = "#824099";
 
 export const VKS_LD_BG_COLORS = [
     "#2074B620",

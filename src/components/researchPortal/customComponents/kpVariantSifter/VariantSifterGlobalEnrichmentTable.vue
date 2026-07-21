@@ -1,190 +1,285 @@
 <template>
-    <div class="vks-ge-table-section">
-        <div class="vks-ge-table-toolbar">
-            <div>
-                <p class="vks-ge-table-title">Global enrichment by tissue</p>
-                <p v-if="subtitle" class="vks-ge-table-subtitle">{{ subtitle }}</p>
+    <div class="vks-ge-table research-data-table-wrapper">
+        <template v-if="rows.length">
+            <VariantSifterTableSettings
+                :per-page="Number(perPageNumber)"
+                :columns="tableColumns"
+                :visible-columns="visibleColumns"
+                @update:perPage="onPerPageUpdate"
+                @export-csv="exportCsv"
+                @export-json="exportJson"
+                @update:columnVisible="onColumnVisibleUpdate"
+            >
+                <template #before>
+                    <div class="vks-data-table-view-total">
+                        Total rows: {{ displayRows.length.toLocaleString() }}
+                    </div>
+                </template>
+            </VariantSifterTableSettings>
+
+            <div class="vks-ge-table-block">
+                <div class="vks-ge-table-wrap">
+                    <table
+                        class="table table-sm research-data-table vks-ge-data-table"
+                        cellpadding="0"
+                        cellspacing="0"
+                    >
+                        <thead>
+                            <tr>
+                                <th
+                                    v-for="column in visibleTableColumns"
+                                    :key="column"
+                                    class="byor-tooltip sortable-th"
+                                    :class="getColumnId(column)"
+                                    @click="applySorting(column)"
+                                >
+                                    <span>{{ column }}</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="row in pagedRows" :key="row.tissue">
+                                <td
+                                    v-for="column in visibleTableColumns"
+                                    :key="`${row.tissue}-${column}`"
+                                    :class="getColumnId(column)"
+                                >
+                                    {{ formatCell(row, column) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <b-pagination
+                    v-if="perPageNumber !== '0' && perPageNumber !== 0"
+                    v-model="currentPage"
+                    class="pagination-sm justify-content-center vks-ge-pagination"
+                    :total-rows="displayRows.length"
+                    :per-page="Number(perPageNumber)"
+                ></b-pagination>
             </div>
-            <label v-if="rows.length" class="vks-ge-table-per-page">
-                <span>Rows</span>
-                <select v-model="perPageNumber" class="number-per-page">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="40">40</option>
-                    <option value="100">100</option>
-                    <option value="0">All</option>
-                </select>
-            </label>
-        </div>
-        <div v-if="!rows.length" class="vks-ge-table-empty">
+        </template>
+        <div v-else class="vks-ge-table-empty">
             No enrichment statistics for the current annotation and tissue filters.
         </div>
-        <template v-else>
-            <div class="vks-ge-table-wrap">
-                <table class="vks-ge-table">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="vks-ge-table-sticky-col">Tissue</th>
-                            <th
-                                v-for="annotation in annotations"
-                                :key="annotation"
-                                colspan="2"
-                                class="vks-ge-table-annotation-head"
-                                :style="{ borderTopColor: annotationColor(annotation) }"
-                            >
-                                {{ annotation }}
-                            </th>
-                        </tr>
-                        <tr>
-                            <template v-for="annotation in annotations">
-                                <th
-                                    :key="`${annotation}-p`"
-                                    class="vks-ge-table-metric-head"
-                                >
-                                    p
-                                </th>
-                                <th
-                                    :key="`${annotation}-fold`"
-                                    class="vks-ge-table-metric-head"
-                                >
-                                    Fold
-                                </th>
-                            </template>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="row in pagedRows" :key="row.tissue">
-                            <th scope="row" class="vks-ge-table-sticky-col">
-                                {{ row.tissue }}
-                            </th>
-                            <template v-for="annotation in annotations">
-                                <td :key="`${row.tissue}-${annotation}-p`">
-                                    {{ cellValue(row, annotation, "pValueLabel") }}
-                                </td>
-                                <td :key="`${row.tissue}-${annotation}-fold`">
-                                    {{ cellValue(row, annotation, "foldLabel") }}
-                                </td>
-                            </template>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <b-pagination
-                v-if="perPageNumber !== '0' && perPageNumber !== 0"
-                v-model="currentPage"
-                class="pagination-sm justify-content-center vks-ge-pagination"
-                :total-rows="rows.length"
-                :per-page="Number(perPageNumber)"
-            />
-        </template>
     </div>
 </template>
 
 <script>
-import {
-    annotationColorForKey,
-    solidAnnotationColor,
-    VKS_ANNOTATION_COLORS,
-} from "./variantSifterGlobalEnrichmentData.js";
+import VariantSifterTableSettings from "./VariantSifterTableSettings.vue";
+
+const GE_TABLE_COLUMNS = ["Tissue", "P-value", "Fold"];
 
 export default {
     name: "VariantSifterGlobalEnrichmentTable",
+    components: {
+        VariantSifterTableSettings,
+    },
     props: {
-        annotations: {
-            type: Array,
-            default: () => [],
-        },
         rows: {
             type: Array,
             default: () => [],
         },
-        subtitle: {
-            type: String,
-            default: "",
+        utils: {
+            type: Object,
+            default: null,
         },
     },
     data() {
         return {
             perPageNumber: "10",
             currentPage: 1,
+            sortKey: "P-value",
+            sortDirection: "asc",
+            visibleColumns: {},
         };
     },
     computed: {
+        tableColumns() {
+            return GE_TABLE_COLUMNS;
+        },
+        visibleTableColumns() {
+            return this.tableColumns.filter(
+                (column) => this.visibleColumns[column] !== false
+            );
+        },
+        sortedRows() {
+            const sourceRows = this.rows || [];
+            const key = this.sortKey;
+            const ascending = this.sortDirection === "asc";
+            if (!key) {
+                return sourceRows;
+            }
+
+            const withValues = [];
+            const withoutValues = [];
+            sourceRows.forEach((row) => {
+                const value = this.sortValue(row, key);
+                if (value == null || value === "") {
+                    withoutValues.push(row);
+                } else {
+                    withValues.push(row);
+                }
+            });
+
+            const isNumeric = withValues.length
+                ? typeof this.sortValue(withValues[0], key) === "number"
+                : false;
+
+            withValues.sort((a, b) => {
+                const aVal = this.sortValue(a, key);
+                const bVal = this.sortValue(b, key);
+                if (aVal === bVal) {
+                    return String(a.tissue || "").localeCompare(String(b.tissue || ""));
+                }
+                if (aVal == null) {
+                    return 1;
+                }
+                if (bVal == null) {
+                    return -1;
+                }
+                if (isNumeric) {
+                    const cmp = Number(aVal) > Number(bVal) ? 1 : -1;
+                    return ascending ? cmp : -cmp;
+                }
+                const cmp = String(aVal).localeCompare(String(bVal));
+                return ascending ? cmp : -cmp;
+            });
+
+            return withValues.concat(withoutValues);
+        },
+        displayRows() {
+            return this.sortedRows;
+        },
         pagedRows() {
             const perPage = Number(this.perPageNumber);
             if (!perPage) {
-                return this.rows;
+                return this.displayRows;
             }
             const start = (this.currentPage - 1) * perPage;
-            return this.rows.slice(start, start + perPage);
+            return this.displayRows.slice(start, start + perPage);
+        },
+        exportRows() {
+            return this.displayRows.map((row) => {
+                const out = {};
+                this.visibleTableColumns.forEach((column) => {
+                    out[column] = this.formatCell(row, column);
+                });
+                return out;
+            });
         },
     },
     watch: {
         rows() {
             this.currentPage = 1;
+            this.sortKey = "P-value";
+            this.sortDirection = "asc";
         },
         perPageNumber() {
             this.currentPage = 1;
         },
+        tableColumns: {
+            immediate: true,
+            handler(columns) {
+                (columns || []).forEach((column) => {
+                    if (this.visibleColumns[column] === undefined) {
+                        this.$set(this.visibleColumns, column, true);
+                    }
+                });
+            },
+        },
     },
     methods: {
-        cellValue(row, annotation, field) {
-            return row?.cells?.[annotation]?.[field] || "—";
+        getColumnId(label) {
+            return label.replace(/\W/g, "").toLowerCase();
         },
-        annotationColor(annotation) {
-            return solidAnnotationColor(
-                annotationColorForKey(annotation, this.annotations, VKS_ANNOTATION_COLORS)
-            );
+        onPerPageUpdate(perPage) {
+            this.perPageNumber = String(perPage);
+        },
+        onColumnVisibleUpdate({ column, visible }) {
+            this.$set(this.visibleColumns, column, Boolean(visible));
+        },
+        applySorting(key) {
+            if (this.sortKey === key) {
+                this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                this.sortKey = key;
+                this.sortDirection = "asc";
+            }
+            this.currentPage = 1;
+        },
+        sortValue(row, column) {
+            switch (column) {
+                case "Tissue":
+                    return row.tissue || "";
+                case "P-value":
+                    return row.rawPValue != null ? Number(row.rawPValue) : null;
+                case "Fold":
+                    return row.fold != null ? Number(row.fold) : null;
+                default:
+                    return row[column];
+            }
+        },
+        formatCell(row, column) {
+            switch (column) {
+                case "Tissue":
+                    return row.tissue || "—";
+                case "P-value":
+                    return row.pValueLabel || "—";
+                case "Fold":
+                    return row.foldLabel || "—";
+                default:
+                    return row[column] ?? "—";
+            }
+        },
+        exportCsv() {
+            if (!this.utils?.uiUtils?.saveByorCsv) {
+                return;
+            }
+            this.utils.uiUtils.saveByorCsv(this.exportRows, "vks_ge_enrichment");
+        },
+        exportJson() {
+            if (!this.utils?.uiUtils?.saveJson) {
+                return;
+            }
+            this.utils.uiUtils.saveJson(this.exportRows, "vks_ge_enrichment");
         },
     },
 };
 </script>
 
 <style scoped>
-.vks-ge-table-section {
-    margin-top: 0;
-}
-
-.vks-ge-table-toolbar {
+.vks-ge-table {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px 16px;
-    margin-bottom: 10px;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
 }
 
-.vks-ge-table-title {
-    margin: 0 0 4px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #33363d;
+.vks-ge-table >>> .vks-table-settings {
+    margin-bottom: 4px;
 }
 
-.vks-ge-table-subtitle {
+.vks-data-table-view-total {
     margin: 0;
     font-size: 13px;
-    color: #666666;
+    font-weight: 600;
+    color: var(--cfde-ink, #33363d);
 }
 
-.vks-ge-table-per-page {
-    display: inline-flex;
+.vks-ge-table-block {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 13px;
-    color: #4a4a4a;
-    white-space: nowrap;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
 }
 
-.number-per-page {
-    height: 30px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 6px;
-    background: #ffffff;
-    color: #33363d;
-    font-size: 13px;
-    padding: 0 8px;
+.vks-ge-table-wrap {
+    width: 100%;
+    max-width: 100%;
 }
 
 .vks-ge-table-empty {
@@ -192,65 +287,35 @@ export default {
     color: #666666;
 }
 
-.vks-ge-table-wrap {
-    overflow: auto;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 8px;
-}
-
-.vks-ge-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    background: #ffffff;
-}
-
-.vks-ge-table th,
-.vks-ge-table td {
-    padding: 6px 8px;
-    border-bottom: 1px solid #ece8df;
-    border-right: 1px solid #f2efe8;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.vks-ge-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #f3f1ec;
-    color: #33363d;
-    font-weight: 600;
-}
-
-.vks-ge-table-annotation-head {
-    border-top: 3px solid #cccccc;
-}
-
-.vks-ge-table-metric-head {
-    top: 31px;
-    font-size: 13px;
-    color: #666666;
-}
-
-.vks-ge-table-sticky-col {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    text-align: left;
-    background: #ffffff;
-    min-width: 160px;
-    max-width: 220px;
-    white-space: normal;
-    word-break: break-word;
-}
-
-.vks-ge-table thead .vks-ge-table-sticky-col {
-    z-index: 3;
-    background: #f3f1ec;
-}
-
 .vks-ge-pagination {
-    margin-top: 12px;
+    flex: 0 0 auto;
+    margin: 8px 0 0;
+    width: auto;
+}
+
+.research-data-table >>> thead > tr > th.sortable-th {
+    color: #007bff;
+    white-space: nowrap;
+    font-size: 13px;
+    overflow: visible;
+}
+
+.research-data-table >>> thead {
+    position: relative;
+    z-index: 2;
+}
+
+.research-data-table >>> thead > tr > th.sortable-th:hover {
+    color: #004bcf;
+    cursor: pointer;
+}
+
+.research-data-table >>> td {
+    border: none !important;
+    border-left: solid 1px #eee !important;
+    border-bottom: solid 1px #ddd !important;
+    font-size: 13px;
+    height: 27px;
+    vertical-align: middle;
 }
 </style>

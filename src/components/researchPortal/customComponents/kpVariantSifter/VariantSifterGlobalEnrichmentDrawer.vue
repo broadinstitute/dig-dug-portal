@@ -11,318 +11,291 @@
         <div v-else-if="error" class="vks-ui-error" role="alert">
             {{ error }}
         </div>
-        <template v-else-if="hasAnnoData">
-            <div class="vks-ui-tabs" role="tablist" aria-label="Global enrichment panels">
-                <button
-                    v-for="tab in tabs"
-                    :id="`vks-ge-tab-${tab.id}`"
-                    :key="tab.id"
-                    type="button"
-                    role="tab"
-                    class="vks-ui-tab"
-                    :class="{ 'is-active': activeTab === tab.id }"
-                    :aria-selected="activeTab === tab.id ? 'true' : 'false'"
-                    :aria-controls="`vks-ge-panel-${tab.id}`"
-                    @click="activeTab = tab.id"
-                >
-                    {{ tab.label }}
-                </button>
-            </div>
-
-            <div
-                v-show="activeTab === 'tissues'"
-                id="vks-ge-panel-tissues"
-                class="vks-ui-tab-panel"
-                role="tabpanel"
-                aria-labelledby="vks-ge-tab-tissues"
-            >
-                <p class="vks-ui-hint">
-                    All tissues available for each annotation. Checked tissues are shown
-                    on that annotation track. Reset restores the initial CS2CT / p-value
-                    selection.
-                </p>
-
-                <div
-                    v-if="mutedAnnotationOptions.length"
-                    class="vks-ge-muted-group"
-                >
-                    <p class="vks-ui-section-title">Muted annotation types</p>
-                    <p class="vks-ui-hint">
-                        These annotation types were filtered out. Check to show them again.
-                    </p>
-                    <ul class="vks-ge-muted-list">
-                        <li
-                            v-for="annotation in mutedAnnotationOptions"
-                            :key="annotation"
-                            class="vks-ge-muted-item"
-                        >
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    :checked="enabledMutedAnnotations.includes(annotation)"
-                                    @change="onToggleMutedAnnotation(annotation, $event)"
-                                />
-                                <span>{{ annotation }}</span>
-                            </label>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="vks-ge-tissue-actions">
-                    <label class="vks-ge-tissue-select-all">
-                        <input
-                            type="checkbox"
-                            :checked="allTissuesSelected"
-                            :indeterminate.prop="someTissuesSelected && !allTissuesSelected"
-                            @change="onSelectAllTissues($event)"
-                        />
-                        <span>Select all</span>
-                    </label>
+        <div v-else-if="hasAnnoData" class="vks-ge-drawer-body">
+            <section class="vks-drawer-section vks-drawer-section--controls">
+                <div class="vks-ui-tabs" role="tablist" aria-label="Global enrichment panels">
                     <button
-                        type="button"
-                        class="vks-ui-btn vks-ui-btn--secondary"
-                        @click="onResetTissueSelection"
-                    >
-                        Reset
-                    </button>
-                </div>
-
-                <div
-                    v-if="tissueGroups.length"
-                    class="vks-ge-tissue-columns"
-                >
-                    <div
-                        v-for="group in tissueGroups"
-                        :key="group.annotation"
-                        class="vks-ge-tissue-column"
-                    >
-                        <p class="vks-ge-muted-annotation-label">
-                            {{ group.annotation }}
-                            <span class="vks-ge-muted-count">
-                                ({{ group.shownCount }}/{{ group.tissues.length }})
-                            </span>
-                        </p>
-                        <ul class="vks-ge-muted-list">
-                            <li
-                                v-for="tissue in group.tissues"
-                                :key="`${group.annotation}:::${tissue}`"
-                                class="vks-ge-muted-item"
-                            >
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        :checked="
-                                            isTissueShownForAnnotation(
-                                                group.annotation,
-                                                tissue
-                                            )
-                                        "
-                                        @change="
-                                            onToggleAnnotationTissue(
-                                                group.annotation,
-                                                tissue,
-                                                $event
-                                            )
-                                        "
-                                    />
-                                    <span>{{ tissue }}</span>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <p v-else class="vks-ui-hint">
-                    No tissues are available for the current annotations.
-                </p>
-            </div>
-
-            <div
-                v-show="activeTab === 'settings'"
-                id="vks-ge-panel-settings"
-                class="vks-ui-tab-panel"
-                role="tabpanel"
-                aria-labelledby="vks-ge-tab-settings"
-            >
-                <section class="vks-ui-section">
-                    <p class="vks-ui-section-title">Annotations</p>
-                    <ul class="vks-ge-legend-list" role="group" aria-label="Annotation type filters">
-                        <li
-                            v-for="(annotation, index) in annotationOptions"
-                            :key="`settings-${annotation}`"
-                            class="vks-ge-legend-item"
-                            :class="{ 'is-muted': !isAnnotationSelected(annotation) }"
-                        >
-                            <label class="vks-ge-legend-checkbox">
-                                <input
-                                    type="checkbox"
-                                    class="vks-ge-legend-input"
-                                    :checked="isAnnotationSelected(annotation)"
-                                    :style="{ accentColor: legendSolidColor(annotation, index) }"
-                                    @change="onToggleAnnotation(annotation, $event)"
-                                />
-                                <span class="vks-ge-legend-label">
-                                    {{ annotation }}
-                                </span>
-                            </label>
-                        </li>
-                    </ul>
-                </section>
-
-                <section class="vks-ui-section">
-                    <label class="vks-ge-pvalue-filter">
-                        <span class="vks-ge-track-sort-label">P-value</span>
-                        <input
-                            type="text"
-                            class="vks-ge-pvalue-input"
-                            :value="pValueInput"
-                            inputmode="decimal"
-                            aria-label="Maximum enrichment p-value for tissues shown on tracks"
-                            @input="onPValueInput"
-                            @change="onPValueCommit"
-                            @blur="onPValueCommit"
-                        />
-                    </label>
-                    <p class="vks-ui-hint">
-                        Tissues with enrichment p-value below this threshold are shown on
-                        annotation tracks (and for Reset on the Tissues tab).
-                    </p>
-                </section>
-
-                <section class="vks-ui-section">
-                    <label class="vks-ge-track-sort">
-                        <span class="vks-ge-track-sort-label">Tissue track order</span>
-                        <select
-                            class="vks-ge-track-sort-select"
-                            :value="tissueTrackSort"
-                            aria-label="Tissue track order"
-                            @change="onTissueTrackSortChange"
-                        >
-                            <option
-                                v-for="option in tissueTrackSortOptions"
-                                :key="option.id"
-                                :value="option.id"
-                            >
-                                {{ option.label }}
-                            </option>
-                        </select>
-                    </label>
-                    <p class="vks-ui-hint">
-                        Controls how tissue rows are ordered on the Global enrichment canvas
-                        tracks.
-                    </p>
-                </section>
-
-                <section
-                    v-if="hasBiosampleMethodSourceFilters"
-                    class="vks-ui-section"
-                >
-                    <div class="vks-ui-btn-row">
-                        <button
-                            type="button"
-                            class="vks-ui-btn vks-ui-btn--secondary"
-                            @click="onSelectAllMethodSourceFilters"
-                        >
-                            Select all
-                        </button>
-                        <button
-                            type="button"
-                            class="vks-ui-btn vks-ui-btn--secondary"
-                            @click="onUnselectAllMethodSourceFilters"
-                        >
-                            Unselect all
-                        </button>
-                    </div>
-
-                    <div v-if="methodOptions.length" class="vks-ge-filter-group">
-                        <p class="vks-ui-section-title">Methods</p>
-                        <ul class="vks-ge-muted-list">
-                            <li
-                                v-for="method in methodOptions"
-                                :key="`method-${method}`"
-                                class="vks-ge-muted-item"
-                            >
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        :checked="isMethodSelected(method)"
-                                        @change="onToggleMethod(method, $event)"
-                                    />
-                                    <span>{{ method }}</span>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div v-if="sourceOptions.length" class="vks-ge-filter-group">
-                        <p class="vks-ui-section-title">Sources</p>
-                        <ul class="vks-ge-muted-list">
-                            <li
-                                v-for="source in sourceOptions"
-                                :key="`source-${source}`"
-                                class="vks-ge-muted-item"
-                            >
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        :checked="isSourceSelected(source)"
-                                        @change="onToggleSource(source, $event)"
-                                    />
-                                    <span>{{ source }}</span>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
-            </div>
-
-            <div class="vks-ge-table-tabs-section">
-                <div
-                    class="vks-ui-tabs"
-                    role="tablist"
-                    aria-label="Global enrichment tables"
-                >
-                    <button
-                        v-for="tab in tableTabs"
-                        :id="`vks-ge-table-tab-${tab.id}`"
+                        v-for="tab in tabs"
+                        :id="`vks-ge-tab-${tab.id}`"
                         :key="tab.id"
                         type="button"
                         role="tab"
                         class="vks-ui-tab"
-                        :class="{ 'is-active': activeTableTab === tab.id }"
-                        :aria-selected="activeTableTab === tab.id ? 'true' : 'false'"
-                        :aria-controls="`vks-ge-table-panel-${tab.id}`"
-                        @click="activeTableTab = tab.id"
+                        :class="{ 'is-active': activeTab === tab.id }"
+                        :aria-selected="activeTab === tab.id ? 'true' : 'false'"
+                        :aria-controls="`vks-ge-panel-${tab.id}`"
+                        @click="activeTab = tab.id"
                     >
                         {{ tab.label }}
                     </button>
                 </div>
 
                 <div
-                    v-show="activeTableTab === 'global-enrichment'"
-                    id="vks-ge-table-panel-global-enrichment"
+                    v-show="activeTab === 'tissues'"
+                    id="vks-ge-panel-tissues"
+                    class="vks-ui-tab-panel"
                     role="tabpanel"
-                    aria-labelledby="vks-ge-table-tab-global-enrichment"
+                    aria-labelledby="vks-ge-tab-tissues"
                 >
-                    <VariantSifterGlobalEnrichmentTable
-                        :annotations="geTableModel.annotations"
-                        :rows="geTableModel.rows"
-                        :subtitle="geTableSubtitle"
-                    />
+                    <p class="vks-ui-hint">
+                        All tissues available for each annotation. Checked tissues are shown
+                        on that annotation track. Reset restores the initial CS2CT / p-value
+                        selection.
+                    </p>
+
+                    <div
+                        v-if="mutedAnnotationOptions.length"
+                        class="vks-ge-muted-group"
+                    >
+                        <p class="vks-ui-section-title">Muted annotation types</p>
+                        <p class="vks-ui-hint">
+                            These annotation types were filtered out. Check to show them again.
+                        </p>
+                        <ul class="vks-ge-muted-list">
+                            <li
+                                v-for="annotation in mutedAnnotationOptions"
+                                :key="annotation"
+                                class="vks-ge-muted-item"
+                            >
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        :checked="enabledMutedAnnotations.includes(annotation)"
+                                        @change="onToggleMutedAnnotation(annotation, $event)"
+                                    />
+                                    <span>{{ annotation }}</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div v-if="tissueGroups.length">
+                        <div class="vks-ge-tissue-toolbar">
+                            <label class="vks-ge-annotation-select">
+                                <span class="vks-ge-track-sort-label">Annotation</span>
+                                <select
+                                    class="vks-ge-track-sort-select"
+                                    :value="activeTissueAnnotation"
+                                    aria-label="Annotation for tissue filters"
+                                    @change="onTissueAnnotationChange"
+                                >
+                                    <option
+                                        v-for="group in tissueGroups"
+                                        :key="group.annotation"
+                                        :value="group.annotation"
+                                    >
+                                        {{ annotationDropdownLabel(group) }}
+                                    </option>
+                                </select>
+                            </label>
+                            <button
+                                type="button"
+                                class="vks-ui-btn vks-ui-btn--secondary"
+                                @click="onResetTissueSelection"
+                            >
+                                Reset
+                            </button>
+                        </div>
+
+                        <div
+                            v-if="activeTissueGroup"
+                            class="vks-ge-tissue-panel"
+                        >
+                            <label class="vks-ge-tissue-select-all">
+                                <input
+                                    type="checkbox"
+                                    :checked="activeTissueGroup.allShown"
+                                    :indeterminate.prop="
+                                        activeTissueGroup.someShown && !activeTissueGroup.allShown
+                                    "
+                                    :aria-label="
+                                        `Select all tissues for ${activeTissueGroup.annotation}`
+                                    "
+                                    @change="
+                                        onSelectAllTissuesForAnnotation(
+                                            activeTissueGroup.annotation,
+                                            $event
+                                        )
+                                    "
+                                />
+                                <span>Select all</span>
+                            </label>
+                            <ul
+                                class="vks-ge-tissue-list"
+                                role="group"
+                                :aria-label="`Tissues for ${activeTissueGroup.annotation}`"
+                            >
+                                <li
+                                    v-for="tissue in activeTissueGroup.tissues"
+                                    :key="`${activeTissueGroup.annotation}:::${tissue}`"
+                                    class="vks-ge-tissue-item"
+                                >
+                                    <label class="vks-ge-tissue-check">
+                                        <input
+                                            type="checkbox"
+                                            :checked="
+                                                isTissueShownForAnnotation(
+                                                    activeTissueGroup.annotation,
+                                                    tissue
+                                                )
+                                            "
+                                            @change="
+                                                onToggleAnnotationTissue(
+                                                    activeTissueGroup.annotation,
+                                                    tissue,
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                        <span>{{ tissue }}</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p v-else class="vks-ui-hint">
+                        No tissues are available for the current annotations.
+                    </p>
                 </div>
 
                 <div
-                    v-show="activeTableTab === 'enriched-regions'"
-                    id="vks-ge-table-panel-enriched-regions"
+                    v-show="activeTab === 'settings'"
+                    id="vks-ge-panel-settings"
+                    class="vks-ui-tab-panel"
                     role="tabpanel"
-                    aria-labelledby="vks-ge-table-tab-enriched-regions"
+                    aria-labelledby="vks-ge-tab-settings"
                 >
-                    <VariantSifterEnrichedRegionsTable
-                        :rows="enrichedRegionsRows"
-                        :subtitle="enrichedRegionsSubtitle"
-                    />
+                    <section class="vks-ui-section">
+                        <p class="vks-ui-section-title">Filters</p>
+
+                        <label class="vks-ge-pvalue-filter">
+                            <span class="vks-ge-track-sort-label">P-value</span>
+                            <input
+                                type="text"
+                                class="vks-ge-pvalue-input"
+                                :value="pValueInput"
+                                inputmode="decimal"
+                                aria-label="Maximum enrichment p-value for tissues shown on tracks"
+                                @input="onPValueInput"
+                                @change="onPValueCommit"
+                                @blur="onPValueCommit"
+                            />
+                        </label>
+
+                        <div class="vks-ge-filter-group">
+                            <p class="vks-ge-track-sort-label">Methods</p>
+                            <ul
+                                class="vks-ge-tissue-list"
+                                role="group"
+                                aria-label="Methods"
+                            >
+                                <li
+                                    v-for="method in methodOptions"
+                                    :key="`method-${method}`"
+                                    class="vks-ge-tissue-item"
+                                >
+                                    <label class="vks-ge-tissue-check">
+                                        <input
+                                            type="checkbox"
+                                            :checked="isMethodSelected(method)"
+                                            @change="onToggleMethod(method, $event)"
+                                        />
+                                        <span>{{ method }}</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="vks-ge-filter-group">
+                            <p class="vks-ge-track-sort-label">Sources</p>
+                            <ul
+                                class="vks-ge-tissue-list"
+                                role="group"
+                                aria-label="Sources"
+                            >
+                                <li
+                                    v-for="source in sourceOptions"
+                                    :key="`source-${source}`"
+                                    class="vks-ge-tissue-item"
+                                >
+                                    <label class="vks-ge-tissue-check">
+                                        <input
+                                            type="checkbox"
+                                            :checked="isSourceSelected(source)"
+                                            @change="onToggleSource(source, $event)"
+                                        />
+                                        <span>{{ source }}</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="vks-ui-section">
+                        <p class="vks-ui-section-title">Settings</p>
+                        <label class="vks-ge-track-sort">
+                            <span class="vks-ge-track-sort-label">Sort tracks in:</span>
+                            <select
+                                class="vks-ge-track-sort-select"
+                                :value="tissueTrackSort"
+                                aria-label="Sort tracks in"
+                                @change="onTissueTrackSortChange"
+                            >
+                                <option
+                                    v-for="option in tissueTrackSortOptions"
+                                    :key="option.id"
+                                    :value="option.id"
+                                >
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                        </label>
+                    </section>
                 </div>
-            </div>
-        </template>
+            </section>
+
+            <section class="vks-drawer-section vks-drawer-section--table">
+                <div v-if="tableAnnotationTabs.length" class="vks-ge-table-toolbar">
+                    <label class="vks-ge-annotation-select">
+                        <span class="vks-ge-track-sort-label">Annotation</span>
+                        <select
+                            class="vks-ge-track-sort-select"
+                            :value="activeTableAnnotation"
+                            aria-label="Annotation for data tables"
+                            @change="onTableAnnotationChange"
+                        >
+                            <option
+                                v-for="annotation in tableAnnotationTabs"
+                                :key="annotation"
+                                :value="annotation"
+                            >
+                                {{ annotation }}
+                            </option>
+                        </select>
+                    </label>
+                </div>
+                <p v-else class="vks-ui-hint">
+                    No annotation plot tissues are available for the table.
+                </p>
+
+                <div v-if="activeTableAnnotation" class="vks-ge-table-section">
+                    <div class="vks-ge-table-panel">
+                        <p class="vks-ui-section-title">Global enrichment</p>
+                        <VariantSifterGlobalEnrichmentTable
+                            :rows="geTableRows"
+                            :utils="utils"
+                        />
+                    </div>
+                    <div class="vks-ge-table-panel">
+                        <p class="vks-ui-section-title">Enriched regions</p>
+                        <VariantSifterEnrichedRegionsTable
+                            :rows="enrichedRegionsRows"
+                            :utils="utils"
+                        />
+                    </div>
+                </div>
+            </section>
+        </div>
         <p v-else class="vks-ui-hint">
             No regulatory annotations were found for this locus.
         </p>
@@ -334,16 +307,17 @@ import VariantSifterGlobalEnrichmentTable from "./VariantSifterGlobalEnrichmentT
 import VariantSifterEnrichedRegionsTable from "./VariantSifterEnrichedRegionsTable.vue";
 import {
     buildEnrichedRegionsTableRows,
+    buildGeAnnotationTissueTableRows,
     buildGeTissueStatsForAnnotation,
-    buildGeTissueTableModel,
     buildSelectAllAnnotationTissueOverrides,
     buildDeselectAllAnnotationTissueOverrides,
     GE_TISSUE_TRACK_SORT_OPTIONS,
     GE_TRACK_P_VALUE_MAX,
-    isGeAnnotationEmphasized,
     isGeTissueShownOnTrack,
     listAllGeTissuesByAnnotation,
+    listGePlotVisibleTissuesForAnnotation,
     listMutedGeAnnotations,
+    listUniqueRegionPropValues,
     normalizeDisabledAnnotationTissues,
     normalizeEnabledMutedAnnotationTissues,
     normalizeGeFilterStringList,
@@ -351,20 +325,13 @@ import {
     normalizeGeTrackPValueMax,
     resolveSelectedGeAnnotations,
     setAnnotationTissueShown,
-    solidAnnotationColor,
     sortedAnnotationKeys,
     tissuePassesDefaultGeTrackFilter,
-    VKS_ANNOTATION_COLORS,
 } from "./variantSifterGlobalEnrichmentData.js";
 
 const GE_DRAWER_TABS = [
     { id: "tissues", label: "Tissues" },
-    { id: "settings", label: "Settings / Filters" },
-];
-
-const GE_TABLE_TABS = [
-    { id: "global-enrichment", label: "Global Enrichment" },
-    { id: "enriched-regions", label: "Enriched Regions" },
+    { id: "settings", label: "Filters / Settings" },
 ];
 
 export default {
@@ -424,10 +391,10 @@ export default {
     data() {
         return {
             activeTab: "tissues",
-            activeTableTab: "global-enrichment",
+            activeTableAnnotation: null,
             tabs: GE_DRAWER_TABS,
-            tableTabs: GE_TABLE_TABS,
             pValueInput: String(GE_TRACK_P_VALUE_MAX),
+            tissueFilterAnnotation: null,
         };
     },
     watch: {
@@ -435,6 +402,24 @@ export default {
             immediate: true,
             handler(value) {
                 this.pValueInput = String(value);
+            },
+        },
+        annotationOptions: {
+            immediate: true,
+            handler(options) {
+                this.ensureTissueFilterAnnotation(options);
+            },
+        },
+        tableAnnotationTabs: {
+            immediate: true,
+            handler(tabs) {
+                if (!tabs.length) {
+                    this.activeTableAnnotation = null;
+                    return;
+                }
+                if (!tabs.includes(this.activeTableAnnotation)) {
+                    this.activeTableAnnotation = tabs[0];
+                }
             },
         },
     },
@@ -486,14 +471,45 @@ export default {
                 this.globalEnrichmentState?.geTrackPValueMax
             );
         },
-        hasBiosampleMethodSourceFilters() {
-            return this.methodOptions.length > 0 || this.sourceOptions.length > 0;
-        },
         methodOptions() {
-            return [...(this.globalEnrichmentState?.biosampleMethodOptions || [])].sort();
+            const values = new Set(
+                this.globalEnrichmentState?.biosampleMethodOptions || []
+            );
+            (this.globalEnrichmentState?.annoRows || []).forEach((row) => {
+                const method = row?.method;
+                if (method != null && method !== "") {
+                    values.add(String(method));
+                }
+            });
+            const annoData = this.globalEnrichmentState?.annoData || {};
+            Object.values(annoData).forEach((tissues) => {
+                Object.values(tissues || {}).forEach((entry) => {
+                    listUniqueRegionPropValues(entry?.region || [], "method").forEach(
+                        (method) => values.add(method)
+                    );
+                });
+            });
+            return [...values].sort();
         },
         sourceOptions() {
-            return [...(this.globalEnrichmentState?.biosampleSourceOptions || [])].sort();
+            const values = new Set(
+                this.globalEnrichmentState?.biosampleSourceOptions || []
+            );
+            (this.globalEnrichmentState?.annoRows || []).forEach((row) => {
+                const source = row?.source;
+                if (source != null && source !== "") {
+                    values.add(String(source));
+                }
+            });
+            const annoData = this.globalEnrichmentState?.annoData || {};
+            Object.values(annoData).forEach((tissues) => {
+                Object.values(tissues || {}).forEach((entry) => {
+                    listUniqueRegionPropValues(entry?.region || [], "source").forEach(
+                        (source) => values.add(source)
+                    );
+                });
+            });
+            return [...values].sort();
         },
         selectedMethods() {
             return normalizeGeFilterStringList(
@@ -538,73 +554,92 @@ export default {
                         (this.isTissueShownForAnnotation(group.annotation, tissue) ? 1 : 0),
                     0
                 );
-                return { ...group, shownCount };
+                return {
+                    ...group,
+                    shownCount,
+                    allShown: shownCount === group.tissues.length && group.tissues.length > 0,
+                    someShown: shownCount > 0,
+                };
             });
         },
-        tissueCheckboxItems() {
-            const items = [];
-            this.tissueGroups.forEach((group) => {
-                group.tissues.forEach((tissue) => {
-                    items.push({
-                        annotation: group.annotation,
-                        tissue,
-                        shown: this.isTissueShownForAnnotation(group.annotation, tissue),
-                    });
-                });
-            });
-            return items;
+        activeTissueAnnotation() {
+            const options = this.tissueGroups.map((group) => group.annotation);
+            if (
+                this.tissueFilterAnnotation &&
+                options.includes(this.tissueFilterAnnotation)
+            ) {
+                return this.tissueFilterAnnotation;
+            }
+            return options[0] || null;
         },
-        allTissuesSelected() {
+        activeTissueGroup() {
+            const annotation = this.activeTissueAnnotation;
+            if (!annotation) {
+                return null;
+            }
             return (
-                this.tissueCheckboxItems.length > 0 &&
-                this.tissueCheckboxItems.every((item) => item.shown)
+                this.tissueGroups.find((group) => group.annotation === annotation) ||
+                null
             );
         },
-        someTissuesSelected() {
-            return this.tissueCheckboxItems.some((item) => item.shown);
+        plotVisibleTissuesByAnnotation() {
+            const annoData = this.globalEnrichmentState?.annoData || {};
+            const geRows = this.globalEnrichmentState?.geRows || [];
+            const map = {};
+            this.selectedAnnotations.forEach((annotation) => {
+                map[annotation] = listGePlotVisibleTissuesForAnnotation({
+                    annotation,
+                    annoData,
+                    geRows,
+                    phenotype: this.phenotypeName,
+                    ancestry: this.ancestryCode,
+                    llmRelevance: this.llmRelevance,
+                    enabledMutedAnnotations: this.enabledMutedAnnotations,
+                    enabledMutedAnnotationTissues: this.enabledMutedAnnotationTissues,
+                    disabledAnnotationTissues: this.disabledAnnotationTissues,
+                });
+            });
+            return map;
         },
-        geTableModel() {
-            return buildGeTissueTableModel({
+        tableAnnotationTabs() {
+            return this.selectedAnnotations.filter(
+                (annotation) =>
+                    (this.plotVisibleTissuesByAnnotation[annotation] || []).length > 0
+            );
+        },
+        activePlotVisibleTissues() {
+            const annotation = this.activeTableAnnotation;
+            if (!annotation) {
+                return [];
+            }
+            return this.plotVisibleTissuesByAnnotation[annotation] || [];
+        },
+        geTableRows() {
+            const annotation = this.activeTableAnnotation;
+            if (!annotation) {
+                return [];
+            }
+            return buildGeAnnotationTissueTableRows({
+                annotation,
+                tissues: this.activePlotVisibleTissues,
                 geRows: this.globalEnrichmentState?.geRows || [],
-                annoData: this.globalEnrichmentState?.annoData || {},
                 phenotype: this.phenotypeName,
                 ancestry: this.ancestryCode,
-                annotations: this.selectedAnnotations,
                 utils: this.utils,
-                llmRelevance: this.llmRelevance,
-                enabledMutedAnnotationTissues: this.enabledMutedAnnotationTissues,
-                disabledAnnotationTissues: this.disabledAnnotationTissues,
-                filterByTissueVisibility: true,
-                pValueMax: this.geTrackPValueMax,
             });
         },
-        geTableSubtitle() {
-            if (!this.phenotypeName) {
-                return "";
-            }
-            return `Filtered by selected annotations and shown tissues. Sorted by p-value. ${this.phenotypeName} (${this.ancestryCode}). p < ${this.geTrackPValueMax}.`;
-        },
         enrichedRegionsRows() {
-            const statsCache = {};
+            const annotation = this.activeTableAnnotation;
+            if (!annotation) {
+                return [];
+            }
+            const allowedTissues = new Set(this.activePlotVisibleTissues);
             return buildEnrichedRegionsTableRows(
                 this.globalEnrichmentState?.annoRows || [],
                 {
-                    annotations: this.selectedAnnotations,
-                    isTissueVisible: (annotation, tissue) =>
-                        this.isTissueShownForAnnotation(annotation, tissue, statsCache),
+                    annotations: [annotation],
+                    isTissueVisible: (_annotation, tissue) => allowedTissues.has(tissue),
                 }
-            );
-        },
-        enrichedRegionsSubtitle() {
-            const count = this.enrichedRegionsRows.length;
-            if (!count) {
-                return "Filtered by selected annotations and shown tissues. Sorted by region start.";
-            }
-            return (
-                `Filtered by selected annotations and shown tissues. ` +
-                `Sorted by region start. ${count.toLocaleString()} region${
-                    count === 1 ? "" : "s"
-                }.`
             );
         },
     },
@@ -703,42 +738,28 @@ export default {
                 this.sourceOptions.filter((item) => next.has(item))
             );
         },
-        onSelectAllMethodSourceFilters() {
-            this.$emit("update:selectedMethods", [...this.methodOptions]);
-            this.$emit("update:selectedSources", [...this.sourceOptions]);
-        },
-        onUnselectAllMethodSourceFilters() {
-            this.$emit("update:selectedMethods", []);
-            this.$emit("update:selectedSources", []);
-        },
-        isAnnotationSelected(annotation) {
-            return this.selectedAnnotations.includes(annotation);
-        },
-        isAnnotationEmphasized(annotation) {
-            return isGeAnnotationEmphasized(annotation, {
-                llmRelevance: this.llmRelevance,
-                enabledMutedAnnotations: this.enabledMutedAnnotations,
-            });
-        },
-        legendSolidColor(annotation, index) {
-            const baseColor =
-                VKS_ANNOTATION_COLORS[index % VKS_ANNOTATION_COLORS.length];
-            return solidAnnotationColor(
-                this.isAnnotationEmphasized(annotation)
-                    ? baseColor
-                    : `${baseColor.slice(0, 7)}55`
-            );
-        },
-        onToggleAnnotation(annotation, event) {
-            const checked = Boolean(event?.target?.checked);
-            const next = new Set(this.selectedAnnotations);
-            if (checked) {
-                next.add(annotation);
-            } else {
-                next.delete(annotation);
+        ensureTissueFilterAnnotation(options = this.annotationOptions) {
+            const list = Array.isArray(options) ? options : [];
+            if (!list.length) {
+                this.tissueFilterAnnotation = null;
+                return;
             }
-            const ordered = this.annotationOptions.filter((item) => next.has(item));
-            this.$emit("update:selectedAnnotations", ordered);
+            if (!list.includes(this.tissueFilterAnnotation)) {
+                this.tissueFilterAnnotation = list[0];
+            }
+        },
+        annotationDropdownLabel(group) {
+            if (!group) {
+                return "";
+            }
+            return `${group.annotation} (${group.shownCount}/${group.tissues.length})`;
+        },
+        onTissueAnnotationChange(event) {
+            const next = event?.target?.value || null;
+            this.tissueFilterAnnotation = next;
+        },
+        onTableAnnotationChange(event) {
+            this.activeTableAnnotation = event?.target?.value || null;
         },
         onToggleMutedAnnotation(annotation, event) {
             const enabled = Boolean(event?.target?.checked);
@@ -766,7 +787,10 @@ export default {
             );
             this.$emit("update:disabledAnnotationTissues", next.disabledAnnotationTissues);
         },
-        onSelectAllTissues(event) {
+        onSelectAllTissuesForAnnotation(annotation, event) {
+            if (!annotation) {
+                return;
+            }
             const selectAll = Boolean(event?.target?.checked);
             const next = selectAll
                 ? buildSelectAllAnnotationTissueOverrides({
@@ -774,7 +798,7 @@ export default {
                       geRows: this.globalEnrichmentState?.geRows || [],
                       phenotype: this.phenotypeName,
                       ancestry: this.ancestryCode,
-                      annotations: this.annotationOptions,
+                      annotations: [annotation],
                       llmRelevance: this.llmRelevance,
                       pValueMax: this.geTrackPValueMax,
                   })
@@ -783,15 +807,30 @@ export default {
                       geRows: this.globalEnrichmentState?.geRows || [],
                       phenotype: this.phenotypeName,
                       ancestry: this.ancestryCode,
-                      annotations: this.annotationOptions,
+                      annotations: [annotation],
                       llmRelevance: this.llmRelevance,
                       pValueMax: this.geTrackPValueMax,
                   });
-            this.$emit(
-                "update:enabledMutedAnnotationTissues",
-                next.enabledMutedAnnotationTissues
-            );
-            this.$emit("update:disabledAnnotationTissues", next.disabledAnnotationTissues);
+
+            const enabled = {
+                ...normalizeEnabledMutedAnnotationTissues(
+                    this.enabledMutedAnnotationTissues
+                ),
+            };
+            const disabled = {
+                ...normalizeDisabledAnnotationTissues(this.disabledAnnotationTissues),
+            };
+            delete enabled[annotation];
+            delete disabled[annotation];
+            if (next.enabledMutedAnnotationTissues[annotation]?.length) {
+                enabled[annotation] = next.enabledMutedAnnotationTissues[annotation];
+            }
+            if (next.disabledAnnotationTissues[annotation]?.length) {
+                disabled[annotation] = next.disabledAnnotationTissues[annotation];
+            }
+
+            this.$emit("update:enabledMutedAnnotationTissues", enabled);
+            this.$emit("update:disabledAnnotationTissues", disabled);
         },
         onResetTissueSelection() {
             this.$emit("update:enabledMutedAnnotationTissues", {});
@@ -808,6 +847,52 @@ export default {
 </script>
 
 <style scoped>
+.vks-ge-drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+}
+
+.vks-ge-drawer-body {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    min-height: 0;
+}
+
+.vks-drawer-section--controls {
+    flex: 0 0 auto;
+}
+
+.vks-drawer-section--table {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vks-ge-table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px 12px;
+}
+
+.vks-ge-table-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 0;
+}
+
+.vks-ge-table-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .vks-ge-muted-group {
     margin-bottom: 12px;
     padding: 10px 12px;
@@ -816,19 +901,35 @@ export default {
     background: #fcfbfa;
 }
 
-.vks-ge-tissue-columns {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px 16px;
-}
-
-.vks-ge-tissue-actions {
+.vks-ge-tissue-toolbar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 8px 12px;
     margin: 0 0 12px;
+}
+
+.vks-ge-annotation-select {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.vks-ge-annotation-select .vks-ge-track-sort-select {
+    width: auto;
+    min-width: 0;
+    flex: 0 0 auto;
+    max-width: 100%;
+}
+
+.vks-ge-tissue-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .vks-ge-tissue-select-all {
@@ -842,24 +943,33 @@ export default {
     cursor: pointer;
 }
 
-.vks-ge-tissue-column {
-    padding: 10px 12px;
-    border: 1px solid var(--cfde-border, #e6e1d6);
-    border-radius: 8px;
-    background: #fcfbfa;
-    min-width: 0;
+.vks-ge-tissue-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.vks-ge-muted-annotation-label {
-    margin: 0 0 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #33363d;
+.vks-ge-tissue-item {
+    margin: 0;
 }
 
-.vks-ge-muted-count {
-    font-weight: 500;
-    color: #6b6b6b;
+.vks-ge-tissue-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--cfde-ink, #33363d);
+    cursor: pointer;
+}
+
+.vks-ge-tissue-check input {
+    margin: 0;
+    flex: 0 0 auto;
 }
 
 .vks-ge-muted-list {
@@ -877,15 +987,6 @@ export default {
     font-size: 13px;
     color: #4a4a4a;
     cursor: pointer;
-}
-
-.vks-ge-legend-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 14px;
-    margin: 0 0 10px;
-    padding: 0;
-    list-style: none;
 }
 
 .vks-ge-track-sort {
@@ -913,10 +1014,6 @@ export default {
     padding: 0 8px;
 }
 
-.vks-ge-settings-section {
-    margin: 0 0 18px;
-}
-
 .vks-ge-pvalue-filter {
     display: flex;
     flex-wrap: wrap;
@@ -937,37 +1034,6 @@ export default {
 }
 
 .vks-ge-filter-group {
-    margin: 0 0 14px;
+    margin: 12px 0 14px;
 }
-
-.vks-ge-legend-item.is-muted {
-    opacity: 0.55;
-}
-
-.vks-ge-legend-checkbox {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0;
-    cursor: pointer;
-    font-size: 13px;
-    color: #33363d;
-}
-
-.vks-ge-legend-input {
-    width: 14px;
-    height: 14px;
-    margin: 0;
-    flex-shrink: 0;
-    cursor: pointer;
-}
-
-.vks-ge-legend-label {
-    line-height: 1.3;
-}
-
-.vks-ge-table-tabs-section {
-    margin-top: 8px;
-}
-
 </style>
