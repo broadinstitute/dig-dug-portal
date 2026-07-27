@@ -88,7 +88,10 @@ export const DEFAULT_TRAIT_GROUP = "jurgens_exomes";
 export const TRAIT_GROUPS = {
     "jurgens_exomes": "Jurgens Exomes",
     "jurgens_exomes___portal": "Jurgens Exomes - Portal",
-    "jurgens_exomes___gcat_trait": "Jurgens Exomes - GCAT"
+    "jurgens_exomes___gcat_trait": "Jurgens Exomes - GCAT",
+    "jurgens_exomes_rare": "Jurgens Exomes (Rare)",
+    "jurgens_exomes_rare___portal": "Jurgens Exomes (Rare) - Portal",
+    "jurgens_exomes_rare___gcat_trait": "Jurgens Exomes (Rare) - GCAT"
 };
 
 export default {
