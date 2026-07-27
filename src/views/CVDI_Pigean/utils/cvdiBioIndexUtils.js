@@ -72,26 +72,26 @@ function jurgensTraitGroup(phenotypeId){
     let delimiter = "___";
     let delimited = phenotypeId.split(delimiter);
     if (delimited.length === 1){
-        return "jurgens_exomes";
+        return "jurgens_exomes_rare";
     }
     let suffix = delimited[1];
     if (suffix.startsWith("gcat_trait")){
-        return "jurgens_exomes___gcat_trait";
+        return "jurgens_exomes_rare___gcat_trait";
     }
-    return "jurgens_exomes___portal";
+    return "jurgens_exomes_rare___portal";
 }
 
 export const DEFAULT_MODEL = "mouse_msigdb";
 export const DEFAULT_SIGMA = 2;
 export const DEFAULT_GENESET_SIZE = "small";
-export const DEFAULT_TRAIT_GROUP = "jurgens_exomes";
+export const DEFAULT_TRAIT_GROUP = "jurgens_exomes_rare";
 export const TRAIT_GROUPS = {
     "jurgens_exomes": "Jurgens Exomes",
     "jurgens_exomes___portal": "Jurgens Exomes - Portal",
     "jurgens_exomes___gcat_trait": "Jurgens Exomes - GCAT",
-    "jurgens_exomes_rare": "Jurgens Exomes (Rare)",
-    "jurgens_exomes_rare___portal": "Jurgens Exomes (Rare) - Portal",
-    "jurgens_exomes_rare___gcat_trait": "Jurgens Exomes (Rare) - GCAT"
+    "jurgens_exomes_rare": "Jurgens Exomes Rare",
+    "jurgens_exomes_rare___portal": "Jurgens Exomes Rare - Portal",
+    "jurgens_exomes_rare___gcat_trait": "Jurgens Exomes Rare - GCAT"
 };
 
 export default {
