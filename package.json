@@ -37,7 +37,7 @@
     "vis-data": "8.0.3",
     "vis-network": "10.0.2",
     "vis-util": "6.0.0",
-    "vue": "2.7.16",
+    "vue": "3.0.0",
     "vue-async-computed": "3.9.0",
     "vue-codemirror": "4.0.6",
     "vue-cookies": "1.8.4",
