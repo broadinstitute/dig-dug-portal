@@ -72,7 +72,7 @@ export default new Vuex.Store({
 
             let query = {
                 q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`,
-                limit: 1000,
+                limit: 2000,
             };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);
