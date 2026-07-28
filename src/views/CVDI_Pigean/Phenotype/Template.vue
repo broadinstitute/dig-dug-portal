@@ -95,7 +95,8 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Genes with genetic support</h4>
+                    <h4 class="card-title">Genes with genetic support (
+                        {{ $parent.traitGroups[$parent.pigeanPhenotypeRare[0].trait_group] }})</h4>
                     <div style="margin-bottom: 1rem">
                         Combined genetic support is composed of direct support
                         (from GWAS associations near the gene) and indirect
@@ -130,7 +131,7 @@
                                         0 &&
                                     Object.keys($parent.pigeanMap).length > 0
                                 "
-                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                :pigeanData="$parent.pigeanPhenotypeRare"
                                 :config="$parent.genePigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"
@@ -143,7 +144,68 @@
                                         0 &&
                                     Object.keys($parent.pigeanMap).length > 0
                                 "
-                                :pigeanData="$store.state.pigeanPhenotype.data"
+                                :pigeanData="$parent.pigeanPhenotypeRare"
+                                :config="$parent.tableConfig"
+                                :filter="filter"
+                                :phenotypeMap="$parent.pigeanMap"
+                            >
+                            </cvdi-pigean-table>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Genes with genetic support (
+                        {{ $parent.traitGroups[$parent.pigeanPhenotypeCommon[0].trait_group] }})</h4>
+                    <div style="margin-bottom: 1rem">
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect
+                        support (membership in gene sets with genetic support).
+                        Units are log-odds of probability.
+                    </div>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene"
+                            placeholder="Select a gene ..."
+                            :options="
+                                $store.state.pigeanPhenotype.data.map(
+                                    (d) => d.gene
+                                )
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Genes</div>
+                        </filter-enumeration-control>
+                        <filter-greater-less
+                            v-for="filterField in $parent.geneFilterFields"
+                            :key="filterField.key"
+                            :field="filterField.key"
+                            :label="filterField.label"
+                        >
+                            <div class="label">{{ filterField.label }}</div>
+                        </filter-greater-less>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-plot
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
+                                :pigeanData="$parent.pigeanPhenotypeCommon"
+                                :config="$parent.genePigeanPlotConfig"
+                                :phenotypeMap="$parent.pigeanMap"
+                                :filter="filter"
+                                :pigeanColors="$parent.pigeanColors"
+                            >
+                            </pigean-plot>
+                            <cvdi-pigean-table
+                                v-if="
+                                    $store.state.pigeanPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
+                                :pigeanData="$parent.pigeanPhenotypeCommon"
                                 :config="$parent.tableConfig"
                                 :filter="filter"
                                 :phenotypeMap="$parent.pigeanMap"

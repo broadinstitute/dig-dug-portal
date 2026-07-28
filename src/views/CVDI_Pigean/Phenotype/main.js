@@ -15,6 +15,7 @@ import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TraitGroupSelectPicker from "@/components/TraitGroupSelectPicker.vue";
 import CVDIPigeanTable from "../CVDIPigeanTable.vue";
 import PigeanPlot from "@/components/PigeanPlot.vue";
 import Heatmap from "@/components/Heatmap.vue";
@@ -30,6 +31,7 @@ new Vue({
     store,
     components: {
         SearchHeaderWrapper,
+        TraitGroupSelectPicker,
         ResearchMPlot,
         RawImage,
         CVDIPigeanTable,
@@ -223,9 +225,16 @@ new Vue({
             }
             return colors;
         },
-        pigeanPhenotypeData() {
-            return this.$store.state.pigeanPhenotype.data;
+        pigeanPhenotypeCommon() {
+            let phenotypes = this.$store.state.pigeanPhenotype.data;
+            let filtered = phenotypes.filter(d => !d.trait_group.includes("rare"));
+            return filtered;
         },
+        pigeanPhenotypeRare(){
+            let phenotypes = this.$store.state.pigeanPhenotype.data;
+            let filtered = phenotypes.filter(d => d.trait_group.includes("rare"));
+            return filtered;
+        }
     },
 
     watch: {
@@ -277,8 +286,8 @@ new Vue({
             let phenotype = this.pigeanPhenotypeMap[name];
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
-                this.$store.state.traitGroupToQuery = phenotype.trait_group;
-                keyParams.set({ traitGroup: phenotype.trait_group });
+                //this.$store.state.traitGroupToQuery = phenotype.trait_group;
+                //keyParams.set({ traitGroup: phenotype.trait_group });
             }
             //Initial query. Should only happen once.
             this.$store.dispatch("queryPhenotype");

@@ -38,8 +38,8 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
-            state.traitGroupToQuery = PHENOTYPE.trait_group;
-            keyParams.set({ traitGroup: PHENOTYPE.trait_group });
+            //state.traitGroupToQuery = PHENOTYPE.trait_group;
+            //keyParams.set({ traitGroup: PHENOTYPE.trait_group });
         },
         setTraitGroup(state, traitGroup) {
             state.traitGroup = traitGroup || state.traitGroup;
