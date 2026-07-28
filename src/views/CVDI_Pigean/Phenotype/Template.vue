@@ -95,8 +95,8 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Genes with genetic support (
-                        {{ $parent.traitGroups[$parent.pigeanPhenotypeRare[0].trait_group] }})</h4>
+                    <h4 class="card-title">Genes with genetic support ({{ 
+                        $parent.traitGroups[$parent.pigeanPhenotypeRare[0].trait_group] }})</h4>
                     <div style="margin-bottom: 1rem">
                         Combined genetic support is composed of direct support
                         (from GWAS associations near the gene) and indirect
@@ -156,8 +156,8 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Genes with genetic support (
-                        {{ $parent.traitGroups[$parent.pigeanPhenotypeCommon[0].trait_group] }})</h4>
+                    <h4 class="card-title">Genes with genetic support ({{ 
+                        $parent.traitGroups[$parent.pigeanPhenotypeCommon[0].trait_group] }})</h4>
                     <div style="margin-bottom: 1rem">
                         Combined genetic support is composed of direct support
                         (from GWAS associations near the gene) and indirect
@@ -218,7 +218,8 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Gene sets that affect genetic support
+                        Gene sets that affect genetic support ({{ 
+                        $parent.traitGroups[$parent.genesetPhenotypeRare[0].trait_group] }})
                     </h4>
                     <div style="margin-bottom: 1rem">
                         Gene sets affect the log-odds of the probability that a
@@ -255,7 +256,7 @@
                                         0 &&
                                     Object.keys($parent.pigeanMap).length > 0
                                 "
-                                :pigeanData="$store.state.genesetPhenotype.data"
+                                :pigeanData="$parent.genesetPhenotypeRare"
                                 :config="$parent.genesetPigeanPlotConfig"
                                 :phenotypeMap="$parent.pigeanMap"
                                 :pigeanColors="$parent.pigeanColors"
@@ -268,7 +269,71 @@
                                         0 &&
                                     Object.keys($parent.pigeanMap).length > 0
                                 "
-                                :pigeanData="$store.state.genesetPhenotype.data"
+                                :pigeanData="$parent.genesetPhenotypeRare"
+                                :config="$parent.genesetTableConfig"
+                                :phenotypeMap="$parent.pigeanMap"
+                                :filter="filter"
+                            >
+                            </cvdi-pigean-table>
+                        </template>
+                    </criterion-function-group>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Gene sets that affect genetic support ({{ 
+                        $parent.traitGroups[$parent.genesetPhenotypeCommon[0].trait_group] }})
+                    </h4>
+                    <div style="margin-bottom: 1rem">
+                        Gene sets affect the log-odds of the probability that a
+                        gene is involved in a trait. Effect sizes are calculated
+                        for the gene set in isolation (marginal) and in a joint
+                        model with all gene sets together (joint).
+                    </div>
+                    <criterion-function-group>
+                        <filter-enumeration-control
+                            field="gene_set"
+                            placeholder="Select a gene set..."
+                            :options="
+                                $store.state.genesetPhenotype.data.map(
+                                    (d) => d.gene_set
+                                )
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Filter by Gene Sets</div>
+                        </filter-enumeration-control>
+                        <filter-greater-less
+                            v-for="filterField in $parent.genesetFilterFields"
+                            :key="filterField.key"
+                            :field="filterField.key"
+                            :label="filterField.label"
+                        >
+                            <div class="label">{{ filterField.label }}</div>
+                        </filter-greater-less>
+
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <pigean-plot
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
+                                :pigeanData="$parent.genesetPhenotypeCommon"
+                                :config="$parent.genesetPigeanPlotConfig"
+                                :phenotypeMap="$parent.pigeanMap"
+                                :pigeanColors="$parent.pigeanColors"
+                                :filter="filter"
+                            >
+                            </pigean-plot>
+                            <cvdi-pigean-table
+                                v-if="
+                                    $store.state.genesetPhenotype.data.length >
+                                        0 &&
+                                    Object.keys($parent.pigeanMap).length > 0
+                                "
+                                :pigeanData="$parent.genesetPhenotypeCommon"
                                 :config="$parent.genesetTableConfig"
                                 :phenotypeMap="$parent.pigeanMap"
                                 :filter="filter"

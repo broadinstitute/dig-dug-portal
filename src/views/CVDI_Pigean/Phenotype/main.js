@@ -226,13 +226,23 @@ new Vue({
             return colors;
         },
         pigeanPhenotypeCommon() {
-            let phenotypes = this.$store.state.pigeanPhenotype.data;
-            let filtered = phenotypes.filter(d => !d.trait_group.includes("rare"));
+            let data = this.$store.state.pigeanPhenotype.data;
+            let filtered = data.filter(d => !d.trait_group.includes("rare"));
             return filtered;
         },
         pigeanPhenotypeRare(){
-            let phenotypes = this.$store.state.pigeanPhenotype.data;
-            let filtered = phenotypes.filter(d => d.trait_group.includes("rare"));
+            let data = this.$store.state.pigeanPhenotype.data;
+            let filtered = data.filter(d => d.trait_group.includes("rare"));
+            return filtered;
+        },
+        genesetPhenotypeCommon() {
+            let data = this.$store.state.genesetPhenotype.data;
+            let filtered = data.filter(d => !d.trait_group.includes("rare"));
+            return filtered;
+        },
+        genesetPhenotypeRare(){
+            let data = this.$store.state.genesetPhenotype.data;
+            let filtered = data.filter(d => d.trait_group.includes("rare"));
             return filtered;
         }
     },
