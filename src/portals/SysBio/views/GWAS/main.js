@@ -21,6 +21,8 @@ import { getTextContent } from "@/portals/SysBio/utils/content.js";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 
+const DEFAULT_DATASET = "SysBio_Nalls2025_ADvPD_EU";
+
 new Vue({
     mixins: [sysbioMixin],
 
@@ -93,7 +95,7 @@ new Vue({
             },
             chromosomeFilterSet: false,
             byorDocs: "sysbio_GWAS",
-            docs: ""
+            docs: "",
         };
     },
 
@@ -121,6 +123,10 @@ new Vue({
         },
         disableRegionFilter(){
             return !this.chromosomeFilterSet;
+        },
+        dataset(){
+            // TODO when more datasets are added, make this reflect user choice.
+            return DEFAULT_DATASET;
         }
     },
 
@@ -137,9 +143,8 @@ new Vue({
                 DATASET_ASSOC_URL ||
                 `${SYSBIO_HOST}/api/bio/query/dataset-associations`;
             const limit = 500;
-            const dataset = "SysBio_Nalls2025_ADvPD_EU";
             const phenotype = "SysBio_ADvPD";
-            const url = `${bi}?limit=${limit}&q=${dataset},${phenotype}`;;
+            const url = `${bi}?limit=${limit}&q=${this.dataset},${phenotype}`;;
             const response = await fetch(url);
             const json = await response.json();
             this.tableData = json.data;

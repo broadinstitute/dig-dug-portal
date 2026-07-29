@@ -68,6 +68,13 @@
                     </filter-position>
                     
                     <template #filtered="{filter}">
+                        <div class="text-right mb-2">
+                            <data-download
+                                :data="$parent.tableData.filter(filter)"
+                                :filename="`${$parent.dataset}_filtered`"
+                                label="Download summary statistics"
+                            ></data-download>
+                        </div>
                         <b-table
                             small
                             hover
