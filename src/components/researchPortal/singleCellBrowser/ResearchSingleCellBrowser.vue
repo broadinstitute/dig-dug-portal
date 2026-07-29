@@ -328,9 +328,9 @@
                                                 renderAs="svg"
                                             />
                                         </div>
-                                    </span>
+                                    </div>
 
-                                    <download-chart 
+                                    <download-chart
                                         class="download"
                                         chartId="sc_violin_plot"
                                         style="width: 125px; align-self: flex-start;"
