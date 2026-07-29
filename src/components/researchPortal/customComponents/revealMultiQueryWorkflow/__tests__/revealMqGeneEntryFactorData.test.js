@@ -1,141 +1,275 @@
 import {
-    buildFactorDataFromGeneEntry,
-    DEFAULT_BUCKET_LABEL,
-    mergePigeanFactorRowsIntoFactorData,
+    buildFactorDataFromPhenotypePigean,
+    scopeGeneRows,
+    selectTopFactorIds,
+    selectTopGeneSetsFromRows,
 } from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js";
 
-const PIGEAN_RESPONSE = {
-    input_genes: ["PCSK9", "PPARG"],
-    "pigean-factor": {
-        data: [
-            {
-                cluster: "Factor0",
-                factor: "Factor0",
-                gene_score: 0.53,
-                gene_set_score: 2.19,
-                label: "HP_ARTERIOSCLEROSIS",
-                top_gene_sets: "HP_ARTERIOSCLEROSIS;HP_ABNORMAL_CORONARY_ARTERY_MORPHOLOGY",
-                top_genes: "ACTA2;APOE",
-            },
-        ],
+const GENE_ROWS = [
+    { gene: "PCSK9", factor: "Factor0", label: "Lipid cluster", combined: 4.2, gwasSupport: 5.1, geneSetSupport: 3.0 },
+    { gene: "LDLR", factor: "Factor0", label: "Lipid cluster", combined: 3.1, gwasSupport: 4.0, geneSetSupport: 2.5 },
+    { gene: "PPARG", factor: "Factor1", label: "Adipose cluster", combined: 1.4, gwasSupport: 0.8, geneSetSupport: 1.2 },
+    { gene: "OTHER1", factor: "Factor0", label: "Lipid cluster", combined: 0.2, gwasSupport: 0.1, geneSetSupport: 0.1 },
+];
+
+const GENE_SET_ROWS = [
+    {
+        geneSet: "HP_HYPERLIPIDEMIA",
+        factor: "Factor0",
+        label: "Lipid cluster",
+        rsScore: 3.02,
+        description: "Hyperlipidemia",
+        program: "hpo",
     },
-    "gene-factor": {
-        Factor0: [
-            { factor_value: 0.53, gene: "ACTA2", label: "HP_ARTERIOSCLEROSIS", label_factor: "Factor0" },
-            { factor_value: 0.31, gene: "PPARG", label: "HP_ARTERIOSCLEROSIS", label_factor: "Factor0" },
-        ],
+    {
+        geneSet: "HP_ARTERIOSCLEROSIS",
+        factor: "Factor0",
+        label: "Lipid cluster",
+        rsScore: 2.19,
+        description: "Arteriosclerosis",
+        program: "hpo",
     },
-    "gene-set-factor": {
-        Factor0: [
-            { factor_value: 2.19, gene_set: "HP_ARTERIOSCLEROSIS", label: "HP_ARTERIOSCLEROSIS", label_factor: "Factor0" },
-            { factor_value: 1.91, gene_set: "HP_ABNORMAL_CORONARY_ARTERY_MORPHOLOGY", label: "HP_ARTERIOSCLEROSIS", label_factor: "Factor0" },
-        ],
+    {
+        geneSet: "WP_ADIPOGENESIS",
+        factor: "Factor1",
+        label: "Adipose cluster",
+        rsScore: 1.5,
+        description: "Adipogenesis",
+        program: "wp",
     },
-    gene_scores: { PCSK9: 0.51, PPARG: 0.29, ACTA2: -0.02 },
-    gene_set_scores: {},
-};
+    { geneSet: "WP_UNCLUSTERED", factor: "", label: "", rsScore: 5.0 },
+];
 
-describe("revealMqGeneEntryFactorData", () => {
-    test("returns empty object when pigean response missing", () => {
-        expect(buildFactorDataFromGeneEntry(null, ["PCSK9"])).toEqual({});
+describe("selectTopFactorIds", () => {
+    test("prefers factors with search genes, ranked by combined", () => {
+        const ids = selectTopFactorIds(GENE_ROWS, GENE_SET_ROWS, ["PCSK9", "PPARG"], { limit: 5 });
+        expect(ids[0]).toBe("Factor0"); // PCSK9 combined 4.2
+        expect(ids).toContain("Factor1");
     });
 
-    test("builds a single-bucket factorData with expected shape", () => {
-        const factorData = buildFactorDataFromGeneEntry(PIGEAN_RESPONSE, ["PCSK9", "PPARG"]);
-        expect(Object.keys(factorData)).toEqual([DEFAULT_BUCKET_LABEL]);
-        const bucket = factorData[DEFAULT_BUCKET_LABEL];
-        expect(bucket.factors).toHaveLength(1);
-        expect(bucket.allFactors).toBe(bucket.factors);
-
-        const factor = bucket.factors[0];
-        expect(factor.factor).toBe("Factor0");
-        expect(factor.label).toBe("HP_ARTERIOSCLEROSIS");
-        expect(factor.top_gene_sets).toBe("HP_ARTERIOSCLEROSIS;HP_ABNORMAL_CORONARY_ARTERY_MORPHOLOGY");
-        expect(factor.geneSets).toEqual({});
-    });
-
-    test("marks genes as includedFromRequest based on the original input gene list", () => {
-        const factorData = buildFactorDataFromGeneEntry(PIGEAN_RESPONSE, ["PCSK9"]);
-        const factor = factorData[DEFAULT_BUCKET_LABEL].factors[0];
-        expect(factor.genes.PPARG.includedFromRequest).toBe(false);
-        // ACTA2 is a gene-factor member (co-clustered), not one of the original input genes --
-        // it's still present in factor.genes, just not flagged as user-supplied.
-        expect(factor.genes.ACTA2).toBeDefined();
-        expect(factor.genes.ACTA2.includedFromRequest).toBe(false);
-    });
-
-    test("per-gene factorRelevance/factor_value come from gene-factor rows", () => {
-        const factorData = buildFactorDataFromGeneEntry(PIGEAN_RESPONSE, ["PCSK9", "PPARG"]);
-        const factor = factorData[DEFAULT_BUCKET_LABEL].factors[0];
-        expect(factor.genes.ACTA2.factorRelevance).toBeCloseTo(0.53);
-        expect(factor.genes.PPARG.includedFromRequest).toBe(true);
-        expect(factor.genes.PPARG.geneSetIds).toEqual([]);
-    });
-
-    test("phenotype-level genes map comes from the flat gene_scores map", () => {
-        const factorData = buildFactorDataFromGeneEntry(PIGEAN_RESPONSE, ["PCSK9", "PPARG"]);
-        const bucket = factorData[DEFAULT_BUCKET_LABEL];
-        expect(bucket.genes.PCSK9.combined).toBeCloseTo(0.51);
-        expect(bucket.genes.ACTA2.combined).toBeCloseTo(-0.02);
-    });
-
-    test("supports a custom bucket label", () => {
-        const factorData = buildFactorDataFromGeneEntry(PIGEAN_RESPONSE, ["PCSK9"], { bucketLabel: "Custom Label" });
-        expect(Object.keys(factorData)).toEqual(["Custom Label"]);
+    test("limits to N factors", () => {
+        const geneRows = Array.from({ length: 10 }, (_, i) => ({
+            gene: "PCSK9",
+            factor: `Factor${i}`,
+            label: `L${i}`,
+            combined: i,
+        }));
+        const ids = selectTopFactorIds(geneRows, [], ["PCSK9"], { limit: 5 });
+        expect(ids).toEqual(["Factor9", "Factor8", "Factor7", "Factor6", "Factor5"]);
     });
 });
 
-describe("mergePigeanFactorRowsIntoFactorData", () => {
-    const HYBRID_FACTOR_DATA = {
-        "Serum ApoB": {
-            genes: {
-                LDLR: { combined: 12.6, gwasSupport: 5.89, geneSetSupport: 6.68 },
-                APOB: { combined: 11.0, gwasSupport: 5.89, geneSetSupport: 5.09 },
-            },
-            factors: [{ factor: "Serum ApoB", label: "Serum ApoB", top_gene_sets: "", genes: {}, geneSets: {} }],
-            allFactors: [{ factor: "Serum ApoB", label: "Serum ApoB", top_gene_sets: "", genes: {}, geneSets: {} }],
-        },
-        "Orphanet_309005": {
-            genes: { PPARG: { combined: 2.83, gwasSupport: 0, geneSetSupport: 2.83 } },
-            factors: [{ factor: "Orphanet_309005", label: "Orphanet_309005", top_gene_sets: "", genes: {}, geneSets: {} }],
-            allFactors: [{ factor: "Orphanet_309005", label: "Orphanet_309005", top_gene_sets: "", genes: {}, geneSets: {} }],
-        },
-    };
-
-    test("replaces hybrid-search's coarse factor with real per-phenotype cluster rows when available", () => {
-        const perPhenotypeFactorRows = {
-            "Serum ApoB": {
-                ok: true,
-                factors: [
-                    { factor: "F0", label: "lipid cluster", topGeneSets: "GS_A;GS_B" },
-                    { factor: "F1", label: "cholesterol cluster", topGeneSets: "GS_C" },
-                ],
-            },
-        };
-        const merged = mergePigeanFactorRowsIntoFactorData(HYBRID_FACTOR_DATA, perPhenotypeFactorRows, ["LDLR"]);
-        const bucket = merged["Serum ApoB"];
-        expect(bucket.factors).toHaveLength(2);
-        expect(bucket.factors[0].factor).toBe("F0");
-        expect(bucket.factors[0].top_gene_sets).toBe("GS_A;GS_B");
-        // phenotype-level genes are attached to every factor of that phenotype
-        expect(bucket.factors[0].genes.LDLR.factorRelevance).toBeCloseTo(12.6);
-        expect(bucket.factors[0].genes.LDLR.includedFromRequest).toBe(true);
-        expect(bucket.factors[0].genes.APOB.includedFromRequest).toBe(false);
-        expect(bucket.factors[1].factor).toBe("F1");
-        expect(bucket.factors[1].genes.LDLR).toBeDefined();
+describe("selectTopGeneSetsFromRows", () => {
+    test("returns top N by rs_score among factor-assigned gene sets", () => {
+        expect(selectTopGeneSetsFromRows(GENE_SET_ROWS, { limit: 2 })).toEqual([
+            "HP_HYPERLIPIDEMIA",
+            "HP_ARTERIOSCLEROSIS",
+        ]);
     });
 
-    test("falls back to hybrid-search's own factor when the per-phenotype fetch returned nothing", () => {
-        const perPhenotypeFactorRows = {
-            "Serum ApoB": { ok: false, factors: [] },
-        };
-        const merged = mergePigeanFactorRowsIntoFactorData(HYBRID_FACTOR_DATA, perPhenotypeFactorRows, ["LDLR"]);
-        expect(merged["Serum ApoB"]).toBe(HYBRID_FACTOR_DATA["Serum ApoB"]);
+    test("restricts to provided factorIds", () => {
+        expect(
+            selectTopGeneSetsFromRows(GENE_SET_ROWS, { limit: 10, factorIds: ["Factor1"] })
+        ).toEqual(["WP_ADIPOGENESIS"]);
+    });
+});
+
+describe("scopeGeneRows", () => {
+    test("restricts to search genes only", () => {
+        const scoped = scopeGeneRows(GENE_ROWS, ["PCSK9", "PPARG"]);
+        expect(scoped.map((r) => r.gene).sort()).toEqual(["PCSK9", "PPARG"]);
     });
 
-    test("falls back when a phenotype has no entry in perPhenotypeFactorRows at all", () => {
-        const merged = mergePigeanFactorRowsIntoFactorData(HYBRID_FACTOR_DATA, {}, ["LDLR"]);
-        expect(merged["Serum ApoB"]).toBe(HYBRID_FACTOR_DATA["Serum ApoB"]);
-        expect(merged["Orphanet_309005"]).toBe(HYBRID_FACTOR_DATA["Orphanet_309005"]);
+    test("returns empty when search genes do not appear in rows", () => {
+        expect(scopeGeneRows(GENE_ROWS, ["NOT_PRESENT"])).toEqual([]);
+    });
+
+    test("falls back to top-N by score when no search genes are provided", () => {
+        const scoped = scopeGeneRows(GENE_ROWS, [], 2);
+        expect(scoped).toHaveLength(2);
+        expect(scoped.map((r) => r.gene).sort()).toEqual(["LDLR", "PCSK9"]);
+    });
+});
+
+describe("buildFactorDataFromPhenotypePigean", () => {
+    test("builds factors with genes, gene sets, and membership", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [
+                {
+                    phenotypeId: "T2D",
+                    geneRows: GENE_ROWS,
+                    geneSetRows: GENE_SET_ROWS,
+                    membershipByGeneSet: {
+                        HP_HYPERLIPIDEMIA: [
+                            { gene: "PCSK9", combined: 4.2 },
+                            { gene: "APOB", combined: 2.0 },
+                            { gene: "LEP", combined: 11.3 }, // not a search gene — must be dropped
+                        ],
+                        HP_ARTERIOSCLEROSIS: [{ gene: "LDLR", combined: 3.1 }],
+                    },
+                },
+            ],
+            ["PCSK9", "LDLR", "PPARG", "APOB"]
+        );
+
+        expect(Object.keys(factorData)).toEqual(["T2D"]);
+        const bucket = factorData.T2D;
+        expect(bucket.factors.length).toBeGreaterThanOrEqual(2);
+
+        const f0 = bucket.factors.find((f) => f.factor === "Factor0");
+        expect(f0).toBeDefined();
+        expect(f0.label).toBe("Lipid cluster");
+        expect(f0.top_gene_sets.split(";")).toEqual(
+            expect.arrayContaining(["HP_HYPERLIPIDEMIA", "HP_ARTERIOSCLEROSIS"])
+        );
+        expect(f0.genes.PCSK9.includedFromRequest).toBe(true);
+        expect(f0.genes.PCSK9.geneSetIds).toContain("HP_HYPERLIPIDEMIA");
+        expect(f0.geneSets.HP_HYPERLIPIDEMIA.genes).toContain("PCSK9");
+        expect(f0.geneSets.HP_HYPERLIPIDEMIA.genes).not.toContain("LEP");
+        // APOB is an input gene present only via membership — attached to the factor.
+        expect(f0.genes.APOB.includedFromRequest).toBe(true);
+        expect(f0.geneSets.HP_HYPERLIPIDEMIA.genes).toContain("APOB");
+        // OTHER1 is in the API rows but not in the search list.
+        expect(f0.genes.OTHER1).toBeUndefined();
+        expect(Object.keys(bucket.genes).sort()).toEqual(["APOB", "LDLR", "PCSK9", "PPARG"]);
+
+        // Phenotype-level gene scores from gene rows (combined / log_bf / prior).
+        expect(bucket.genes.PCSK9.combined).toBeCloseTo(4.2);
+        expect(bucket.genes.PCSK9.gwasSupport).toBeCloseTo(5.1);
+        expect(bucket.genes.PCSK9.geneSetSupport).toBeCloseTo(3.0);
+        expect(bucket.allFactors).toBe(bucket.factors);
+    });
+
+    test("post-merge filter keeps only search genes", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [
+                {
+                    phenotypeId: "T2D",
+                    geneRows: GENE_ROWS,
+                    geneSetRows: GENE_SET_ROWS,
+                    membershipByGeneSet: {
+                        HP_HYPERLIPIDEMIA: [
+                            { gene: "PCSK9", combined: 4.2 },
+                            { gene: "OTHER1", combined: 0.2 },
+                        ],
+                    },
+                },
+            ],
+            ["PCSK9"]
+        );
+        const f0 = factorData.T2D.factors.find((f) => f.factor === "Factor0");
+        expect(Object.keys(f0.genes)).toEqual(["PCSK9"]);
+        expect(Object.keys(factorData.T2D.genes)).toEqual(["PCSK9"]);
+        expect(f0.geneSets.HP_HYPERLIPIDEMIA.genes).toEqual(["PCSK9"]);
+        // Factor1 only had PPARG — no search-gene crossing → dropped, and its gene set with it.
+        expect(factorData.T2D.factors.find((f) => f.factor === "Factor1")).toBeUndefined();
+        expect(f0.top_gene_sets.split(";")).not.toContain("WP_ADIPOGENESIS");
+    });
+
+    test("drops factors with no search-gene crossing and orphan gene sets", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [
+                {
+                    phenotypeId: "T2D",
+                    geneRows: [
+                        { gene: "PCSK9", factor: "Factor0", label: "Keep me", combined: 2 },
+                        { gene: "ZZZ", factor: "Factor9", label: "Drop me", combined: 9 },
+                    ],
+                    geneSetRows: [
+                        { geneSet: "GS_KEEP", factor: "Factor0", label: "Keep me", rsScore: 2 },
+                        { geneSet: "GS_ORPHAN", factor: "Factor9", label: "Drop me", rsScore: 9 },
+                    ],
+                    membershipByGeneSet: {},
+                },
+            ],
+            ["PCSK9"]
+        );
+        expect(factorData.T2D.factors.map((f) => f.factor)).toEqual(["Factor0"]);
+        expect(factorData.T2D.factors[0].top_gene_sets).toBe("GS_KEEP");
+        expect(factorData.T2D.factors[0].geneSets.GS_ORPHAN).toBeUndefined();
+    });
+
+    test("skips phenotypes with no usable rows", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [{ phenotypeId: "Empty", geneRows: [], geneSetRows: [] }],
+            ["PCSK9"]
+        );
+        expect(factorData).toEqual({});
+    });
+
+    test("keeps at most maxFactors per phenotype", () => {
+        const geneRows = Array.from({ length: 8 }, (_, i) => ({
+            gene: "PCSK9",
+            factor: `Factor${i}`,
+            label: `Cluster ${i}`,
+            combined: i,
+        }));
+        const geneSetRows = Array.from({ length: 8 }, (_, i) => ({
+            geneSet: `GS${i}`,
+            factor: `Factor${i}`,
+            label: `Cluster ${i}`,
+            rsScore: i,
+        }));
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [{ phenotypeId: "T2D", geneRows, geneSetRows, membershipByGeneSet: {} }],
+            ["PCSK9"],
+            { maxFactors: 5 }
+        );
+        expect(factorData.T2D.factors).toHaveLength(5);
+        expect(factorData.T2D.factors.map((f) => f.factor).sort()).toEqual([
+            "Factor3",
+            "Factor4",
+            "Factor5",
+            "Factor6",
+            "Factor7",
+        ].sort());
+    });
+
+    test("ignores factor-less gene-set rows when assembling factors", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [
+                {
+                    phenotypeId: "T2D",
+                    geneRows: [{ gene: "PCSK9", factor: "Factor0", label: "L", combined: 1 }],
+                    geneSetRows: [{ geneSet: "WP_UNCLUSTERED", factor: "", label: "", rsScore: 9 }],
+                    membershipByGeneSet: {},
+                },
+            ],
+            ["PCSK9"]
+        );
+        const f0 = factorData.T2D.factors[0];
+        expect(f0.top_gene_sets).toBe("");
+    });
+
+    test("uses phenotype id as factor when gene/gene-set rows have no factor", () => {
+        const factorData = buildFactorDataFromPhenotypePigean(
+            [
+                {
+                    phenotypeId: "gcat_trait_haptoglobin_measurement",
+                    geneRows: [
+                        { gene: "HP", factor: "", label: "", combined: 1.6 },
+                        { gene: "PKD1", factor: null, label: null, combined: 0.04 },
+                        { gene: "OTHER", factor: "", label: "", combined: 9 },
+                    ],
+                    geneSetRows: [
+                        { geneSet: "GS_A", factor: "", label: "", rsScore: 0.9 },
+                        { geneSet: "GS_B", factor: null, label: null, rsScore: 0.5 },
+                    ],
+                    membershipByGeneSet: {
+                        GS_A: [{ gene: "HP", combined: 1.6 }],
+                    },
+                },
+            ],
+            ["HP", "PKD1"]
+        );
+        expect(Object.keys(factorData)).toEqual(["gcat_trait_haptoglobin_measurement"]);
+        const factors = factorData.gcat_trait_haptoglobin_measurement.factors;
+        expect(factors).toHaveLength(1);
+        expect(factors[0].factor).toBe("gcat_trait_haptoglobin_measurement");
+        expect(factors[0].genes.HP).toBeDefined();
+        expect(factors[0].genes.PKD1).toBeDefined();
+        expect(factors[0].genes.OTHER).toBeUndefined();
+        expect(factors[0].top_gene_sets.split(";").sort()).toEqual(["GS_A", "GS_B"]);
+        expect(factors[0].geneSets.GS_A.genes).toContain("HP");
     });
 });

@@ -5,10 +5,34 @@
                                     v-if="gateActive && gateStepId === '2'"
                                     @continue="$emit('approve-gate')"
                                 >
-                                    Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
-                                    Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
-                                    REVEAL will generate mechanistic hypotheses using the data.
+                                    <template v-if="showResearchIntention">
+                                        Gene-derived evidence is ready. Review phenotypes, gene-set clusters, and genes below.
+                                        Optionally add a research intention, then hit Continue.
+                                        REVEAL will generate mechanistic hypotheses using the data.
+                                    </template>
+                                    <template v-else>
+                                        Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
+                                        Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
+                                        REVEAL will generate mechanistic hypotheses using the data.
+                                    </template>
                                 </workflow-step-gate>
+                                <div
+                                    v-if="gateActive && gateStepId === '2' && showResearchIntention"
+                                    class="mb-3"
+                                >
+                                    <label class="small font-weight-bold text-muted mb-1 d-block">Research intention</label>
+                                    <textarea
+                                        class="form-control form-control-sm"
+                                        :value="researchIntention"
+                                        rows="3"
+                                        style="min-height: 5em; resize: vertical;"
+                                        placeholder="Describe what you want to learn or hypothesize about these genes…"
+                                        @input="$emit('update:researchIntention', $event.target.value)"
+                                    ></textarea>
+                                    <div class="small text-muted mt-1">
+                                        Used as research context when generating mechanistic hypotheses.
+                                    </div>
+                                </div>
                                 <div class="mb-1">
                                     <div class="flex-grow-1">
                                         <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
@@ -447,6 +471,9 @@ export default {
         subtableCurrentPages: { type: Object, default: () => ({}) },
         loadingGenesForFactor: { type: Object, default: () => ({}) },
         geneSetSources: { type: Object, default: () => ({}) },
+        /** Genes-first only: research intention input under the Data Continue gate. */
+        showResearchIntention: { type: Boolean, default: false },
+        researchIntention: { type: String, default: "" },
         helpers: { type: Object, required: true },
     },
 };

@@ -1,88 +1,53 @@
 /**
- * Genes-first entry point orchestration for Multi Query REVEAL: given a raw gene list (from the
- * `genes=` URL param), fetches gene-set/factor/trait data from the Broad Translator Bayes-gene
- * API family, cross-references it (populating `vm.geneEntry`), and builds `vm.factorData` for the
- * existing Data-tab/KG/heatmap/network pipeline.
+ * Genes-first entry point orchestration for Multi Query REVEAL.
  *
- * factorData is built by (1) calling hybrid-search with genes_of_interest only (no phenotype_terms
- * needed -- verified live that the server accepts a research_context-only query), which gives real
- * phenotype names and real per-gene combined/gwas/functional scores, then (2) fetching each
- * discovered phenotype's real gene-set-cluster breakdown via the per-phenotype pigean-factor
- * endpoint and merging it in (revealMqGeneEntryFactorData.js's mergePigeanFactorRowsIntoFactorData).
- * Falls back to the whole-gene-list bayes_gene/pigean response alone if hybrid-search fails.
+ * Flow:
+ * 1. bayes_gene/phenotypes → ranked trait candidates
+ * 2. Walk candidates in order until N traits return non-empty pigean-gene-phenotype data
+ *    (cfde id overlap is sparse; fixed top-N often yields all-empty)
+ * 3. For those traits' top factors/gene sets: pigean-joined-gene-set (batched)
+ * 4. merge into canonical factorData → Data tab heatmap / KG / network
+ * 5. Data-tab Continue gate (+ optional research intention) → mechanistic hypotheses
  */
 
 import {
+    DEFAULT_FETCH_CONCURRENCY,
+    fetchGeneAndGeneSetScoresForPhenotypes,
     fetchGenePhenotypes,
-    fetchGenePigeanFactors,
-    fetchGeneScoresFlat,
-    fetchPigeanFactorsForTraits,
+    fetchJoinedGeneSetMembersForPairs,
 } from "./revealMqGeneEntryApi.js";
+import { selectTopTraits } from "./revealMqGeneEntryCrossReference.js";
 import {
-    buildGeneDerivedFactorSummary,
-    crossReferenceGeneSetToFactors,
-    crossReferenceRecurringTraitFactors,
-    selectTopGeneSets,
-    selectTopTraits,
-} from "./revealMqGeneEntryCrossReference.js";
-import {
-    buildFactorDataFromGeneEntry,
-    mergePigeanFactorRowsIntoFactorData,
+    DEFAULT_MAX_FACTORS,
+    DEFAULT_MAX_GENE_SETS,
+    buildFactorDataFromPhenotypePigean,
+    fillMissingFactorWithTrait,
+    selectTopFactorIds,
+    selectTopGeneSetsFromRows,
 } from "./revealMqGeneEntryFactorData.js";
-import { normalizeHybridFactorsToFactorData } from "./revealMqHybridSearch.js";
+import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 
-const TOP_TRAITS_LIMIT = 15;
-const TOP_GENE_SETS_LIMIT = 50;
+/** How many traits with non-empty gene-phenotype data to keep. */
+const TARGET_TRAITS_WITH_DATA = 10;
+/** Phenotypes per score-fetch wave (each phenotype = 2 GETs; keep ~DEFAULT_FETCH_CONCURRENCY in flight). */
+const TRAIT_SCAN_BATCH_SIZE = Math.max(1, Math.floor(DEFAULT_FETCH_CONCURRENCY / 2));
 
 function emptyGeneEntryState() {
     return {
         status: "idle", // idle | loading | partial | error | ready
         inputGenes: [],
-        errors: { pigean: null, phenotypes: null, geneScores: null, hybridSearch: null, perTrait: {} },
-        pigeanResponse: null,
+        errors: { phenotypes: null, perPhenotype: {} },
         phenotypesResponse: null,
-        geneScoresFlatResponse: null,
-        hybridSearchResponse: null,
         topTraits: [],
-        topGeneSets: [],
-        perTraitFactors: {},
-        geneDerivedFactorSummary: [],
-        crossReference: { recurringTraitFactors: [], geneSetToFactors: [] },
+        progress: { message: "", detail: "" },
+        researchIntention: "",
     };
 }
 
-/**
- * Primary factorData path: hybrid-search (real phenotypes + real per-gene evidence) enriched with
- * each phenotype's real gene-set-cluster breakdown from the per-phenotype pigean-factor endpoint.
- * Returns null if hybrid-search itself fails (caller falls back to the pigean-only builder).
- */
-async function buildFactorDataFromHybridSearch(vm, genes) {
-    let hybridJson;
-    try {
-        hybridJson = await vm.callHybridRevealSearch({
-            phenotypeTerms: [],
-            mechanismTerms: [],
-            researchContext: `Gene-list-driven retrieval for: ${genes.join(", ")}.`,
-            genesOfInterest: genes,
-        });
-    } catch (err) {
-        vm.$set(vm.geneEntry.errors, "hybridSearch", err && err.message ? err.message : "Request failed.");
-        return null;
-    }
-    vm.geneEntry.hybridSearchResponse = hybridJson;
-
-    let factorData = normalizeHybridFactorsToFactorData(hybridJson, []);
-    const phenotypes = Object.keys(factorData);
-    if (!phenotypes.length) return factorData;
-
-    const perPhenotypeResults = await fetchPigeanFactorsForTraits(vm, phenotypes);
-    const perPhenotypeFactorRows = {};
-    perPhenotypeResults.forEach((r) => {
-        perPhenotypeFactorRows[r.traitId] = { ok: r.ok, factors: r.factors };
-    });
-    factorData = mergePigeanFactorRowsIntoFactorData(factorData, perPhenotypeFactorRows, genes);
-    return factorData;
+function setGeneEntryProgress(vm, message, detail = "") {
+    if (!vm.geneEntry) return;
+    vm.$set(vm.geneEntry, "progress", { message: String(message || ""), detail: String(detail || "") });
 }
 
 /** Parses the raw `genes=` URL param into a normalized, deduped gene symbol list. */
@@ -91,102 +56,243 @@ function parseGenesParam(vm, rawGenesParam) {
     return vm.normalizeHelperSelectedGenes([withCommas]);
 }
 
-function settledValueOrError(vm, settledResult, errorKey) {
-    if (settledResult.status === "fulfilled") return settledResult.value;
-    const message = settledResult.reason && settledResult.reason.message
-        ? settledResult.reason.message
-        : "Request failed.";
-    vm.$set(vm.geneEntry.errors, errorKey, message);
-    return null;
+function traitHasGenePhenotypeData(bundle) {
+    return !!(bundle && Array.isArray(bundle.geneRows) && bundle.geneRows.length > 0);
+}
+
+/** Unique gene symbols from pigean-gene-phenotype rows across bundles (sorted). */
+function collectGeneNamesFromBundles(bundles) {
+    const names = new Set();
+    (Array.isArray(bundles) ? bundles : []).forEach((b) => {
+        (b && Array.isArray(b.geneRows) ? b.geneRows : []).forEach((row) => {
+            if (row && row.gene) names.add(String(row.gene));
+        });
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+}
+
+function logGenePhenotypeGenesToConsole(bundles, searchGenes) {
+    const geneNames = collectGeneNamesFromBundles(bundles);
+    const searchSet = new Set((Array.isArray(searchGenes) ? searchGenes : []).map((g) => String(g).toUpperCase()));
+    const overlap = geneNames.filter((g) => searchSet.has(String(g).toUpperCase()));
+    // eslint-disable-next-line no-console
+    console.log("[genes-first] pigean-gene-phenotype gene names:", geneNames);
+    // eslint-disable-next-line no-console
+    console.log("[genes-first] overlap with search genes:", overlap);
+    return { geneNames, overlap };
 }
 
 /**
- * Single entry point: fetch all 3 top-level endpoints + per-trait factors for the top traits,
- * cross-reference, and assign onto vm.geneEntry. Returns true if at least one top-level fetch
- * succeeded (false = nothing usable to show).
+ * Walk ranked Bayes traits until `targetCount` have non-empty pigean-gene-phenotype rows
+ * (or candidates are exhausted — fewer than targetCount is OK).
+ * Returns { usableBundles, usableTraits, checkedCount }.
+ */
+async function collectTraitsWithGenePhenotypeData(vm, candidateTraits, targetCount) {
+    const usableBundles = [];
+    const usableTraits = [];
+    let checkedCount = 0;
+    let cursor = 0;
+
+    while (usableBundles.length < targetCount && cursor < candidateTraits.length) {
+        const batch = candidateTraits.slice(cursor, cursor + TRAIT_SCAN_BATCH_SIZE);
+        cursor += batch.length;
+        const batchIds = batch.map((t) => t.trait);
+        setGeneEntryProgress(
+            vm,
+            "Scanning traits for gene-phenotype data…",
+            `Found ${usableBundles.length} / ${targetCount} usable · checked ${checkedCount} / ${candidateTraits.length}`
+        );
+        const bundles = await fetchGeneAndGeneSetScoresForPhenotypes(vm, batchIds, {
+            onProgress: ({ completed, total }) => {
+                setGeneEntryProgress(
+                    vm,
+                    "Scanning traits for gene-phenotype data…",
+                    `Found ${usableBundles.length} / ${targetCount} usable · checked ${checkedCount} / ${candidateTraits.length} · batch ${completed}/${total}`
+                );
+            },
+        });
+        checkedCount += batch.length;
+        // bundles are in the same order as batchIds / batch.
+        for (let i = 0; i < bundles.length && usableBundles.length < targetCount; i++) {
+            const b = bundles[i];
+            if (!b.ok && b.error) vm.$set(vm.geneEntry.errors.perPhenotype, b.phenotypeId, b.error);
+            if (!traitHasGenePhenotypeData(b)) continue;
+            const traitMeta = batch[i];
+            usableBundles.push(b);
+            usableTraits.push({
+                ...traitMeta,
+                rank: usableTraits.length + 1,
+            });
+        }
+    }
+
+    return { usableBundles, usableTraits, checkedCount };
+}
+
+/**
+ * Single entry point called from multiQueriesReveal.vue mounted() when `?genes=` is present.
+ * Returns true when factorData was populated.
  */
 async function runGeneEntryWorkflow(vm, rawGenesParam) {
     const genes = parseGenesParam(vm, rawGenesParam);
     if (!genes.length) return false;
 
     vm.geneEntry = { ...emptyGeneEntryState(), inputGenes: genes, status: "loading" };
+    setGeneEntryProgress(
+        vm,
+        "Starting genes-first retrieval…",
+        `Looking up phenotypes for ${genes.length} gene(s).`
+    );
 
-    const [pigeanSettled, phenotypesSettled, geneScoresSettled] = await Promise.allSettled([
-        fetchGenePigeanFactors(vm, genes),
-        fetchGenePhenotypes(vm, genes),
-        fetchGeneScoresFlat(vm, genes),
-    ]);
+    let phenotypesResponse = null;
+    try {
+        setGeneEntryProgress(vm, "Finding ranked traits…", "Calling bayes_gene/phenotypes.");
+        phenotypesResponse = await fetchGenePhenotypes(vm, genes);
+    } catch (err) {
+        vm.$set(vm.geneEntry.errors, "phenotypes", err && err.message ? err.message : "Request failed.");
+        vm.geneEntry.status = "error";
+        setGeneEntryProgress(vm, "Could not load phenotypes.", vm.geneEntry.errors.phenotypes);
+        return false;
+    }
+    vm.geneEntry.phenotypesResponse = phenotypesResponse;
 
-    vm.geneEntry.pigeanResponse = settledValueOrError(vm, pigeanSettled, "pigean");
-    vm.geneEntry.phenotypesResponse = settledValueOrError(vm, phenotypesSettled, "phenotypes");
-    vm.geneEntry.geneScoresFlatResponse = settledValueOrError(vm, geneScoresSettled, "geneScores");
+    const candidateTraits = selectTopTraits(phenotypesResponse, { limit: null });
+    if (!candidateTraits.length) {
+        vm.geneEntry.status = "error";
+        setGeneEntryProgress(vm, "No traits found for these genes.", "");
+        return false;
+    }
 
-    vm.geneEntry.topTraits = vm.geneEntry.phenotypesResponse
-        ? selectTopTraits(vm.geneEntry.phenotypesResponse, { limit: TOP_TRAITS_LIMIT })
-        : [];
+    const { usableBundles, usableTraits, checkedCount } = await collectTraitsWithGenePhenotypeData(
+        vm,
+        candidateTraits,
+        TARGET_TRAITS_WITH_DATA
+    );
+    vm.geneEntry.topTraits = usableTraits;
 
-    if (vm.geneEntry.topTraits.length) {
-        const perTraitResults = await fetchPigeanFactorsForTraits(
+    if (!usableBundles.length) {
+        vm.geneEntry.status = "partial";
+        setGeneEntryProgress(
             vm,
-            vm.geneEntry.topTraits.map((t) => t.trait)
+            "No traits with gene-phenotype data.",
+            `Checked ${checkedCount} ranked trait(s); none returned cfde gene-phenotype rows.`
         );
-        perTraitResults.forEach((r) => {
-            vm.$set(vm.geneEntry.perTraitFactors, r.traitId, { ok: r.ok, error: r.error, factors: r.factors });
-            if (!r.ok && r.error) vm.$set(vm.geneEntry.errors.perTrait, r.traitId, r.error);
+        return false;
+    }
+
+    const { overlap } = logGenePhenotypeGenesToConsole(usableBundles, genes);
+
+    const traitCountNote = usableBundles.length < TARGET_TRAITS_WITH_DATA
+        ? `Proceeding with ${usableBundles.length} trait(s) (target was ${TARGET_TRAITS_WITH_DATA}; scanned ${checkedCount}).`
+        : `Using ${usableBundles.length} trait(s) with data (checked ${checkedCount}).`;
+    setGeneEntryProgress(
+        vm,
+        "Selecting factors and gene sets…",
+        `${traitCountNote} Search-gene overlap in gene-phenotype rows: ${overlap.length}.`
+    );
+
+    const membershipPairs = [];
+    const bundlesForBuild = usableBundles.map((b) => {
+        const filled = fillMissingFactorWithTrait(b.geneRows, b.geneSetRows, b.phenotypeId);
+        const selectedFactorIds = selectTopFactorIds(filled.geneRows, filled.geneSetRows, genes, {
+            limit: DEFAULT_MAX_FACTORS,
         });
-    }
+        const selectedGeneSets = selectTopGeneSetsFromRows(filled.geneSetRows, {
+            limit: DEFAULT_MAX_GENE_SETS,
+            factorIds: selectedFactorIds,
+        });
+        selectedGeneSets.forEach((geneSet) => {
+            membershipPairs.push({ phenotypeId: b.phenotypeId, geneSet });
+        });
+        return {
+            phenotypeId: b.phenotypeId,
+            geneRows: filled.geneRows,
+            geneSetRows: filled.geneSetRows,
+            selectedFactorIds,
+            selectedGeneSets,
+            membershipByGeneSet: {},
+        };
+    });
 
-    vm.geneEntry.topGeneSets = selectTopGeneSets(
-        vm.geneEntry.geneScoresFlatResponse,
-        vm.geneEntry.pigeanResponse,
-        { limit: TOP_GENE_SETS_LIMIT }
-    );
-    vm.geneEntry.geneDerivedFactorSummary = buildGeneDerivedFactorSummary(vm.geneEntry.pigeanResponse);
-    vm.geneEntry.crossReference.recurringTraitFactors = crossReferenceRecurringTraitFactors(
-        vm.geneEntry.perTraitFactors
-    );
-    vm.geneEntry.crossReference.geneSetToFactors = crossReferenceGeneSetToFactors(
-        vm.geneEntry.topGeneSets,
-        vm.geneEntry.geneDerivedFactorSummary,
-        vm.geneEntry.perTraitFactors
-    );
-
-    const anyOk = !!(vm.geneEntry.pigeanResponse || vm.geneEntry.phenotypesResponse || vm.geneEntry.geneScoresFlatResponse);
-    vm.geneEntry.status = !anyOk ? "error" : (vm.geneEntry.pigeanResponse ? "ready" : "partial");
-
-    let factorData = await buildFactorDataFromHybridSearch(vm, genes);
-    let factorDataSource = "hybrid_search";
-    if (!factorData && vm.geneEntry.pigeanResponse) {
-        factorData = buildFactorDataFromGeneEntry(vm.geneEntry.pigeanResponse, genes);
-        factorDataSource = "pigean_only";
-    }
-
-    if (factorData && Object.keys(factorData).length) {
-        vm.factorData = factorData;
-        vm.lastKgTriples = vm.transformMergedDataToKG(vm.factorData, "factors");
-        vm.snapshotFilteredSelectionBaseline();
-        vm.genesAndFactorValuesLoaded = true;
-        vm.searchCriteriaExtractionGateDone = true;
-        const phenotypeCount = Object.keys(vm.factorData).length;
-        const factorCount = Object.values(vm.factorData).reduce((acc, p) => acc + (p.factors || []).length, 0);
-        // The tab bar + all tab panels are gated behind `steps.length` in the shell's template
-        // (there's no dedicated "genes-first" flag) -- register a Data-step entry the same way
-        // the normal extraction/retrieval flow does, so that gate opens.
-        vm.setStep({
-            id: WORKFLOW_STEP_IDS.DATA,
-            title: "Gene-derived factors ready",
-            substep: {
-                id: "2.gene-entry",
-                title: `${genes.length} input gene(s)`,
-                result: {
-                    title: `Found ${factorCount} gene-set cluster(s) across ${phenotypeCount} phenotype(s) (source: ${factorDataSource}).`,
-                },
+    if (membershipPairs.length) {
+        setGeneEntryProgress(
+            vm,
+            "Fetching gene ↔ gene-set membership…",
+            `0 / ${membershipPairs.length} membership requests.`
+        );
+        const membershipResults = await fetchJoinedGeneSetMembersForPairs(vm, membershipPairs, {
+            onProgress: ({ completed, total }) => {
+                setGeneEntryProgress(
+                    vm,
+                    "Fetching gene ↔ gene-set membership…",
+                    `${completed} / ${total} membership requests.`
+                );
             },
         });
-        vm.showTab = "data";
+        const byPhenotype = {};
+        membershipResults.forEach((r) => {
+            if (!byPhenotype[r.phenotypeId]) byPhenotype[r.phenotypeId] = {};
+            byPhenotype[r.phenotypeId][r.geneSet] = r.ok ? r.genes : [];
+        });
+        bundlesForBuild.forEach((b) => {
+            b.membershipByGeneSet = byPhenotype[b.phenotypeId] || {};
+        });
     }
 
-    return anyOk;
+    setGeneEntryProgress(vm, "Building factor data and knowledge graph…", "Merging scores and filtering to search genes.");
+    const factorData = buildFactorDataFromPhenotypePigean(bundlesForBuild, genes);
+    const phenotypeCount = Object.keys(factorData).length;
+    if (!phenotypeCount) {
+        vm.geneEntry.status = "partial";
+        setGeneEntryProgress(
+            vm,
+            "No overlapping factor data for these genes.",
+            `${usableBundles.length} trait(s) had gene-phenotype rows, but none crossed the search gene list after filtering.`
+        );
+        return false;
+    }
+
+    vm.factorData = factorData;
+    vm.lastKgTriples = vm.transformMergedDataToKG(vm.factorData, "factors");
+    vm.snapshotFilteredSelectionBaseline();
+    vm.genesAndFactorValuesLoaded = true;
+    vm.searchCriteriaExtractionGateDone = true;
+
+    const factorCount = Object.values(vm.factorData).reduce((acc, p) => acc + (p.factors || []).length, 0);
+    // Tab bar + panels are gated behind steps.length — register a Data step like the text-query path.
+    vm.setStep({
+        id: WORKFLOW_STEP_IDS.DATA,
+        title: "Gene-derived factors ready",
+        substep: {
+            id: "2.gene-entry",
+            title: `${genes.length} input gene(s)`,
+            result: {
+                title: `Found ${factorCount} gene-set cluster(s) across ${phenotypeCount} phenotype(s).`,
+            },
+        },
+    });
+    vm.showTab = "data";
+    vm.geneEntry.status = "ready";
+    setGeneEntryProgress(
+        vm,
+        "Gene-derived data ready.",
+        `${factorCount} cluster(s) across ${phenotypeCount} phenotype(s) (scanned ${checkedCount} ranked trait(s)).`
+    );
+
+    const approved = await vm.waitForStepApproval(
+        WORKFLOW_STEP_IDS.DATA,
+        "Gene-derived evidence is ready. Continue to generate mechanistic hypotheses?",
+        true
+    );
+    if (!approved) return false;
+
+    vm.setLoadStatus("Generating hypotheses…");
+    vm.setStep({
+        id: WORKFLOW_STEP_IDS.HYPOTHESES,
+        title: "LLM: Generating mechanistic hypotheses",
+    });
+    requestMechanismHypotheses(vm, vm.factorData, vm.lastKgTriples);
+    return true;
 }
 
 export { parseGenesParam, runGeneEntryWorkflow };

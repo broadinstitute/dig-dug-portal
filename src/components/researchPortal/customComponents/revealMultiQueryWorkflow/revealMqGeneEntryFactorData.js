@@ -1,148 +1,453 @@
 /**
- * Bridges genes-first entry point data into the existing `factorData[phenotype] = {genes, factors,
- * allFactors}` shape consumed by revealMqKgTransform.js / revealMqNetworkBuild.js /
- * FactorBaseRevealHeatmap2.vue. Gene<->gene-set membership is left empty (geneSets: {}) throughout
- * since it isn't reliably available from any of these APIs right now -- the existing KG/network
- * builders already fall back gracefully (dashed/linkage_fallback edges) when membership is
- * unknown, the same way they do today for hybrid-search factors lacking gene-set assignment.
+ * Builds canonical factorData from genes-first per-phenotype pigean fetches:
+ *   phenotype → genes → factors   (pigean-gene-phenotype)
+ *   phenotype → gene sets → factors (pigean-gene-set-phenotype)
+ *   phenotype + gene set → genes  (pigean-joined-gene-set)
  *
- * Two builders:
- * - buildFactorDataFromGeneEntry: single-bucket, from the whole-gene-list bayes_gene/pigean call
- *   alone (fallback source when hybrid-search is unavailable).
- * - mergePigeanFactorRowsIntoFactorData: the primary path -- takes factorData already normalized
- *   from a hybrid-search response (real phenotype names + real per-gene combined/gwas/functional
- *   scores) and replaces each phenotype's coarse single hybrid-search "factor" with the real
- *   gene-set-cluster breakdown from the per-phenotype pigean-factor endpoint, when available.
+ * Output shape matches the text-query path so FactorBaseRevealHeatmap2 / KG / network
+ * consume it unchanged: factorData[phenotype] = { genes, factors, allFactors }.
+ *
+ * Heatmap axes (normal component): rows = factors, columns = gene sets then genes.
  */
 
-const DEFAULT_BUCKET_LABEL = "Your gene list";
+const DEFAULT_MAX_GENE_SETS = 30;
+const DEFAULT_MAX_GENES = 50;
+const DEFAULT_MAX_FACTORS = 5;
 
 /**
- * Reshapes a bayes_gene/pigean response into a single-bucket factorData object.
- * @param {Object} pigeanResponse - raw response from fetchGenePigeanFactors.
- * @param {string[]} inputGenes - the original gene list, to flag which genes were user-supplied.
- * @param {{ bucketLabel?: string }} [options]
- * @returns {Object} factorData, e.g. { "Your gene list": { genes, factors, allFactors } }
+ * When pigean gene / gene-set rows omit `factor` (common for some gcat traits), use the
+ * phenotype/trait id as the factor so we still get one phenotype×genes/gene-sets row.
  */
-function buildFactorDataFromGeneEntry(pigeanResponse, inputGenes = [], { bucketLabel = DEFAULT_BUCKET_LABEL } = {}) {
-    if (!pigeanResponse) return {};
-
-    const factorRows = Array.isArray(pigeanResponse["pigean-factor"] && pigeanResponse["pigean-factor"].data)
-        ? pigeanResponse["pigean-factor"].data
-        : [];
-    const geneFactorMap = pigeanResponse["gene-factor"] && typeof pigeanResponse["gene-factor"] === "object"
-        ? pigeanResponse["gene-factor"]
-        : {};
-    const geneSetFactorMap = pigeanResponse["gene-set-factor"] && typeof pigeanResponse["gene-set-factor"] === "object"
-        ? pigeanResponse["gene-set-factor"]
-        : {};
-    const geneScores = pigeanResponse.gene_scores && typeof pigeanResponse.gene_scores === "object"
-        ? pigeanResponse.gene_scores
-        : {};
-    const inputGeneSet = new Set((Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase()));
-
-    const factors = factorRows.map((row) => {
-        const factorId = row && (row.factor != null ? row.factor : row.cluster) != null
-            ? String(row.factor != null ? row.factor : row.cluster)
-            : "";
-        const geneRows = Array.isArray(geneFactorMap[factorId]) ? geneFactorMap[factorId] : [];
-        const geneSetRows = Array.isArray(geneSetFactorMap[factorId]) ? geneSetFactorMap[factorId] : [];
-
-        const genes = {};
-        geneRows.forEach((g) => {
-            const gene = g && g.gene != null ? String(g.gene) : "";
-            if (!gene) return;
-            genes[gene] = {
-                factorRelevance: g.factor_value != null ? Number(g.factor_value) : null,
-                factor_value: g.factor_value != null ? Number(g.factor_value) : null,
-                includedFromRequest: inputGeneSet.has(gene.toUpperCase()),
-                geneSetIds: [], // unknown membership -- KG/network builders fall back gracefully
-            };
-        });
-
-        const topGeneSets = geneSetRows.length
-            ? geneSetRows.map((gs) => String(gs.gene_set || "")).filter(Boolean).join(";")
-            : (row && row.top_gene_sets != null ? String(row.top_gene_sets) : "");
-
+function fillMissingFactorWithTrait(geneRows, geneSetRows, phenotypeId) {
+    const traitFactor = String(phenotypeId || "").trim();
+    if (!traitFactor) {
         return {
-            factor: factorId,
-            label: row && row.label != null ? String(row.label) : factorId,
-            labelFromApi: row && row.label != null ? String(row.label) : null,
-            top_gene_sets: topGeneSets,
-            gene_set_description: "",
-            gene_set_program: "",
-            genes,
-            geneSets: {}, // no known gene<->gene-set pairs; see module comment
+            geneRows: Array.isArray(geneRows) ? geneRows : [],
+            geneSetRows: Array.isArray(geneSetRows) ? geneSetRows : [],
+        };
+    }
+    const filledGeneRows = (Array.isArray(geneRows) ? geneRows : []).map((row) => {
+        if (!row || row.factor) return row;
+        return {
+            ...row,
+            factor: traitFactor,
+            label: row.label || traitFactor,
         };
     });
-
-    const phenotypeGenes = {};
-    Object.keys(geneScores).forEach((gene) => {
-        phenotypeGenes[gene] = {
-            combined: Number(geneScores[gene]),
-            gwasSupport: null,
-            geneSetSupport: null,
+    const filledGeneSetRows = (Array.isArray(geneSetRows) ? geneSetRows : []).map((row) => {
+        if (!row || row.factor) return row;
+        return {
+            ...row,
+            factor: traitFactor,
+            label: row.label || traitFactor,
         };
     });
-
-    return {
-        [bucketLabel]: {
-            genes: phenotypeGenes,
-            factors,
-            allFactors: factors,
-        },
-    };
+    return { geneRows: filledGeneRows, geneSetRows: filledGeneSetRows };
 }
 
 /**
- * Replaces each phenotype bucket's factors/allFactors -- which, coming straight out of
- * normalizeHybridFactorsToFactorData, is hybrid-search's own coarse single-factor-per-phenotype
- * shape in semantic-fallback mode -- with the real gene-set-cluster rows from the per-phenotype
- * pigean-factor endpoint (revealMqGeneEntryApi.js's fetchPigeanFactorsForTraits), when available.
- * Per-gene evidence (combined/gwas/functional support) comes from the phenotype-level `genes` map
- * hybrid-search already gave us; per-factor gene<->gene-set membership is still unknown (this
- * pairing has no API for that), so every factor of a phenotype gets the same phenotype-level gene
- * list attached. Falls back to keeping hybrid-search's own factor entry for any phenotype whose
- * per-phenotype fetch returned nothing (id-vocabulary mismatch is expected for some phenotypes).
- * @param {Object} factorData - output of normalizeHybridFactorsToFactorData.
- * @param {Object} perPhenotypeFactorRows - { [phenotype]: { ok, factors: [{factor, label, topGeneSets}] } }
- * @param {string[]} inputGenes - the original gene list, to flag which genes were user-supplied.
+ * Top N factor ids for a phenotype. Prefers factors that contain search genes (ranked by
+ * max combined among those genes); falls back to max gene-set rs_score on the factor.
  */
-function mergePigeanFactorRowsIntoFactorData(factorData, perPhenotypeFactorRows, inputGenes = []) {
+function selectTopFactorIds(geneRows, geneSetRows, inputGenes = [], { limit = DEFAULT_MAX_FACTORS } = {}) {
     const inputGeneSet = new Set((Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase()));
-    const out = {};
-    Object.keys(factorData || {}).forEach((phenotype) => {
-        const bucket = factorData[phenotype];
-        const rec = perPhenotypeFactorRows && perPhenotypeFactorRows[phenotype];
-        if (!rec || !rec.ok || !Array.isArray(rec.factors) || !rec.factors.length) {
-            out[phenotype] = bucket; // fallback: keep hybrid-search's own coarse factor(s)
-            return;
+    const byFactor = new Map(); // factorId -> { geneScore, geneSetScore, hasSearchGene }
+
+    const ensure = (factorId) => {
+        if (!byFactor.has(factorId)) {
+            byFactor.set(factorId, { geneScore: -Infinity, geneSetScore: -Infinity, hasSearchGene: false });
         }
-        const phenotypeGenes = bucket.genes || {};
-        const factors = rec.factors.map((row) => {
-            const genes = {};
-            Object.keys(phenotypeGenes).forEach((gene) => {
-                genes[gene] = {
-                    factorRelevance: phenotypeGenes[gene].combined,
-                    factor_value: phenotypeGenes[gene].combined,
-                    includedFromRequest: inputGeneSet.has(gene.toUpperCase()),
-                    geneSetIds: [],
-                };
-            });
-            return {
-                factor: row.factor,
-                label: row.label || row.factor,
-                labelFromApi: row.label || null,
-                top_gene_sets: row.topGeneSets || "",
-                gene_set_description: "",
-                gene_set_program: "",
-                genes,
-                geneSets: {},
-            };
+        return byFactor.get(factorId);
+    };
+
+    (Array.isArray(geneRows) ? geneRows : []).forEach((row) => {
+        if (!row || !row.factor || !row.gene) return;
+        const f = ensure(String(row.factor));
+        const isSearch = !inputGeneSet.size || inputGeneSet.has(String(row.gene).toUpperCase());
+        if (!isSearch) return;
+        f.hasSearchGene = inputGeneSet.size ? true : f.hasSearchGene;
+        const v = row.combined != null && !isNaN(Number(row.combined)) ? Number(row.combined) : -Infinity;
+        if (v > f.geneScore) f.geneScore = v;
+    });
+
+    (Array.isArray(geneSetRows) ? geneSetRows : []).forEach((row) => {
+        if (!row || !row.factor || !row.geneSet) return;
+        const f = ensure(String(row.factor));
+        const v = row.rsScore != null && !isNaN(Number(row.rsScore)) ? Number(row.rsScore) : -Infinity;
+        if (v > f.geneSetScore) f.geneSetScore = v;
+    });
+
+    const ranked = Array.from(byFactor.entries()).map(([factorId, s]) => ({
+        factorId,
+        hasSearchGene: !!s.hasSearchGene,
+        // Primary sort key: search-gene combined when present, else gene-set rs_score.
+        score: s.geneScore > -Infinity ? s.geneScore : s.geneSetScore,
+    }));
+
+    ranked.sort((a, b) => {
+        if (a.hasSearchGene !== b.hasSearchGene) return a.hasSearchGene ? -1 : 1;
+        return b.score - a.score;
+    });
+    return ranked.slice(0, limit).map((r) => r.factorId);
+}
+
+/**
+ * Top N gene-set names by rs_score from pigean-gene-set-phenotype rows.
+ * Only considers rows with a factor assignment. Optional `factorIds` restricts to those factors.
+ */
+function selectTopGeneSetsFromRows(geneSetRows, { limit = DEFAULT_MAX_GENE_SETS, factorIds = null } = {}) {
+    const factorAllow = factorIds == null
+        ? null
+        : new Set((Array.isArray(factorIds) ? factorIds : []).map((id) => String(id)));
+    const best = new Map();
+    (Array.isArray(geneSetRows) ? geneSetRows : []).forEach((row) => {
+        if (!row || !row.geneSet || !row.factor) return;
+        if (factorAllow && !factorAllow.has(String(row.factor))) return;
+        const score = row.rsScore != null && !isNaN(Number(row.rsScore)) ? Number(row.rsScore) : -Infinity;
+        const prev = best.get(row.geneSet);
+        if (!prev || score > prev.score) {
+            best.set(row.geneSet, { geneSet: row.geneSet, score });
+        }
+    });
+    return Array.from(best.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map((r) => r.geneSet);
+}
+
+/**
+ * Restrict gene rows to the user's search genes only. If no search genes are provided,
+ * falls back to a top-N-by-combined cap so the matrix stays renderable.
+ */
+function scopeGeneRows(geneRows, inputGenes, maxGenes = DEFAULT_MAX_GENES) {
+    const rows = (Array.isArray(geneRows) ? geneRows : []).filter((r) => r && r.gene);
+    const inputGeneSet = new Set((Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase()));
+    if (inputGeneSet.size) {
+        return rows.filter((r) => inputGeneSet.has(String(r.gene).toUpperCase()));
+    }
+    const bestByGene = new Map();
+    rows.forEach((r) => {
+        const v = r.combined != null && !isNaN(Number(r.combined)) ? Number(r.combined) : -Infinity;
+        if (!bestByGene.has(r.gene) || v > bestByGene.get(r.gene)) bestByGene.set(r.gene, v);
+    });
+    if (bestByGene.size <= maxGenes) return rows;
+    const top = new Set(
+        Array.from(bestByGene.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, maxGenes)
+            .map(([gene]) => gene)
+    );
+    return rows.filter((r) => top.has(r.gene));
+}
+
+/**
+ * Post-merge filter: keep only search/input genes in phenotype.genes, factor.genes, and
+ * geneSets[gs].genes. Case-insensitive match against the original search list.
+ */
+function filterFactorDataToSearchGenes(factorData, inputGenes = []) {
+    const inputGeneSet = new Set((Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase()));
+    if (!inputGeneSet.size) return factorData || {};
+
+    const out = {};
+    Object.keys(factorData || {}).forEach((phenotypeId) => {
+        const bucket = factorData[phenotypeId];
+        if (!bucket) return;
+
+        const genes = {};
+        Object.keys(bucket.genes || {}).forEach((gene) => {
+            if (inputGeneSet.has(String(gene).toUpperCase())) genes[gene] = bucket.genes[gene];
         });
-        out[phenotype] = { genes: phenotypeGenes, factors, allFactors: factors };
+
+        const factors = (Array.isArray(bucket.factors) ? bucket.factors : []).map((factor) => {
+            const factorGenes = {};
+            Object.keys(factor.genes || {}).forEach((gene) => {
+                if (!inputGeneSet.has(String(gene).toUpperCase())) return;
+                const entry = { ...factor.genes[gene] };
+                entry.includedFromRequest = true;
+                factorGenes[gene] = entry;
+            });
+            const geneSets = {};
+            Object.keys(factor.geneSets || {}).forEach((gsName) => {
+                const members = Array.isArray(factor.geneSets[gsName] && factor.geneSets[gsName].genes)
+                    ? factor.geneSets[gsName].genes.filter((g) => inputGeneSet.has(String(g).toUpperCase()))
+                    : [];
+                geneSets[gsName] = { genes: members };
+            });
+            return { ...factor, genes: factorGenes, geneSets };
+        });
+
+        out[phenotypeId] = {
+            genes,
+            factors,
+            allFactors: factors,
+        };
     });
     return out;
 }
 
-export { buildFactorDataFromGeneEntry, DEFAULT_BUCKET_LABEL, mergePigeanFactorRowsIntoFactorData };
+/**
+ * After search-gene filtering:
+ * 1. Drop factors that have no remaining search genes (no gene crossing).
+ * 2. Drop gene sets that are not on any remaining factor (orphan columns).
+ * 3. Drop phenotypes left with no factors.
+ */
+function pruneFactorsWithoutSearchGeneCrossings(factorData) {
+    const out = {};
+    Object.keys(factorData || {}).forEach((phenotypeId) => {
+        const bucket = factorData[phenotypeId];
+        if (!bucket) return;
+
+        const keptFactors = (Array.isArray(bucket.factors) ? bucket.factors : [])
+            .filter((factor) => factor && Object.keys(factor.genes || {}).length > 0)
+            .map((factor) => {
+                // top_gene_sets / geneSets on this factor are already its own; keep as-is.
+                // Orphans across the phenotype are handled by only emitting kept factors.
+                const topIds = (typeof factor.top_gene_sets === "string" && factor.top_gene_sets)
+                    ? factor.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
+                    : Object.keys(factor.geneSets || {});
+                const geneSets = {};
+                topIds.forEach((gsName) => {
+                    geneSets[gsName] = (factor.geneSets && factor.geneSets[gsName])
+                        ? factor.geneSets[gsName]
+                        : { genes: [] };
+                });
+                // Also keep any geneSets keys not listed in top_gene_sets (defensive).
+                Object.keys(factor.geneSets || {}).forEach((gsName) => {
+                    if (!geneSets[gsName]) geneSets[gsName] = factor.geneSets[gsName];
+                });
+                return {
+                    ...factor,
+                    top_gene_sets: Object.keys(geneSets).join(";"),
+                    geneSets,
+                };
+            });
+
+        if (!keptFactors.length) return;
+
+        const genesOnKeptFactors = new Set();
+        keptFactors.forEach((f) => {
+            Object.keys(f.genes || {}).forEach((g) => genesOnKeptFactors.add(g));
+        });
+        const genes = {};
+        Object.keys(bucket.genes || {}).forEach((gene) => {
+            if (genesOnKeptFactors.has(gene)) genes[gene] = bucket.genes[gene];
+        });
+
+        out[phenotypeId] = {
+            genes,
+            factors: keptFactors,
+            allFactors: keptFactors,
+        };
+    });
+    return out;
+}
+
+/**
+ * @param {Array<{
+ *   phenotypeId: string,
+ *   geneRows: Array<{gene, factor, label, combined}>,
+ *   geneSetRows: Array<{geneSet, factor, label, rsScore, description?, program?}>,
+ *   membershipByGeneSet?: Object<string, Array<{gene, combined}>>,
+ *   selectedFactorIds?: string[]
+ * }>} phenotypeBundles
+ * @param {string[]} inputGenes
+ * @param {{ maxGeneSets?: number, maxGenes?: number, maxFactors?: number }} [options]
+ * @returns {Object} factorData
+ */
+function buildFactorDataFromPhenotypePigean(
+    phenotypeBundles,
+    inputGenes = [],
+    {
+        maxGeneSets = DEFAULT_MAX_GENE_SETS,
+        maxGenes = DEFAULT_MAX_GENES,
+        maxFactors = DEFAULT_MAX_FACTORS,
+    } = {}
+) {
+    const inputGeneSet = new Set((Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase()));
+    const out = {};
+
+    (Array.isArray(phenotypeBundles) ? phenotypeBundles : []).forEach((bundle) => {
+        if (!bundle || !bundle.phenotypeId) return;
+        const phenotypeId = String(bundle.phenotypeId);
+        const filled = fillMissingFactorWithTrait(bundle.geneRows, bundle.geneSetRows, phenotypeId);
+        const geneRows = filled.geneRows;
+        const geneSetRows = filled.geneSetRows;
+        const scopedGeneRows = scopeGeneRows(geneRows, inputGenes, maxGenes);
+        const topFactorIds = Array.isArray(bundle.selectedFactorIds) && bundle.selectedFactorIds.length
+            ? bundle.selectedFactorIds.map(String)
+            : selectTopFactorIds(geneRows, geneSetRows, inputGenes, { limit: maxFactors });
+        const topFactorAllow = new Set(topFactorIds);
+        const selectedGeneSetNames = new Set(
+            selectTopGeneSetsFromRows(geneSetRows, {
+                limit: maxGeneSets,
+                factorIds: topFactorIds,
+            })
+        );
+        const scopedGeneSetRows = (Array.isArray(geneSetRows) ? geneSetRows : []).filter(
+            (r) => r && r.geneSet && selectedGeneSetNames.has(r.geneSet) && topFactorAllow.has(String(r.factor))
+        );
+        const geneRowsOnTopFactors = scopedGeneRows.filter(
+            (r) => r.factor && topFactorAllow.has(String(r.factor))
+        );
+        if (!geneRowsOnTopFactors.length && !scopedGeneSetRows.length) return;
+
+        const membershipByGeneSet = bundle.membershipByGeneSet && typeof bundle.membershipByGeneSet === "object"
+            ? bundle.membershipByGeneSet
+            : {};
+
+        const factorsById = new Map();
+        const ensureFactor = (factorId) => {
+            if (!topFactorAllow.has(factorId)) return null;
+            if (!factorsById.has(factorId)) {
+                factorsById.set(factorId, {
+                    factor: factorId,
+                    label: factorId,
+                    labelFromApi: null,
+                    topGeneSetIds: [],
+                    geneSetMeta: {},
+                    genes: {},
+                    geneSets: {},
+                });
+            }
+            return factorsById.get(factorId);
+        };
+
+        geneRowsOnTopFactors.forEach((row) => {
+            const factorId = row.factor ? String(row.factor) : "";
+            if (!factorId) return;
+            const f = ensureFactor(factorId);
+            if (!f) return;
+            if (row.label) {
+                f.label = String(row.label);
+                f.labelFromApi = String(row.label);
+            }
+            const combined = row.combined != null && !isNaN(Number(row.combined)) ? Number(row.combined) : null;
+            f.genes[row.gene] = {
+                factorRelevance: combined,
+                factor_value: combined,
+                includedFromRequest: inputGeneSet.has(String(row.gene).toUpperCase()),
+                geneSetIds: [],
+            };
+        });
+
+        scopedGeneSetRows.forEach((row) => {
+            const factorId = row.factor ? String(row.factor) : "";
+            if (!factorId) return;
+            const f = ensureFactor(factorId);
+            if (!f) return;
+            if (row.label && (f.label === f.factor || !f.labelFromApi)) {
+                f.label = String(row.label);
+                f.labelFromApi = String(row.label);
+            }
+            if (!f.topGeneSetIds.includes(row.geneSet)) f.topGeneSetIds.push(row.geneSet);
+            f.geneSetMeta[row.geneSet] = {
+                description: row.description || "",
+                program: row.program || "",
+            };
+            if (!f.geneSets[row.geneSet]) f.geneSets[row.geneSet] = { genes: [] };
+        });
+
+        // Attach exact membership from pigean-joined-gene-set onto each factor that lists the gene set.
+        factorsById.forEach((f) => {
+            f.topGeneSetIds.forEach((gsName) => {
+                const members = Array.isArray(membershipByGeneSet[gsName]) ? membershipByGeneSet[gsName] : [];
+                if (!f.geneSets[gsName]) f.geneSets[gsName] = { genes: [] };
+                const geneList = f.geneSets[gsName].genes;
+                members.forEach((m) => {
+                    if (!m || !m.gene) return;
+                    // Only search/input genes — membership panels return the full reference set.
+                    if (!inputGeneSet.has(String(m.gene).toUpperCase())) return;
+                    if (!geneList.includes(m.gene)) geneList.push(m.gene);
+                    if (f.genes[m.gene]) {
+                        const ids = f.genes[m.gene].geneSetIds;
+                        if (!ids.includes(gsName)) ids.push(gsName);
+                    } else {
+                        // Input gene is a confirmed member of this gene set but lacked a factor row;
+                        // still attach so the gene appears on the factor via membership.
+                        const combined = m.combined != null && !isNaN(Number(m.combined)) ? Number(m.combined) : null;
+                        f.genes[m.gene] = {
+                            factorRelevance: combined,
+                            factor_value: combined,
+                            includedFromRequest: true,
+                            geneSetIds: [gsName],
+                        };
+                    }
+                });
+            });
+        });
+
+        if (!factorsById.size) return;
+
+        const phenotypeGenes = {};
+        geneRowsOnTopFactors.forEach((row) => {
+            const combined = row.combined != null && !isNaN(Number(row.combined)) ? Number(row.combined) : null;
+            const gwasSupport = row.gwasSupport != null && !isNaN(Number(row.gwasSupport)) ? Number(row.gwasSupport) : null;
+            const geneSetSupport = row.geneSetSupport != null && !isNaN(Number(row.geneSetSupport)) ? Number(row.geneSetSupport) : null;
+            if (combined == null && gwasSupport == null && geneSetSupport == null) return;
+            const prev = phenotypeGenes[row.gene];
+            if (!prev) {
+                phenotypeGenes[row.gene] = { combined, gwasSupport, geneSetSupport };
+                return;
+            }
+            // Keep the best of each score independently when a gene appears on multiple factors.
+            phenotypeGenes[row.gene] = {
+                combined: prev.combined == null ? combined : (combined == null ? prev.combined : Math.max(prev.combined, combined)),
+                gwasSupport: prev.gwasSupport == null ? gwasSupport : (gwasSupport == null ? prev.gwasSupport : Math.max(prev.gwasSupport, gwasSupport)),
+                geneSetSupport: prev.geneSetSupport == null ? geneSetSupport : (geneSetSupport == null ? prev.geneSetSupport : Math.max(prev.geneSetSupport, geneSetSupport)),
+            };
+        });
+        // Also surface input genes attached only via membership.
+        factorsById.forEach((f) => {
+            Object.keys(f.genes).forEach((gene) => {
+                if (phenotypeGenes[gene] != null) return;
+                const v = f.genes[gene].factorRelevance;
+                phenotypeGenes[gene] = {
+                    combined: v != null ? v : null,
+                    gwasSupport: null,
+                    geneSetSupport: null,
+                };
+            });
+        });
+
+        const factors = Array.from(factorsById.values()).map((f) => {
+            const descriptions = f.topGeneSetIds
+                .map((gs) => (f.geneSetMeta[gs] && f.geneSetMeta[gs].description) || "")
+                .filter(Boolean);
+            const programs = f.topGeneSetIds
+                .map((gs) => (f.geneSetMeta[gs] && f.geneSetMeta[gs].program) || "")
+                .filter(Boolean);
+            return {
+                factor: f.factor,
+                label: f.label || f.factor,
+                labelFromApi: f.labelFromApi,
+                top_gene_sets: f.topGeneSetIds.join(";"),
+                gene_set_description: descriptions[0] || "",
+                gene_set_program: programs[0] || "",
+                genes: f.genes,
+                geneSets: f.geneSets,
+            };
+        });
+
+        out[phenotypeId] = {
+            genes: phenotypeGenes,
+            factors,
+            allFactors: factors,
+        };
+    });
+
+    // Final pass: search-gene filter, then drop factors with no gene crossings (and their gene sets).
+    return pruneFactorsWithoutSearchGeneCrossings(filterFactorDataToSearchGenes(out, inputGenes));
+}
+
+export {
+    DEFAULT_MAX_GENE_SETS,
+    DEFAULT_MAX_GENES,
+    DEFAULT_MAX_FACTORS,
+    buildFactorDataFromPhenotypePigean,
+    fillMissingFactorWithTrait,
+    filterFactorDataToSearchGenes,
+    pruneFactorsWithoutSearchGeneCrossings,
+    scopeGeneRows,
+    selectTopFactorIds,
+    selectTopGeneSetsFromRows,
+};

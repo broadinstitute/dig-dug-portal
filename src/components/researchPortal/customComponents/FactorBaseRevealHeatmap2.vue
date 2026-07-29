@@ -295,6 +295,15 @@ export default Vue.component("pigean-factors-viz", {
       type: Array,
       default: () => [],
     },
+    /**
+     * Y-axis body row label: "phenotype" (default, text-query) or "factor" (genes-first —
+     * many factors share one phenotype id, so the factor/cluster label is the useful row text).
+     */
+    rowLabelMode: {
+      type: String,
+      default: "phenotype",
+      validator: (v) => v === "phenotype" || v === "factor",
+    },
   },
   data() {
     return {
@@ -633,6 +642,13 @@ export default Vue.component("pigean-factors-viz", {
       },
       deep: true,
       immediate: true
+    },
+    rowLabelMode() {
+      if (!this.useFactorBaseRevealData || !this.heatmapDataFromFactorData || !this.heatmapDataFromFactorData.ready) return;
+      this.cleanupTooltips();
+      this.$nextTick(() => {
+        setTimeout(() => this.renderFactorBaseRevealHeatmap(), 50);
+      });
     },
     heatmapGroupOptions: {
       handler(opts) {
@@ -993,7 +1009,8 @@ export default Vue.component("pigean-factors-viz", {
         const showDirPrefix =
           (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
         const directionTag = showDirPrefix ? `[${rowMeta.fetchedDirection}] ` : "";
-        const fullLabel = `${directionTag}${pFull}`;
+        const rowDisplay = this.heatmapRowDisplayLabel(rowMeta);
+        const fullLabel = `${directionTag}${rowDisplay}`;
         phen.textContent = this.truncateLabel(fullLabel, 52);
         const tooltipParts = [];
         if (rowMeta.fetchedDirection) tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
@@ -1124,7 +1141,7 @@ export default Vue.component("pigean-factors-viz", {
           const showDirInRowLine =
             (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
           const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
-          const rowLine = `${directionTag}${rowMeta.phenotypeDisplay}`;
+          const rowLine = `${directionTag}${this.heatmapRowDisplayLabel(rowMeta)}`;
           const colLabel = columnLabels[c];
           const isGeneSetCol = c < geneSetCount;
           const cellHighlighted = isHeatmapCellHighlighted(
@@ -1179,6 +1196,19 @@ export default Vue.component("pigean-factors-viz", {
         return label;
       }
       return label.substring(0, maxLength - 3) + '...';
+    },
+    /** Visible Y-axis / cell-tooltip row title for one heatmap factor row. */
+    heatmapRowDisplayLabel(rowMeta) {
+      if (!rowMeta) return "";
+      if (this.rowLabelMode === "factor") {
+        return (
+          (rowMeta.factorClusterLabel && String(rowMeta.factorClusterLabel).trim()) ||
+          (rowMeta.factor != null ? String(rowMeta.factor) : "") ||
+          rowMeta.phenotypeDisplay ||
+          ""
+        );
+      }
+      return rowMeta.phenotypeDisplay || "";
     },
     // Get color based on score using same thresholds as PigeanPhenotype.vue table
     // Very Strong (> 3): #4a90e2, Strongly Suggestive (2-3): #f5a623

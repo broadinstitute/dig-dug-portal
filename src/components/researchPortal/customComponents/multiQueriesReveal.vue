@@ -180,6 +180,7 @@
                             @gene-set-row-toggle="onGeneSetRowToggled"
                             @update:mainTableCurrentPage="mainTableCurrentPage = $event"
                             @update:subtable-page="onSubtablePageUpdate"
+                            @update:researchIntention="onGeneEntryResearchIntentionUpdate"
                         >
                             <template #data-viz>
                                 <factor-base-reveal-heatmap
@@ -189,6 +190,7 @@
                                     :factor-data="factorData"
                                     :factor-data-table-rows="factorDataTableRowsFiltered"
                                     :phenotype-description-by-id="phenotypeDescriptionById"
+                                    :row-label-mode="isGeneEntryMode ? 'factor' : 'phenotype'"
                                     :selected-nodes.sync="heatmapSelectedNodes"
                                     show-workflow-selection-chrome
                                     :saved-explanations="savedSelectedNodesExplainMenuItems"
@@ -237,6 +239,46 @@
                     <span :class="loadComplete ? 'text-success' : 'text-muted'">{{ loadStatus }}{{ loadStepSeconds > 0 ? ' (' + loadStepSeconds + 's)' : '' }}</span>
                 </div>
                 -->
+
+                <b-modal
+                    id="gene-entry-progress-modal"
+                    v-model="geneEntryProgressModalOpen"
+                    centered
+                    hide-header-close
+                    no-close-on-backdrop
+                    no-close-on-esc
+                    :hide-footer="geneEntry.status === 'loading'"
+                    title="Genes-first data loading"
+                >
+                    <div class="d-flex align-items-start">
+                        <b-spinner v-if="geneEntry.status === 'loading'" class="mr-3 mt-1"></b-spinner>
+                        <div style="min-width: 0;">
+                            <div class="font-weight-bold mb-1">
+                                {{ (geneEntry.progress && geneEntry.progress.message) || "Working…" }}
+                            </div>
+                            <div
+                                v-if="geneEntry.progress && geneEntry.progress.detail"
+                                class="small text-muted"
+                            >
+                                {{ geneEntry.progress.detail }}
+                            </div>
+                            <div v-if="geneEntry.inputGenes && geneEntry.inputGenes.length" class="small text-muted mt-2">
+                                {{ geneEntry.inputGenes.length }} gene(s)
+                                <span v-if="geneEntry.inputGenes.length <= 12">
+                                    : {{ geneEntry.inputGenes.join(", ") }}
+                                </span>
+                                <span v-else>
+                                    : {{ geneEntry.inputGenes.slice(0, 8).join(", ") }}…
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <template #modal-footer>
+                        <b-button variant="primary" size="sm" @click="dismissGeneEntryProgressModal">
+                            OK
+                        </b-button>
+                    </template>
+                </b-modal>
             </div>
         </div>
 
@@ -526,22 +568,21 @@ export default Vue.component("factor-base-reveal", {
     data() {
         return {
             /**
-             * Genes-first entry point (?genes=... URL param). Populated by runGeneEntryWorkflow;
-             * not yet wired into factorData/KG-building or any tab UI (see revealMqGeneEntryOrchestrator.js).
+             * Genes-first entry point (?genes=... URL param). Populated by runGeneEntryWorkflow,
+             * which also assigns vm.factorData/vm.showTab -- see revealMqGeneEntryOrchestrator.js
+             * and ARCHITECTURE.md's "Genes-first entry point" section for the full data flow.
              */
             geneEntry: {
                 status: "idle",
                 inputGenes: [],
-                errors: { pigean: null, phenotypes: null, geneScores: null, perTrait: {} },
-                pigeanResponse: null,
+                errors: { phenotypes: null, perPhenotype: {} },
                 phenotypesResponse: null,
-                geneScoresFlatResponse: null,
                 topTraits: [],
-                topGeneSets: [],
-                perTraitFactors: {},
-                geneDerivedFactorSummary: [],
-                crossReference: { recurringTraitFactors: [], geneSetToFactors: [] },
+                progress: { message: "", detail: "" },
+                researchIntention: "",
             },
+            /** Keeps error/partial progress modal open until the user dismisses it. */
+            geneEntryProgressDismissed: false,
             userQuery: "",
             searchMode: "auto",
             /** Rotating best-practice placeholder examples (Strict Anchor + Semantic Net + Context + Phenotype). */
@@ -879,6 +920,9 @@ export default Vue.component("factor-base-reveal", {
                 subtableCurrentPages: this.subtableCurrentPages,
                 loadingGenesForFactor: this.loadingGenesForFactor,
                 geneSetSources: this.gene_set_sources,
+                showResearchIntention: this.isGeneEntryMode,
+                researchIntention:
+                    (this.geneEntry && this.geneEntry.researchIntention) || "",
             };
         },
         dataPanelHelpers() {
@@ -1265,6 +1309,25 @@ export default Vue.component("factor-base-reveal", {
                 (this.factorDataTableRows || []).length > 0
             );
         },
+        /**
+         * True when Data came from the genes-first (?genes=) entry point.
+         * Used for genes-first-only heatmap presentation (e.g. factor labels on Y-axis).
+         */
+        isGeneEntryMode() {
+            return !!(this.geneEntry && this.geneEntry.inputGenes && this.geneEntry.inputGenes.length);
+        },
+        /** Progress popup while genes-first fetch/merge runs (and on error until dismissed). */
+        geneEntryProgressModalOpen: {
+            get() {
+                if (!this.geneEntry) return false;
+                if (this.geneEntry.status === "loading") return true;
+                if (this.geneEntryProgressDismissed) return false;
+                return this.geneEntry.status === "error" || this.geneEntry.status === "partial";
+            },
+            set(open) {
+                if (!open) this.dismissGeneEntryProgressModal();
+            },
+        },
         /** Mount Data panel only while the Data tab is active and Results generation has not started. */
         showDataTabContent() {
             return this.showTab === "data" && !this.isMechanismHypothesisLoading;
@@ -1480,6 +1543,7 @@ export default Vue.component("factor-base-reveal", {
     },
     async mounted() {
         if (keyParams.genes) {
+            this.geneEntryProgressDismissed = false;
             await runGeneEntryWorkflow(this, keyParams.genes);
         } else if (keyParams.query) {
             this.userQuery = keyParams.query;
@@ -2380,6 +2444,35 @@ export default Vue.component("factor-base-reveal", {
             if (stopTimer) this.stopStepTimer();
             else this.startStepTimer();
         },
+        dismissGeneEntryProgressModal() {
+            this.geneEntryProgressDismissed = true;
+        },
+        onGeneEntryResearchIntentionUpdate(value) {
+            if (!this.geneEntry) return;
+            const text = value != null ? String(value) : "";
+            this.$set(this.geneEntry, "researchIntention", text);
+            this.sharedResearchContextTerm = text;
+        },
+        syncGeneEntryResearchIntentionToSession() {
+            if (!this.geneEntry) return;
+            const text =
+                this.geneEntry.researchIntention != null
+                    ? String(this.geneEntry.researchIntention).trim()
+                    : "";
+            this.sharedResearchContextTerm = text;
+            if (!Array.isArray(this.searchCriteria) || this.searchCriteria.length < 2) {
+                this.searchCriteria = [
+                    { type: "genes", values: (this.geneEntry.inputGenes || []).join(", ") },
+                    { type: "research_context", values: text },
+                ];
+                return;
+            }
+            if (!this.searchCriteria[1]) {
+                this.$set(this.searchCriteria, 1, { type: "research_context", values: text });
+            } else {
+                this.$set(this.searchCriteria[1], "values", text);
+            }
+        },
         setLoadStep(msg, subMsg, time){
             const index = this.statusSteps.findIndex(o => o.msg === msg);
             if(index>-1){
@@ -2814,6 +2907,9 @@ export default Vue.component("factor-base-reveal", {
                     });
                 }
             } else if (gateStepId === WORKFLOW_STEP_IDS.DATA) {
+                if (this.isGeneEntryMode) {
+                    this.syncGeneEntryResearchIntentionToSession();
+                }
                 this.revealResultsTabUnlocked = true;
                 this.switchRevealTab("results");
                 if (this.importedWorkflowPendingHypothesisRun) {

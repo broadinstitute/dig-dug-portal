@@ -33,9 +33,19 @@ function beginMechanismHypothesisGeneration(vm) {
 }
 
 function getResearchContextFromSession(vm) {
-    return (vm.searchCriteria && vm.searchCriteria[1] && vm.searchCriteria[1].values) != null
-        ? String(vm.searchCriteria[1].values)
-        : "";
+    const fromCriteria =
+        vm.searchCriteria && vm.searchCriteria[1] && vm.searchCriteria[1].values != null
+            ? String(vm.searchCriteria[1].values).trim()
+            : "";
+    if (fromCriteria) return fromCriteria;
+    const fromShared =
+        vm.sharedResearchContextTerm != null ? String(vm.sharedResearchContextTerm).trim() : "";
+    if (fromShared) return fromShared;
+    const fromGeneEntry =
+        vm.geneEntry && vm.geneEntry.researchIntention != null
+            ? String(vm.geneEntry.researchIntention).trim()
+            : "";
+    return fromGeneEntry;
 }
 
 function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext, routeEvidenceBundles = null }) {
