@@ -1,13 +1,13 @@
 <template>
-    <div v-if="w">
+    <div>
                     <b-modal
-                        :visible="w.queryHelperOpen"
+                        :visible="queryHelperOpen"
                         size="xl"
                         title="Guided Query Builder"
                         body-class="pb-4"
                         hide-footer
                         no-close-on-backdrop
-                        @change="w.queryHelperOpen = $event"
+                        @change="$emit('update:queryHelperOpen', $event)"
                     >
                         <div class="small text-muted mb-3">
                             Build a targeted search from CFDE evidence. The AI will draft both a scientifically grounded query and a research context you can review before search.
@@ -20,31 +20,32 @@
                             <input
                                 type="text"
                                 class="form-control"
-                                v-model="w.queryHelperPhenotypeInput"
+                                :value="queryHelperPhenotypeInput"
+                                @input="$emit('update:queryHelperPhenotypeInput', $event.target.value)"
                                 placeholder="Type to search CFDE phenotypes..."
                             />
                             <ul
-                                v-if="w.queryHelperPhenotypeSuggestions.length"
+                                v-if="queryHelperPhenotypeSuggestions.length"
                                 class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
                             >
                                 <li
-                                    v-for="opt in w.queryHelperPhenotypeSuggestions"
+                                    v-for="opt in queryHelperPhenotypeSuggestions"
                                     :key="'qh-pheno-' + opt.value"
                                     class="query-helper-suggest-item px-2 py-1"
                                 >
                                     <button
                                         type="button"
                                         class="btn btn-link btn-sm p-0 text-left w-100"
-                                        @click="w.onQueryHelperPickPhenotype(opt)"
+                                        @click="helpers.onQueryHelperPickPhenotype(opt)"
                                     >
                                         <span class="font-weight-bold">{{ opt.label }}</span>
                                         <span class="text-muted"> ({{ opt.value }})</span>
                                     </button>
                                 </li>
                             </ul>
-                            <div v-if="w.queryHelperSelectedPhenotypes.length" class="d-flex flex-wrap mt-2">
+                            <div v-if="queryHelperSelectedPhenotypes.length" class="d-flex flex-wrap mt-2">
                                 <span
-                                    v-for="item in w.queryHelperSelectedPhenotypes"
+                                    v-for="item in queryHelperSelectedPhenotypes"
                                     :key="'qh-pheno-chip-' + item.value"
                                     class="pill query-helper-pill mr-2 mb-2"
                                 >
@@ -52,7 +53,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="w.removeQueryHelperPhenotype(item.value)"
+                                        @click="helpers.removeQueryHelperPhenotype(item.value)"
                                         aria-label="Remove phenotype"
                                     >
                                         ×
@@ -60,32 +61,32 @@
                                 </span>
                             </div>
                             <div
-                                v-if="w.queryHelperNoFactorPhenotypeLabels.length"
+                                v-if="queryHelperNoFactorPhenotypeLabels.length"
                                 class="small text-warning mt-1"
                             >
-                                No factors returned for: {{ w.queryHelperNoFactorPhenotypeLabels.join(", ") }}.
+                                No factors returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
                             </div>
                         </div>
 
                         <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Factors)</div>
-                        <div v-if="w.queryHelperFactorRows.length" class="small text-muted mb-2">
+                        <div v-if="queryHelperFactorRows.length" class="small text-muted mb-2">
                             Select 1-2 pathways to force the AI to investigate these specific mechanisms.
                         </div>
-                        <div v-if="w.queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
+                        <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
                             <b-spinner small class="mr-2"></b-spinner>
                             Loading factors for selected phenotypes...
                         </div>
-                        <div v-else-if="w.queryHelperFactorError" class="alert alert-warning py-2 mb-3">
-                            {{ w.queryHelperFactorError }}
+                        <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
+                            {{ queryHelperFactorError }}
                         </div>
-                        <div v-else-if="w.queryHelperFactorRows.length" class="mb-3">
+                        <div v-else-if="queryHelperFactorRows.length" class="mb-3">
                             <div class="form-group mb-2">
                                 <input
                                     type="text"
                                     class="form-control form-control-sm"
-                                    v-model="w.queryHelperClusterFilterInput"
+                                    :value="queryHelperClusterFilterInput"
+                                    @input="$emit('update:queryHelperClusterFilterInput', $event.target.value); helpers.applyQueryHelperClusterFilterSelection()"
                                     placeholder="Filter gene set clusters (comma-separated keywords)"
-                                    @input="w.applyQueryHelperClusterFilterSelection"
                                 />
                             </div>
                             <div class="table-responsive">
@@ -97,9 +98,9 @@
                                                     <input
                                                         type="checkbox"
                                                         class="query-helper-factor-checkbox mr-2"
-                                                        :checked="w.queryHelperAllFactorsSelected"
-                                                        :indeterminate.prop="w.queryHelperSomeFactorsSelected"
-                                                        @change="w.toggleQueryHelperAllFactors($event)"
+                                                        :checked="queryHelperAllFactorsSelected"
+                                                        :indeterminate.prop="queryHelperSomeFactorsSelected"
+                                                        @change="helpers.toggleQueryHelperAllFactors($event)"
                                                     />
                                                     <span>Select</span>
                                                 </div>
@@ -109,13 +110,13 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="row in w.queryHelperFactorPageRows" :key="'qh-factor-' + row.key">
+                                        <tr v-for="row in queryHelperFactorPageRows" :key="'qh-factor-' + row.key">
                                             <td>
                                                 <input
                                                     type="checkbox"
                                                     class="query-helper-factor-checkbox"
-                                                    :checked="!!w.queryHelperFactorSelection[row.key]"
-                                                    @change="w.toggleQueryHelperFactor(row.key, $event)"
+                                                    :checked="!!queryHelperFactorSelection[row.key]"
+                                                    @change="helpers.toggleQueryHelperFactor(row.key, $event)"
                                                 />
                                             </td>
                                             <td>{{ row.phenotypeLabel }}</td>
@@ -124,18 +125,19 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <div v-if="w.queryHelperFactorRows.length > w.queryHelperFactorsPerPage" class="d-flex justify-content-end mt-2">
+                            <div v-if="queryHelperFactorRows.length > queryHelperFactorsPerPage" class="d-flex justify-content-end mt-2">
                                 <b-pagination
-                                    v-model="w.queryHelperFactorPage"
-                                    :total-rows="w.queryHelperFactorRows.length"
-                                    :per-page="w.queryHelperFactorsPerPage"
+                                    :value="queryHelperFactorPage"
+                                    @change="$emit('update:queryHelperFactorPage', $event)"
+                                    :total-rows="queryHelperFactorRows.length"
+                                    :per-page="queryHelperFactorsPerPage"
                                     size="sm"
                                     pills
                                 />
                             </div>
                         </div>
                         <div v-else class="small text-muted mb-3">
-                            {{ w.queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'First, select a phenotype above to view its associated biological mechanisms and pathways.' }}
+                            {{ queryHelperSelectedPhenotypes.length ? 'No associated gene set clusters returned for selected phenotypes.' : 'First, select a phenotype above to view its associated biological mechanisms and pathways.' }}
                         </div>
 
                         <div class="form-group mb-3">
@@ -146,13 +148,14 @@
                             <input
                                 type="text"
                                 class="form-control"
-                                v-model="w.queryHelperMechanismInput"
+                                :value="queryHelperMechanismInput"
+                                @input="$emit('update:queryHelperMechanismInput', $event.target.value)"
                                 placeholder="Add an extra mechanism term, then press Enter"
-                                @keydown.enter.prevent="w.addQueryHelperMechanismFromInput"
+                                @keydown.enter.prevent="helpers.addQueryHelperMechanismFromInput"
                             />
-                            <div v-if="w.queryHelperMechanismTerms.length" class="d-flex flex-wrap mt-2">
+                            <div v-if="queryHelperMechanismTerms.length" class="d-flex flex-wrap mt-2">
                                 <span
-                                    v-for="term in w.queryHelperMechanismTerms"
+                                    v-for="term in queryHelperMechanismTerms"
                                     :key="'qh-mech-chip-' + term"
                                     class="pill query-helper-pill mr-2 mb-2"
                                 >
@@ -160,7 +163,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="w.removeQueryHelperMechanism(term)"
+                                        @click="helpers.removeQueryHelperMechanism(term)"
                                         aria-label="Remove mechanism term"
                                     >
                                         ×
@@ -177,32 +180,32 @@
                             <input
                                 type="text"
                                 class="form-control"
-                                v-model="w.queryHelperGeneInput"
+                                :value="queryHelperGeneInput"
                                 placeholder="Search and select a gene symbol"
-                                @input="w.onQueryHelperGeneInput"
-                                @keydown.enter.prevent="w.addQueryHelperGeneFromInput"
+                                @input="$emit('update:queryHelperGeneInput', $event.target.value); helpers.onQueryHelperGeneInput()"
+                                @keydown.enter.prevent="helpers.addQueryHelperGeneFromInput"
                             />
                             <ul
-                                v-if="w.queryHelperGeneSuggestions.length"
+                                v-if="queryHelperGeneSuggestions.length"
                                 class="query-helper-suggest-list list-unstyled mt-2 mb-2 border rounded"
                             >
                                 <li
-                                    v-for="gene in w.queryHelperGeneSuggestions"
+                                    v-for="gene in queryHelperGeneSuggestions"
                                     :key="'qh-gene-suggest-' + gene"
                                     class="query-helper-suggest-item px-2 py-1"
                                 >
                                     <button
                                         type="button"
                                         class="btn btn-link btn-sm p-0 text-left w-100"
-                                        @click="w.selectQueryHelperGeneSuggestion(gene)"
+                                        @click="helpers.selectQueryHelperGeneSuggestion(gene)"
                                     >
                                         {{ gene }}
                                     </button>
                                 </li>
                             </ul>
-                            <div v-if="w.queryHelperGenesOfInterest.length" class="d-flex flex-wrap mt-2">
+                            <div v-if="queryHelperGenesOfInterest.length" class="d-flex flex-wrap mt-2">
                                 <span
-                                    v-for="gene in w.queryHelperGenesOfInterest"
+                                    v-for="gene in queryHelperGenesOfInterest"
                                     :key="'qh-gene-chip-' + gene"
                                     class="pill query-helper-pill mr-2 mb-2"
                                 >
@@ -210,7 +213,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-link btn-sm p-0 ml-1"
-                                        @click="w.removeQueryHelperGene(gene)"
+                                        @click="helpers.removeQueryHelperGene(gene)"
                                         aria-label="Remove gene"
                                     >
                                         ×
@@ -219,34 +222,35 @@
                             </div>
                         </div>
 
-                        <div v-if="w.queryHelperCanContinue" class="form-group mb-3">
+                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
                             <label class="font-weight-bold mb-1">Research context (optional draft)</label>
                             <textarea
-                                v-model="w.queryHelperDraftResearchContext"
+                                :value="queryHelperDraftResearchContext"
+                                @input="$emit('update:queryHelperDraftResearchContext', $event.target.value)"
                                 class="form-control"
                                 rows="3"
                                 placeholder="Optional: add context you want included when composing your query."
                             ></textarea>
                         </div>
-                        <div v-if="w.queryHelperCanContinue" class="form-group mb-3">
+                        <div v-if="queryHelperCanContinue" class="form-group mb-3">
                             <button
                                 type="button"
                                 class="btn btn-link p-0 d-flex align-items-center"
                                 style="gap: 0.35rem;"
-                                @click="w.queryHelperAdvancedOpen = !w.queryHelperAdvancedOpen"
-                                :aria-expanded="w.queryHelperAdvancedOpen ? 'true' : 'false'"
+                                @click="$emit('update:queryHelperAdvancedOpen', !queryHelperAdvancedOpen)"
+                                :aria-expanded="queryHelperAdvancedOpen ? 'true' : 'false'"
                                 aria-controls="query-helper-advanced-retrieval-options"
                             >
                                 <span class="font-weight-bold">Advanced retrieval options</span>
-                                <b-icon :icon="w.queryHelperAdvancedOpen ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></b-icon>
+                                <b-icon :icon="queryHelperAdvancedOpen ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></b-icon>
                             </button>
-                            <div v-if="w.queryHelperAdvancedOpen" id="query-helper-advanced-retrieval-options" class="mt-2 border rounded p-2">
+                            <div v-if="queryHelperAdvancedOpen" id="query-helper-advanced-retrieval-options" class="mt-2 border rounded p-2">
                                 <label class="d-flex align-items-center mb-1" style="gap: 0.5rem;">
                                     <input
                                         type="checkbox"
-                                        :checked="w.queryHelperHardConstraintEnabled"
-                                        :disabled="!w.queryHelperHardConstraintEligible"
-                                        @change="w.queryHelperHardConstraintEnabled = !!($event && $event.target && $event.target.checked)"
+                                        :checked="queryHelperHardConstraintEnabled"
+                                        :disabled="!queryHelperHardConstraintEligible"
+                                        @change="$emit('update:queryHelperHardConstraintEnabled', !!($event && $event.target && $event.target.checked))"
                                     />
                                     <span class="font-weight-bold">Use helper selections as hard retrieval constraints</span>
                                 </label>
@@ -254,31 +258,31 @@
                                     Next, the LLM will extract search terms and generate research context for retrieval.
                                     When this option is enabled, your selected phenotype and gene set cluster choices are still enforced during data retrieval.
                                 </div>
-                                <div v-if="!w.queryHelperHardConstraintEligible" class="small text-muted mt-1">
+                                <div v-if="!queryHelperHardConstraintEligible" class="small text-muted mt-1">
                                     This option becomes available after selecting at least one phenotype and one gene set cluster.
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div v-if="w.queryHelperError" class="small text-danger">{{ w.queryHelperError }}</div>
+                            <div v-if="queryHelperError" class="small text-danger">{{ queryHelperError }}</div>
                             <div class="ml-auto d-flex align-items-center">
                                 <button
                                     type="button"
                                     class="btn btn-outline-secondary mr-2"
-                                    @click="w.queryHelperOpen = false"
-                                    :disabled="w.queryHelperComposing"
+                                    @click="$emit('update:queryHelperOpen', false)"
+                                    :disabled="queryHelperComposing"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    v-if="w.queryHelperCanContinue"
+                                    v-if="queryHelperCanContinue"
                                     type="button"
                                     class="btn btn-cfde"
-                                    @click="w.continueWithQueryHelper"
-                                    :disabled="w.queryHelperComposing"
+                                    @click="helpers.continueWithQueryHelper"
+                                    :disabled="queryHelperComposing"
                                 >
-                                    <span v-if="w.queryHelperComposing">
+                                    <span v-if="queryHelperComposing">
                                         <b-spinner small class="mr-1"></b-spinner>
                                         Building...
                                     </span>
@@ -286,7 +290,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div v-if="w.queryHelperCanContinue" class="small text-muted text-right mt-1">
+                        <div v-if="queryHelperCanContinue" class="small text-muted text-right mt-1">
                             You can review and edit the drafted query and context before searching.
                         </div>
                     </b-modal>
@@ -297,12 +301,34 @@
 export default {
     name: "WorkflowQueryHelperModal",
     props: {
-        shell: { type: Object, default: null },
-    },
-    computed: {
-        w() {
-            return this.shell;
-        },
+        queryHelperOpen: { type: Boolean, default: false },
+        queryHelperPhenotypeInput: { type: String, default: "" },
+        queryHelperPhenotypeSuggestions: { type: Array, default: () => [] },
+        queryHelperSelectedPhenotypes: { type: Array, default: () => [] },
+        queryHelperNoFactorPhenotypeLabels: { type: Array, default: () => [] },
+        queryHelperFactorRows: { type: Array, default: () => [] },
+        queryHelperLoadingFactors: { type: Boolean, default: false },
+        queryHelperFactorError: { type: String, default: "" },
+        queryHelperClusterFilterInput: { type: String, default: "" },
+        queryHelperAllFactorsSelected: { type: Boolean, default: false },
+        queryHelperSomeFactorsSelected: { type: Boolean, default: false },
+        queryHelperFactorPageRows: { type: Array, default: () => [] },
+        queryHelperFactorSelection: { type: Object, default: () => ({}) },
+        queryHelperFactorsPerPage: { type: Number, default: 10 },
+        queryHelperFactorPage: { type: Number, default: 1 },
+        queryHelperMechanismInput: { type: String, default: "" },
+        queryHelperMechanismTerms: { type: Array, default: () => [] },
+        queryHelperGeneInput: { type: String, default: "" },
+        queryHelperGeneSuggestions: { type: Array, default: () => [] },
+        queryHelperGenesOfInterest: { type: Array, default: () => [] },
+        queryHelperCanContinue: { type: Boolean, default: false },
+        queryHelperDraftResearchContext: { type: String, default: "" },
+        queryHelperAdvancedOpen: { type: Boolean, default: false },
+        queryHelperHardConstraintEnabled: { type: Boolean, default: false },
+        queryHelperHardConstraintEligible: { type: Boolean, default: false },
+        queryHelperError: { type: String, default: "" },
+        queryHelperComposing: { type: Boolean, default: false },
+        helpers: { type: Object, required: true },
     },
 };
 </script>

@@ -240,10 +240,18 @@
             </div>
         </div>
 
-        <workflow-query-helper-modal :shell="mqShell" />
+        <workflow-query-helper-modal
+            v-bind="queryHelperModalProps"
+            :helpers="queryHelperModalHelpers"
+            v-on="queryHelperModalListeners"
+        />
         <workflow-query-guidelines-modal :open.sync="queryGuidelinesOpen" />
         <workflow-search-terms-extraction-modal :open.sync="searchTermsExtractionOpen" />
-        <workflow-network-modals :shell="mqShell" />
+        <workflow-network-modals
+            v-bind="networkModalsProps"
+            :helpers="networkModalsHelpers"
+            v-on="networkModalsListeners"
+        />
 
         <workspace-explain-graph-modal
             :open="selectedNodesExplainOpen"
@@ -324,19 +332,24 @@ import {
     processExtractionResponse,
     resetWorkflowStateForNewRun as resetMqWorkflowSessionForNewRun,
     startWorkflowFromExtractedTerms as orchestrateStartFromExtractedTerms,
-} from "./revealMultiQueryWorkflow/revealMqWorkflowOrchestrator.js";
-import {
     beginMechanismHypothesisGeneration as startMechanismHypothesisGeneration,
+    generateHypothesisForRemainingPair as orchestrateGenerateHypothesisForRemainingPair,
     requestMechanismHypotheses as orchestrateMechanismHypotheses,
     resumeImportedWorkflowAfterDataGate as orchestrateResumeImportedAfterDataGate,
     retryMechanismHypotheses as orchestrateRetryMechanismHypotheses,
     retryMechanismHypothesesRelaxed as orchestrateRetryMechanismHypothesesRelaxed,
-} from "./revealMultiQueryWorkflow/revealMqHypothesisOrchestrator.js";
-import {
     onResearch as orchestrateOnResearch,
     runHybridRetrievalWorkflow as orchestrateHybridRetrieval,
     runMultiQueryRetrievalWorkflow as orchestrateMultiQueryRetrieval,
-} from "./revealMultiQueryWorkflow/revealMqRetrievalOrchestrator.js";
+} from "./revealMultiQueryWorkflow/revealMqWorkflowPipeline.js";
+import {
+    applyStepUpdate,
+    WORKFLOW_STEP_IDS,
+    revealDataSteps as computeRevealDataSteps,
+    revealExtractionStep as computeRevealExtractionStep,
+    revealHypothesisStep as computeRevealHypothesisStep,
+    workflowErrorSteps as computeWorkflowErrorSteps,
+} from "./revealMultiQueryWorkflow/revealMqStepGates.js";
 import {
     filterTableRowsByHeatmapSelection,
 } from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
@@ -345,8 +358,11 @@ import {
     buildCompactRouteEvidence as buildRouteEvidenceBundle,
     factorMatchesEvidenceHit as routeFactorMatchesHit,
     filterRouteFactorDataToEvidenceHits as filterRouteFactorDataByHits,
+    getRouteConstraintSpec,
     isConstraintValidationError as isHybridConstraintValidationError,
     mergeRouteFactorData as mergeMultiRouteFactorData,
+    normalizeMultiQueryRoutes,
+    normalizeRouteCategory,
     resolveHybridPhenotypeFilterTerms as resolveHybridPhenotypeTerms,
     resolveMultiRouteHybridPhenotypeFilterTerms as resolveMultiRoutePhenotypeTerms,
     routeFactorSupportScore as scoreRouteFactorSupport,
@@ -380,6 +396,92 @@ import {
     transformMergedDataToKG as buildKgTriplesFromFactorData,
 } from "./revealMultiQueryWorkflow/revealMqKgTransform.js";
 import {
+    buildFactorConnectivityNetwork,
+    buildMechanismFlowNetworkFromHypothesisKg,
+    buildNetworkFromFlattenedRowIds,
+    extractGeneConnectionsFromFlattened,
+    extractRelevantFactorsAndGeneSetsFromFlattened,
+    factorLabelsForPhenotypeGene,
+    filterSupportingNetworkToCandidateGenes,
+    getGeneScoresFromFlattenedKG,
+} from "./revealMultiQueryWorkflow/revealMqNetworkBuild.js";
+import {
+    candidateInventoryRows,
+    normalizeCandidateInventory,
+    normalizeMechanismHypotheses,
+} from "./revealMultiQueryWorkflow/revealMqMechanismNormalize.js";
+import {
+    applySearchCriteriaGateEdits,
+    syncUnionTermsFromMultiQueryRoutes,
+} from "./revealMultiQueryWorkflow/revealMqSearchCriteriaGate.js";
+import { resolveRevealMqRuntimeConfig } from "./revealMultiQueryWorkflow/revealMqConfig.js";
+import {
+    MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,
+    MECHANISM_HYPOTHESIS_SYSTEM_PROMPT,
+    MULTI_ROUTE_EXTRACT_SYSTEM_PROMPT,
+    QUERY_HELPER_COMPOSE_SYSTEM_PROMPT,
+} from "./revealMultiQueryWorkflow/revealMqPrompts.js";
+import {
+    buildAntiAnchorFallbackAlternatives,
+    detectAntiAnchorTerms,
+    ensureAntiAnchorWarningMessage,
+    mergeAlternativeQueries,
+    normalizeAlternativeQueries,
+    normalizeExtractionAmbiguity,
+} from "./revealMultiQueryWorkflow/revealMqExtractionAmbiguity.js";
+import {
+    fetchC2m2Provenance,
+    fetchGeneSuggestionsForQueryHelper,
+    fetchQueryHelperFactorRows,
+} from "./revealMultiQueryWorkflow/revealMqQueryHelperApi.js";
+import {
+    buildHelperFallbackQuery,
+    continueWithQueryHelper,
+} from "./revealMultiQueryWorkflow/revealMqQueryHelperOrchestrator.js";
+import { runGeneEntryWorkflow } from "./revealMultiQueryWorkflow/revealMqGeneEntryOrchestrator.js";
+import {
+    edgeEndpointIdsFromMappedNode,
+    edgeSupportedByTrapiRelay,
+    extractTopHitFromNameResolutionResponse,
+    fetchBiolinkNodeDetails,
+    findNormalizedNodeEntry,
+    inferBiolinkClassHintFromCurie,
+    isTrapiDiseaseLikeCategory,
+    isTrapiGeneLikeCategory,
+    normalizeBiolinkLookupLabel,
+    pickPrimaryBiolinkType,
+    resolveLabelViaNameResolution,
+    trapiCategoriesArray,
+    trapiKnowledgeIndicatesEdgeSupport,
+    trapiRelayPostTrapiMessage,
+    validateBiolinkMappedEdgesViaRelay,
+    validateSingleMappedBiolinkEdge,
+} from "./revealMultiQueryWorkflow/revealMqBiolinkApi.js";
+import {
+    autoMapAllMechanismsToBiolink,
+    biolinkEdgeVisualSignature,
+    classifyBiolinkNodeType,
+    inferBiolinkPredicate,
+    mapMechanismBiolinkPhase1Only,
+    patchMechanismBiolinkTrapiProgress,
+    queueBiolinkTrapiValidation,
+    runBiolinkTrapiValidationForMechanism,
+} from "./revealMultiQueryWorkflow/revealMqBiolinkOrchestrator.js";
+import {
+    buildHtmlReportDocument,
+    buildMechanismClipboardText,
+    buildMechanismHandoffAppendixObject,
+    buildMechanismHandoffHtmlDocument,
+    buildMechanismReportOneCardHtml,
+    buildMechanismReportSections,
+    getMechanismTopGenes,
+    sanitizeHandoffCandidateGenes,
+    sanitizeHandoffFlattenedRows,
+    sanitizeHandoffGeneConnections,
+    sanitizeHandoffNetwork,
+    sanitizeHandoffSelectionRows,
+} from "./revealMultiQueryWorkflow/revealMqReportBuilder.js";
+import {
     buildRouteEditRowsFromRoutes,
     getRouteEditRow as findRouteEditRow,
     patchRoutesFromEditRows,
@@ -396,39 +498,6 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import "./revealMultiQueryWorkflow/mqSharedStyles.css";
 import { divide } from "lodash";
-
-/**
- * TEMPORARY: full POST URL for hybrid-search while exercising a local backend.
- * Set to null (or "") before merging / deploying; production then uses hybridSearchBaseUrl + /api/reveal/hybrid-search.
- * When set, VUE_APP_REVEAL_HYBRID_SEARCH_URL still wins if defined at build time.
- */
-const TEMP_HYBRID_SEARCH_ENDPOINT_URL = null;
-
-const REVEAL_ROUTE_CONSTRAINTS = {
-    "Tissue Expression": {
-        constraint_mode: "soft",
-        constraint_scope: {
-            programs: ["gtex", "hubmap"],
-            modalities: ["transcriptomics", "single-cell expression"],
-        },
-    },
-    Perturbations: {
-        constraint_mode: "soft",
-        constraint_scope: {
-            programs: ["lincs", "motrpac"],
-            modalities: ["chemical perturbation", "transcriptional response"],
-        },
-    },
-    Genetics: {
-        constraint_mode: "soft",
-        constraint_scope: {
-            programs: ["cmdkp"],
-            modalities: ["gwas", "variant-to-trait"],
-        },
-    },
-};
-
-const REVEAL_ROUTE_CATEGORIES = Object.keys(REVEAL_ROUTE_CONSTRAINTS);
 
 Vue.use(BootstrapVueIcons);
 Vue.use(BootstrapVue);
@@ -456,6 +525,23 @@ export default Vue.component("factor-base-reveal", {
     props: {},
     data() {
         return {
+            /**
+             * Genes-first entry point (?genes=... URL param). Populated by runGeneEntryWorkflow;
+             * not yet wired into factorData/KG-building or any tab UI (see revealMqGeneEntryOrchestrator.js).
+             */
+            geneEntry: {
+                status: "idle",
+                inputGenes: [],
+                errors: { pigean: null, phenotypes: null, geneScores: null, perTrait: {} },
+                pigeanResponse: null,
+                phenotypesResponse: null,
+                geneScoresFlatResponse: null,
+                topTraits: [],
+                topGeneSets: [],
+                perTraitFactors: {},
+                geneDerivedFactorSummary: [],
+                crossReference: { recurringTraitFactors: [], geneSetToFactors: [] },
+            },
             userQuery: "",
             searchMode: "auto",
             /** Rotating best-practice placeholder examples (Strict Anchor + Semantic Net + Context + Phenotype). */
@@ -627,50 +713,14 @@ export default Vue.component("factor-base-reveal", {
             popupNetworkWidth: 960,
             popupNetworkHeight: 640,
 
-            /** Reveal hybrid-search API base (production: search.hugeamp.org; override via VUE_APP_REVEAL_HYBRID_BASE_URL for local dev). */
-            hybridSearchBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
-                ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
-                : "https://search.hugeamp.org",
             /**
-             * Full POST URL for hybrid-search when set; otherwise callHybridRevealSearch uses hybridSearchBaseUrl + /api/reveal/hybrid-search.
-             * Build-time VUE_APP_REVEAL_HYBRID_SEARCH_URL overrides TEMP_HYBRID_SEARCH_ENDPOINT_URL (see module constant above).
+             * Env-var-driven runtime config: hybridSearchBaseUrl, hybridSearchEndpointUrl,
+             * queryHelperPigeanFactorUrlTemplate, revealBiolinkProxyBaseUrl,
+             * hybridSearchUseClientEmbedding, ollamaEmbedUrl. See revealMqConfig.js.
              */
-            hybridSearchEndpointUrl: (() => {
-                const env =
-                    typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_SEARCH_URL
-                        ? String(process.env.VUE_APP_REVEAL_HYBRID_SEARCH_URL).trim()
-                        : "";
-                if (env) return env.replace(/\/$/, "");
-                const temp =
-                    TEMP_HYBRID_SEARCH_ENDPOINT_URL != null ? String(TEMP_HYBRID_SEARCH_ENDPOINT_URL).trim() : "";
-                if (temp) return temp.replace(/\/$/, "");
-                return null;
-            })(),
-            /**
-             * Query-helper factors endpoint template. "$phenotype" is replaced by the selected phenotype id.
-             * Example: https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=t2d,cfde
-             */
-            queryHelperPigeanFactorUrlTemplate:
-                typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE
-                    ? String(process.env.VUE_APP_REVEAL_QUERY_HELPER_FACTOR_URL_TEMPLATE).trim()
-                    : "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=$phenotype,cfde",
-            /**
-             * Biolink API base for Name Resolution + NodeNorm + TRAPI edge validation.
-             * Defaults to search.hugeamp.org deployment; override via VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL for local dev.
-             * Example dev: VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL=http://localhost:3000
-             */
-            revealBiolinkProxyBaseUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL)
-                ? String(process.env.VUE_APP_REVEAL_BIOLINK_PROXY_BASE_URL).replace(/\/$/, "")
-                : (typeof process !== "undefined" && process.env && process.env.VUE_APP_REVEAL_HYBRID_BASE_URL)
-                    ? String(process.env.VUE_APP_REVEAL_HYBRID_BASE_URL).replace(/\/$/, "")
-                : "https://search.hugeamp.org",
-            /** When false, omit query_embedding; backend embeds (ALLOW_SERVER_SIDE_EMBEDDING). When true, FE must call Ollama and send query_embedding. */
-            hybridSearchUseClientEmbedding: (typeof process !== "undefined" && process.env && process.env.VUE_APP_HYBRID_CLIENT_EMBEDDING === "true"),
+            ...resolveRevealMqRuntimeConfig(),
             /** POST timeout for hybrid search (ms); server may run DB + Ollama. */
             hybridSearchTimeoutMs: 120000,
-            ollamaEmbedUrl: (typeof process !== "undefined" && process.env && process.env.VUE_APP_OLLAMA_EMBED_URL)
-                ? String(process.env.VUE_APP_OLLAMA_EMBED_URL)
-                : "http://127.0.0.1:11434/api/embed",
             hybridEmbedModel: "mxbai-embed-large",
             hybridEmbedExpectedDim: 1024,
 
@@ -704,479 +754,107 @@ export default Vue.component("factor-base-reveal", {
             workflowRunId: 0,
             /** Bumped on import so heatmap/network visualizers remount with restored data. */
             workflowVisualKey: 0,
-
-multiRouteExtractSystemPrompt:`
-You are an expert biomedical bioinformatics routing assistant for CFDE REVEAL.
-Parse the user's biological query, diversify it into retrieval directions, and output ONLY raw valid JSON.
-
-Return this exact top-level shape:
-{
-  "phenotype_terms": [],
-  "explicit_user_genes": [],
-  "genes_of_interest": [],
-  "mechanism_terms": [],
-  "research_context": "",
-  "suggested_queries": [],
-  "selected_routes": [
-    {
-      "category": "Tissue Expression",
-      "biological_query_variation": "",
-      "rationale": "",
-      "extracted_terms": {
-        "phenotype_terms": [],
-        "mechanism_terms": [],
-        "genes_of_interest": [],
-        "tissues": [],
-        "cell_types": []
-      }
-    }
-  ],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [], "anti_anchor_terms": [] }
-}
-
-Workflow:
-1. Generate 10 internally diverse candidate biological search variations.
-2. Select exactly 3 orthogonal routes when possible, one each from: "Tissue Expression", "Perturbations", and "Genetics".
-3. Keep each "biological_query_variation" focused on biological modality, mechanism, tissue/cell context, phenotype, and genes.
-4. Extract strict route-specific terms for each selected route.
-5. Populate "explicit_user_genes" only with official symbols directly named or directly aliased by the user's original query.
-6. Populate the top-level phenotype_terms, mechanism_terms, genes_of_interest, and research_context as a concise union / summary for UI review. genes_of_interest may include route-expanded pathway anchors, but explicit_user_genes must stay faithful to user input.
-
-CRITICAL MODALITY DECOUPLING AND REPOSITORY ANTI-TOKEN RULE:
-When generating "biological_query_variation", describe the biological MODALITY, never a specific repository or database program.
-Do not use literal program or infrastructure names in biological_query_variation, including: GTEx, LINCS, CMDKP, HuBMAP, MoTrPAC, DCC, data portal, database, or repository.
-Translate repository concepts into modality language:
-- Instead of "GTEx query", use "transcript co-expression profiling and tissue-specific steady-state abundance".
-- Instead of "LINCS lookup", use "dynamic cellular transcription signatures and downstream expression changes following chemical perturbation".
-- Instead of "CMDKP traits", use "causal genetic variant-to-trait associations and polygenic phenotypic scores".
-
-Term extraction rules:
-- explicit_user_genes must contain only official human gene symbols directly stated by the user or directly implied by a named alias/protein in the user's query (e.g., ALK7 -> ACVR1C, Activin E -> INHBE). Do not include genes introduced by route expansion.
-- genes_of_interest must contain official human gene symbols only.
-- phenotype_terms should be specific traits/phenotypes. Leave empty if the route is mechanism-only and no focused phenotype is needed.
-- mechanism_terms should be concise, positive biological anchors. Avoid exclusions like "non-X", "without X", "independent of X", or "except X".
-- If the user uses anti-anchor wording, translate to positive mechanism anchors and record the excluded terms in ambiguity_check.anti_anchor_terms.
-
-Output rules:
-- Output JSON only. No markdown, no prose.
-- selected_routes must have no more than 3 items.
-- If the query is out of domain, return empty arrays, empty research_context, selected_routes: [], and ambiguity_check.has_ambiguity false.
-`,
-
-extractSystemPrompt:`
-You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with these fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (array of strings), "research_context" (string), "suggested_queries" (array of strings), and optional "ambiguity_check" (object). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
-
-CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
-1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
-2. Broad Disease Queries: ONLY populate the "phenotype_terms" array if the user is asking a purely generic, broad question about a disease or trait (e.g., "Find genes for Type 2 Diabetes") with no specific mechanism attached.
-
-INSTRUCTIONS FOR "genes_of_interest":
-Extract specific, explicit gene or protein targets mentioned by the user. 
-CRITICAL RULE 1 (Official Symbols Only): You MUST convert any protein names or aliases into their official, primary human gene symbols (HGNC). For example, if the user asks for "ALK7", you must output "ACVR1C". If the user asks for "Activin E", output "INHBE".
-CRITICAL RULE 2 (Strip Parentheses): If the user provides a symbol alongside an alias or description in parentheses (e.g., "ACVR1C(ALK7)" or "INHBE (Activin E)"), extract ONLY the primary official gene symbol and discard the parentheses (e.g., output exactly "ACVR1C" and "INHBE"). 
-Output this as an array of strings containing ONLY the clean, official gene symbols (e.g., ["ACVR1C", "INHBE"]). Do NOT put metabolites (e.g., lactate), broad protein classes (e.g., kinases), or pathways in this list. If no specific genes or proteins are explicitly mentioned in the query, leave the array EMPTY [].
-
-INSTRUCTIONS FOR "mechanism_terms":
-Extract the core biological mechanisms, specific metabolites, or molecular targets EXPLICITLY mentioned in the query. DO NOT over-expand the list with downstream pathways, unmentioned gene families, or tangentially related biological processes (e.g., if the user asks about TRAP1, do not list every senescence pathway). Distill the user's intent into a STRICT MAXIMUM of 3 to 5 highly precise, comma-separated search terms to ensure targeted exact-matching. 
-
-INSTRUCTIONS FOR "research_context":
-Write a clear, 1-2 sentence summary of the biological investigation including both the mechanisms and diseases.
-
-CRITICAL INSTRUCTIONS FOR "suggested_queries":
-First, strictly evaluate the user's query against the following four Optimal Query Guidelines:
-1. Anchor: Explicitly names a specific gene, protein, metabolite, or cellular structure/state to force graph anchoring.
-2. Semantic Net: Defines a specific conceptual biochemical mechanism or pathway.
-3. Spatial Anchoring: Specifies a tissue, cell type, or anatomical location.
-4. Phenotypic Scope: Limits the outcome to a specific clinical trait, biomarker, or focused disease state.
-
-EVALUATION ACTION:
-- If the user's query successfully meets ALL FOUR of these guidelines, it is already fully optimized. You MUST leave the "suggested_queries" array EMPTY [] to avoid confusing the user with redundant alternatives.
-- If the user's query FAILS ANY of these guidelines (e.g., it is a broad disease search, lacks a tissue context, or lacks a specific anchor), generate 2 to 3 highly specific, optimized alternative search queries based on their original intent. These suggestions MUST strictly follow the "Anchor + Semantic Net" formula:
-"Find a [Broad Mechanism/Semantic Net] involving [Explicit Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
-
-AMBIGUITY AND SUBJECTIVE TERMS RULE:
-If you detect subjective or ambiguous wording (e.g., "novel", "new", "top", "best", "unexplored"), include an "ambiguity_check" object and keep extraction moving:
-1. Set "ambiguity_check.has_ambiguity" to true.
-2. Add a concise "ambiguity_check.warning_message" explaining your default interpretation.
-3. Still produce actionable extraction fields and include 1-2 pivot options in "ambiguity_check.alternative_queries".
-4. For "novel", default interpretation is "contextually novel" (known biology used as a potentially underappreciated link to this phenotype) and reflect that in "research_context".
-
-NEGATIVE CONSTRAINTS (ANTI-ANCHORS) RULE:
-Vector/semantic retrieval is weak at pure exclusions like "non-X", "without X", "independent of X", or "except X". When these appear:
-1. Set "ambiguity_check.has_ambiguity" to true.
-2. In "ambiguity_check.warning_message", explicitly state the pro-anchor substitution. The message MUST include language equivalent to:
-   "we translated the anti-anchor constraint into pro-anchor alternatives"
-   and mention at least one positive mechanism/pathway anchor used for the substitution.
-3. Add 2-3 "ambiguity_check.alternative_queries" that convert the negative request into positive, testable mechanism anchors while preserving the user's tissue/process context.
-4. Include "ambiguity_check.anti_anchor_terms" as an array of detected excluded anchors (e.g., ["UCP1"]).
-
-ANTI-ANCHOR LEAKAGE PROHIBITION (STRICT):
-If anti-anchor terms are detected, DO NOT carry anti-anchor connotations into:
-- "mechanism_terms"
-- "research_context"
-Keep anti-anchor references only inside "ambiguity_check.anti_anchor_terms" and the explanatory warning message.
-Do not include negative constraint wording in mechanism_terms or research_context (e.g., "non-", "without", "independent of", "except", "excluding", "other than").
-
-FINAL SELF-CHECK (REQUIRED BEFORE OUTPUT):
-If "ambiguity_check.anti_anchor_terms" is non-empty:
-1) mechanism_terms contain only positive pro-anchor mechanisms.
-2) research_context contains only positive pro-anchor framing.
-3) warning_message explicitly states anti-anchor -> pro-anchor translation.
-4) alternative_queries are positive-anchor rewrites only.
-If any check fails, revise and regenerate JSON before responding.
-
-When no ambiguity is detected, set "ambiguity_check.has_ambiguity" to false and leave warning_message/alternative_queries empty.
-
-OUT OF DOMAIN INSTRUCTION:
-If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, mechanism_terms, and suggested_queries; use empty string for research_context; and set ambiguity_check.has_ambiguity to false.
-
-EXAMPLES:
-
-User: "Find an oxidative phosphorylation mechanism involving TRAP1 in vascular smooth muscle cells that promotes atherosclerosis."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": ["TRAP1"],
-  "mechanism_terms": ["oxidative phosphorylation", "mitochondrial dysfunction", "metabolic reprogramming"],
-  "research_context": "Investigating how the TRAP1 mitochondrial chaperone alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
-  "suggested_queries": [],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-// (Note: suggested_queries is empty because the user's prompt perfectly met all 4 Optimal Query Guidelines.)
-
-User: "Find a microbiome-metabolite mechanism linking host signaling to insulin resistance."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": [],
-  "mechanism_terms": ["gut microbiota-derived metabolites", "short-chain fatty acids (SCFAs)", "microbial metabolite receptors"],
-  "research_context": "Investigating how gut microbiome-derived metabolites modulate host signaling pathways to influence insulin resistance and Type 2 Diabetes.",
-  "suggested_queries": [
-    "Find a short-chain fatty acid receptor mechanism involving GPR43 in the intestinal epithelium that alters systemic insulin sensitivity.",
-    "Find a secondary bile acid signaling mechanism involving FXR in hepatocytes linked to glucose tolerance."
-  ],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-// (Note: suggested_queries populated because the user lacked a specific anchor and tissue context.)
-
-User: "What are the genes for early-onset Alzheimer's disease?"
-Output:
-{
-  "phenotype_terms": ["Alzheimer's disease", "early-onset Alzheimer's", "dementia", "neurodegeneration"],
-  "genes_of_interest": [],
-  "mechanism_terms": [],
-  "research_context": "Investigating the primary genetic drivers and risk factors associated with early-onset Alzheimer's disease.",
-  "suggested_queries": [
-    "Find a microglial phagocytosis mechanism involving TREM2 in the cortex linked to amyloid-beta clearance.",
-    "Find a lipid transport mechanism involving APOE in astrocytes associated with early-onset neurodegeneration."
-  ],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-
-User: "what are novel candidate genes for waist-hip ratio in the ACVR1C(ALK7) / Activin E pathway?"
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": ["ACVR1C", "INHBE"],
-  "mechanism_terms": ["activin/TGF-beta receptor signaling", "ligand signaling"],
-  "research_context": "Investigating contextually novel candidate genes within the ACVR1C (ALK7) / INHBE (Activin E) pathway that modulate fat distribution and influence waist-to-hip ratio.",
-  "suggested_queries": [],
-  "ambiguity_check": {
-    "has_ambiguity": true,
-    "warning_message": "You used 'novel'. We interpreted this as contextually novel mechanisms for this phenotype.",
-    "alternative_queries": [
-      "Find completely uncharacterized candidate genes for waist-hip ratio in the ACVR1C / INHBE pathway.",
-      "Find established canonical GWAS-linked genes for waist-hip ratio in the ACVR1C / INHBE pathway."
-    ]
-  }
-}
-
-User: "Tell me about interesting genes that drive non-UCP1 thermogenesis in white/beige adipocytes."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": [],
-  "mechanism_terms": ["adipocyte thermogenesis", "calcium cycling thermogenesis", "creatine substrate cycling"],
-  "research_context": "Investigating calcium cycling, creatine substrate cycling, and lipid cycling thermogenic mechanisms in white/beige adipocytes.",
-  "suggested_queries": [],
-  "ambiguity_check": {
-    "has_ambiguity": true,
-    "warning_message": "You asked for non-UCP1 mechanisms. We translated the anti-anchor constraint into pro-anchor alternatives, focusing on calcium cycling and creatine substrate cycling pathways in adipocytes.",
-    "anti_anchor_terms": ["UCP1"],
-    "alternative_queries": [
-      "Find candidate genes driving calcium-cycling thermogenesis in white/beige adipocytes.",
-      "Find candidate genes driving creatine substrate cycling thermogenesis in white/beige adipocytes.",
-      "Find candidate genes driving lipid-cycling thermogenesis in white/beige adipocytes."
-    ]
-  }
-}
-`,
-
-queryHelperComposeSystemPrompt: `
-You are a biomedical query-construction assistant.
-
-Given selected phenotypes, factor clusters, and optional genes/research notes, return ONLY valid JSON with:
-- "generated_query" (string): one concise, scientifically grounded natural-language query that can drive targeted retrieval (NOT a raw list restatement).
-- "phenotype_terms" (array of strings): terms to use as phenotype filters.
-- "mechanism_terms" (array of strings): concise mechanism/factor terms (3-8 items preferred).
-- "genes_of_interest" (array of strings): explicit gene symbols only.
-- "research_context" (string): 1-2 sentences aligned to the selections.
-
-Rules:
-- Do not invent phenotypes, factors, or genes not present in the provided selection payload.
-- If selected_genes_of_interest is non-empty, genes_of_interest MUST be non-empty.
-- Gene preservation rule: when selected_genes_of_interest is provided, you MUST carry those genes into genes_of_interest and mention them in generated_query/research_context.
-- If a selected gene entry contains aliases or delimiters (e.g., "ACVR1C(ALK7) / INHBE (Activin E)" or "PPARG, SLC30A8"), normalize to clean official symbols (e.g., ["ACVR1C","INHBE"] or ["PPARG","SLC30A8"]) rather than dropping them.
-- Phenotype strictness rule to avoid kitchen-sink retrieval:
-  - If selected_factors is non-empty OR selected_mechanism_terms is non-empty, set phenotype_terms to [].
-  - Only use phenotype_terms when the request is phenotype-only (no selected factors and no selected_mechanism_terms).
-- mechanism_terms must stay tightly grounded to selected_factors.factor_label and/or selected_mechanism_terms; do not add broad extra synonyms unless they are explicitly present in the selection payload.
-- generated_query composition rule:
-  - Compose a biologically meaningful, testable question/hypothesis prompt, not a token list.
-  - Integrate selected phenotype context, selected mechanisms/factors, and selected genes (when present) into one coherent query.
-  - Keep specificity (cell/tissue/process) when evidence exists in selected terms; do not broaden into generic disease summaries.
-  - Do not merely concatenate selected values; synthesize them into scientific language suitable for retrieval.
-- Keep generated_query and research_context internally consistent.
-- Output JSON only (no markdown, no prose).
-
-Final self-check before returning JSON:
-1) If selected_genes_of_interest exists, genes_of_interest is not empty.
-2) generated_query explicitly contains at least one mechanism term and the selected genes (when provided).
-3) phenotype_terms follows the strictness rule above.
-4) generated_query reads like a scientific search prompt, not a copied list of selections.
-`,
-
-mechanismHypothesisSystemPrompt: `
-You are an expert in bioinformatics. Each request gives you (1) UI-selected phenotype–gene-set-cluster identifiers for grouping (\`associated_pairs\` must match those strings), (2) a **phenotype / gene / gene-set** knowledge graph as CSV with row \`id\`s (no separate gene-set-cluster nodes—only phenotypes, gene sets as pathway objects, and genes), (3) a JSON summary of phenotypes with merged genes and gene-set names from hybrid retrieval, plus critical metadata about requested/missing genes, and (4) research context.
-
-### Task
-Produce one or more mechanistic hypotheses across the provided pairs, OR strictly reject the prompt if graph topology fails to support the query. 
-
-### Title and user-alignment rule
-If user-requested genes/pathways are not the final supported center of the hypothesis, \`group_name\` must bridge the original user intent to the graph-supported result instead of hiding the shift.
-Use a concise pattern like: "[User Pathway/Genes] Query Resolves to a [Supported Downstream Target]-Centered [Context] Hypothesis".
-Example: "ACVR1C/INHBE Query Resolves to a SMAD3-Centered Adipose ECM Hypothesis".
-
-### Discovery logic
-1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
-2. **Gene sets:** The CSV links phenotypes to gene sets with \`associated_with\` (phenotype subject, gene set object), genes to gene sets with \`contributes_to_pathway\`, and phenotypes to genes with \`contains_gene\`. Treat those as the full pathway layer—there is no factor/cluster node between phenotype and gene set.
-3. **Support priority:** Prefer genes with \`context_combined_score\` on \`contains_gene\` rows; prioritize strong functional signal where appropriate.
-4. **Data fidelity:** Use only labels and categories present in the KG CSV.
-5. **Site of Action Constraint:** The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
-
-### STRICT ANTI-HALLUCINATION DIRECTIVES (THE "SAY NO" RULES)
-Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block and graph topology. LLMs naturally try to invent biological cross-talk—DO NOT DO THIS. You must rely STRICTLY on the data. If the data triggers any of the following cases, adjust the \`diagnostic_assessment\` object accordingly.
-
-* **Case 1: The "Missing Edge" Phenomenon (Dropped Entities)**
-  * *Trigger:* \`genes_of_interest_missing_from_response\` is NOT empty.
-  * *Action:* * If ALL requested genes are missing: Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "While [Missing Genes] were queried, the Knowledge Graph topology does not contain strong enough direct edges linking them to the retrieved phenotypes, gene sets, and genes. No mechanism can be confirmed." Leave \`hypotheses\` empty.
-    * If PARTIAL HIT (some found, some missing): Set \`can_generate_hypothesis\` to true. Set \`warning_flag\` to: "Note: While [Found Genes] anchored the mechanism, [Missing Genes] lacked sufficient graph edges to be included in this specific network." Generate hypothesis using ONLY found genes.
-
-* **Case 2: The "Unmapped Entity" (Absent from Database)**
-  * *Trigger:* \`genes_of_interest_absent_from_db\` is NOT empty.
-  * *Action:* (Same logic as Case 1: Reject if all are absent. Warn and proceed if partial hit).
-
-* **Case 3: The "Hub Gravity" Hijack (Phenotypic Disconnect)**
-  * *Trigger:* Compare gene set names and phenotype terms in the CSV and JSON summary to the user's queried phenotype in research context. If retrieved gene sets and annotations belong to a distinct, unrelated disease domain (e.g., user asks for "Diabetes" but the graph is dominated by unrelated domains), you MUST reject. Do not invent cross-talk.
-  * *Action:* Set \`can_generate_hypothesis\` to false. Set \`rejection_reason\` to: "The retrieved graph is dominated by pathways and gene associations distant from [Queried Phenotype]; the targeted mechanism is eclipsed by stronger canonical edges." Leave \`hypotheses\` empty.
-
-* **Case 4: The "Canonical Shadow" Warning (Missing Anchor)**
-  * *Trigger:* The \`genes_of_interest_requested\` array in the metadata is empty [].
-  * *Action:* Set \`can_generate_hypothesis\` to true. Set \`warning_flag\` to: "Your query relied on broad concepts without a specific gene anchor. Consequently, the graph retrieved heavily weighted canonical pathways. For more specific or novel results, try explicitly naming a target gene." Generate the hypothesis.
-
-### SUGGESTED OPTIMIZED QUERY
-If you trigger any of the 4 cases above, you MUST generate a \`suggested_optimized_query\` based on the \`research_context\`. Use the "Anchor + Semantic Net" formula:
-"Find a [Broad Mechanism/Semantic Net] involving [Explicit Gene Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
-
-### Visual topology (biological mechanism map)
-To help the user quickly understand the biological mechanism, distill your hypothesis narrative into a **causal flow chart** (pathway cartography). This is **not** a copy of the database graph: do **not** build the map from CSV row IDs or gene-set library names alone.
-- Create custom nodes for key biological entities (e.g. Genes, Metabolites, Cellular processes, Phenotypes). Use short, meaningful labels consistent with your hypothesis text.
-- Create **directed** edges with a short **action label** (e.g. \`"activates"\`, \`"cleaves"\`, \`"increases"\`, \`"inhibits"\`, \`"mediates"\`).
-- Keep the map **simple**: **3 to 6 nodes** maximum, strictly linear or branching. Focus on the biological story, not data provenance.
-- Provide \`hypothesis_in_kg.caption\`: one short sentence summarizing the biological flow shown in the map.
-
-### Cross-route crosstalk / bridge model
-When compact multi-direction evidence bundles are provided, explicitly compare the route evidence.
-- If **three or more** route bundles are present, \`cross_route_crosstalk_model\` is **required** (non-null): compare how Genetics, Tissue Expression, and Perturbations (or equivalent route labels) support local vs remote/endocrine axes.
-- If the evidence suggests a tissue-to-tissue, ligand-receptor, circulating factor, or other bridge axis, populate \`cross_route_crosstalk_model\` with a cautious 1-3 sentence model.
-- Separate cross-route or remote-tissue bridge biology from local intrinsic tissue mechanisms.
-- If fewer than three routes and no bridge model is supported, set \`cross_route_crosstalk_model\` to null rather than inventing one.
-
-### Cellular assignment (when tissue/cell context is in research context)
-Populate \`cellular_assignment\` with cautious cell-type roles supported by route evidence—not outside knowledge.
-- \`producer\`: primary secreted-factor or ligand source cell type (if supported).
-- \`matrix_builder\`: ECM/matrix execution cell type (if supported).
-- \`metabolic_target\`: adipocyte or metabolic execution cell type (if supported).
-- \`confidence\`: \`high\` | \`medium\` | \`low\` based on evidence density.
-- \`caveat\`: note when scRNA or cell-type data are absent.
-Use null for the whole object when research context lacks anatomical/cellular specificity.
-
-### Depot contrast (adipose / body-composition queries)
-When research context mentions adipose depots, WHR, or visceral vs subcutaneous fat, populate \`depot_contrast\`:
-- \`subcutaneous\`, \`visceral\`, \`comparison\`, \`evidence_basis\` (cite route labels or gene-set programs only).
-Null when depot biology is not in scope.
-
-### Effect direction notes
-For each named candidate gene in \`genes\`, add an entry in \`effect_direction_notes\` with \`gene\`, \`direction\` (\`increase\`, \`decrease\`, or \`unknown\`), and optional \`note\` tied to GWAS/functional scores in the CSV when inferable—otherwise \`unknown\`.
-
-### Pathway shift rationale
-If user-requested target genes or the named pathway lack sufficient direct edge density in the retrieved subgraph but downstream effectors or alternative receptor nodes are supported, populate \`pathway_shift_rationale\` with a clear 1-2 sentence callout.
-The callout should explain: (1) which requested anchors were weak/missing in the current graph boundaries, and (2) which supported downstream effectors or alternative nodes the discovery engine used instead.
-If no material shift occurred, set \`pathway_shift_rationale\` to null.
-
-### Evidence-derived candidate inventory
-For each hypothesis, populate \`candidate_inventory\` using ONLY genes explicitly present in the compact multi-direction evidence bundles and/or the KG CSV. Do not extrapolate.
-Genes marked \`included_because: "explicit_user_gene"\` or \`included_because: "gene_of_interest"\` were preserved as user/request anchors even when they were not top-scoring; treat them as alignment-critical but still evaluate their scores and graph support honestly.
-Group candidates into these five capped roles. Each list must contain at most 5 items:
-1. \`core_pathway_anchors\`: foundational pathway components found in evidence.
-2. \`route_specific_support_genes\`: genes surfaced strongly in one route/modality.
-3. \`downstream_structural_remodeling_candidates\`: ECM, matrix, fiber, cytoskeletal, or remodeling genes.
-4. \`cross_tissue_endocrine_candidates\`: ligands, secreted factors, receptors, or remote-tissue modifiers.
-5. \`requested_genes_not_sufficiently_connected\`: user-requested genes that were missing, weakly connected, or not usable in the current graph.
-Each candidate object should include \`symbol\`, \`provenance\` (array of route labels such as "Genetics", "Tissue Expression", or "Perturbations"), and \`reason\`.
-If a category is sparse or missing based on current graph boundaries, include a single note object with \`symbol\`: "Sparse/missing", \`provenance\`: [], and \`reason\`: "Category sparse/missing based on current graph boundaries."
-Each real gene symbol must appear exactly once across the inventory. Assign it to the most functionally specific role using this priority:
-1. \`requested_genes_not_sufficiently_connected\` for user-requested genes that were not usable.
-2. \`cross_tissue_endocrine_candidates\` for secreted ligands, extracellular binders/antagonists, circulating modifiers, and ligand-availability regulators (e.g., FST). Never list these as core anchors unless they directly execute intracellular signal transduction in the graph.
-3. \`downstream_structural_remodeling_candidates\` for ECM, matrix, collagen, fiber, cytoskeletal, stiffness, or tissue-remodeling execution targets (e.g., COL1A1, LOX, MMP2).
-4. \`core_pathway_anchors\` for direct pathway execution machinery such as receptors and intracellular SMADs.
-5. \`route_specific_support_genes\` only when no more specific role applies.
-
-### Actionable next steps
-Provide **3** concrete, distinct next steps the user can take to validate or explore this hypothesis.
-- \`category\`: Must be one of: \`"Experimental Validation"\`, \`"In Silico Profiling"\`, \`"Literature Review"\`, \`"Drug Repurposing"\`.
-- \`action\`: A short, specific action (e.g., "Knockdown TREM2 in human microglia").
-- \`reason\`: Why this step would support or refute the mechanism.
-
-### NEW: Follow-up Queries (Next Queries)
-Provide 2 to 3 optimized follow-up queries that allow the user to dig deeper into the specific biology of this hypothesis.
-- These queries MUST follow the "Anchor + Semantic Net" formula: "Find a [Mechanism] involving [Gene Anchor] in [Tissue] that regulates [Phenotype]."
-- Focus these queries on testing the downstream consequences, interacting genes, or specific cellular processes you just proposed.
-
-### Output (strict JSON)
-Return ONLY valid JSON in the following structure:
-{
-  "data_tracing_scratchpad": "Briefly list the CSV row IDs you use: \`associated_with\` (phenotype→gene set), \`contains_gene\` (phenotype→gene), and \`contributes_to_pathway\` (gene→gene set) for the hypothesis. Do not use outside knowledge.",
-  "overall_summary": "1-2 sentence session-level summary of findings for the Overview section.",
-  "diagnostic_assessment": {
-    "can_generate_hypothesis": true,
-    "rejection_reason": "String or null. Populate if an absolute rejection in Case 1, 2, or 3 is triggered.",
-    "warning_flag": "String or null. Populate if a partial hit in Case 1/2, or the missing anchor in Case 4 is triggered.",
-    "suggested_optimized_query": "String or null. MUST be populated if a rejection or warning occurs.",
-    "exploratory_mode": "Boolean; set true when relaxed/exploratory mode instructions apply (omitted in strict mode)."
-  },
-  "hypotheses": [
-    {
-      "group_name": "Short mechanistic headline",
-      "associated_pairs": [ { "phenotype": "...", "factor": "..." } ],
-      "hypothesis": "2–3 sentences.",
-      "novelty": "Contrast canonical vs non-canonical emphasis.",
-      "pathway_shift_rationale": "String or null. Explain evidence-driven shift from requested genes/pathway to supported downstream or alternate graph nodes.",
-      "cross_route_crosstalk_model": "String or null. Cautious bridge model when route evidence supports tissue-to-tissue, ligand-receptor, or endocrine crosstalk.",
-      "cellular_assignment": {
-        "producer": "String or null",
-        "matrix_builder": "String or null",
-        "metabolic_target": "String or null",
-        "confidence": "high | medium | low | null",
-        "caveat": "String or null"
-      },
-      "depot_contrast": {
-        "subcutaneous": "String or null",
-        "visceral": "String or null",
-        "comparison": "String or null",
-        "evidence_basis": "String or null"
-      },
-      "effect_direction_notes": [
-        { "gene": "SYMBOL", "direction": "increase | decrease | unknown", "note": "Optional evidence note or null" }
-      ],
-      "hypothesis_in_kg": {
-        "caption": "Short explanation of the biological flow.",
-        "nodes": [
-          { "id": "n1", "label": "TREM2", "group": "Gene" },
-          { "id": "n2", "label": "Lipid sensing", "group": "Process" },
-          { "id": "n3", "label": "Aβ clearance", "group": "Process" },
-          { "id": "n4", "label": "Dementia risk", "group": "Phenotype" }
-        ],
-        "edges": [
-          { "from": "n1", "to": "n2", "label": "mediates" },
-          { "from": "n2", "to": "n3", "label": "increases" },
-          { "from": "n3", "to": "n4", "label": "reduces" }
-        ]
-      },
-      "next_steps": [
-        { "category": "Experimental Validation", "action": "...", "reason": "..." }
-      ],
-      "next_queries": [
-        "Find a lipid scavenger receptor mechanism involving CD36 in microglia that drives amyloid-beta uptake.",
-        "Find a lipid transport mechanism involving APOE in astrocytes that modulates neuroinflammation."
-      ],
-      "genes": [
-        { 
-         "gene": "SYMBOL", 
-         "group": "Primary Mechanistic Candidate OR Supporting Canonical Network", 
-         "role": "Brief bridge role.",
-         "source_row_id": "Must match a 'contains_gene' row ID from the provided CSV exactly."
-        }
-      ],
-      "candidate_inventory": {
-        "core_pathway_anchors": [
-          { "symbol": "SYMBOL", "provenance": ["Genetics"], "reason": "Why this gene belongs in this role." }
-        ],
-        "route_specific_support_genes": [],
-        "downstream_structural_remodeling_candidates": [],
-        "cross_tissue_endocrine_candidates": [],
-        "requested_genes_not_sufficiently_connected": []
-      },
-      "supporting_row_ids": [0, 1, 2]
-    }
-  ]
-}
-
-### Guidelines
-- **hypotheses array:** MUST contain at least one element UNLESS \`can_generate_hypothesis\` is false.
-- **associated_pairs:** Must match phenotype / \`factor\` strings exactly from the UI list (those are gene-set-cluster labels used for grouping even though the CSV graph omits cluster nodes).
-- **group_name:** Preserve user alignment. If the graph shifts away from requested genes, title the hypothesis as a resolution from user intent to graph-supported biology.
-- **pathway_shift_rationale:** Required when requested user anchors are missing/weak but a downstream supported hypothesis is generated.
-- **Row referencing (phenotype → gene set):** For each phenotype in the story, \`supporting_row_ids\` must include every \`associated_with\` row that links that phenotype to a gene set you rely on.
-- **Row referencing (phenotype → gene):** Include every \`contains_gene\` row for genes you name, for the phenotypes in scope.
-- **Row referencing (gene → gene set):** Include all \`contributes_to_pathway\` rows for those genes to the gene sets in your story; do not omit pathway rows.
-- **hypothesis_in_kg (mechanism map):** \`nodes\` and \`edges\` must form a consistent DAG: every \`from\` / \`to\` must match a node \`id\`. Use **3–6 nodes**. \`group\` classifies the entity (e.g. \`Gene\`, \`Process\`, \`Phenotype\`, \`Metabolite\`). Omit \`hypothesis_in_kg\` only if you cannot summarize the hypothesis as a simple causal map without fabricating biology.
-- **cross_route_crosstalk_model:** Required (non-null) when three or more route evidence bundles are provided. Otherwise use route evidence only; distinguish remote/endocrine bridge mechanisms from local tissue mechanisms. Null is preferred when unsupported.
-- **cellular_assignment / depot_contrast / effect_direction_notes:** Populate when research context supports them; use null or empty arrays when not applicable. Do not invent cell types or signed effects absent from evidence.
-- **overall_summary:** One or two sentences summarizing the session for the report Overview (required when hypotheses are non-empty).
-- **candidate_inventory:** Use route provenance labels from the compact evidence bundles, not hardcoded repository names. Cap each role at 5 genes, dedupe real gene symbols across categories, and include sparse/missing notes where evidence is absent.
-- **next_steps:** Always provide exactly **3** items when \`hypotheses\` is non-empty, each with valid \`category\`, \`action\`, and \`reason\`.
-- **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
-
-CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
-Because broad phenotypes have massive statistical weight, top retrieved genes are often canonical disease drivers. Your job is to act as a strict semantic filter.
-1. MECHANISTIC PRIORITIZATION: Elevate any gene in the retrieved list that directly executes the requested biochemical mechanism.
-2. CANONICAL SEGREGATION: You must explicitly segregate genes in the JSON output using the "group" field. Assign them as either "Primary Mechanistic Candidate" (directly executes the requested mechanism) or "Supporting Canonical Network" (generic hubs providing downstream phenotypic context).
-`,
+            mechanismHypothesisSystemPrompt: MECHANISM_HYPOTHESIS_SYSTEM_PROMPT,
             /** strict | relaxed — relaxed appends mechanismHypothesisExploratoryModeSuffix for the mechanism LLM only. */
             hypothesisGenerationMode: "strict",
             /** Mirrors the mode used for the last completed mechanism hypothesis LLM call (card banner). */
             hypothesisLastRunMode: null,
-            mechanismHypothesisExploratoryModeSuffix: `
-### EXPLORATORY (RELAXED) MODE — ACTIVE FOR THIS REQUEST
-The user enabled **relaxed / exploratory** hypothesis generation. Apply these **OVERRIDES** to the **STRICT ANTI-HALLUCINATION DIRECTIVES** above. **Data fidelity still applies:** use only genes, gene sets, phenotypes, and \`contains_gene\` / \`associated_with\` / \`contributes_to_pathway\` relationships present in the provided CSV—you must not invent entities that are absent from that graph.
-
-**Case 1 — all requested genes missing from response (\`genes_of_interest_missing_from_response\` covers the full request):** Do **not** reject solely for this reason if the CSV still has a coherent phenotype–gene set–gene structure. Set \`can_generate_hypothesis\` to **true**. Build the best mechanism you can from **supported** subgraphs. In \`warning_flag\`, start with \`Exploratory mode:\` and explain which queried genes are missing from the merged response and that the story does not chain those genes through direct edges.
-
-**Case 2 — all requested genes absent from DB (\`genes_of_interest_absent_from_db\` covers the full request):** Same as Case 1: prefer **proceed** with \`can_generate_hypothesis\` **true** when the CSV is non-empty and interpretable; document absent symbols in \`warning_flag\`.
-
-**Case 3 — hub gravity / phenotypic disconnect:** Prefer **proceed** rather than reject. Set \`can_generate_hypothesis\` to **true** when any usable CSV structure exists. State the domain mismatch explicitly in \`warning_flag\` and keep \`data_tracing_scratchpad\` and \`supporting_row_ids\` tied to real rows. Do not fabricate cross-domain edges missing from the CSV.
-
-**diagnostic_assessment object:** Include \`"exploratory_mode": true\` (boolean) on every response under relaxed mode. Merge exploratory warnings into \`warning_flag\` (do not leave \`warning_flag\` null when you would have strictly rejected or issued a strong Case 3 warning).
-
-**suggested_optimized_query:** Still supply when it would help the user tighten their question; relaxed mode does not remove this obligation.
-`,
+            mechanismHypothesisExploratoryModeSuffix: MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,
         };
     },
     computed: {
-        /** Explicit shell reference for tab panels and modals (replaces provide/inject). */
-        mqShell() {
-            return this;
+        queryHelperModalProps() {
+            return {
+                queryHelperOpen: this.queryHelperOpen,
+                queryHelperPhenotypeInput: this.queryHelperPhenotypeInput,
+                queryHelperPhenotypeSuggestions: this.queryHelperPhenotypeSuggestions,
+                queryHelperSelectedPhenotypes: this.queryHelperSelectedPhenotypes,
+                queryHelperNoFactorPhenotypeLabels: this.queryHelperNoFactorPhenotypeLabels,
+                queryHelperFactorRows: this.queryHelperFactorRows,
+                queryHelperLoadingFactors: this.queryHelperLoadingFactors,
+                queryHelperFactorError: this.queryHelperFactorError,
+                queryHelperClusterFilterInput: this.queryHelperClusterFilterInput,
+                queryHelperAllFactorsSelected: this.queryHelperAllFactorsSelected,
+                queryHelperSomeFactorsSelected: this.queryHelperSomeFactorsSelected,
+                queryHelperFactorPageRows: this.queryHelperFactorPageRows,
+                queryHelperFactorSelection: this.queryHelperFactorSelection,
+                queryHelperFactorsPerPage: this.queryHelperFactorsPerPage,
+                queryHelperFactorPage: this.queryHelperFactorPage,
+                queryHelperMechanismInput: this.queryHelperMechanismInput,
+                queryHelperMechanismTerms: this.queryHelperMechanismTerms,
+                queryHelperGeneInput: this.queryHelperGeneInput,
+                queryHelperGeneSuggestions: this.queryHelperGeneSuggestions,
+                queryHelperGenesOfInterest: this.queryHelperGenesOfInterest,
+                queryHelperCanContinue: this.queryHelperCanContinue,
+                queryHelperDraftResearchContext: this.queryHelperDraftResearchContext,
+                queryHelperAdvancedOpen: this.queryHelperAdvancedOpen,
+                queryHelperHardConstraintEnabled: this.queryHelperHardConstraintEnabled,
+                queryHelperHardConstraintEligible: this.queryHelperHardConstraintEligible,
+                queryHelperError: this.queryHelperError,
+                queryHelperComposing: this.queryHelperComposing,
+            };
+        },
+        queryHelperModalHelpers() {
+            const vm = this;
+            return {
+                onQueryHelperPickPhenotype: (opt) => vm.onQueryHelperPickPhenotype(opt),
+                removeQueryHelperPhenotype: (value) => vm.removeQueryHelperPhenotype(value),
+                applyQueryHelperClusterFilterSelection: () => vm.applyQueryHelperClusterFilterSelection(),
+                toggleQueryHelperAllFactors: (e) => vm.toggleQueryHelperAllFactors(e),
+                toggleQueryHelperFactor: (key, e) => vm.toggleQueryHelperFactor(key, e),
+                addQueryHelperMechanismFromInput: () => vm.addQueryHelperMechanismFromInput(),
+                removeQueryHelperMechanism: (term) => vm.removeQueryHelperMechanism(term),
+                onQueryHelperGeneInput: () => vm.onQueryHelperGeneInput(),
+                addQueryHelperGeneFromInput: () => vm.addQueryHelperGeneFromInput(),
+                selectQueryHelperGeneSuggestion: (gene) => vm.selectQueryHelperGeneSuggestion(gene),
+                removeQueryHelperGene: (gene) => vm.removeQueryHelperGene(gene),
+                continueWithQueryHelper: () => vm.continueWithQueryHelper(),
+            };
+        },
+        queryHelperModalListeners() {
+            const vm = this;
+            return {
+                "update:queryHelperOpen": (v) => { vm.queryHelperOpen = v; },
+                "update:queryHelperPhenotypeInput": (v) => { vm.queryHelperPhenotypeInput = v; },
+                "update:queryHelperClusterFilterInput": (v) => { vm.queryHelperClusterFilterInput = v; },
+                "update:queryHelperFactorPage": (v) => { vm.queryHelperFactorPage = v; },
+                "update:queryHelperMechanismInput": (v) => { vm.queryHelperMechanismInput = v; },
+                "update:queryHelperGeneInput": (v) => { vm.queryHelperGeneInput = v; },
+                "update:queryHelperDraftResearchContext": (v) => { vm.queryHelperDraftResearchContext = v; },
+                "update:queryHelperAdvancedOpen": (v) => { vm.queryHelperAdvancedOpen = v; },
+                "update:queryHelperHardConstraintEnabled": (v) => { vm.queryHelperHardConstraintEnabled = v; },
+            };
+        },
+        networkModalsProps() {
+            return {
+                allSupportingNetwork: this.all_supporting_network,
+                networkPopupMechanismIndex: this.networkPopupMechanismIndex,
+                mechanisms: this.mechanisms,
+                networkPopupIsHypothesisMap: this.networkPopupIsHypothesisMap,
+                popupNetworkWidth: this.popupNetworkWidth,
+                popupNetworkHeight: this.popupNetworkHeight,
+                factorConnectivityPopupOpen: this.factorConnectivityPopupOpen,
+                factorConnectivityPopupRow: this.factorConnectivityPopupRow,
+                factorConnectivityPopupNetwork: this.factorConnectivityPopupNetwork,
+            };
+        },
+        networkModalsHelpers() {
+            const vm = this;
+            return {
+                openNetworkPopup: (idx) => vm.openNetworkPopup(idx),
+                closeNetworkPopup: () => vm.closeNetworkPopup(),
+                isMechanismUsingBiolinkMap: (m) => vm.isMechanismUsingBiolinkMap(m),
+                hasMechanismBiolinkNetwork: (m) => vm.hasMechanismBiolinkNetwork(m),
+                setMechanismMapViewMode: (idx, mode) => vm.setMechanismMapViewMode(idx, mode),
+                getPhenotypeDisplay: (id) => vm.getPhenotypeDisplay(id),
+                getFactorClusterDisplay: (row) => vm.getFactorClusterDisplay(row),
+            };
+        },
+        networkModalsListeners() {
+            const vm = this;
+            return {
+                "update:factorConnectivityPopupOpen": (v) => { vm.factorConnectivityPopupOpen = v; },
+            };
         },
         dataPanelProps() {
             const rowCount = this.isPhenotypePath
@@ -1241,6 +919,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 hypothesisLastRunMode: this.hypothesisLastRunMode,
                 remainingRows: this.remainingGeneSetClusterRows || [],
                 remainingFactorTableRowsPaged: this.remainingFactorTableRowsPaged,
+                remainingGeneSetClusterRowsPaged: this.remainingGeneSetClusterRowsPaged,
                 remainingTableRowCount,
                 remainingPairGenerateError: this.remainingPairGenerateError,
                 generatingRemainingRowKey: this.generatingRemainingRowKey,
@@ -1565,23 +1244,20 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return !(d && d.can_generate_hypothesis === false);
         },
         workflowErrorSteps() {
-            return (this.steps || []).filter((s) => s && s.type === "error");
+            return computeWorkflowErrorSteps(this.steps);
         },
         revealExtractionStep() {
-            const list = this.steps || [];
-            return list.find((s) => s && s.type !== "error" && s.id === "1") || null;
+            return computeRevealExtractionStep(this.steps);
         },
         extractionStepTimeLabel() {
             return formatStepTimeLabel(this.revealExtractionStep, this.now);
         },
         revealDataSteps() {
-            return (this.steps || []).filter(
-                (s) => s && s.type !== "error" && s.id === "2"
-            );
+            return computeRevealDataSteps(this.steps);
         },
         isMechanismHypothesisLoading() {
             if (this.loadComplete) return false;
-            return (this.steps || []).some((s) => s && s.id === "4");
+            return (this.steps || []).some((s) => s && s.id === WORKFLOW_STEP_IDS.HYPOTHESES);
         },
         dataVizReady() {
             return (
@@ -1598,8 +1274,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return this.showTab === "results" || this.isMechanismHypothesisLoading;
         },
         revealHypothesisStep() {
-            const list = this.steps || [];
-            return list.find((s) => s && s.id === "4") || null;
+            return computeRevealHypothesisStep(this.steps);
         },
         revealDataTabEnabled() {
             if (this.isMechanismHypothesisLoading) return false;
@@ -1632,7 +1307,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         revealResultsTabEnabled() {
             if (this.revealResultsTabUnlocked) return true;
-            if ((this.steps || []).some((s) => s && s.id === "4")) return true;
+            if ((this.steps || []).some((s) => s && s.id === WORKFLOW_STEP_IDS.HYPOTHESES)) return true;
             if (this.loadComplete && (this.error_mechanisms || this.showMechanismResultsPanel)) return true;
             return false;
         },
@@ -1788,7 +1463,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         this.llmExtract = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
-            system_prompt: this.multiRouteExtractSystemPrompt
+            system_prompt: MULTI_ROUTE_EXTRACT_SYSTEM_PROMPT,
         });
 
         this.llmAnalyze = createLLMClient({
@@ -1799,12 +1474,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         this.llmQueryHelper = createLLMClient({
             llm: "openai",
             model: "gpt-5-mini",
-            system_prompt: this.queryHelperComposeSystemPrompt,
+            system_prompt: QUERY_HELPER_COMPOSE_SYSTEM_PROMPT,
         });
 
     },
     async mounted() {
-        if (keyParams.query) {
+        if (keyParams.genes) {
+            await runGeneEntryWorkflow(this, keyParams.genes);
+        } else if (keyParams.query) {
             this.userQuery = keyParams.query;
         }
         this.currentPlaceholderIndex = 0;
@@ -1981,44 +1658,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return "";
         },
         async onQueryHelperGeneInput() {
-            const q = String(this.queryHelperGeneInput || "").trim();
-            if (q.length < 2 || q.includes(",")) {
-                this.queryHelperGeneSuggestions = [];
-                return;
-            }
-            const seq = this.queryHelperGeneLookupSeq + 1;
-            this.queryHelperGeneLookupSeq = seq;
-            this.queryHelperGeneLookupLoading = true;
-            try {
-                const url = `${uiUtils.biDomain()}/api/bio/match/gene?q=${encodeURIComponent(q)}&limit=15`;
-                const resp = await this.fetchWithTimeout(url, { method: "GET" }, this.hybridSearchTimeoutMs);
-                const json = await resp.json().catch(() => ({}));
-                if (seq !== this.queryHelperGeneLookupSeq) return;
-                if (!resp.ok || !Array.isArray(json && json.data)) {
-                    this.queryHelperGeneSuggestions = [];
-                    return;
-                }
-                const selected = new Set((this.queryHelperGenesOfInterest || []).map((g) => String(g).toUpperCase()));
-                const out = [];
-                const seen = new Set();
-                (json.data || []).forEach((entry) => {
-                    const label = this.extractGeneSuggestionLabel(entry);
-                    if (!label) return;
-                    const canon = label.toUpperCase();
-                    if (selected.has(canon) || seen.has(canon)) return;
-                    seen.add(canon);
-                    out.push(canon);
-                });
-                this.queryHelperGeneSuggestions = out.slice(0, 15);
-            } catch (err) {
-                if (seq === this.queryHelperGeneLookupSeq) {
-                    this.queryHelperGeneSuggestions = [];
-                }
-            } finally {
-                if (seq === this.queryHelperGeneLookupSeq) {
-                    this.queryHelperGeneLookupLoading = false;
-                }
-            }
+            return fetchGeneSuggestionsForQueryHelper(this);
         },
         selectQueryHelperGeneSuggestion(gene) {
             const g = this.normalizeGeneSymbolInput(gene);
@@ -2064,105 +1704,10 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.queryHelperGenesOfInterest = (this.queryHelperGenesOfInterest || []).filter((x) => String(x) !== target);
         },
         async refreshQueryHelperFactors() {
-            const phenotypeTerms = (this.queryHelperSelectedPhenotypes || []).map((x) => String(x.value)).filter(Boolean);
-            this.queryHelperFactorError = "";
-            this.queryHelperFactorRows = [];
-            this.queryHelperFactorSelection = {};
-            this.queryHelperNoFactorPhenotypeLabels = [];
-            this.queryHelperFactorPage = 1;
-            if (!phenotypeTerms.length) return;
-            this.queryHelperLoadingFactors = true;
-            try {
-                const selectedById = {};
-                (this.queryHelperSelectedPhenotypes || []).forEach((p) => {
-                    if (!p || p.value == null) return;
-                    selectedById[String(p.value)] = String(p.label || p.value);
-                });
-                const template = String(this.queryHelperPigeanFactorUrlTemplate || "").trim();
-                if (!template || !template.includes("$phenotype")) {
-                    throw new Error("Query helper factor API template is missing or invalid.");
-                }
-                const perPhenotypeResults = await Promise.all(
-                    phenotypeTerms.map(async (phenotypeId) => {
-                        const url = template.replace("$phenotype", encodeURIComponent(String(phenotypeId)));
-                        const resp = await this.fetchWithTimeout(url, { method: "GET" }, this.hybridSearchTimeoutMs);
-                        const json = await resp.json().catch(() => ({}));
-                        if (!resp.ok) {
-                            const detail = this.hybridSearchErrorMessage(resp.status, json);
-                            throw new Error(`Factor API failed for ${phenotypeId}: ${resp.status} ${detail}`);
-                        }
-                        const factors = Array.isArray(json && json.data) ? json.data : [];
-                        return { phenotypeId: String(phenotypeId), factors };
-                    })
-                );
-                const rows = [];
-                const seen = new Set();
-                perPhenotypeResults.forEach(({ phenotypeId, factors }) => {
-                    factors.forEach((item) => {
-                        const factorId =
-                            item && item.factor != null && String(item.factor).trim() !== ""
-                                ? String(item.factor).trim()
-                                : item && item.cluster != null && String(item.cluster).trim() !== ""
-                                    ? String(item.cluster).trim()
-                                    : "";
-                        if (!factorId) return;
-                        const factorLabelRaw =
-                            item && item.label != null && String(item.label).trim() !== ""
-                                ? String(item.label).trim()
-                                : factorId;
-                        const key = `${phenotypeId}|${factorId}`;
-                        if (seen.has(key)) return;
-                        seen.add(key);
-                        rows.push({
-                            key,
-                            phenotypeId: String(phenotypeId),
-                            phenotypeLabel: selectedById[String(phenotypeId)] || this.getPhenotypeDisplay(phenotypeId),
-                            factorId,
-                            factorLabelRaw,
-                            factorLabel: factorLabelRaw || factorId,
-                            topGeneSetsRaw:
-                                item && item.top_gene_sets != null && String(item.top_gene_sets).trim() !== ""
-                                    ? String(item.top_gene_sets).trim()
-                                    : "",
-                        });
-                    });
-                });
-                this.queryHelperFactorRows = rows;
-                const prevSelection = this.queryHelperFactorSelection || {};
-                const selection = {};
-                rows.forEach((row) => {
-                    selection[row.key] = Object.prototype.hasOwnProperty.call(prevSelection, row.key)
-                        ? !!prevSelection[row.key]
-                        : true;
-                });
-                this.queryHelperFactorSelection = selection;
-                this.queryHelperNoFactorPhenotypeLabels = phenotypeTerms
-                    .filter((pid) => !rows.some((r) => String(r.phenotypeId) === String(pid)))
-                    .map((pid) => selectedById[String(pid)] || this.getPhenotypeDisplay(pid));
-                this.applyQueryHelperClusterFilterSelection();
-                if (!this.queryHelperHardConstraintEligible) {
-                    this.queryHelperHardConstraintEnabled = false;
-                }
-                if (!rows.length) {
-                    this.queryHelperFactorError = "";
-                }
-            } catch (err) {
-                this.queryHelperFactorError =
-                    err && err.message ? String(err.message) : "Failed to load factors for selected phenotypes.";
-            } finally {
-                this.queryHelperLoadingFactors = false;
-            }
+            return fetchQueryHelperFactorRows(this);
         },
-        buildHelperFallbackQuery({ phenotypes = [], factorLabels = [], genes = [], context = "" } = {}) {
-            const p = (phenotypes || []).slice(0, 3).join(", ");
-            const f = (factorLabels || []).slice(0, 3).join(", ");
-            const g = (genes || []).slice(0, 5).join(", ");
-            const pieces = [];
-            if (p) pieces.push(`for phenotypes ${p}`);
-            if (f) pieces.push(`involving factor clusters ${f}`);
-            if (g) pieces.push(`with genes ${g}`);
-            if (context) pieces.push(`in the context of ${String(context).trim()}`);
-            return `Find candidate mechanisms ${pieces.join(" ")}`.trim();
+        buildHelperFallbackQuery(options) {
+            return buildHelperFallbackQuery(options);
         },
         normalizeHelperGeneSymbolToken(raw) {
             const token = String(raw || "")
@@ -2288,113 +1833,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             };
         },
         async continueWithQueryHelper() {
-            this.queryHelperError = "";
-            if (!this.queryHelperCanContinue) return;
-            const selectedPhenotypes = (this.queryHelperSelectedPhenotypes || []).map((x) => ({
-                id: String(x.value),
-                label: String(x.label || x.value),
-            }));
-            const selectedFactors = (this.queryHelperSelectedFactorRows || []).map((row) => ({
-                phenotype_id: String(row.phenotypeId),
-                phenotype_label: String(row.phenotypeLabel),
-                factor_id: String(row.factorId),
-                factor_label: String(
-                    resolveCfdeFactorClusterDisplayLabel(row.factorLabel || row.factorLabelRaw || row.factorId) ||
-                        row.factorLabel ||
-                        row.factorId
-                ),
-                factor_label_raw: String(row.factorLabelRaw || row.factorLabel),
-                top_gene_sets: String(row.topGeneSetsRaw || ""),
-            }));
-            const selectedMechanisms = [...(this.queryHelperMechanismTerms || [])];
-            const selectedGenes = [...(this.queryHelperGenesOfInterest || [])];
-            const contextDraft = String(this.queryHelperDraftResearchContext || "").trim();
-            const payload = {
-                selected_phenotypes: selectedPhenotypes,
-                selected_factors: selectedFactors,
-                selected_mechanism_terms: selectedMechanisms,
-                selected_genes_of_interest: selectedGenes,
-                user_context_draft: contextDraft,
-            };
-            const deterministic = this.buildHelperDeterministicTerms({
-                selectedPhenotypes,
-                selectedFactors,
-                selectedMechanisms,
-                selectedGenes,
-            });
-            const helperConstraintSpec = this.buildHelperConstraintSpec({
-                selectedFactors,
-            });
-            const hardConstraintLabelMap = {};
-            selectedFactors.forEach((f) => {
-                const k = `${String(f.phenotype_id)}|${String(f.factor_id)}`;
-                hardConstraintLabelMap[k] = String(f.factor_label || f.factor_id);
-            });
-            this.lastHardConstraintFactorLabelByPair = hardConstraintLabelMap;
-            this.lastRunUsedHardConstraint = !!helperConstraintSpec;
-            const userPrompt = `Build query inputs from this selection payload so the resulting query can reconstruct the same phenotype/factor/gene intent:\n${JSON.stringify(payload, null, 2)}`;
-            this.queryHelperComposing = true;
-            try {
-                const response = await new Promise((resolve, reject) => {
-                    let done = false;
-                    const finish = (err, out) => {
-                        if (done) return;
-                        done = true;
-                        if (err) reject(err);
-                        else resolve(out);
-                    };
-                    this.llmQueryHelper.sendPrompt({
-                        userPrompt,
-                        onResponse: (resp) => finish(null, resp),
-                        onError: (err) => finish(err || new Error("Failed to build helper query.")),
-                        onEnd: () => {
-                            if (!done) finish(new Error("Incomplete helper LLM response."));
-                        },
-                    });
-                });
-                const json = this.parseLLMResponse(response);
-                if (!json || typeof json !== "object") {
-                    throw new Error("Could not parse helper LLM response.");
-                }
-                const phenotypeTerms = deterministic.phenotypeTermsForExtract;
-                const mechanismTerms = deterministic.mechanismTerms;
-                const genesOfInterest = deterministic.genesOfInterest.length
-                    ? deterministic.genesOfInterest
-                    : this.normalizeLlmTermList(json.genes_of_interest);
-                if (selectedGenes.length && !genesOfInterest.length) {
-                    throw new Error("Could not preserve selected genes. Please select genes from suggestions and try again.");
-                }
-                const researchContext =
-                    json.research_context != null && String(json.research_context).trim() !== ""
-                        ? String(json.research_context).trim()
-                        : contextDraft;
-                const generatedQuery =
-                    json.generated_query != null && String(json.generated_query).trim() !== ""
-                        ? String(json.generated_query).trim()
-                        : this.buildHelperFallbackQuery({
-                            phenotypes: selectedPhenotypes.map((p) => p.label),
-                            factorLabels: selectedMechanisms.length
-                                ? selectedMechanisms
-                                : selectedFactors.map((f) => f.factor_label),
-                            genes: genesOfInterest,
-                            context: researchContext,
-                        });
-                this.queryHelperOpen = false;
-                await this.startWorkflowFromExtractedTerms({
-                    queryText: generatedQuery,
-                    phenotypeTerms,
-                    mechanismTerms,
-                    genesOfInterest,
-                    researchContext,
-                    retrievalPhenotypeTerms: deterministic.phenotypeTermsForRetrieval,
-                    helperConstraintSpec,
-                });
-            } catch (err) {
-                this.queryHelperError =
-                    err && err.message ? String(err.message) : "Failed to build query from helper selections.";
-            } finally {
-                this.queryHelperComposing = false;
-            }
+            return continueWithQueryHelper(this);
         },
         resetWorkflowStateForNewRun() {
             resetMqWorkflowSessionForNewRun(this);
@@ -2449,17 +1888,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @see https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance
          */
         async fetchProvenance(geneset) {
-            const q = encodeURIComponent(String(geneset || "").trim());
-            if (!q) return null;
-            const url = `https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance?q=${q}`;
-            try {
-                const res = await fetch(url);
-                if (!res.ok) return null;
-                const json = await res.json();
-                return Array.isArray(json.data) ? json.data : null;
-            } catch (e) {
-                return null;
-            }
+            return fetchC2m2Provenance(geneset);
         },
         /** Deduped nodes with dcc_url for provenance pills (Flattens data[].nodes). */
         flattenC2m2ProvenanceNodes(data) {
@@ -2876,651 +2305,37 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @param {{ dataUrl?: string, format?: string, nodeCount?: number, edgeCount?: number } | null} hypImg - biological flow map export
          */
         buildMechanismReportOneCardHtml(m, idx, supImg, hypImg) {
-            const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
-            const geneRows = genes.map((g) => {
-                const scores = g.scores || {};
-                const geneName = g.gene != null ? String(g.gene).trim() : "";
-                const conn =
-                    m.gene_connections && geneName && m.gene_connections[geneName]
-                        ? m.gene_connections[geneName]
-                        : { gene_sets: [] };
-                const gss = Array.isArray(conn.gene_sets) ? conn.gene_sets : [];
-                return `
-                        <tr>
-                            <td>${this.escapeHtml(g.gene || "—")}</td>
-                            <td>${this.escapeHtml(g.group || "—")}</td>
-                            <td>${this.escapeHtml(g.reason != null ? g.reason : g.role || "—")}</td>
-                            <td>${this.escapeHtml(scores.combined ?? scores.c ?? "—")}</td>
-                            <td>${this.escapeHtml(scores.gwas ?? scores.g ?? "—")}</td>
-                            <td>${this.escapeHtml(scores.functional ?? scores.f ?? "—")}</td>
-                            <td>${this.escapeHtml(gss.length ? gss.join(", ") : "—")}</td>
-                        </tr>
-                    `;
-            }).join("");
-            const nextSteps = Array.isArray(m.next_steps) ? m.next_steps : [];
-            const nextStepsSection =
-                nextSteps.length > 0
-                    ? `
-                        <div class="report-subsection report-next-steps-block">
-                            <h3>Recommended next steps</h3>
-                            <ol class="report-next-steps-list">${nextSteps
-                                .map(
-                                    (s) => `
-                            <li>
-                                <div><strong>${this.escapeHtml(s.category || "—")}</strong></div>
-                                <div><em>Action:</em> ${this.escapeHtml(s.action || "—")}</div>
-                                <div><em>Reason:</em> ${this.escapeHtml(s.reason || "—")}</div>
-                            </li>`
-                                )
-                                .join("")}</ol>
-                        </div>`
-                    : "";
-            const nextQueries = Array.isArray(m.next_queries) ? m.next_queries : [];
-            const nextQueriesSection =
-                nextQueries.length > 0
-                    ? `
-                        <div class="report-subsection">
-                            <h3>Next queries</h3>
-                            <p class="report-fine-print">Click these in the app to continue exploring this mechanism with a focused follow-up search.</p>
-                            <ol class="report-next-steps-list">${nextQueries
-                                .map((q) => `<li>${this.escapeHtml(q || "—")}</li>`)
-                                .join("")}</ol>
-                        </div>`
-                    : "";
-            const crosstalkSection = m.cross_route_crosstalk_model
-                ? `<div class="report-subsection"><strong>Cross-route crosstalk model</strong><p class="report-body-tight">${this.escapeHtml(m.cross_route_crosstalk_model)}</p></div>`
-                : "";
-            const cellularSection = m.cellular_assignment
-                ? `<div class="report-subsection"><strong>Cellular assignment</strong><p class="report-body-tight">${this.escapeHtml(this.formatCellularAssignmentDisplay(m.cellular_assignment))}</p></div>`
-                : "";
-            const depotSection = m.depot_contrast
-                ? `<div class="report-subsection"><strong>Depot contrast</strong><p class="report-body-tight">${this.escapeHtml(this.formatDepotContrastDisplay(m.depot_contrast))}</p></div>`
-                : "";
-            const directionNotes = Array.isArray(m.effect_direction_notes) ? m.effect_direction_notes : [];
-            const directionSection =
-                directionNotes.length > 0
-                    ? `<div class="report-subsection"><strong>Effect direction notes</strong>${this.buildReportList(directionNotes, (n) => `${n.gene}: ${n.direction || "unknown"}${n.note ? ` (${n.note})` : ""}`)}</div>`
-                    : "";
-            const pathwayShiftSection = m.pathway_shift_rationale
-                ? `<div class="report-subsection report-shift-callout"><strong>Why the hypothesis shifted</strong><p class="report-body-tight">${this.escapeHtml(m.pathway_shift_rationale)}</p></div>`
-                : "";
-            const inventoryRows = this.candidateInventoryRows(m.candidate_inventory);
-            const inventorySection = inventoryRows.length
-                ? `
-                        <div class="report-subsection">
-                            <h3>Evidence-derived candidate inventory</h3>
-                            <table class="report-table">
-                                <thead>
-                                    <tr>
-                                        <th>Role</th>
-                                        <th>Gene</th>
-                                        <th>Route provenance</th>
-                                        <th>Reason / note</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${inventoryRows.map((row) => `
-                                        <tr>
-                                            <td>${this.escapeHtml(row.category)}</td>
-                                            <td>${this.escapeHtml(row.symbol)}</td>
-                                            <td>${this.escapeHtml(row.provenance)}</td>
-                                            <td>${this.escapeHtml(row.reason)}</td>
-                                        </tr>
-                                    `).join("")}
-                                </tbody>
-                            </table>
-                        </div>`
-                : "";
-            const hasHypothesisMapVisual =
-                (m.core_spine_network &&
-                    Array.isArray(m.core_spine_network.nodes) &&
-                    m.core_spine_network.nodes.length > 0) ||
-                (hypImg && hypImg.dataUrl) ||
-                !!(m.hypothesis_in_kg && m.hypothesis_in_kg.caption);
-            const hypothesisMapSection = hasHypothesisMapVisual
-                ? `
-                        <div class="report-subsection">
-                            <h3>Biological mechanism map</h3>
-                            ${
-                                m.hypothesis_in_kg && m.hypothesis_in_kg.caption
-                                    ? `<p class="report-map-caption"><strong>Summary:</strong> ${this.escapeHtml(m.hypothesis_in_kg.caption)}</p>`
-                                    : ""
-                            }
-                            ${
-                                hypImg && hypImg.dataUrl
-                                    ? `
-                                <div class="report-network-meta">${hypImg.nodeCount} nodes, ${hypImg.edgeCount} edges (${this.escapeHtml(hypImg.format)})</div>
-                                <img class="report-network-image" src="${hypImg.dataUrl}" alt="Biological mechanism map ${idx + 1}">
-                            `
-                                    : '<div class="report-empty">No map image in this export. Open the Results tab, let the map render, and download the report again.</div>'
-                            }
-                        </div>`
-                : "";
-            const mechanismCardTitle = this.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
-            return `
-                    <section class="report-section report-card">
-                        <h2>${mechanismCardTitle}</h2>
-                        <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${this.escapeHtml(m.hypothesis || "—")}</p></div>
-                        ${pathwayShiftSection}
-                        <div class="report-subsection"><strong>Rationale</strong><p class="report-body-tight">${this.escapeHtml(m.novelty_explanation || m.novelty || "—")}</p></div>
-                        ${crosstalkSection}
-                        ${cellularSection}
-                        ${depotSection}
-                        ${directionSection}
-                        ${hypothesisMapSection}
-                        ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${this.escapeHtml(m.relevance)}</p></div>` : ""}
-                        ${inventorySection}
-                        <div class="report-subsection">
-                            <h3>Candidate genes (${genes.length})</h3>
-                            ${genes.length ? `
-                                <table class="report-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Gene</th>
-                                            <th>Gene role</th>
-                                            <th>Reason</th>
-                                            <th>Combined</th>
-                                            <th>GWAS</th>
-                                            <th>Functional</th>
-                                            <th>Relevant gene sets</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>${geneRows}</tbody>
-                                </table>
-                            ` : '<div class="report-empty">No candidate genes listed.</div>'}
-                        </div>
-                        ${m.genes_collective_reason ? `<div class="report-subsection"><strong>How these genes work together</strong><p class="report-body-tight">${this.escapeHtml(m.genes_collective_reason)}</p></div>` : ""}
-                        <div class="report-subsection">
-                            <h3>Data network behind this hypothesis</h3>
-                            <p class="report-fine-print">Connections from your selected phenotypes, genes, and gene sets (as in the app).</p>
-                            ${supImg && supImg.dataUrl ? `
-                                <div class="report-network-meta">${supImg.nodeCount} nodes, ${supImg.edgeCount} edges (${this.escapeHtml(supImg.format)})</div>
-                                <img class="report-network-image" src="${supImg.dataUrl}" alt="Data network ${idx + 1}">
-                            ` : '<div class="report-empty">No network image available for this export.</div>'}
-                        </div>
-                        <div class="report-subsection">
-                            <strong>Phenotypes tied to this network</strong>
-                            ${this.buildReportList(m.relevant_phenotypes, (id) => this.getPhenotypeDisplay(id))}
-                        </div>
-                        <div class="report-subsection">
-                            <strong>Related data categories</strong>
-                            ${this.buildReportList(m.redundant_associated_pairs, (pair) => `${this.getPhenotypeDisplay(pair.phenotype)} - ${this.getFactorClusterDisplayString(pair.factor)}`)}
-                        </div>
-                        <div class="report-subsection">
-                            <strong>Gene sets in scope</strong>
-                            ${this.buildReportList(this.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
-                        </div>
-                        ${nextStepsSection}
-                        ${nextQueriesSection}
-                    </section>
-                `;
+            return buildMechanismReportOneCardHtml(this, m, idx, supImg, hypImg);
         },
         buildMechanismReportSections(mechanismImages) {
-            const images = Array.isArray(mechanismImages) ? mechanismImages : [];
-            return (this.mechanisms || []).map((m, idx) => {
-                const img = images[idx];
-                const supImg =
-                    img && img.supporting
-                        ? img.supporting
-                        : img && img.dataUrl
-                          ? img
-                          : null;
-                const hypImg = img && img.hypothesisMap ? img.hypothesisMap : null;
-                return this.buildMechanismReportOneCardHtml(m, idx, supImg, hypImg);
-            }).join("");
+            return buildMechanismReportSections(this, mechanismImages);
         },
-        /** Strip vis-only / internal fields from networks for handoff JSON. */
         sanitizeHandoffNetwork(net) {
-            const n = net || {};
-            const nodes = Array.isArray(n.nodes)
-                ? n.nodes
-                    .map((node) => ({
-                        id: node.id != null ? String(node.id) : "",
-                        label: node.label != null ? String(node.label) : "",
-                        type:
-                            node.type != null
-                                ? String(node.type)
-                                : node.group != null
-                                  ? String(node.group)
-                                  : "",
-                    }))
-                    .filter((x) => x.id)
-                : [];
-            const edges = Array.isArray(n.edges)
-                ? n.edges
-                    .map((e) => ({
-                        source:
-                            e.source != null ? String(e.source) : e.from != null ? String(e.from) : "",
-                        target:
-                            e.target != null ? String(e.target) : e.to != null ? String(e.to) : "",
-                        label: e.label != null ? String(e.label) : "",
-                    }))
-                    .filter((x) => x.source && x.target)
-                : [];
-            return { nodes, edges };
+            return sanitizeHandoffNetwork(net);
         },
         sanitizeHandoffFlattenedRows(rows) {
-            return (rows || []).map((row) => {
-                const out = {
-                    subject: row.subject != null ? String(row.subject) : "",
-                    predicate: row.predicate != null ? String(row.predicate) : "",
-                    object: row.object != null ? String(row.object) : "",
-                };
-                Object.keys(row || {}).forEach((k) => {
-                    if (k === "id" || k === "subject" || k === "predicate" || k === "object") return;
-                    if (!/^context_/.test(k)) return;
-                    const v = row[k];
-                    out[k] = v != null ? String(v) : "";
-                });
-                return out;
-            });
+            return sanitizeHandoffFlattenedRows(rows);
         },
         sanitizeHandoffSelectionRows(rows) {
-            return (rows || [])
-                .map((r) => ({
-                    phenotype: r.phenotype != null ? String(r.phenotype) : "",
-                    trait_group:
-                        r.factorLabel != null && String(r.factorLabel).trim() !== ""
-                            ? String(r.factorLabel).trim()
-                            : r.factor != null
-                              ? String(r.factor)
-                              : "",
-                }))
-                .filter((x) => x.phenotype && x.trait_group);
+            return sanitizeHandoffSelectionRows(rows);
         },
         sanitizeHandoffCandidateGenes(mechanism) {
-            const genes =
-                Array.isArray(mechanism?.candidate_genes) && mechanism.candidate_genes.length
-                    ? mechanism.candidate_genes
-                    : Array.isArray(mechanism?.genes)
-                      ? mechanism.genes
-                      : [];
-            return genes.map((g) => ({
-                gene: g?.gene != null ? String(g.gene) : "",
-                role: g?.group != null ? String(g.group) : "",
-                reason:
-                    g?.reason != null ? String(g.reason) : g?.role != null ? String(g.role) : "",
-                scores: {
-                    combined: g?.scores?.combined ?? g?.scores?.c ?? null,
-                    gwas: g?.scores?.gwas ?? g?.scores?.g ?? null,
-                    functional: g?.scores?.functional ?? g?.scores?.f ?? null,
-                },
-            }));
+            return sanitizeHandoffCandidateGenes(mechanism);
         },
         sanitizeHandoffGeneConnections(gc) {
-            if (!gc || typeof gc !== "object") return null;
-            const out = {};
-            Object.keys(gc).forEach((gene) => {
-                const entry = gc[gene];
-                if (!entry || typeof entry !== "object") return;
-                out[String(gene)] = {
-                    gene_sets: Array.isArray(entry.gene_sets) ? entry.gene_sets.map((s) => String(s)) : [],
-                };
-            });
-            return Object.keys(out).length ? out : null;
+            return sanitizeHandoffGeneConnections(gc);
         },
-        buildMechanismHandoffAppendixObject({
-            idx,
-            mechanism,
-            researchContext,
-            supportingNet,
-            hypothesisNet,
-            supportingRows,
-            assocRows,
-            supportingImage,
-            hypothesisImage,
-        }) {
-            const flowCap =
-                mechanism?.hypothesis_in_kg?.caption != null
-                    ? String(mechanism.hypothesis_in_kg.caption)
-                    : "";
-            return {
-                handoff_version: 1,
-                generated_at: new Date().toISOString(),
-                your_question: this.userQuery || "",
-                research_context: researchContext || "",
-                session_mechanisms_summary: this.getReportSessionSummary(),
-                extracted_terms: {
-                    phenotype_terms: [...(this.lastPhenotypeTerms || [])],
-                    mechanism_terms: [...(this.lastMechanismTerms || [])],
-                    genes_of_interest: [...(this.lastGenesOfInterest || [])],
-                },
-                hypothesis: {
-                    index: idx + 1,
-                    title: mechanism?.group_name != null ? String(mechanism.group_name) : "",
-                    mechanistic_hypothesis: mechanism?.hypothesis != null ? String(mechanism.hypothesis) : "",
-                    rationale:
-                        mechanism?.novelty_explanation != null
-                            ? String(mechanism.novelty_explanation)
-                            : mechanism?.novelty != null
-                              ? String(mechanism.novelty)
-                              : "",
-                    relevance: mechanism?.relevance != null ? String(mechanism.relevance) : "",
-                    biological_flow_summary: flowCap,
-                    genes_collective_reason:
-                        mechanism?.genes_collective_reason != null
-                            ? String(mechanism.genes_collective_reason)
-                            : "",
-                    candidate_genes: this.sanitizeHandoffCandidateGenes(mechanism),
-                    gene_set_links_by_gene: this.sanitizeHandoffGeneConnections(mechanism?.gene_connections),
-                    next_steps: Array.isArray(mechanism?.next_steps)
-                        ? mechanism.next_steps.map((s) => ({
-                            category: s?.category != null ? String(s.category) : "",
-                            action: s?.action != null ? String(s.action) : "",
-                            reason: s?.reason != null ? String(s.reason) : "",
-                        }))
-                        : [],
-                    next_queries: Array.isArray(mechanism?.next_queries)
-                        ? mechanism.next_queries.map((q) => String(q))
-                        : [],
-                    related_phenotypes: Array.isArray(mechanism?.relevant_phenotypes)
-                        ? mechanism.relevant_phenotypes.map((id) => this.getPhenotypeDisplay(id))
-                        : [],
-                    related_data_category_clusters: Array.isArray(mechanism?.redundant_associated_pairs)
-                        ? mechanism.redundant_associated_pairs.map((pair) => ({
-                            phenotype: this.getPhenotypeDisplay(pair.phenotype),
-                            data_category: this.getFactorClusterDisplayString(pair.factor),
-                        }))
-                        : [],
-                    relevant_gene_sets: (
-                        this.formatRelevantGeneSetsForDisplay(mechanism?.relevant_gene_sets || []) || []
-                    ).map((set) => ({
-                        gene_set: set.gs,
-                        program: set.program || "",
-                    })),
-                },
-                evidence: {
-                    supporting_kg_facts: this.sanitizeHandoffFlattenedRows(supportingRows),
-                    ui_phenotype_trait_rows: this.sanitizeHandoffSelectionRows(assocRows),
-                    data_network: this.sanitizeHandoffNetwork(supportingNet),
-                    biological_flow_network: this.sanitizeHandoffNetwork(hypothesisNet),
-                },
-                exports: {
-                    supporting_network_image: supportingImage
-                        ? {
-                            format: supportingImage.format,
-                            node_count: supportingImage.nodeCount,
-                            edge_count: supportingImage.edgeCount,
-                            included_in_html: !!supportingImage.dataUrl,
-                        }
-                        : null,
-                    biological_flow_image: hypothesisImage
-                        ? {
-                            format: hypothesisImage.format,
-                            node_count: hypothesisImage.nodeCount,
-                            edge_count: hypothesisImage.edgeCount,
-                            included_in_html: !!hypothesisImage.dataUrl,
-                        }
-                        : null,
-                },
-            };
+        buildMechanismHandoffAppendixObject(options) {
+            return buildMechanismHandoffAppendixObject(this, options);
         },
         /**
          * Print-friendly single-hypothesis handoff HTML; JSON appendix via separate download link (data URL).
          */
-        buildMechanismHandoffHtmlDocument({
-            idx,
-            mechanism,
-            researchContext,
-            supportingImage,
-            hypothesisImage,
-            appendix,
-        }) {
-            const slug = String(mechanism.group_name || `hypothesis-${idx + 1}`)
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "")
-                .slice(0, 80);
-            const jsonStr = JSON.stringify(appendix, null, 2);
-            const jsonDownloadHref = `data:application/json;charset=utf-8,${encodeURIComponent(jsonStr)}`;
-            const jsonFilename = `reveal-handoff-appendix-${slug || `hypothesis-${idx + 1}`}.json`;
-            const overview = `
-                <section class="report-section">
-                    <h2>Overview</h2>
-                    <p class="report-fine-print">Context for this hypothesis handoff (one card from your session).</p>
-                    <table class="report-table">
-                        <tbody>
-                            <tr><th>Your question</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
-                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
-                            <tr><th>Phenotypes or diseases (extracted)</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
-                            ${this.reportGeneAnchorRows()}
-                            <tr><th>Summary of findings (session)</th><td>${this.escapeHtml(this.getReportSessionSummary())}</td></tr>
-                        </tbody>
-                    </table>
-                </section>
-            `;
-            const card = this.buildMechanismReportOneCardHtml(
-                mechanism,
-                idx,
-                supportingImage,
-                hypothesisImage
-            );
-            const appendixBlock = `
-                <section class="report-section report-page-break">
-                    <h2>Machine-readable appendix</h2>
-                    <p class="report-fine-print">Compact JSON for tools, scripting, or archiving. Internal-only debugging fields are omitted.</p>
-                    <p class="report-handoff-json-actions">
-                        <a class="report-json-download" download="${this.escapeHtml(jsonFilename)}" href="${jsonDownloadHref}">Download JSON appendix</a>
-                    </p>
-                    <p class="report-fine-print report-print-hide">Use the button above in your browser to save the JSON file. Printed pages omit this control.</p>
-                </section>
-            `;
-            const titleSafe = this.escapeHtml(
-                mechanism.group_name || `Hypothesis handoff ${idx + 1}`
-            );
-            return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reveal handoff — ${titleSafe}</title>
-    <style>
-        html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
-        body, body * { box-sizing: border-box; }
-        body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
-        .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
-        .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
-        .report-header h1 { font-size: 22pt; margin: 0 0 8px; }
-        .report-header p { margin: 0; }
-        .report-section { margin-bottom: 28px; }
-        .report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
-        .report-section h3 { font-size: 15pt; margin: 0 0 8px; }
-        .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
-        .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
-        .report-table th { background: #f3f4f6; width: 24%; }
-        .report-subsection { margin-bottom: 14px; }
-        .report-shift-callout { border: 1px solid #f4c27a; background: #fff8e6; border-radius: 6px; padding: 10px 12px; }
-        .report-empty { color: #667; font-style: italic; }
-        .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
-        .report-network-meta { margin-bottom: 8px; color: #555; }
-        .report-map-caption { margin: 0 0 10px; }
-        .report-body-tight { margin: 6px 0 0; }
-        .report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
-        .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
-        .report-next-steps-list { margin: 0; padding-left: 1.35rem; }
-        .report-next-steps-list li { margin-bottom: 12px; }
-        .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
-        .report-page-break { page-break-before: always; }
-        .report-json-download {
-            display: inline-block;
-            margin-top: 4px;
-            padding: 8px 14px;
-            background: #f16822;
-            color: #fff !important;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-        .report-json-download:hover { filter: brightness(0.95); }
-        .report-handoff-json-actions { margin: 0; }
-        @media print {
-            html, body { background: #fff; }
-            .report { max-width: none; padding: 0; }
-            .report-card, .report-section { break-inside: avoid; }
-            .report-print-hide { display: none; }
-            .report-json-download { display: none; }
-        }
-    </style>
-</head>
-<body>
-    <div class="report">
-        <header class="report-header">
-            <h1>Reveal — hypothesis handoff</h1>
-            <p>${this.escapeHtml(mechanism.group_name || `Hypothesis ${idx + 1}`)} · generated ${this.escapeHtml(new Date().toLocaleString())}</p>
-        </header>
-        ${overview}
-        ${card}
-        ${appendixBlock}
-    </div>
-</body>
-</html>`;
+        buildMechanismHandoffHtmlDocument(options) {
+            return buildMechanismHandoffHtmlDocument(this, options);
         },
-        buildHtmlReportDocument({ researchContext, mechanismImages, factorSummary, rawKgCsv }) {
-            const extractedTerms = `
-                <section class="report-section">
-                    <h2>Terms taken from your question</h2>
-                    <p class="report-fine-print">What the app pulled out to run the search and build your results.</p>
-                    <table class="report-table">
-                        <tbody>
-                            <tr><th>Phenotypes or diseases</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Biological mechanisms</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
-                            ${this.reportGeneAnchorRows()}
-                            <tr><th>Your research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
-                            <tr><th>Alternative ways to ask</th><td>${(this.lastAlternativeQueries || []).length ? this.buildReportList(this.lastAlternativeQueries) : '<span class="report-empty">None suggested.</span>'}</td></tr>
-                        </tbody>
-                    </table>
-                </section>
-            `;
-            const hybridMeta = `
-                <section class="report-section">
-                    <h2>Notes on how your search was run</h2>
-                    <p class="report-fine-print">Technical detail: how genes and terms were matched to the database (for transparency).</p>
-                    ${this.hybridSearchMetaSummaryLines.length
-                        ? this.buildReportList(this.hybridSearchMetaSummaryLines)
-                        : '<div class="report-empty">No extra notes for this run.</div>'}
-                </section>
-            `;
-            const mechanismDiag = this.mechanismDiagnosticAssessment
-                ? `
-                    <section class="report-section">
-                        <h2>Hypothesis generation: eligibility and messages</h2>
-                        <p class="report-fine-print">Whether the app could propose mechanisms from your data, and any guidance from the analysis.</p>
-                        <table class="report-table">
-                            <tbody>
-                                <tr><th>Hypotheses produced</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.can_generate_hypothesis)}</td></tr>
-                                <tr><th>Heads-up</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.warning_flag || "—")}</td></tr>
-                                <tr><th>If none were produced, why</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.rejection_reason || "—")}</td></tr>
-                                <tr><th>Suggested follow-up question</th><td>${this.escapeHtml(this.mechanismDiagnosticAssessment.suggested_optimized_query || "—")}</td></tr>
-                            </tbody>
-                        </table>
-                    </section>
-                `
-                : "";
-            const altQueriesCell =
-                (this.lastAlternativeQueries || []).length > 0
-                    ? this.buildReportList(this.lastAlternativeQueries)
-                    : '<span class="report-empty">None suggested.</span>';
-            const summarySection = `
-                <section class="report-section">
-                    <h2>Overview</h2>
-                    <p class="report-fine-print">High-level snapshot of your question, extracted search terms, and this session’s results.</p>
-                    <table class="report-table">
-                        <tbody>
-                            <tr><th>Your question</th><td>${this.escapeHtml(this.userQuery || "—")}</td></tr>
-                            <tr><th>Research context</th><td>${this.escapeHtml(researchContext || "—")}</td></tr>
-                            <tr><th>Phenotypes or diseases (extracted)</th><td>${this.escapeHtml((this.lastPhenotypeTerms || []).join(", ") || "—")}</td></tr>
-                            <tr><th>Biological mechanisms (extracted)</th><td>${this.escapeHtml((this.lastMechanismTerms || []).join(", ") || "—")}</td></tr>
-                            ${this.reportGeneAnchorRows()}
-                            <tr><th>Alternative ways to ask</th><td>${altQueriesCell}</td></tr>
-                            <tr><th>Summary of findings</th><td>${this.escapeHtml(this.getReportSessionSummary())}</td></tr>
-                            <tr><th>Phenotypes in your selection</th><td>${this.escapeHtml(this.phenotypeCount)}</td></tr>
-                            <tr><th>Data categories (gene set clusters) in your selection</th><td>${this.escapeHtml(this.factorCount)}</td></tr>
-                            <tr><th>Mechanism cards in this report</th><td>${this.escapeHtml((this.mechanisms || []).length)}</td></tr>
-                        </tbody>
-                    </table>
-                </section>
-            `;
-            const appendix = `
-                <section class="report-section report-page-break">
-                    <h2>Appendix: technical summary (JSON)</h2>
-                    <p class="report-fine-print">Machine-readable merge of phenotypes, gene sets, and scores.</p>
-                    <pre class="report-pre">${this.escapeHtml(factorSummary || "{}")}</pre>
-                </section>
-                <section class="report-section">
-                    <h2>Appendix: knowledge graph table (CSV)</h2>
-                    <p class="report-fine-print">The relationship table used when proposing mechanisms.</p>
-                    <pre class="report-pre">${this.escapeHtml(rawKgCsv || "")}</pre>
-                </section>
-            `;
-            const mechanismHypothesesSection = `
-        <section class="report-section">
-            <h2>Suggested mechanisms</h2>
-            <p class="report-fine-print">Each card matches what you see under Results: hypothesis text, map, genes, data network, and optional next steps.</p>
-            ${this.buildMechanismReportSections(mechanismImages)}
-        </section>`;
-            return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Factor-based Reveal Report</title>
-    <style>
-        html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
-        body, body * { box-sizing: border-box; }
-        body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
-        .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
-        .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
-        .report-header h1 { font-size: 24pt; margin: 0 0 8px; }
-        .report-header p { margin: 0; }
-        .report-section { margin-bottom: 28px; }
-        .report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
-        .report-section h3 { font-size: 15pt; margin: 0 0 8px; }
-        .report-section h4 { font-size: 14pt; margin: 0 0 10px; }
-        .report-section h5 { font-size: 11pt; margin: 0 0 8px; }
-        .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
-        .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
-        .report-table th { background: #f3f4f6; width: 24%; }
-        .report-subsection { margin-bottom: 14px; }
-        .report-empty { color: #667; font-style: italic; }
-        .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
-        .report-network-meta { margin-bottom: 8px; color: #555; }
-        .report-map-caption { margin: 0 0 10px; }
-        .report-body-tight { margin: 6px 0 0; }
-        .report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
-        .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
-        .report-next-steps-list { margin: 0; padding-left: 1.35rem; }
-        .report-next-steps-list li { margin-bottom: 12px; }
-        .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
-        .report-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: #f7f7f8; border: 1px solid #d8dee4; padding: 12px; border-radius: 6px; }
-        .report-keyvals > div { margin-bottom: 6px; }
-        .report-page-break { page-break-before: always; }
-        @media print {
-            html, body { background: #fff; }
-            .report { max-width: none; padding: 0; }
-            .report-card, .report-section { break-inside: avoid; }
-        }
-    </style>
-</head>
-<body>
-    <div class="report">
-        <header class="report-header">
-            <h1>Factor-based Reveal Report</h1>
-            <p>Generated ${this.escapeHtml(new Date().toLocaleString())}</p>
-        </header>
-        ${summarySection}
-        ${hybridMeta}
-        ${mechanismDiag}
-        ${mechanismHypothesesSection}
-        ${this.buildReportFactorCards(this.factorDataTableRowsFiltered || [], "Your selected phenotypes and data categories")}
-        ${this.buildReportFactorCards(this.remainingGeneSetClusterRows || [], "Clusters not yet covered by a hypothesis card")}
-        ${extractedTerms}
-        ${appendix}
-    </div>
-</body>
-</html>`;
+        buildHtmlReportDocument(options) {
+            return buildHtmlReportDocument(this, options);
         },
         startStepTimer() {
             this.stopStepTimer();
@@ -3577,75 +2392,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 });
             }
         },
-        setStep(step, toggleTimer=false){
-            if(step.type==='error'){
-                this.steps.push({
-                    type: step.type,
-                    title: step.title
-                })
-                if(this.stepsTimer){
-                    clearInterval(this.stepsTimer);
-                    this.stepsTimer = null;
-                    this.now = now;
-                }
-                return;
-            }
-
-            const ID = step.id;
-            if(!ID) {
-                return;
-            }
-
-            const now = Date.now()
-            if(toggleTimer){
-                if(this.steps?.length===0){
-                    //start this.stepsTimer
-                    this.stepsTime = now;
-                    this.stepsTimer = setInterval(() => {
-                        this.now = Date.now();
-                    }, 500);
-                }else{
-                    //stop this.stepsTimer
-                    clearInterval(this.stepsTimer);
-                    this.stepsTimer = null;
-                    this.now = now;
-                }
-            }
-
-            let IDidx = this.steps.findIndex(o => o.id === ID);
-            if(IDidx === -1){
-                this.steps.push({
-                    id: ID,
-                    title: step.title,
-                    substeps: [],
-                    expanded: false,
-                    timeStart: now,
-                    time: null,
-                })
-                IDidx = this.steps.length-1;
-
-                if(this.stepsTimer && this.steps.length > 1){
-                    const prev = this.steps[IDidx - 1];
-                    prev.time = now - prev.timeStart;
-                }
-            }
-            if(step.substep){
-                const sID = step.substep.id;
-                if(!sID) {
-                    return;
-                }
-                const sIDidx = this.steps[IDidx].substeps.findIndex(o => o.id === sID);
-                if(sIDidx === -1){
-                    this.steps[IDidx].substeps.push({
-                        id: sID,
-                        title: step.substep.title,
-                        result: step.substep.result,
-                        expanded: false
-                    })
-                }else{
-                    this.steps[IDidx].substeps[sIDidx].result = step.substep.result;
-                }
-            }
+        setStep(step, toggleTimer = false) {
+            return applyStepUpdate(this, step, toggleTimer);
         },
         formatTime(ms) {
             return formatStepElapsedMs(ms);
@@ -3658,7 +2406,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Reset elapsed origin, clear completion substeps, and restart the interval so UI time updates again.
          */
         restartMechanismHypothesisStepTimer() {
-            const idx = (this.steps || []).findIndex((s) => s && s.id === "4");
+            const idx = (this.steps || []).findIndex((s) => s && s.id === WORKFLOW_STEP_IDS.HYPOTHESES);
             const t = Date.now();
             if (idx !== -1) {
                 this.$set(this.steps[idx], "timeStart", t);
@@ -3693,8 +2441,8 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
         waitForStepApproval(stepId, message, expandToResult = false) {
             const sid = String(stepId);
-            if (sid === "1") this.switchRevealTab("terms");
-            else if (sid === "2") this.switchRevealTab("data");
+            if (sid === WORKFLOW_STEP_IDS.EXTRACTION) this.switchRevealTab("terms");
+            else if (sid === WORKFLOW_STEP_IDS.DATA) this.switchRevealTab("data");
             if (expandToResult) this.expandStepToResult(stepId);
             else this.expandStepById(stepId);
             this.pauseStepsElapsedForReview();
@@ -3784,242 +2532,38 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             );
         },
         syncUnionTermsFromMultiQueryRoutes() {
-            const routes = Array.isArray(this.multiQueryRoutes) ? this.multiQueryRoutes : [];
-            const phen = [];
-            const mech = [];
-            const goi = [];
-            routes.forEach((route) => {
-                const extracted = route && route.extracted_terms ? route.extracted_terms : {};
-                this.normalizeLlmTermList(extracted.phenotype_terms).forEach((t) => {
-                    if (!phen.includes(t)) phen.push(t);
-                });
-                this.normalizeLlmTermList(extracted.mechanism_terms).forEach((t) => {
-                    if (!mech.includes(t)) mech.push(t);
-                });
-                this.normalizeLlmTermList(extracted.genes_of_interest).forEach((t) => {
-                    if (!goi.includes(t)) goi.push(t);
-                });
-            });
-            this.lastPhenotypeTerms = phen;
-            this.lastMechanismTerms = mech;
-            this.lastGenesOfInterest = goi;
-            const searchTerms = [...phen, ...mech];
-            this.searchTerm = searchTerms.join(", ");
-            if (this.searchCriteria && this.searchCriteria[0]) {
-                this.$set(
-                    this.searchCriteria[0],
-                    "values",
-                    searchTerms.length ? searchTerms : ["(none extracted)"]
-                );
-            }
+            return syncUnionTermsFromMultiQueryRoutes(this);
         },
         resetSearchCriteriaGateEdits() {
             this.searchCriteriaEditRows = JSON.parse(JSON.stringify(this.searchCriteriaEditRowsDefault || []));
             this.multiQueryRouteEditRows = JSON.parse(JSON.stringify(this.multiQueryRouteEditRowsDefault || []));
         },
         applySearchCriteriaGateEdits() {
-            if (this.usePerRouteSearchTermsEditor) {
-                const researchContext = String(this.sharedResearchContextTerm || "").trim();
-                this.searchCriteria = [
-                    {
-                        search_criteria: "Search Terms",
-                        values: ["(per direction — see below)"],
-                        why: "Each retrieval direction uses its own extracted terms.",
-                        purpose:
-                            "Route-specific terms drive hybrid search for tissue expression, perturbations, and genetics.",
-                    },
-                    {
-                        search_criteria: "Research Context",
-                        values: researchContext || "(none extracted)",
-                        why: "We inferred this from your search query.",
-                        purpose:
-                            "This context will be used to tailor mechanistic hypotheses to your research.",
-                    },
-                ];
-                this.applyRouteEditRowsToMultiQueryRoutes();
-                this.syncUnionTermsFromMultiQueryRoutes();
-                return;
-            }
-            const rows = Array.isArray(this.searchCriteriaEditRows) ? this.searchCriteriaEditRows : [];
-            const phenotypeRow = rows.find((r) => r && r.type === "Phenotype terms");
-            const mechanismRow = rows.find((r) => r && r.type === "Mechanism terms");
-            const goiRow = rows.find((r) => r && r.type === "Genes of interest");
-            const contextRow = rows.find((r) => r && r.type === "Research context");
-            const phenotypeTerms = String((phenotypeRow && phenotypeRow.term) || "")
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean);
-            const mechanismTerms = String((mechanismRow && mechanismRow.term) || "")
-                .split(",")
-                .map((s) => s.trim())
-                .filter(Boolean);
-            const genesOfInterest = String((goiRow && goiRow.term) || "")
-                .split(/[,;\n]/)
-                .map((s) => s.trim())
-                .filter(Boolean);
-            const researchContext = contextRow ? String(contextRow.term || "").trim() : "";
-
-            this.lastPhenotypeTerms = phenotypeTerms;
-            this.lastMechanismTerms = mechanismTerms;
-            this.lastGenesOfInterest = genesOfInterest;
-            const searchTerms = [...phenotypeTerms, ...mechanismTerms];
-            this.searchTerm = searchTerms.join(", ");
-            this.searchCriteria = [
-                {
-                    search_criteria: "Search Terms",
-                    values: searchTerms.length ? searchTerms : ["(none extracted)"],
-                    why: "We extracted this from your search query.",
-                    purpose:
-                        "These terms will be used to search for related phenotype↔signature associations via semantic search.",
-                },
-                {
-                    search_criteria: "Research Context",
-                    values: researchContext || "(none extracted)",
-                    why: "We inferred this from your search query.",
-                    purpose:
-                        "This context will be used to tailor mechanistic hypotheses to your research.",
-                },
-            ];
+            return applySearchCriteriaGateEdits(this);
         },
         normalizeAlternativeQueries(raw) {
-            if (raw == null) return [];
-            if (Array.isArray(raw)) {
-                return raw
-                    .map((q) => String(q || "").trim())
-                    .filter(Boolean);
-            }
-            const s = String(raw).trim();
-            if (!s) return [];
-            return s
-                .split(/\n|;/)
-                .map((q) => q.replace(/^\d+[\).\s-]+/, "").trim())
-                .filter(Boolean);
+            return normalizeAlternativeQueries(raw);
         },
         normalizeExtractionAmbiguity(raw) {
-            if (!raw || typeof raw !== "object") return null;
-            const warningMessage =
-                raw.warning_message != null
-                    ? String(raw.warning_message).trim()
-                    : (raw.warningMessage != null ? String(raw.warningMessage).trim() : "");
-            const alternativeQueries = this.normalizeAlternativeQueries(
-                raw.alternative_queries != null
-                    ? raw.alternative_queries
-                    : raw.alternativeQueries
-            );
-            const antiAnchorTerms = this.normalizeLlmTermList(
-                raw.anti_anchor_terms != null
-                    ? raw.anti_anchor_terms
-                    : raw.antiAnchorTerms
-            );
-            const hasAmbiguityExplicit = raw.has_ambiguity === true || raw.hasAmbiguity === true;
-            const hasAmbiguity = hasAmbiguityExplicit || !!warningMessage || alternativeQueries.length > 0;
-            if (!hasAmbiguity) return null;
-            return {
-                has_ambiguity: true,
-                warning_message: warningMessage || "Some terms in your query were interpreted using a default assumption.",
-                alternative_queries: alternativeQueries,
-                anti_anchor_terms: antiAnchorTerms,
-            };
+            return normalizeExtractionAmbiguity(raw);
         },
         mergeAlternativeQueries(...lists) {
-            const out = [];
-            const seen = new Set();
-            lists.forEach((list) => {
-                (Array.isArray(list) ? list : []).forEach((q) => {
-                    const text = String(q || "").trim();
-                    if (!text) return;
-                    const key = text.toLowerCase();
-                    if (seen.has(key)) return;
-                    seen.add(key);
-                    out.push(text);
-                });
-            });
-            return out;
+            return mergeAlternativeQueries(...lists);
         },
         detectAntiAnchorTerms(queryText) {
-            const text = String(queryText || "").trim();
-            if (!text) return [];
-            const out = [];
-            const seen = new Set();
-            const add = (term) => {
-                const t = String(term || "")
-                    .replace(/^[\s"'`]+|[\s"'`.,;:!?]+$/g, "")
-                    .trim();
-                if (!t || t.length < 2) return;
-                const key = t.toLowerCase();
-                if (seen.has(key)) return;
-                seen.add(key);
-                out.push(t);
-            };
-            const patterns = [
-                /\bnon[-\s]+([A-Za-z0-9-]{2,})\b/gi,
-                /\bwithout\s+([A-Za-z0-9-]{2,})\b/gi,
-                /\bindependent(?:ly)?\s+of\s+([A-Za-z0-9-]{2,})\b/gi,
-                /\bexcept(?:\s+for)?\s+([A-Za-z0-9-]{2,})\b/gi,
-                /\ball\s+other\s+than\s+([A-Za-z0-9-]{2,})\b/gi,
-            ];
-            patterns.forEach((re) => {
-                let m;
-                while ((m = re.exec(text)) !== null) {
-                    add(m[1]);
-                }
-            });
-            return out;
+            return detectAntiAnchorTerms(queryText);
         },
-        buildAntiAnchorFallbackAlternatives({ antiAnchorTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
-            const excludes = (Array.isArray(antiAnchorTerms) ? antiAnchorTerms : [])
-                .map((t) => String(t || "").trim())
-                .filter(Boolean);
-            const mechs = (Array.isArray(mechanismTerms) ? mechanismTerms : [])
-                .map((t) => String(t || "").trim())
-                .filter(Boolean);
-            if (!excludes.length) return [];
-            const excludedLabel = excludes.join(", ");
-            const contextHint = String(researchContext || "").trim();
-            const out = [];
-            out.push(
-                `Find candidate genes for non-canonical mechanisms in the same biological context, using anchors other than ${excludedLabel}.`
-            );
-            mechs.slice(0, 2).forEach((m) => {
-                out.push(
-                    `Find candidate genes for ${m} in the same tissue/process context, using positive anchors instead of ${excludedLabel}.`
-                );
-            });
-            if (contextHint && out.length < 3) {
-                out.push(
-                    `Find candidate genes for alternative pathways consistent with this context: ${contextHint}`
-                );
-            }
-            return out.slice(0, 3);
+        buildAntiAnchorFallbackAlternatives(options) {
+            return buildAntiAnchorFallbackAlternatives(options);
         },
         ensureAntiAnchorWarningMessage(warningMessage, antiAnchorTerms, alternativeQueries) {
-            const terms = (Array.isArray(antiAnchorTerms) ? antiAnchorTerms : [])
-                .map((t) => String(t || "").trim())
-                .filter(Boolean);
-            const alts = (Array.isArray(alternativeQueries) ? alternativeQueries : [])
-                .map((q) => String(q || "").trim())
-                .filter(Boolean);
-            if (!terms.length) return String(warningMessage || "").trim();
-            const base = String(warningMessage || "").trim();
-            const hasProAnchorLanguage = /pro-anchor|positive anchor|translated.+anti-anchor/i.test(base);
-            const anchorExamples = alts
-                .slice(0, 2)
-                .map((q) => q.replace(/^Find\s+/i, "").trim())
-                .filter(Boolean)
-                .join(" | ");
-            const requiredSentence = anchorExamples
-                ? `We translated the anti-anchor constraint into pro-anchor alternatives: ${anchorExamples}.`
-                : "We translated the anti-anchor constraint into pro-anchor alternatives to keep retrieval focused.";
-            if (!base) {
-                return `You asked to exclude ${terms.join(", ")}. ${requiredSentence}`;
-            }
-            return hasProAnchorLanguage ? base : `${base} ${requiredSentence}`.trim();
+            return ensureAntiAnchorWarningMessage(warningMessage, antiAnchorTerms, alternativeQueries);
         },
         onAlternativeQuerySelected(query) {
             const nextQuery = String(query || "").trim();
             if (!nextQuery) return;
             this.userQuery = nextQuery;
-            if (this.stepApprovalGateActive && this.stepApprovalGateStepId === "1") {
+            if (this.stepApprovalGateActive && this.stepApprovalGateStepId === WORKFLOW_STEP_IDS.EXTRACTION) {
                 this.cancelStepGate(false);
             }
             this.queryParse();
@@ -4257,7 +2801,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;
             const gateStepId = this.stepApprovalGateStepId;
-            if (this.stepApprovalGateStepId === "1") {
+            if (this.stepApprovalGateStepId === WORKFLOW_STEP_IDS.EXTRACTION) {
                 this.applySearchCriteriaGateEdits();
                 this.searchCriteriaExtractionGateDone = true;
                 this.switchRevealTab("data");
@@ -4269,7 +2813,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                         }
                     });
                 }
-            } else if (gateStepId === "2") {
+            } else if (gateStepId === WORKFLOW_STEP_IDS.DATA) {
                 this.revealResultsTabUnlocked = true;
                 this.switchRevealTab("results");
                 if (this.importedWorkflowPendingHypothesisRun) {
@@ -4787,83 +3331,15 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             window.open(designUrl, "_blank", "noopener");
         },
         getMechanismTopGenes(mechanism, limit = 10) {
-            const genes = Array.isArray(mechanism?.candidate_genes) && mechanism.candidate_genes.length
-                ? mechanism.candidate_genes
-                : (Array.isArray(mechanism?.genes) ? mechanism.genes : []);
-            return genes.slice(0, Math.max(1, limit));
+            return getMechanismTopGenes(mechanism, limit);
         },
         buildMechanismClipboardText(mechanism, idx) {
-            const context =
+            const researchContext =
                 (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
                     ? String(this.searchCriteria[1].values).trim()
                     : "";
             const topGenes = this.getMechanismTopGenes(mechanism, 10);
-            const topGenesBlock = topGenes.length
-                ? topGenes.map((g, i) => {
-                    const score = g && g.scores && (g.scores.combined ?? g.scores.c) != null
-                        ? Number(g.scores.combined ?? g.scores.c).toFixed(2)
-                        : "—";
-                    const gene = g && g.gene != null ? String(g.gene) : "—";
-                    const role = g && g.group != null ? String(g.group) : "—";
-                    return `${i + 1}. ${gene} - ${role} (Combined: ${score})`;
-                }).join("\n")
-                : "None listed.";
-            const flow = mechanism?.hypothesis_in_kg || {};
-            const flowCaption = flow.caption != null ? String(flow.caption) : "";
-            const flowEdges = Array.isArray(flow.edges)
-                ? flow.edges.slice(0, 8).map((e) => `${e.from} -> ${e.to}${e.label ? ` (${e.label})` : ""}`).join("\n")
-                : "";
-            const nextSteps = Array.isArray(mechanism?.next_steps) ? mechanism.next_steps.slice(0, 3) : [];
-            const nextStepsBlock = nextSteps.length
-                ? nextSteps.map((s) => {
-                    const cat = s && s.category != null && String(s.category).trim() !== ""
-                        ? String(s.category).trim()
-                        : "Uncategorized";
-                    const action = s && s.action != null && String(s.action).trim() !== ""
-                        ? String(s.action).trim()
-                        : "—";
-                    const reason = s && s.reason != null && String(s.reason).trim() !== ""
-                        ? ` (Reason: ${String(s.reason).trim()})`
-                        : "";
-                    return `[${cat}] ${action}${reason}`;
-                }).join("\n")
-                : "None listed.";
-            const nextQueries = Array.isArray(mechanism?.next_queries) ? mechanism.next_queries.slice(0, 3) : [];
-            const nextQueriesBlock = nextQueries.length
-                ? nextQueries.map((q, i) => `${i + 1}. ${q}`).join("\n")
-                : "None listed.";
-
-            return [
-                "Instruction for assistant:",
-                "Act as an expert principal investigator and systems biologist. Use only the evidence below; mark assumptions explicitly.",
-                "",
-                `Research Context: ${context || "—"}`,
-                "",
-                `Hypothesis ${idx + 1}: ${mechanism?.group_name || "(unnamed)"}`,
-                `${mechanism?.hypothesis || "—"}`,
-                "",
-                "Rationale / Novelty:",
-                `${mechanism?.novelty_explanation || mechanism?.novelty || "—"}`,
-                "",
-                "Biological Flow (Visual Spine):",
-                `${flowCaption || "—"}`,
-                `${flowEdges || ""}`,
-                "",
-                "Top Candidate Genes (max 10):",
-                topGenesBlock,
-                "",
-                "Suggested Next Steps:",
-                nextStepsBlock,
-                "",
-                "Next Queries:",
-                nextQueriesBlock,
-                "",
-                "Task options:",
-                "A) Critically evaluate biological plausibility.",
-                "B) Draft a step-by-step experimental validation plan.",
-                "C) Expand or refine next steps.",
-                "D) Suggest confounders and alternative pathways.",
-            ].join("\n");
+            return buildMechanismClipboardText(mechanism, idx, researchContext, topGenes);
         },
         isMechanismBiolinkMapped(mechanism) {
             return !!(
@@ -4910,671 +3386,76 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             this.$set(this.mechanisms, idx, next);
         },
         normalizeBiolinkLookupLabel(label) {
-            return String(label == null ? "" : label).trim().replace(/\s+/g, " ").toLowerCase();
+            return normalizeBiolinkLookupLabel(label);
         },
         classifyBiolinkNodeType(className, fallbackType = "Entity") {
-            const c = String(className || "").toLowerCase().replace(/\s+/g, "");
-            if (c.includes("gene") || c.includes("protein")) return "Gene";
-            if (
-                c.includes("smallmolecule") ||
-                c.includes("chemicalentity") ||
-                c.includes("chemical_substance") ||
-                c.includes("molecular_entity") ||
-                c.includes("chemical")
-            ) return "Metabolite";
-            if (c.includes("biologicalprocess") || c.includes("pathway") || c.includes("activity")) return "Process";
-            if (c.includes("phenotypicfeature") || c.includes("disease") || c.includes("trait")) return "Phenotype";
-            if (c.includes("cell")) return "Cell";
-            if (c.includes("drug")) return "Drug";
-            return fallbackType || "Entity";
+            return classifyBiolinkNodeType(className, fallbackType);
         },
         inferBiolinkPredicate(actionLabel) {
-            const s = String(actionLabel || "").trim().toLowerCase();
-            if (!s) return "biolink:related_to";
-            if (/inhibit|suppress|downreg|reduce|decrease|block/.test(s)) return "biolink:decreases_activity_of";
-            if (/activat|increase|upreg|promot|induce|trigger/.test(s)) return "biolink:increases_activity_of";
-            if (/cleav|degrad/.test(s)) return "biolink:affects";
-            if (/mediat|modulat|regulat/.test(s)) return "biolink:regulates";
-            return "biolink:related_to";
+            return inferBiolinkPredicate(actionLabel);
         },
-        /**
-         * Name Resolution responses vary (array of hits, bulk map keyed by query, matches[], etc.).
-         * @returns {{ curie: string | null, resolverLabel: string }}
-         */
         extractTopHitFromNameResolutionResponse(json, queryLabel) {
-            const q = String(queryLabel || "").trim();
-            let arr = null;
-            if (Array.isArray(json)) {
-                arr = json;
-            } else if (json && typeof json === "object") {
-                if (q && Array.isArray(json[q])) arr = json[q];
-                if (!arr && q) {
-                    const lk = Object.keys(json).find((k) => k.toLowerCase() === q.toLowerCase());
-                    if (lk && Array.isArray(json[lk])) arr = json[lk];
-                }
-                if (!arr && Array.isArray(json.matches)) arr = json.matches;
-                if (!arr && Array.isArray(json.results)) arr = json.results;
-                if (!arr && Array.isArray(json.items)) arr = json.items;
-            }
-            if (!arr || !arr.length) return { curie: null, resolverLabel: "" };
-            const top = arr[0];
-            if (!top || typeof top !== "object") return { curie: null, resolverLabel: "" };
-            const curie = top.curie || top.identifier || top.id || null;
-            const resolverLabel =
-                top.label != null && String(top.label).trim() !== "" ? String(top.label).trim() : "";
-            return {
-                curie: curie != null ? String(curie) : null,
-                resolverLabel,
-            };
+            return extractTopHitFromNameResolutionResponse(json, queryLabel);
         },
-        /**
-         * NCATS Name Resolution: prefers query-string style POST (see NameResolution docs);
-         * JSON-body variants are attempted as fallback.
-         * @returns {{ curie: string | null, resolverLabel: string }}
-         */
         async resolveLabelViaNameResolution(label) {
-            const key = this.normalizeBiolinkLookupLabel(label);
-            if (!key) return { curie: null, resolverLabel: "" };
-            if (Object.prototype.hasOwnProperty.call(this.biolinkNameResolveByLabelCache, key)) {
-                return this.biolinkNameResolveByLabelCache[key];
-            }
-            const text = String(label || "").trim();
-            if (!text) {
-                const empty = { curie: null, resolverLabel: "" };
-                this.$set(this.biolinkNameResolveByLabelCache, key, empty);
-                return empty;
-            }
-            const proxyBase = this.revealBiolinkProxyBaseUrl;
-            if (proxyBase) {
-                let best = { curie: null, resolverLabel: "" };
-                try {
-                    const resp = await this.fetchWithTimeout(
-                        `${proxyBase}/api/reveal/biolink/name-lookup`,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", Accept: "application/json" },
-                            body: JSON.stringify({ label: text, limit: 8 }),
-                        },
-                        30000
-                    );
-                    if (resp.ok) {
-                        const json = await resp.json().catch(() => null);
-                        best = this.extractTopHitFromNameResolutionResponse(json, text);
-                    }
-                } catch {
-                }
-                this.$set(this.biolinkNameResolveByLabelCache, key, best);
-                return best;
-            }
-            const attempts = [];
-            const bases = [
-                "https://name-resolution-sri.renci.org/lookup",
-                "https://name-resolution-sri.renci.org/1.3/lookup",
-            ];
-            bases.forEach((base) => {
-                const qs = new URLSearchParams({ string: text, limit: "8" }).toString();
-                attempts.push({
-                    url: `${base}?${qs}`,
-                    init: { method: "POST", headers: { Accept: "application/json" } },
-                });
-                attempts.push({
-                    url: `${base}?${qs}`,
-                    init: { method: "GET", headers: { Accept: "application/json" } },
-                });
-            });
-            attempts.push({
-                url: "https://name-resolution-sri.renci.org/1.3/lookup",
-                init: {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Accept: "application/json" },
-                    body: JSON.stringify({ string: text, offset: 0, limit: 8 }),
-                },
-            });
-            attempts.push({
-                url: "https://name-resolution-sri.renci.org/1.3/lookup",
-                init: {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", Accept: "application/json" },
-                    body: JSON.stringify({ strings: [text], offset: 0, limit: 8 }),
-                },
-            });
-            let best = { curie: null, resolverLabel: "" };
-            for (const { url, init } of attempts) {
-                try {
-                    const resp = await this.fetchWithTimeout(url, init, 30000);
-                    if (!resp.ok) continue;
-                    const json = await resp.json().catch(() => null);
-                    const hit = this.extractTopHitFromNameResolutionResponse(json, text);
-                    if (hit.curie) {
-                        best = hit;
-                        break;
-                    }
-                    if (!best.resolverLabel && hit.resolverLabel) best = { ...hit };
-                } catch {
-                }
-            }
-            this.$set(this.biolinkNameResolveByLabelCache, key, best);
-            return best;
+            return resolveLabelViaNameResolution(this, label);
         },
-        /** When NodeNorm omits types, infer a Biolink-style category from CURIE prefix for coloring. */
         inferBiolinkClassHintFromCurie(curie) {
-            const c = String(curie || "").trim();
-            if (!c) return "";
-            const u = c.toUpperCase();
-            if (/^(NCBIGENE|HGNC|ENSEMBL|ENSG|UNIPROT|PR):/i.test(c) || /^OMIM:/i.test(c)) return "biolink:Gene";
-            if (/^(PUBCHEM|CHEBI|CHEMBL|DRUGBANK|HMDB|KEGG\.COMPOUND|MESH):/i.test(u)) return "biolink:SmallMolecule";
-            if (/^(GO|REACTOME|WIKIPATHWAYS|PW):/i.test(c)) return "biolink:BiologicalProcess";
-            if (/^(HP|MONDO|DOID|EFO|UMLS|SNOMED|NCIT):/i.test(c)) return "biolink:PhenotypicFeature";
-            return "";
+            return inferBiolinkClassHintFromCurie(curie);
         },
         pickPrimaryBiolinkType(types) {
-            const list = Array.isArray(types) ? types.map((t) => String(t || "").trim()).filter(Boolean) : [];
-            if (!list.length) return "";
-            const tagged = list.find((t) => /biolink:/i.test(t));
-            return String(tagged || list[0]);
+            return pickPrimaryBiolinkType(types);
         },
         findNormalizedNodeEntry(normPayload, requestedCurie) {
-            const req = String(requestedCurie || "").trim();
-            if (!req || !normPayload || typeof normPayload !== "object") return null;
-            if (normPayload[req]) return normPayload[req];
-            const lower = req.toLowerCase();
-            const key = Object.keys(normPayload).find((k) => String(k).toLowerCase() === lower);
-            return key ? normPayload[key] : null;
+            return findNormalizedNodeEntry(normPayload, requestedCurie);
         },
         async fetchBiolinkNodeDetails(curies) {
-            const need = (curies || [])
-                .map((c) => String(c || "").trim())
-                .filter((c) => c && !Object.prototype.hasOwnProperty.call(this.biolinkNodeByCurieCache, c));
-            if (need.length) {
-                try {
-                    const proxyBase = this.revealBiolinkProxyBaseUrl;
-                    const normUrl = proxyBase
-                        ? `${proxyBase}/api/reveal/biolink/normalize-nodes`
-                        : "https://nodenormalization-sri.renci.org/1.3/get_normalized_nodes";
-                    const resp = await this.fetchWithTimeout(
-                        normUrl,
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", Accept: "application/json" },
-                            body: JSON.stringify({ curies: need }),
-                        },
-                        30000
-                    );
-                    const json = await resp.json().catch(() => ({}));
-                    if (resp.ok && json && typeof json === "object") {
-                        need.forEach((curie) => {
-                            const entry = this.findNormalizedNodeEntry(json, curie);
-                            this.$set(this.biolinkNodeByCurieCache, curie, entry);
-                        });
-                    } else {
-                        need.forEach((curie) => this.$set(this.biolinkNodeByCurieCache, curie, null));
-                    }
-                } catch {
-                    need.forEach((curie) => this.$set(this.biolinkNodeByCurieCache, curie, null));
-                }
-            }
-            const out = {};
-            (curies || []).forEach((curie) => {
-                const key = String(curie || "").trim();
-                if (!key) return;
-                out[key] = this.biolinkNodeByCurieCache[key] ?? null;
-            });
-            return out;
+            return fetchBiolinkNodeDetails(this, curies);
         },
-        /** TRAPI message: treat non-empty results as evidence the constrained edge can be supported by Translator. */
         trapiKnowledgeIndicatesEdgeSupport(trapiJson) {
-            if (!trapiJson || typeof trapiJson !== "object" || trapiJson.error === true) return false;
-            const msg = trapiJson.message;
-            if (!msg || typeof msg !== "object") return false;
-            const results = msg.results;
-            if (Array.isArray(results) && results.length > 0) return true;
-            return false;
+            return trapiKnowledgeIndicatesEdgeSupport(trapiJson);
         },
         trapiCategoriesArray(biolinkClass) {
-            const c = String(biolinkClass || "").trim();
-            return c ? [c] : ["biolink:NamedThing"];
+            return trapiCategoriesArray(biolinkClass);
         },
         isTrapiGeneLikeCategory(biolinkClass) {
-            const c = String(biolinkClass || "").toLowerCase();
-            return c.includes("gene") || c.includes("protein");
+            return isTrapiGeneLikeCategory(biolinkClass);
         },
         isTrapiDiseaseLikeCategory(biolinkClass) {
-            const c = String(biolinkClass || "").toLowerCase();
-            return (
-                c.includes("disease") ||
-                c.includes("phenotyp") ||
-                c.includes("condition") ||
-                c.includes("syndrome")
-            );
+            return isTrapiDiseaseLikeCategory(biolinkClass);
         },
         async trapiRelayPostTrapiMessage(trapiEnvelope) {
-            const base = this.revealBiolinkProxyBaseUrl;
-            if (!base) return null;
-            try {
-                const resp = await this.fetchWithTimeout(
-                    `${base}/api/reveal/biolink/trapi-query`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", Accept: "application/json" },
-                        body: JSON.stringify(trapiEnvelope),
-                    },
-                    35000
-                );
-                if (!resp.ok) return null;
-                return await resp.json().catch(() => null);
-            } catch {
-                return null;
-            }
+            return trapiRelayPostTrapiMessage(this, trapiEnvelope);
         },
-        /**
-         * One-hop TRAPI via the REVEAL Biolink endpoint. Tries several QGs: inferred predicate, related_to,
-         * standard gene↔disease predicates, swapped ends, and relaxed NamedThing categories —
-         * because many KPs never index biolink:related_to for Gene–Disease pairs.
-         * @returns {Promise<boolean>}
-         */
         async edgeSupportedByTrapiRelay(subjectId, subjectBiolinkCategory, objectId, objectBiolinkCategory, predicate) {
-            if (!this.revealBiolinkProxyBaseUrl) return false;
-            const sId = String(subjectId || "").trim();
-            const oId = String(objectId || "").trim();
-            if (!sId || !oId || sId === oId) return false;
-
-            const catA = this.trapiCategoriesArray(subjectBiolinkCategory);
-            const catB = this.trapiCategoriesArray(objectBiolinkCategory);
-            const nt = ["biolink:NamedThing"];
-            const predPrimary =
-                String(predicate || "biolink:related_to").trim() || "biolink:related_to";
-
-            const aGene = this.isTrapiGeneLikeCategory(subjectBiolinkCategory);
-            const aDis = this.isTrapiDiseaseLikeCategory(subjectBiolinkCategory);
-            const bGene = this.isTrapiGeneLikeCategory(objectBiolinkCategory);
-            const bDis = this.isTrapiDiseaseLikeCategory(objectBiolinkCategory);
-
-            /** @type {{ n0: string, c0: string[], n1: string, c1: string[], p: string }[]} */
-            const plan = [];
-            const add = (n0, c0, n1, c1, p) => {
-                const pr = String(p || "biolink:related_to").trim() || "biolink:related_to";
-                plan.push({ n0, c0: [...c0], n1, c1: [...c1], p: pr });
-            };
-
-            add(sId, catA, oId, catB, predPrimary);
-            if (predPrimary !== "biolink:related_to") add(sId, catA, oId, catB, "biolink:related_to");
-
-            if (aGene && bDis) add(sId, catA, oId, catB, "biolink:gene_associated_with_condition");
-            if (aDis && bGene) add(sId, catA, oId, catB, "biolink:condition_associated_with_gene");
-
-            add(oId, catB, sId, catA, "biolink:related_to");
-
-            if (bGene && aDis) add(oId, catB, sId, catA, "biolink:gene_associated_with_condition");
-            if (bDis && aGene) add(oId, catB, sId, catA, "biolink:condition_associated_with_gene");
-
-            add(sId, nt, oId, nt, "biolink:related_to");
-            add(oId, nt, sId, nt, "biolink:related_to");
-
-            if (aGene && bDis) add(sId, nt, oId, nt, "biolink:gene_associated_with_condition");
-            if (aDis && bGene) add(sId, nt, oId, nt, "biolink:condition_associated_with_gene");
-
-            const seen = new Set();
-            for (const t of plan) {
-                const body = {
-                    message: {
-                        query_graph: {
-                            nodes: {
-                                n0: { ids: [t.n0], categories: t.c0 },
-                                n1: { ids: [t.n1], categories: t.c1 },
-                            },
-                            edges: {
-                                e0: {
-                                    subject: "n0",
-                                    object: "n1",
-                                    predicates: [t.p],
-                                },
-                            },
-                        },
-                    },
-                };
-                const sig = JSON.stringify(body.message.query_graph);
-                if (seen.has(sig)) continue;
-                seen.add(sig);
-                const json = await this.trapiRelayPostTrapiMessage(body);
-                if (this.trapiKnowledgeIndicatesEdgeSupport(json)) return true;
-            }
-            return false;
+            return edgeSupportedByTrapiRelay(this, subjectId, subjectBiolinkCategory, objectId, objectBiolinkCategory, predicate);
         },
         edgeEndpointIdsFromMappedNode(node) {
-            if (!node || !node.metadata || typeof node.metadata !== "object") return { subId: "", biolinkClass: "" };
-            const m = node.metadata;
-            const subId = String(m.primary_identifier || m.curie || "").trim();
-            const biolinkClass = String(m.biolink_class || "").trim();
-            return { subId, biolinkClass };
+            return edgeEndpointIdsFromMappedNode(node);
         },
-        /**
-         * Run one edge through Translator (relay); used for progressive and batch validation.
-         */
         async validateSingleMappedBiolinkEdge(edge, nodeById) {
-            const srcKey =
-                edge.source != null
-                    ? String(edge.source)
-                    : edge.from != null
-                      ? String(edge.from)
-                      : "";
-            const tgtKey =
-                edge.target != null
-                    ? String(edge.target)
-                    : edge.to != null
-                      ? String(edge.to)
-                      : "";
-            const srcNode = nodeById[srcKey];
-            const tgtNode = nodeById[tgtKey];
-            const a = this.edgeEndpointIdsFromMappedNode(srcNode);
-            const b = this.edgeEndpointIdsFromMappedNode(tgtNode);
-            const pred = String(edge.predicate || "biolink:related_to").trim() || "biolink:related_to";
-            let validated = false;
-            let checkedDelta = 0;
-            let supportedDelta = 0;
-            let skippedDelta = 0;
-            if (a.subId && b.subId) {
-                checkedDelta = 1;
-                validated = await this.edgeSupportedByTrapiRelay(
-                    a.subId,
-                    a.biolinkClass,
-                    b.subId,
-                    b.biolinkClass,
-                    pred
-                );
-                if (validated) supportedDelta = 1;
-            } else {
-                skippedDelta = 1;
-            }
-            const builtEdge = {
-                ...edge,
-                dashes: !validated,
-                metadata: {
-                    ...(edge.metadata || {}),
-                    inferred_edge: !validated,
-                    ...(a.subId && b.subId
-                        ? { trapi_validated: validated }
-                        : { trapi_validation_skipped: true }),
-                },
-            };
-            return { builtEdge, checkedDelta, supportedDelta, skippedDelta };
+            return validateSingleMappedBiolinkEdge(this, edge, nodeById);
         },
-        /**
-         * After Biolink node mapping, check each edge against Translator via REVEAL Biolink API (batch).
-         */
         async validateBiolinkMappedEdgesViaRelay(mappedNodes, mappedEdges) {
-            const proxyBase = this.revealBiolinkProxyBaseUrl;
-            if (!proxyBase) {
-                return { edges: mappedEdges, trapiStats: null };
-            }
-            const nodeById = {};
-            (mappedNodes || []).forEach((n) => {
-                if (n && n.id != null) nodeById[String(n.id)] = n;
-            });
-            const out = [];
-            let checked = 0;
-            let supported = 0;
-            let skipped = 0;
-            for (const edge of mappedEdges || []) {
-                const { builtEdge, checkedDelta, supportedDelta, skippedDelta } =
-                    await this.validateSingleMappedBiolinkEdge(edge, nodeById);
-                checked += checkedDelta;
-                supported += supportedDelta;
-                skipped += skippedDelta;
-                out.push(builtEdge);
-            }
-            return { edges: out, trapiStats: { checked, supported, skipped } };
+            return validateBiolinkMappedEdgesViaRelay(this, mappedNodes, mappedEdges);
         },
-        /** Edges-only visual state for TRAPI progress: skip network reclone when unchanged (e.g. empty TRAPI results). */
         biolinkEdgeVisualSignature(edges) {
-            const list = Array.isArray(edges) ? edges : [];
-            return JSON.stringify(
-                list.map((e) => {
-                    const src =
-                        e.source != null
-                            ? String(e.source)
-                            : e.from != null
-                              ? String(e.from)
-                              : "";
-                    const tgt =
-                        e.target != null
-                            ? String(e.target)
-                            : e.to != null
-                              ? String(e.to)
-                              : "";
-                    const md = e.metadata || {};
-                    return {
-                        src,
-                        tgt,
-                        dashes: !!e.dashes,
-                        inferred: !!md.inferred_edge,
-                        validated: !!md.trapi_validated,
-                    };
-                })
-            );
+            return biolinkEdgeVisualSignature(edges);
         },
         patchMechanismBiolinkTrapiProgress(idx, edges, mappedNodes, trapiStats) {
-            const m = this.mechanisms[idx];
-            if (!m || !m.biolink_core_spine_network) return;
-            const prevEdges = m.biolink_core_spine_network.edges;
-            const sigPrev = this.biolinkEdgeVisualSignature(prevEdges);
-            const sigNext = this.biolinkEdgeVisualSignature(edges);
-            if (sigPrev === sigNext) {
-                this.$set(this.mechanisms, idx, {
-                    ...m,
-                    biolink_map_meta: {
-                        ...m.biolink_map_meta,
-                        trapi_edge_validation: { ...trapiStats },
-                    },
-                });
-                return;
-            }
-            const mappedNetwork = {
-                ...m.biolink_core_spine_network,
-                nodes: mappedNodes,
-                edges,
-            };
-            const next = {
-                ...m,
-                biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
-                biolink_map_meta: {
-                    ...m.biolink_map_meta,
-                    trapi_edge_validation: { ...trapiStats },
-                },
-            };
-            if (next.map_view_mode === "biolink") {
-                next.core_spine_network = this.cloneNetworkForMapView(mappedNetwork);
-            }
-            this.$set(this.mechanisms, idx, next);
+            return patchMechanismBiolinkTrapiProgress(this, idx, edges, mappedNodes, trapiStats);
         },
         async runBiolinkTrapiValidationForMechanism(idx, gen) {
-            if (!this.revealBiolinkProxyBaseUrl) return;
-            if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
-            const m0 = this.mechanisms[idx];
-            if (!m0?.biolink_core_spine_network?.nodes) return;
-            const initialEdges0 = Array.isArray(m0.biolink_core_spine_network.edges)
-                ? m0.biolink_core_spine_network.edges
-                : [];
-            if (initialEdges0.length === 0) return;
-            this.$set(this.biolinkTrapiValidatingByMechanism, idx, true);
-            try {
-                const m = this.mechanisms[idx];
-                if (!m?.biolink_core_spine_network?.nodes) return;
-                const baseNet = m.biolink_core_spine_network;
-                const mappedNodes = baseNet.nodes;
-                const initialEdges = Array.isArray(baseNet.edges) ? baseNet.edges : [];
-                const nodeById = {};
-                mappedNodes.forEach((n) => {
-                    if (n && n.id != null) nodeById[String(n.id)] = n;
-                });
-                const out = [];
-                let checked = 0;
-                let supported = 0;
-                let skipped = 0;
-                for (let i = 0; i < initialEdges.length; i++) {
-                    if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
-                    const edge = initialEdges[i];
-                    const { builtEdge, checkedDelta, supportedDelta, skippedDelta } =
-                        await this.validateSingleMappedBiolinkEdge(edge, nodeById);
-                    checked += checkedDelta;
-                    supported += supportedDelta;
-                    skipped += skippedDelta;
-                    out.push(builtEdge);
-                }
-                if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
-                this.patchMechanismBiolinkTrapiProgress(idx, out, mappedNodes, {
-                    checked,
-                    supported,
-                    skipped,
-                });
-            } finally {
-                if ((this.biolinkTrapiValidationGeneration[idx] || 0) === gen) {
-                    this.$set(this.biolinkTrapiValidatingByMechanism, idx, false);
-                }
-            }
+            return runBiolinkTrapiValidationForMechanism(this, idx, gen);
         },
         queueBiolinkTrapiValidation(idx, gen) {
-            if (!this.revealBiolinkProxyBaseUrl) return;
-            void this.runBiolinkTrapiValidationForMechanism(idx, gen);
+            return queueBiolinkTrapiValidation(this, idx, gen);
         },
-        /**
-         * NameRes + NodeNorm → show Biolink map immediately (dashed edges), then TRAPI validation in the background.
-         */
         async mapMechanismBiolinkPhase1Only(idx) {
-            const mechanism = Array.isArray(this.mechanisms) ? this.mechanisms[idx] : null;
-            if (!mechanism || !mechanism.core_spine_network || !Array.isArray(mechanism.core_spine_network.nodes)) {
-                return;
-            }
-            const nextGen = (this.biolinkTrapiValidationGeneration[idx] || 0) + 1;
-            this.$set(this.biolinkTrapiValidationGeneration, idx, nextGen);
-            const gen = nextGen;
-            this.$set(this.biolinkTrapiValidatingByMechanism, idx, false);
-            this.$set(this.biolinkMappingByMechanism, idx, true);
-            try {
-                const src = mechanism.original_core_spine_network || mechanism.core_spine_network || {};
-                const nodes = Array.isArray(src.nodes) ? src.nodes : [];
-                const edges = Array.isArray(src.edges) ? src.edges : [];
-                if (!nodes.length) return;
-
-                const resolveByLabel = {};
-                for (const node of nodes) {
-                    const label = String(node.label || node.id || "").trim();
-                    if (!label) continue;
-                    if (!Object.prototype.hasOwnProperty.call(resolveByLabel, label)) {
-                        resolveByLabel[label] = await this.resolveLabelViaNameResolution(label);
-                    }
-                }
-                const curies = [...new Set(Object.values(resolveByLabel).map((r) => r.curie).filter(Boolean))];
-                const normByCurie = await this.fetchBiolinkNodeDetails(curies);
-
-                let mappedNodeCount = 0;
-                let unmappedNodeCount = 0;
-                const mappedNodes = nodes.map((node) => {
-                    const originalLabel = String(node.label || node.id || "").trim();
-                    const nameHit = resolveByLabel[originalLabel] || { curie: null, resolverLabel: "" };
-                    const curie = nameHit.curie || null;
-                    const resolverLabel = nameHit.resolverLabel || "";
-                    const normalized = curie ? this.findNormalizedNodeEntry(normByCurie, curie) : null;
-                    const normId = normalized && normalized.id ? normalized.id : {};
-                    const types = normalized && Array.isArray(normalized.type) ? normalized.type : [];
-                    let biolinkClass = this.pickPrimaryBiolinkType(types);
-                    if (!biolinkClass && curie) biolinkClass = this.inferBiolinkClassHintFromCurie(curie);
-                    const normalizedLabel =
-                        normId.label != null && String(normId.label).trim() !== ""
-                            ? String(normId.label).trim()
-                            : "";
-                    const preferredId =
-                        normId.identifier != null && String(normId.identifier).trim() !== ""
-                            ? String(normId.identifier).trim()
-                            : curie || "";
-                    const hasNodeNorm = !!(normalized && (normId.identifier || normId.label));
-                    const displayLabel =
-                        normalizedLabel ||
-                        (hasNodeNorm ? preferredId : "") ||
-                        resolverLabel ||
-                        originalLabel ||
-                        String(node.id || "");
-                    const metadata = {
-                        ...(node.metadata || {}),
-                        original_label: originalLabel,
-                    };
-                    if (curie) metadata.curie = String(curie);
-                    if (preferredId) metadata.primary_identifier = preferredId;
-                    if (biolinkClass) metadata.biolink_class = biolinkClass;
-                    if (resolverLabel && resolverLabel !== displayLabel) {
-                        metadata.name_resolver_label = resolverLabel;
-                    }
-                    const resolvedLexically = !!curie;
-                    if (resolvedLexically) mappedNodeCount += 1;
-                    else unmappedNodeCount += 1;
-                    if (!resolvedLexically) metadata.biolink_unmapped = true;
-                    const nextType = resolvedLexically
-                        ? this.classifyBiolinkNodeType(biolinkClass, node.type || "Entity")
-                        : (node.type || "Entity");
-                    return {
-                        ...node,
-                        type: nextType,
-                        label: displayLabel,
-                        metadata,
-                    };
-                });
-                const mappedEdges = edges.map((edge) => {
-                    const action = String(edge.label || edge.predicate || "").trim();
-                    return {
-                        ...edge,
-                        label: action || String(edge.label || edge.predicate || ""),
-                        predicate: this.inferBiolinkPredicate(action),
-                        dashes: true,
-                        metadata: {
-                            ...(edge.metadata || {}),
-                            biolink_mapped: true,
-                            inferred_edge: true,
-                        },
-                    };
-                });
-
-                const mappedNetwork = {
-                    ...src,
-                    nodes: mappedNodes,
-                    edges: mappedEdges,
-                };
-                const mCurrent = this.mechanisms[idx];
-                if (!mCurrent) return;
-                if ((this.biolinkTrapiValidationGeneration[idx] || 0) !== gen) return;
-
-                const originalStored = mechanism.original_core_spine_network
-                    ? this.cloneNetworkForMapView(mechanism.original_core_spine_network)
-                    : this.cloneNetworkForMapView(src);
-                const nextMechanism = {
-                    ...mCurrent,
-                    original_core_spine_network: originalStored,
-                    biolink_core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
-                    /** Default to Biolink spine after phase-1 mapping; users can toggle back to original map. */
-                    map_view_mode: "biolink",
-                    core_spine_network: this.cloneNetworkForMapView(mappedNetwork),
-                    biolink_map_meta: {
-                        mappedNodeCount,
-                        unmappedNodeCount,
-                        totalNodeCount: nodes.length,
-                        mappedAt: new Date().toISOString(),
-                    },
-                };
-                this.$set(this.mechanisms, idx, nextMechanism);
-                this.queueBiolinkTrapiValidation(idx, gen);
-            } finally {
-                this.$set(this.biolinkMappingByMechanism, idx, false);
-            }
+            return mapMechanismBiolinkPhase1Only(this, idx);
         },
         async autoMapAllMechanismsToBiolink() {
-            const arr = this.mechanisms;
-            if (!Array.isArray(arr) || !arr.length) return;
-            const jobs = [];
-            for (let i = 0; i < arr.length; i++) {
-                const m = arr[i];
-                if (!m?.core_spine_network?.nodes?.length) continue;
-                if (this.hasMechanismBiolinkNetwork(m)) continue;
-                jobs.push(this.mapMechanismBiolinkPhase1Only(i));
-            }
-            await Promise.all(jobs);
+            return autoMapAllMechanismsToBiolink(this);
         },
         async copyMechanismForLlm(mechanism, idx) {
             const text = this.buildMechanismClipboardText(mechanism, idx);
@@ -5738,154 +3619,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                 : null;
         },
         buildFactorConnectivityNetwork(item) {
-            if (!item || item.phenotype == null || item.factor == null) {
-                return { nodes: [], edges: [] };
-            }
-            const phenotype = String(item.phenotype).trim();
-            const factor = String(item.factor).trim();
-            if (!phenotype || !factor) return { nodes: [], edges: [] };
-            const pData = this.factorData && this.factorData[phenotype] ? this.factorData[phenotype] : null;
-            if (!pData) return { nodes: [], edges: [] };
-            const factors = pData.factors || [];
-            const allFactors = pData.allFactors || [];
-            const factorItem =
-                factors.find((x) => String(x.factor) === factor) ||
-                allFactors.find((x) => String(x.factor) === factor);
-            if (!factorItem) return { nodes: [], edges: [] };
-
-            const nodes = [];
-            const edges = [];
-            const nodeSeen = new Set();
-            const edgeSeen = new Set();
-            const addNode = (n) => {
-                if (!n || !n.id || nodeSeen.has(n.id)) return;
-                nodeSeen.add(n.id);
-                nodes.push(n);
-            };
-            const addEdge = (e) => {
-                if (!e || !e.source || !e.target) return;
-                const id = `${e.source}|${e.predicate || e.label || ""}|${e.target}`;
-                if (edgeSeen.has(id)) return;
-                edgeSeen.add(id);
-                edges.push(e);
-            };
-
-            const phenotypeNodeId = `pheno:${phenotype}`;
-            const factorNodeId = `factor:${phenotype}|${factor}`;
-            const factorLabel =
-                factorItem.label != null && String(factorItem.label).trim() !== ""
-                    ? String(factorItem.label).trim()
-                    : (item.factorLabel != null && String(item.factorLabel).trim() !== ""
-                        ? String(item.factorLabel).trim()
-                        : factor);
-
-            addNode({ id: phenotypeNodeId, label: this.getPhenotypeDisplay(phenotype), type: "Phenotype" });
-            addNode({
-                id: factorNodeId,
-                label: this.getFactorClusterDisplayString(factorLabel || factor),
-                type: "Factor",
-            });
-            addEdge({ source: phenotypeNodeId, target: factorNodeId, predicate: "associated_with" });
-
-            const topGeneSets = (typeof factorItem.top_gene_sets === "string" && factorItem.top_gene_sets)
-                ? factorItem.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
-                : [];
-            const topPrograms = (typeof factorItem.gene_set_program === "string" && factorItem.gene_set_program)
-                ? factorItem.gene_set_program.split("|").map((s) => s.trim()).filter(Boolean)
-                : [];
-            const geneSetNodeByName = {};
-            const allGeneSetNames = new Set(topGeneSets);
-            Object.keys(factorItem.genes || {}).forEach((geneName) => {
-                const rel = factorItem.genes[geneName] || {};
-                (rel.geneSetIds || []).forEach((gs) => {
-                    if (gs) allGeneSetNames.add(String(gs).trim());
-                });
-            });
-            Object.keys(factorItem.geneSets || {}).forEach((gs) => {
-                if (gs) allGeneSetNames.add(String(gs).trim());
-            });
-            [...allGeneSetNames].forEach((gs, idx) => {
-                const gsNodeId = `gs:${phenotype}|${factor}|${gs}`;
-                geneSetNodeByName[gs] = gsNodeId;
-                addNode({
-                    id: gsNodeId,
-                    label: gs,
-                    type: "Pathway",
-                    metadata: { program: topPrograms[idx] || "" },
-                });
-                addEdge({ source: factorNodeId, target: gsNodeId, predicate: "linked_to_pathway" });
-            });
-
-            const factorGenes = factorItem.genes || {};
-            const globalGenes = pData.genes || {};
-            const factorGeneSets = factorItem.geneSets || {};
-            const fallbackGs = topGeneSets.length ? topGeneSets[0] : "";
-            Object.keys(factorGenes).forEach((geneName) => {
-                const gene = String(geneName || "").trim();
-                if (!gene) return;
-                const geneNodeId = `gene:${gene}`;
-                const stats = globalGenes[gene] || {};
-                const gwas = stats.gwasSupport != null && !isNaN(Number(stats.gwasSupport)) ? Number(stats.gwasSupport) : null;
-                const functional =
-                    stats.geneSetSupport != null && !isNaN(Number(stats.geneSetSupport))
-                        ? Number(stats.geneSetSupport)
-                        : null;
-                const combined = stats.combined != null && !isNaN(Number(stats.combined)) ? Number(stats.combined) : null;
-                addNode({
-                    id: geneNodeId,
-                    label: gene,
-                    type: "Gene",
-                    metadata: {
-                        gwas_support: gwas,
-                        functional_support: functional,
-                        combined_score: combined,
-                    },
-                });
-
-                let linked = 0;
-                const explicitGeneSetIds = Array.isArray(factorGenes[gene] && factorGenes[gene].geneSetIds)
-                    ? factorGenes[gene].geneSetIds.map((x) => String(x || "").trim()).filter(Boolean)
-                    : [];
-                const connectedSets = explicitGeneSetIds.length
-                    ? explicitGeneSetIds
-                    : Object.keys(factorGeneSets).filter((gsName) => {
-                        const members = factorGeneSets[gsName] && Array.isArray(factorGeneSets[gsName].genes)
-                            ? factorGeneSets[gsName].genes
-                            : [];
-                        return members.includes(gene);
-                    });
-                connectedSets.forEach((gsName) => {
-                    const gsNodeId = geneSetNodeByName[gsName];
-                    if (!gsNodeId) return;
-                    linked += 1;
-                    addEdge({
-                        source: geneNodeId,
-                        target: gsNodeId,
-                        predicate: "contributes_to_pathway",
-                        metadata: { functional_support: functional },
-                    });
-                });
-                if (!linked) {
-                    if (fallbackGs && geneSetNodeByName[fallbackGs]) {
-                        addEdge({
-                            source: geneNodeId,
-                            target: geneSetNodeByName[fallbackGs],
-                            predicate: "contributes_to_pathway",
-                            metadata: { functional_support: functional, linkage_fallback: true },
-                            dashes: true,
-                        });
-                    } else {
-                        addEdge({
-                            source: geneNodeId,
-                            target: factorNodeId,
-                            predicate: "associated_with_cluster",
-                            metadata: { functional_support: functional, no_pathway_membership: true },
-                            dashes: true,
-                        });
-                    }
-                }
-            });
-            return { nodes, edges };
+            return buildFactorConnectivityNetwork(this, item);
         },
         isFactorRowExpanded(item) {
             return !!this.expandedFactorRowKeys[this.getRowKey(item)];
@@ -6125,93 +3859,16 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
             return sanitizeHybridEmbeddingText(text);
         },
         normalizeRouteCategory(category, index = 0) {
-            const raw = String(category || "").trim();
-            const exact = REVEAL_ROUTE_CATEGORIES.find((c) => c.toLowerCase() === raw.toLowerCase());
-            if (exact) return exact;
-            if (raw) return raw;
-            return REVEAL_ROUTE_CATEGORIES[index] || `Route ${index + 1}`;
+            return normalizeRouteCategory(category, index);
         },
         normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}) {
-            const source = Array.isArray(rawRoutes) ? rawRoutes : [];
-            const maxRoutes = Math.max(1, Number(this.multiQueryEvidenceLimits.maxRoutes) || 3);
-            const normalized = source
-                .slice(0, maxRoutes)
-                .map((route, idx) => {
-                    const category = this.normalizeRouteCategory(route && route.category, idx);
-                    const extracted = route && route.extracted_terms && typeof route.extracted_terms === "object"
-                        ? route.extracted_terms
-                        : {};
-                    const phenotypeTerms = this.normalizeLlmTermList(
-                        extracted.phenotype_terms != null
-                            ? extracted.phenotype_terms
-                            : (extracted.traits != null ? extracted.traits : extracted.phenotypes)
-                    );
-                    const mechanismTerms = this.normalizeLlmTermList(
-                        extracted.mechanism_terms != null
-                            ? extracted.mechanism_terms
-                            : (extracted.mechanisms != null ? extracted.mechanisms : extracted.modalities)
-                    );
-                    const genesOfInterest = this.normalizeLlmTermList(
-                        extracted.genes_of_interest != null ? extracted.genes_of_interest : extracted.genes
-                    );
-                    const variation = String(
-                        route && route.biological_query_variation
-                            ? route.biological_query_variation
-                            : (route && route.query ? route.query : "")
-                    ).trim();
-                    const fallbackContext =
-                        typeof fallbackJson.research_context === "string" ? fallbackJson.research_context.trim() : "";
-                    const sanitized = this.sanitizeEmbeddingText(variation || fallbackContext || this.userQuery);
-                    return {
-                        route_id: `route-${idx + 1}`,
-                        category,
-                        biological_query_variation: variation || sanitized,
-                        sanitized_query: sanitized,
-                        rationale: route && route.rationale != null ? String(route.rationale).trim() : "",
-                        extracted_terms: {
-                            phenotype_terms: phenotypeTerms,
-                            mechanism_terms: mechanismTerms,
-                            genes_of_interest: genesOfInterest,
-                            tissues: this.normalizeLlmTermList(extracted.tissues),
-                            cell_types: this.normalizeLlmTermList(extracted.cell_types),
-                        },
-                        constraint_spec: this.getRouteConstraintSpec(category),
-                        status: "pending",
-                    };
-                })
-                .filter((route) => route.sanitized_query || route.biological_query_variation);
-
-            if (normalized.length) return normalized;
-
-            const phenotypeTerms = this.normalizeLlmTermList(fallbackJson.phenotype_terms);
-            const mechanismTerms = this.normalizeLlmTermList(fallbackJson.mechanism_terms);
-            const genesOfInterest = this.normalizeLlmTermList(fallbackJson.genes_of_interest);
-            const researchContext = typeof fallbackJson.research_context === "string" ? fallbackJson.research_context : "";
-            const sanitized = this.sanitizeEmbeddingText(researchContext || this.userQuery);
-            if (!sanitized && !phenotypeTerms.length && !mechanismTerms.length) return [];
-            return [
-                {
-                    route_id: "route-1",
-                    category: "General Biology",
-                    biological_query_variation: sanitized || String(this.userQuery || "").trim(),
-                    sanitized_query: sanitized || String(this.userQuery || "").trim(),
-                    rationale: "Fallback route derived from the extracted terms.",
-                    extracted_terms: {
-                        phenotype_terms: phenotypeTerms,
-                        mechanism_terms: mechanismTerms,
-                        genes_of_interest: genesOfInterest,
-                        tissues: [],
-                        cell_types: [],
-                    },
-                    constraint_spec: null,
-                    status: "pending",
-                },
-            ];
+            return normalizeMultiQueryRoutes(rawRoutes, fallbackJson, {
+                maxRoutes: this.multiQueryEvidenceLimits.maxRoutes,
+                userQuery: this.userQuery,
+            });
         },
         getRouteConstraintSpec(category) {
-            const key = this.normalizeRouteCategory(category);
-            const spec = REVEAL_ROUTE_CONSTRAINTS[key];
-            return spec ? JSON.parse(JSON.stringify(spec)) : null;
+            return getRouteConstraintSpec(category);
         },
         isConstraintValidationError(err) {
             return isHybridConstraintValidationError(err);
@@ -6330,20 +3987,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          */
         /** Gene-set-cluster display strings under phenotype that list geneSymbol in merged factor gene maps. */
         factorLabelsForPhenotypeGene(factorData, phenotype, geneSymbol) {
-            const pData = factorData && factorData[phenotype];
-            const out = [];
-            if (!pData || !Array.isArray(pData.factors)) return out;
-            const g = String(geneSymbol || "").trim();
-            if (!g) return out;
-            pData.factors.forEach((f) => {
-                if (!f || !f.genes || !Object.prototype.hasOwnProperty.call(f.genes, g)) return;
-                out.push(
-                    f.label != null && String(f.label).trim() !== ""
-                        ? String(f.label).trim()
-                        : String(f.factor).trim()
-                );
-            });
-            return out;
+            return factorLabelsForPhenotypeGene(factorData, phenotype, geneSymbol);
         },
         addTableRowKeysFromCitedFlatRows(keysSet, flat, idSet, factorData) {
             (flat || []).forEach((row) => {
@@ -6445,113 +4089,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * Generate mechanistic hypothesis for one remaining phenotype–factor pair (same LLM step as main run, subset data only).
          */
         generateHypothesisForRemainingPair(row) {
-            if (!row || row.phenotype == null || row.factor == null) return;
-            const pairKey = this.getRowKey(row);
-            this.remainingPairGenerateError = "";
-            const subset = this.buildSinglePairFactorData(row);
-            if (!subset) {
-                this.remainingPairGenerateError = "Could not build data for this pair.";
-                return;
-            }
-            const kgTriples = this.transformMergedDataToKG(subset, "factors");
-            if (!kgTriples || !kgTriples.length) {
-                this.remainingPairGenerateError = "No knowledge graph triples for this pair.";
-                return;
-            }
-            this.generatingRemainingRowKey = pairKey;
-            this.startRemainingGenerateTimer();
-            const flattened = this.flattenKGData(kgTriples);
-            const researchContext =
-                (this.searchCriteria && this.searchCriteria[1] && this.searchCriteria[1].values) != null
-                    ? String(this.searchCriteria[1].values)
-                    : "";
-            const factorSummary = this.serializeFactorDataForPrompt(subset);
-            const kgBlock = this.flattenedKGToCSV(flattened);
-            const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
-            const factorLabelForKg =
-                row.factorLabel != null && String(row.factorLabel).trim() !== ""
-                    ? String(row.factorLabel).trim()
-                    : row.factor != null
-                      ? String(row.factor).trim()
-                      : "";
-            const singlePairRequest = {
-                group_name: factorLabelForKg ? `${factorLabelForKg} × ${row.phenotype}` : `Remaining pair ${pairKey}`,
-                associated_pairs: [
-                    {
-                        phenotype: String(row.phenotype).trim(),
-                        factor: factorLabelForKg,
-                    },
-                ],
-            };
-            const hybridMetaJson = JSON.stringify(this.lastHybridSearchMeta || {}, null, 2);
-            const pairModeLine =
-                this.hypothesisGenerationMode === "relaxed"
-                    ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply relaxed system-prompt overrides; set diagnostic_assessment.exploratory_mode to true.\n"
-                    : "";
-            const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}${pairModeLine}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
-            const systemPromptForPair = this.mechanismHypothesisSystemPromptEffective;
-
-            let finished = false;
-            const finish = () => {
-                if (finished) return;
-                finished = true;
-                this.generatingRemainingRowKey = "";
-                this.stopRemainingGenerateTimer();
-            };
-
-            this.llmAnalyze.sendPrompt({
-                systemPrompt: systemPromptForPair,
-                userPrompt: fullPrompt,
-                onResponse: (response) => {
-                    console.log("FactorBaseReveal: hypotheses LLM raw response", response);
-                    const json = this.parseLLMResponse(response);
-                    if (!json) {
-                        this.remainingPairGenerateError = "Could not parse LLM response.";
-                        return;
-                    }
-                    if (!Array.isArray(json.hypotheses) || !json.hypotheses.length) {
-                        const rd = json.diagnostic_assessment;
-                        if (rd && rd.can_generate_hypothesis === false && typeof rd.rejection_reason === "string" && rd.rejection_reason.trim()) {
-                            let msg = rd.rejection_reason.trim();
-                            if (typeof rd.suggested_optimized_query === "string" && rd.suggested_optimized_query.trim()) {
-                                msg += ` Suggested query: ${rd.suggested_optimized_query.trim()}`;
-                            }
-                            this.remainingPairGenerateError = msg;
-                            return;
-                        }
-                        this.remainingPairGenerateError =
-                            typeof json.error === "string" && json.error
-                                ? json.error
-                                : "No hypotheses in response.";
-                        return;
-                    }
-                    const p = String(row.phenotype).trim();
-                    const fl = row.factorLabel != null ? String(row.factorLabel).trim() : "";
-                    const fid = row.factor != null ? String(row.factor).trim() : "";
-                    const coverKeys = [];
-                    if (fl) coverKeys.push(`${p}|${this.collapseWsLower(fl)}`);
-                    if (fid) coverKeys.push(`${p}|${this.collapseWsLower(fid)}`);
-                    const normalized = this.normalizeMechanismHypotheses(json.hypotheses, flattened).map((m) => ({
-                        ...m,
-                        _fromRemainingPair: true,
-                        _remainingPairCoverKeys: [...new Set(coverKeys)],
-                    }));
-                    const prev = Array.isArray(this.mechanisms) ? this.mechanisms : [];
-                    this.mechanisms = [...prev, ...normalized];
-                    this.$nextTick(() => {
-                        void this.autoMapAllMechanismsToBiolink();
-                    });
-                    if (!this.adHocCoveredRowKeys.includes(pairKey)) {
-                        this.adHocCoveredRowKeys = [...this.adHocCoveredRowKeys, pairKey];
-                    }
-                },
-                onError: (err) => {
-                    this.remainingPairGenerateError =
-                        err && err.message ? err.message : "Request failed or timed out.";
-                    finish();
-                },
-                onEnd: finish,
-            });
+            return orchestrateGenerateHypothesisForRemainingPair(this, row);
         },
         /**
          * Extract relevant phenotype ids, gene-set-cluster labels (inferred from merged factorData), and gene set names
@@ -6559,106 +4097,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @param {Object} [factorData] - Merged phenotype/factor payload; when omitted, relevant_factors stays empty.
          */
         extractRelevantFactorsAndGeneSetsFromFlattened(flattened, rowIds, factorData) {
-            const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
-            const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
-            const phenotypes = new Set();
-            const geneSets = new Set();
-            const inferredFactors = new Set();
-            const ASSOCIATED_WITH = "associated_with";
-            const CONTAINS_GENE = "contains_gene";
-            const CONTRIBUTES_TO_PATHWAY = "contributes_to_pathway";
-            rows.forEach((row) => {
-                const pred = row.predicate != null ? String(row.predicate).trim() : "";
-                const sub = row.subject != null ? String(row.subject).trim() : "";
-                const obj = row.object != null ? String(row.object).trim() : "";
-                if (pred === ASSOCIATED_WITH && sub) phenotypes.add(sub);
-                if (pred === ASSOCIATED_WITH && obj) geneSets.add(obj);
-                if (pred === CONTRIBUTES_TO_PATHWAY && obj) geneSets.add(obj);
-            });
-            if (factorData) {
-                (flattened || []).forEach((row) => {
-                    if (!idSet.has(Number(row.id))) return;
-                    const pred = String(row.predicate || "").trim();
-                    const sub = row.subject != null ? String(row.subject).trim() : "";
-                    const obj = row.object != null ? String(row.object).trim() : "";
-                    Object.keys(factorData).forEach((pheno) => {
-                        const pData = factorData[pheno];
-                        if (!pData || !Array.isArray(pData.factors)) return;
-                        pData.factors.forEach((f) => {
-                            const fid = f.factor != null ? String(f.factor).trim() : "";
-                            if (!fid) return;
-                            const gss =
-                                typeof f.top_gene_sets === "string" && f.top_gene_sets
-                                    ? f.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
-                                    : [];
-                            const geneKeys = Object.keys(f.genes || {});
-                            let hit = false;
-                            if (pred === ASSOCIATED_WITH && sub === pheno && gss.includes(obj)) hit = true;
-                            if (pred === CONTAINS_GENE && sub === pheno && geneKeys.includes(obj)) hit = true;
-                            if (pred === CONTRIBUTES_TO_PATHWAY && geneKeys.includes(sub) && gss.includes(obj)) {
-                                hit = true;
-                            }
-                            if (!hit) return;
-                            inferredFactors.add(
-                                f.label != null && String(f.label).trim() !== ""
-                                    ? String(f.label).trim()
-                                    : fid
-                            );
-                        });
-                    });
-                });
-            }
-            return {
-                relevant_phenotypes: [...phenotypes].sort(),
-                relevant_factors: [...inferredFactors].sort(),
-                relevant_gene_sets: [...geneSets].sort(),
-            };
+            return extractRelevantFactorsAndGeneSetsFromFlattened(flattened, rowIds, factorData);
         },
         /**
          * Build per-gene connections (gene-set-cluster labels + gene sets) from flattened KG rows by supporting ids.
          * Cluster labels are recovered from factorData for contains_gene (phenotype → gene) edges.
          */
         extractGeneConnectionsFromFlattened(flattened, rowIds, factorData) {
-            const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
-            const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
-            const map = {};
-            const CONTAINS_GENE = "contains_gene";
-            const CONTRIBUTES_TO_PATHWAY = "contributes_to_pathway";
-
-            const ensure = (gene) => {
-                const g = String(gene || "").trim();
-                if (!g) return null;
-                if (!map[g]) map[g] = { factors: new Set(), gene_sets: new Set() };
-                return g;
-            };
-
-            rows.forEach((row) => {
-                const pred = row.predicate != null ? String(row.predicate).trim() : "";
-                const sub = row.subject != null ? String(row.subject).trim() : "";
-                const obj = row.object != null ? String(row.object).trim() : "";
-                if (pred === CONTAINS_GENE) {
-                    const gene = ensure(obj);
-                    if (gene && sub) {
-                        if (factorData) {
-                            this.factorLabelsForPhenotypeGene(factorData, sub, obj).forEach((lb) =>
-                                map[gene].factors.add(lb)
-                            );
-                        }
-                    }
-                } else if (pred === CONTRIBUTES_TO_PATHWAY) {
-                    const gene = ensure(sub);
-                    if (gene && obj) map[gene].gene_sets.add(obj);
-                }
-            });
-
-            const out = {};
-            Object.keys(map).forEach((gene) => {
-                out[gene] = {
-                    factors: [...map[gene].factors].sort(),
-                    gene_sets: [...map[gene].gene_sets].sort(),
-                };
-            });
-            return out;
+            return extractGeneConnectionsFromFlattened(flattened, rowIds, factorData);
         },
         /**
          * LLM biological mechanism map: nodes (id, label, group) and edges (from, to, label) → network for vis.
@@ -6666,164 +4112,13 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @returns {{ nodes: Array, edges: Array } | null}
          */
         buildMechanismFlowNetworkFromHypothesisKg(hik) {
-            if (!hik || typeof hik !== "object") return null;
-            const rawNodes = Array.isArray(hik.nodes) ? hik.nodes : [];
-            const rawEdges = Array.isArray(hik.edges) ? hik.edges : [];
-            if (!rawNodes.length || !rawEdges.length) return null;
-
-            const GROUP_ALIASES = {
-                gene: "Gene",
-                protein: "Gene",
-                phenotype: "Phenotype",
-                disease: "Phenotype",
-                metabolite: "Metabolite",
-                process: "Process",
-                cell: "Cell",
-                drug: "Drug",
-                pathway_db: "Pathway",
-                "gene set": "Pathway",
-                geneset: "Pathway",
-            };
-
-            const normalizeGroup = (g) => {
-                const s = g != null ? String(g).trim() : "";
-                if (!s) return "Entity";
-                const low = s.toLowerCase();
-                if (GROUP_ALIASES[low]) return GROUP_ALIASES[low];
-                return s.charAt(0).toUpperCase() + s.slice(1);
-            };
-
-            const customNodes = [];
-            const seenNodeIds = new Set();
-            for (let i = 0; i < rawNodes.length && customNodes.length < 12; i++) {
-                const n = rawNodes[i];
-                if (!n || n.id == null || String(n.id).trim() === "") continue;
-                const id = String(n.id).trim();
-                if (seenNodeIds.has(id)) continue;
-                seenNodeIds.add(id);
-                const label = n.label != null && String(n.label).trim() !== "" ? String(n.label).trim() : id;
-                customNodes.push({
-                    id,
-                    label,
-                    type: normalizeGroup(n.group != null ? n.group : n.type),
-                    metadata: {},
-                });
-            }
-
-            const nodeIds = new Set(customNodes.map((n) => n.id));
-            const customEdges = rawEdges
-                .filter((e) => e != null && e.from != null && e.to != null)
-                .map((e) => {
-                    const source = String(e.from).trim();
-                    const target = String(e.to).trim();
-                    const predRaw =
-                        e.label != null && String(e.label).trim() !== ""
-                            ? String(e.label).trim()
-                            : e.predicate != null
-                              ? String(e.predicate).trim()
-                              : "";
-                    return { source, target, predicate: predRaw };
-                })
-                .filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
-
-            if (customNodes.length < 2 || customEdges.length === 0) return null;
-            return { nodes: customNodes, edges: customEdges };
+            return buildMechanismFlowNetworkFromHypothesisKg(hik);
         },
         normalizeCandidateInventory(raw) {
-            const categories = [
-                "core_pathway_anchors",
-                "route_specific_support_genes",
-                "downstream_structural_remodeling_candidates",
-                "cross_tissue_endocrine_candidates",
-                "requested_genes_not_sufficiently_connected",
-            ];
-            const out = {};
-            const bestBySymbol = {};
-            const priority = {
-                requested_genes_not_sufficiently_connected: 1,
-                cross_tissue_endocrine_candidates: 2,
-                downstream_structural_remodeling_candidates: 3,
-                core_pathway_anchors: 4,
-                route_specific_support_genes: 5,
-            };
-            categories.forEach((key) => {
-                const value = raw && raw[key] != null ? raw[key] : [];
-                const items = Array.isArray(value) ? value : [value];
-                out[key] = [];
-                items
-                    .map((item) => {
-                        if (item == null) return null;
-                        if (typeof item === "string") {
-                            const symbol = item.trim();
-                            return symbol ? { symbol, provenance: [], reason: "" } : null;
-                        }
-                        if (typeof item !== "object") return null;
-                        const symbol = item.symbol != null
-                            ? String(item.symbol).trim()
-                            : (item.gene != null ? String(item.gene).trim() : "");
-                        const provenance = Array.isArray(item.provenance)
-                            ? item.provenance.map((p) => String(p || "").trim()).filter(Boolean)
-                            : (item.provenance != null
-                                ? String(item.provenance).split(/[,;|]/).map((p) => p.trim()).filter(Boolean)
-                                : []);
-                        const reason = item.reason != null
-                            ? String(item.reason).trim()
-                            : (item.note != null ? String(item.note).trim() : "");
-                        return symbol ? { symbol, provenance, reason } : null;
-                    })
-                    .filter(Boolean)
-                    .forEach((entry, originalIndex) => {
-                        const symbolKey = String(entry.symbol || "").trim().toUpperCase();
-                        if (!symbolKey) return;
-                        if (symbolKey === "SPARSE/MISSING") {
-                            out[key].push(entry);
-                            return;
-                        }
-                        const candidate = {
-                            key,
-                            entry,
-                            priority: priority[key] || 99,
-                            originalIndex,
-                        };
-                        const prev = bestBySymbol[symbolKey];
-                        if (!prev || candidate.priority < prev.priority) {
-                            bestBySymbol[symbolKey] = candidate;
-                        }
-                    });
-            });
-            Object.keys(bestBySymbol).forEach((symbolKey) => {
-                const picked = bestBySymbol[symbolKey];
-                if (!out[picked.key]) out[picked.key] = [];
-                out[picked.key].push(picked.entry);
-            });
-            categories.forEach((key) => {
-                out[key] = (out[key] || []).slice(0, 5);
-            });
-            return out;
+            return normalizeCandidateInventory(raw);
         },
         candidateInventoryRows(inventory) {
-            if (!inventory || typeof inventory !== "object") return [];
-            const labels = [
-                ["core_pathway_anchors", "Core pathway anchors"],
-                ["route_specific_support_genes", "Route-specific support genes"],
-                ["downstream_structural_remodeling_candidates", "Downstream structural/remodeling candidates"],
-                ["cross_tissue_endocrine_candidates", "Cross-tissue/endocrine candidates"],
-                ["requested_genes_not_sufficiently_connected", "Requested genes not sufficiently connected"],
-            ];
-            const rows = [];
-            labels.forEach(([key, label]) => {
-                (Array.isArray(inventory[key]) ? inventory[key] : []).forEach((item) => {
-                    rows.push({
-                        category: label,
-                        symbol: item.symbol || "Sparse/missing",
-                        provenance: Array.isArray(item.provenance) && item.provenance.length
-                            ? item.provenance.join(", ")
-                            : "-",
-                        reason: item.reason || "Category sparse/missing based on current graph boundaries.",
-                    });
-                });
-            });
-            return rows;
+            return candidateInventoryRows(inventory);
         },
         /**
          * Build network { nodes, edges } from flattened KG rows by row ids (for LLM response with supporting_row_ids).
@@ -6832,102 +4127,14 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @returns {{ nodes: Array, edges: Array }} - Shape expected by FactorBaseRevealNetwork.
          */
         buildNetworkFromFlattenedRowIds(flattened, rowIds) {
-            const idSet = new Set((rowIds || []).map(Number).filter((n) => !isNaN(n)));
-            const rows = (flattened || []).filter((r) => idSet.has(Number(r.id)));
-            const CONTEXT_TO_TYPES = {
-                PhenotypeToGeneSet: { subject: "Phenotype", object: "Pathway" },
-                PhenotypeToGene: { subject: "Phenotype", object: "Gene" },
-                GeneToPathway: { subject: "Gene", object: "Pathway" },
-                PhenotypeToFactor: { subject: "Phenotype", object: "Factor" },
-                FactorToPathway: { subject: "Factor", object: "Pathway" },
-                FactorToGene: { subject: "Factor", object: "Gene" },
-            };
-            const nodesMap = new Map();
-            const edges = [];
-
-            const pickLabelFromApi = (row) =>
-                row.context_label_from_api != null && String(row.context_label_from_api).trim() !== ""
-                    ? String(row.context_label_from_api).trim()
-                    : null;
-
-            rows.forEach((row) => {
-                const ctxType = row.context_type != null ? String(row.context_type).trim() : "";
-                const types = CONTEXT_TO_TYPES[ctxType] || { subject: "Factor", object: "Gene" };
-                const subId = row.subject != null ? String(row.subject).trim() : "";
-                const objId = row.object != null ? String(row.object).trim() : "";
-                if (subId && !nodesMap.has(subId)) {
-                    const meta = {};
-                    const lfSub = pickLabelFromApi(row);
-                    if (types.subject === "Factor" && lfSub) meta.labelFromApi = lfSub;
-                    nodesMap.set(subId, {
-                        id: subId,
-                        label: subId,
-                        type: types.subject,
-                        metadata: meta,
-                    });
-                } else if (subId) {
-                    const lfSub = pickLabelFromApi(row);
-                    if (types.subject === "Factor" && lfSub) {
-                        const n = nodesMap.get(subId);
-                        if (n && n.type === "Factor" && !n.metadata.labelFromApi) n.metadata.labelFromApi = lfSub;
-                    }
-                }
-                if (objId) {
-                    const meta = {};
-                    if (row.context_combined_score != null) meta.combined_score = row.context_combined_score;
-                    if (row.context_gwas_support != null) meta.gwas_support = row.context_gwas_support;
-                    if (row.context_functional_support != null) meta.functional_support = row.context_functional_support;
-                    if (row.context_category != null) meta.category = row.context_category;
-                    if (row.context_factor_relevance != null) meta.factor_relevance = row.context_factor_relevance;
-                    const lfObj = pickLabelFromApi(row);
-                    if (types.object === "Factor" && lfObj) meta.labelFromApi = lfObj;
-                    if (nodesMap.has(objId)) {
-                        if (Object.keys(meta).length) Object.assign(nodesMap.get(objId).metadata, meta);
-                    } else {
-                        nodesMap.set(objId, { id: objId, label: objId, type: types.object, metadata: meta });
-                    }
-                }
-                if (subId && objId) {
-                    edges.push({
-                        source: subId,
-                        target: objId,
-                        predicate: row.predicate != null ? String(row.predicate) : "",
-                    });
-                }
-            });
-
-            return {
-                nodes: Array.from(nodesMap.values()),
-                edges,
-            };
+            return buildNetworkFromFlattenedRowIds(flattened, rowIds);
         },
         /**
          * Keep only Gene nodes whose symbols appear in candidate_genes; drop other genes and edges that reference them.
          * Phenotype / Pathway (gene set) nodes are unchanged; legacy Factor nodes, if present, are unchanged.
          */
         filterSupportingNetworkToCandidateGenes(network, candidateGenes) {
-            const nodesIn = network && Array.isArray(network.nodes) ? network.nodes : [];
-            const edgesIn = network && Array.isArray(network.edges) ? network.edges : [];
-            const allowed = new Set();
-            (candidateGenes || []).forEach((g) => {
-                const sym = g && g.gene != null ? String(g.gene).trim() : "";
-                if (sym) allowed.add(sym.toUpperCase());
-            });
-            if (allowed.size === 0) return { nodes: nodesIn, edges: edgesIn };
-
-            const geneSymbolKey = (n) => {
-                const id = n && n.id != null ? String(n.id).trim() : "";
-                const label = n && n.label != null ? String(n.label).trim() : "";
-                return (id || label).toUpperCase();
-            };
-
-            const nodes = nodesIn.filter((n) => {
-                if (!n || n.type !== "Gene") return true;
-                return allowed.has(geneSymbolKey(n));
-            });
-            const nodeIds = new Set(nodes.map((n) => n.id));
-            const edges = edgesIn.filter((e) => e && nodeIds.has(e.source) && nodeIds.has(e.target));
-            return { nodes, edges };
+            return filterSupportingNetworkToCandidateGenes(network, candidateGenes);
         },
         /**
          * Get combined, gwas, functional scores for a gene from flattened KG (contains_gene rows with context_*).
@@ -6936,29 +4143,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @returns {{ combined: number|null, gwas: number|null, functional: number|null }}
          */
         getGeneScoresFromFlattenedKG(flattened, geneSymbol) {
-            const sym = String(geneSymbol || "").trim();
-            const rows = (flattened || []).filter(
-                (r) =>
-                    String(r.predicate || "").trim() === "contains_gene" &&
-                    String(r.object || "").trim() === sym
-            );
-            if (!rows.length) return { combined: null, gwas: null, functional: null };
-            const num = (v) => (v != null && v !== "" && !isNaN(Number(v)) ? Number(v) : null);
-            let best = rows[0];
-            let bestC = num(best.context_combined_score);
-            for (let i = 1; i < rows.length; i++) {
-                const r = rows[i];
-                const c = num(r.context_combined_score);
-                if (c != null && (bestC == null || c > bestC)) {
-                    best = r;
-                    bestC = c;
-                }
-            }
-            return {
-                combined: num(best.context_combined_score),
-                gwas: num(best.context_gwas_support),
-                functional: num(best.context_functional_support),
-            };
+            return getGeneScoresFromFlattenedKG(flattened, geneSymbol);
         },
         /** Pill colors for mechanism hypothesis gene rows (legacy GWAS/functional buckets + new canonical segregation labels). */
         /** Gene pill colors match supporting network nodes (see @/utils/factorRevealGeneColors). */
@@ -6971,147 +4156,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
          * @param {Array|null|undefined} flattenedOverride - If provided, use for scoring/networks instead of lastFlattenedKG (ad-hoc single-pair runs).
          */
         normalizeMechanismHypotheses(hypotheses, flattenedOverride) {
-            const flattened =
-                flattenedOverride !== undefined && flattenedOverride !== null ? flattenedOverride : this.lastFlattenedKG;
-            return (hypotheses || []).map((h) => {
-                const out = { ...h };
-                if (Array.isArray(h.genes) && out.candidate_genes == null) {
-                    const withScores = h.genes.map((g) => {
-                        const scoresFromKg = flattened ? this.getGeneScoresFromFlattenedKG(flattened, g.gene) : { combined: null, gwas: null, functional: null };
-                        return {
-                            gene: g.gene,
-                            group: g.group,
-                            scores: {
-                                combined: scoresFromKg.combined,
-                                gwas: scoresFromKg.gwas,
-                                functional: scoresFromKg.functional,
-                            },
-                            reason: g.role != null ? g.role : g.reason,
-                        };
-                    });
-                    const primaryBoost = (row) => (/primary mechanistic/i.test(String(row.group || "")) ? 1 : 0);
-                    withScores.sort((a, b) => {
-                        const pb = primaryBoost(b) - primaryBoost(a);
-                        if (pb !== 0) return pb;
-                        return (b.scores?.combined ?? -Infinity) - (a.scores?.combined ?? -Infinity);
-                    });
-                    out.candidate_genes = withScores;
-                }
-                if (h.novelty != null && out.novelty_explanation == null) out.novelty_explanation = h.novelty;
-                out.pathway_shift_rationale =
-                    h.pathway_shift_rationale != null && String(h.pathway_shift_rationale).trim()
-                        ? String(h.pathway_shift_rationale).trim()
-                        : null;
-                out.cross_route_crosstalk_model =
-                    h.cross_route_crosstalk_model != null && String(h.cross_route_crosstalk_model).trim()
-                        ? String(h.cross_route_crosstalk_model).trim()
-                        : null;
-                out.candidate_inventory =
-                    h.candidate_inventory != null && typeof h.candidate_inventory === "object"
-                        ? this.normalizeCandidateInventory(h.candidate_inventory)
-                        : null;
-                out.cellular_assignment = this.normalizeCellularAssignment(h.cellular_assignment);
-                out.depot_contrast = this.normalizeDepotContrast(h.depot_contrast);
-                out.effect_direction_notes = this.normalizeEffectDirectionNotes(h.effect_direction_notes);
-                if (h.network != null && out.supporting_network == null) out.supporting_network = h.network;
-                if (
-                    (out.supporting_network == null || !out.supporting_network.nodes?.length) &&
-                    Array.isArray(h.supporting_row_ids) &&
-                    flattened &&
-                    flattened.length > 0
-                ) {
-                    out.supporting_network = this.buildNetworkFromFlattenedRowIds(flattened, h.supporting_row_ids);
-                }
-                if (Array.isArray(h.supporting_row_ids) && flattened && flattened.length > 0) {
-                    const fd = this.factorData || {};
-                    const { relevant_phenotypes, relevant_factors, relevant_gene_sets } =
-                        this.extractRelevantFactorsAndGeneSetsFromFlattened(flattened, h.supporting_row_ids, fd);
-                    out.relevant_phenotypes = this.filterMechanismReportPhenotypes(
-                        relevant_phenotypes,
-                        h.associated_pairs
-                    );
-                    out.relevant_factors = relevant_factors;
-                    out.relevant_gene_sets = relevant_gene_sets;
-                    const rowAligned = this.buildGeneConnectionsFromAssociatedRows(
-                        { ...out, associated_pairs: h.associated_pairs },
-                        out.candidate_genes || h.genes
-                    );
-                    const hasRowAligned = Object.values(rowAligned).some(
-                        (c) =>
-                            (Array.isArray(c.gene_sets) && c.gene_sets.length) ||
-                            (Array.isArray(c.factors) && c.factors.length)
-                    );
-                    out.gene_connections = hasRowAligned
-                        ? rowAligned
-                        : this.extractGeneConnectionsFromFlattened(flattened, h.supporting_row_ids, fd);
-                }
-                const candForNet = out.candidate_genes || h.candidate_genes;
-                if (
-                    Array.isArray(candForNet) &&
-                    candForNet.length > 0 &&
-                    out.supporting_network &&
-                    Array.isArray(out.supporting_network.nodes) &&
-                    out.supporting_network.nodes.length > 0
-                ) {
-                    out.supporting_network = this.filterSupportingNetworkToCandidateGenes(
-                        out.supporting_network,
-                        candForNet
-                    );
-                }
-                out.next_steps = Array.isArray(h.next_steps) ? h.next_steps : [];
-                out.next_queries = Array.isArray(h.next_queries) ? h.next_queries : [];
-                out.hypothesis_in_kg =
-                    h.hypothesis_in_kg != null && typeof h.hypothesis_in_kg === "object"
-                        ? { ...h.hypothesis_in_kg }
-                        : null;
-                out.core_spine_network = null;
-                const hik = h.hypothesis_in_kg;
-                if (
-                    hik &&
-                    Array.isArray(hik.nodes) &&
-                    hik.nodes.length > 0 &&
-                    Array.isArray(hik.edges) &&
-                    hik.edges.length > 0
-                ) {
-                    const flow = this.buildMechanismFlowNetworkFromHypothesisKg(hik);
-                    if (flow && flow.nodes.length && flow.edges.length) {
-                        out.core_spine_network = flow;
-                        if (out.hypothesis_in_kg && typeof out.hypothesis_in_kg === "object") {
-                            const cap =
-                                out.hypothesis_in_kg.caption != null ? String(out.hypothesis_in_kg.caption) : "";
-                            out.hypothesis_in_kg = cap ? { caption: cap } : null;
-                        }
-                    }
-                } else if (
-                    flattened &&
-                    flattened.length > 0 &&
-                    hik &&
-                    Array.isArray(hik.core_spine_row_ids) &&
-                    hik.core_spine_row_ids.length > 0
-                ) {
-                    const flatIdSet = new Set(
-                        (flattened || []).map((r) => Number(r.id)).filter((n) => !Number.isNaN(n))
-                    );
-                    const supportSet = new Set(
-                        (Array.isArray(h.supporting_row_ids) ? h.supporting_row_ids : [])
-                            .map(Number)
-                            .filter((n) => !Number.isNaN(n))
-                    );
-                    let spineIds = hik.core_spine_row_ids
-                        .map(Number)
-                        .filter((id) => !Number.isNaN(id) && flatIdSet.has(id) && supportSet.has(id));
-                    if (spineIds.length === 0) {
-                        spineIds = hik.core_spine_row_ids
-                            .map(Number)
-                            .filter((id) => !Number.isNaN(id) && flatIdSet.has(id));
-                    }
-                    spineIds = spineIds.slice(0, 8);
-                    if (spineIds.length > 0) {
-                        out.core_spine_network = this.buildNetworkFromFlattenedRowIds(flattened, spineIds);
-                    }
-                }
-                return out;
-            });
+            return normalizeMechanismHypotheses(this, hypotheses, flattenedOverride);
         },
         /**
          * Compact JSON for the mechanism prompt: per phenotype, merged gene-set names, global gene scores map (no per-cluster list).

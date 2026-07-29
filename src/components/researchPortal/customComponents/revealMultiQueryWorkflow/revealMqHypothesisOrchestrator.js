@@ -8,9 +8,19 @@ import {
     flattenKGData,
     flattenedKGToCSV,
 } from "./revealMqKgTransform.js";
-import { isExtractionTimeoutError } from "./revealMqWorkflowOrchestrator.js";
+import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
+import {
+    classifyAndReportError,
+    getOrBuildKgTriples,
+    isLlmTimeoutError,
+    runLlmWithRetry,
+} from "./revealMqOrchestratorShared.js";
 
 const DEFAULT_HYPOTHESIS_MAX_ATTEMPTS = 3;
+
+const HYPOTHESIS_ERROR_BUCKETS = [
+    { test: () => true, stepTitle: () => "Mechanistic hypothesis generation failed." },
+];
 
 function beginMechanismHypothesisGeneration(vm) {
     if (!vm) return;
@@ -65,16 +75,17 @@ function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext,
 }
 
 function applyMechanismHypothesisFailure(vm, lastFailed) {
-    vm.hypothesisLastRunMode = null;
-    vm.error_mechanisms = true;
-    vm.error_msg_mechanisms =
-        lastFailed && lastFailed.message ? lastFailed.message : "Mechanistic hypothesis generation failed.";
-    vm.setStep({
-        type: "error",
-        title: "Mechanistic hypothesis generation failed.",
+    classifyAndReportError(vm, lastFailed, {
+        buckets: HYPOTHESIS_ERROR_BUCKETS,
+        errorFlag: "error_mechanisms",
+        errorMessageField: "error_msg_mechanisms",
+        errorMessageFallback: "Mechanistic hypothesis generation failed.",
+        reportLoadStatus: () => "Ready",
+        markLoadComplete: true,
+        onBeforeReport: (v) => {
+            v.hypothesisLastRunMode = null;
+        },
     });
-    vm.setLoadStatus("Ready", true);
-    vm.loadComplete = true;
 }
 
 function applyMechanismHypothesisSuccess(vm, parsed, modeSnapshot) {
@@ -114,7 +125,7 @@ function applyMechanismHypothesisSuccess(vm, parsed, modeSnapshot) {
             vm.setLoadStatus("Ready", true);
             vm.setStep(
                 {
-                    id: "4",
+                    id: WORKFLOW_STEP_IDS.HYPOTHESES,
                     substep: {
                         id: "4.9",
                         title: "Complete (no hypothesis; diagnostics).",
@@ -154,7 +165,7 @@ function applyMechanismHypothesisSuccess(vm, parsed, modeSnapshot) {
     vm.setLoadStatus("Ready", true);
     vm.setStep(
         {
-            id: "4",
+            id: WORKFLOW_STEP_IDS.HYPOTHESES,
             substep: {
                 id: "4.9",
                 title: "Complete.",
@@ -188,58 +199,26 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
     const systemPromptForRun = vm.mechanismHypothesisSystemPromptEffective;
 
     (async () => {
-        let parsed = null;
-        let lastFailed = null;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            vm.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${maxAttempts})`);
-            const res = await new Promise((resolve) => {
-                let done = false;
-                const finish = (payload) => {
-                    if (done) return;
-                    done = true;
-                    resolve(payload);
-                };
-                vm.llmAnalyze.sendPrompt({
-                    systemPrompt: systemPromptForRun,
-                    userPrompt: hypothesesUserPrompt,
-                    onResponse: (response) => {
-                        console.log("FactorBaseReveal: hypotheses LLM raw response", response);
-                        const json = vm.parseLLMResponse(response);
-                        if (!json) {
-                            finish({ retry: false, failed: true, err: new Error("Could not parse LLM JSON.") });
-                            return;
-                        }
-                        finish({ retry: false, failed: false, err: null, json });
-                    },
-                    onError: (err) => {
-                        const isTimeout = isExtractionTimeoutError(err);
-                        if (isTimeout && attempt < maxAttempts) {
-                            finish({ retry: true, failed: false, err });
-                        } else {
-                            finish({ retry: false, failed: true, err });
-                        }
-                    },
-                    onEnd: () => {
-                        if (done) return;
-                        finish({ retry: false, failed: true, err: new Error("Incomplete LLM response.") });
-                    },
-                });
-            });
-            if (res.retry) continue;
-            if (res.failed) {
-                lastFailed = res.err;
-                break;
-            }
-            parsed = res.json;
-            break;
-        }
+        const result = await runLlmWithRetry(vm, {
+            caller: vm.llmAnalyze,
+            maxAttempts,
+            sendArgs: { systemPrompt: systemPromptForRun, userPrompt: hypothesesUserPrompt },
+            isRetryableError: isLlmTimeoutError,
+            incompleteMessage: "Incomplete LLM response.",
+            parseResponse: (raw) => {
+                console.log("FactorBaseReveal: hypotheses LLM raw response", raw);
+                return vm.parseLLMResponse(raw);
+            },
+            onAttemptStart: (attempt, max) =>
+                vm.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${max})`),
+        });
 
-        if (!parsed) {
-            applyMechanismHypothesisFailure(vm, lastFailed);
+        if (!result.ok) {
+            applyMechanismHypothesisFailure(vm, result.err);
             return;
         }
 
-        applyMechanismHypothesisSuccess(vm, parsed, vm.hypothesisGenerationMode);
+        applyMechanismHypothesisSuccess(vm, result.json, vm.hypothesisGenerationMode);
     })();
 }
 
@@ -251,14 +230,10 @@ function retryMechanismHypotheses(vm) {
     vm.setLoadStatus("Generating hypotheses…");
     beginMechanismHypothesisGeneration(vm);
     vm.setStep({
-        id: "4",
+        id: WORKFLOW_STEP_IDS.HYPOTHESES,
         title: "LLM: Generating mechanistic hypotheses",
     });
-    const triples =
-        vm.lastKgTriples && vm.lastKgTriples.length
-            ? vm.lastKgTriples
-            : vm.transformMergedDataToKG(vm.factorData, "factors");
-    if (triples.length) vm.lastKgTriples = triples;
+    const triples = getOrBuildKgTriples(vm, vm.factorData);
     requestMechanismHypotheses(vm, vm.factorData, triples, vm.multiQueryEvidenceBundles);
 }
 
@@ -270,22 +245,133 @@ function retryMechanismHypothesesRelaxed(vm) {
 
 function resumeImportedWorkflowAfterDataGate(vm) {
     if (!vm) return;
-    const kgTriples =
-        Array.isArray(vm.lastKgTriples) && vm.lastKgTriples.length
-            ? vm.lastKgTriples
-            : vm.transformMergedDataToKG(vm.factorData, "factors");
-    vm.lastKgTriples = kgTriples;
+    const kgTriples = getOrBuildKgTriples(vm, vm.factorData);
     vm.setLoadStatus("Generating hypotheses…");
     vm.setStep({
-        id: "4",
+        id: WORKFLOW_STEP_IDS.HYPOTHESES,
         title: "LLM: Generating mechanistic hypotheses",
     });
     requestMechanismHypotheses(vm, vm.factorData, kgTriples);
 }
 
+/**
+ * Generate mechanistic hypothesis for one remaining phenotype-factor pair (same LLM step as main
+ * run, subset data only, single attempt, no retry — merges into vm.mechanisms rather than replacing it).
+ */
+function generateHypothesisForRemainingPair(vm, row) {
+    if (!row || row.phenotype == null || row.factor == null) return;
+    const pairKey = vm.getRowKey(row);
+    vm.remainingPairGenerateError = "";
+    const subset = vm.buildSinglePairFactorData(row);
+    if (!subset) {
+        vm.remainingPairGenerateError = "Could not build data for this pair.";
+        return;
+    }
+    const kgTriples = vm.transformMergedDataToKG(subset, "factors");
+    if (!kgTriples || !kgTriples.length) {
+        vm.remainingPairGenerateError = "No knowledge graph triples for this pair.";
+        return;
+    }
+    vm.generatingRemainingRowKey = pairKey;
+    vm.startRemainingGenerateTimer();
+    const flattened = vm.flattenKGData(kgTriples);
+    const researchContext =
+        (vm.searchCriteria && vm.searchCriteria[1] && vm.searchCriteria[1].values) != null
+            ? String(vm.searchCriteria[1].values)
+            : "";
+    const factorSummary = vm.serializeFactorDataForPrompt(subset);
+    const kgBlock = vm.flattenedKGToCSV(flattened);
+    const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
+    const factorLabelForKg =
+        row.factorLabel != null && String(row.factorLabel).trim() !== ""
+            ? String(row.factorLabel).trim()
+            : row.factor != null
+              ? String(row.factor).trim()
+              : "";
+    const singlePairRequest = {
+        group_name: factorLabelForKg ? `${factorLabelForKg} × ${row.phenotype}` : `Remaining pair ${pairKey}`,
+        associated_pairs: [
+            {
+                phenotype: String(row.phenotype).trim(),
+                factor: factorLabelForKg,
+            },
+        ],
+    };
+    const hybridMetaJson = JSON.stringify(vm.lastHybridSearchMeta || {}, null, 2);
+    const pairModeLine =
+        vm.hypothesisGenerationMode === "relaxed"
+            ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply relaxed system-prompt overrides; set diagnostic_assessment.exploratory_mode to true.\n"
+            : "";
+    const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}${pairModeLine}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
+    const systemPromptForPair = vm.mechanismHypothesisSystemPromptEffective;
+
+    let finished = false;
+    const finish = () => {
+        if (finished) return;
+        finished = true;
+        vm.generatingRemainingRowKey = "";
+        vm.stopRemainingGenerateTimer();
+    };
+
+    vm.llmAnalyze.sendPrompt({
+        systemPrompt: systemPromptForPair,
+        userPrompt: fullPrompt,
+        onResponse: (response) => {
+            console.log("FactorBaseReveal: hypotheses LLM raw response", response);
+            const json = vm.parseLLMResponse(response);
+            if (!json) {
+                vm.remainingPairGenerateError = "Could not parse LLM response.";
+                return;
+            }
+            if (!Array.isArray(json.hypotheses) || !json.hypotheses.length) {
+                const rd = json.diagnostic_assessment;
+                if (rd && rd.can_generate_hypothesis === false && typeof rd.rejection_reason === "string" && rd.rejection_reason.trim()) {
+                    let msg = rd.rejection_reason.trim();
+                    if (typeof rd.suggested_optimized_query === "string" && rd.suggested_optimized_query.trim()) {
+                        msg += ` Suggested query: ${rd.suggested_optimized_query.trim()}`;
+                    }
+                    vm.remainingPairGenerateError = msg;
+                    return;
+                }
+                vm.remainingPairGenerateError =
+                    typeof json.error === "string" && json.error
+                        ? json.error
+                        : "No hypotheses in response.";
+                return;
+            }
+            const p = String(row.phenotype).trim();
+            const fl = row.factorLabel != null ? String(row.factorLabel).trim() : "";
+            const fid = row.factor != null ? String(row.factor).trim() : "";
+            const coverKeys = [];
+            if (fl) coverKeys.push(`${p}|${vm.collapseWsLower(fl)}`);
+            if (fid) coverKeys.push(`${p}|${vm.collapseWsLower(fid)}`);
+            const normalized = vm.normalizeMechanismHypotheses(json.hypotheses, flattened).map((m) => ({
+                ...m,
+                _fromRemainingPair: true,
+                _remainingPairCoverKeys: [...new Set(coverKeys)],
+            }));
+            const prev = Array.isArray(vm.mechanisms) ? vm.mechanisms : [];
+            vm.mechanisms = [...prev, ...normalized];
+            vm.$nextTick(() => {
+                void vm.autoMapAllMechanismsToBiolink();
+            });
+            if (!vm.adHocCoveredRowKeys.includes(pairKey)) {
+                vm.adHocCoveredRowKeys = [...vm.adHocCoveredRowKeys, pairKey];
+            }
+        },
+        onError: (err) => {
+            vm.remainingPairGenerateError =
+                err && err.message ? err.message : "Request failed or timed out.";
+            finish();
+        },
+        onEnd: finish,
+    });
+}
+
 export {
     beginMechanismHypothesisGeneration,
     buildHypothesesUserPrompt,
+    generateHypothesisForRemainingPair,
     requestMechanismHypotheses,
     resumeImportedWorkflowAfterDataGate,
     retryMechanismHypotheses,

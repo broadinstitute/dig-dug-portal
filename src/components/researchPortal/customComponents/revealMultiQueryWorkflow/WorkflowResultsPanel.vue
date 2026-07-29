@@ -802,6 +802,7 @@ export default {
         hypothesisLastRunMode: { type: String, default: null },
         remainingRows: { type: Array, default: () => [] },
         remainingFactorTableRowsPaged: { type: Array, default: () => [] },
+        remainingGeneSetClusterRowsPaged: { type: Array, default: () => [] },
         remainingTableRowCount: { type: Number, default: 0 },
         remainingPairGenerateError: { type: String, default: "" },
         generatingRemainingRowKey: { type: String, default: "" },

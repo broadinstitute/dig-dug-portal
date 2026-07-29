@@ -4,6 +4,128 @@
 
 import { normalizeLlmTermList } from "./revealMqExtraction.js";
 
+const REVEAL_ROUTE_CONSTRAINTS = {
+    "Tissue Expression": {
+        constraint_mode: "soft",
+        constraint_scope: {
+            programs: ["gtex", "hubmap"],
+            modalities: ["transcriptomics", "single-cell expression"],
+        },
+    },
+    Perturbations: {
+        constraint_mode: "soft",
+        constraint_scope: {
+            programs: ["lincs", "motrpac"],
+            modalities: ["chemical perturbation", "transcriptional response"],
+        },
+    },
+    Genetics: {
+        constraint_mode: "soft",
+        constraint_scope: {
+            programs: ["cmdkp"],
+            modalities: ["gwas", "variant-to-trait"],
+        },
+    },
+};
+
+const REVEAL_ROUTE_CATEGORIES = Object.keys(REVEAL_ROUTE_CONSTRAINTS);
+
+function normalizeRouteCategory(category, index = 0) {
+    const raw = String(category || "").trim();
+    const exact = REVEAL_ROUTE_CATEGORIES.find((c) => c.toLowerCase() === raw.toLowerCase());
+    if (exact) return exact;
+    if (raw) return raw;
+    return REVEAL_ROUTE_CATEGORIES[index] || `Route ${index + 1}`;
+}
+
+function getRouteConstraintSpec(category) {
+    const key = normalizeRouteCategory(category);
+    const spec = REVEAL_ROUTE_CONSTRAINTS[key];
+    return spec ? JSON.parse(JSON.stringify(spec)) : null;
+}
+
+/**
+ * Reshape raw LLM route objects into the workflow's route shape, applying field-name fallbacks
+ * and falling back to a single "General Biology" route when the LLM returned no usable routes.
+ */
+function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3, userQuery = "" } = {}) {
+    const source = Array.isArray(rawRoutes) ? rawRoutes : [];
+    const maxRoutesResolved = Math.max(1, Number(maxRoutes) || 3);
+    const normalized = source
+        .slice(0, maxRoutesResolved)
+        .map((route, idx) => {
+            const category = normalizeRouteCategory(route && route.category, idx);
+            const extracted = route && route.extracted_terms && typeof route.extracted_terms === "object"
+                ? route.extracted_terms
+                : {};
+            const phenotypeTerms = normalizeLlmTermList(
+                extracted.phenotype_terms != null
+                    ? extracted.phenotype_terms
+                    : (extracted.traits != null ? extracted.traits : extracted.phenotypes)
+            );
+            const mechanismTerms = normalizeLlmTermList(
+                extracted.mechanism_terms != null
+                    ? extracted.mechanism_terms
+                    : (extracted.mechanisms != null ? extracted.mechanisms : extracted.modalities)
+            );
+            const genesOfInterest = normalizeLlmTermList(
+                extracted.genes_of_interest != null ? extracted.genes_of_interest : extracted.genes
+            );
+            const variation = String(
+                route && route.biological_query_variation
+                    ? route.biological_query_variation
+                    : (route && route.query ? route.query : "")
+            ).trim();
+            const fallbackContext =
+                typeof fallbackJson.research_context === "string" ? fallbackJson.research_context.trim() : "";
+            const sanitized = sanitizeEmbeddingText(variation || fallbackContext || userQuery);
+            return {
+                route_id: `route-${idx + 1}`,
+                category,
+                biological_query_variation: variation || sanitized,
+                sanitized_query: sanitized,
+                rationale: route && route.rationale != null ? String(route.rationale).trim() : "",
+                extracted_terms: {
+                    phenotype_terms: phenotypeTerms,
+                    mechanism_terms: mechanismTerms,
+                    genes_of_interest: genesOfInterest,
+                    tissues: normalizeLlmTermList(extracted.tissues),
+                    cell_types: normalizeLlmTermList(extracted.cell_types),
+                },
+                constraint_spec: getRouteConstraintSpec(category),
+                status: "pending",
+            };
+        })
+        .filter((route) => route.sanitized_query || route.biological_query_variation);
+
+    if (normalized.length) return normalized;
+
+    const phenotypeTerms = normalizeLlmTermList(fallbackJson.phenotype_terms);
+    const mechanismTerms = normalizeLlmTermList(fallbackJson.mechanism_terms);
+    const genesOfInterest = normalizeLlmTermList(fallbackJson.genes_of_interest);
+    const researchContext = typeof fallbackJson.research_context === "string" ? fallbackJson.research_context : "";
+    const sanitized = sanitizeEmbeddingText(researchContext || userQuery);
+    if (!sanitized && !phenotypeTerms.length && !mechanismTerms.length) return [];
+    return [
+        {
+            route_id: "route-1",
+            category: "General Biology",
+            biological_query_variation: sanitized || String(userQuery || "").trim(),
+            sanitized_query: sanitized || String(userQuery || "").trim(),
+            rationale: "Fallback route derived from the extracted terms.",
+            extracted_terms: {
+                phenotype_terms: phenotypeTerms,
+                mechanism_terms: mechanismTerms,
+                genes_of_interest: genesOfInterest,
+                tissues: [],
+                cell_types: [],
+            },
+            constraint_spec: null,
+            status: "pending",
+        },
+    ];
+}
+
 function sanitizeEmbeddingText(text) {
     if (!text) return "";
     const patterns = [
@@ -352,10 +474,15 @@ export {
     buildCompactRouteEvidence,
     factorMatchesEvidenceHit,
     filterRouteFactorDataToEvidenceHits,
+    getRouteConstraintSpec,
     isConstraintValidationError,
     mergeRouteFactorData,
+    normalizeMultiQueryRoutes,
+    normalizeRouteCategory,
     resolveHybridPhenotypeFilterTerms,
     resolveMultiRouteHybridPhenotypeFilterTerms,
+    REVEAL_ROUTE_CATEGORIES,
+    REVEAL_ROUTE_CONSTRAINTS,
     routeFactorSupportScore,
     routeGenesOfInterestForFetch,
     routeResearchContextForFetch,

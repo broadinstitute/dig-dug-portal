@@ -3,26 +3,35 @@
  * Operates on the shell component instance (`vm`) for session mutation and step UI.
  */
 
+import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
+import {
+    classifyAndReportError,
+    isLlmTimeoutError,
+    resetMechanismResultState,
+    resetRetrievalResultState,
+    runLlmWithRetry,
+} from "./revealMqOrchestratorShared.js";
+import {
+    buildAntiAnchorFallbackAlternatives,
+    detectAntiAnchorTerms,
+    ensureAntiAnchorWarningMessage,
+    mergeAlternativeQueries,
+    normalizeAlternativeQueries,
+    normalizeExtractionAmbiguity,
+} from "./revealMqExtractionAmbiguity.js";
+
 const DEFAULT_EXTRACTION_MAX_ATTEMPTS = 3;
 const DEFAULT_EXTRACTION_TIMEOUT_MS = 120000;
 
-function isExtractionTimeoutError(err) {
-    if (!err) return false;
-    const status = err.status;
-    if (status === 504) return true;
-    const msg = (err.message || "").toString();
-    return /504|Gateway Timeout|timeout|Timeout|Failed to fetch|Load failed|net::ERR_FAILED|CORS|Access-Control/i.test(
-        msg
-    );
-}
+const EXTRACTION_ERROR_BUCKETS = [
+    { test: () => true, stepTitle: () => "Request failed or timed out." },
+];
 
 function resetWorkflowStateForNewRun(vm) {
     vm.loadComplete = false;
     vm.searchCriteria = null;
-    vm.mechanisms = null;
-    vm.mechanisms_summary = null;
-    vm.mechanismDiagnosticAssessment = null;
-    vm.hypothesisLastRunMode = null;
+    resetMechanismResultState(vm);
+    resetRetrievalResultState(vm);
     vm.lastAlternativeQueries = [];
     vm.extractionAmbiguityCheck = null;
     vm.extractionAmbiguityDismissed = false;
@@ -35,8 +44,6 @@ function resetWorkflowStateForNewRun(vm) {
     vm.routeTermsEditAccordionOpen = {};
     vm.lastExplicitUserGenes = [];
     vm.lastGenesOfInterest = [];
-    vm.lastHybridSearchMeta = {};
-    vm.lastHybridSearchResponse = null;
     vm.searchCriteriaEditRows = [];
     vm.searchCriteriaEditRowsDefault = [];
     vm.searchCriteriaExtractionGateDone = false;
@@ -76,7 +83,7 @@ function beginExtractionFlow(vm, options = {}) {
     vm.allow_retry = true;
     vm.setStep(
         {
-            id: "1",
+            id: WORKFLOW_STEP_IDS.EXTRACTION,
             title: "LLM: Extracting search terms from user query",
             substep: {
                 id: "1.1",
@@ -88,67 +95,31 @@ function beginExtractionFlow(vm, options = {}) {
     const query = vm.userQuery.trim();
 
     (async () => {
-        let lastError = null;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            const result = await new Promise((resolve) => {
-                let done = false;
-                const finish = (payload) => {
-                    if (done) return;
-                    done = true;
-                    clearTimeout(timerId);
-                    resolve(payload);
-                };
-                const timerId = setTimeout(() => {
-                    try {
-                        vm.llmExtract.abort();
-                    } catch {
-                        /* ignore */
-                    }
-                    const timeoutErr = new Error(`Extraction timed out after ${Math.round(timeoutMs / 1000)}s.`);
-                    timeoutErr.status = 504;
-                    finish({
-                        ok: false,
-                        retry: attempt < maxAttempts,
-                        err: timeoutErr,
+        const result = await runLlmWithRetry(vm, {
+            caller: vm.llmExtract,
+            maxAttempts,
+            timeoutMs,
+            sendArgs: { userPrompt: query },
+            onState: vm.onExtractState,
+            incompleteMessage: "Incomplete extraction response.",
+            onAttemptStart: (attempt, max) => {
+                if (attempt > 1) {
+                    vm.setStep({
+                        type: "info",
+                        title: `Extraction timed out. Retrying (${attempt}/${max})…`,
                     });
-                }, timeoutMs);
-                vm.llmExtract.sendPrompt({
-                    userPrompt: query,
-                    onResponse: (resp) => finish({ ok: true, response: resp }),
-                    onError: (err) => {
-                        const retry = isExtractionTimeoutError(err) && attempt < maxAttempts;
-                        finish({ ok: false, retry, err });
-                    },
-                    onEnd: () => {
-                        if (done) return;
-                        finish({
-                            ok: false,
-                            retry: false,
-                            err: new Error("Incomplete extraction response."),
-                        });
-                    },
-                    onState: vm.onExtractState,
-                });
-            });
-            if (result.ok) {
-                await processExtractionResponse(vm, result.response);
-                return;
-            }
-            lastError = result.err || new Error("Extraction failed.");
-            if (result.retry) {
-                vm.setStep({
-                    type: "info",
-                    title: `Extraction timed out. Retrying (${attempt + 1}/${maxAttempts})…`,
-                });
-                continue;
-            }
-            break;
+                }
+            },
+        });
+        if (result.ok) {
+            await processExtractionResponse(vm, result.response, options);
+            return;
         }
-        handleExtractionError(vm, lastError);
+        handleExtractionError(vm, result.err);
     })();
 }
 
-async function processExtractionResponse(vm, response) {
+async function processExtractionResponse(vm, response, options = {}) {
     const extractRunId = vm.workflowRunId;
     vm.loading_search_criteria = false;
     if (!response) return;
@@ -169,9 +140,9 @@ async function processExtractionResponse(vm, response) {
     const mechanismTerms = vm.normalizeLlmTermList(json.mechanism_terms);
     const genesOfInterest = vm.normalizeLlmTermList(json.genes_of_interest);
     const explicitUserGenes = vm.normalizeLlmTermList(json.explicit_user_genes);
-    const antiAnchorTermsDetected = vm.detectAntiAnchorTerms(vm.userQuery);
-    let extractionAmbiguity = vm.normalizeExtractionAmbiguity(json.ambiguity_check);
-    let alternativeQueries = vm.mergeAlternativeQueries(
+    const antiAnchorTermsDetected = detectAntiAnchorTerms(vm.userQuery);
+    let extractionAmbiguity = normalizeExtractionAmbiguity(json.ambiguity_check);
+    let alternativeQueries = mergeAlternativeQueries(
         json.suggested_queries != null
             ? json.suggested_queries
             : json.alternative_queries != null
@@ -183,7 +154,7 @@ async function processExtractionResponse(vm, response) {
         extractionAmbiguity && Array.isArray(extractionAmbiguity.anti_anchor_terms)
             ? extractionAmbiguity.anti_anchor_terms
             : [];
-    const antiAnchorTerms = vm.mergeAlternativeQueries(antiAnchorTermsDetected, antiAnchorTermsFromLlm);
+    const antiAnchorTerms = mergeAlternativeQueries(antiAnchorTermsDetected, antiAnchorTermsFromLlm);
     if (antiAnchorTerms.length && (!extractionAmbiguity || !extractionAmbiguity.has_ambiguity)) {
         extractionAmbiguity = {
             has_ambiguity: true,
@@ -195,15 +166,15 @@ async function processExtractionResponse(vm, response) {
     }
 
     if (antiAnchorTerms.length) {
-        const fallbackAntiAnchorAlts = vm.buildAntiAnchorFallbackAlternatives({
+        const fallbackAntiAnchorAlts = buildAntiAnchorFallbackAlternatives({
             antiAnchorTerms,
             mechanismTerms,
             researchContext: typeof json.research_context === "string" ? json.research_context : "",
         });
-        alternativeQueries = vm.mergeAlternativeQueries(alternativeQueries, fallbackAntiAnchorAlts).slice(0, 3);
+        alternativeQueries = mergeAlternativeQueries(alternativeQueries, fallbackAntiAnchorAlts).slice(0, 3);
         if (extractionAmbiguity) {
             extractionAmbiguity.anti_anchor_terms = antiAnchorTerms;
-            extractionAmbiguity.warning_message = vm.ensureAntiAnchorWarningMessage(
+            extractionAmbiguity.warning_message = ensureAntiAnchorWarningMessage(
                 extractionAmbiguity.warning_message,
                 antiAnchorTerms,
                 alternativeQueries
@@ -268,7 +239,7 @@ async function processExtractionResponse(vm, response) {
     }
 
     vm.setStep({
-        id: "1",
+        id: WORKFLOW_STEP_IDS.EXTRACTION,
         substep: {
             id: "1.1",
             result: {
@@ -286,22 +257,28 @@ async function processExtractionResponse(vm, response) {
     });
     vm.buildSearchCriteriaEditRows();
 
-    const approved = await vm.waitForStepApproval("1", "Review terms and continue when ready.", true);
+    const approved = await vm.waitForStepApproval(
+        WORKFLOW_STEP_IDS.EXTRACTION,
+        "Review terms and continue when ready.",
+        true
+    );
     if (!approved) return;
     if (vm.workflowRunIdStale(extractRunId)) return;
 
     if (vm.searchMode === "auto") {
-        vm.onResearch();
+        const runRetrieval = options.onApproved || ((terms, opts) => vm.onResearch(terms, opts));
+        await runRetrieval(undefined, undefined);
     }
 }
 
 function handleExtractionError(vm, err) {
-    vm.loading_search_criteria = false;
-    vm.error_search_criteria = true;
-    vm.error_msg_search_criteria = err && err.message ? err.message : "An error occurred.";
-    vm.setStep({
-        type: "error",
-        title: "Request failed or timed out.",
+    classifyAndReportError(vm, err, {
+        buckets: EXTRACTION_ERROR_BUCKETS,
+        errorFlag: "error_search_criteria",
+        errorMessageField: "error_msg_search_criteria",
+        onBeforeReport: (v) => {
+            v.loading_search_criteria = false;
+        },
     });
 }
 
@@ -331,14 +308,14 @@ async function startWorkflowFromExtractedTerms(vm, options = {}) {
     const phen = vm.normalizeLlmTermList(phenotypeTerms);
     const mech = vm.normalizeLlmTermList(mechanismTerms);
     const goi = vm.normalizeLlmTermList(genesOfInterest);
-    const alt = vm.normalizeAlternativeQueries(alternativeQueries);
+    const alt = normalizeAlternativeQueries(alternativeQueries);
     const ctx = String(researchContext || "").trim();
     const searchTerms = [...phen, ...mech];
     const retrievalPhenotypeList = vm.normalizeLlmTermList(retrievalPhenotypeTerms);
 
     vm.setStep(
         {
-            id: "1",
+            id: WORKFLOW_STEP_IDS.EXTRACTION,
             title: "LLM: Extracting search terms from user query",
             substep: {
                 id: "1.1",
@@ -368,7 +345,7 @@ async function startWorkflowFromExtractedTerms(vm, options = {}) {
     vm.lastGenesOfInterest = goi;
     vm.lastAlternativeQueries = alt;
     vm.setStep({
-        id: "1",
+        id: WORKFLOW_STEP_IDS.EXTRACTION,
         substep: {
             id: "1.1",
             result: {
@@ -384,12 +361,17 @@ async function startWorkflowFromExtractedTerms(vm, options = {}) {
         },
     });
     vm.buildSearchCriteriaEditRows();
-    const approved = await vm.waitForStepApproval("1", "Review terms and continue when ready.", true);
+    const approved = await vm.waitForStepApproval(
+        WORKFLOW_STEP_IDS.EXTRACTION,
+        "Review terms and continue when ready.",
+        true
+    );
     if (!approved) return;
     if (vm.workflowRunIdStale(extractRunId)) return;
 
     if (vm.searchMode === "auto") {
-        vm.onResearch(
+        const runRetrieval = options.onApproved || ((terms, opts) => vm.onResearch(terms, opts));
+        await runRetrieval(
             retrievalPhenotypeList.length ? retrievalPhenotypeList : undefined,
             helperConstraintSpec != null ? { helperConstraintSpec } : undefined
         );
@@ -401,7 +383,7 @@ export {
     DEFAULT_EXTRACTION_MAX_ATTEMPTS,
     DEFAULT_EXTRACTION_TIMEOUT_MS,
     handleExtractionError,
-    isExtractionTimeoutError,
+    isLlmTimeoutError as isExtractionTimeoutError,
     processExtractionResponse,
     resetWorkflowStateForNewRun,
     startWorkflowFromExtractedTerms,

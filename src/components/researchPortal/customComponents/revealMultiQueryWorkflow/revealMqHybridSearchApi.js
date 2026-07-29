@@ -64,8 +64,13 @@ async function callHybridRevealSearch(
         constraintSpec,
         useClientEmbedding: !!vm.hybridSearchUseClientEmbedding,
     });
-    if (!body.phenotype_terms.length) {
-        throw new Error("422 phenotype_terms is required and must be non-empty.");
+    // The server itself only requires at least one text signal (phenotype_terms, mechanism_terms,
+    // research_context) or a query_embedding -- not phenotype_terms specifically (verified against
+    // the live API: a genes_of_interest + research_context-only request succeeds). Mirror that
+    // real requirement here instead of over-restricting to phenotype_terms alone.
+    const hasTextSignal = body.phenotype_terms.length || body.mechanism_terms.length || !!body.research_context;
+    if (!hasTextSignal && !body.query_embedding) {
+        throw new Error("422 Provide phenotype/mechanism/research_context text input or a query_embedding.");
     }
     let resp;
     try {

@@ -77,8 +77,12 @@ describe("revealMqHypothesisOrchestrator", () => {
         const vm = makeVm();
         requestMechanismHypotheses(vm, vm.factorData, vm.lastKgTriples);
         expect(vm.switchRevealTab).toHaveBeenCalledWith("results");
-        await Promise.resolve();
         expect(vm.llmAnalyze.sendPrompt).toHaveBeenCalled();
+        // The retry loop now runs through the shared runLlmWithRetry helper, which adds
+        // an extra microtask hop (its own async-function return) before the mechanism
+        // result lands on vm — flush a couple of ticks rather than assuming exactly one.
+        await Promise.resolve();
+        await Promise.resolve();
         expect(vm.mechanisms).toEqual([{ title: "H1" }]);
         expect(vm.loadComplete).toBe(true);
     });

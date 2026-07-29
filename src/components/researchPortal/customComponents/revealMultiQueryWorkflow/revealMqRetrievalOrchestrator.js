@@ -19,40 +19,44 @@ import {
     setMultiQueryRouteStatus,
 } from "./revealMqMultiRoute.js";
 import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
+import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
+import {
+    classifyAndReportError,
+    getOrBuildKgTriples,
+    resetMechanismResultState,
+    resetRetrievalResultState,
+} from "./revealMqOrchestratorShared.js";
+
+const HYBRID_RETRIEVAL_ERROR_BUCKETS = [
+    {
+        test: (_, msg) => /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(msg),
+        statusMessage: () => "No exact matches found for those terms.",
+        stepTitle: () =>
+            "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms.",
+    },
+    {
+        test: (_, msg) => /(^|\s)422(\s|$)/.test(msg),
+        statusMessage: () => "Request could not be validated. Check phenotype terms and research context.",
+        stepTitle: (msg) => msg.replace(/^\s*422\s*/, "") || "Invalid hybrid search request (422).",
+    },
+    {
+        test: (_, msg) => /(^|\s)504(\s|$)|timed out|AbortError/i.test(msg),
+        statusMessage: () => "Hybrid search timed out. Try again in a moment.",
+        stepTitle: () => "Hybrid search timed out (504). The database or embedding service may be busy.",
+    },
+    {
+        test: () => true,
+        statusMessage: (msg) => "Error: " + (msg || "hybrid retrieval failed"),
+        stepTitle: () => "Hybrid retrieval failed due to a server error.",
+    },
+];
 
 function handleHybridRetrievalError(vm, err) {
-    const msg = err && err.message ? String(err.message) : "";
-    const isNoResults = /(^|\s)404(\s|$)|no phenotype.?factor results|no results found|no phenotype matches/i.test(
-        msg
-    );
-    const isValidation = /(^|\s)422(\s|$)/.test(msg);
-    const isTimeout = /(^|\s)504(\s|$)|timed out|AbortError/i.test(msg);
-    if (isNoResults) {
-        vm.setLoadStatus("No exact matches found for those terms.", true);
-        vm.setStep({
-            type: "error",
-            title: "No results found. Try rephrasing your phenotype (e.g., 'Heart Disease' instead of 'CAD') or using broader terms.",
-        });
-    } else if (isValidation) {
-        vm.setLoadStatus("Request could not be validated. Check phenotype terms and research context.", true);
-        vm.setStep({
-            type: "error",
-            title: msg.replace(/^\s*422\s*/, "") || "Invalid hybrid search request (422).",
-        });
-    } else if (isTimeout) {
-        vm.setLoadStatus("Hybrid search timed out. Try again in a moment.", true);
-        vm.setStep({
-            type: "error",
-            title: "Hybrid search timed out (504). The database or embedding service may be busy.",
-        });
-    } else {
-        vm.setLoadStatus("Error: " + (err && err.message ? err.message : "hybrid retrieval failed"), true);
-        vm.setStep({
-            type: "error",
-            title: "Hybrid retrieval failed due to a server error.",
-        });
-    }
-    vm.loadComplete = true;
+    classifyAndReportError(vm, err, {
+        buckets: HYBRID_RETRIEVAL_ERROR_BUCKETS,
+        reportLoadStatus: true,
+        markLoadComplete: true,
+    });
 }
 
 async function fetchMultiQueryRouteEvidence(vm, route, index) {
@@ -132,7 +136,7 @@ async function fetchMultiQueryRouteEvidence(vm, route, index) {
         factor_count: phenotypes.reduce((acc, p) => acc + ((factorData[p].factors || []).length), 0),
     });
     vm.setStep({
-        id: "2",
+        id: WORKFLOW_STEP_IDS.DATA,
         substep: {
             id: `2.${routeId}`,
             title: `${route.category || routeId}: retrieved ${evidenceBundle.top_hits.length} evidence hit${evidenceBundle.top_hits.length !== 1 ? "s" : ""}`,
@@ -170,7 +174,7 @@ async function runHybridRetrievalWorkflow(
     if (!phenos.length) return false;
 
     vm.setStep({
-        id: "2",
+        id: WORKFLOW_STEP_IDS.DATA,
         title: "Retrieving data",
     });
 
@@ -186,7 +190,7 @@ async function runHybridRetrievalWorkflow(
         vm.setLoadStatus("Hybrid retrieval: generating embedding (client)…");
         queryEmbedding = await fetchHybridQueryEmbedding(vm, queryText);
         vm.setStep({
-            id: "2",
+            id: WORKFLOW_STEP_IDS.DATA,
             substep: {
                 id: "2.h1",
                 title: "Client embedding",
@@ -223,7 +227,7 @@ async function runHybridRetrievalWorkflow(
     vm.lastHybridSearchResponse =
         hybridJson != null && typeof hybridJson === "object" ? JSON.parse(JSON.stringify(hybridJson)) : null;
     vm.setStep({
-        id: "2",
+        id: WORKFLOW_STEP_IDS.DATA,
         substep: {
             id: "2.h2",
             title: "Retrieved result",
@@ -242,17 +246,16 @@ async function runHybridRetrievalWorkflow(
     vm.snapshotFilteredSelectionBaseline();
     vm.genesAndFactorValuesLoaded = true;
     vm.setLoadStatus("Building knowledge graph from hybrid results…");
-    const kgTriples = vm.transformMergedDataToKG(vm.factorData, "factors");
-    vm.lastKgTriples = kgTriples;
+    const kgTriples = getOrBuildKgTriples(vm, vm.factorData, { forceRebuild: true });
     const approved = await vm.waitForStepApproval(
-        "2",
+        WORKFLOW_STEP_IDS.DATA,
         "Knowledge graph is ready. Continue to generate mechanistic hypotheses?",
         true
     );
     if (!approved) return false;
     vm.setLoadStatus("Generating hypotheses…");
     vm.setStep({
-        id: "4",
+        id: WORKFLOW_STEP_IDS.HYPOTHESES,
         title: "LLM: Generating mechanistic hypotheses",
     });
     requestMechanismHypotheses(vm, vm.factorData, kgTriples);
@@ -268,7 +271,7 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
     ).slice(0, vm.multiQueryEvidenceLimits.maxRoutes || 3);
     if (!routeList.length) return false;
     vm.setStep({
-        id: "2",
+        id: WORKFLOW_STEP_IDS.DATA,
         title: "Retrieving data across selected directions",
     });
     vm.setLoadStatus("Hybrid retrieval: searching selected biological directions…");
@@ -284,7 +287,7 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
             errors.push({ route_id: route.route_id, category: route.category, message });
             setMultiQueryRouteStatus(vm, route.route_id, "error", { error: message });
             vm.setStep({
-                id: "2",
+                id: WORKFLOW_STEP_IDS.DATA,
                 substep: {
                     id: `2.${route.route_id || idx}.error`,
                     title: `${route.category || "Route"} failed: ${message}`,
@@ -318,17 +321,16 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
     vm.snapshotFilteredSelectionBaseline();
     vm.genesAndFactorValuesLoaded = true;
     vm.setLoadStatus("Building knowledge graph from multi-route hybrid results…");
-    const kgTriples = vm.transformMergedDataToKG(vm.factorData, "factors");
-    vm.lastKgTriples = kgTriples;
+    const kgTriples = getOrBuildKgTriples(vm, vm.factorData, { forceRebuild: true });
     const approved = await vm.waitForStepApproval(
-        "2",
+        WORKFLOW_STEP_IDS.DATA,
         "Multi-route evidence is ready. Continue to generate mechanistic hypotheses?",
         true
     );
     if (!approved) return false;
     vm.setLoadStatus("Generating hypotheses from compact route evidence…");
     vm.setStep({
-        id: "4",
+        id: WORKFLOW_STEP_IDS.HYPOTHESES,
         title: "LLM: Generating mechanistic hypotheses",
     });
     requestMechanismHypotheses(vm, vm.factorData, kgTriples, vm.multiQueryEvidenceBundles);
@@ -349,13 +351,8 @@ async function onResearch(vm, phenotypeTermsFromExtract, options = {}) {
     const phenotypeTerms = normalizeLlmTermList(rawPhenotype);
     try {
         vm.genesAndFactorValuesLoaded = false;
-        vm.factorData = {};
-        vm.lastHybridSearchMeta = {};
-        vm.lastHybridSearchResponse = null;
-        vm.lastKgTriples = [];
-        vm.mechanisms = null;
-        vm.mechanismDiagnosticAssessment = null;
-        vm.hypothesisLastRunMode = null;
+        resetRetrievalResultState(vm);
+        resetMechanismResultState(vm);
         vm.phenotypeDescriptionById = {};
         vm.lastRunUsedHardConstraint = !!opts.helperConstraintSpec;
         if (!vm.lastRunUsedHardConstraint) {
