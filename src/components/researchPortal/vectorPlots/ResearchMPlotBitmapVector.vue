@@ -10,7 +10,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);

@@ -48,7 +48,8 @@ new Vue({
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "beta_uncorrected",
                         label: "Effect (uncorrected)",
@@ -87,6 +88,7 @@ new Vue({
                 dotKey: "phenotype",
             },
             plotColors: plotUtils.plotColors(),
+            pigeanColors: null,
             renderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -143,6 +145,11 @@ new Vue({
         },
         phewasAllData(){
             return this.$store.state.phewasData;
+        }
+    },
+    methods: {
+        storeColors(colors){
+            this.pigeanColors = colors;
         }
     },
     watch: {

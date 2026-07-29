@@ -486,12 +486,11 @@
 								:utils="$parent.utilsBox"
 								sectionId=""
 							></research-score-plot>
-
 							<research-genes-track
 								v-if="
 									$parent.plotConfig != null &&
 									$parent.plotConfig['type'] !=
-										'gem package' &&
+										'gem package' && $parent.plotConfig['type'] != 'giant gem package' &&
 									!!$parent.plotConfig['genes track'] &&
 									$store.state.codingGenesData != null
 								"
@@ -568,6 +567,25 @@
 								:utils="$parent.utilsBox"
 								
 							></kp-gem-pkg>
+							<giant-gem-pkg
+								v-if="
+									$parent.plotConfig != null &&
+									$parent.plotConfig['type'] == 'giant gem package'
+								"
+								:pkgConfig="$parent.plotConfig"
+								:pkgData="$store.state.pkgData"
+								:pkgDataSelected="$store.state.pkgDataSelected"
+								:sharedPlotXpos="$store.state.sharedPlotXpos"
+								:plotMargin="$parent.plotMargin"
+								:dataComparisonConfig="
+									$parent.dataComparisonConfig
+								"
+								:colors="$parent.colors"
+								:regionZoom="$parent.regionZoom"
+								:regionViewArea="$parent.regionViewArea"
+								:utils="$parent.utilsBox"
+								
+							></giant-gem-pkg>
 						</div>
 						<div
 							class="col-md-12"
@@ -656,8 +674,12 @@
 							  </template>
 							</div>
 							<!-- canvas collection end -->
+
+							<div id="custom_sections_list_wrapper">
+
+							</div>
 							
-								<!-- multi section tab groups -->
+							<!-- multi section tab groups -->
 							<template v-if="!!$parent.sectionConfigs['tab groups']"
 									  v-for="group, groupIndex in $parent.getTabGroups($parent.sectionConfigs['tab groups'])" >
 								<div :class="[group.type && group.type === 'fixed bottom' ? 'tabgroup-fixed-bottom' : 'tabgroup']"
@@ -689,23 +711,11 @@
 												:class="tabIndex == 0 ? 'active' : ''"
 												@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
 													'tabContent' + tab.section, 'tabContentGroup' + groupIndex);">
-												{{ tab.label }} <span class="flag"><b-icon
+													<span v-html="$parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams)+'&nbsp;'"></span>
+												 <span class="flag"><b-icon
 													icon="circle-fill"></b-icon></span>
 											</div>
 										</div>
-									<!--
-									<div class="tab-ui-wrapper" :id="'tabUiGroup'+ groupIndex">
-										<div v-for="tab, tabIndex in group.sections" 
-											:id="'tabUi'+tab.section" 
-											class="tab-ui-tab" 
-											:class="tabIndex == 0?'active':''"
-											@click="$parent.utilsBox.uiUtils.setTabActive('tabUi' + tab.section, 'tabUiGroup' + groupIndex,
-												'tabContent' + tab.section,'tabContentGroup' + groupIndex);">
-											{{ $parent.utilsBox.Formatters.replaceWithParams(tab.label, $parent.pageParams) }} <span class="flag"><b-icon
-												icon="circle-fill"></b-icon></span>
-										</div>
-									</div>
-									-->
 									
 									<div :id="'tabContentGroup'+groupIndex" class="tab-content-group">
 										<template v-for="tab, tabIndex in group.sections">
@@ -716,7 +726,7 @@
 												:class="(tabIndex == 0)?'':'hidden-content'"
 												>
 												<research-section
-													v-if="!config['is summary section']"
+													v-if="!config['is summary section'] && !!$parent.rawSearchParameters"
 													:sectionIndex="'section-' + index"
 													:uId="$parent.uid"
 													:sectionConfig="config"
@@ -736,11 +746,14 @@
 													:regionViewArea="$parent.regionViewArea"
 													:isInTab="true"
 													:pageParams="$parent.pageParams"
+													:searchParameters="$parent.rawSearchParameters"
 													
 													@on-star="$parent.starColumn"
 													@on-sectionData="$parent.onSectionsData"
 													@on-zoom="$parent.setZoom"
-													@on-checkPosition="$parent.setHoverPos">
+													@on-checkPosition="$parent.setHoverPos"
+													@ld-data-loaded="ld => $parent.receiveLDData(ld)"
+													@splice="spliceData=> $parent.getSplice(spliceData)">
 												</research-section>
 												<research-sections-summary
 													v-if="!!config['is summary section']"
@@ -769,7 +782,7 @@
 							</template>
 							<template v-for="config, index in $parent.getSections($parent.sectionConfigs.sections)">	
 								<research-section
-									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section']"
+									v-if="$parent.isInTabGroups(config['section id']) == false && !config['is summary section'] && !!$parent.rawSearchParameters"
 									:sectionIndex="'section-' + index"
 									:uId="$parent.uid"
 									:sectionConfig="config"
@@ -788,11 +801,12 @@
 									:regionZoom="$parent.regionZoom"
 									:regionViewArea="$parent.regionViewArea"
 									:pageParams="$parent.pageParams"
-									
+									:searchParameters="$parent.rawSearchParameters"
 									@on-star="$parent.starColumn"
 									@on-sectionData="$parent.onSectionsData"
 									@on-zoom="$parent.setZoom"
-									@on-checkPosition="$parent.setHoverPos">
+									@on-checkPosition="$parent.setHoverPos"
+									@ld-data-loaded="ld => $parent.receiveLDData(ld)">
 								</research-section>	
 								<research-sections-summary
 									v-if="$parent.isInTabGroups(config['section id']) == false && !!config['is summary section']"

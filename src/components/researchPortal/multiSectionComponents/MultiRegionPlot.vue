@@ -64,7 +64,7 @@
 			</div>
 
 			<div v-if="!!renderConfig.legend" class="mbm-plot-legend" v-html="renderConfig.legend"></div>
-			<div class="region-plot-default-legend">
+			<div v-if="!!renderConfig['ld server']" class="region-plot-default-legend">
 				<span class="plot-legend-dot" style="background-color: #824099cc"></span>
 				<span>Reference variant</span>
 				<span class="plot-legend-dot" style="background-color: #d0363360"></span><span>1 > r2 >= 0.8</span>
@@ -76,7 +76,7 @@
 				<span class="plot-legend-dot" style="background-color: #33333320"></span>
 				<span>No data</span>
 			</div>
-			<div class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
+			<div  v-if="!!renderConfig['ld server']" class="ld-plots-opener" @click="utils.uiUtils.showHideElement('ldPlotsWrapper' + sectionId)">View P-Value / LD plot(s)</div>
 			<div :id="'ldPlotsWrapper' + sectionId" class="ld-plots-wrapper hidden">
 				<template v-for="(item, itemIndex) in plotsList">
 					<h6 v-html="item != 'default'
@@ -93,15 +93,6 @@
 			<template v-for="(item, itemIndex) in plotsList">
 				<div :id="'assoPlotsWrapper' + item.replaceAll(' ', '_') + sectionId" class="asso-plots-wrapper">
 					<h6 v-if="item != 'default'" v-html="item" :class="'text color-' + itemIndex"></h6>
-					
-					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
-						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
-						@mousemove="checkPosition($event, item, 'asso', 'move')"
-						@mouseleave="resetPosMarker()"
-						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
-					
-					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
-
 					<div class="download-images-setting">
 						<span class="btn btn-default options-gear" >Download <b-icon icon="download"></b-icon></span>
 						<ul class="options" >
@@ -115,6 +106,13 @@
 							</li>
 						</ul>
 					</div>
+					<canvas :id="'asso_plot_' + item.replaceAll(' ', '_') + sectionId" class="asso-plot" width="" height=""
+						@resize="onResize" @click="checkPosition($event, item, 'asso', 'click')"
+						@mousemove="checkPosition($event, item, 'asso', 'move')"
+						@mouseleave="resetPosMarker()"
+						@mouseout="onMouseOut('assoInfoBox' + item + sectionId)"></canvas>
+					
+					<span :id="sectionId+'_xPosMarker'" class="x-pos-marker">&nbsp;</span>
 	        
 					<div :id="'assoInfoBox' + item.replaceAll(' ', '_') + sectionId" class="asso-info-box hidden"></div>
 				</div>
@@ -122,7 +120,7 @@
 			<research-region-plot-vector
 		        v-if="!!assoData"
 		            :assoData="assoData"
-					:ldData="ldData"
+					:ldData="globalLDData"
 					:recombData="recombData"
 		            :renderConfig="renderConfig"
 		            :colors="ldDotColor"
@@ -142,6 +140,7 @@
 import Vue from "vue";
 import $ from "jquery";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import { isEqual } from "@/utils/lodashUtils";
 import regionPlotVector from "@/components/researchPortal/vectorPlots/ResearchRegionPlotVector.vue";
 
 Vue.use(BootstrapVueIcons);
@@ -162,7 +161,7 @@ export default Vue.component("multi-region-plot", {
 		"sectionId",
 		"utils",
 		"starItems",
-		"colors"
+		"colors",
 	],
 	data() {
 		return {
@@ -202,6 +201,8 @@ export default Vue.component("multi-region-plot", {
 	},
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
+	},
+	created(){
 	},
 	beforeDestroy() {
 		window.removeEventListener("resize", this.onResize);
@@ -250,7 +251,7 @@ export default Vue.component("multi-region-plot", {
 		plotsList() {
 			//used rebuild
 			let newRegion = false;
-			let variantField = this.renderConfig['ld server']['ref variant field'],
+			let variantField = (!!this.renderConfig['ld server'])? this.renderConfig['ld server']['ref variant field']:null,
 				renderByField = this.renderConfig["render by"],
 				yAxField = this.renderConfig["y axis field"];
 
@@ -301,11 +302,8 @@ export default Vue.component("multi-region-plot", {
 				this.assoPos = {};
 				this.ldPos = {};
 
-				//feed assoData + set initial reference variant
-				//let yAxField = this.renderConfig["y axis field"];
-				let populationsType =
-					this.renderConfig["ld server"]["populations type"];
-				//let variantField = this.renderConfig['ld server']['ref variant field'];
+				let populationsType = (!!this.renderConfig["ld server"])?
+					this.renderConfig["ld server"]["populations type"]:null;
 
 				plotsKeys.map((group) => {
 
@@ -368,6 +366,8 @@ export default Vue.component("multi-region-plot", {
 										this.ldData[group].population.push(
 											population
 										);
+									} else {
+										this.ldData[group].population = null;
 									}
 
 									// set initial refVarint
@@ -388,6 +388,8 @@ export default Vue.component("multi-region-plot", {
 											group
 											];
 									}
+
+									console.log("this.ldData[group].refVariant",this.ldData[group].refVariant);
 
 									// set high / low values of the group
 									this.assoData[group].yAxHigh =
@@ -463,6 +465,8 @@ export default Vue.component("multi-region-plot", {
 									this.ldData[group].population.push(
 										population
 									);
+								} else {
+									this.ldData[group].population = null;
 								}
 
 								//let dKey = dValue[this.renderConfig["render by"]];
@@ -540,9 +544,9 @@ export default Vue.component("multi-region-plot", {
 					this.ldData[group].population =
 						uniqPopulations.length > 1
 							? "ALL"
-							: this.renderConfig["ld server"].populations[
+							: (this.renderConfig["ld server"])? this.renderConfig["ld server"].populations[
 							uniqPopulations[0]
-							];
+							]:null;
 				});
 
 				if (plotsKeys.includes("Combined") == true) {
@@ -602,6 +606,11 @@ export default Vue.component("multi-region-plot", {
 				return returnObj;
 			}
 		},
+		globalLDData(){
+			return this.$store.state.topLevelLDData !== null
+				? this.$store.state.topLevelLDData
+				: this.ldData;
+		}
 	},
 	watch: {
 		hoverPos(POS){
@@ -613,7 +622,22 @@ export default Vue.component("multi-region-plot", {
 		starItems(STARS) {
 			this.starGroups = [...new Set(STARS.map(s => s.section))].sort();
 			this.renderPlots();
-		}
+		},
+		ldData: {
+			handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+					if (this.renderConfig.propagateLD === "send"){
+						// Propagate LD if necessary
+						let ldInfo = {
+							data: newData,
+							server: this.renderConfig["ld server"]
+						};
+						this.$emit("ld-data-loaded", ldInfo);
+					}
+                }
+            },
+            deep: true,
+		},
 	},
 	methods: {
 		downloadImage(ID, NAME, TYPE, SVG, DATA, ref) {
@@ -722,7 +746,6 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		resetLdReference(GROUP, ITEM) {
-
 			let variantField = this.renderConfig['ld server']['ref variant field'];
 
 			let VARIANT = this.assoData[GROUP].data[ITEM][variantField];
@@ -996,6 +1019,8 @@ export default Vue.component("multi-region-plot", {
 			}
 		},
 		async callForLDData() {
+			// Can we just cut in right here?
+
 			const plotWrappers = document.querySelectorAll(
 				".region-plots-wrapper"
 			);
@@ -1016,7 +1041,7 @@ export default Vue.component("multi-region-plot", {
 				}
 			}
 
-			if (plotID != null) {
+			if (plotID != null && !!this.ldData[plotID].population && !!this.ldData[plotID].refVariant) {
 
 				let ldURL;
 
@@ -1073,8 +1098,8 @@ export default Vue.component("multi-region-plot", {
 								? this.plotData[k]["LDS"]
 								: {};
 
-							this.plotData[k]["LDS"][plotID] =
-								this.ldData[plotID].data[k];
+							this.plotData[k]["LDS"][plotID] = (!!this.renderConfig["ld server"])?
+								this.ldData[plotID].data[k]:null;
 						});
 
 						break;
@@ -1280,7 +1305,11 @@ export default Vue.component("multi-region-plot", {
 				yStart = this.adjPlotMargin.top + HEIGHT,
 				xPosByPixel = WIDTH / (xMax - xMin),
 				yPosByPixel = HEIGHT / (yMax - yMin),
-				variantField = this.renderConfig['ld server']['ref variant field'],
+				variantField = (!!this.renderConfig["ld server"])
+					? this.renderConfig['ld server']['ref variant field']
+					: this.renderConfig.propagateLD === 'receive'
+						? "LD Variant ID"
+						: null,
 				renderByField = this.renderConfig["render by"],
 				starField = this.renderConfig["star key"],
 				xField = this.renderConfig["x axis field"],
@@ -1357,12 +1386,18 @@ export default Vue.component("multi-region-plot", {
 							);
 
 
-							let ldKey = value[variantField];
+							let ldKey = value[variantField]; // TODO FIX THIS RIGHT HERE
+							
 							let starKey = value[starField];
+							let dot = this.renderConfig.propagateLD === 'receive'
+								? this.globalLDData.default.data[this.getGlobalDot(value)]
+								: this.ldData[GROUP].data[ldKey];
 
-							let dotColor = this.getDotColor(
-								this.ldData[GROUP].data[ldKey]
-							);
+							let dotColor = 
+								//this.renderConfig.propagateLD === 'receive'  ? this.getGlobalDot(value):
+								(!!ldKey || this.renderConfig.propagateLD === 'receive')
+									? this.getDotColor(dot)
+									: '#00000030';
 
 							if (ldKey == this.ldData[GROUP].refVariant) {
 								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
@@ -1377,13 +1412,15 @@ export default Vue.component("multi-region-plot", {
 										dotColor,
 										dotColor
 									);
-								} else {
+								} else if(!!ldKey) {
 									this.renderDiamond(
 										CTX,
 										xPos,
 										yPos,
 										dotColor
 									);
+								} else {
+									this.renderDot(CTX, xPos, yPos, dotColor);
 								}
 							} else {
 								if (!!this.renderConfig["star key"] && this.checkStared(starKey) == true) {
@@ -1464,8 +1501,15 @@ export default Vue.component("multi-region-plot", {
 												dotColor,
 												dotColor
 											);
-										} else {
+										} else if(!!this.ldData[pGroup].refVariant){
 											this.renderDiamond(
+												CTX,
+												xPos,
+												yPos,
+												dotColor
+											);
+										} else {
+											this.renderDot(
 												CTX,
 												xPos,
 												yPos,
@@ -1512,7 +1556,7 @@ export default Vue.component("multi-region-plot", {
 
 			}
 
-			if (TYPE == "LD") {
+			if (TYPE == "LD" && !!this.renderConfig["ld server"]) {
 				this.ldPos[GROUP] = {};
 				if (GROUP != "Combined") {
 					if (Object.keys(this.ldData[GROUP].data).length == 0) {
@@ -1526,8 +1570,6 @@ export default Vue.component("multi-region-plot", {
 						);
 					} else {
 						//let yField = this.renderConfig["y axis field"];
-
-						//console.log(this.assoData[GROUP])
 
 						for (const [key, value] of Object.entries(
 							this.ldData[GROUP].data
@@ -1735,6 +1777,16 @@ export default Vue.component("multi-region-plot", {
 				let index = Math.floor(SCORE * 5);
 				return this.ldDotColor[index];
 			}
+		},
+		getGlobalDot(DOT){
+			let field = "Variant ID";
+			let fieldValues = DOT[field].split("_");
+			let chr = fieldValues[0].replace("chr", "");
+			let pos = fieldValues[1];
+			let ref = fieldValues[2];
+			let alt = fieldValues[3];
+			let formattedDot = `${chr}:${pos}_${ref}/${alt}`;
+			return formattedDot;
 		},
 		renderConntingLine(
 			CTX,
@@ -1980,6 +2032,7 @@ export default Vue.component("multi-region-plot", {
 						? Math.round(positionLabel * 0.001) + "k"
 						: positionLabel;
 
+				// Placing position labels on the X axis. TODO replicate on splice plot.
 				CTX.fillText(
 					positionLabel,
 					adjTickXPos,
@@ -2197,7 +2250,11 @@ canvas {
     border-left:solid 1px #ff0000;
 	height: 0;
 }
-
+.download-images-setting {
+	position: relative !important;
+	float: right;
+	margin-bottom: 5px;
+}
 </style>
 
 

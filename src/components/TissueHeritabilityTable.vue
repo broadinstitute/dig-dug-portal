@@ -1,33 +1,5 @@
 <template>
     <div>
-        <h4>
-            Global enrichment for {{ tissueFormatter(tissue) }} (Ancestry:
-            {{
-                ancestry === "Mixed"
-                    ? "Mixed meta-analysis"
-                    : ancestryFormatter(ancestry)
-            }})
-        </h4>
-        <!-- <div class="filtering-ui-wrapper container-fluid">
-            <div class="row filtering-ui-content">
-                <div class="col filter-col-md">
-                    <div class="label">Ancestry</div>
-                    <ancestry-selectpicker
-                        :defaultMixed="true"
-                        :ancestries="
-                            $store.state.bioPortal.datasets.map(
-                                (dataset) => dataset.ancestry
-                            )
-                        "
-                    ></ancestry-selectpicker>
-                </div>
-            </div>
-        </div> -->
-        <documentation
-            name="tissue.global-enrichment.subheader"
-            :contentFill="$parent.docDetails"
-            :contentMap="$store.state.bioPortal.documentations"
-        ></documentation>
         <div v-if="itemData.length > 0">
             <div
                 v-html="'Total rows: ' + itemData.length"
@@ -42,8 +14,9 @@
             </div>
         </div>
         <b-table
+            v-if="!dataEmpty"
             small
-            responsive="sm"
+            responsive
             :items="itemData"
             :fields="fields"
             :per-page="perPage"
@@ -84,6 +57,12 @@
                 </div>
             </template>
         </b-table>
+        <div v-else>
+            <b-alert show variant="warning" class="text-center">
+                <b-icon icon="exclamation-triangle"></b-icon> No data available
+                for this query.
+            </b-alert>
+        </div>
         <b-pagination
             v-model="currentPage"
             :total-rows="totalRows"
@@ -149,9 +128,7 @@ export default Vue.component("TissueHeritabilityTable", {
                     key: "biosample",
                     label: "Biosample",
                     formatter: (value) =>
-                        !value
-                            ? `All biosamples (${this.tissue})`
-                            : value,
+                        !value ? `All biosamples (${this.tissue})` : value,
                     tdClass: (value) => (!value ? "all_biosamples" : ""),
                     sortable: true,
                 },
@@ -171,20 +148,26 @@ export default Vue.component("TissueHeritabilityTable", {
             tableData: {},
             subTableData: {},
             ancestry: "Mixed",
+            dataEmpty: false,
         };
     },
     computed: {
         totalRows() {
             return this.itemData?.length || 0;
         },
-        tableKey(){
+        tableKey() {
             return `${this.tissue},${this.ancestry}`;
         },
         itemData() {
+            this.dataEmpty = false;
             if (!this.tableData[this.tableKey]) {
                 return [];
             }
-            return this.tableData[this.tableKey];
+            let data = this.tableData[this.tableKey];
+            if (typeof data === "object" && data.length === 0) {
+                this.dataEmpty = true;
+            }
+            return data;
         },
         topPhenotype() {
             if (!this.itemData || this.itemData.length === 0) {
@@ -211,16 +194,16 @@ export default Vue.component("TissueHeritabilityTable", {
                 this.queryHeritability();
             },
         },
-        topPhenotype(newPhenotype){
-            let desc = !this.phenotypeMap[newPhenotype] 
+        topPhenotype(newPhenotype) {
+            let desc = !this.phenotypeMap[newPhenotype]
                 ? newPhenotype
                 : this.phenotypeMap[newPhenotype].description;
             let phenotype = {
                 name: newPhenotype,
-                description: desc
+                description: desc,
             };
             this.$emit("topPhenotypeFound", phenotype);
-        }
+        },
     },
     methods: {
         tissueFormatter: Formatters.tissueFormatter,
@@ -241,9 +224,7 @@ export default Vue.component("TissueHeritabilityTable", {
             }
         },
         async queryPartitionedHeritability(item) {
-            let queryString = `${item.phenotype},${this.ancestry},${
-                item.annotation
-            },${this.tissue}`;
+            let queryString = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue}`;
             if (!this.subTableData[queryString]) {
                 let data = await query(
                     "partitioned-heritability-tissue",
@@ -258,9 +239,7 @@ export default Vue.component("TissueHeritabilityTable", {
             this.queryPartitionedHeritability(row.item);
         },
         getSubTableData(item) {
-            let query = `${item.phenotype},${this.ancestry},${
-                item.annotation
-            },${this.tissue}`;
+            let query = `${item.phenotype},${this.ancestry},${item.annotation},${this.tissue}`;
             return this.subTableData[query];
         },
     },

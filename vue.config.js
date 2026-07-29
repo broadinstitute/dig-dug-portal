@@ -256,6 +256,13 @@ let pages = {
         title: "Tissue",
         chunks: ["chunk-vendors", "chunk-common", "tissue"],
     },
+    pigeangraph: {
+        entry: "src/views/PigeanGraph/main.js",
+        template: "public/index.html",
+        filename: "pigeangraph.html",
+        title: "PIGEAN Graph",
+        chunks: ["chunk-vendors", "chunk-common", "pigeangraph"],
+    },
     pigean_index: {
         entry: "src/views/PIGEAN/Index/main.js",
         template: "public/index.html",
@@ -305,7 +312,45 @@ let pages = {
         title: "Mouse Differential Expression",
         chunks: ["chunk-vendors", "chunk-common", "mouse_diff_exp"],
     },
+    // CVDI Pigean
+    cvdi_pigean_index: {
+        entry: "src/views/CVDI_Pigean/Index/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/index.html",
+        title: "CVDI - PIGEAN Home",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_index"],
+    },
+    cvdi_pigean_gene: {
+        entry: "src/views/CVDI_Pigean/Gene/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/gene.html",
+        title: "CVDI - PIGEAN Gene Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_gene"],
+    },
+    cvdi_pigean_geneset: {
+        entry: "src/views/CVDI_Pigean/GeneSet/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/geneset.html",
+        title: "CVDI - PIGEAN Gene Set Info",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_geneset"],
+    },
+    cvdi_pigean_phenotype: {
+        entry: "src/views/CVDI_Pigean/Phenotype/main.js",
+        template: "public/index.html",
+        filename: "cvdi_pigean/phenotype.html",
+        title: "CVDI - PIGEAN Phenotype",
+        chunks: ["chunk-vendors", "chunk-common", "cvdi_pigean_phenotype"],
+    },
+    liger: {
+        entry: "src/views/LIGER/main.js",
+        template: "public/index.html",
+        filename: "liger.html",
+        title: "LIGER",
+        chunks: ["chunk-vendors", "chunk-common", "liger"],
+    },
 };
+
+const { REVEAL_KG_API_TARGET } = require("./src/utils/revealKgApi.defaults.js");
 
 // remove the debug page in production
 if (process.env.NODE_ENV === "production") {
@@ -319,16 +364,64 @@ module.exports = {
         headers: {
             "Access-Control-Allow-Origin": "*",
         },
+        proxy: {
+            "/api/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
+            "/interactive": {
+                target: REVEAL_KG_API_TARGET,
+                changeOrigin: true,
+            },
+        },
     },
     publicPath: "",
     configureWebpack: (config) => {
-        // Add the rule for handling .js files with babel-loader
+        let bioindex_dev = process.env.BIOINDEX_DEV;
+        let bioindex_host =
+            process.env.BIOINDEX_HOST || "https://bioindex.hugeamp.org"; // production by default
+        //set private bioindex host if variable is defined, otherwise use default
+        let bioindex_host_private =
+            process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
+
+        if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
+            bioindex_host =
+                bioindex_dev == "localhost"
+                    ? "http://localhost:5000"
+                    : "https://bioindex-dev.hugeamp.org";
+        }
+
+        // output which vue config file and bioindex is being used
+        console.log(
+            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private}`
+        );
+
+        // add the transform rule for bioindex
         config.module.rules.push({
-            test: /\.js$/,
-            include: [
-                /node_modules[\\/]vis-network/,
-                /node_modules[\\/]vis-data/,
-            ],
+            test: /bioIndexUtils\.js$/,
+            loader: "string-replace-loader",
+            options: {
+                search: "SERVER_IP_ADDRESS",
+                replace: bioindex_host,
+                flags: "g",
+            },
+        });
+
+        // add the transform rule for bioindex
+        config.module.rules.push({
+            test: /bioIndexUtils\.js$/,
+            loader: "string-replace-loader",
+            options: {
+                search: "SERVER_IP_PRIVATE",
+                replace: bioindex_host_private,
+                flags: "g",
+            },
+        });
+
+        // Add the rule for handling .js/.mjs/.cjs files with babel-loader
+        config.module.rules.push({
+            test: /\.(js|mjs|cjs)$/,
+            include: [/node_modules[\\/]vis-network/, /node_modules[\\/]vis-data/],
             use: {
                 loader: "babel-loader",
                 options: {
@@ -337,11 +430,6 @@ module.exports = {
                 },
             },
         });
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            "vis-network": "vis-network/standalone/umd/vis-network.min.js",
-            "vis-data": "vis-data/standalone/umd/vis-data.min.js",
-        };
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
             //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error

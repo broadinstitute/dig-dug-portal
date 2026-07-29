@@ -21,6 +21,7 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils.js";
+import bioIndexUtils from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
 new Vue({
@@ -51,7 +52,8 @@ new Vue({
             ],
             tableConfig: {
                 fields: [
-                    { key: "phenotype", label: "Phenotype", sortable: true },
+                    { key: "phenotypeDesc", label: "Phenotype", sortable: true },
+                    { key: "label", label: "Factor label", sortable: true},
                     {
                         key: "combined",
                         label: "Combined genetic support",
@@ -74,6 +76,7 @@ new Vue({
                         sortable: true,
                     },
                     { key: "expand", label: "Gene sets" },
+                    { key: "expand3", label: "View locus plot"}
                 ],
                 queryParam: "gene",
                 subtableEndpoint: "pigean-joined-gene",
@@ -91,6 +94,7 @@ new Vue({
                 hoverFields: ["gene", "combined"],
             },
             plotColors: plotUtils.plotColors(),
+            pigeanColors: null,
             renderConfig: {
                 type: "phewas plot",
                 "render by": "phenotype",
@@ -151,6 +155,9 @@ new Vue({
                 Object.keys(this.pigeanPhenotypeMap).length > 0
             );
         },
+        traitGroups() {
+            return bioIndexUtils.TRAIT_GROUPS;
+        },
         phewasAdjustedData() {
             let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy
             for (let i = 0; i < adjustedData.length; i++) {
@@ -193,6 +200,7 @@ new Vue({
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
     methods: {
+        tissueFormatter: Formatters.tissueFormatter,
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
@@ -209,6 +217,9 @@ new Vue({
             } else {
                 this.dotsToPhewas = dots;
             }
+        },
+        storeColors(colors){
+            this.pigeanColors = colors;
         }
     },
 

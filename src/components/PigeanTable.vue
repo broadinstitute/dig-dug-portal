@@ -5,6 +5,7 @@ import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
 import PigeanTable from "./PigeanTable.vue";
+import PigeanLocusZoom from "./PigeanLocusZoom.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import { DEFAULT_SIGMA } from "@/utils/bioIndexUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -16,6 +17,7 @@ export default Vue.component("pigean-table", {
     components: {
         DataDownload,
         PigeanTable,
+        PigeanLocusZoom,
     },
     props: [
         "pigeanData",
@@ -85,7 +87,7 @@ export default Vue.component("pigean-table", {
         genesetSize() {
             return keyParams.genesetSize;
         },
-        traitGroup(){
+        traitGroup() {
             return keyParams.traitGroup;
         },
         suffix() {
@@ -173,8 +175,9 @@ export default Vue.component("pigean-table", {
             if (this.config.queryParam === "cluster") {
                 return `${item.phenotype},${DEFAULT_SIGMA},${this.genesetSize},${item.factor}`;
             }
-            return `${item.phenotype},${item[this.config.queryParam]},${
-                DEFAULT_SIGMA},${this.genesetSize}`;
+            return `${item.phenotype},${
+                item[this.config.queryParam]
+            },${DEFAULT_SIGMA},${this.genesetSize}`;
         },
         generateId(label) {
             return label.replaceAll(",", "").replaceAll(" ", "_");
@@ -184,7 +187,9 @@ export default Vue.component("pigean-table", {
             return a / (1 + a);
         },
         computeProbabilities() {
-            let data = structuredClone(this.pigeanData);
+            let data = this.isSubtable
+                ? this.pigeanData
+                : this.describePhenotypes(this.pigeanData);
             for (let i = 0; i < this.config.fields.length; i++) {
                 let fieldConfig = this.config.fields[i];
                 if (!fieldConfig.showProbability) {
@@ -214,6 +219,30 @@ export default Vue.component("pigean-table", {
             });
             return allFields;
         },
+        describePhenotypes(data) {
+            let inputData = structuredClone(data);
+            for (let i = 0; i < inputData.length; i++) {
+                if (!inputData[i].phenotype) {
+                    continue;
+                }
+                let desc = this.phenotypeMap[inputData[i].phenotype];
+                if (desc === undefined) {
+                    desc = { phenotype_name: inputData[i].phenotype };
+                }
+                let phenotypeDesc = desc.phenotype_name.trim();
+                inputData[i]["phenotypeDesc"] = phenotypeDesc;
+            }
+            return inputData;
+        },
+        hideLocusButton(phenotype) {
+            if (!!this.phenotypeMap) {
+                return (
+                    this.phenotypeMap[phenotype] === undefined ||
+                    this.phenotypeMap[phenotype].trait_group !== "portal"
+                );
+            }
+            return this.traitGroup !== "portal";
+        },
     },
 });
 </script>
@@ -230,13 +259,14 @@ export default Vue.component("pigean-table", {
             <b-table
                 :hover="isSubtable"
                 small
-                responsive="sm"
+                responsive
                 :items="tableData"
                 :fields="probFields"
                 :per-page="perPage"
                 :current-page="currentPage"
                 :sort-by="sortBy"
                 :sort-desc="true"
+                :sort-null-last="true"
             >
                 <template #cell(label)="r">
                     <span v-if="!!r.item.label">
@@ -252,12 +282,12 @@ export default Vue.component("pigean-table", {
                         {{ r.item.gene }}
                     </a>
                 </template>
-                <template #cell(phenotype)="r">
+                <template #cell(phenotypeDesc)="r">
                     <a
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                        {{ r.item.phenotypeDesc }}
                     </a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
@@ -267,6 +297,22 @@ export default Vue.component("pigean-table", {
                     >
                         {{ r.item.gene_set }}
                     </a>
+                </template>
+                <template #cell(top_gene_sets)="r">
+                    <div class="wrapped-cell-content">
+                        <span v-if="r.item.top_gene_sets">
+                            {{ r.item.top_gene_sets }}
+                        </span>
+                        <span v-else>-</span>
+                    </div>
+                </template>
+                <template #cell(top_genes)="r">
+                    <div class="wrapped-cell-content">
+                        <span v-if="r.item.top_genes">
+                            {{ r.item.top_genes }}
+                        </span>
+                        <span v-else>-</span>
+                    </div>
                 </template>
                 <template #cell(phewasPlot)="row">
                     <b-button
@@ -283,7 +329,11 @@ export default Vue.component("pigean-table", {
                         size="sm"
                         @click="showDetails(row, 1)"
                     >
-                        {{ row.detailsShowing ? "Hide" : "Show" }}
+                        {{
+                            row.detailsShowing && row.item.subtableActive !== 3
+                                ? "Hide"
+                                : "Show"
+                        }}
                     </b-button>
                 </template>
                 <template #cell(expand1)="row">
@@ -340,6 +390,20 @@ export default Vue.component("pigean-table", {
                         </b-dropdown-item>
                     </b-dropdown>
                 </template>
+                <template #cell(expand3)="row">
+                    <b-button
+                        variant="outline-primary"
+                        size="sm"
+                        :disabled="hideLocusButton(row.item.phenotype)"
+                        @click="showDetails(row, 3)"
+                    >
+                        {{
+                            row.detailsShowing && row.item.subtableActive === 3
+                                ? "Hide"
+                                : "Show"
+                        }}
+                    </b-button>
+                </template>
                 <template #row-details="row">
                     <research-phewas-plot
                         v-if="
@@ -353,7 +417,9 @@ export default Vue.component("pigean-table", {
                         )}`"
                         :plot-name="`PIGEAN_${row.item.phenotype}`"
                         :phenotypes-data="phewasData[phewasKey(row.item)]"
-                        :phenotype-map="phenotypeMap || $store.state.bioPortal.phenotypeMap"
+                        :phenotype-map="
+                            phenotypeMap || $store.state.bioPortal.phenotypeMap
+                        "
                         :linkPhenotypes="true"
                         :isPigean="true"
                         :colors="plotColors"
@@ -385,6 +451,12 @@ export default Vue.component("pigean-table", {
                         :isSubtable="true"
                     >
                     </pigean-table>
+                    <div v-if="row.item.subtableActive === 3">
+                        <pigean-locus-zoom
+                            :phenotype="row.item.phenotype"
+                            :gene="row.item.gene"
+                        ></pigean-locus-zoom>
+                    </div>
                 </template>
             </b-table>
             <b-pagination
@@ -418,5 +490,11 @@ label {
 }
 ul.top-list {
     font-size: 0.8rem;
+}
+.wrapped-cell-content {
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    max-width: 300px;
 }
 </style>

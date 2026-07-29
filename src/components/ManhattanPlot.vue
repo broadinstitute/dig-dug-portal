@@ -9,7 +9,7 @@ import Vue from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
-import { difference } from "lodash";
+import { difference } from "@/utils/lodashUtils";
 
 export default Vue.component("ManhattanPlot", {
     props: ["associations", "colorByPhenotype", "phenotypes", "phenotypeMap"],
@@ -296,7 +296,7 @@ for (let i in chromosomes) {
     opacity: 0.65 !important;
     fill: currentColor;
 }
-</script > <style > div.manhattan-tooltip table {
+div.manhattan-tooltip table {
     background-color: white;
     font-size: small;
     border: 1px solid darkgray;

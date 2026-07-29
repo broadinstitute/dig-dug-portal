@@ -50,6 +50,16 @@
 				:canvasId="sectionId"
 				:utils="utils"
 			></research-bar-plot>
+			<!-- CFDE Xing plot-->
+			<research-cfde-xing
+				v-if="plotConfig['type'] == 'cfde xing'"
+				:data="plotData"
+				:colors="colors"
+				:plotMargin="plotMargin"
+				:renderConfig="plotConfig"
+				:canvasId="sectionId"
+				:utils="utils"
+			></research-cfde-xing>
 			<!-- Bar in cell plot-->
 			<research-bar-in-cell-plot
 				v-if="plotConfig['type'] == 'bar in cell plot'"
@@ -118,7 +128,7 @@
 				:utils="utils"
 				:starItems="starItems"
 				:colors="colors"
-				
+				@ld-data-loaded="ld => receiveLDData(ld)"
 				@on-star="starColumn"
 			></multi-region-plot>
 			
@@ -170,6 +180,19 @@
 				
 			></multi-genes-track>
 
+			<!-- simple scatter plot -->
+			<research-simple-scatter-plot
+				v-if="!!plotConfig && plotConfig['type'] == 'simple scatter plot'"
+				:plotData="plotData"
+				:renderConfig="plotConfig"
+				:plotMargin="plotMargin"
+				:colors="colors"
+				:sectionId="sectionId"
+				:utils="utils"
+				:row-key-field="rowKeyField"
+				:linked-hover-key="linkedHoverKey"
+				@hover-key-change="$emit('hover-key-change', $event)"
+			></research-simple-scatter-plot>
 			<!-- scatter plot -->
 			<research-scatter-plot
 				v-if="!!plotConfig && plotConfig['type'] == 'scatter plot'"
@@ -191,9 +214,19 @@
 				:utils="utils"
 				:data="plotData"
 			></research-single-cell-browser>
-
 		</template>
-		
+		<research-splice-track
+				v-if="sectionId.startsWith('sQTL_by_region0_2')"
+			:region="region"
+			:plotConfig="plotConfig"
+			:plotType="plotConfig['type']"
+			:plotMargin="plotMargin"
+			:regionZoom="0"
+			:regionViewArea="regionViewArea"
+			:utils="utils"
+			:colors="colors"
+			:sectionId="sectionId">
+			</research-splice-track>
 	</div>
 </template>
 
@@ -211,6 +244,7 @@ import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchMultiAnnotationsPlot.vue";
 import ResearchScatterPlot from "@/components/researchPortal/ResearchScatterPlot.vue";
+import ResearchSimpleScatterPlot from "@/components/researchPortal/ResearchSimpleScatterPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
 import ResearchBarInCellPlot from "@/components/researchPortal/ResearchBarInCellPlot.vue";
@@ -218,13 +252,17 @@ import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
 import ResearchRegionTrack from "@/components/researchPortal/ResearchRegionTrack.vue";
 import ResearchRegionDotsTrack from "@/components/researchPortal/ResearchRegionDotsTrack.vue";
 import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSpliceTrack from "@/components/researchPortal/ResearchSpliceTrack.vue";
+import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
 export default Vue.component("research-section-visualizers", {
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
-		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom","regionViewArea","starItems","region","bigRegion"],
+		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
+		"regionViewArea","starItems","region","bigRegion","rowKeyField","linkedHoverKey"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
+		ResearchSimpleScatterPlot,
 		ResearchMPlotBitmap,
 		ResearchMQQPlot,
 		ResearchRegionPlot,
@@ -239,7 +277,9 @@ export default Vue.component("research-section-visualizers", {
 		ResearchBoxPlot,
 		ResearchRegionTrack,
 		ResearchRegionDotsTrack,
-		ResearchSingleCellBrowser
+		ResearchSingleCellBrowser,
+		ResearchSpliceTrack,
+		cfdePhenotypeXing
     },
 	data() {
 		return {
@@ -269,6 +309,9 @@ export default Vue.component("research-section-visualizers", {
 		starColumn(ARRAY) {
 			this.$emit('on-star', ARRAY);
 		},
+		receiveLDData(DATA){
+			this.$emit("ld-data-loaded", DATA);
+		}
 	},
 });
 

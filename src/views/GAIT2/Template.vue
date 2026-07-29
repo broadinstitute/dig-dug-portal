@@ -967,7 +967,7 @@
                                                     hover
                                                     small
                                                     sort-icon-left
-                                                    responsive="sm"
+                                                    responsive
                                                     sticky-header="400px"
                                                     :per-page="$parent.perPage"
                                                     :current-page="
@@ -1124,7 +1124,7 @@
                                             striped
                                             hover
                                             small
-                                            responsive="sm"
+                                            responsive
                                             :items="
                                                 $parent.formatTestData(
                                                     $parent.runResults
@@ -1195,7 +1195,7 @@
                                                     striped
                                                     hover
                                                     small
-                                                    responsive="sm"
+                                                    responsive
                                                     sort-icon-left
                                                     :items="
                                                         $parent.formatTestData(

@@ -1,6 +1,6 @@
 import { json } from "d3";
 import queryString, { extract } from "query-string";
-import { cloneDeep, merge, get } from "lodash";
+import { get } from "@/utils/lodashUtils";
 import jsonQuery from "json-query";
 const cachedFetch = (url, options) => {
     // Use the URL as the cache key to sessionStorage
@@ -720,55 +720,3 @@ export default {
         curieForGene,
     },
 };
-
-const messageTRAPI =
-    (url) =>
-    (endpoint) =>
-    async (body = "", method = "GET") => {
-        if (url.charAt(url.length - 1) === "/") {
-            url = url.slice(0, url.length - 1);
-        }
-
-        if (endpoint === "query") {
-            method = "POST";
-        }
-
-        let request = {
-            method,
-        };
-
-        if (body !== "") {
-            request["body"] = body;
-            // request['headers'] = {
-            //     contentType: 'application/json'
-            // }
-        }
-
-        return fetch("https://api.bte.ncats.io/v1/predicates", {
-            headers: {
-                accept: "application/json",
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "cross-site",
-                "sec-gpc": "1",
-            },
-            referrerPolicy: "strict-origin-when-cross-origin",
-            body: null,
-            method: "GET",
-            mode: "cors",
-            credentials: "omit",
-        });
-    };
-
-messageTRAPI("https://api.bte.ncats.io/v1/")("query")({
-    message: {
-        ...biolinkQueryGraph("MONDO:0005737", {
-            subject: "biolink:Disease",
-            object: "biolink:ChemicalSubstance",
-        }),
-    },
-});
-
-async function queryTRAPI(url, message, callback) {
-    return messageTRAPI(url)("query")(message).then(callback);
-}

@@ -89,13 +89,14 @@
 
             <div class="card mdkp-card">
                 <div class="card-body pigean-title">
-                    <h4 class="card-title">
-                        Traits with genetic support
-                    </h4>
+                    <h4 class="card-title">Traits with genetic support 
+                        (trait group: {{ !!$parent.traitGroups[$store.state.traitGroup]
+                            ? $parent.traitGroups[$store.state.traitGroup]
+                            : $parent.tissueFormatter($store.state.traitGroup).toUpperCase()}})</h4>
                     <div>
-                        Combined genetic support is composed of direct support 
-                        (from GWAS associations near the gene) and indirect support 
-                        (membership in gene sets with genetic support). 
+                        Combined genetic support is composed of direct support
+                        (from GWAS associations near the gene) and indirect
+                        support (membership in gene sets with genetic support).
                         Units are log-odds of probability.
                     </div>
                 </div>
@@ -105,16 +106,14 @@
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
                             :options="
-                                $parent.phewasAllData.map(
-                                    (d) => d.phenotype
-                                )
+                                $parent.phewasAllData.map((d) => d.phenotype)
                             "
                             :label-formatter="
                                 (phenotype) =>
-                                    $parent.pigeanMap[
-                                            phenotype
-                                        ]?.description
-                                    || phenotype
+                                    ($parent.pigeanMap[phenotype] &&
+                                        $parent.pigeanMap[phenotype]
+                                            .description) ||
+                                    phenotype
                             "
                             :multiple="true"
                         >
@@ -138,9 +137,7 @@
                                         :phenotypes-data="
                                             $parent.phewasAdjustedData
                                         "
-                                        :phenotype-map="
-                                            $parent.pigeanMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :linkPhenotypes="true"
                                         :isPigean="true"
                                         :colors="$parent.plotColors"
@@ -148,24 +145,33 @@
                                         :utils="$parent.utilsBox"
                                         :filter="filter"
                                         :native-dl-btn="false"
-                                        @dotsHovered="(dots) => $parent.hoverDots(dots, true)"
-                                        :matchingHoverDots="$parent.hoverDotsToPhewas"
+                                        @dotsHovered="
+                                            (dots) =>
+                                                $parent.hoverDots(dots, true)
+                                        "
+                                        :matchingHoverDots="
+                                            $parent.hoverDotsToPhewas
+                                        "
+                                        @pigeanColors="(colors) => $parent.storeColors(colors)"
                                     >
                                     </research-phewas-plot>
                                 </div>
                                 <div class="col-md-4">
                                     <pigean-plot
                                         v-if="$parent.plotReady"
+                                        :pigeanColors="$parent.pigeanColors"
                                         :pigean-data="
                                             $parent.pigeanFilteredData
                                         "
                                         :config="$parent.pigeanPlotConfig"
-                                        :phenotype-map="
-                                            $parent.pigeanMap
-                                        "
+                                        :phenotype-map="$parent.pigeanMap"
                                         :filter="filter"
-                                        @dotsHovered="(dots) => $parent.hoverDots(dots)"
-                                        :matchingHoverDots="$parent.hoverDotsToPigean"
+                                        @dotsHovered="
+                                            (dots) => $parent.hoverDots(dots)
+                                        "
+                                        :matchingHoverDots="
+                                            $parent.hoverDotsToPigean
+                                        "
                                     >
                                     </pigean-plot>
                                 </div>
@@ -174,9 +180,7 @@
                                 <pigean-table
                                     v-if="$parent.plotReady"
                                     :pigean-data="$parent.pigeanFilteredData"
-                                    :phenotype-map="
-                                        $parent.pigeanMap
-                                    "
+                                    :phenotype-map="$parent.pigeanMap"
                                     :config="$parent.tableConfig"
                                     :filter="filter"
                                 >
@@ -254,7 +258,7 @@
     padding-top: 0;
 }
 
-#pigean-hover-link{
+#pigean-hover-link {
     padding-left: 25px;
 }
 </style>

@@ -12,7 +12,7 @@
             <b-table
                 hover
                 small
-                responsive="sm"
+                responsive
                 :items="clumpedAssociations"
                 :fields="fields"
                 :per-page="perPage"
@@ -144,7 +144,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import DataDownload from "@/components/DataDownload";
 
-import { isEqual } from "lodash";
+import { isEqual } from "@/utils/lodashUtils";
 
 export default Vue.component("ClumpedAssociationsTable", {
     components: {

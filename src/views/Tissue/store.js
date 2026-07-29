@@ -28,6 +28,7 @@ export default new Vuex.Store({
         selectedPhenotype: null,
         annotationOptions: [],
         selectedAnnotation: "",
+        singleCellDatasets: null
     },
 
     mutations: {
@@ -110,6 +111,16 @@ export default new Vuex.Store({
 				});
             context.state.ancestryOptions = ancestries;
 		},
+        async getSingleCellDatasets(context){
+            const response = await fetch(`${BIO_INDEX_HOST}/api/raw/file/single_cell_all_metadata/dataset_metadata.json.gz`);
+            const text = await response.text();
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            let metadata = lines.map(line => JSON.parse(line));
+            if (metadata[0]?.data_type) {
+                metadata =  metadata.filter(item => item.data_type === 'single_cell');
+            }
+            context.state.singleCellDatasets = metadata;
+        }
     },
     getters: {
         tissueData(state) {

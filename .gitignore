@@ -27,9 +27,10 @@ node_modules
 .eslintrc.json
 .eslintrc.js
 
-package-lock.json
 pnpm-lock.yaml
 
 public/data/
 public/cmsdata.tmp/
 .vs/
+.claude/settings.local.json
+.cursor/*

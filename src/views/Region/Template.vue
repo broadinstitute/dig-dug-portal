@@ -146,7 +146,7 @@
                                 </div>
                             </div>
 
-                            <div class="pws-merged-view svg-wrapper">
+                            <div class="pws-merged-view svg-wrapper" style="margin-top: 25px;">
                                 <phenotype-signal-bar-chart
                                     v-if="
                                         $parent.topAssociations.length > 0 &&

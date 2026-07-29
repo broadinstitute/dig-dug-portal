@@ -318,7 +318,7 @@
 
 <script>
 import Vue from "vue";
-import groupBy from "lodash/groupBy";
+import { groupBy } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";

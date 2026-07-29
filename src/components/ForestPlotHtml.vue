@@ -256,7 +256,7 @@
 
 <script>
 import Vue from "vue";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 import uiUtils from "@/utils/uiUtils";

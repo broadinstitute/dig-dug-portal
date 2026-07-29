@@ -24,7 +24,7 @@
 
 <script>
 import Vue from "vue";
-import { cloneDeep } from "lodash";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";

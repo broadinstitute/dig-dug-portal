@@ -24,6 +24,7 @@ import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import ResearchAnnotationsPlot from "@/components/researchPortal/ResearchAnnotationsPlot.vue";
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import kpGEMPkg from "@/components/kpDataViewer/kpGEMPkg.vue";
+import GiantGemPkg from "@/components/researchPortal/customComponents/GiantGemPkg.vue";
 import ResearchSection from "@/components/researchPortal/ResearchSection.vue";
 import ResearchSectionsSummary from "@/components/researchPortal/ResearchSectionsSummary.vue";
 import ResearchMultiSectionsSearch from "@/components/researchPortal/ResearchMultiSectionsSearch.vue";
@@ -69,6 +70,7 @@ new Vue({
         ResearchHeatmap,
         ResearchPheWAS,
         kpGEMPkg,
+        GiantGemPkg,
         ResearchSection,
         ResearchSectionsSummary,
         ResearchMultiSectionsSearch,
@@ -205,18 +207,35 @@ new Vue({
             let params = {};
             if (this.multiSectionsSearchParameters) {
                 this.multiSectionsSearchParameters.map((mp) => {
-                    let values =
-                        !!mp.values && !!Array.isArray(mp.values) ? {} : null;
-                    if (values != null) {
-                        mp.values.map((v) => {
-                            values[v.value] = v.label;
-                        });
-                    }
+                    if (mp.type != "multi search") {
+                        let values =
+                            !!mp.values && !!Array.isArray(mp.values) ? {} : null;
+                        if (values != null) {
+                            mp.values.map((v) => {
+                                values[v.value] = v.label;
+                            });
+                        }
 
-                    params[mp.parameter] = {
-                        label: mp.label,
-                        values: values,
-                    };
+                        params[mp.parameter] = {
+                            label: mp.label,
+                            values: values,
+                        };
+                    } else if (mp.type == "multi search") {
+                        mp.parameters.map(P => {
+                            let values =
+                                !!P.values && !!Array.isArray(P.values) ? {} : null;
+                            if (values != null) {
+                                P.values.map((v) => {
+                                    values[v.value] = v.label;
+                                });
+                            }
+
+                            params[P.parameter] = {
+                                label: P.label,
+                                values: values,
+                            };
+                        })
+                    }
                 });
             }
 
@@ -276,6 +295,26 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
+        },
+        rawSearchParameters() {
+            let parameters;
+            if (!!this.sectionConfigs["search parameters"]) {
+                parameters = this.sectionConfigs["search parameters"];
+            } else {
+                parameters = [];
+            }
+
+            return parameters;
+        },
+        sharedResource() {
+            let sharedResource;
+            if (!!this.sectionConfigs["shared resource"]) {
+                sharedResource = this.sectionConfigs["shared resource"];
+            } else {
+                sharedResource = null;
+            }
+
+            return sharedResource;
         },
         multiSectionsSearchParameters() {
             if (this.phenotypesInSession.length > 0) {
@@ -365,7 +404,6 @@ new Vue({
                         pr.parameter == "phenotype" &&
                         pr.values == "kp phenotypes"
                     ) {
-                        //console.log("this.phenotypesInSession", this.phenotypesInSession)
 
                         let shorterFirst = this.phenotypesInSession.sort(
                             (a, b) =>
@@ -671,15 +709,15 @@ new Vue({
                                 "cont?token=" + convertedData.continuation;
                         }
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: APIPoint,
                             domain: "external",
+                            wildCard: wildCard
                         };
 
-                        this.$store.dispatch(
-                            "hugeampkpncms/getResearchData",
-                            fetchParam
-                        );
+                        this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
                     } else if (
                         convertedData.continuation == null &&
                         convertedData.page != 1
@@ -988,9 +1026,6 @@ new Vue({
     },
 
     watch: {
-        sectionsData(DATA) {
-            //console.log("sectionsData", DATA);
-        },
         sectionConfigs(CONFIGS) {
             let context;
 
@@ -1055,6 +1090,7 @@ new Vue({
             }
         },
         researchPage(content) {
+
             if (content.length != 0 && content != null) {
                 if (content[0]["field_page_style"] != false) {
                     let css = content[0]["field_page_style"];
@@ -1138,9 +1174,12 @@ new Vue({
                                 ? "external"
                                 : "hugeampkpn";
 
+                        let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                         let fetchParam = {
                             dataPoint: dataPoint,
                             domain: domain,
+                            wildCard: wildCard
                         };
 
                         if (this.isAPI != null && this.isAPI == false) {
@@ -1325,7 +1364,7 @@ new Vue({
             })
         },
         updateParams() {
-            console.log("updateParams() called");
+            //console.log("updateParams() called");
         },
         getReplaced(CONTENT) {
             return this.utilsBox.Formatters.replaceWithParams(
@@ -2065,6 +2104,7 @@ new Vue({
             }
         },
         queryAPI() {
+
             if (this.apiParameters.query.type == "array") {
                 let parametersArr = this.apiParameters.query.format;
                 let parametersArrLength = parametersArr.length;
@@ -2111,10 +2151,14 @@ new Vue({
                         APIPoint += queryParams;
                     }
 
+                    let wildCard = this.$store.state.hugeampkpncms.wildCard;
+
                     let fetchParam = {
                         dataPoint: APIPoint,
                         domain: "external",
+                        wildCard: wildCard
                     };
+
 
                     this.$store.dispatch(
                         "hugeampkpncms/getResearchData",
@@ -2258,10 +2302,22 @@ new Vue({
         showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER) {
             uiUtils.showTabContent(TAB, CONTENT, TAB_WRAPPER, CONTENT_WRAPPER);
         },
-    },
+        getLowestPValue(sectionData) {
+            let p = "P-value";
+            let sortedData = sectionData.data.sort((a, b) => a[p] - b[p]);
+            return sortedData[0][p] !== undefined
+                ? sortedData[0]
+                : null;
+        },
+        receiveLDData(LD_DATA) {
+            console.log("LD Data", JSON.stringify(LD_DATA));
+            this.$store.dispatch("sendLDData", LD_DATA);
+        },
+        getSplice(splice) {
+            this.selectedSplice = splice;
+            this.$store.dispatch("selectSplice", splice);
+        }
 
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     render(createElement, context) {

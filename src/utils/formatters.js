@@ -1,3 +1,5 @@
+import { sanitizeHtml, sanitizeToText } from "./sanitizeUtils";
+
 function alleleFormatter(reference, alt) {
     if (reference.length > 3) {
         reference = reference.substr(0, 3) + "...";
@@ -303,7 +305,7 @@ function ssColumnFormat(ROW_DATA, FORMAT, VALUE) {
 
 }
 
-function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES) {
+function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
 
     let cellValue = VALUE;
     formatTypes.map((type) => {
@@ -422,7 +424,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                     let linksArr = [];
 
                     let cellVals = (typeof cellValue == "string") ? cellValue.split(",") :
-                        (typeof cellValue == "object" && !!cellValue.isArray()) ? cellValue : [cellValue];
+                        Array.isArray(cellValue) ? cellValue : [cellValue];
 
                     cellVals.map(v => {
                         let link = "<a href='" + columnKeyObj["link to"] + v;
@@ -450,11 +452,41 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
                 break;
 
+            case "link with parameters":
+                if (!!cellValue && cellValue != "") {
+
+                    let link = "<a href='" + columnKeyObj["link to"];
+
+                    let paramKeys = Object.keys(columnKeyObj["parameters"]);
+
+                    paramKeys.map(key => {
+                        link += key + '=' + ROW_VALUE[columnKeyObj["parameters"][key]] + '&';
+                    })
+
+                    link +=
+                        linkToNewTab == "true"
+                            ? "' target='_blank'>" + cellValue + "</a>"
+                            : "'>" + cellValue + "</a>";
+
+                    linkString = link;
+                }
+
+                //console.log("linkString", linkString)
+                cellValue = (!!cellValue && cellValue != "") ? linkString : cellValue;
+
+                break;
+
             case "map name":
 
+                console.log("called");
                 let tempValue = cellValue;
 
-                cellValue = columnKeyObj["map"][cellValue];
+                if (columnKeyObj["map"] == "shared resource") {
+                    let map = this.$root.sharedResource[columnKeyObj["map name"]]
+                    cellValue = map[cellValue];
+                } else {
+                    cellValue = columnKeyObj["map"][cellValue];
+                }
 
                 if (!!columnKeyObj["link to"]) {
                     cellValue = "<a href='" + tempValue + "'>" + cellValue + "</a>"
@@ -499,11 +531,11 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
 
                 break;
 
-            case "value in class":
+            case "value in class": {
+                const colorize = formatTypes.includes('colorize');
                 if (typeof cellValue != "object") {
-                    const colorize = formatTypes.includes('colorize');
                     cellValue = `<span class="${cellValue} ${colorize ? 'do-color' : ''}">${cellValue}</span>`
-                } else if (typeof cellValue == "object" && !!Array.isArray(cellValue)) {
+                } else if (Array.isArray(cellValue)) {
                     let cellValueString = "";
                     cellValue.map(value => {
                         cellValueString += `<span class="${value} ${colorize ? 'do-color' : ''}">${value}</span>`;
@@ -513,6 +545,7 @@ function formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, C
                 }
 
                 break;
+            }
 
             case "render background percent":
                 fieldValue =
@@ -608,7 +641,7 @@ function getHoverValue(VALUE) {
     return formatted;
 }
 
-function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
+function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE) {
     if (
         CONFIG["column formatting"] != undefined &&
         CONFIG["column formatting"][KEY] != undefined
@@ -620,8 +653,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             : null;
         let cellValue;
 
-        if (formatTypes.includes("cfde-datatypes"))
+        if (formatTypes.includes("cfde-datatypes")) {
             console.log(typeof VALUE, Array.isArray(VALUE));
+        }
+
 
         if (typeof VALUE != "object") {
             //console.log('...not object')
@@ -631,7 +666,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 `;
                 cellValue = cellValueString;
             } else {
-                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                cellValue = formatCellValues(VALUE, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
             }
         } else if (typeof VALUE == "object" && !!Array.isArray(VALUE)) {
             //console.log('...is array')
@@ -683,7 +718,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 //console.log('...something else')
                 let cellValueString = (!!formatTypes.includes("image") && VALUE != "") ? "<div class='imgs_wrapper'>" : "";
                 VALUE.map(value => {
-                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES);
+                    cellValueString += formatCellValues(value, columnKeyObj, formatTypes, linkToNewTab, KEY, CONFIG, PMAP, DATA_SCORES, ROW_VALUE);
                 })
 
                 cellValueString += (!!formatTypes.includes("image") && VALUE != "") ? "</div>" : "";
@@ -695,7 +730,7 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
                 cellValue = `<div class=""><div class="">${VALUE["description"]}</div><a href="${VALUE["link"]}" target="_blank">${VALUE["link label"]}</a></div>`
             }
             if (formatTypes.includes("cfde-datatypes")) {
-                console.log("data type!");
+                //console.log("data type!");
                 let cellValueString = '<div style="display:flex;flex-direction:column; gap:10px;">';
                 for (const [key, value] of Object.entries(VALUE)) {
                     if (value.trim() != '') {
@@ -712,7 +747,10 @@ function BYORColumnFormatter(VALUE, KEY, CONFIG, PMAP, DATA_SCORES) {
             }
         }
 
-        return cellValue;
+        // The HTML built above interpolates data values unescaped and is
+        // rendered via v-html by table/card components, so sanitize it here
+        // at the formatter boundary.
+        return sanitizeHtml(cellValue);
     } else {
         return VALUE;
     }
@@ -740,15 +778,21 @@ function replaceWithParams(STR, PARAMS) {
 
         Object.keys(queryParams).map(key => {
             if (paramKeys.includes(key)) {
-                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : queryParams[key];
+                // Raw query-param values are attacker-controlled and callers
+                // render this string via v-html, so reduce them to plain text
+                // before substitution; config-authored markup in STR (and
+                // values mapped through the trusted PARAMS config) stays intact.
+                let replaceTo = (!!PARAMS[key].values) ? PARAMS[key].values[queryParams[key]] : sanitizeToText(queryParams[key]);
                 replacedSTR = replacedSTR.replaceAll('$' + key, replaceTo);
             }
         })
 
-        replacedSTR = replacedSTR.replaceAll('$', '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
+        // Only mark unresolved $placeholder keys; literal dollar amounts like
+        // "$100k" are left alone.
+        replacedSTR = replacedSTR.replace(/\$(?=[A-Za-z_])/g, '<small style="background-color: #cccccc; padding: 0 0.1em; font-size:0.65em; vertical-align: text-top; margin-right: 0.2em;">parameter</small>');
     }
 
-    return replacedSTR
+    return replacedSTR;
 }
 
 

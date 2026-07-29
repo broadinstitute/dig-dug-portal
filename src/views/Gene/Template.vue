@@ -184,6 +184,19 @@
                     </b-tabs>
                 </div>
             </div>
+
+            <!-- Pigean Gene 
+            <pigean-gene 
+        v-if="$parent.pigeanGeneData && $parent.pigeanGeneData.length > 0 && $parent.phenotypeMap"
+            :gene="$store.state.geneName"
+            :hugeScores="$parent.hugeScores"
+            :pigeanData="$parent.pigeanGeneData"
+            :phenotypesInSession="$parent.phenotypesInSession"
+            :phenotypeMap="$parent.phenotypeMap"
+            ></pigean-gene>
+            -->
+        
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4>
@@ -660,6 +673,38 @@
                         "
                     >
                     </research-expression-display>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Cell state expression for
+                        {{ $store.state.geneName }}
+                        <tooltip-documentation
+                            name="gene.cell-state-expression.tooltip"
+                            :content-fill="$parent.docDetails"
+                            :default-content="
+                                $parent.cellStateExpressionTooltipDefault
+                            "
+                            :is-hover="true"
+                            :no-icon="false"
+                            :content-map="$store.state.bioPortal.documentations"
+                        >
+                        </tooltip-documentation>
+                    </h4>
+                    <documentation
+                        name="gene.cell-state-expression.subheader"
+                        :content-fill="$parent.docDetails"
+                        :default-content="
+                            $parent.cellStateExpressionSubheaderDefault
+                        "
+                        :content-map="$store.state.bioPortal.documentations"
+                    >
+                    </documentation>
+                    <liger-table
+                        :gene-name="$store.state.geneName"
+                    ></liger-table>
                 </div>
             </div>
 

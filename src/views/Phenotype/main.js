@@ -4,17 +4,22 @@ import store from "./store.js";
 
 import AncestrySelectPicker from "@/components/AncestrySelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
-import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue"; // Commented out - gene-level associations section is muted
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import CorrelationTable from "@/components/CorrelationTable.vue";
 import PathwayTable from "@/components/PathwayTable.vue";
 import C2ctTable from "@/components/C2ctTable.vue";
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
-import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue"; // Commented out - gene-level associations section is muted
 import EffectorGenesSection from "@/components/EffectorGenesSection.vue";
 import RawImage from "@/components/RawImage.vue";
 import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
+import PigeanPhenotype from "@/components/PigeanPhenotype.vue";
+import PigeanFactor from "@/components/PigeanFactors.vue";
+
+import GeneSet2Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";
+import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
@@ -40,7 +45,7 @@ new Vue({
     store,
     components: {
         AncestrySelectPicker,
-        GeneFinderTable,
+        GeneFinderTable, // Commented out - gene-level associations section is muted
         AssociationsTable,
         EnrichmentTable,
         DatasetsTable,
@@ -57,10 +62,14 @@ new Vue({
         FilterEffectDirection,
         SearchHeaderWrapper,
         ResearchMPlot,
-        PhenotypeHugeScores,
+        PhenotypeHugeScores, // Commented out - gene-level associations section is muted
         C2ctTable,
         ResearchSingleSearch,
         MetaAnalysisBarGraph,
+        PigeanPhenotype,
+        PigeanFactor,
+        // CFDE features
+        GeneSet2Phenotype,
     },
     mixins: [pageMixin],
     data() {
@@ -182,7 +191,7 @@ new Vue({
             return focusedData;
         },
         c2ctData() {
-            let data = !!this.$store.state.selectedAnnotation ? 
+            let data = !!this.$store.state.selectedAnnotation ?
                 this.$store.state.c2ctAnnotation.data :
                 this.$store.state.c2ct.data;
             data.forEach((d) => {
@@ -202,9 +211,9 @@ new Vue({
             if (phenotype) {
                 this.$store.state.selectedPhenotype = phenotype;
                 keyParams.set({ phenotype: phenotype.name });
+                //Initial query. Should only happen once.
+                this.$store.dispatch("queryPhenotype");
             }
-            //Initial query. Should only happen once.
-            this.$store.dispatch("queryPhenotype");
         },
         "$store.state.annotationOptions"(data) {
             this.annotation = data[0];
@@ -212,6 +221,10 @@ new Vue({
         "$store.state.phenotype": function (phenotype) {
             keyParams.set({ phenotype: phenotype.name });
             uiUtils.hideElement("phenotypeSearchHolder");
+            // Fetch pigean gene-phenotype data when phenotype is set
+            if (phenotype) {
+                this.$store.dispatch("getPigeanGenePhenotypeData");
+            }
         },
         "$store.state.ancestry": function (ancestry) {
             keyParams.set({ ancestry: ancestry });
@@ -220,6 +233,7 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        // Commented out - gene-level associations section is muted
         hidePValueFilter(hide) {
             let pValuePills = document.querySelectorAll(
                 ".geneLevelAssoc .filter-pill-pValue"
@@ -245,6 +259,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("getAnnotations");
+        // Removed getPigeanGenePhenotypeData - now called when phenotype is set
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -280,10 +295,11 @@ new Vue({
 
             return isInPhenotype == searchKeys.length ? true : null;
         },
+        // Commented out - gene-level associations section is muted
         clickedTab(tabLabel) {
             this.hidePValueFilter = tabLabel === "hugescore";
         },
-        onAnnotationSelected(){
+        onAnnotationSelected() {
             this.$store.commit("setSelectedAnnotation", this.annotation);
             this.$store.dispatch("getCs2ct");
         }
