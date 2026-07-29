@@ -1,16 +1,16 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.11 | Generated: 2026-06-06T15:26:15Z | Hash: 6f68bdfab502 -->
-<!-- Sources: dig-dug-portal/master/AGENTS.md + dig-dug-portal/AGENTS.md -->
+<!-- Version: 1.0.16 | Generated: 2026-07-29T22:03:53Z | Hash: 49991b3535a3 -->
+<!-- Sources: dig-dug-portal/sysbio-main/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
-# dig-dug-portal — master
+# dig-dug-portal — sysbio-main
 
 ## Variant-Specific Guidance
 
 ## Purpose and Intended Audience
 
-Variant-specific guidance for the `master` build of dig-dug-portal. Extends ../AGENTS.md; root rules and workflows still apply.
+Variant-specific guidance for the `sysbio-main` build of dig-dug-portal. Extends ../AGENTS.md; root rules and workflows still apply.
 
-Upstream branch: `master` of https://github.com/broadinstitute/dig-dug-portal
+Upstream branch: `sysbio-main` of https://github.com/broadinstitute/dig-dug-portal
 
 ## Repository Organization
 
@@ -18,33 +18,88 @@ This folder holds variant-specific notes only. Build and runtime instructions li
 
 ## Variant Notes
 
-- Branch: `master`
+- Branch: `sysbio-main`
+- Vue config: `configs/vue.config.SysBio.js` (variant-specific page set)
 - Differences from default: document only what diverges from parent (entry pages, env vars, deploy target).
+- vis-network: `^10.0.2` + `vis-data ^8.0.3` direct; same track as master with no `vue-vis-network` wrapper.
+
+## Scripts Folder (SysBio-specific)
+
+This branch includes a `scripts/` folder at root with CMS caching and GCP deployment utilities:
+
+| Script                | Purpose                                                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `check-cmsdata.js`    | Pre-build validator; ensures `public/cmsdata/manifest.json` exists; exits with error if missing (runs during npm build).                  |
+| `cmsdata.manifest.js` | Configuration declaring CMS resources to fetch (BYOR content, news feeds, CSV refs, assets).                                              |
+| `fetch-cmsdata.js`    | Fetches JSON + assets from `hugeampkpncms.org` per manifest; rewrites URLs to local `/cmsdata/` paths; run manually or auto during build. |
+| `push-to-gcp.sh`      | Builds Docker image, tags for GCP Artifact Registry, pushes; optionally redeploys Cloud Run service.                                      |
+
+### CMS Caching Strategy
+
+- **Production:** Uses snapshot cache from `public/cmsdata/` (required by check-cmsdata.js).
+- **Development:** Use live CMS by setting `USE_REMOTE_CMS=1` environment variable.
+- **Refresh cache:** `npm run fetch:cmsdata`
+- Cache includes manifest.json with timestamp and file counts.
+
+### GCP Deployment
+
+bash/zsh:
+
+```bash
+# Build and push image
+./scripts/push-to-gcp.sh --project <GCP_PROJECT_ID>
+
+# Build, push, and deploy to Cloud Run
+./scripts/push-to-gcp.sh --project <GCP_PROJECT_ID> --deploy
+```
+
+PowerShell users can run the same commands from Git Bash/WSL, or invoke via bash explicitly:
+
+```powershell
+bash ./scripts/push-to-gcp.sh --project <GCP_PROJECT_ID>
+bash ./scripts/push-to-gcp.sh --project <GCP_PROJECT_ID> --deploy
+```
+
+Requires gcloud CLI and GCP credentials.
 
 ## Quick Start (Delta Only)
 
 Switch to this branch before running parent workflows:
 
 ```bash
-git checkout master
+git checkout sysbio-main
 ```
 
 Then follow setup, watch, build, and deploy from ../AGENTS.md.
 
-For local static preview of compiled master output:
+For local static preview of compiled SysBio output (without DIG-DUG server):
+
+bash/zsh and PowerShell:
 
 ```bash
-npm run preview
+npm run preview:dir -- portals/SysBio
 ```
+
+Use this after `npm run build` for smoke tests of generated HTML/assets.
 
 ## Constraints and Non-Negotiables
 
 - Do not duplicate parent guidance; record only variant-specific differences here.
 - Use uppercase `AGENTS.md` for any nested agent docs.
+- Static links are relative to this folder; avoid absolute paths to maintain portability.
+- **CMS data is mandatory for production builds.** Always run `npm run fetch:cmsdata` before final build if manifest is stale or missing. Live CMS data is opt-in via `USE_REMOTE_CMS=1` for development only.
+- Keep local static preview scripts available upstream (`preview`, `preview:dir`) and use `preview:dir` for SysBio's non-`dist/` output.
+- This portal use runtime configs for environment-specific values; do not hardcode env vars or deploy targets in source docs.
+- Minimize third-party dependencies; document any that are added. Whenever possible, and especially for static assets, cache them locally to avoid runtime fetches and ensure stability.
 
 ## Assumptions and Known Limitations
 
 - Variant-specific scripts or env vars not yet documented; add only when verified from source.
+
+## Deployment Target
+
+- Upon code push to GitHub, a GitHub Action will sync the necessary files to https://github.com/SysBio-FAIRplex/sysbio-portal, `main` branch.
+- When a tag is pushed to GitHub with format `sysbio_v*`, a build will trigger and deploy to Google Cloud Platform, currently an instance is live at https://sysbio-portal-347771964579.us-central1.run.app/. This deployment use Docker images, using the `Dockerfile` in this repo.
 
 ---
 
