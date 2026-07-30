@@ -5,6 +5,13 @@ Branch: `kyuryung/bch-prototype`
 Page: `/pb_Gene.html`  
 Audience: reviewer who has not seen the mockup, Helen's BioIndex table, or the aggregator implementation history
 
+For production transfer, start with the running mockup at
+<http://127.0.0.1:8095/pb_Gene.html?query=DMD> and then read:
+
+- `docs/pb_gene_production_integration_handoff.md`
+- `docs/pb_gene_context_api_guide.md`
+- `docs/pb_gene_context_api_review_checklist.md`
+
 ## Executive Summary
 
 Tier 1 is accepted for the first BCH `pb_Gene` slice. The Tier 1 validation work is complete.
@@ -41,7 +48,7 @@ The current score contracts are:
 | Match Score | Mean residual PheRS across unique carriers of the selected variant |
 | Gene burden | Per-patient sum of distinct carried-variant burden scores; REVEL is excluded |
 
-Fresh verification covered 46 Python tests, a successful Vue build, and the
+Fresh verification covered 47 Python tests, a successful Vue build, and the
 live private-BioIndex DMD page. The rendered result showed `6,132` gene
 carriers, `20 / 870` pathogenic-evidence variants, `870` total variant rows,
 numeric burden scores before REVEL-only `—*` rows, and the expanded REVEL
@@ -223,7 +230,7 @@ The original mockup was designed with a richer reference/data layer than the cur
 | Gene exon coordinates and sequence | `data/reference_db/gene_exon_coords.tsv` and equivalent RefSeq/Ensembl-style server-side resources | Real exon/base-level locus display. |
 | GenDx diagnosis detail | `data/reference_db/crdc_diagnosed_20240716.tsv` | Carrier row diagnosis detail once sample IDs are joined. |
 | Variant severity score | Derived from LoFTEE HC, AlphaMissense, and REVEL according to the page contract | Computed display score; ClinVar is context only, not part of the numeric score. |
-| Match score | Requires an active phenotype/outcome context plus a defined comparison method | This is the main intentionally unimplemented computed score in the current page. |
+| Match score | Context API mean residual PheRS across every unique carrier | Reference calculation and response mapping are implemented; production data/service wiring remains. |
 
 ## Final Decision
 

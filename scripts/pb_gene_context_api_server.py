@@ -42,13 +42,13 @@ def parse_context_request(payload):
         raise ValueError("significance_metric must be p_value or fdr")
     try:
         threshold = float(advanced.get("significance_threshold", 0.05))
-        min_carriers = int(advanced.get("min_carriers", 5))
+        min_carriers = int(advanced.get("min_carriers", 10))
     except (TypeError, ValueError):
         raise ValueError("threshold and min_carriers must be numeric")
     if not 0 < threshold <= 1:
         raise ValueError("significance_threshold must be greater than 0 and no more than 1")
-    if min_carriers < 1:
-        raise ValueError("min_carriers must be at least 1")
+    if min_carriers < 10:
+        raise ValueError("min_carriers must be at least 10")
     return {
         "gene": gene,
         "terms": terms,

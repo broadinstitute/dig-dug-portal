@@ -163,7 +163,7 @@ def gene_burden_test(
     x,
     covariates=None,
     covariate_names=None,
-    min_positive=5,
+    min_positive=10,
     huber_k=1.345,
     max_iter=100,
     tolerance=1e-4,

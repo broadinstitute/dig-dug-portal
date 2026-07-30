@@ -35,7 +35,7 @@
                     </label>
                     <label>
                         <span>Minimum carriers</span>
-                        <input v-model.number="minCarriersModel" type="number" min="1" step="1">
+                        <input v-model.number="minCarriersModel" type="number" min="10" step="1">
                     </label>
                     <small v-if="contextSignificanceMetric === 'fdr'">
                         BH-FDR is calculated within the API-defined test family.

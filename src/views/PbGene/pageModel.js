@@ -64,7 +64,7 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         activeContextTerms: [],
         contextSignificanceMetric: "p_value",
         contextSignificanceThreshold: 0.05,
-        contextMinCarriers: 5,
+        contextMinCarriers: 10,
 
         // Variants sub-accordion
         expandedVariantId: null,
@@ -1591,8 +1591,8 @@ export const pbGeneMethods = {
             this.contextError = "Threshold must be greater than 0 and no more than 1.";
             return;
         }
-        if (!Number.isInteger(minCarriers) || minCarriers < 1) {
-            this.contextError = "Minimum carriers must be a whole number of at least 1.";
+        if (!Number.isInteger(minCarriers) || minCarriers < 10) {
+            this.contextError = "Minimum carriers must be a whole number of at least 10.";
             return;
         }
 

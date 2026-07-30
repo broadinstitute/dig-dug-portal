@@ -84,21 +84,28 @@ class PbGeneContextValidationTest(unittest.TestCase):
             "covariates.tsv",
             ["sample_id", "age", "sex", *pc_columns],
             [
-                ["S1", 10, "Female", *range(1, 11)],
+                ["S1", 0, "Female", *range(1, 11)],
                 ["S2", "", "Male", *range(11, 21)],
-                ["S3", 30, "Unknown", *range(21, 31)],
+                ["S3", 99, "nonbinary", *range(21, 31)],
+                ["S4", 100, "not recorded", *range(31, 41)],
+                ["S5", -1, "Female", *range(41, 51)],
+                ["S6", "old", "Male", *range(51, 61)],
             ],
         )
 
-        loaded = load_covariates(path, ["S1", "S2", "S3"])
+        loaded = load_covariates(path, ["S1", "S2", "S3", "S4", "S5", "S6"])
 
         self.assertEqual(loaded["names"], COVARIATE_NAMES)
-        self.assertEqual(loaded["age_median"], 20.0)
-        np.testing.assert_array_equal(loaded["values"][:, 0], [10, 20, 30])
-        np.testing.assert_array_equal(loaded["values"][:, 1], [0, 1, 0])
-        np.testing.assert_array_equal(loaded["values"][:, 2:4], [[0, 0], [1, 0], [0, 1]])
+        self.assertEqual(loaded["age_median"], 49.5)
+        np.testing.assert_array_equal(loaded["values"][:, 0], [0, 49.5, 99, 49.5, 49.5, 49.5])
+        np.testing.assert_array_equal(loaded["values"][:, 1], [0, 1, 0, 1, 1, 1])
+        np.testing.assert_array_equal(
+            loaded["values"][:, 2:4],
+            [[0, 0], [1, 0], [0, 1], [0, 1], [0, 0], [1, 0]],
+        )
+        self.assertEqual(loaded["sex_counts"], {"Female": 2, "Male": 2, "Unknown": 2})
         with self.assertRaisesRegex(ValueError, "missing 1 analysis samples"):
-            load_covariates(path, ["S1", "S2", "S3", "S4"])
+            load_covariates(path, ["S1", "S2", "S3", "S4", "S5", "S6", "S7"])
 
     def test_reconstructs_score_with_revel_fallback_and_strict_precedence(self):
         lof = reconstruct_pathogenic_score({"LoF": "HC", "Alphamissense": "0.2", "REVEL": "0.9", "pathogenicity_score": "1"})

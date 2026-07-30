@@ -107,13 +107,13 @@ class GeneBurdenTest(unittest.TestCase):
         result = gene_burden_test(
             y=np.arange(6, dtype=float),
             x=np.array([0, 0, 0, 0, 1, 1], dtype=float),
-            min_positive=5,
+            min_positive=10,
         )
 
         self.assertEqual(result["status"], "insufficient_carriers")
         self.assertIsNone(result["beta"])
         self.assertIsNone(result["p_value"])
-        self.assertEqual(result["min_carriers"], 5)
+        self.assertEqual(result["min_carriers"], 10)
 
     def test_benjamini_hochberg_preserves_input_order(self):
         adjusted = benjamini_hochberg([0.01, 0.04, 0.03, 0.002])

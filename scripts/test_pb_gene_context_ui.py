@@ -35,6 +35,9 @@ class PbGeneContextUiTest(unittest.TestCase):
             self.assertIn(field, MODEL)
         for field in ("significance_metric", "significance_threshold", "min_carriers"):
             self.assertIn(field, MODEL)
+        self.assertIn("contextMinCarriers: 10", MODEL)
+        self.assertIn('min="10"', HPO_CONTEXT)
+        self.assertIn("at least 10", MODEL)
 
     def test_advanced_has_an_explicit_apply_and_run_submit(self):
         self.assertIn('class="pbg-context-advanced-apply"', HPO_CONTEXT)
