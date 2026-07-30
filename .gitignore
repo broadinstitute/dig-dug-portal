@@ -68,3 +68,6 @@ docs/*.pdf
 /data/reference_db/gene_exon_coords.example.tsv
 /data/reference_db/gene_exon_coords.tsv
 /data/reference_db/hgnc_complete_set.txt
+
+# project memory (local only, do not push)
+project_memory.md
