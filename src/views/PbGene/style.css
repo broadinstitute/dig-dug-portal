@@ -102,6 +102,12 @@
     max-width: 30rem;
 }
 
+.pbg-gene-search-progress {
+    color: #526071;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
 .pbg-workflow-label {
     font-size: 1.12rem;
     font-weight: 500;
@@ -3293,6 +3299,19 @@
     vertical-align: 0.08rem;
 }
 
+.pbg-score-legend {
+    margin: 0;
+    padding: 0.42rem 0.95rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #526071;
+    font-size: 0.78rem;
+}
+
+.pbg-score-legend span {
+    margin-left: 0.75rem;
+}
+
 .pbg-ve-sort {
     all: unset;
     display: inline-flex;
@@ -3419,6 +3438,13 @@
     font-size: 0.92rem;
     font-variant-numeric: tabular-nums;
     text-align: center;
+}
+
+.pbg-revel-only-star {
+    margin-left: 0.08rem;
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 900;
 }
 
 .pbg-no-context {

@@ -4,15 +4,16 @@ import { getGeneExons } from "./geneExonReference";
 
 const DENSITY_BINS = 50;
 
-export async function fetchPbGeneBioIndexState(geneSymbol) {
+export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     const gene = normalizeGene(geneSymbol);
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
 
-    const [geneRows, variantRows, sampleRows] = await Promise.all([
-        safeBioIndexQuery("gene", gene, 5),
-        safeBioIndexQuery("gene-variants2", gene),
-        safeBioIndexQuery("gene-samples", gene),
-    ]);
+    const sampleRowsPromise = safeBioIndexQuery("gene-samples", gene, null, options);
+    const variantRowsPromise = safeBioIndexQuery("gene-variants2", gene, null, options);
+    const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
+    if (options.onPartial) options.onPartial(buildPbGeneState(gene, geneRows, [], []));
+    const variantRows = await variantRowsPromise;
+    const sampleRows = await sampleRowsPromise;
 
     if (!variantRows.length && !sampleRows.length) {
         throw new Error(`No live BioIndex carrier or variant rows returned for ${gene}.`);
@@ -21,11 +22,14 @@ export async function fetchPbGeneBioIndexState(geneSymbol) {
     return buildPbGeneState(gene, geneRows, variantRows, sampleRows);
 }
 
-async function safeBioIndexQuery(index, q, limit = null) {
+async function safeBioIndexQuery(index, q, limit = null, options = {}) {
     try {
         return await query(index, q, {
             limit,
             query_private: true,
+            onResolve: json => {
+                if (options.onProgress) options.onProgress(index, json);
+            },
         });
     } catch (error) {
         if (index === "gene") return [];
@@ -99,9 +103,12 @@ function collectVariants(variantRows, sampleRows) {
 
 function buildVariantRow(entry) {
     const primary = entry.sampleRows[0] || entry.variantRows[0] || {};
-    const sampleIds = uniqueValues(entry.sampleRows.map(row => value(row, ["sample_id", "sampleId", "sample"])));
-    const carrierSamples = sampleIds.map(sampleId => {
-        const row = entry.sampleRows.find(item => value(item, ["sample_id", "sampleId", "sample"]) === sampleId) || {};
+    const sampleRowById = new Map();
+    entry.sampleRows.forEach(row => {
+        const sampleId = value(row, ["sample_id", "sampleId", "sample"]);
+        if (sampleId != null && !sampleRowById.has(sampleId)) sampleRowById.set(sampleId, row);
+    });
+    const carrierSamples = Array.from(sampleRowById.entries()).map(([sampleId, row]) => {
         const hpoCount = value(row, ["hpo_count", "HPO_count", "hpo_terms_count"]);
         const coGeneCount = value(row, ["co_gene_count", "genes", "other_gene_count"]);
         return {
@@ -149,7 +156,7 @@ function buildVariantRow(entry) {
             { label: "REVEL", value: revel },
             { label: "AlphaMissense", value: alphaMissense },
             { label: "LOFTEE", value: loftee },
-            { label: "Pathogenic Score", value: displayValue(value(primary, ["pathogenicity_score"]), "Unavailable") },
+            { label: "Extended Pathogenic Score", value: displayValue(value(primary, ["pathogenicity_score"]), "Unavailable") },
             { label: "Weighted score", value: displayValue(value(primary, ["weighted_score"]), "Unavailable") },
         ],
         carrierSamples,

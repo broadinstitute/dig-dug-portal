@@ -28,6 +28,10 @@
                                 {{ searchGeneLoading ? 'Loading' : 'Search' }}
                             </button>
                             <span v-if="searchGeneError" class="pbg-gene-search-error">{{ searchGeneError }}</span>
+                            <span v-if="searchGeneLoading"
+                                  class="pbg-gene-search-progress"
+                                  role="status"
+                                  aria-live="polite">{{ searchGeneProgress }}</span>
                         </form>
                     </div>
                     <div class="pbg-toolbar-right">
@@ -103,6 +107,7 @@
                             <span class="pbg-context-result-diagnostic">
                                 <strong>{{ run.statusLabel }}</strong>
                                 <small>{{ run.coverageLabel }}</small>
+                                <small>{{ run.modelLabel }}</small>
                             </span>
                         </div>
                         <p v-if="!contextRuns.length" class="pbg-context-empty">Enter an HPO context and select Go to add a result.</p>
@@ -254,7 +259,7 @@
                                 </div>
                                 <div class="pbg-score-spotlights">
                                     <div>
-                                        <span>Pathogenic Score</span>
+                                        <span>Extended Pathogenic Score</span>
                                         <strong>{{ topVariant.topScore.toFixed(2) }}</strong>
                                         <em>{{ topVariant.scoreSource }}</em>
                                     </div>
@@ -306,7 +311,7 @@
                         <div v-if="!isWholeGeneView" class="pbg-window-guide" :style="{ left: queriedGuideLeftPct + '%' }"></div>
 
                         <div class="pbg-window-major-axis">
-                            <span v-for="tick in locusMajorTicks" :key="'major-' + tick.pos"
+                            <span v-for="(tick, tickIndex) in locusMajorTicks" :key="'major-' + tickIndex + '-' + tick.pos"
                                   :class="'pbg-window-axis-tick--' + tick.edge"
                                   :style="{ left: tick.leftPct + '%' }">{{ tick.label }}</span>
                         </div>
@@ -386,7 +391,7 @@
                                 <strong>Carrier count</strong>
                             </div>
                             <div class="pbg-window-density-plot" :style="{ height: locusDensityPlotHeightPx + 'px' }">
-                                <button v-for="col in locusDensityColumns" :key="'density-col-' + col.pos"
+                                <button v-for="(col, colIndex) in locusDensityColumns" :key="'density-col-' + colIndex + '-' + col.pos"
                                         class="pbg-window-density-col"
                                         :class="{ 'pbg-window-density-col--query': col.isQueried, 'pbg-window-density-col--zero': col.count === 0 }"
                                         :style="{ left: col.leftPct + '%', width: col.widthPct + '%', height: col.heightPx + 'px' }"
@@ -584,12 +589,16 @@
                                 <i>{{ variantSortIndicator('classification') }}</i><span>Classification</span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
-                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Pathogenic Score <em>CRDC</em></span>
+                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Burden Pathogenic Score <em>CRDC</em></span>
                             </button>
                             <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
                                 <i>{{ variantSortIndicator('matchScore') }}</i><span>Match Score (Context-based) <em>CRDC</em></span>
                             </button>
                         </div>
+                        <p class="pbg-score-legend">
+                            <strong>—*</strong> REVEL available; excluded from this score.
+                            <span><strong>—</strong> No LoFTEE HC, AlphaMissense, or REVEL annotation.</span>
+                        </p>
 
                         <template v-for="row in visibleVariantRows">
                             <div :key="row.id"
@@ -616,7 +625,11 @@
                                     <small>{{ row.consequence }}</small>
                                 </span>
                                 <span>
-                                    <strong class="pbg-score-badge" :class="variantScoreClass(row)">{{ variantScoreDisplay(row) }}</strong>
+                                    <strong class="pbg-score-badge"
+                                            :class="variantScoreClass(row)"
+                                            :title="variantScoreTitle(row)">
+                                        {{ variantScoreDisplay(row) }}<sup v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-star">*</sup>
+                                    </strong>
                                 </span>
                                 <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
                                 <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge">

@@ -394,7 +394,11 @@ let devOnlyPages = {
     },
 };
 
-if (process.env.PORTAL_DEV_PAGES === "true" && process.env.NODE_ENV !== "production") {
+const devPagesEnabled = process.env.PORTAL_DEV_PAGES === "true" && process.env.NODE_ENV !== "production";
+const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
+    || (devPagesEnabled ? "http://127.0.0.1:8092" : null);
+
+if (devPagesEnabled) {
     pages = {
         ...pages,
         ...devOnlyPages,
@@ -420,7 +424,7 @@ module.exports = {
                 response.sendFile(fixturePath, error => { if (error) next(error); });
             });
         },
-        proxy: process.env.BIOINDEX_HOST_PRIVATE || process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE ? {
+        proxy: process.env.BIOINDEX_HOST_PRIVATE || phenotypeAnalyzerHostPrivate ? {
             ...(process.env.BIOINDEX_HOST_PRIVATE ? {
                 "/__bioindex_private__": {
                     target: process.env.BIOINDEX_HOST_PRIVATE,
@@ -428,9 +432,9 @@ module.exports = {
                     pathRewrite: { "^/__bioindex_private__": "" },
                 },
             } : {}),
-            ...(process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE ? {
+            ...(phenotypeAnalyzerHostPrivate ? {
                 "/phenotype-analyzer-api": {
-                    target: process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE,
+                    target: phenotypeAnalyzerHostPrivate,
                     changeOrigin: true,
                 },
             } : {}),

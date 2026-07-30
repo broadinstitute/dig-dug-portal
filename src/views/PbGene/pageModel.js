@@ -50,6 +50,7 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         summaryExpandedCards: {},
         searchGeneQuery: query,
         searchGeneLoading: false,
+        searchGeneProgress: "",
         searchGeneError: "",
         liveDataLoaded: false,
         liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
@@ -1429,6 +1430,15 @@ export const pbGeneComputed = {
         const key = this.variantSortKey;
         const dir = this.variantSortDir === "asc" ? 1 : -1;
         return rows.sort((a, b) => {
+            if (key === "variantScore") {
+                const aScore = this.variantScoreValue(a);
+                const bScore = this.variantScoreValue(b);
+                const aRank = aScore != null ? 0 : this.hasRevelOnlyScore(a) ? 1 : 2;
+                const bRank = bScore != null ? 0 : this.hasRevelOnlyScore(b) ? 1 : 2;
+                if (aRank !== bRank) return aRank - bRank;
+                if (aScore != null && bScore != null) return (aScore - bScore) * dir || a.id.localeCompare(b.id);
+                return a.id.localeCompare(b.id);
+            }
             const av = this.variantSortValue(a, key);
             const bv = this.variantSortValue(b, key);
             if (av == null && bv == null) return a.id.localeCompare(b.id);
@@ -1468,7 +1478,7 @@ export const pbGeneComputed = {
         let best = null;
         let bestScore = -1;
         for (const row of this.variantRows) {
-            const score = this.variantScoreValue(row);
+            const score = this.extendedVariantScoreValue(row);
             if (score == null) continue;
             if (score > bestScore) {
                 bestScore = score;
@@ -1478,7 +1488,7 @@ export const pbGeneComputed = {
                     am: this.variantEvidenceValue(row, "AlphaMissense"),
                     loftee: this.variantEvidenceValue(row, "LOFTEE"),
                     topScore: score,
-                    scoreSource: this.variantScoreSource(row),
+                    scoreSource: this.extendedVariantScoreSource(row),
                 };
             }
         }
@@ -1644,8 +1654,11 @@ export const pbGeneMethods = {
                 nVariantsTotal: burden.n_variants_total,
                 interpretationScope: burden.interpretation_scope,
                 modelVersion: burden.model_version,
+                formula: burden.formula,
+                burdenPathogenicScoreVersion: burden.burden_pathogenic_score_version,
                 statusLabel: this.contextBurdenStatusLabel(burden),
                 coverageLabel: this.contextBurdenCoverageLabel(burden),
+                modelLabel: [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
                 sourceLabel,
             });
             this.activeContextTerms = terms;
@@ -1726,7 +1739,7 @@ export const pbGeneMethods = {
     contextBurdenCoverageLabel(burden) {
         const scored = Number(burden.n_variants_scored);
         const total = Number(burden.n_variants_total);
-        if (!Number.isFinite(scored) || !Number.isFinite(total)) return "Pathogenic Score coverage unavailable";
+        if (!Number.isFinite(scored) || !Number.isFinite(total)) return "Burden Pathogenic Score coverage unavailable";
         if (total === 0) return "No gene variants in this context result";
         const percent = ((scored / total) * 100).toFixed(1);
         const partial = burden.interpretation_scope === "exploratory_scored_variants_only"
@@ -1774,9 +1787,29 @@ export const pbGeneMethods = {
             return;
         }
         this.searchGeneLoading = true;
+        this.searchGeneProgress = "Loading gene evidence";
         this.searchGeneError = "";
         try {
-            const geneState = await fetchPbGeneBioIndexState(query);
+            const pageCounts = {};
+            const geneState = await fetchPbGeneBioIndexState(query, {
+                onPartial: partialState => {
+                    Object.keys(partialState).forEach(key => {
+                        this[key] = partialState[key];
+                    });
+                    this.liveDataLoaded = true;
+                    this.liveDataSource = "private BioIndex · carrier evidence loading";
+                    this.searchGeneProgress = "Loading variant and carrier evidence";
+                },
+                onProgress: (index) => {
+                    pageCounts[index] = (pageCounts[index] || 0) + 1;
+                    const label = index === "gene-samples"
+                        ? "carrier evidence"
+                        : index === "gene-variants2"
+                            ? "variant annotations"
+                            : "gene summary";
+                    this.searchGeneProgress = `Loading ${label} · page ${pageCounts[index]}`;
+                },
+            });
             const resolvedSymbol = normalizeGeneQuery((geneState.geneInfo || {}).symbol || query);
             const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, new URLSearchParams());
             Object.keys(nextState).forEach(key => {
@@ -1799,6 +1832,7 @@ export const pbGeneMethods = {
             throw error;
         } finally {
             this.searchGeneLoading = false;
+            this.searchGeneProgress = "";
         }
     },
 
@@ -2140,21 +2174,36 @@ export const pbGeneMethods = {
         if (this.isLofteeHC(row)) return 1;
         const alphaMissense = this.parseEvidenceNumber(row, "AlphaMissense");
         if (alphaMissense != null) return alphaMissense;
+        return null;
+    },
+
+    extendedVariantScoreValue(row) {
+        const score = this.variantScoreValue(row);
+        if (score != null) return score;
         const revel = this.parseEvidenceNumber(row, "REVEL");
         if (revel != null) return revel;
         return null;
     },
 
-    variantScoreSource(row) {
+    extendedVariantScoreSource(row) {
         if (this.isLofteeHC(row)) return "LoFTEE HC";
         if (this.parseEvidenceNumber(row, "AlphaMissense") != null) return "AlphaMissense";
         if (this.parseEvidenceNumber(row, "REVEL") != null) return "REVEL";
         return "unavailable";
     },
 
+    hasRevelOnlyScore(row) {
+        return this.variantScoreValue(row) == null && this.parseEvidenceNumber(row, "REVEL") != null;
+    },
+
     variantScoreDisplay(row) {
         const value = this.variantScoreValue(row);
-        return value == null ? "—" : value.toFixed(2);
+        if (value != null) return value.toFixed(2);
+        return "—";
+    },
+
+    variantScoreTitle(row) {
+        return this.hasRevelOnlyScore(row) ? "REVEL is available but excluded from this score." : null;
     },
 
     variantScoreClass(row) {

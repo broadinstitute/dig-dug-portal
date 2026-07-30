@@ -10,8 +10,55 @@ import numpy as np
 from scipy.stats import norm
 
 
-MODEL_VERSION = "portal_huber_rlm_v1"
-PATHOGENICITY_SCORE_VERSION = "loftee_hc_alphamissense_revel_v1"
+MODEL_VERSION = "portal_huber_rlm_covariate_v2"
+EXTENDED_PATHOGENICITY_SCORE_VERSION = "loftee_hc_alphamissense_revel_v1"
+BURDEN_PATHOGENICITY_SCORE_VERSION = "loftee_hc_alphamissense_v1"
+
+
+def _finite_score(value, label):
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(score):
+        return None
+    if not 0 <= score <= 1:
+        raise ValueError(f"{label} outside [0,1]")
+    return score
+
+
+def _annotation_value(row, keys):
+    for key in keys:
+        if key in row:
+            return row[key]
+    return None
+
+
+def variant_pathogenic_scores(row):
+    """Return separate display and burden scores from raw variant evidence."""
+    lof = str(_annotation_value(row, ("LoF", "lof", "lof_class", "LOFTEE")) or "").strip().upper()
+    alpha = _finite_score(
+        _annotation_value(row, ("Alphamissense", "AlphaMissense", "alphamissense", "alphamissense_score", "am_pathogenicity")),
+        "AlphaMissense",
+    )
+    revel = _finite_score(
+        _annotation_value(row, ("REVEL", "revel", "revel_score")),
+        "REVEL",
+    )
+
+    if lof == "HC":
+        extended = (1.0, "LoFTEE_HC")
+        burden = (1.0, "LoFTEE_HC")
+    elif alpha is not None:
+        extended = (alpha, "AlphaMissense")
+        burden = (alpha, "AlphaMissense")
+    elif revel is not None:
+        extended = (revel, "REVEL")
+        burden = (None, "REVEL_only_excluded")
+    else:
+        extended = (None, "No_score")
+        burden = (None, "No_score")
+    return {"extended": extended, "burden": burden}
 
 
 def benjamini_hochberg(p_values):
@@ -63,7 +110,7 @@ def variant_match_scores(sample_ids, phenotype_match_score_resid, carriers_by_va
 
 
 def gene_burden_scores(sample_ids, gene_sample_rows):
-    """Build X directly from complete BioIndex gene-samples carrier rows."""
+    """Build X from LoFTEE HC/AlphaMissense scores; REVEL never contributes."""
     sample_ids = [str(sample_id) for sample_id in sample_ids]
     if len(set(sample_ids)) != len(sample_ids):
         raise ValueError("sample_ids must be unique")
@@ -72,6 +119,7 @@ def gene_burden_scores(sample_ids, gene_sample_rows):
     values = np.zeros(len(sample_ids), dtype=float)
     carriers_by_variant = {}
     score_by_variant = {}
+    revel_only_variants = set()
 
     for row in gene_sample_rows:
         sample_id = str(row.get("sample_id") or "").strip()
@@ -82,16 +130,17 @@ def gene_burden_scores(sample_ids, gene_sample_rows):
             raise ValueError(f"carrier sample is not in sample_ids: {sample_id}")
         carriers_by_variant.setdefault(variant_id, set()).add(sample_id)
 
-        if str(row.get("score_source") or "").strip().lower() == "no_score":
-            continue
-        try:
-            score = float(row["pathogenicity_score"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if not np.isfinite(score):
+        if "burden_pathogenicity_score" in row:
+            score = _finite_score(row.get("burden_pathogenicity_score"), "Burden Pathogenic Score")
+            source = str(row.get("burden_score_source") or "No_score")
+        else:
+            score, source = variant_pathogenic_scores(row)["burden"]
+        if source == "REVEL_only_excluded":
+            revel_only_variants.add(variant_id)
+        if score is None:
             continue
         if variant_id in score_by_variant and not np.isclose(score_by_variant[variant_id], score):
-            raise ValueError(f"conflicting pathogenicity_score for variant: {variant_id}")
+            raise ValueError(f"conflicting burden pathogenic score for variant: {variant_id}")
         score_by_variant[variant_id] = score
 
     for variant_id, carriers in carriers_by_variant.items():
@@ -105,6 +154,7 @@ def gene_burden_scores(sample_ids, gene_sample_rows):
         "values": values,
         "n_variants_scored": len(score_by_variant),
         "n_variants_unscored": len(carriers_by_variant) - len(score_by_variant),
+        "n_variants_revel_only": len(revel_only_variants),
     }
 
 
@@ -149,7 +199,8 @@ def gene_burden_test(
         "iterations": 0,
         "status": "invalid_data",
         "model_version": MODEL_VERSION,
-        "pathogenicity_score_version": PATHOGENICITY_SCORE_VERSION,
+        "extended_pathogenic_score_version": EXTENDED_PATHOGENICITY_SCORE_VERSION,
+        "burden_pathogenic_score_version": BURDEN_PATHOGENICITY_SCORE_VERSION,
         "model": "Huber RLM",
         "formula": "Y ~ X" + (" + " + " + ".join(covariate_names) if covariate_names else ""),
         "covariates": covariate_names,
@@ -262,8 +313,9 @@ def benchmark(n_samples=50_000, n_variants=1_000, carriers_per_variant=20):
         {
             "sample_id": sample_id,
             "variant_id": variant_id,
-            "pathogenicity_score": score,
-            "score_source": "benchmark",
+            "LoF": "",
+            "Alphamissense": score,
+            "REVEL": rng.uniform(0.1, 1.0),
         }
         for variant_id, variant_carriers in carriers.items()
         for score in [rng.uniform(0.1, 1.0)]

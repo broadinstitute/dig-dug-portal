@@ -3,9 +3,12 @@ import unittest
 import numpy as np
 
 from scripts.context_api_fast import (
+    BURDEN_PATHOGENICITY_SCORE_VERSION,
+    EXTENDED_PATHOGENICITY_SCORE_VERSION,
     benjamini_hochberg,
     gene_burden_scores,
     gene_burden_test,
+    variant_pathogenic_scores,
     variant_match_scores,
 )
 
@@ -30,21 +33,32 @@ class VariantMatchScoreTest(unittest.TestCase):
 
 
 class GeneBurdenTest(unittest.TestCase):
+    def test_extended_score_keeps_revel_but_burden_score_excludes_it(self):
+        scores = variant_pathogenic_scores({
+            "LoF": "",
+            "Alphamissense": "NA",
+            "REVEL": "0.91",
+        })
+
+        self.assertEqual(scores["extended"], (0.91, "REVEL"))
+        self.assertEqual(scores["burden"], (None, "REVEL_only_excluded"))
+
     def test_gene_burden_sums_each_distinct_carried_variant_once(self):
         result = gene_burden_scores(
             sample_ids=["S1", "S2", "S3"],
             gene_sample_rows=[
-                {"sample_id": "S1", "variant_id": "V1", "GT": "1/1", "alt_dosage": 2, "pathogenicity_score": 0.8, "weighted_score": 1.6, "score_source": "REVEL"},
-                {"sample_id": "S2", "variant_id": "V1", "GT": "0/1", "alt_dosage": 1, "pathogenicity_score": 0.8, "weighted_score": 0.8, "score_source": "REVEL"},
-                {"sample_id": "S2", "variant_id": "V1", "GT": "0/1", "alt_dosage": 1, "pathogenicity_score": 0.8, "weighted_score": 0.8, "score_source": "REVEL"},
-                {"sample_id": "S1", "variant_id": "V2", "GT": "1/1", "alt_dosage": 2, "pathogenicity_score": 0.4, "weighted_score": 0.8, "score_source": "AlphaMissense"},
-                {"sample_id": "S2", "variant_id": "V3", "GT": "0/1", "pathogenicity_score": 0.0, "score_source": "No_score"},
+                {"sample_id": "S1", "variant_id": "V1", "GT": "1/1", "LoF": "", "Alphamissense": "NA", "REVEL": 0.8},
+                {"sample_id": "S2", "variant_id": "V1", "GT": "0/1", "LoF": "", "Alphamissense": "NA", "REVEL": 0.8},
+                {"sample_id": "S2", "variant_id": "V1", "GT": "0/1", "LoF": "", "Alphamissense": "NA", "REVEL": 0.8},
+                {"sample_id": "S1", "variant_id": "V2", "GT": "1/1", "LoF": "", "Alphamissense": 0.4, "REVEL": 0.9},
+                {"sample_id": "S2", "variant_id": "V3", "GT": "0/1", "LoF": "HC", "Alphamissense": 0.2, "REVEL": 0.7},
             ],
         )
 
-        np.testing.assert_allclose(result["values"], [1.2, 0.8, 0.0])
+        np.testing.assert_allclose(result["values"], [0.4, 1.0, 0.0])
         self.assertEqual(result["n_variants_scored"], 2)
         self.assertEqual(result["n_variants_unscored"], 1)
+        self.assertEqual(result["n_variants_revel_only"], 1)
 
     def test_matches_mass_rlm_huber_reference(self):
         x = np.array([0, 0, 1, 1, 2, 2, 3, 3], dtype=float)
@@ -56,9 +70,38 @@ class GeneBurdenTest(unittest.TestCase):
         self.assertAlmostEqual(result["beta"], 1.01237430338601, places=6)
         self.assertAlmostEqual(result["standard_error"], 0.0432243888701358, places=6)
         self.assertAlmostEqual(result["p_value"], 2.58909919542769e-121, delta=1e-125)
-        self.assertEqual(result["model_version"], "portal_huber_rlm_v1")
-        self.assertEqual(result["pathogenicity_score_version"], "loftee_hc_alphamissense_revel_v1")
+        self.assertEqual(result["model_version"], "portal_huber_rlm_covariate_v2")
+        self.assertEqual(
+            result["extended_pathogenic_score_version"],
+            EXTENDED_PATHOGENICITY_SCORE_VERSION,
+        )
+        self.assertEqual(
+            result["burden_pathogenic_score_version"],
+            BURDEN_PATHOGENICITY_SCORE_VERSION,
+        )
+        self.assertNotIn("pathogenicity_score_version", result)
         self.assertEqual(result["covariates"], [])
+
+    def test_fits_requested_age_sex_and_pc_covariates(self):
+        rng = np.random.default_rng(17)
+        n_samples = 60
+        x = np.zeros(n_samples)
+        x[:20] = rng.uniform(0.1, 1.5, size=20)
+        covariate_names = [
+            "age",
+            "age_missing",
+            "sex_male",
+            "sex_unknown",
+            *[f"PC{i}" for i in range(1, 11)],
+        ]
+        covariates = rng.normal(size=(n_samples, len(covariate_names)))
+        y = 0.3 * x + covariates @ rng.normal(size=len(covariate_names)) + rng.normal(size=n_samples)
+
+        result = gene_burden_test(y, x, covariates, covariate_names)
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["covariates"], covariate_names)
+        self.assertEqual(result["formula"], "Y ~ X + " + " + ".join(covariate_names))
 
     def test_returns_no_statistic_when_carrier_support_is_too_small(self):
         result = gene_burden_test(

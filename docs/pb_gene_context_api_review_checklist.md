@@ -4,7 +4,9 @@
 
 **Reference implementation ready for review; not yet approved for production.**
 
-The code contains calculation functions, not a complete HTTP service. Backend data loading, FDR application, authentication, caching, and API response assembly still belong in the production service.
+The repository includes a local reference HTTP service with preloaded cohort
+inputs and bounded HPO/gene caches. Authentication and production deployment
+still belong in the production service.
 
 ## Files to review
 
@@ -14,7 +16,7 @@ The code contains calculation functions, not a complete HTTP service. Backend da
    - Intended R reference: `rPheRS_for_portal_20250512.R`.
 2. `scripts/context_api_fast.py`
    - `variant_match_scores()`: mean residual score across unique carriers of each variant.
-   - `gene_burden_scores()`: binary-carrier weighted sum of Pathogenic Scores per sample.
+   - `gene_burden_scores()`: binary-carrier weighted sum of LoFTEE HC/AlphaMissense Burden Pathogenic Scores per sample.
    - `gene_burden_test()`: provisional Huber RLM for `Y ~ X + C`.
    - `benjamini_hochberg()`: BH-adjusted P-values for a defined test family.
 3. Tests
@@ -49,7 +51,8 @@ python3 scripts/context_api_fast.py
 - [x] Gene burden uses carrier presence, not genotype dosage; `0/1` and `1/1` each contribute once.
 - [x] Multiple distinct carried variants are summed and duplicate sample-variant rows are deduplicated.
 - [x] Gene burden X is built directly from existing `gene-samples` BioIndex rows; `alt_dosage` and `weighted_score` are ignored.
-- [x] Pathogenic Score priority is `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`; defined numeric zero remains scored.
+- [x] Extended display priority is `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`.
+- [x] Burden priority is `LoFTEE HC -> AlphaMissense`; REVEL-only variants are explicitly counted and excluded from X.
 - [x] The Huber RLM implementation matches one fixed `MASS::rlm`/`summary.rlm` reference example for Beta, standard error, and P-value.
 - [x] Constant, singular, under-supported, invalid-SE, and non-converged fits return an explicit status rather than silently switching models.
 - [x] BH adjustment matches a fixed known example and preserves input order.
@@ -68,8 +71,9 @@ python3 scripts/context_api_fast.py
 
 ### 2. Covariates and analysis population — statistical blocker
 
-- [ ] Approve portal model v0 (`Y ~ X`, no covariates) or specify `C`.
-- [ ] If used, define encoding and reference levels for age band and sex and confirm PC1–PC10 availability.
+- [x] Implement `Y ~ X + age + age_missing + sex_male + sex_unknown + PC1-PC10`.
+- [x] Median-impute age over the fixed analysis roster and use Female as the sex reference.
+- [ ] Confirm the production definition/unit of age and availability of the colleague-provided PC1-PC10 table.
 - [ ] Decide whether related samples, ancestry outliers, sex-chromosome analyses, and samples with missing covariates are excluded.
 - [ ] Return the exact model formula, covariates, sample count, and model version with every result.
 
@@ -80,7 +84,7 @@ python3 scripts/context_api_fast.py
 - [ ] Confirm the production BioIndex client follows every `/api/bio/cont` token before calculating X.
 - [x] Portal v1 uses binary carrier presence; genotype dosage and zygosity do not change the weight.
 - [ ] Confirm carrier classification for haploid/hemizygous, multi-allelic, no-call, and low-quality genotype records at the upstream carrier API boundary.
-- [x] Use Pathogenic Score version `loftee_hc_alphamissense_revel_v1`; LoFTEE HC is 1 and AlphaMissense/REVEL are finite values in `[0,1]`.
+- [x] Use Burden Pathogenic Score version `loftee_hc_alphamissense_v1`; LoFTEE HC is 1 and AlphaMissense is finite in `[0,1]`.
 - [x] Exclude `No_score` variants from X and report the number unscored; do not treat them as biological score zero.
 - [ ] Confirm that production `gene-samples` rows were generated with this exact score version.
 - [ ] Verify on individual samples that `X_i = sum(I(carrier_iv) * Pathogenic Score_v)` without duplicated sample-variant contributions.

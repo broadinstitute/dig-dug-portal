@@ -82,22 +82,28 @@ Use the existing private BioIndex `gene-samples` query as the source. Query by H
 |---|---|
 | `sample_id` | Align the carrier with the full CRDC sample/Y vector |
 | `variant_id` | Deduplicate one contribution per sample and distinct variant |
-| `pathogenicity_score` | Pathogenic Score added to X |
-| `score_source` | `LoFTEE_HC`, `AlphaMissense`, `REVEL`, or `No_score` provenance |
+| `LoF` / `LOFTEE` | LoFTEE HC evidence used to reconstruct Burden Pathogenic Score |
+| `Alphamissense` / `AlphaMissense` | Second-priority Burden Pathogenic Score evidence |
+| `REVEL` | Extended display evidence only; never contributes to X |
+| `pathogenicity_score` | Existing Extended Pathogenic Score for display validation only |
+| `score_source` | Existing Extended score provenance |
 | `GT`, `alt_dosage`, `weighted_score` | Available for provenance/QA, but not used to calculate portal v1 X |
 
-No new burden-specific BioIndex is required while these fields remain available. `gene-variants2` can continue to supplement display annotations, but it is not needed to construct X when `gene-samples.pathogenicity_score` is present.
+`gene-variants2` can continue to supplement display annotations. The burden
+calculation must reconstruct its own score from LoFTEE HC and AlphaMissense; it
+must not reuse the Extended `gene-samples.pathogenicity_score` because that
+field can contain a REVEL fallback.
 
-Pathogenic Score version `loftee_hc_alphamissense_revel_v1` uses this exact
-priority:
+The two score contracts are intentionally separate:
 
-1. `LoF=HC` gives score 1.
-2. Otherwise, use a finite AlphaMissense value in `[0,1]`.
-3. Otherwise, use a finite REVEL value in `[0,1]`.
-4. Otherwise, mark the variant `No_score`.
+1. Extended Pathogenic Score `loftee_hc_alphamissense_revel_v1`:
+   `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`.
+2. Burden Pathogenic Score `loftee_hc_alphamissense_v1`:
+   `LoFTEE HC -> AlphaMissense -> excluded`.
 
-A defined numeric zero remains a scored value. `No_score` is undefined and is
-excluded from X rather than being interpreted as biological score zero.
+A REVEL-only variant remains visible and is counted as
+`REVEL_only_excluded`, but contributes nothing to X. A defined AlphaMissense
+zero remains a scored value.
 
 ```text
 X_i = sum(I(sample i carries variant v) * Pathogenic_Score_v)
@@ -105,8 +111,8 @@ X_i = sum(I(sample i carries variant v) * Pathogenic_Score_v)
 
 Rules:
 
-- Carrier presence is binary: both `0/1` and `1/1` contribute the variant's Pathogenic Score once.
-- A sample carrying multiple distinct variants receives the sum of their Pathogenic Scores.
+- Carrier presence is binary: both `0/1` and `1/1` contribute the variant's Burden Pathogenic Score once.
+- A sample carrying multiple distinct variants receives the sum of their LoFTEE HC/AlphaMissense Burden Pathogenic Scores.
 - Duplicate rows for the same sample and variant contribute only once.
 - Samples without a qualifying carrier record receive X=0.
 - Genotype dosage and zygosity are not weights in portal model v1.
@@ -123,15 +129,18 @@ burden_input = gene_burden_scores(
 x = burden_input["values"]
 ```
 
-### Portal model v0
+### Portal model v2
 
 ```text
-Y ~ X
+Y ~ X + age + age_missing + sex_male + sex_unknown + PC1 + ... + PC10
 Estimator: Huber robust linear model
 Huber tuning constant: 1.345
 Maximum iterations: 100
 Convergence tolerance: 1e-4
-Covariates: none
+Age: median-imputed over the fixed analysis roster
+Age missingness: 1 when age was absent before imputation, otherwise 0
+Sex: Female reference; Male and Unknown indicator columns
+PCs: finite PC1-PC10 values aligned one-to-one by sample_id
 ```
 
 This reproduces the core paper-analysis pattern:
@@ -151,8 +160,12 @@ Python interface:
 gene_burden_test(
     y,
     burden_input["values"],
-    covariates=None,
-    covariate_names=None,
+    covariates=aligned_covariate_matrix,
+    covariate_names=[
+        "age", "age_missing", "sex_male", "sex_unknown",
+        "PC1", "PC2", "PC3", "PC4", "PC5",
+        "PC6", "PC7", "PC8", "PC9", "PC10",
+    ],
     min_positive=request.advanced.min_carriers,
 )
 ```
@@ -178,11 +191,12 @@ Result example:
   "min_carriers": 5,
   "iterations": 7,
   "status": "ok",
-  "model_version": "portal_huber_rlm_v1",
-  "pathogenicity_score_version": "loftee_hc_alphamissense_revel_v1",
+  "model_version": "portal_huber_rlm_covariate_v2",
+  "extended_pathogenic_score_version": "loftee_hc_alphamissense_revel_v1",
+  "burden_pathogenic_score_version": "loftee_hc_alphamissense_v1",
   "model": "Huber RLM",
-  "formula": "Y ~ X",
-  "covariates": [],
+  "formula": "Y ~ X + age + age_missing + sex_male + sex_unknown + PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8 + PC9 + PC10",
+  "covariates": ["age", "age_missing", "sex_male", "sex_unknown", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"],
   "huber_k": 1.345,
   "p_value_method": "summary.rlm SE with two-sided normal approximation"
 }
@@ -247,16 +261,15 @@ Return these fields with each burden result:
 
 For a single-gene Gene Page request, the test family contains one test, so BH-FDR equals the P-value. FDR becomes informative when Advanced analysis expands to a multi-gene or PheWAS family. Never combine tests from unrelated users, contexts, or requests, and always return `multiple_testing_scope` and `n_tests`.
 
-## Planned method changes
+## Method versioning
 
-`portal_huber_rlm_v1` is provisional. It differs from v0 only because REVEL is
-now the third-priority Pathogenic Score source used to construct X. Candidate
-future covariates include age band, sex, and PC1-PC10, but they must not be
-added silently.
+`portal_huber_rlm_covariate_v2` uses LoFTEE HC/AlphaMissense-only burden X and
+the fixed age, age-missingness, three-level sex, and PC1-PC10 covariates above.
+REVEL remains available only in Extended display scoring.
 
 When the method changes:
 
-1. Create a new model version such as `portal_huber_rlm_v1`.
+1. Create a new model version.
 2. Return the exact formula and covariate list.
 3. Validate the new version on a fixed benchmark set before deployment.
 4. Change the method for all genes/contexts together, not selectively because one result is unexpected.

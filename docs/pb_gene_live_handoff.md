@@ -43,10 +43,22 @@ Then open:
 http://127.0.0.1:8090/pb_Gene.html?query=DMD
 ```
 
-This command verifies the Gene Page and live BioIndex fields. Running a real
-HPO context calculation also requires the production context service to be
-connected through `PHENOTYPE_ANALYZER_HOST_PRIVATE` or an equivalent deployed
-route for `/phenotype-analyzer-api/analyze`.
+Start the local reference Context API separately with the approved private
+input paths:
+
+```bash
+python3 scripts/pb_gene_context_api_server.py \
+  --hpo-matrix <sample-by-HPO.tsv.gz> \
+  --overlap-roster <validated-overlap.tsv> \
+  --evidence <gene-sample-evidence.tsv.gz> \
+  --covariates <sample_id-age-sex-PC1-PC10.tsv> \
+  --port 8092
+```
+
+The development Gene Page proxies `/phenotype-analyzer-api` to
+`http://127.0.0.1:8092` by default. Set
+`PHENOTYPE_ANALYZER_HOST_PRIVATE` before starting Vue to use another approved
+service. The four input files remain private and must not be committed.
 
 ## End-to-end data flow
 
@@ -62,8 +74,8 @@ HPO list
 complete gene-samples rows + full ordered Y
   -> variant carrier means
   -> Match Score (Context-based), one value per variant
-  -> binary-carrier Pathogenic Score sums (X), one value per sample
-  -> provisional Huber RLM Y ~ X + C
+  -> binary-carrier LoFTEE HC/AlphaMissense Burden Pathogenic Score sums (X)
+  -> Huber RLM Y ~ X + age + age_missing + sex + PC1-PC10
   -> gene-level Beta, P-value, FDR/status
 
 aggregate response only
@@ -113,7 +125,8 @@ burden.
 | Variants in this gene | Distinct carrier variant IDs from complete `gene-samples` results. |
 | CRDC carrier frequency | Person-level carrier frequency supplied or derived by the backend. Do not label it allele frequency. |
 | Classification | ClinVar clinical significance fields only; keep the external ClinVar link when unavailable. |
-| Pathogenic Score | Fixed variant-level biological score; current display precedence is LoFTEE HC = 1, else AlphaMissense, else REVEL. |
+| Extended Pathogenic Score | Top-card display score: LoFTEE HC = 1, else AlphaMissense, else REVEL. |
+| Burden Pathogenic Score | Variant-table and regression score: LoFTEE HC = 1, else AlphaMissense; REVEL-only is displayed as `—*` and excluded from X. |
 | Match Score (Context-based) | Mean `phenotype_match_score_resid` across all unique carriers of each variant. |
 | Beta / P-value | Gene-level context burden regression result returned by the context endpoint. |
 
@@ -157,8 +170,9 @@ Response shape:
     "n_positive_burden": 84,
     "min_carriers": 5,
     "status": "ok",
-    "model_version": "portal_huber_rlm_v1",
-    "pathogenicity_score_version": "loftee_hc_alphamissense_revel_v1"
+    "model_version": "portal_huber_rlm_covariate_v2",
+    "extended_pathogenic_score_version": "loftee_hc_alphamissense_revel_v1",
+    "burden_pathogenic_score_version": "loftee_hc_alphamissense_v1"
   }
 }
 ```
@@ -173,10 +187,10 @@ service and not a statistically approved final model.
 
 The following decisions remain open and must not be hidden during handoff:
 
-1. `portal_huber_rlm_v1` uses Pathogenic Score priority `LoFTEE HC -> AlphaMissense -> REVEL -> No_score`, MASS `summary.rlm`-style standard errors, and a two-sided normal approximation. It is not HC3.
-2. Covariates are currently empty. Age band, sex, and PC1-PC10 require a versioned method decision and parity validation before use.
+1. `portal_huber_rlm_covariate_v2` uses LoFTEE HC/AlphaMissense-only burden X, MASS `summary.rlm`-style standard errors, and a two-sided normal approximation. It is not HC3.
+2. Covariates are age, age-missingness, Female-reference sex indicators, and PC1-PC10; the versioned colleague-provided table must pass one-to-one sample alignment.
 3. `min_carriers` currently gates on samples with X > 0. This may differ from the number of actual carriers when scores are zero or missing.
-4. Pathogenic Score version `loftee_hc_alphamissense_revel_v1` is explicit, but its production BioIndex provenance still requires data-owner sign-off.
+4. Extended and Burden Pathogenic Score versions are separate; production BioIndex provenance still requires data-owner sign-off.
 5. The FDR family must be request-scoped and explicitly returned. The BH helper exists, but production response assembly is not implemented here.
 6. Production uses the complete current Gene Page carrier-variant set from BioIndex. The private CEP152/DMD validation used a nonsynonymous evidence subset and must not silently redefine the production variant universe.
 

@@ -35,11 +35,18 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('step="any"', TEMPLATE)
 
     def test_score_labels_and_no_context_state_are_unambiguous(self):
-        self.assertIn("Pathogenic Score", TEMPLATE)
+        self.assertIn("Extended Pathogenic Score", TEMPLATE)
         self.assertIn("Match Score (Context-based)", TEMPLATE)
         self.assertIn("no context", TEMPLATE)
         self.assertNotIn("Variant score <em>", TEMPLATE)
         self.assertNotIn("Match score <em>", TEMPLATE)
+
+    def test_table_score_excludes_revel_but_marks_revel_only_rows(self):
+        self.assertIn("const score = this.extendedVariantScoreValue(row)", MODEL)
+        self.assertIn("Burden Pathogenic Score", TEMPLATE)
+        self.assertIn('class="pbg-revel-only-star"', TEMPLATE)
+        self.assertIn("if (aRank !== bRank) return aRank - bRank", MODEL)
+        self.assertIn("REVEL available; excluded from this score.", TEMPLATE)
 
     def test_variant_match_score_consumes_aggregate_api_result(self):
         self.assertIn("result.variant_match_scores", MODEL)
@@ -57,11 +64,14 @@ class PbGeneContextUiTest(unittest.TestCase):
             "n_variants_total",
             "interpretation_scope",
             "model_version",
+            "formula",
+            "burden_pathogenic_score_version",
         ):
             self.assertIn(f"burden.{field}", MODEL)
         self.assertIn("Status / score coverage", TEMPLATE)
         self.assertIn("run.statusLabel", TEMPLATE)
         self.assertIn("run.coverageLabel", TEMPLATE)
+        self.assertIn("run.modelLabel", TEMPLATE)
         self.assertNotIn('return "Pending API"', MODEL)
 
     def test_local_context_fixture_is_explicit_and_dev_only(self):
@@ -72,6 +82,11 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("Local validation fixture", MODEL)
         self.assertIn("Local fixture supports only", MODEL)
         self.assertIn("run.sourceLabel", TEMPLATE)
+
+    def test_dev_context_route_defaults_to_the_local_reference_service(self):
+        self.assertIn("phenotypeAnalyzerHostPrivate", VUE_CONFIG)
+        self.assertIn('"http://127.0.0.1:8092"', VUE_CONFIG)
+        self.assertIn('"/phenotype-analyzer-api"', VUE_CONFIG)
 
     def test_local_context_fixture_does_not_call_live_bioindex(self):
         start = MODEL.index("async loadLiveGeneData")
@@ -124,6 +139,18 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('optionalAnnotationValue(primary, ["REVEL", "revel", "revel_score"])', ADAPTER)
         self.assertIn('optionalAnnotationValue(primary, ["alphamissense", "AlphaMissense", "alphamissense_score", "am_pathogenicity"])', ADAPTER)
         self.assertIn('optionalAnnotationValue(primary, ["LoF", "lof", "lof_class", "LOFTEE"])', ADAPTER)
+
+    def test_live_loading_reports_progress_and_indexes_carriers_once(self):
+        self.assertIn("searchGeneProgress", MODEL)
+        self.assertIn('aria-live="polite"', TEMPLATE)
+        self.assertIn("sampleRowById", ADAPTER)
+        self.assertNotIn("entry.sampleRows.find", ADAPTER)
+        self.assertIn("onProgress", ADAPTER)
+        self.assertIn("onPartial", ADAPTER)
+
+    def test_density_columns_have_unique_vue_keys(self):
+        self.assertIn("(col, colIndex) in locusDensityColumns", TEMPLATE)
+        self.assertIn("'density-col-' + colIndex", TEMPLATE)
 
     def test_carrier_table_omits_hpo_and_adds_proband(self):
         self.assertNotIn("<span>HPO</span>", TEMPLATE)

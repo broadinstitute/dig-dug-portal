@@ -8,9 +8,12 @@ import unittest
 import numpy as np
 
 from scripts.pb_gene_context_validation import (
+    COVARIATE_NAMES,
+    load_covariates,
     load_gene_evidence,
     load_hpo_matrix,
     load_overlap_roster,
+    reconstruct_burden_pathogenic_score,
     reconstruct_pathogenic_score,
     run_validation,
 )
@@ -75,6 +78,28 @@ class PbGeneContextValidationTest(unittest.TestCase):
         self.assertEqual(loaded["sample_ids"], ["S1", "S2"])
         self.assertEqual(loaded["status_counts"], {"both": 2, "genotype_only": 1, "roster_only": 1})
 
+    def test_covariates_use_fixed_age_median_missing_indicator_and_three_level_sex(self):
+        pc_columns = [f"PC{i}" for i in range(1, 11)]
+        path = self.write_tsv(
+            "covariates.tsv",
+            ["sample_id", "age", "sex", *pc_columns],
+            [
+                ["S1", 10, "Female", *range(1, 11)],
+                ["S2", "", "Male", *range(11, 21)],
+                ["S3", 30, "Unknown", *range(21, 31)],
+            ],
+        )
+
+        loaded = load_covariates(path, ["S1", "S2", "S3"])
+
+        self.assertEqual(loaded["names"], COVARIATE_NAMES)
+        self.assertEqual(loaded["age_median"], 20.0)
+        np.testing.assert_array_equal(loaded["values"][:, 0], [10, 20, 30])
+        np.testing.assert_array_equal(loaded["values"][:, 1], [0, 1, 0])
+        np.testing.assert_array_equal(loaded["values"][:, 2:4], [[0, 0], [1, 0], [0, 1]])
+        with self.assertRaisesRegex(ValueError, "missing 1 analysis samples"):
+            load_covariates(path, ["S1", "S2", "S3", "S4"])
+
     def test_reconstructs_score_with_revel_fallback_and_strict_precedence(self):
         lof = reconstruct_pathogenic_score({"LoF": "HC", "Alphamissense": "0.2", "REVEL": "0.9", "pathogenicity_score": "1"})
         alpha = reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "0.45", "REVEL": "0.9", "pathogenicity_score": "0.45"})
@@ -87,6 +112,14 @@ class PbGeneContextValidationTest(unittest.TestCase):
         self.assertEqual(revel, (0.99, "REVEL"))
         self.assertEqual(zero, (0.0, "AlphaMissense"))
         self.assertEqual(missing, (None, "No_score"))
+        self.assertEqual(
+            reconstruct_burden_pathogenic_score({
+                "LoF": "",
+                "Alphamissense": "NA",
+                "REVEL": "0.99",
+            }),
+            (None, "REVEL_only_excluded"),
+        )
         with self.assertRaisesRegex(ValueError, "REVEL outside"):
             reconstruct_pathogenic_score({"LoF": "", "Alphamissense": "NA", "REVEL": "1.1"})
         with self.assertRaisesRegex(ValueError, "stored pathogenicity_score"):
@@ -139,6 +172,14 @@ class PbGeneContextValidationTest(unittest.TestCase):
                 ["S6", "DMD", "D2", "1", 1, "", 0.2, 0.5, 0.2],
             ],
         )
+        covariates = self.write_tsv(
+            "covariates.tsv",
+            ["sample_id", "age", "sex", *[f"PC{i}" for i in range(1, 11)]],
+            [
+                [f"S{i}", "" if i == 3 else 5 + i, ("Female", "Male", "Unknown")[i % 3], *[i * 0.1 + pc for pc in range(1, 11)]]
+                for i in range(1, 7)
+            ],
+        )
 
         audit_dir = self.root / "audit"
         result = run_validation(
@@ -149,6 +190,7 @@ class PbGeneContextValidationTest(unittest.TestCase):
             ["CEP152", "DMD"],
             min_carriers=2,
             audit_dir=audit_dir,
+            covariate_path=covariates,
         )
 
         cep152 = result["genes"]["CEP152"]
@@ -156,20 +198,33 @@ class PbGeneContextValidationTest(unittest.TestCase):
         self.assertEqual(cep152["phenotype_vector_sha256"], dmd["phenotype_vector_sha256"])
         self.assertEqual(cep152["phenotype_vector_sha256"], result["phenotype_vector_sha256"])
         self.assertEqual(cep152["gene_burden"]["n_variants_total"], 3)
-        self.assertEqual(cep152["gene_burden"]["n_variants_unscored"], 0)
-        self.assertEqual(cep152["gene_burden"]["interpretation_scope"], "all_variants_scored")
+        self.assertEqual(cep152["gene_burden"]["n_variants_unscored"], 1)
+        self.assertEqual(cep152["gene_burden"]["n_variants_revel_only"], 1)
+        self.assertEqual(cep152["gene_burden"]["interpretation_scope"], "exploratory_scored_variants_only")
         self.assertIn("C3", cep152["variant_match_scores"])
         self.assertNotEqual(cep152["variant_match_scores"], dmd["variant_match_scores"])
-        self.assertIn(cep152["gene_burden"]["status"], {"ok", "zero_residual_scale"})
-        self.assertIn(dmd["gene_burden"]["status"], {"ok", "zero_residual_scale"})
+        self.assertIn(cep152["gene_burden"]["status"], {"ok", "zero_residual_scale", "singular_design"})
+        self.assertIn(dmd["gene_burden"]["status"], {"ok", "zero_residual_scale", "singular_design"})
+        self.assertEqual(cep152["gene_burden"]["covariates"], COVARIATE_NAMES)
+        self.assertEqual(
+            cep152["gene_burden"]["formula"],
+            "Y ~ X + " + " + ".join(COVARIATE_NAMES),
+        )
+        self.assertEqual(result["covariate_encoding"]["age_missing_count"], 1)
 
         self.assertNotIn("sample_id", json.dumps(result))
         self.assertNotIn("S1", json.dumps(result))
         with gzip.open(audit_dir / "CEP152_sample_audit.tsv.gz", "rt") as handle:
-            cep152_audit = {row["sample_id"]: float(row["gene_burden"]) for row in csv.DictReader(handle, delimiter="\t")}
+            cep152_audit = {
+                row["sample_id"]: float(row["gene_burden_loftee_am"])
+                for row in csv.DictReader(handle, delimiter="\t")
+            }
         with gzip.open(audit_dir / "DMD_sample_audit.tsv.gz", "rt") as handle:
-            dmd_audit = {row["sample_id"]: float(row["gene_burden"]) for row in csv.DictReader(handle, delimiter="\t")}
-        self.assertEqual({key: cep152_audit[key] for key in ("S1", "S2", "S3")}, {"S1": 0.7, "S2": 0.4, "S3": 0.9})
+            dmd_audit = {
+                row["sample_id"]: float(row["gene_burden_loftee_am"])
+                for row in csv.DictReader(handle, delimiter="\t")
+            }
+        self.assertEqual({key: cep152_audit[key] for key in ("S1", "S2", "S3")}, {"S1": 0.7, "S2": 0.4, "S3": 0.0})
         self.assertEqual({key: dmd_audit[key] for key in ("S4", "S5", "S6")}, {"S4": 1.0, "S5": 1.0, "S6": 0.2})
 
 
