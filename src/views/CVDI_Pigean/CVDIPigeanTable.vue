@@ -94,7 +94,6 @@ export default Vue.component("cvdi-pigean-table", {
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(row) {
             let queryKey = this.subtableKey(row.item);
-            console.log(queryKey);
             if (!this.subtableData[queryKey]) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
                 if (this.config.subtableEndpoint === 'pigean-joined-gene-set'){
@@ -280,74 +279,6 @@ export default Vue.component("cvdi-pigean-table", {
                     >
                         {{
                             row.detailsShowing && row.item.subtableActive !== 3
-                                ? "Hide"
-                                : "Show"
-                        }}
-                    </b-button>
-                </template>
-                <template #cell(expand1)="row">
-                    <b-dropdown
-                        split
-                        right
-                        :text="
-                            row.detailsShowing && row.item.subtableActive === 1
-                                ? 'Hide'
-                                : 'Show'
-                        "
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 1)"
-                    >
-                        <b-dropdown-header id="dropdown-header-label">
-                            Top 5 Genes
-                        </b-dropdown-header>
-                        <b-dropdown-item
-                            v-for="gene in row.item.top_genes.split(';')"
-                            :key="gene"
-                            :href="`/cvdi_pigean/gene.html?gene=${gene}${suffix}`"
-                        >
-                            {{ gene }}
-                        </b-dropdown-item>
-                    </b-dropdown>
-                </template>
-                <template #cell(expand2)="row">
-                    <b-dropdown
-                        split
-                        right
-                        :text="
-                            row.detailsShowing && row.item.subtableActive === 2
-                                ? 'Hide'
-                                : 'Show'
-                        "
-                        variant="outline-primary"
-                        size="sm"
-                        @click="showDetails(row, 2)"
-                    >
-                        <b-dropdown-header id="dropdown-header-label">
-                            Top 5 Gene Sets
-                        </b-dropdown-header>
-                        <b-dropdown-item
-                            v-for="geneSet in row.item.top_gene_sets.split(';')"
-                            :key="geneSet"
-                            :href="`/cvdi_pigean/geneset.html?geneset=${geneSet}${suffix}`"
-                        >
-                            {{
-                                geneSet.length > 40
-                                    ? `${geneSet.slice(0, 40)}...`
-                                    : geneSet
-                            }}
-                        </b-dropdown-item>
-                    </b-dropdown>
-                </template>
-                <template #cell(expand3)="row">
-                    <b-button
-                        variant="outline-primary"
-                        size="sm"
-                        :disabled="hideLocusButton(row.item.phenotype)"
-                        @click="showDetails(row, 3)"
-                    >
-                        {{
-                            row.detailsShowing && row.item.subtableActive === 3
                                 ? "Hide"
                                 : "Show"
                         }}
