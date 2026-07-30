@@ -70,7 +70,7 @@ export default Vue.component("cvdi-pigean-table", {
             let data = this.probData;
             //add subtableActive to each row
             data.forEach((row) => {
-                row.subtableActive = 0;
+                row.subtableActive = false;
             });
             if (this.filter) {
                 data = data.filter(this.filter);
@@ -103,24 +103,24 @@ export default Vue.component("cvdi-pigean-table", {
                 Vue.set(this.subtableData, queryKey, data);
             }
         },
-        showDetails(row, tableNum) {
-            this.toggleTable(row, tableNum);
+        showDetails(row) {
+            this.toggleTable(row);
             this.getSubtable(row);
         },
-        toggleTable(row, subtable) {
+        toggleTable(row) {
             let show = false;
-            if (subtable === row.item.subtableActive) {
+            if (row.item.subtableActive) {
                 show = false;
             } else {
                 show = true;
             }
             // Toggle active table
-            row.item.subtableActive = !show ? 0 : subtable;
+            row.item.subtableActive = !show ? false : true;
             // Hide details if it's currently showing and no tables should be active
             if (
                 !show &&
                 row.detailsShowing &&
-                row.item.subtableActive === 0
+                !row.item.subtableActive
             ) {
                 row.toggleDetails();
             }
@@ -128,7 +128,7 @@ export default Vue.component("cvdi-pigean-table", {
             if (
                 show &&
                 !row.detailsShowing &&
-                row.item.subtableActive !== 0
+                row.item.subtableActive
             ) {
                 row.toggleDetails();
             }
@@ -275,10 +275,10 @@ export default Vue.component("cvdi-pigean-table", {
                     <b-button
                         variant="outline-primary"
                         size="sm"
-                        @click="showDetails(row, 1)"
+                        @click="showDetails(row)"
                     >
                         {{
-                            row.detailsShowing && row.item.subtableActive !== 3
+                            row.detailsShowing
                                 ? "Hide"
                                 : "Show"
                         }}
@@ -287,18 +287,7 @@ export default Vue.component("cvdi-pigean-table", {
                 <template #row-details="row">
                     <cvdi-pigean-table
                         v-if="
-                            row.item.subtableActive === 2 &&
-                            subtable2Data[subtableKey(row.item)] &&
-                            subtable2Data[subtableKey(row.item)].length > 0
-                        "
-                        :pigeanData="subtable2Data[subtableKey(row.item)]"
-                        :config="{ fields: config.subtable2Fields }"
-                        :isSubtable="true"
-                    >
-                    </cvdi-pigean-table>
-                    <cvdi-pigean-table
-                        v-if="
-                            row.item.subtableActive === 1 &&
+                            row.item.subtableActive &&
                             subtableData[subtableKey(row.item)] &&
                             subtableData[subtableKey(row.item)].length > 0
                         "
@@ -307,9 +296,6 @@ export default Vue.component("cvdi-pigean-table", {
                         :isSubtable="true"
                     >
                     </cvdi-pigean-table>
-                    <div v-if="row.item.subtableActive === 3">
-                        Locus zoom unavailable
-                    </div>
                 </template>
             </b-table>
             <b-pagination
