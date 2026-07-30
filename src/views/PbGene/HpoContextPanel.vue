@@ -56,6 +56,7 @@
                 <span>HPOs (Entered terms)</span>
                 <span>Beta (Effect Size)</span>
                 <span>P-value</span>
+                <span title="Results are sorted from the lowest FDR to the highest.">FDR ↑</span>
                 <span>Status / score coverage</span>
                 <span>Note</span>
             </div>
@@ -63,6 +64,7 @@
                 <span>{{ run.hpos }}<small>{{ run.sourceLabel }}</small></span>
                 <strong>{{ run.beta }}</strong>
                 <strong>{{ run.pValue }}</strong>
+                <strong>{{ run.fdr }}</strong>
                 <span class="pbg-context-result-diagnostic">
                     <strong>{{ run.statusLabel }}</strong>
                     <small>{{ run.coverageLabel }}</small>

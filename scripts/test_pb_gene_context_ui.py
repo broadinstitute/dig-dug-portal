@@ -44,6 +44,13 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn('type="submit"', HPO_CONTEXT)
         self.assertIn("Apply &amp; run", HPO_CONTEXT)
 
+    def test_context_results_show_fdr_and_sort_lowest_first(self):
+        self.assertIn("FDR ↑", HPO_CONTEXT)
+        self.assertIn("{{ run.fdr }}", HPO_CONTEXT)
+        self.assertIn("fdrSortValue", MODEL)
+        self.assertIn("this.contextRuns.sort((a, b) => a.fdrSortValue - b.fdrSortValue)", MODEL)
+        self.assertIn('if (value == null || value === "") return "—";', MODEL)
+
     def test_default_threshold_does_not_block_form_submission(self):
         self.assertIn('v-model.number="thresholdModel"', HPO_CONTEXT)
         self.assertIn('step="any"', HPO_CONTEXT)
