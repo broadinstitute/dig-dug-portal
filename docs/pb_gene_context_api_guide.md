@@ -126,14 +126,14 @@ analysis samples.
 Portal v1 uses Huber M-estimation with `k=1.345`, at most 100 iterations, and
 convergence tolerance `1e-4`. The minimum is 10 samples with `X > 0`.
 
-Recommended v1 inference:
+Selected portal v1 inference:
 
 ```text
 SE: MASS summary.rlm(method="XtX")-style
 P-value: two-sided normal approximation for beta / SE
 ```
 
-Why retain this for v1:
+Why this is fixed for v1:
 
 - it matches the existing `rlm` analysis pattern and the checked Python/R
   reference example;
@@ -162,3 +162,11 @@ Return at least:
 
 Do not fall back silently to OLS for insufficient carriers, constant inputs,
 singular design, invalid SE, or non-convergence.
+
+The frontend must retain an under-supported result row for auditability, but
+show a red Note when `n_positive_burden < min_carriers`:
+
+```text
+Below the minimum analysis sample count (10 positive-burden carriers).
+Do not interpret or rely on this result.
+```

@@ -449,7 +449,7 @@
 .pbg-context-result-head,
 .pbg-context-result-row {
     display: grid;
-    grid-template-columns: minmax(18rem, 1fr) minmax(9rem, 0.3fr) minmax(9rem, 0.3fr) minmax(18rem, 0.7fr);
+    grid-template-columns: minmax(18rem, 1fr) minmax(9rem, 0.3fr) minmax(9rem, 0.3fr) minmax(18rem, 0.7fr) minmax(16rem, 0.6fr);
     gap: 0.75rem;
     padding: 0.52rem 0.75rem;
 }
@@ -490,6 +490,16 @@
 .pbg-context-result-diagnostic small {
     color: var(--pbg-text-soft);
     line-height: 1.35;
+}
+
+.pbg-context-result-note {
+    color: var(--pbg-text-faint);
+    line-height: 1.4;
+}
+
+.pbg-context-result-note--warning {
+    color: var(--pbg-danger);
+    font-weight: 800;
 }
 
 .pbg-context-empty {
@@ -1155,7 +1165,7 @@
 
     .pbg-context-result-head,
     .pbg-context-result-row {
-        min-width: 43rem;
+        min-width: 60rem;
     }
 
     .pbg-metric-item {

@@ -18,8 +18,10 @@ The production reviewer should first compare the page with:
 - [x] Only ages 0-99 are valid; all other ages are Unknown and median-imputed.
 - [x] Only Female/Male are retained; every other sex value is Unknown.
 - [x] Unknown age/sex alone does not exclude a sample.
-- [x] Portal v1 recommendation is MASS `summary.rlm(method="XtX")`-style SE
+- [x] Portal v1 uses MASS `summary.rlm(method="XtX")`-style SE
   with a clearly labeled two-sided normal-approximation P-value.
+- [x] Under-supported Context results remain visible with a red Note stating
+  that the result must not be interpreted or relied upon.
 
 ## Inputs the Team Must Provide
 
@@ -33,8 +35,7 @@ The production reviewer should first compare the page with:
 ## Statistical and Data Sign-Off
 
 - [ ] Phenotype owner confirms R/Python residual PheRS parity on frozen data.
-- [ ] Statistical owner accepts the MASS-style approximate inference for v1,
-  or supplies an exact alternative estimator and parity reference.
+- [x] Portal v1 inference is fixed to the MASS-style approximate method.
 - [ ] Data owner confirms the production variant universe and upstream
   carrier/genotype QC, including hemizygous, multiallelic, no-call, and
   low-quality records.

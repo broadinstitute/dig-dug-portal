@@ -57,6 +57,7 @@
                 <span>Beta (Effect Size)</span>
                 <span>P-value</span>
                 <span>Status / score coverage</span>
+                <span>Note</span>
             </div>
             <div v-for="run in contextRuns" :key="run.id" class="pbg-context-result-row">
                 <span>{{ run.hpos }}<small>{{ run.sourceLabel }}</small></span>
@@ -66,6 +67,9 @@
                     <strong>{{ run.statusLabel }}</strong>
                     <small>{{ run.coverageLabel }}</small>
                     <small>{{ run.modelLabel }}</small>
+                </span>
+                <span class="pbg-context-result-note" :class="{ 'pbg-context-result-note--warning': run.note }">
+                    {{ run.note || '—' }}
                 </span>
             </div>
             <p v-if="!contextRuns.length" class="pbg-context-empty">Enter an HPO context and select Go to add a result.</p>

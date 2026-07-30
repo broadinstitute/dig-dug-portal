@@ -108,15 +108,19 @@ implementations, not a production deployment.
 - Sex: only Female and Male are retained. Every other value is Unknown.
 - No sample is excluded solely because age or sex is Unknown.
 - Female is the model reference; `sex_male` and `sex_unknown` are indicators.
-- RLM inference recommendation for portal v1: retain the tested MASS
+- RLM inference decision for portal v1: use the tested MASS
   `summary.rlm(method="XtX")`-style standard error and label the two-sided
   normal P-value as an approximation. See the API guide for rationale.
+- Context result rows below 10 positive-burden carriers show a red Note that
+  the result must not be interpreted or relied upon.
 
 ## Staging Acceptance
 
 - Compare DMD against the local mockup at the URL above.
 - Verify large-gene counts use every continuation page.
 - Verify the default and minimum allowed carrier threshold are both 10.
+- Verify an under-supported result shows the red interpretation warning in the
+  Note column.
 - Submit a valid HPO context and confirm the response includes the exact model
   formula, sample count, score versions, and structured status.
 - Verify an age of 100, a negative/non-numeric age, and any non-Male/Female sex

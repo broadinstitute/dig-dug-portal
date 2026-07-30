@@ -1651,6 +1651,7 @@ export const pbGeneMethods = {
                 statusLabel: this.contextBurdenStatusLabel(burden),
                 coverageLabel: this.contextBurdenCoverageLabel(burden),
                 modelLabel: [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
+                note: this.contextBurdenNote(burden),
                 sourceLabel,
             });
             this.activeContextTerms = terms;
@@ -1738,6 +1739,17 @@ export const pbGeneMethods = {
             ? " · exploratory scored-variants-only burden"
             : "";
         return `${scored}/${total} variants scored (${percent}%)${partial}`;
+    },
+
+    contextBurdenNote(burden) {
+        const positive = Number(burden.n_positive_burden);
+        const minimumValue = Number(burden.min_carriers);
+        const minimum = Number.isFinite(minimumValue) ? minimumValue : 10;
+        const belowMinimum = burden.status === "insufficient_carriers"
+            || (Number.isFinite(positive) && positive < minimum);
+        return belowMinimum
+            ? `Below the minimum analysis sample count (${minimum} positive-burden carriers). Do not interpret or rely on this result.`
+            : "";
     },
 
     contextStatistic(value) {
