@@ -16,6 +16,7 @@
                         <form class="pbg-gene-search-form"
                               role="search"
                               aria-label="Search another gene"
+                              :aria-busy="searchGeneLoading ? 'true' : 'false'"
                               @submit.prevent="submitGeneSearch">
                             <input class="pbg-gene-search-input"
                                    v-model.trim="searchGeneQuery"
@@ -28,18 +29,38 @@
                                 {{ searchGeneLoading ? 'Loading' : 'Search' }}
                             </button>
                             <span v-if="searchGeneError" class="pbg-gene-search-error">{{ searchGeneError }}</span>
+                            <span v-if="searchGeneLoading"
+                                  class="pbg-gene-search-progress"
+                                  role="status"
+                                  aria-live="polite">
+                                <span class="pbg-loading-spinner" aria-hidden="true"></span>
+                                <span class="pbg-loading-text">{{ searchGeneProgress || 'Loading gene evidence' }}</span>
+                                <span class="pbg-loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                            </span>
                         </form>
                     </div>
                     <div class="pbg-toolbar-right">
                         <a href="/krVariant.html" class="pbg-nav-link">Variant search</a>
-                        <a href="/krPublicGene.html" class="pbg-nav-link">Public view</a>
+                        <a href="https://a2f.hugeamp.org/"
+                           class="pbg-nav-link pbg-nav-link--a2fkp"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="Open the A2F Knowledge Portal">A2FKP</a>
                     </div>
                 </div>
-                <div v-if="bioIndexLoading || bioIndexError || bioIndexLoaded" class="pbg-live-data-status">
-                    <span v-if="bioIndexLoading">Loading BCH private BioIndex data...</span>
-                    <span v-else-if="bioIndexError" class="pbg-live-data-status--error">{{ bioIndexError }}</span>
-                    <span v-else>Source: BCH private BioIndex Tier 1</span>
-                </div>
+
+                <hpo-context-panel
+                    :active-context-terms="activeContextTerms"
+                    :context-input.sync="contextInput"
+                    :context-loading="contextLoading"
+                    :context-significance-metric.sync="contextSignificanceMetric"
+                    :context-significance-threshold.sync="contextSignificanceThreshold"
+                    :context-min-carriers.sync="contextMinCarriers"
+                    :external-phenotype-result-url="externalPhenotypeResultUrl"
+                    :context-error="contextError"
+                    :context-runs="contextRuns"
+                    @run="runContextAnalysis"
+                ></hpo-context-panel>
 
                 <!-- ══════════════════════════════════════════════════════
                      BLOCK 1 — Gene identity + Primary CRDC evidence
@@ -47,96 +68,43 @@
                 <section class="pbg-hero-card">
 
                     <!-- Left: gene identity + reference annotation (no sample-derived data) -->
-                    <div class="pbg-hero-identity">
-                        <div class="pbg-gene-title-row">
-                            <h1 class="pbg-gene-symbol">{{ geneInfo.symbol }}</h1>
-                        </div>
-                        <p class="pbg-gene-fullname"><span>HGNC:</span> {{ geneInfo.fullName }}</p>
-                        <p v-if="geneInfo.description" class="pbg-gene-description"><span>NCBI:</span> {{ geneInfo.description }}</p>
-                        <p class="pbg-gene-location">{{ geneInfo.location }} <span>{{ geneInfo.build }}</span></p>
-
-                        <div class="pbg-gene-meta-row">
-                            <span class="pbg-meta-pill">OMIM {{ geneInfo.omim }}</span>
-                            <span class="pbg-meta-pill">Ensembl {{ geneInfo.ensemblId }}</span>
-                        </div>
-
-                        <!-- Reference annotation table (source: reference_db) -->
-                        <table class="pbg-ref-table">
-                            <tbody>
-                                <tr>
-                                    <td class="pbg-ref-source">DDG2P</td>
-                                    <td>
-                                        <span v-if="geneInfo.referenceAnnotation.ddg2p.support" class="pbg-ref-val pbg-ref-val--pos">
-                                            {{ geneInfo.referenceAnnotation.ddg2p.confidenceCategories }}
-                                            · {{ geneInfo.referenceAnnotation.ddg2p.diseaseNames }}
-                                        </span>
-                                        <span v-else class="pbg-ref-val pbg-ref-val--none">No entry</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="pbg-ref-source">PanelApp</td>
-                                    <td>
-                                        <span v-if="geneInfo.referenceAnnotation.panelapp.greenSupport" class="pbg-ref-val pbg-ref-val--pos">
-                                            {{ geneInfo.referenceAnnotation.panelapp.panelCount }} green panels
-                                            · MOI: {{ geneInfo.referenceAnnotation.panelapp.modesOfInheritance }}
-                                        </span>
-                                        <span v-else class="pbg-ref-val pbg-ref-val--none">No green panels</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="pbg-ref-source">Pathway</td>
-                                    <td>
-                                        <div v-if="geneInfo.referenceAnnotation.pathways.count > 0" class="pbg-ref-val pbg-ref-val--pathway">
-                                            <span>{{ geneInfo.referenceAnnotation.pathways.displayNames.join(" · ") }}</span>
-                                            <button v-if="geneInfo.referenceAnnotation.pathways.moreCount > 0"
-                                                    class="pbg-ref-more"
-                                                    type="button"
-                                                    :aria-expanded="showPathwayDetails ? 'true' : 'false'"
-                                                    @click="togglePathwayDetails">
-                                                +{{ geneInfo.referenceAnnotation.pathways.moreCount }} more
-                                            </button>
-                                            <div v-if="showPathwayDetails" class="pbg-pathway-list">
-                                                <div v-for="item in pathwayDetailItems" :key="item.source + '-' + item.name" class="pbg-pathway-item">
-                                                    <span>{{ item.source }}</span>
-                                                    <strong>{{ item.name }}</strong>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <span v-else class="pbg-ref-val pbg-ref-val--none">No annotation</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="pbg-ref-source-note">Source: gene_annotation_summary (DDG2P / PanelApp / Reactome / WikiPathways)</p>
-                    </div>
+                    <gene-identity-panel :gene-info="geneInfo"></gene-identity-panel>
 
                     <!-- Right: gene-level CRDC summary + representative evidence -->
                     <div class="pbg-hero-summary">
+                        <div class="pbg-cohort-strip" aria-label="CRDC cohort denominator">
+                            <span>
+                                <small>CRDC cohort:</small>
+                                <strong>{{ cohortCount(crdcEvidence.crdcCohortCount) }}</strong>
+                            </span>
+                            <span>
+                                <small>Gene carriers:</small>
+                                <strong>{{ cohortRatio(totalGeneCarriers) }}</strong>
+                            </span>
+                        </div>
                         <div class="pbg-metric-strip" aria-label="Gene-level CRDC summary">
                             <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.carriers" alt="" aria-hidden="true">
-                                <strong>{{ totalGeneCarriers }}</strong>
-                                <em>Carriers</em>
-                            </div>
-                            <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.affected" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.affected }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.affected), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.affected) }">{{ metricRatio(crdcEvidence.affected) }}</strong>
                                 <em>Affected</em>
                             </div>
                             <div class="pbg-metric-item">
                                 <img class="pbg-metric-icon" :src="metricIcons.probands" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.probands }}</strong>
+                                <strong :class="{ 'pbg-unavailable-value': isUnavailableValue(crdcEvidence.probands), 'pbg-metric-ratio': !isUnavailableValue(crdcEvidence.probands) }">{{ metricRatio(crdcEvidence.probands) }}</strong>
                                 <em>Probands</em>
                             </div>
                             <div class="pbg-metric-item">
-                                <img class="pbg-metric-icon" :src="metricIcons.gendx" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.genDxDiagnosed }}</strong>
-                                <em>GenDx diagnosed</em>
+                                <strong class="pbg-clinical-area-value" :class="{ 'pbg-unavailable-value': !crdcEvidence.largestClinicalArea }">
+                                    {{ crdcEvidence.largestClinicalArea ? crdcEvidence.largestClinicalArea.label : 'Unavailable' }}
+                                </strong>
+                                <small v-if="crdcEvidence.largestClinicalArea">{{ metricRatio(crdcEvidence.largestClinicalArea.count) }}</small>
+                                <em>Largest contributing clinical area</em>
                             </div>
-                            <div class="pbg-metric-item">
+                            <div class="pbg-metric-item"
+                                 title="Variants with at least one LoFTEE, AlphaMissense, or REVEL annotation">
                                 <img class="pbg-metric-icon" :src="metricIcons.variants" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.variantCount }}</strong>
-                                <em>Variants in this gene</em>
+                                <strong>{{ pathogenicEvidenceVariantCount.toLocaleString() }} / {{ variantRows.length.toLocaleString() }}</strong>
+                                <em>Pathogenic variants in this gene</em>
                             </div>
                         </div>
 
@@ -171,12 +139,7 @@
                                 </div>
                                 <div class="pbg-score-spotlights">
                                     <div>
-                                        <span>Mean carrier burden</span>
-                                        <strong>{{ meanCarrierBurdenScore != null ? meanCarrierBurdenScore.toFixed(2) : '—' }}</strong>
-                                        <em>variant score × GT dosage</em>
-                                    </div>
-                                    <div>
-                                        <span>Variant severity score</span>
+                                        <span>Extended Pathogenic Score</span>
                                         <strong>{{ topVariant.topScore.toFixed(2) }}</strong>
                                         <em>{{ topVariant.scoreSource }}</em>
                                     </div>
@@ -228,7 +191,7 @@
                         <div v-if="!isWholeGeneView" class="pbg-window-guide" :style="{ left: queriedGuideLeftPct + '%' }"></div>
 
                         <div class="pbg-window-major-axis">
-                            <span v-for="tick in locusMajorTicks" :key="'major-' + tick.pos"
+                            <span v-for="(tick, tickIndex) in locusMajorTicks" :key="'major-' + tickIndex + '-' + tick.pos"
                                   :class="'pbg-window-axis-tick--' + tick.edge"
                                   :style="{ left: tick.leftPct + '%' }">{{ tick.label }}</span>
                         </div>
@@ -248,7 +211,7 @@
                                         class="pbg-window-exon-block"
                                         :class="{ 'pbg-window-exon-block--query': exon.queried }"
                                         :style="{ left: exon.left, width: exon.width }"
-                                        :title="exon.schematic ? exon.label + ' schematic' : exon.label"
+                                        :title="exon.label"
                                         type="button"
                                         @mousedown.stop>
                                     <span class="pbg-window-exon-label">{{ exon.label.replace('E', '') }}</span>
@@ -274,10 +237,6 @@
                                             <em>{{ codon.aa }}</em>
                                         </span>
                                     </template>
-                                </div>
-                                <div v-else-if="!isWholeGeneView && genomeWindow.exonModelType === 'schematic'"
-                                     class="pbg-window-sequence-unavailable">
-                                    Sequence unavailable for schematic exon model
                                 </div>
                                 <div v-if="!isWholeGeneView" class="pbg-window-gene-name">{{ geneInfo.symbol }}</div>
                             </div>
@@ -312,7 +271,7 @@
                                 <strong>Carrier count</strong>
                             </div>
                             <div class="pbg-window-density-plot" :style="{ height: locusDensityPlotHeightPx + 'px' }">
-                                <button v-for="col in locusDensityColumns" :key="'density-col-' + col.pos"
+                                <button v-for="(col, colIndex) in locusDensityColumns" :key="'density-col-' + colIndex + '-' + col.pos"
                                         class="pbg-window-density-col"
                                         :class="{ 'pbg-window-density-col--query': col.isQueried, 'pbg-window-density-col--zero': col.count === 0 }"
                                         :style="{ left: col.leftPct + '%', width: col.widthPct + '%', height: col.heightPx + 'px' }"
@@ -331,9 +290,7 @@
 
                     <div class="pbg-locus-bottom-row">
                         <div class="pbg-locus-legend">
-                            <span v-if="genomeWindow.exons && genomeWindow.exons.length">
-                                <i class="pbg-locus-legend-exon"></i>{{ genomeWindow.exonModelType === 'schematic' ? 'Exon schematic' : 'Exon' }}
-                            </span>
+                            <span><i class="pbg-locus-legend-exon"></i>Exon</span>
                             <span><i class="pbg-locus-legend-intron"></i>Intron</span>
                             <span><i class="pbg-locus-legend-variant"></i>Variant</span>
                         </div>
@@ -447,7 +404,7 @@
                                 <strong>Carrier demographics</strong>
                                 <span>{{ summaryCarrierTotal }} carriers</span>
                             </button>
-                            <div class="pbg-summary-card-body pbg-summary-demo-grid">
+                            <div v-if="summaryCarrierDemographicsHasRows" class="pbg-summary-card-body pbg-summary-demo-grid">
                                 <div>
                                     <p>By age</p>
                                     <div v-for="row in summaryCarrierDemographicsVisible.byAge" :key="'age-' + row.band" class="pbg-summary-demo-row">
@@ -479,6 +436,7 @@
                                     </div>
                                 </div>
                             </div>
+                            <p v-else class="pbg-empty-note pbg-summary-empty-note">No sample metadata available</p>
                             <div v-if="summaryCarrierDemographicsHiddenCount" class="pbg-summary-card-foot">
                                 <button class="pbg-summary-more-btn" type="button" @click="toggleSummaryCard('demographics')">
                                     {{ isSummaryCardExpanded('demographics') ? 'Show less' : '+' + summaryCarrierDemographicsHiddenCount + ' more rows' }}
@@ -498,25 +456,37 @@
 
                         <div class="pbg-ve-table-head">
                             <span></span>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('variant')">
-                                Variant <i>{{ variantSortIndicator('variant') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variant')">
+                                <i>{{ variantSortIndicator('variant') }}</i><span>Variant</span>
                             </button>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('carriers')">
-                                Carriers (affected) <i>{{ variantSortIndicator('carriers') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('carriers')">
+                                <i>{{ variantSortIndicator('carriers') }}</i><span>Carriers (affected)</span>
                             </button>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('af')">
-                                CRDC AF <i>{{ variantSortIndicator('af') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('crdcAF')">
+                                <i>{{ variantSortIndicator('crdcAF') }}</i><span>CRDC carrier frequency</span>
                             </button>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('classification')">
-                                Classification <i>{{ variantSortIndicator('classification') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('classification')">
+                                <i>{{ variantSortIndicator('classification') }}</i><span>Classification</span>
                             </button>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('score')">
-                                Variant score <em>CRDC</em> <i>{{ variantSortIndicator('score') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('variantScore')">
+                                <i>{{ variantSortIndicator('variantScore') }}</i><span>Burden Pathogenic Score <em>CRDC</em></span>
                             </button>
-                            <button class="pbg-sort-col" type="button" @click="sortVariantEvidence('match')">
-                                Match score <em>CRDC</em> <i>{{ variantSortIndicator('match') }}</i>
+                            <button class="pbg-ve-sort" type="button" @click="sortVariantsBy('matchScore')">
+                                <i>{{ variantSortIndicator('matchScore') }}</i>
+                                <span>
+                                    Match Score (Context-based)
+                                    <abbr class="pbg-score-help"
+                                          title="Mean residual PheRS across the unique carriers of this variant for the selected HPO context. No partial mean is shown when any carrier score is missing."
+                                          aria-label="Match Score calculation: mean residual PheRS across unique carriers of this variant for the selected HPO context."
+                                          @click.stop>?</abbr>
+                                    <em>CRDC</em>
+                                </span>
                             </button>
                         </div>
+                        <p class="pbg-score-legend">
+                            <strong>—*</strong> REVEL available; excluded from this score.
+                            <span><strong>—</strong> No LoFTEE HC, AlphaMissense, or REVEL annotation.</span>
+                        </p>
 
                         <template v-for="row in visibleVariantRows">
                             <div :key="row.id"
@@ -533,7 +503,7 @@
                                     <small v-if="variantAffectedCount(row)">({{ variantAffectedCount(row) }} affected)</small>
                                 </span>
                                 <span class="pbg-ve-af">
-                                    {{ crdcAF(row) }}
+                                    <span :class="{ 'pbg-unavailable-inline': isUnavailableValue(crdcAF(row)) }">{{ crdcAF(row) }}</span>
                                     <small v-if="variantHasHighAf(row)" class="pbg-af-warning-badge" :title="variantAfWarningText(row)">High AF</small>
                                 </span>
                                 <span class="pbg-ve-classification">
@@ -543,9 +513,17 @@
                                     <small>{{ row.consequence }}</small>
                                 </span>
                                 <span>
-                                    <strong class="pbg-score-badge" :class="variantScoreClass(row)">{{ variantScoreDisplay(row) }}</strong>
+                                    <strong class="pbg-score-badge"
+                                            :class="variantScoreClass(row)"
+                                            :title="variantScoreTitle(row)">
+                                        {{ variantScoreDisplay(row) }}<sup v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-star">*</sup>
+                                    </strong>
                                 </span>
-                                <span class="pbg-no-context">{{ matchScoreDisplay(row) }}</span>
+                                <span v-if="!activeContextTerms.length" class="pbg-no-context">no context</span>
+                                <strong v-else-if="row.phenotypeMatchScore != null" class="pbg-score-badge">
+                                    {{ row.phenotypeMatchScore.toFixed(2) }}
+                                </strong>
+                                <span v-else class="pbg-no-context" :title="row.phenotypeMatchStatus || ''">Unavailable</span>
                             </div>
 
                             <div v-if="expandedVariantId === row.id"
@@ -564,11 +542,26 @@
                                         <div v-for="item in variantEvidenceRows(row)" :key="'evidence-' + item.label" class="pbg-selected-kv-row">
                                             <span>{{ item.label }}</span>
                                             <a v-if="item.href" class="pbg-ext-link"
+                                               :class="[
+                                                   item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
+                                                   item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
+                                               ]"
                                                :href="item.href" target="_blank" rel="noopener noreferrer"
                                                @click.stop>{{ item.value }} ↗</a>
-                                            <strong v-else>{{ item.value }}</strong>
+                                            <strong v-else
+                                                    :class="[
+                                                        item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
+                                                        item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
+                                                    ]">
+                                                {{ item.value }}<sup v-if="item.label === 'REVEL' && hasRevelOnlyScore(row)"
+                                                                    class="pbg-revel-only-star"
+                                                                    title="REVEL is available but excluded from Burden Pathogenic Score.">*</sup>
+                                            </strong>
                                         </div>
                                     </div>
+                                    <p v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-note">
+                                        <strong>*</strong> REVEL is available for reference but excluded from Burden Pathogenic Score.
+                                    </p>
                                 </div>
 
                                 <div class="pbg-selected-carriers">
@@ -579,10 +572,10 @@
                                             <span>Age</span>
                                             <span>Sex</span>
                                             <span>GT</span>
-                                            <span>HPO</span>
                                             <span>Co-genes</span>
                                             <span>Investigator</span>
                                             <span>Affected</span>
+                                            <span>Proband</span>
                                             <span>GenDx</span>
                                         </div>
                                         <div v-for="s in visibleCarrierRows(row)" :key="row.id + '-' + s.id" class="pbg-selected-sample-row">
@@ -590,10 +583,16 @@
                                             <span>{{ s.age }}</span>
                                             <span>{{ s.sex }}</span>
                                             <span>{{ s.gt }}</span>
-                                            <span>{{ s.hpo }}</span>
-                                            <span>{{ s.genes }}</span>
+                                            <div class="pbg-co-gene-cell">
+                                                <span>{{ coGenePreview(s.genes) }}</span>
+                                                <details v-if="coGeneRemaining(s.genes).length">
+                                                    <summary>+{{ coGeneRemaining(s.genes).length }} more</summary>
+                                                    <span>{{ coGeneRemaining(s.genes).join(', ') }}</span>
+                                                </details>
+                                            </div>
                                             <span>{{ s.group }}</span>
                                             <span>{{ s.affected }}</span>
+                                            <span>{{ s.proband }}</span>
                                             <span :class="{ 'pbg-gendx-conflict': s.gendxConflict }"
                                                   :title="s.gendxNote || s.gendx || '-'">{{ s.gendx || '-' }}</span>
                                         </div>
@@ -606,14 +605,12 @@
                                 </div>
                             </div>
                         </template>
-                        <div v-if="hiddenVariantRowCount"
-                             class="pbg-ve-more-row">
-                            <button class="pbg-show-more-btn"
-                                    type="button"
-                                    @click.stop="showMoreVariantRows">
-                                +20 more ({{ hiddenVariantRowCount }} remaining)
-                            </button>
-                        </div>
+                        <button v-if="hiddenVariantCount"
+                                class="pbg-show-more-btn pbg-show-more-btn--variants"
+                                type="button"
+                                @click.stop="showMoreVariants">
+                            +10 more ({{ hiddenVariantCount }} remaining)
+                        </button>
                     </div>
                 </section>
 
@@ -626,23 +623,22 @@
 
 <script>
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "./pageModel";
-import carriersIcon from "./carriers.png";
+import GeneIdentityPanel from "./GeneIdentityPanel";
+import HpoContextPanel from "./HpoContextPanel";
 import affectedIcon from "./affected.png";
 import probandsIcon from "./proband.png";
-import gendxIcon from "./gendx.png";
 import variantsIcon from "./variants.png";
 import "./style.css";
 
 const metricIcons = {
-    carriers: carriersIcon,
     affected: affectedIcon,
     probands: probandsIcon,
-    gendx: gendxIcon,
     variants: variantsIcon,
 };
 
 export default {
     name: "PbGeneTemplate",
+    components: { GeneIdentityPanel, HpoContextPanel },
     data() {
         return {
             ...createPbGeneState(),
@@ -650,7 +646,7 @@ export default {
         };
     },
     mounted() {
-        this.loadBioIndexGene().catch(() => {});
+        this.loadLiveGeneData(this.searchGeneQuery, false).catch(() => {});
     },
     computed: pbGeneComputed,
     methods: pbGeneMethods,

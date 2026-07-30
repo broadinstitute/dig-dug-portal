@@ -271,9 +271,25 @@ if (process.env.NODE_ENV === "production") {
     delete pages.debug;
 }
 
+const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
+    || "http://127.0.0.1:8092";
+
 module.exports = {
     devServer: {
-        writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        writeToDisk: true, // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+        before(app) {
+            const fixturePath = process.env.PB_GENE_CONTEXT_FIXTURE_PATH;
+            if (!fixturePath) return;
+            app.get("/__pb_gene_context_fixture__", (request, response, next) => {
+                response.sendFile(fixturePath, error => { if (error) next(error); });
+            });
+        },
+        proxy: {
+            "/phenotype-analyzer-api": {
+                target: phenotypeAnalyzerHostPrivate,
+                changeOrigin: true,
+            },
+        },
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;

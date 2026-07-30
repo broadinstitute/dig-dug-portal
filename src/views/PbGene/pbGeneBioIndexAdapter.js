@@ -56,7 +56,7 @@ async function safeBioIndexQuery(index, q, limit = null, options = {}) {
             onResolve: json => {
                 if (options.onProgress) options.onProgress(index, json);
             },
-        });
+        }, true);
     } catch (error) {
         if (index === "gene") return [];
         throw error;
