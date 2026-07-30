@@ -3617,6 +3617,12 @@
     min-width: 0;
 }
 
+.pbg-ve-classification .pbg-clinvar-badge {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
 .pbg-ve-classification small {
     color: var(--pbg-text-soft);
     font-size: 0.82rem;
