@@ -1,5 +1,81 @@
 <template>
     <div style="display:flex; flex-direction: column; gap: 12px; color: #555;">
+                            <!-- Live data-fetch progress (text-query hybrid + genes-first). -->
+                            <div
+                                v-if="showFetchProgress"
+                                class="mb-2"
+                            >
+                                <div
+                                    class="d-flex align-items-center"
+                                    style="gap: 5px; cursor: pointer; user-select: none;"
+                                    role="button"
+                                    :aria-expanded="fetchProgressExpanded ? 'true' : 'false'"
+                                    @click="toggleFetchProgress"
+                                >
+                                    <b-spinner v-if="isDataFetchActive" small></b-spinner>
+                                    <span v-else>{{ fetchProgressExpanded ? "▼" : "▶" }}</span>
+                                    <span style="font-weight:bold">{{ fetchProgressHeaderTitle }}</span>
+                                    <span
+                                        v-if="fetchProgressHeaderTime"
+                                        class="text-muted small"
+                                    >{{ fetchProgressHeaderTime }}</span>
+                                </div>
+                                <div
+                                    v-show="fetchProgressExpanded"
+                                    class="mt-1"
+                                >
+                                    <div
+                                        v-for="step in revealDataSteps"
+                                        :key="'reveal-data-' + step.id"
+                                        class="status mb-2"
+                                    >
+                                        <div class="sub-status" style="display:flex; flex-direction: column; padding-left: 18px;">
+                                            <div
+                                                v-for="(substep, ii) in (step.substeps || [])"
+                                                :key="'ds-' + step.id + '-' + (substep && substep.id != null ? substep.id : ii) + '-' + ii"
+                                                class="mb-2"
+                                            >
+                                                <div class="small font-weight-bold mb-1">{{ substep.title }}</div>
+                                                <div
+                                                    v-if="substep.result && (substep.result.title || (substep.id !== '2.h2' && substep.result.result != null))"
+                                                    style="padding-left: 8px;"
+                                                >
+                                                    <div
+                                                        v-if="substep.result.title"
+                                                        class="small text-muted"
+                                                        style="white-space: pre-line; line-height: 1.4;"
+                                                    >{{ substep.result.title }}</div>
+                                                    <pre
+                                                        v-if="substep.id !== '2.h2' && substep.result.result != null"
+                                                        style="background: #eee; padding: 10px; max-height: 160px; resize:vertical; overflow: auto;"
+                                                    >{{ substep.result.result }}</pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        v-if="loadStatus"
+                                        class="load-indicator d-flex align-items-center mb-1"
+                                        style="gap: 8px; padding-left: 18px;"
+                                    >
+                                        <b-spinner
+                                            v-if="showLoadStatusSpinner"
+                                            small
+                                        ></b-spinner>
+                                        <span :class="loadComplete ? 'text-success' : 'text-muted'">
+                                            {{ loadStatus }}{{ loadStepSeconds > 0 ? ' (' + loadStepSeconds + 's)' : '' }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        v-if="geneEntryLoading && geneEntryProgress && geneEntryProgress.detail"
+                                        class="small text-muted"
+                                        style="white-space: pre-line; line-height: 1.4; padding-left: 18px;"
+                                    >
+                                        {{ geneEntryProgress.detail }}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div v-if="showFactorTable">
                                 <workflow-step-gate
                                     v-if="gateActive && gateStepId === '2'"
@@ -15,24 +91,23 @@
                                         Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
                                         REVEAL will generate mechanistic hypotheses using the data.
                                     </template>
+                                    <template v-if="showResearchIntention" v-slot:extra>
+                                        <label class="small font-weight-bold mb-1 d-block reveal-gate-text">
+                                            Research intention (optional)
+                                        </label>
+                                        <textarea
+                                            class="form-control form-control-sm"
+                                            :value="researchIntention"
+                                            rows="3"
+                                            style="min-height: 5em; resize: vertical;"
+                                            placeholder="Describe what you want to learn or hypothesize about these genes…"
+                                            @input="$emit('update:researchIntention', $event.target.value)"
+                                        ></textarea>
+                                        <div class="small mt-1 reveal-gate-text" style="opacity: 0.9;">
+                                            Used as research context when generating mechanistic hypotheses.
+                                        </div>
+                                    </template>
                                 </workflow-step-gate>
-                                <div
-                                    v-if="gateActive && gateStepId === '2' && showResearchIntention"
-                                    class="mb-3"
-                                >
-                                    <label class="small font-weight-bold text-muted mb-1 d-block">Research intention</label>
-                                    <textarea
-                                        class="form-control form-control-sm"
-                                        :value="researchIntention"
-                                        rows="3"
-                                        style="min-height: 5em; resize: vertical;"
-                                        placeholder="Describe what you want to learn or hypothesize about these genes…"
-                                        @input="$emit('update:researchIntention', $event.target.value)"
-                                    ></textarea>
-                                    <div class="small text-muted mt-1">
-                                        Used as research context when generating mechanistic hypotheses.
-                                    </div>
-                                </div>
                                 <div class="mb-1">
                                     <div class="flex-grow-1">
                                         <div class="font-weight-bold mb-2" style="color: #FF6600; font-size: 1.2em;">
@@ -85,8 +160,8 @@
                                         </button>
                                     </div>
                                     <div>
-                                        <!-- Phenotype path: custom table, no rationale column -->
-                                        <b-table-simple v-if="isPhenotypePath" small striped hover class="mb-0">
+                                        <!-- Phenotype path: custom table, no rationale column (text-query only) -->
+                                        <b-table-simple v-if="isPhenotypePath && !isGeneEntryMode" small striped hover class="mb-0">
                                             <thead variant="light">
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
@@ -114,7 +189,10 @@
                                                     <td>{{ helpers.getPhenotypeDisplay(row.phenotype) }}</td>
                                                     <td>{{ helpers.getFetchDirectionDisplay(row) }}</td>
                                                     <td class="text-center">{{ helpers.getGeneSetCountForRow(row) }}</td>
-                                                    <td class="text-center">{{ helpers.getGeneCountForRow(row) }}</td>
+                                                    <td class="text-center">
+                                                        <template v-if="emphasizeSearchContextGenes">{{ helpers.getGeneSearchContextCountDisplay(row) }}</template>
+                                                        <template v-else>{{ helpers.getGeneCountForRow(row) }}</template>
+                                                    </td>
                                                     <!--
                                                     <td>
                                                         <div style="display:flex; flex-direction: column; gap: 3px">
@@ -241,7 +319,13 @@
                                                                     ]"
                                                                     :per-page="subtablePerPage"
                                                                     :current-page="helpers.getSubtableCurrentPage(row)"
-                                                                />
+                                                                >
+                                                                    <template #cell(gene)="gRow">
+                                                                        <span :style="emphasizeSearchContextGenes && gRow.item.userRequested === 'Yes' ? { fontWeight: 700 } : { fontWeight: 400 }">
+                                                                            {{ gRow.item.gene }}
+                                                                        </span>
+                                                                    </template>
+                                                                </b-table>
                                                                 <b-pagination
                                                                     v-if="!loadingGenesForFactor[helpers.getRowKey(row)] && helpers.getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length > subtablePerPage"
                                                                     :value="subtableCurrentPages[helpers.getRowKey(row)]" @input="$emit('update:subtable-page', { rowKey: helpers.getRowKey(row), page: $event })"
@@ -260,16 +344,7 @@
                                             v-else
                                             :items="mainFactorTableRowsPaged"
                                             primary-key="_rowKey"
-                                            :fields="[
-                                                { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
-                                                { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'fetchDirection', label: 'Fetch direction', thStyle: { width: '180px' } },
-                                                { key: 'geneSetCount', label: 'Number of gene sets', thStyle: { width: '120px' }, tdClass: 'text-center' },
-                                                { key: 'geneCount', label: 'Number of genes', thStyle: { width: '110px' }, tdClass: 'text-center' },
-                                                //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
-                                                { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
-                                                { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
-                                            ]"
+                                            :fields="mainAssociationTableFields"
                                             small
                                             striped
                                             hover
@@ -286,6 +361,9 @@
                                                     />
                                                 </div>
                                             </template>
+                                            <template #cell(factor)="row">
+                                                {{ helpers.getFactorClusterDisplay(row.item) }}
+                                            </template>
                                             <template #cell(phenotype)="row">
                                                 {{ helpers.getPhenotypeDisplay(row.item.phenotype) }}
                                             </template>
@@ -296,7 +374,8 @@
                                                 {{ helpers.getGeneSetCountForRow(row.item) }}
                                             </template>
                                             <template #cell(geneCount)="row">
-                                                {{ helpers.getGeneCountForRow(row.item) }}
+                                                <template v-if="emphasizeSearchContextGenes">{{ helpers.getGeneSearchContextCountDisplay(row.item) }}</template>
+                                                <template v-else>{{ helpers.getGeneCountForRow(row.item) }}</template>
                                             </template>
                                             <template #cell(top_gene_sets)="row">
                                                 <span class="small">{{ row.item.top_gene_sets }}</span>
@@ -416,7 +495,13 @@
                                                             ]"
                                                             :per-page="subtablePerPage"
                                                             :current-page="helpers.getSubtableCurrentPage(row.item)"
-                                                        />
+                                                        >
+                                                            <template #cell(gene)="gRow">
+                                                                <span :style="emphasizeSearchContextGenes && gRow.item.userRequested === 'Yes' ? { fontWeight: 700 } : { fontWeight: 400 }">
+                                                                    {{ gRow.item.gene }}
+                                                                </span>
+                                                            </template>
+                                                        </b-table>
                                                         <b-pagination
                                                             v-if="helpers.getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length > subtablePerPage"
                                                             :value="subtableCurrentPages[helpers.getRowKey(row.item)]" @input="$emit('update:subtable-page', { rowKey: helpers.getRowKey(row.item), page: $event })"
@@ -474,7 +559,115 @@ export default {
         /** Genes-first only: research intention input under the Data Continue gate. */
         showResearchIntention: { type: Boolean, default: false },
         researchIntention: { type: String, default: "" },
+        /** Genes-first table columns (Factor before Phenotype; no Fetch direction). */
+        isGeneEntryMode: { type: Boolean, default: false },
+        /** Bold genes of interest vs context (genes-first or text-query with GOI). */
+        emphasizeSearchContextGenes: { type: Boolean, default: false },
+        /** Data-step timeline while retrieving (hybrid + genes-first). */
+        revealDataSteps: { type: Array, default: () => [] },
+        loadStatus: { type: String, default: "" },
+        loadComplete: { type: Boolean, default: false },
+        loadStepSeconds: { type: Number, default: 0 },
+        geneEntryProgress: {
+            type: Object,
+            default: () => ({ message: "", detail: "" }),
+        },
+        geneEntryLoading: { type: Boolean, default: false },
         helpers: { type: Object, required: true },
+    },
+    data() {
+        return {
+            fetchProgressExpanded: true,
+        };
+    },
+    watch: {
+        isDataFetchActive: {
+            immediate: true,
+            handler(active) {
+                // Open while fetching; collapse once data is ready (header remains a manual toggle).
+                this.fetchProgressExpanded = !!active;
+            },
+        },
+    },
+    computed: {
+        showFetchProgress() {
+            return (
+                (this.revealDataSteps && this.revealDataSteps.length > 0) ||
+                !!String(this.loadStatus || "").trim() ||
+                this.geneEntryLoading
+            );
+        },
+        /** True while APIs are still running (before factor table is available). */
+        isDataFetchActive() {
+            if (this.geneEntryLoading) return true;
+            if (this.showFactorTable) return false;
+            return (
+                (this.revealDataSteps && this.revealDataSteps.length > 0) ||
+                !!String(this.loadStatus || "").trim()
+            );
+        },
+        fetchProgressHeaderTitle() {
+            const step = Array.isArray(this.revealDataSteps) ? this.revealDataSteps[0] : null;
+            return (step && step.title) || "Retrieving data";
+        },
+        fetchProgressHeaderTime() {
+            const step = Array.isArray(this.revealDataSteps) ? this.revealDataSteps[0] : null;
+            if (!step || !this.helpers) return "";
+            return this.helpers.formatTime(step.time) || this.helpers.currStepTime(step) || "";
+        },
+        showLoadStatusSpinner() {
+            if (this.loadComplete) return false;
+            if (this.gateActive && this.gateStepId === "2") return false;
+            return !!(this.loadStatus || this.geneEntryLoading);
+        },
+        mainAssociationTableFields() {
+            const included = {
+                key: "included",
+                label: "Included",
+                thStyle: { width: "72px" },
+                stickyColumn: false,
+            };
+            const phenotype = { key: "phenotype", label: "Phenotype", thStyle: { width: "120px" } };
+            const factor = { key: "factor", label: "Factor", thStyle: { width: "160px" } };
+            const fetchDirection = {
+                key: "fetchDirection",
+                label: "Fetch direction",
+                thStyle: { width: "180px" },
+            };
+            const geneSetCount = {
+                key: "geneSetCount",
+                label: "Number of gene sets",
+                thStyle: { width: "120px" },
+                tdClass: "text-center",
+            };
+            const geneCount = {
+                key: "geneCount",
+                label: this.emphasizeSearchContextGenes
+                    ? "Number of genes (search:context)"
+                    : "Number of genes",
+                thStyle: { width: this.emphasizeSearchContextGenes ? "150px" : "110px" },
+                tdClass: "text-center",
+            };
+            const rationale = {
+                key: "rationale",
+                label: "Selection rationale",
+                thStyle: { width: "220px" },
+            };
+            const viewGenes = {
+                key: "view_genes",
+                label: "Genes and gene sets in cluster",
+                thStyle: { width: "140px" },
+            };
+            if (this.isGeneEntryMode) {
+                return [included, factor, phenotype, geneSetCount, geneCount, rationale, viewGenes];
+            }
+            return [included, phenotype, fetchDirection, geneSetCount, geneCount, rationale, viewGenes];
+        },
+    },
+    methods: {
+        toggleFetchProgress() {
+            this.fetchProgressExpanded = !this.fetchProgressExpanded;
+        },
     },
 };
 </script>

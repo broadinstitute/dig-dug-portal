@@ -103,6 +103,8 @@ async function fetchGeneSetPigeanScoresForPhenotype(vm, phenotypeId, { limit = 1
                 factor: row && row.factor != null ? String(row.factor) : "",
                 label: row && row.label != null ? String(row.label) : "",
                 rsScore: row && row.rs_score != null && !isNaN(Number(row.rs_score)) ? Number(row.rs_score) : null,
+                // Effect size; genes-first keeps only gene sets with beta > MIN_GENE_SET_BETA.
+                beta: row && row.beta != null && !isNaN(Number(row.beta)) ? Number(row.beta) : null,
                 description: row && row.gene_set_description != null ? String(row.gene_set_description) : "",
                 program: row && row.gene_set_program != null ? String(row.gene_set_program) : "",
             }))

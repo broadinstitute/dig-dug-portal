@@ -15,6 +15,7 @@ import {
     isLlmTimeoutError,
     runLlmWithRetry,
 } from "./revealMqOrchestratorShared.js";
+import { filterFactorDataByAssociationFilters, DEFAULT_ASSOCIATION_FILTERS, ASSOCIATION_TIER_IDS } from "./revealMqAssociationScore.js";
 
 const DEFAULT_HYPOTHESIS_MAX_ATTEMPTS = 3;
 
@@ -195,10 +196,23 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
     vm.mechanismDiagnosticAssessment = null;
 
     const researchContext = getResearchContextFromSession(vm);
-    const flattened = flattenKGData(kgTriples);
+    // Honor phenotype-association legend checkboxes: only visible-tier genes go to the LLM.
+    const associationFilters = {
+        ...DEFAULT_ASSOCIATION_FILTERS,
+        ...(vm.phenotypeAssociationFilters || {}),
+    };
+    const associationFilterActive = ASSOCIATION_TIER_IDS.some((id) => associationFilters[id] === false);
+    const scopedFactorData = associationFilterActive
+        ? filterFactorDataByAssociationFilters(factorData, associationFilters)
+        : factorData;
+    const scopedKgTriples =
+        associationFilterActive && typeof vm.transformMergedDataToKG === "function"
+            ? vm.transformMergedDataToKG(scopedFactorData, "factors")
+            : kgTriples;
+    const flattened = flattenKGData(scopedKgTriples);
     vm.lastFlattenedKG = flattened;
     const kgBlock = flattenedKGToCSV(flattened);
-    const phenoSummary = vm.serializeFactorDataForPrompt(factorData);
+    const phenoSummary = vm.serializeFactorDataForPrompt(scopedFactorData);
     const hypothesesUserPrompt = buildHypothesesUserPrompt(vm, {
         kgBlock,
         phenoSummary,

@@ -191,6 +191,8 @@
                                     :factor-data-table-rows="factorDataTableRowsFiltered"
                                     :phenotype-description-by-id="phenotypeDescriptionById"
                                     :row-label-mode="isGeneEntryMode ? 'factor' : 'phenotype'"
+                                    :emphasize-search-context-genes="emphasizeSearchContextGenes"
+                                    :phenotype-association-filters.sync="phenotypeAssociationFilters"
                                     :selected-nodes.sync="heatmapSelectedNodes"
                                     show-workflow-selection-chrome
                                     :saved-explanations="savedSelectedNodesExplainMenuItems"
@@ -248,7 +250,7 @@
                     no-close-on-backdrop
                     no-close-on-esc
                     :hide-footer="geneEntry.status === 'loading'"
-                    title="Genes-first data loading"
+                    :title="geneEntry.offerMainPathFallback ? 'Genes-first retrieval failed' : 'Genes-first data loading'"
                 >
                     <div class="d-flex align-items-start">
                         <b-spinner v-if="geneEntry.status === 'loading'" class="mr-3 mt-1"></b-spinner>
@@ -259,6 +261,7 @@
                             <div
                                 v-if="geneEntry.progress && geneEntry.progress.detail"
                                 class="small text-muted"
+                                style="white-space: pre-line; line-height: 1.45;"
                             >
                                 {{ geneEntry.progress.detail }}
                             </div>
@@ -271,10 +274,39 @@
                                     : {{ geneEntry.inputGenes.slice(0, 8).join(", ") }}…
                                 </span>
                             </div>
+                            <div
+                                v-if="geneEntry.offerMainPathFallback"
+                                class="mt-3 p-2 border rounded"
+                                style="background: #f8f9fa; font-size: 0.9rem; line-height: 1.45;"
+                            >
+                                Switch to the standard text-query path? Your genes will be placed in a default research question, the URL will use
+                                <code>query=</code> instead of <code>genes=</code>, and search-term extraction will start.
+                            </div>
                         </div>
                     </div>
                     <template #modal-footer>
-                        <b-button variant="primary" size="sm" @click="dismissGeneEntryProgressModal">
+                        <b-button
+                            v-if="geneEntry.offerMainPathFallback"
+                            variant="outline-secondary"
+                            size="sm"
+                            @click="dismissGeneEntryProgressModal"
+                        >
+                            Dismiss
+                        </b-button>
+                        <b-button
+                            v-if="geneEntry.offerMainPathFallback"
+                            variant="primary"
+                            size="sm"
+                            @click="onSwitchGeneEntryToMainPath"
+                        >
+                            Switch to text-query search
+                        </b-button>
+                        <b-button
+                            v-else
+                            variant="primary"
+                            size="sm"
+                            @click="dismissGeneEntryProgressModal"
+                        >
                             OK
                         </b-button>
                     </template>
@@ -438,6 +470,11 @@ import {
     transformMergedDataToKG as buildKgTriplesFromFactorData,
 } from "./revealMultiQueryWorkflow/revealMqKgTransform.js";
 import {
+    DEFAULT_ASSOCIATION_FILTERS,
+    associationTierPasses,
+    filterFactorDataByAssociationFilters,
+} from "./revealMultiQueryWorkflow/revealMqAssociationScore.js";
+import {
     buildFactorConnectivityNetwork,
     buildMechanismFlowNetworkFromHypothesisKg,
     buildNetworkFromFlattenedRowIds,
@@ -481,6 +518,7 @@ import {
     continueWithQueryHelper,
 } from "./revealMultiQueryWorkflow/revealMqQueryHelperOrchestrator.js";
 import { runGeneEntryWorkflow } from "./revealMultiQueryWorkflow/revealMqGeneEntryOrchestrator.js";
+import { switchGeneEntryToMainPath } from "./revealMultiQueryWorkflow/revealMqGeneEntryFallback.js";
 import {
     edgeEndpointIdsFromMappedNode,
     edgeSupportedByTrapiRelay,
@@ -580,6 +618,8 @@ export default Vue.component("factor-base-reveal", {
                 topTraits: [],
                 progress: { message: "", detail: "" },
                 researchIntention: "",
+                offerMainPathFallback: false,
+                failureReason: null,
             },
             /** Keeps error/partial progress modal open until the user dismisses it. */
             geneEntryProgressDismissed: false,
@@ -602,6 +642,8 @@ export default Vue.component("factor-base-reveal", {
             searchTermsExtractionOpen: false,
             /** Heatmap-selected traits, gene sets, genes, and crossings for scoped hypothesis generation. */
             heatmapSelectedNodes: [],
+            /** Legend checkbox filters for Combined-score phenotype-association tiers. */
+            phenotypeAssociationFilters: { ...DEFAULT_ASSOCIATION_FILTERS },
             selectedNodesExplanations: [],
             selectedNodesProvenanceRuns: [],
             selectedNodesExplainOpen: false,
@@ -923,15 +965,28 @@ export default Vue.component("factor-base-reveal", {
                 showResearchIntention: this.isGeneEntryMode,
                 researchIntention:
                     (this.geneEntry && this.geneEntry.researchIntention) || "",
+                isGeneEntryMode: this.isGeneEntryMode,
+                emphasizeSearchContextGenes: this.emphasizeSearchContextGenes,
+                revealDataSteps: this.revealDataSteps,
+                loadStatus: this.loadStatus,
+                loadComplete: this.loadComplete,
+                loadStepSeconds: this.loadStepSeconds,
+                geneEntryProgress:
+                    this.geneEntry && this.geneEntry.progress
+                        ? this.geneEntry.progress
+                        : { message: "", detail: "" },
+                geneEntryLoading: !!(this.geneEntry && this.geneEntry.status === "loading"),
             };
         },
         dataPanelHelpers() {
             const vm = this;
             return {
                 getPhenotypeDisplay: (p) => vm.getPhenotypeDisplay(p),
+                getFactorClusterDisplay: (row) => vm.getFactorClusterDisplay(row),
                 getFetchDirectionDisplay: (row) => vm.getFetchDirectionDisplay(row),
                 getGeneSetCountForRow: (row) => vm.getGeneSetCountForRow(row),
                 getGeneCountForRow: (row) => vm.getGeneCountForRow(row),
+                getGeneSearchContextCountDisplay: (row) => vm.getGeneSearchContextCountDisplay(row),
                 isPairIncluded: (row) => vm.isPairIncluded(row),
                 isFactorRowExpanded: (row) => vm.isFactorRowExpanded(row),
                 getFactorConnectivityNetwork: (row) => vm.getFactorConnectivityNetwork(row),
@@ -940,6 +995,10 @@ export default Vue.component("factor-base-reveal", {
                 cfdeExploreAssociationHref: (...args) => vm.cfdeExploreAssociationHref(...args),
                 getSubtableCurrentPage: (row) => vm.getSubtableCurrentPage(row),
                 getRowKey: (row) => vm.getRowKey(row),
+                formatTime: (t) => vm.formatTime(t),
+                currStepTime: (step) => vm.currStepTime(step),
+                dataStepShowsSpinner: (step) => vm.dataStepShowsSpinner(step),
+                dataStepShowsGatePause: (step) => vm.dataStepShowsGatePause(step),
             };
         },
         resultsPanelProps() {
@@ -1316,11 +1375,19 @@ export default Vue.component("factor-base-reveal", {
         isGeneEntryMode() {
             return !!(this.geneEntry && this.geneEntry.inputGenes && this.geneEntry.inputGenes.length);
         },
-        /** Progress popup while genes-first fetch/merge runs (and on error until dismissed). */
+        /**
+         * Bold search-term genes of interest vs context genes (genes-first input genes,
+         * or extracted genes_of_interest on the text-query path).
+         */
+        emphasizeSearchContextGenes() {
+            if (this.isGeneEntryMode) return true;
+            return !!(this.lastGenesOfInterest && this.lastGenesOfInterest.length);
+        },
+        /** Error / fallback popup for genes-first (loading progress lives under the Data tab). */
         geneEntryProgressModalOpen: {
             get() {
                 if (!this.geneEntry) return false;
-                if (this.geneEntry.status === "loading") return true;
+                if (this.geneEntry.status === "loading") return false;
                 if (this.geneEntryProgressDismissed) return false;
                 return this.geneEntry.status === "error" || this.geneEntry.status === "partial";
             },
@@ -1523,20 +1590,15 @@ export default Vue.component("factor-base-reveal", {
         },
     },
     created() {
+        // Default provider is Bedrock; llmClient falls back to OpenAI on failure.
         this.llmExtract = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: MULTI_ROUTE_EXTRACT_SYSTEM_PROMPT,
         });
 
         this.llmAnalyze = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: this.mechanismHypothesisSystemPrompt,
         });
         this.llmQueryHelper = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: QUERY_HELPER_COMPOSE_SYSTEM_PROMPT,
         });
 
@@ -1544,7 +1606,9 @@ export default Vue.component("factor-base-reveal", {
     async mounted() {
         if (keyParams.genes) {
             this.geneEntryProgressDismissed = false;
-            await runGeneEntryWorkflow(this, keyParams.genes);
+            await runGeneEntryWorkflow(this, keyParams.genes, {
+                failMode: keyParams.geneEntryFail,
+            });
         } else if (keyParams.query) {
             this.userQuery = keyParams.query;
         }
@@ -2447,6 +2511,9 @@ export default Vue.component("factor-base-reveal", {
         dismissGeneEntryProgressModal() {
             this.geneEntryProgressDismissed = true;
         },
+        onSwitchGeneEntryToMainPath() {
+            switchGeneEntryToMainPath(this);
+        },
         onGeneEntryResearchIntentionUpdate(value) {
             if (!this.geneEntry) return;
             const text = value != null ? String(value) : "";
@@ -2891,6 +2958,16 @@ export default Vue.component("factor-base-reveal", {
         globalStepIndexForStep(step) {
             return (this.steps || []).findIndex((s) => s === step);
         },
+        dataStepShowsSpinner(step) {
+            const idx = this.globalStepIndexForStep(step);
+            if (idx < 0) return false;
+            return idx === this.steps.length - 1 && !this.loadComplete && !this.stepApprovalGateActive;
+        },
+        dataStepShowsGatePause(step) {
+            const idx = this.globalStepIndexForStep(step);
+            if (idx < 0) return false;
+            return idx === this.steps.length - 1 && !this.loadComplete && this.stepApprovalGateActive;
+        },
         approveStepGate() {
             if (!this.stepApprovalGateActive) return;
             const gateStepId = this.stepApprovalGateStepId;
@@ -2986,6 +3063,21 @@ export default Vue.component("factor-base-reveal", {
         getGeneCountForRow(row) {
             if (!row) return 0;
             return this.getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length;
+        },
+        /** Genes-first: "search:context" counts for the Number of genes column. */
+        getGeneSearchContextCountDisplay(row) {
+            const genes = this.getGenesForFactor(
+                row && row.phenotype,
+                row && row.factor,
+                row && row.fetched_direction
+            );
+            let search = 0;
+            let context = 0;
+            genes.forEach((g) => {
+                if (g && g.userRequested === "Yes") search += 1;
+                else context += 1;
+            });
+            return `${search}:${context}`;
         },
         /** Pills / KG strings: same resolution as table (Orphanet_*, gcat_*, etc.). */
         getFactorClusterDisplayString(raw) {
@@ -3774,6 +3866,10 @@ export default Vue.component("factor-base-reveal", {
                         ? Number(rel.factorRelevance)
                         : 0);
                 const pinned = rel.includedFromRequest === true;
+                const combinedNum = global.combined != null && !isNaN(Number(global.combined))
+                    ? Number(global.combined)
+                    : (rawVal != null && rawVal !== "" && !isNaN(Number(rawVal)) ? Number(rawVal) : null);
+                if (!associationTierPasses(combinedNum, this.phenotypeAssociationFilters)) return null;
                 return {
                     gene: geneName,
                     userRequested: pinned ? "Yes" : "—",
@@ -3784,7 +3880,7 @@ export default Vue.component("factor-base-reveal", {
                     _sortPin: pinned ? 1 : 0,
                     _sortAbs: Math.abs(numForSort),
                 };
-            });
+            }).filter(Boolean);
             rows.sort((a, b) => {
                 if (b._sortPin !== a._sortPin) return b._sortPin - a._sortPin;
                 return b._sortAbs - a._sortAbs;

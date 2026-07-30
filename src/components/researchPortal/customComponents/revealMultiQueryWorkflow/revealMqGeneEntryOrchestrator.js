@@ -22,16 +22,70 @@ import {
     DEFAULT_MAX_GENE_SETS,
     buildFactorDataFromPhenotypePigean,
     fillMissingFactorWithTrait,
+    filterSignificantGeneSetRows,
     selectTopFactorIds,
     selectTopGeneSetsFromRows,
 } from "./revealMqGeneEntryFactorData.js";
 import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
+import { markGeneEntryCannotProceed } from "./revealMqGeneEntryFallback.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 
 /** How many traits with non-empty gene-phenotype data to keep. */
 const TARGET_TRAITS_WITH_DATA = 10;
 /** Phenotypes per score-fetch wave (each phenotype = 2 GETs; keep ~DEFAULT_FETCH_CONCURRENCY in flight). */
 const TRAIT_SCAN_BATCH_SIZE = Math.max(1, Math.floor(DEFAULT_FETCH_CONCURRENCY / 2));
+
+/**
+ * Dev/QA: `?geneEntryFail=api|empty|1` forces genes-first to fail before real fetches.
+ * @returns {"api_error"|"insufficient_data"|null}
+ */
+function resolveGeneEntryFailMode(raw) {
+    const v = String(raw == null ? "" : raw)
+        .trim()
+        .toLowerCase();
+    if (!v || v === "0" || v === "false" || v === "no" || v === "off") return null;
+    if (v === "empty" || v === "insufficient" || v === "insufficient_data" || v === "data") {
+        return "insufficient_data";
+    }
+    return "api_error";
+}
+
+function delayMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Brief fake progress then surface the fallback modal (no real API calls).
+ */
+async function runSimulatedGeneEntryFailure(vm, genes, mode) {
+    ensureGeneEntryDataTab(vm, genes);
+    setGeneEntryProgress(
+        vm,
+        "Starting genes-first retrieval…",
+        `Looking up phenotypes for ${genes.length} gene(s). [simulated failure]`
+    );
+    await delayMs(450);
+    setGeneEntryProgress(vm, "Finding ranked traits…", "Calling bayes_gene/phenotypes. [simulated]");
+    await delayMs(450);
+    if (mode === "insufficient_data") {
+        markGeneEntryCannotProceed(vm, {
+            reason: "insufficient_data",
+            message: "No traits with gene-phenotype data. [simulated]",
+            detail:
+                "Simulated empty results (geneEntryFail=empty). No real API calls were made. " +
+                "Use Switch to text-query search to exercise the main-path fallback.",
+        });
+        return false;
+    }
+    markGeneEntryCannotProceed(vm, {
+        reason: "api_error",
+        message: "Could not load phenotypes (bayes_gene/phenotypes). [simulated]",
+        detail:
+            "Simulated API failure (geneEntryFail=api). No real API calls were made. " +
+            "Use Switch to text-query search to exercise the main-path fallback.",
+    });
+    return false;
+}
 
 function emptyGeneEntryState() {
     return {
@@ -42,12 +96,49 @@ function emptyGeneEntryState() {
         topTraits: [],
         progress: { message: "", detail: "" },
         researchIntention: "",
+        offerMainPathFallback: false,
+        failureReason: null,
     };
 }
 
 function setGeneEntryProgress(vm, message, detail = "") {
     if (!vm.geneEntry) return;
-    vm.$set(vm.geneEntry, "progress", { message: String(message || ""), detail: String(detail || "") });
+    const msg = String(message || "");
+    const det = String(detail || "");
+    vm.$set(vm.geneEntry, "progress", { message: msg, detail: det });
+    if (typeof vm.setLoadStatus === "function" && vm.geneEntry.status === "loading") {
+        vm.setLoadStatus(msg);
+    }
+    if (typeof vm.setStep === "function") {
+        vm.setStep({
+            id: WORKFLOW_STEP_IDS.DATA,
+            substep: {
+                id: "2.gene-entry-live",
+                title: msg || "Working…",
+                result: det ? { title: det } : { title: "" },
+            },
+        });
+    }
+}
+
+/** Ensure Data tab + step timeline exist so live progress is visible under Data. */
+function ensureGeneEntryDataTab(vm, genes) {
+    if (typeof vm.setStep === "function") {
+        vm.setStep({
+            id: WORKFLOW_STEP_IDS.DATA,
+            title: "Retrieving gene-derived data",
+            substep: {
+                id: "2.gene-entry-live",
+                title: "Starting genes-first retrieval…",
+                result: {
+                    title: `Looking up phenotypes for ${(genes || []).length} gene(s).`,
+                },
+            },
+        });
+    }
+    if (typeof vm.switchRevealTab === "function") {
+        vm.switchRevealTab("data");
+    }
 }
 
 /** Parses the raw `genes=` URL param into a normalized, deduped gene symbol list. */
@@ -85,12 +176,13 @@ function logGenePhenotypeGenesToConsole(bundles, searchGenes) {
 /**
  * Walk ranked Bayes traits until `targetCount` have non-empty pigean-gene-phenotype rows
  * (or candidates are exhausted — fewer than targetCount is OK).
- * Returns { usableBundles, usableTraits, checkedCount }.
+ * Returns { usableBundles, usableTraits, checkedCount, apiErrorCount }.
  */
 async function collectTraitsWithGenePhenotypeData(vm, candidateTraits, targetCount) {
     const usableBundles = [];
     const usableTraits = [];
     let checkedCount = 0;
+    let apiErrorCount = 0;
     let cursor = 0;
 
     while (usableBundles.length < targetCount && cursor < candidateTraits.length) {
@@ -115,7 +207,10 @@ async function collectTraitsWithGenePhenotypeData(vm, candidateTraits, targetCou
         // bundles are in the same order as batchIds / batch.
         for (let i = 0; i < bundles.length && usableBundles.length < targetCount; i++) {
             const b = bundles[i];
-            if (!b.ok && b.error) vm.$set(vm.geneEntry.errors.perPhenotype, b.phenotypeId, b.error);
+            if (!b.ok && b.error) {
+                apiErrorCount += 1;
+                vm.$set(vm.geneEntry.errors.perPhenotype, b.phenotypeId, b.error);
+            }
             if (!traitHasGenePhenotypeData(b)) continue;
             const traitMeta = batch[i];
             usableBundles.push(b);
@@ -126,57 +221,78 @@ async function collectTraitsWithGenePhenotypeData(vm, candidateTraits, targetCou
         }
     }
 
-    return { usableBundles, usableTraits, checkedCount };
+    return { usableBundles, usableTraits, checkedCount, apiErrorCount };
 }
 
 /**
  * Single entry point called from multiQueriesReveal.vue mounted() when `?genes=` is present.
  * Returns true when factorData was populated.
+ *
+ * Options:
+ * - `failMode`: force simulated failure (`api_error` | `insufficient_data`) without calling APIs.
+ *   Also honored from URL `?geneEntryFail=api|empty|1` when passed as `failMode` from the shell.
  */
-async function runGeneEntryWorkflow(vm, rawGenesParam) {
+async function runGeneEntryWorkflow(vm, rawGenesParam, options = {}) {
     const genes = parseGenesParam(vm, rawGenesParam);
     if (!genes.length) return false;
 
     vm.geneEntry = { ...emptyGeneEntryState(), inputGenes: genes, status: "loading" };
+    ensureGeneEntryDataTab(vm, genes);
     setGeneEntryProgress(
         vm,
         "Starting genes-first retrieval…",
         `Looking up phenotypes for ${genes.length} gene(s).`
     );
 
+    const failMode =
+        options.failMode != null
+            ? resolveGeneEntryFailMode(options.failMode)
+            : resolveGeneEntryFailMode(options.geneEntryFail);
+    if (failMode) {
+        return runSimulatedGeneEntryFailure(vm, genes, failMode);
+    }
+
     let phenotypesResponse = null;
     try {
         setGeneEntryProgress(vm, "Finding ranked traits…", "Calling bayes_gene/phenotypes.");
         phenotypesResponse = await fetchGenePhenotypes(vm, genes);
     } catch (err) {
-        vm.$set(vm.geneEntry.errors, "phenotypes", err && err.message ? err.message : "Request failed.");
-        vm.geneEntry.status = "error";
-        setGeneEntryProgress(vm, "Could not load phenotypes.", vm.geneEntry.errors.phenotypes);
+        const errMsg = err && err.message ? err.message : "Request failed.";
+        vm.$set(vm.geneEntry.errors, "phenotypes", errMsg);
+        markGeneEntryCannotProceed(vm, {
+            reason: "api_error",
+            message: "Could not load phenotypes (bayes_gene/phenotypes).",
+            detail: errMsg,
+        });
         return false;
     }
     vm.geneEntry.phenotypesResponse = phenotypesResponse;
 
     const candidateTraits = selectTopTraits(phenotypesResponse, { limit: null });
     if (!candidateTraits.length) {
-        vm.geneEntry.status = "error";
-        setGeneEntryProgress(vm, "No traits found for these genes.", "");
+        markGeneEntryCannotProceed(vm, {
+            reason: "insufficient_data",
+            message: "No traits found for these genes.",
+            detail: "bayes_gene/phenotypes returned an empty phenotype list.",
+        });
         return false;
     }
 
-    const { usableBundles, usableTraits, checkedCount } = await collectTraitsWithGenePhenotypeData(
-        vm,
-        candidateTraits,
-        TARGET_TRAITS_WITH_DATA
-    );
+    const { usableBundles, usableTraits, checkedCount, apiErrorCount } =
+        await collectTraitsWithGenePhenotypeData(vm, candidateTraits, TARGET_TRAITS_WITH_DATA);
     vm.geneEntry.topTraits = usableTraits;
 
     if (!usableBundles.length) {
-        vm.geneEntry.status = "partial";
-        setGeneEntryProgress(
-            vm,
-            "No traits with gene-phenotype data.",
-            `Checked ${checkedCount} ranked trait(s); none returned cfde gene-phenotype rows.`
-        );
+        const apiDown = apiErrorCount > 0 && apiErrorCount >= checkedCount;
+        markGeneEntryCannotProceed(vm, {
+            reason: apiDown || apiErrorCount > 0 ? "api_error" : "insufficient_data",
+            message: apiDown
+                ? "Gene / gene-set phenotype APIs did not respond with usable data."
+                : "No traits with gene-phenotype data.",
+            detail: apiErrorCount
+                ? `Checked ${checkedCount} ranked trait(s); ${apiErrorCount} had API errors and none returned gene-phenotype rows.`
+                : `Checked ${checkedCount} ranked trait(s); none returned cfde gene-phenotype rows.`,
+        });
         return false;
     }
 
@@ -192,27 +308,60 @@ async function runGeneEntryWorkflow(vm, rawGenesParam) {
     );
 
     const membershipPairs = [];
-    const bundlesForBuild = usableBundles.map((b) => {
+    const bundlesForBuild = [];
+    let traitsDroppedForBeta = 0;
+    usableBundles.forEach((b) => {
         const filled = fillMissingFactorWithTrait(b.geneRows, b.geneSetRows, b.phenotypeId);
-        const selectedFactorIds = selectTopFactorIds(filled.geneRows, filled.geneSetRows, genes, {
+        // beta ≤ 0.01 (or missing) → non-significant; membership only for beta > 0.01.
+        const significantGeneSetRows = filterSignificantGeneSetRows(filled.geneSetRows);
+        if (!significantGeneSetRows.length) {
+            traitsDroppedForBeta += 1;
+            return;
+        }
+        const selectedFactorIds = selectTopFactorIds(filled.geneRows, significantGeneSetRows, genes, {
             limit: DEFAULT_MAX_FACTORS,
         });
-        const selectedGeneSets = selectTopGeneSetsFromRows(filled.geneSetRows, {
+        const selectedGeneSets = selectTopGeneSetsFromRows(significantGeneSetRows, {
             limit: DEFAULT_MAX_GENE_SETS,
             factorIds: selectedFactorIds,
         });
+        if (!selectedGeneSets.length) {
+            traitsDroppedForBeta += 1;
+            return;
+        }
         selectedGeneSets.forEach((geneSet) => {
             membershipPairs.push({ phenotypeId: b.phenotypeId, geneSet });
         });
-        return {
+        bundlesForBuild.push({
             phenotypeId: b.phenotypeId,
             geneRows: filled.geneRows,
-            geneSetRows: filled.geneSetRows,
+            geneSetRows: significantGeneSetRows,
             selectedFactorIds,
             selectedGeneSets,
             membershipByGeneSet: {},
-        };
+        });
     });
+
+    if (!bundlesForBuild.length) {
+        markGeneEntryCannotProceed(vm, {
+            reason: "insufficient_data",
+            message: "No traits with significant gene-set associations.",
+            detail:
+                `${usableBundles.length} trait(s) had gene–phenotype scores for your input genes, but none had a gene set with a significant PIGEAN joint effect on the trait (beta > 0.01).\n\n` +
+                "In PIGEAN, beta is the estimated joint effect of a gene set on the probability that its member genes are involved in the phenotype. " +
+                "Values at or below 0.01 are treated as non-significant, so those traits were excluded from further analysis.",
+        });
+        return false;
+    }
+
+    if (traitsDroppedForBeta > 0) {
+        setGeneEntryProgress(
+            vm,
+            "Selecting factors and gene sets…",
+            `Skipped ${traitsDroppedForBeta} trait(s) with no gene sets showing a significant PIGEAN joint effect (beta > 0.01). ` +
+                `Continuing with ${bundlesForBuild.length} trait(s).`
+        );
+    }
 
     if (membershipPairs.length) {
         setGeneEntryProgress(
@@ -230,10 +379,25 @@ async function runGeneEntryWorkflow(vm, rawGenesParam) {
             },
         });
         const byPhenotype = {};
+        let membershipOk = 0;
+        let membershipErr = 0;
         membershipResults.forEach((r) => {
             if (!byPhenotype[r.phenotypeId]) byPhenotype[r.phenotypeId] = {};
             byPhenotype[r.phenotypeId][r.geneSet] = r.ok ? r.genes : [];
+            if (r.ok) membershipOk += 1;
+            else membershipErr += 1;
         });
+        // Membership is required to attach gene-set members / context genes. If every call fails, stop.
+        if (membershipPairs.length && membershipOk === 0 && membershipErr > 0) {
+            const sampleErr =
+                (membershipResults.find((r) => r && r.error) || {}).error || "Request failed.";
+            markGeneEntryCannotProceed(vm, {
+                reason: "api_error",
+                message: "Gene ↔ gene-set membership API did not return data.",
+                detail: `All ${membershipErr} membership request(s) failed. Example: ${sampleErr}`,
+            });
+            return false;
+        }
         bundlesForBuild.forEach((b) => {
             b.membershipByGeneSet = byPhenotype[b.phenotypeId] || {};
         });
@@ -243,12 +407,11 @@ async function runGeneEntryWorkflow(vm, rawGenesParam) {
     const factorData = buildFactorDataFromPhenotypePigean(bundlesForBuild, genes);
     const phenotypeCount = Object.keys(factorData).length;
     if (!phenotypeCount) {
-        vm.geneEntry.status = "partial";
-        setGeneEntryProgress(
-            vm,
-            "No overlapping factor data for these genes.",
-            `${usableBundles.length} trait(s) had gene-phenotype rows, but none crossed the search gene list after filtering.`
-        );
+        markGeneEntryCannotProceed(vm, {
+            reason: "insufficient_data",
+            message: "No overlapping factor data for these genes.",
+            detail: `${usableBundles.length} trait(s) had gene-phenotype rows, but none crossed the search gene list after filtering.`,
+        });
         return false;
     }
 
@@ -295,4 +458,4 @@ async function runGeneEntryWorkflow(vm, rawGenesParam) {
     return true;
 }
 
-export { parseGenesParam, runGeneEntryWorkflow };
+export { parseGenesParam, resolveGeneEntryFailMode, runGeneEntryWorkflow };

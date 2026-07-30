@@ -105,7 +105,12 @@ function applyStepUpdate(vm, step, toggleTimer = false) {
                 expanded: false,
             });
         } else {
-            vm.steps[IDidx].substeps[sIDidx].result = step.substep.result;
+            if (step.substep.title != null) {
+                vm.steps[IDidx].substeps[sIDidx].title = step.substep.title;
+            }
+            if (Object.prototype.hasOwnProperty.call(step.substep, "result")) {
+                vm.steps[IDidx].substeps[sIDidx].result = step.substep.result;
+            }
         }
     }
 }

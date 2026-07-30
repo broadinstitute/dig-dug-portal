@@ -3,8 +3,6 @@
 import { createLLMClient } from "@/utils/llmClient";
 import { resolveCfdePhenotypeLabel } from "@/utils/cfdeUtils.js";
 
-const PHENOTYPE_SEARCH_MODEL = "gpt-5-mini";
-
 /** Gene-set corpus / program names — not graph node symbols. */
 const GENE_SET_PROGRAM_TOKENS = new Set([
     "gtex",
@@ -21,8 +19,6 @@ let phenotypeSearchClient = null;
 function getPhenotypeSearchClient() {
     if (!phenotypeSearchClient) {
         phenotypeSearchClient = createLLMClient({
-            llm: "openai",
-            model: PHENOTYPE_SEARCH_MODEL,
             system_prompt: buildPhenotypeSearchSystemPrompt(),
         });
     }

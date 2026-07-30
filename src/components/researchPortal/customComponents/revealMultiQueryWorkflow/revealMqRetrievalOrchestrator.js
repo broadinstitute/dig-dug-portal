@@ -19,6 +19,7 @@ import {
     setMultiQueryRouteStatus,
 } from "./revealMqMultiRoute.js";
 import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
+import { applySearchTermGenesOfInterestFlags } from "./revealMqGeneEntryFallback.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 import {
     classifyAndReportError,
@@ -217,6 +218,7 @@ async function runHybridRetrievalWorkflow(
         constraintSpec,
     });
     const normalized = normalizeHybridFactorsToFactorData(hybridJson, phenos);
+    applySearchTermGenesOfInterestFlags(normalized, vm.lastGenesOfInterest);
     const phenotypes = Object.keys(normalized).filter((p) => (normalized[p].factors || []).length > 0);
     if (!phenotypes.length) return false;
 
@@ -301,6 +303,7 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
     if (!successes.length) return false;
 
     vm.factorData = mergeRouteFactorData(successes);
+    applySearchTermGenesOfInterestFlags(vm.factorData, vm.lastGenesOfInterest);
     vm.lastHybridSearchMeta = {
         routes: successes.map((r) => ({
             route_id: r.route.route_id,

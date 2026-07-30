@@ -48,6 +48,14 @@ function resetWorkflowStateForNewRun(vm) {
     vm.searchCriteriaEditRowsDefault = [];
     vm.searchCriteriaExtractionGateDone = false;
     vm.heatmapSelectedNodes = [];
+    if (vm.phenotypeAssociationFilters != null) {
+        vm.phenotypeAssociationFilters = {
+            veryStrong: true,
+            stronglySuggestive: true,
+            nominallySignificant: true,
+            notSignificant: true,
+        };
+    }
     vm.selectedNodesExplanations = [];
     vm.selectedNodesProvenanceRuns = [];
     vm.pairSelectionOverrides = {};

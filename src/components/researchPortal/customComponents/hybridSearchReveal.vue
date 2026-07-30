@@ -2967,20 +2967,15 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
     },
     created() {
+        // Default provider is Bedrock; llmClient falls back to OpenAI on failure.
         this.llmExtract = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: this.extractSystemPrompt
         });
 
         this.llmAnalyze = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: this.mechanismHypothesisSystemPrompt,
         });
         this.llmQueryHelper = createLLMClient({
-            llm: "openai",
-            model: "gpt-5-mini",
             system_prompt: this.queryHelperComposeSystemPrompt,
         });
 

@@ -1,12 +1,15 @@
 /**
     // llmClient.js
 
-    // Utility for calling LLM APIs (Gemini / OpenAI) from Vue (or plain JS)
+    // Utility for calling LLM APIs (Bedrock / OpenAI / Gemini) from Vue (or plain JS)
     // using hugeamp passthrough api.
 
     // Each client is isolated and can run concurrently.
 
-    // Responses are retuned as-is from llm, it is up to dev to parse them appropriately.
+    // Responses are returned as-is from llm, it is up to dev to parse them appropriately.
+
+    // Default provider is Bedrock (`https://llm.hugeamp.org/bedrock`). If a Bedrock
+    // call fails, the client retries once with OpenAI (`/openai`) unless fallback is disabled.
 
     // How to use:
 
@@ -24,6 +27,11 @@
             llm: "openai",
             model: "gpt-5-nano",
             system_prompt: "You are a pirate"
+        });
+
+        // Default: Bedrock, with OpenAI fallback on failure
+        const defaultClient = createLLMClient({
+            system_prompt: "You are a helpful assistant"
         });
 
         // Send a prompt with per-call handlers (optional systemPrompt overrides the client default)
@@ -50,10 +58,65 @@
 
 import {
   extractOpenAiResponseText,
+  isViableLlmText,
   resolveLlmUsage,
 } from "@/utils/llmUsageUtils";
 
-export function createLLMClient({ llm = "gemini", model, system_prompt, stream = false }) {
+const LLM_ENDPOINT_BY_PROVIDER = {
+  openai: "https://llm.hugeamp.org/openai",
+  bedrock: "https://llm.hugeamp.org/bedrock",
+  gemini: "https://llm.hugeamp.org/gemini",
+};
+
+const DEFAULT_LLM = "bedrock";
+const DEFAULT_OPENAI_FALLBACK_MODEL = "gpt-5-mini";
+
+function llmEndpointUrl(llm) {
+  return LLM_ENDPOINT_BY_PROVIDER[llm] || LLM_ENDPOINT_BY_PROVIDER.gemini;
+}
+
+function defaultModelForProvider(llm) {
+  if (llm === "openai") return DEFAULT_OPENAI_FALLBACK_MODEL;
+  return undefined;
+}
+
+/** Pull the provider-specific response payload text from a hugeamp passthrough body. */
+function extractHugeampResponseText(llm, res) {
+  const row = res && Array.isArray(res.data) ? res.data[0] : null;
+  if (!row) return "";
+  if (llm === "openai") {
+    return extractOpenAiResponseText(row.openai_response);
+  }
+  if (llm === "bedrock") {
+    const raw = row.bedrock_response;
+    if (typeof raw === "string") return raw;
+    return extractOpenAiResponseText(raw);
+  }
+  const gemini = row.gemini_response;
+  return gemini != null ? gemini : "";
+}
+
+function buildPayload({ model, systemPrompt, userPrompt }) {
+  const payload = {
+    systemPrompt,
+    userPrompt,
+  };
+  if (model != null && String(model).trim() !== "") {
+    payload.model = model;
+  }
+  return payload;
+}
+
+export function createLLMClient({
+  llm = DEFAULT_LLM,
+  model,
+  system_prompt,
+  stream = false,
+  fallbackLlm = llm === "bedrock" ? "openai" : null,
+  fallbackModel,
+  /** When true, non-JSON text also fails the attempt. JSON-shaped text always must parse. */
+  expectJson = false,
+} = {}) {
   let abortController = null;
 
   async function sendPrompt({ userPrompt, systemPrompt, onResponse, onUsage, onToken, onError, onState, onEnd }) {
@@ -69,45 +132,87 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
 
     onState?.("Thinking...");
 
-    const url =
-      llm === "openai"
-        ? "https://llm.hugeamp.org/openai"
-        : "https://llm.hugeamp.org/gemini";
-
     const effectiveSystem =
       systemPrompt !== undefined && systemPrompt !== null ? systemPrompt : system_prompt;
 
-    const payload = {
-      model,
-      systemPrompt: effectiveSystem,
-      userPrompt,
-    };
-
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: signal, // Pass signal to fetch
-    };
+    const attempts = [{ llm, model: model != null ? model : defaultModelForProvider(llm) }];
+    if (fallbackLlm && fallbackLlm !== llm) {
+      attempts.push({
+        llm: fallbackLlm,
+        model:
+          fallbackModel != null
+            ? fallbackModel
+            : defaultModelForProvider(fallbackLlm),
+      });
+    }
 
     try {
+      // Streaming is only implemented for the primary provider; no provider fallback.
       if (stream) {
+        const url = llmEndpointUrl(llm);
+        const options = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            buildPayload({
+              model: attempts[0].model,
+              systemPrompt: effectiveSystem,
+              userPrompt,
+            })
+          ),
+          signal,
+        };
         await callStreaming(url, options, { onToken, onState, onEnd, onError, signal });
-      } else {
-        await callOnce(url, options, {
+        return;
+      }
+
+      let lastError = null;
+      for (let i = 0; i < attempts.length; i++) {
+        const attempt = attempts[i];
+        if (signal.aborted) {
+          onState?.("Aborted");
+          return;
+        }
+        if (i > 0) {
+          onState?.(`Primary LLM failed; retrying with ${attempt.llm}…`);
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[llmClient] ${attempts[0].llm} failed (${lastError && lastError.message}); falling back to ${attempt.llm}`
+          );
+        }
+        const url = llmEndpointUrl(attempt.llm);
+        const options = {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            buildPayload({
+              model: attempt.model,
+              systemPrompt: effectiveSystem,
+              userPrompt,
+            })
+          ),
+          signal,
+        };
+        const result = await callOnce(url, options, {
+          llm: attempt.llm,
+          model: attempt.model,
+          expectJson,
           onResponse,
           onUsage,
           onState,
           onEnd,
-          onError,
           signal,
           systemPrompt: effectiveSystem,
           userPrompt,
         });
+        if (result.aborted) return;
+        if (result.ok) return;
+        lastError = result.error || new Error("LLM request failed");
       }
+      onError?.(lastError || new Error("LLM request failed"));
     } catch (err) {
       // This catches AbortError if fetch() or reader.read() is cancelled
-      if (err.name === 'AbortError') {
+      if (err.name === "AbortError") {
         onState?.("Aborted");
         // This is an intentional abort, not an "error"
         console.log("Request was aborted.");
@@ -118,22 +223,33 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
   }
 
   async function callOnce(url, options, {
+    llm: provider,
+    model: attemptModel,
+    expectJson: requireJsonShape,
     onResponse,
     onUsage,
-    onError,
     onState,
     onEnd,
     signal,
     systemPrompt,
     userPrompt,
   }) {
-    const response = await fetch(url, options); // This will throw AbortError if aborted
+    let response;
+    try {
+      response = await fetch(url, options); // This will throw AbortError if aborted
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        onState?.("Aborted");
+        return { ok: false, aborted: true };
+      }
+      return { ok: false, aborted: false, error: err };
+    }
 
     // --- FIX ---
     // Handle race condition: fetch succeeded but abort was called right after
     if (signal.aborted) {
       onState?.("Aborted");
-      return;
+      return { ok: false, aborted: true };
     }
 
     if (!response.ok) {
@@ -143,38 +259,61 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       } catch (readError) {
         detail = "";
       }
-      onError?.(
-        new Error(
+      return {
+        ok: false,
+        aborted: false,
+        error: new Error(
           `LLM request failed (${response.status} ${response.statusText})${
             detail ? `: ${detail}` : ""
           }`
-        )
-      );
-      return;
+        ),
+      };
     }
 
-    const res = await response.json();
+    let res;
+    try {
+      res = await response.json();
+    } catch (err) {
+      return {
+        ok: false,
+        aborted: false,
+        error: err && err.message ? err : new Error("Invalid LLM JSON response"),
+      };
+    }
 
     // --- FIX ---
     // Check again after await response.json()
     if (signal.aborted) {
       onState?.("Aborted");
-      return;
+      return { ok: false, aborted: true };
     }
 
-    const rawData =
-      llm === "openai"
-        ? res.data[0].openai_response
-        : res.data[0].gemini_response;
+    const data = extractHugeampResponseText(provider, res);
+    if (!data || !String(data).trim()) {
+      return {
+        ok: false,
+        aborted: false,
+        error: new Error(`Empty ${provider} response`),
+      };
+    }
 
-    const data =
-      llm === "openai" ? extractOpenAiResponseText(rawData) : rawData;
+    // Truncated Bedrock JSON (markdown fences, cut mid-object) must not count as success —
+    // fail this attempt so OpenAI fallback can run.
+    if (!isViableLlmText(data, { requireJson: !!requireJsonShape })) {
+      return {
+        ok: false,
+        aborted: false,
+        error: new Error(
+          `Unparseable or truncated ${provider} JSON response (${String(data).length} chars)`
+        ),
+      };
+    }
 
     if (onUsage && !signal.aborted) {
       const usage = resolveLlmUsage({
         res,
-        llm,
-        model,
+        llm: provider,
+        model: attemptModel,
         systemPrompt,
         userPrompt,
         responseText: data || "",
@@ -183,7 +322,7 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     }
 
     // Check before firing callback
-    if (data && !signal.aborted) {
+    if (!signal.aborted) {
       onResponse?.(data);
     }
 
@@ -191,11 +330,12 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
     // Final check before marking as "Done"
     if (signal.aborted) {
       onState?.("Aborted");
-      return;
+      return { ok: false, aborted: true };
     }
 
     onState?.("Done");
     onEnd?.();
+    return { ok: true, aborted: false };
   }
 
   async function callStreaming(url, options, { onToken, onState, onEnd, onError, signal }) {
@@ -247,7 +387,7 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
       for (const line of lines) {
         if (signal.aborted) break; // Stop processing lines
         if (!line.trim()) continue;
-        
+
         const event = JSON.parse(line);
 
         if (event.event === "add_message") {
@@ -280,3 +420,10 @@ export function createLLMClient({ llm = "gemini", model, system_prompt, stream =
 
   return { sendPrompt, abort };
 }
+
+export {
+  DEFAULT_LLM,
+  DEFAULT_OPENAI_FALLBACK_MODEL,
+  extractHugeampResponseText,
+  llmEndpointUrl,
+};

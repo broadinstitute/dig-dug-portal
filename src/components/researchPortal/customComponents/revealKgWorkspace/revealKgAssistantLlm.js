@@ -27,8 +27,6 @@ function plannerDelay(ms) {
 function getPlannerClient() {
     if (!plannerClient) {
         plannerClient = createLLMClient({
-            llm: "openai",
-            model: ASSISTANT_PLANNER_MODEL,
             system_prompt: buildAssistantSystemPrompt(),
         });
     }

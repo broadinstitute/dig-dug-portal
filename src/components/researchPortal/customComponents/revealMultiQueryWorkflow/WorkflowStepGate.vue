@@ -19,6 +19,9 @@
                 Continue
             </button>
         </div>
+        <div v-if="$slots.extra" class="reveal-gate-extra mt-2">
+            <slot name="extra" />
+        </div>
     </div>
 </template>
 

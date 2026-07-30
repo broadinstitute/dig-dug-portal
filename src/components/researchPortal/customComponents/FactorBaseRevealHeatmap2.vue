@@ -97,21 +97,52 @@
       <div class="legend-content">
         <div class="legend-item">
           <span class="legend-label">Phenotype associations:</span>
-          <span class="legend-color-item">
-            <span class="legend-color very-strong"></span>
+          <label class="legend-filter-toggle">
+            <input
+              type="checkbox"
+              class="legend-filter-checkbox very-strong"
+              :checked="associationFilters.veryStrong"
+              @change="onAssociationFilterChange('veryStrong', $event.target.checked)"
+            />
             <span class="legend-color-text">Very Strong (&gt; 3)</span>
-          </span>
-          <span class="legend-color-item">
-            <span class="legend-color strongly-suggestive"></span>
+          </label>
+          <label class="legend-filter-toggle">
+            <input
+              type="checkbox"
+              class="legend-filter-checkbox strongly-suggestive"
+              :checked="associationFilters.stronglySuggestive"
+              @change="onAssociationFilterChange('stronglySuggestive', $event.target.checked)"
+            />
             <span class="legend-color-text">Strongly Suggestive (2-3)</span>
-          </span>
-          <span class="legend-color-item">
-            <span class="legend-color nominally-significant"></span>
+          </label>
+          <label class="legend-filter-toggle">
+            <input
+              type="checkbox"
+              class="legend-filter-checkbox nominally-significant"
+              :checked="associationFilters.nominallySignificant"
+              @change="onAssociationFilterChange('nominallySignificant', $event.target.checked)"
+            />
             <span class="legend-color-text">Nominally Significant (1-2)</span>
+          </label>
+          <label class="legend-filter-toggle">
+            <input
+              type="checkbox"
+              class="legend-filter-checkbox not-significant"
+              :checked="associationFilters.notSignificant"
+              @change="onAssociationFilterChange('notSignificant', $event.target.checked)"
+            />
+            <span class="legend-color-text">Not Significant (&lt; 1)</span>
+          </label>
+        </div>
+        <div v-if="emphasizeSearchContextGenes && heatmapHasSearchContextGeneColumns" class="legend-item mt-1">
+          <span class="legend-label">Gene columns:</span>
+          <span class="legend-color-item">
+            <span class="legend-gene-sample legend-gene-sample-search">GENE</span>
+            <span class="legend-color-text">Search gene (bold)</span>
           </span>
           <span class="legend-color-item">
-            <span class="legend-color not-significant"></span>
-            <span class="legend-color-text">Not Significant (&lt; 1)</span>
+            <span class="legend-gene-sample legend-gene-sample-context">GENE</span>
+            <span class="legend-color-text">Context gene (shared across gene sets)</span>
           </span>
         </div>
       </div>
@@ -233,6 +264,10 @@ import {
   removeSelectionNode,
   toggleSelectionNode,
 } from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
+import {
+  DEFAULT_ASSOCIATION_FILTERS,
+  associationTierPasses,
+} from "./revealMultiQueryWorkflow/revealMqAssociationScore.js";
 
 export default Vue.component("pigean-factors-viz", {
   components: {
@@ -304,6 +339,19 @@ export default Vue.component("pigean-factors-viz", {
       default: "phenotype",
       validator: (v) => v === "phenotype" || v === "factor",
     },
+    /**
+     * Genes-first: bold search-gene column headers vs normal context genes,
+     * and show the matching legend entries.
+     */
+    emphasizeSearchContextGenes: {
+      type: Boolean,
+      default: false,
+    },
+    /** Phenotype-association Combined-score tier checkboxes (legend filters). */
+    phenotypeAssociationFilters: {
+      type: Object,
+      default: () => ({ ...DEFAULT_ASSOCIATION_FILTERS }),
+    },
   },
   data() {
     return {
@@ -324,6 +372,12 @@ export default Vue.component("pigean-factors-viz", {
     };
   },
   computed: {
+    associationFilters() {
+      return {
+        ...DEFAULT_ASSOCIATION_FILTERS,
+        ...(this.phenotypeAssociationFilters || {}),
+      };
+    },
     /** True when used inside FactorBaseReveal with factorData / factorDataTableRows passed in. */
     useFactorBaseRevealData() {
       const hasRows = this.factorDataTableRows && this.factorDataTableRows.length > 0;
@@ -332,6 +386,11 @@ export default Vue.component("pigean-factors-viz", {
     },
     heatmapPairCount() {
       return this.buildHeatmapPairs().length;
+    },
+    /** True when gene columns are classified as search vs context (includedFromRequest). */
+    heatmapHasSearchContextGeneColumns() {
+      const h = this.heatmapDataFromFactorData;
+      return !!(h && h.ready && Array.isArray(h.geneColumnIsSearch) && h.geneColumnIsSearch.length);
     },
     heatmapGroupModeOptions() {
       return [
@@ -474,14 +533,14 @@ export default Vue.component("pigean-factors-viz", {
       });
 
       const geneSeen = new Set();
+      const geneIsSearch = {};
       orderedPairs.forEach(({ factorObj }) => {
         const genes = factorObj.genes || {};
-        Object.keys(genes).forEach((g) => geneSeen.add(g));
+        Object.keys(genes).forEach((g) => {
+          geneSeen.add(g);
+          if (genes[g] && genes[g].includedFromRequest === true) geneIsSearch[g] = true;
+        });
       });
-      const geneOrder = Array.from(geneSeen).sort();
-
-      const columnLabels = [...geneSetOrder, ...geneOrder];
-      const geneSetCount = geneSetOrder.length;
 
       const mergeGeneScoresAcrossPhenotypes = (geneId) => {
         let combined = null;
@@ -506,6 +565,21 @@ export default Vue.component("pigean-factors-viz", {
         }
         return { combined, gwasSupport, geneSetSupport };
       };
+
+      const filters = this.associationFilters;
+      // Search genes first (bold), then context genes; drop genes whose Combined tier is unchecked.
+      const geneOrder = Array.from(geneSeen)
+        .filter((g) => associationTierPasses(mergeGeneScoresAcrossPhenotypes(g).combined, filters))
+        .sort((a, b) => {
+          const aSearch = geneIsSearch[a] ? 0 : 1;
+          const bSearch = geneIsSearch[b] ? 0 : 1;
+          if (aSearch !== bSearch) return aSearch - bSearch;
+          return String(a).localeCompare(String(b));
+        });
+
+      const columnLabels = [...geneSetOrder, ...geneOrder];
+      const geneSetCount = geneSetOrder.length;
+      const geneColumnIsSearch = geneOrder.map((g) => !!geneIsSearch[g]);
 
       const factorRows = orderedPairs.map((p) => ({
         phenotype: p.phenotype,
@@ -533,13 +607,17 @@ export default Vue.component("pigean-factors-viz", {
           }
           const gene = colLabel;
           const geneData = (factorObj.genes || {})[gene];
-          const raw = geneData && (geneData.factor_value ?? geneData.factorRelevance);
-          return raw != null && raw !== "" && !isNaN(Number(raw)) ? Number(raw) : null;
+          if (!geneData) return null;
+          const raw = geneData.factor_value ?? geneData.factorRelevance;
+          if (raw != null && raw !== "" && !isNaN(Number(raw))) return Number(raw);
+          // Context genes may lack phenotype scores; still mark presence on the factor.
+          return geneData.includedFromRequest === false ? 1 : null;
         });
       });
 
       out.columnLabels = columnLabels;
       out.geneSetCount = geneSetCount;
+      out.geneColumnIsSearch = geneColumnIsSearch;
       out.factorRows = factorRows;
       out.geneScoresForHeader = geneScoresForHeader;
       out.data = data;
@@ -649,6 +727,16 @@ export default Vue.component("pigean-factors-viz", {
       this.$nextTick(() => {
         setTimeout(() => this.renderFactorBaseRevealHeatmap(), 50);
       });
+    },
+    phenotypeAssociationFilters: {
+      handler() {
+        if (!this.useFactorBaseRevealData) return;
+        this.cleanupTooltips();
+        this.$nextTick(() => {
+          setTimeout(() => this.renderFactorBaseRevealHeatmap(), 50);
+        });
+      },
+      deep: true,
     },
     heatmapGroupOptions: {
       handler(opts) {
@@ -810,6 +898,14 @@ export default Vue.component("pigean-factors-viz", {
         this.dataVizNetworkRenderTimerId = null;
       }
     },
+    onAssociationFilterChange(tierId, checked) {
+      const next = {
+        ...DEFAULT_ASSOCIATION_FILTERS,
+        ...(this.phenotypeAssociationFilters || {}),
+        [tierId]: !!checked,
+      };
+      this.$emit("update:phenotypeAssociationFilters", next);
+    },
     phenoDisplay(pid) {
       const descById = this.phenotypeDescriptionById || {};
       const fromSearch = descById[pid] != null && String(descById[pid]).trim() !== "" ? String(descById[pid]).trim() : "";
@@ -950,7 +1046,7 @@ export default Vue.component("pigean-factors-viz", {
       this.$refs.heatmapContainer.innerHTML = "";
       this.$refs.heatmapLabelsContainer.innerHTML = "";
 
-      const { columnLabels, geneSetCount, factorRows, data, geneScoresForHeader, specialRowLabels } = h;
+      const { columnLabels, geneSetCount, factorRows, data, geneScoresForHeader, specialRowLabels, geneColumnIsSearch } = h;
       const numCols = columnLabels.length;
       const numFactorRows = data.length;
       const headerRows = 4;
@@ -962,6 +1058,7 @@ export default Vue.component("pigean-factors-viz", {
       const scrollableWidth = Math.max(500, numCols * cellWidth + margin.left + margin.right);
       const totalContentHeight = headerRows * cellHeight + numFactorRows * cellHeightBody;
       const height = totalContentHeight + margin.top + margin.bottom;
+      const searchFlags = Array.isArray(geneColumnIsSearch) ? geneColumnIsSearch : [];
 
       const getRelevanceColor = (value) => {
         if (value === null || value === undefined || isNaN(value)) return "#f0f0f0";
@@ -1053,6 +1150,14 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute("class", "heatmap-label");
         text.setAttribute("font-size", "10pt");
         text.setAttribute("font-family", "Arial");
+        if (!isGeneSetCol && this.emphasizeSearchContextGenes) {
+          const geneIdx = colIndex - geneSetCount;
+          if (searchFlags[geneIdx]) {
+            text.classList.add("heatmap-label-search-gene");
+          } else {
+            text.classList.add("heatmap-label-context-gene");
+          }
+        }
         text.setAttribute("transform", `rotate(-45, ${labelX}, ${labelY})`);
         text.textContent = this.truncateLabel(colLabel, 14);
         if (colLabel.length > 14) text.setAttribute("title", colLabel);
@@ -2817,6 +2922,91 @@ export default Vue.component("pigean-factors-viz", {
   margin-right: 8px;
 }
 
+.legend-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 10px 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.viz-legend .legend-filter-checkbox {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+  display: inline-block !important;
+  width: 14px !important;
+  min-width: 14px !important;
+  max-width: 14px !important;
+  height: 14px !important;
+  min-height: 14px !important;
+  max-height: 14px !important;
+  margin: 0 4px 0 0 !important;
+  padding: 0 !important;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  flex: 0 0 14px;
+  position: relative;
+  vertical-align: middle;
+  background-color: #fff;
+}
+
+.viz-legend .legend-filter-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.viz-legend .legend-filter-checkbox.very-strong:checked {
+  background-color: #4a90e2;
+  border-color: #2c5aa0;
+}
+
+.viz-legend .legend-filter-checkbox.strongly-suggestive:checked {
+  background-color: #f5a623;
+  border-color: #d68910;
+}
+
+.viz-legend .legend-filter-checkbox.nominally-significant:checked {
+  background-color: #f8e71c;
+  border-color: #d4c716;
+}
+
+.viz-legend .legend-filter-checkbox.nominally-significant:checked::after {
+  /* Dark check on yellow for contrast */
+  border-color: #333;
+}
+
+.viz-legend .legend-filter-checkbox.not-significant:checked {
+  background-color: #cccccc;
+  border-color: #999999;
+}
+
+.viz-legend .legend-filter-checkbox.very-strong:not(:checked) {
+  border-color: #4a90e2;
+}
+
+.viz-legend .legend-filter-checkbox.strongly-suggestive:not(:checked) {
+  border-color: #f5a623;
+}
+
+.viz-legend .legend-filter-checkbox.nominally-significant:not(:checked) {
+  border-color: #f8e71c;
+}
+
+.viz-legend .legend-filter-checkbox.not-significant:not(:checked) {
+  border-color: #cccccc;
+}
+
 .legend-color {
   display: inline-block;
   width: 16px;
@@ -2830,6 +3020,22 @@ export default Vue.component("pigean-factors-viz", {
   font-size: 11px;
   color: #666;
   white-space: nowrap;
+}
+
+.legend-gene-sample {
+  display: inline-block;
+  font-size: 11px;
+  color: #333;
+  margin-right: 2px;
+  font-family: Arial, sans-serif;
+}
+
+.legend-gene-sample-search {
+  font-weight: 700;
+}
+
+.legend-gene-sample-context {
+  font-weight: 300;
 }
 
 .legend-color.factor-relevance {
@@ -2993,6 +3199,14 @@ export default Vue.component("pigean-factors-viz", {
   font-size: 12px !important;
   font-weight: 300 !important;
   fill: #333;
+}
+
+#factor-base-reveal-heatmap-wrapper .heatmap-label.heatmap-label-search-gene {
+  font-weight: 700 !important;
+}
+
+#factor-base-reveal-heatmap-wrapper .heatmap-label.heatmap-label-context-gene {
+  font-weight: 300 !important;
 }
 
 #factor-base-reveal-heatmap-wrapper .heatmap-label-score-row {

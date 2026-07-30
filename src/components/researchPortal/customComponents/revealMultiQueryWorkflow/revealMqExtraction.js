@@ -2,6 +2,13 @@
  * LLM extraction helpers for Multi Query REVEAL (pure functions).
  */
 
+import {
+    isViableLlmText,
+    looksLikeJsonText,
+    parseLlmJsonResponse,
+    stripLlmJsonFences,
+} from "@/utils/llmUsageUtils";
+
 function normalizeLlmTermList(raw) {
     if (raw == null) return [];
     if (Array.isArray(raw)) {
@@ -15,18 +22,6 @@ function normalizeLlmTermList(raw) {
         .split(/[,;]|\n/)
         .map((x) => x.trim())
         .filter(Boolean);
-}
-
-function parseLlmJsonResponse(rawString) {
-    const cleanString = (rawString || "")
-        .replace(/```json|```/g, "")
-        .replace(/[\r\n]+/g, " ")
-        .trim();
-    try {
-        return { ok: true, json: JSON.parse(cleanString) };
-    } catch (e) {
-        return { ok: false, json: null, parseError: e };
-    }
 }
 
 function buildHybridQueryText({ phenotypeTerms = [], mechanismTerms = [], researchContext = "" } = {}) {
@@ -62,7 +57,10 @@ function parseCommaSeparatedTerms(raw) {
 export {
     buildHybridQueryText,
     inferExplicitUserGenes,
+    isViableLlmText,
+    looksLikeJsonText,
     normalizeLlmTermList,
     parseCommaSeparatedTerms,
     parseLlmJsonResponse,
+    stripLlmJsonFences,
 };

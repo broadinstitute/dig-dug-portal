@@ -9,7 +9,6 @@ import { searchCatalogRows } from "./revealKgAssistantAddNode.js";
 
 export const INTENT_ADD_NODE_TYPES = ["gene_set", "factor", "trait"];
 
-const INTENT_ADD_MODEL = "gpt-5-mini";
 const MAX_PHRASES_PER_TYPE = 4;
 const DEFAULT_LIMIT_PER_PHRASE = 3;
 const MAX_TOTAL_NODES = CANVAS_ASSISTANT_PER_STEP_MAX;
@@ -25,8 +24,6 @@ let intentPlannerClient = null;
 function getIntentPlannerClient() {
     if (!intentPlannerClient) {
         intentPlannerClient = createLLMClient({
-            llm: "openai",
-            model: INTENT_ADD_MODEL,
             system_prompt: buildIntentAddSystemPrompt(),
         });
     }
