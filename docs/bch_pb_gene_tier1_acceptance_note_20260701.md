@@ -15,6 +15,45 @@ The main previously confusing issue was a DMD count mismatch. That mismatch is r
 
 The unavailable fields are not unresolved validation items. They mean "not wired from the current live BioIndex-only Tier 1 sources." They do not necessarily mean that the data does not exist. Several fields can come from the user's prepared reference DB, CRDC/sample metadata tables, RefSeq/Ensembl-style reference resources, or later derived computations.
 
+## 2026-07-30 Integration Update
+
+The later tested mockup was integrated back into this user-owned
+`kyuryung/bch-prototype` branch in two local commits:
+
+- `e42d10d0` integrates the score contracts, full-continuation live model,
+  generated gene references, Context API reference implementation, and tests.
+- `f64aa83a` integrates the evidence UI, loading states, external links,
+  component split, Context API development proxy, and BCH private-query
+  compatibility.
+
+The BCH shared BioIndex utility was intentionally preserved. Its `query()`
+function receives the private flag as a fourth argument, so the page adapter
+passes both `query_private: true` and the fourth-argument `true`. Browser
+validation caught this branch-specific compatibility requirement before the UI
+commit.
+
+The current score contracts are:
+
+| Display/model | Contract |
+|---|---|
+| Extended Pathogenic Score | LoFTEE HC, then AlphaMissense, then REVEL |
+| Burden Pathogenic Score | LoFTEE HC, then AlphaMissense; REVEL-only rows display red `—*` |
+| Match Score | Mean residual PheRS across unique carriers of the selected variant |
+| Gene burden | Per-patient sum of distinct carried-variant burden scores; REVEL is excluded |
+
+Fresh verification covered 46 Python tests, a successful Vue build, and the
+live private-BioIndex DMD page. The rendered result showed `6,132` gene
+carriers, `20 / 870` pathogenic-evidence variants, `870` total variant rows,
+numeric burden scores before REVEL-only `—*` rows, and the expanded REVEL
+explanation with two real carrier samples. Browser console errors were zero.
+The only build warning remained the pre-existing `tabix-reader` warning.
+
+![DMD loading state after integration](images/pb_gene_loading_state_20260730.png)
+
+The HPO Context frontend and same-origin API contract are integrated. A
+production service still needs to expose `POST /phenotype-analyzer-api/analyze`
+with the approved phenotype matrix, covariates, PCs, and sample metadata.
+
 ## What Was Implemented
 
 The BCH branch now has a new `pb_Gene` page route and page implementation:
