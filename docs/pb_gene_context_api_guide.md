@@ -137,9 +137,9 @@ Estimator: Huber robust linear model
 Huber tuning constant: 1.345
 Maximum iterations: 100
 Convergence tolerance: 1e-4
-Age: median-imputed over the fixed analysis roster
-Age missingness: 1 when age was absent before imputation, otherwise 0
-Sex: Female reference; Male and Unknown indicator columns
+Age: retain only finite values from 0 through 99; median-impute every other value
+Age missingness: 1 when age was Unknown before imputation, otherwise 0
+Sex: retain Female/Male; encode every other value as Unknown; Female reference
 PCs: finite PC1-PC10 values aligned one-to-one by sample_id
 ```
 
@@ -170,9 +170,13 @@ gene_burden_test(
 )
 ```
 
+Portal v1 fixes the inference method to the MASS
+`summary.rlm(method="XtX")`-style standard error with a two-sided
+normal-approximation P-value. HC3 is not used.
+
 Safety rules:
 
-- Require at least `advanced.min_carriers` samples with X>0; the Gene Page default is 5.
+- Require at least `advanced.min_carriers` samples with X>0; the Gene Page default and minimum are 10.
 - If the threshold is not met, return null statistics with `status: "insufficient_carriers"`, `n_positive_burden`, and the applied `min_carriers` value.
 - Return no Beta/P-value for constant X, constant Y, singular design, invalid SE, or non-convergence.
 - Do not silently fall back to OLS or another model.
@@ -188,7 +192,7 @@ Result example:
   "p_value": 0.00031,
   "n_samples": 12438,
   "n_positive_burden": 84,
-  "min_carriers": 5,
+    "min_carriers": 10,
   "iterations": 7,
   "status": "ok",
   "model_version": "portal_huber_rlm_covariate_v2",
@@ -231,7 +235,7 @@ The Gene Page sends the expert controls with the same `Go` request:
   "advanced": {
     "significance_metric": "p_value",
     "significance_threshold": 0.05,
-    "min_carriers": 5
+    "min_carriers": 10
   }
 }
 ```
@@ -240,8 +244,16 @@ Rules:
 
 - `significance_metric` must be `p_value` or `fdr`.
 - `significance_threshold` must be greater than 0 and no more than 1.
-- `min_carriers` must be an integer of at least 1 and maps directly to `gene_burden_test(..., min_positive=min_carriers)`.
+- `min_carriers` must be an integer of at least 10 and maps directly to `gene_burden_test(..., min_positive=min_carriers)`.
 - The threshold controls filtering, not whether the API returns the calculated statistics. Return Beta, P-value, FDR, and status so the UI can explain the result.
+
+The frontend keeps an under-supported result row for auditability and adds a
+red Note:
+
+```text
+Below the minimum analysis sample count (10 positive-burden carriers).
+Do not interpret or rely on this result.
+```
 
 ### FDR
 

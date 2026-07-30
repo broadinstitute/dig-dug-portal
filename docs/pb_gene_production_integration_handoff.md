@@ -6,6 +6,9 @@ Reference page: `/pb_Gene.html?query=DMD`
 
 Reference branch: `kyuryung/mockup-branch`
 
+When the local mockup server is running, inspect:
+<http://127.0.0.1:8090/pb_Gene.html?query=DMD>
+
 Reference baseline: `b4343c07`
 
 This is the short implementation entry point for moving the tested `pb_Gene`
@@ -131,7 +134,7 @@ Content-Type: application/json
   "advanced": {
     "significance_metric": "p_value",
     "significance_threshold": 0.05,
-    "min_carriers": 5
+    "min_carriers": 10
   }
 }
 ```
@@ -150,10 +153,15 @@ X_i = sum(I(sample i carries variant v) * BurdenPathogenicScore_v)
 rlm(residual PheRS ~ X + age + age_missing + sex_male + sex_unknown + PC1-PC10)
 ```
 
-Age is median-imputed over the fixed analysis roster. `age_missing` records
-whether age was absent before imputation. Female is the sex reference, with
-Male and Unknown indicators. PC1-PC10 must be finite and aligned one-to-one by
-sample ID.
+Only finite ages from 0 through 99 are retained. Every other age is Unknown,
+median-imputed over the fixed analysis roster, and marked with
+`age_missing=1`. Only Female and Male are retained; every other sex value is
+Unknown. Female is the sex reference, with Male and Unknown indicators. No
+sample is excluded solely because age or sex is Unknown. PC1-PC10 must be
+finite and aligned one-to-one by sample ID.
+
+Portal v1 uses the tested MASS `summary.rlm(method="XtX")`-style standard
+error with a clearly labeled two-sided normal-approximation P-value.
 
 The page currently also shows a temporary link to
 `http://100.80.30.199/phenotypeResult.html`. That link is not the Context API.
@@ -209,6 +217,9 @@ For `DMD`, verify the following in the integrated page:
 - The Match Score help marker explains the unique-carrier residual-PheRS mean.
 - HPO submission returns an aggregate result row and fills per-variant Match
   Scores without exposing patient-level values.
+- The HPO result table includes a Note column. Results below 10
+  positive-burden carriers show a red warning that the result must not be
+  interpreted or relied upon.
 - Repeated searches for a recently loaded gene reuse the tab-local cache.
 - A narrow laptop viewport scrolls the variant table horizontally without
   collapsing columns.

@@ -60,21 +60,19 @@ python3 scripts/context_api_fast.py
 
 ## Required decisions before production approval
 
-### 1. P-value method — statistical blocker
+### 1. P-value method — decided for portal v1
 
-- [ ] Choose and document one method:
-  - current Python code: `MASS::summary.rlm`-style standard error plus two-sided normal approximation;
-  - proposed analysis preference: Huber RLM with an HC3 robust/sandwich standard error.
-- [ ] If HC3 is selected, define the exact estimator for an RLM fit and provide the authoritative R implementation to reproduce.
-- [ ] Confirm whether the reference distribution is normal or t and how degrees of freedom are handled.
-- [ ] Do not label the current result as HC3; it is not HC3.
+- [x] Use the tested `MASS::summary.rlm(method="XtX")`-style standard error.
+- [x] Use a two-sided normal-approximation P-value and label it as approximate.
+- [x] Do not label the result as HC3; portal v1 does not use HC3.
 
 ### 2. Covariates and analysis population — statistical blocker
 
 - [x] Implement `Y ~ X + age + age_missing + sex_male + sex_unknown + PC1-PC10`.
-- [x] Median-impute age over the fixed analysis roster and use Female as the sex reference.
-- [ ] Confirm the production definition/unit of age and availability of the colleague-provided PC1-PC10 table.
-- [ ] Decide whether related samples, ancestry outliers, sex-chromosome analyses, and samples with missing covariates are excluded.
+- [x] Retain ages 0-99; encode every other age as Unknown, median-impute it, and set `age_missing=1`.
+- [x] Retain Female/Male and encode every other sex value as Unknown; use Female as reference.
+- [x] Do not exclude a sample solely because age or sex is Unknown.
+- [ ] Record the approved PCA algorithm and materialize complete PC1-PC10 values aligned by sample ID.
 - [ ] Return the exact model formula, covariates, sample count, and model version with every result.
 
 ### 3. Construction of gene burden X — data/method blocker
@@ -89,13 +87,14 @@ python3 scripts/context_api_fast.py
 - [ ] Confirm that production `gene-samples` rows were generated with this exact score version.
 - [ ] Verify on individual samples that `X_i = sum(I(carrier_iv) * Pathogenic Score_v)` without duplicated sample-variant contributions.
 
-### 4. Minimum carrier rule — product/statistical blocker
+### 4. Minimum carrier rule
 
-- [ ] Confirm the default threshold of 5.
-- [ ] Confirm that the burden threshold means `number of samples with X > 0`.
+- [x] Use a default and minimum threshold of 10.
+- [x] The burden threshold means `number of samples with X > 0`.
+- [x] Show a red Note that an under-supported result must not be interpreted or relied upon.
 - [ ] Decide whether the same threshold also suppresses a variant-level Match Score. Current code applies it only to the gene burden test.
 - [ ] Confirm whether this is only a stability rule or also a CRDC privacy/disclosure rule.
-- [ ] Return both the applied threshold and observed carrier count.
+- [x] Return both the applied threshold and observed carrier count.
 
 ### 5. FDR family — interpretation blocker
 
@@ -128,7 +127,7 @@ python3 scripts/context_api_fast.py
 
 - [ ] Compare Python and the approved R model over a frozen suite containing ordinary data, strong outliers, skewed X, covariates, and near-singular designs.
 - [ ] Compare coefficients, standard errors, P-values, convergence status, and iteration counts.
-- [ ] Test exactly 4, 5, and 6 positive-burden samples around the default threshold.
+- [ ] Test exactly 9, 10, and 11 positive-burden samples around the default threshold.
 - [ ] Test constant X, constant Y, all-zero X, missing values, and non-convergence.
 - [ ] Confirm that zero-burden samples remain in the fit unless the approved method says otherwise.
 

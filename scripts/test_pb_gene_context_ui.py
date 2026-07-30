@@ -35,6 +35,9 @@ class PbGeneContextUiTest(unittest.TestCase):
             self.assertIn(field, MODEL)
         for field in ("significance_metric", "significance_threshold", "min_carriers"):
             self.assertIn(field, MODEL)
+        self.assertIn("contextMinCarriers: 10", MODEL)
+        self.assertIn('min="10"', HPO_CONTEXT)
+        self.assertIn("at least 10", MODEL)
 
     def test_advanced_has_an_explicit_apply_and_run_submit(self):
         self.assertIn('class="pbg-context-advanced-apply"', HPO_CONTEXT)
@@ -89,6 +92,11 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("run.statusLabel", HPO_CONTEXT)
         self.assertIn("run.coverageLabel", HPO_CONTEXT)
         self.assertIn("run.modelLabel", HPO_CONTEXT)
+        self.assertIn("<span>Note</span>", HPO_CONTEXT)
+        self.assertIn("run.note", HPO_CONTEXT)
+        self.assertIn("contextBurdenNote(burden)", MODEL)
+        self.assertIn("Do not interpret or rely on this result.", MODEL)
+        self.assertIn(".pbg-context-result-note--warning", STYLE)
         self.assertNotIn('return "Pending API"', MODEL)
 
     def test_local_context_fixture_is_explicit_and_dev_only(self):

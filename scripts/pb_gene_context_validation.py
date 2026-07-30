@@ -105,9 +105,7 @@ def _canonical_sex(value):
         return "Female"
     if normalized in {"male", "m"}:
         return "Male"
-    if normalized in MISSING_VALUES or normalized in {"unk", "u"}:
-        return "Unknown"
-    raise ValueError(f"unsupported sex value: {value}")
+    return "Unknown"
 
 
 def _required_float(value, label):
@@ -144,8 +142,10 @@ def load_covariates(path, analysis_sample_ids):
     for sample_id in analysis_sample_ids:
         row = rows[sample_id]
         raw_age = str(row.get("age") or "").strip()
-        age_missing = raw_age.lower() in MISSING_VALUES
-        age = None if age_missing else _required_float(raw_age, f"age for {sample_id}")
+        age = _finite_float(raw_age)
+        age_missing = age is None or not 0 <= age <= 99
+        if age_missing:
+            age = None
         if age is not None:
             observed_ages.append(age)
         parsed[sample_id] = {
@@ -413,7 +413,7 @@ class ContextAnalysisEngine:
             "burden_input": gene_burden_scores(self.analysis_sample_ids, rows),
         }
 
-    def analyze(self, gene, query_hpo, min_carriers=5, audit_dir=None):
+    def analyze(self, gene, query_hpo, min_carriers=10, audit_dir=None):
         gene = str(gene or "").strip().upper()
         if not gene:
             raise ValueError("gene is required")
@@ -453,7 +453,7 @@ def run_validation(
     evidence_path,
     query_hpo,
     genes,
-    min_carriers=5,
+    min_carriers=10,
     audit_dir=None,
     covariate_path=None,
 ):
@@ -496,7 +496,7 @@ def main(argv=None):
     parser.add_argument("--covariates")
     parser.add_argument("--hpo", action="append", required=True)
     parser.add_argument("--gene", action="append", required=True)
-    parser.add_argument("--min-carriers", type=int, default=5)
+    parser.add_argument("--min-carriers", type=int, default=10)
     parser.add_argument("--audit-dir")
     parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)

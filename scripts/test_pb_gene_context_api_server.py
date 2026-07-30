@@ -3,11 +3,11 @@ import threading
 import unittest
 from urllib.request import Request, urlopen
 
-from scripts.pb_gene_context_api_server import create_server
+from scripts.pb_gene_context_api_server import create_server, parse_context_request
 
 
 class _FakeEngine:
-    def analyze(self, gene, query_hpo, min_carriers=5):
+    def analyze(self, gene, query_hpo, min_carriers=10):
         return {
             "gene": gene,
             "query_hpo": list(query_hpo),
@@ -21,6 +21,14 @@ class _FakeEngine:
 
 
 class PbGeneContextApiServerTest(unittest.TestCase):
+    def test_rejects_a_minimum_below_ten_carriers(self):
+        with self.assertRaisesRegex(ValueError, "at least 10"):
+            parse_context_request({
+                "terms": "HP:0001250",
+                "gene": "DMD",
+                "advanced": {"min_carriers": 9},
+            })
+
     def test_serves_the_vue_context_post_route(self):
         server = create_server(("127.0.0.1", 0), _FakeEngine())
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -34,7 +42,7 @@ class PbGeneContextApiServerTest(unittest.TestCase):
                     "advanced": {
                         "significance_metric": "p_value",
                         "significance_threshold": 0.05,
-                        "min_carriers": 5,
+                        "min_carriers": 10,
                     },
                 }).encode(),
                 headers={"Content-Type": "application/json"},
