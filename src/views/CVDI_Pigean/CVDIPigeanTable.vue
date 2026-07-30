@@ -94,20 +94,14 @@ export default Vue.component("cvdi-pigean-table", {
         tpmFormatter: Formatters.tpmFormatter,
         async getSubtable(row, whichSubtable) {
             let queryKey = this.subtableKey(row.item);
+            console.log(queryKey);
             if (!this.subtableData[queryKey] && whichSubtable === 1) {
                 let data = await query(this.config.subtableEndpoint, queryKey);
+                if (this.config.subtableEndpoint === 'pigean-joined-gene-set'){
+                    // De-duplicate trait groups on joined geneset endpoint.
+                    data = data.filter(d => d.trait_group === row.item.trait_group);
+                }
                 Vue.set(this.subtableData, queryKey, data);
-            }
-            if (
-                !!this.config.subtable2Endpoint &&
-                !this.subtable2Data[queryKey] &&
-                whichSubtable === 2
-            ) {
-                let data2 = await query(
-                    this.config.subtable2Endpoint,
-                    queryKey
-                );
-                Vue.set(this.subtable2Data, queryKey, data2);
             }
         },
         showDetails(row, tableNum) {
