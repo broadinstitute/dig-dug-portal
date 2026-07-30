@@ -68,10 +68,6 @@ export default Vue.component("cvdi-pigean-table", {
         },
         tableData() {
             let data = this.probData;
-            //add subtableActive to each row
-            data.forEach((row) => {
-                row.subtableActive = false;
-            });
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -104,34 +100,8 @@ export default Vue.component("cvdi-pigean-table", {
             }
         },
         showDetails(row) {
-            this.toggleTable(row);
+            row.toggleDetails();
             this.getSubtable(row);
-        },
-        toggleTable(row) {
-            let show = false;
-            if (row.item.subtableActive) {
-                show = false;
-            } else {
-                show = true;
-            }
-            // Toggle active table
-            row.item.subtableActive = !show ? false : true;
-            // Hide details if it's currently showing and no tables should be active
-            if (
-                !show &&
-                row.detailsShowing &&
-                !row.item.subtableActive
-            ) {
-                row.toggleDetails();
-            }
-            // Show details if it's currently not showing but it should be
-            if (
-                show &&
-                !row.detailsShowing &&
-                row.item.subtableActive
-            ) {
-                row.toggleDetails();
-            }
         },
         subtableKey(item) {
             return `${item.phenotype},${item[this.config.queryParam]},${DEFAULT_MODEL}`;
@@ -287,7 +257,6 @@ export default Vue.component("cvdi-pigean-table", {
                 <template #row-details="row">
                     <cvdi-pigean-table
                         v-if="
-                            row.item.subtableActive &&
                             subtableData[subtableKey(row.item)] &&
                             subtableData[subtableKey(row.item)].length > 0
                         "
