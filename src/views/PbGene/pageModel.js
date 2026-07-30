@@ -1638,6 +1638,7 @@ export const pbGeneMethods = {
                 pValue: this.contextStatistic(
                     burden.p_value != null ? burden.p_value : burden.pValue != null ? burden.pValue : result.p_value
                 ),
+                fdrSortValue: burden.fdr != null && Number.isFinite(Number(burden.fdr)) ? Number(burden.fdr) : Infinity,
                 fdr: this.contextStatistic(burden.fdr),
                 status: burden.status || "unknown",
                 nPositiveBurden: burden.n_positive_burden,
@@ -1654,6 +1655,7 @@ export const pbGeneMethods = {
                 note: this.contextBurdenNote(burden),
                 sourceLabel,
             });
+            this.contextRuns.sort((a, b) => a.fdrSortValue - b.fdrSortValue);
             this.activeContextTerms = terms;
         } catch (error) {
             this.contextError = String(error && error.message ? error.message : error);
@@ -1753,6 +1755,7 @@ export const pbGeneMethods = {
     },
 
     contextStatistic(value) {
+        if (value == null || value === "") return "—";
         const number = Number(value);
         if (!Number.isFinite(number)) return "—";
         if (number !== 0 && Math.abs(number) < 0.001) return number.toExponential(2);
