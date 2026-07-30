@@ -92,8 +92,6 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Expandable phenotype categories
         expandedPhenoCategories: {},
         showAllTermsMap: {},         // category → bool (show all terms)
-        showPathwayDetails: false,
-
         // Phenotype category list "show 5, hide rest" toggles
         showAllPhenoCategories: false,   // gene-level profile
         showAllVariantPhenoMap: {},      // variantId → bool (accordion profile)
@@ -1475,21 +1473,6 @@ export const pbGeneComputed = {
         return Math.max(0, (this.variantRows || []).length - (this.showCountVariants || VARIANT_LIMIT));
     },
 
-    pathwayDetailItems() {
-        const pathways = (this.geneInfo.referenceAnnotation || {}).pathways || {};
-        if (Array.isArray(pathways.items) && pathways.items.length) {
-            return pathways.items.map(item => ({
-                source: item.source || this.inferPathwaySource(item.raw || item.name),
-                name: item.name || item.raw || "",
-            }));
-        }
-        const names = pathways.allNames || pathways.displayNames || [];
-        return names.map(name => ({
-            source: this.inferPathwaySource(name),
-            name,
-        }));
-    },
-
     // ── Most severe observed variant by annotation-only score ────────────────
     topVariant() {
         if (!this.variantRows || !this.variantRows.length) return null;
@@ -1575,21 +1558,12 @@ export const pbGeneMethods = {
         return simplified.charAt(0).toUpperCase() + simplified.slice(1);
     },
 
-    inferPathwaySource(name) {
-        const raw = String(name || "");
-        return raw.indexOf("WP_") === 0 || /wikipath/i.test(raw) ? "WikiPathways" : "Reactome";
-    },
-
     clampMarkerNudge(nudgePx, leftPct) {
         const markerHalfWidthPx = 6;
         const maxTrackWidthPx = 980;
         const leftRoomPx = (Math.max(0, leftPct) / 100) * maxTrackWidthPx - markerHalfWidthPx;
         const rightRoomPx = ((100 - Math.min(100, leftPct)) / 100) * maxTrackWidthPx - markerHalfWidthPx;
         return Math.max(-Math.max(leftRoomPx, 0), Math.min(Math.max(rightRoomPx, 0), nudgePx));
-    },
-
-    togglePathwayDetails() {
-        this.showPathwayDetails = !this.showPathwayDetails;
     },
 
     isSummaryCardExpanded(key) {

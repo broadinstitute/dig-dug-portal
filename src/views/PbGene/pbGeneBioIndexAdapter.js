@@ -1,13 +1,39 @@
 import { query } from "@/utils/bioIndexUtils";
 import { getGeneReferenceAnnotation } from "./geneAnnotationReference";
 import { getGeneExons } from "./geneExonReference";
+import { PB_GENE_ID_REFERENCE } from "./geneIdReference.generated";
 
 const DENSITY_BINS = 50;
+const MAX_CACHED_GENES = 5;
+const GENE_STATE_CACHE = new Map();
+const GENE_STATE_PENDING = new Map();
 
 export async function fetchPbGeneBioIndexState(geneSymbol, options = {}) {
     const gene = normalizeGene(geneSymbol);
     if (!gene) throw new Error("Provide a valid HGNC gene symbol.");
 
+    if (GENE_STATE_CACHE.has(gene)) {
+        const cached = GENE_STATE_CACHE.get(gene);
+        GENE_STATE_CACHE.delete(gene);
+        GENE_STATE_CACHE.set(gene, cached);
+        return structuredClone(cached);
+    }
+    if (!GENE_STATE_PENDING.has(gene)) {
+        GENE_STATE_PENDING.set(gene, loadPbGeneBioIndexState(gene, options)
+            .then(state => {
+                // ponytail: tab-local five-gene cache; move caching server-side if cross-session reuse is needed.
+                if (GENE_STATE_CACHE.size >= MAX_CACHED_GENES) {
+                    GENE_STATE_CACHE.delete(GENE_STATE_CACHE.keys().next().value);
+                }
+                GENE_STATE_CACHE.set(gene, state);
+                return state;
+            })
+            .finally(() => GENE_STATE_PENDING.delete(gene)));
+    }
+    return structuredClone(await GENE_STATE_PENDING.get(gene));
+}
+
+async function loadPbGeneBioIndexState(gene, options) {
     const sampleRowsPromise = safeBioIndexQuery("gene-samples", gene, null, options);
     const variantRowsPromise = safeBioIndexQuery("gene-variants2", gene, null, options);
     const geneRows = await safeBioIndexQuery("gene", gene, 5, options);
@@ -168,6 +194,7 @@ function buildVariantRow(entry) {
 function buildGeneInfo(gene, geneRow, variants, exons = []) {
     const chromosome = cleanChrom(value(geneRow, ["chromosome", "chrom", "chr"]) || exonChromosome(exons) || variantChromosome(variants) || "");
     const range = geneRange(geneRow, variants, exons);
+    const referenceIds = PB_GENE_ID_REFERENCE[gene] || [];
     return {
         symbol: gene,
         fullName: displayValue(value(geneRow, ["description", "name", "gene_name", "full_name"]), "Unavailable in live BioIndex"),
@@ -175,12 +202,12 @@ function buildGeneInfo(gene, geneRow, variants, exons = []) {
         cytogeneticLocation: displayValue(value(geneRow, ["cytogeneticLocation", "cytoband", "location"]), ""),
         nameSource: "BioIndex",
         descriptionSource: "BioIndex",
-        ensemblId: displayValue(value(geneRow, ["ensemblId", "ensembl_id", "ensg"]), "Unavailable"),
+        ensemblId: displayValue(value(geneRow, ["ensemblId", "ensembl_id", "ensg"]) || referenceIds[0], "Unavailable"),
         chromosome,
         location: range ? `chr${chromosome}:${formatBp(range.start)}-${formatBp(range.end)}` : "Unavailable",
         strand: displayValue(value(geneRow, ["strand"]), "+"),
         build: "GRCh38",
-        omim: displayValue(value(geneRow, ["omim", "omim_id"]), "Unavailable"),
+        omim: displayValue(referenceIds[1] || value(geneRow, ["omim", "omim_id"]), "Unavailable"),
         referenceAnnotation: getGeneReferenceAnnotation(gene) || emptyReferenceAnnotation(),
         variantStats: {
             highestRevel: null,
