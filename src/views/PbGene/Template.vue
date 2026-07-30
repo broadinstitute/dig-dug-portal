@@ -16,6 +16,7 @@
                         <form class="pbg-gene-search-form"
                               role="search"
                               aria-label="Search another gene"
+                              :aria-busy="searchGeneLoading ? 'true' : 'false'"
                               @submit.prevent="submitGeneSearch">
                             <input class="pbg-gene-search-input"
                                    v-model.trim="searchGeneQuery"
@@ -31,12 +32,20 @@
                             <span v-if="searchGeneLoading"
                                   class="pbg-gene-search-progress"
                                   role="status"
-                                  aria-live="polite">{{ searchGeneProgress }}</span>
+                                  aria-live="polite">
+                                <span class="pbg-loading-spinner" aria-hidden="true"></span>
+                                <span class="pbg-loading-text">{{ searchGeneProgress || 'Loading gene evidence' }}</span>
+                                <span class="pbg-loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                            </span>
                         </form>
                     </div>
                     <div class="pbg-toolbar-right">
                         <a href="/krVariant.html" class="pbg-nav-link">Variant search</a>
-                        <a href="/krPublicGene.html" class="pbg-nav-link">Public view</a>
+                        <a href="https://a2f.hugeamp.org/"
+                           class="pbg-nav-link pbg-nav-link--a2fkp"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="Open the A2F Knowledge Portal">A2FKP</a>
                     </div>
                 </div>
 
@@ -533,11 +542,26 @@
                                         <div v-for="item in variantEvidenceRows(row)" :key="'evidence-' + item.label" class="pbg-selected-kv-row">
                                             <span>{{ item.label }}</span>
                                             <a v-if="item.href" class="pbg-ext-link"
+                                               :class="[
+                                                   item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
+                                                   item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
+                                               ]"
                                                :href="item.href" target="_blank" rel="noopener noreferrer"
                                                @click.stop>{{ item.value }} ↗</a>
-                                            <strong v-else>{{ item.value }}</strong>
+                                            <strong v-else
+                                                    :class="[
+                                                        item.label === 'ClinVar' ? 'pbg-selected-clinvar' : '',
+                                                        item.label === 'ClinVar' ? pathogenicityClass(item.value) : ''
+                                                    ]">
+                                                {{ item.value }}<sup v-if="item.label === 'REVEL' && hasRevelOnlyScore(row)"
+                                                                    class="pbg-revel-only-star"
+                                                                    title="REVEL is available but excluded from Burden Pathogenic Score.">*</sup>
+                                            </strong>
                                         </div>
                                     </div>
+                                    <p v-if="hasRevelOnlyScore(row)" class="pbg-revel-only-note">
+                                        <strong>*</strong> REVEL is available for reference but excluded from Burden Pathogenic Score.
+                                    </p>
                                 </div>
 
                                 <div class="pbg-selected-carriers">

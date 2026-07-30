@@ -198,7 +198,10 @@ function buildGeneInfo(gene, geneRow, variants, exons = []) {
     return {
         symbol: gene,
         fullName: displayValue(value(geneRow, ["description", "name", "gene_name", "full_name"]), "Unavailable in live BioIndex"),
-        description: displayValue(value(geneRow, ["summary", "ncbi_summary", "description"]), "Live BioIndex gene annotation is not available for this field."),
+        description: displayValue(
+            value(geneRow, ["summary", "ncbi_summary", "description"]),
+            "Unavailable — the live BioIndex gene index does not provide an NCBI summary."
+        ),
         cytogeneticLocation: displayValue(value(geneRow, ["cytogeneticLocation", "cytoband", "location"]), ""),
         nameSource: "BioIndex",
         descriptionSource: "BioIndex",

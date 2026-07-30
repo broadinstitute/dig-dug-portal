@@ -3,7 +3,15 @@
         <div class="pbg-gene-title-row">
             <h1 class="pbg-gene-symbol">{{ geneInfo.symbol }}</h1>
         </div>
-        <p class="pbg-gene-fullname"><span>HGNC:</span> {{ geneInfo.fullName }}</p>
+        <p class="pbg-gene-fullname">
+            <a class="pbg-gene-fullname-link"
+               :href="geneHgncLink"
+               target="_blank"
+               rel="noopener noreferrer"
+               :aria-label="'Open the HGNC symbol report for ' + geneInfo.symbol + ' in a new tab'">
+                <span>HGNC:</span> {{ geneInfo.fullName }}
+            </a>
+        </p>
         <p v-if="geneInfo.description" class="pbg-gene-description"><span>NCBI:</span> {{ geneInfo.description }}</p>
         <p class="pbg-gene-location">{{ geneInfo.location }} <span>{{ geneInfo.build }}</span></p>
 
@@ -97,6 +105,9 @@ export default {
         return { showPathwayDetails: false };
     },
     computed: {
+        geneHgncLink() {
+            return `https://www.genenames.org/data/gene-symbol-report/#!/symbol/${encodeURIComponent(this.geneInfo.symbol)}`;
+        },
         geneOmimLinks() {
             return String(this.geneInfo.omim || "")
                 .split(",")
