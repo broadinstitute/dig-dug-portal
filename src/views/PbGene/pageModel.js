@@ -5,102 +5,31 @@ import {
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
 
+const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
+const PHENOTYPE_RESULT_URL = "http://100.80.30.199/phenotypeResult.html";
+
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
     const query = normalizeGeneQuery(params.get("query") || fixtureGeneSymbol || geneInfo.symbol);
-    const mockGeneSymbol = normalizeGeneQuery(geneInfo.symbol);
+    const mockSymbol = normalizeGeneQuery(geneInfo.symbol);
+    const useMockBase = fixtureLoaded || query === mockSymbol;
 
-    // Keep the SLC6A7 mock only for the mock/default slice. For any other
-    // searched gene, start blank so stale mock content is never shown as live.
-    const base = query === mockGeneSymbol ? {
-        geneInfo: { ...geneInfo, symbol: query },
-        crdcEvidence,
-        genomeWindow,
-        variantRows,
-        geneCarrierDemographics,
-        geneLevelPhenotypeCategories,
-        geneLevelCoCarrierGenes,
-    } : createEmptyPbGeneBase(query);
+    // Base state from mockData
+    const base = useMockBase
+        ? {
+            geneInfo: { ...geneInfo, symbol: query },
+            crdcEvidence,
+            genomeWindow,
+            variantRows,
+            geneCarrierDemographics,
+            geneLevelPhenotypeCategories,
+            geneLevelCoCarrierGenes,
+        }
+        : createUnavailableGeneState(query);
 
     // Apply RDS fixture if available (overrides mockData)
     const resolved = fixtureLoaded ? applyPbGeneFixturePipeline(base, query) : base;
     return createPbGeneRuntimeState(resolved, query, params);
-}
-
-function createEmptyPbGeneBase(query) {
-    return {
-        geneInfo: {
-            symbol: query,
-            fullName: query,
-            description: "Reference gene description unavailable from current BioIndex response.",
-            cytogeneticLocation: "",
-            nameSource: "BCH private BioIndex",
-            descriptionSource: "",
-            ensemblId: "Unavailable",
-            chromosome: "",
-            location: "",
-            strand: "+",
-            build: "GRCh38",
-            omim: "Unavailable",
-            referenceAnnotation: emptyReferenceAnnotation(),
-            variantStats: {},
-        },
-        crdcEvidence: {
-            currentGeneCarrierTotal: 0,
-            queriedVariantCarriers: 0,
-            variantCount: 0,
-            probands: "—",
-            affected: "—",
-            genDxDiagnosed: "—",
-            overallBurdenMatchScore: null,
-            topVariantSignal: { score: null, variant: null },
-            source: "BCH private BioIndex",
-        },
-        genomeWindow: {
-            axisTicks: [],
-            exons: [],
-            exonModelType: "",
-            markers: [],
-            densityAll: Array.from({ length: 50 }, () => 0),
-            densityProband: Array.from({ length: 50 }, () => 0),
-            queryDensityIndex: 0,
-        },
-        variantRows: [],
-        geneCarrierDemographics: {
-            byAge: [],
-            bySex: [],
-            byAffected: [],
-            byProband: [],
-            byInvestigator: [],
-        },
-        geneLevelPhenotypeCategories: [],
-        geneLevelCoCarrierGenes: [],
-    };
-}
-
-function emptyReferenceAnnotation() {
-    return {
-        ddg2p: {
-            support: false,
-            confidenceCategories: null,
-            diseaseNames: null,
-        },
-        panelapp: {
-            greenSupport: false,
-            panelCount: 0,
-            panelNames: null,
-            modesOfInheritance: null,
-        },
-        pathways: {
-            count: 0,
-            reactomeCount: 0,
-            wikipathwaysCount: 0,
-            displayNames: [],
-            allNames: [],
-            items: [],
-            moreCount: 0,
-        },
-    };
 }
 
 function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams()) {
@@ -122,10 +51,20 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         summaryExpandedCards: {},
         searchGeneQuery: query,
         searchGeneLoading: false,
+        searchGeneProgress: "",
         searchGeneError: "",
-        bioIndexLoading: false,
-        bioIndexError: "",
-        bioIndexLoaded: false,
+        liveDataLoaded: false,
+        liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
+
+        // User-entered HPO context and accumulated gene-level runs
+        contextInput: "",
+        contextLoading: false,
+        contextError: "",
+        contextRuns: [],
+        activeContextTerms: [],
+        contextSignificanceMetric: "p_value",
+        contextSignificanceThreshold: 0.05,
+        contextMinCarriers: 5,
 
         // Variants sub-accordion
         expandedVariantId: null,
@@ -148,13 +87,11 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier table "show more" (+5 increments)
         showCountCarrierMap:  {},   // variantId → count shown
         showCountGeneCarriers: 5,
-        showCountVariantRows: VARIANT_TABLE_LIMIT,
+        showCountVariants: 10,
 
         // Expandable phenotype categories
         expandedPhenoCategories: {},
         showAllTermsMap: {},         // category → bool (show all terms)
-        showPathwayDetails: false,
-
         // Phenotype category list "show 5, hide rest" toggles
         showAllPhenoCategories: false,   // gene-level profile
         showAllVariantPhenoMap: {},      // variantId → bool (accordion profile)
@@ -162,15 +99,69 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier samples sort
         sortKey: null,
         sortDir: "asc",
-        variantSortKey: "carriers",
+        variantSortKey: "variantScore",
         variantSortDir: "desc",
-        variantGnomadMax: "",
     };
 }
 
 // ── constants ─────────────────────────────────────────────────────────────────
 function normalizeGeneQuery(value) {
     return String(value || "").trim().toUpperCase();
+}
+
+function createUnavailableGeneState(query) {
+    return {
+        geneInfo: {
+            ...geneInfo,
+            symbol: query,
+            fullName: "Unavailable until private BioIndex responds",
+            description: "Live private BioIndex data has not loaded for this gene.",
+            cytogeneticLocation: "",
+            ensemblId: "Unavailable",
+            chromosome: "",
+            location: "Unavailable",
+            strand: "+",
+            omim: "Unavailable",
+            referenceAnnotation: {
+                ddg2p: { support: false, confidenceCategories: null, diseaseNames: null, source: "DDG2P" },
+                panelapp: { greenSupport: false, panelCount: 0, modesOfInheritance: null, source: "PanelApp" },
+                pathways: {
+                    count: 0,
+                    reactomeCount: 0,
+                    wikipathwaysCount: 0,
+                    displayNames: [],
+                    allNames: [],
+                    items: [],
+                    moreCount: 0,
+                    source: "Reactome / WikiPathways",
+                },
+            },
+        },
+        crdcEvidence: {
+            crdcCohortCount: null,
+            currentGeneCarrierTotal: 0,
+            queriedVariantCarriers: 0,
+            variantCount: 0,
+            probands: null,
+            affected: null,
+            largestClinicalArea: null,
+            overallBurdenMatchScore: null,
+            topVariantSignal: { score: null, variant: "-" },
+            topCarrierTerms: [],
+        },
+        genomeWindow: {
+            axisTicks: [],
+            exons: [],
+            markers: [],
+            densityAll: Array.from({ length: 50 }, () => 0),
+            densityProband: Array.from({ length: 50 }, () => 0),
+            queryDensityIndex: 0,
+        },
+        variantRows: [],
+        geneCarrierDemographics: { byAge: [], bySex: [], byAffected: [], byProband: [], byInvestigator: [] },
+        geneLevelPhenotypeCategories: [],
+        geneLevelCoCarrierGenes: [],
+    };
 }
 
 const ZOOM_HALF_WINDOWS = [25, 13, 7, 4, 2]; // (legacy) bins on each side
@@ -181,7 +172,7 @@ const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
 const TERMS_LIMIT    = 5;
 const CARRIER_LIMIT  = 5;
-const VARIANT_TABLE_LIMIT = 20;
+const VARIANT_LIMIT  = 10;
 const PHENO_CAT_LIMIT = 5;
 const SUMMARY_PHENO_LIMIT = 4;
 const SUMMARY_GENE_LIMIT = 6;
@@ -548,10 +539,11 @@ export const pbGeneComputed = {
             return this.geneCarrierDemographics || { byAge: [], byInvestigator: [], bySex: [], byAffected: [] };
         }
         const samples = this.selectedEvidenceVariant.carrierSamples || [];
-        const countBy = (field, emptyLabel = "Unknown") => {
+        const countBy = (field) => {
             const map = {};
             samples.forEach(sample => {
-                const key = sample[field] || emptyLabel;
+                const key = sample[field];
+                if (this.isMissingMetadataValue(key)) return;
                 map[key] = (map[key] || 0) + 1;
             });
             return Object.keys(map)
@@ -564,6 +556,11 @@ export const pbGeneComputed = {
             bySex: countBy("sex").map(row => ({ label: row.key, count: row.count })),
             byAffected: countBy("affected").map(row => ({ label: row.key, count: row.count })),
         };
+    },
+
+    summaryCarrierDemographicsHasRows() {
+        const demo = this.summaryCarrierDemographics || {};
+        return ["byAge", "byInvestigator", "bySex", "byAffected"].some(key => (demo[key] || []).length);
     },
 
     summaryCarrierDemographicsVisible() {
@@ -843,7 +840,6 @@ export const pbGeneComputed = {
             const widthPct = ((r - l) / span) * 100;
             return {
                 label: e.label,
-                schematic: !!e.schematic,
                 left: (((l - start) / span) * 100).toFixed(2) + "%",
                 width: widthPct.toFixed(2) + "%",
                 widthPct,
@@ -879,7 +875,7 @@ export const pbGeneComputed = {
                 id: row.id,
                 pos,
                 count,
-                leftPct: this.clampPct(((pos - start) / span) * 100, 0.6, 99.4),
+                leftPct: ((pos - start) / span) * 100,
                 isQueried: row.id === this.queriedVariantId,
                 title: `${row.id} · ${count} carriers`,
             };
@@ -902,7 +898,7 @@ export const pbGeneComputed = {
                 ...marker,
                 clusterSize: n,
                 yIndex: n > 1 ? idx % 4 : 0,
-                xNudge: n > 1 ? this.clampMarkerNudge(marker.leftPct, (idx - (n - 1) / 2) * 7) : 0,
+                xNudge: n > 1 ? this.clampMarkerNudge((idx - (n - 1) / 2) * 7, marker.leftPct) : 0,
             }));
         });
     },
@@ -1201,7 +1197,7 @@ export const pbGeneComputed = {
     },
 
     locusDensityMax() {
-        const values = this.locusDensityCounts;
+        const values = Object.values(this.positionCarrierCountMap).map(item => Number(item.count) || 0);
         const max = Math.max(1, ...values);
         if (max <= 10) return 10;
         return Math.ceil(max / 5) * 5;
@@ -1216,40 +1212,13 @@ export const pbGeneComputed = {
         return this.isBaseLevel ? LOCUS_DENSITY_PLOT_PX : 82;
     },
 
-    locusDensityCounts() {
-        if (this.isBaseLevel) {
-            return Object.values(this.positionCarrierCountMap).map(item => Number(item.count) || 0);
-        }
-        const { start, end } = this.winBp;
-        const span = (end - start) || 1;
-        const binCount = this.isWholeGeneView ? 120 : 80;
-        const bins = Array.from({ length: binCount }, () => ({
-            sampleIds: new Set(),
-            fallbackCount: 0,
-        }));
-        const matches = this.variantFilterMatches;
-        (this.variantRows || []).forEach(row => {
-            const pos = this.variantPosition(row.id);
-            if (!pos || pos < start || pos > end) return;
-            const idx = Math.max(0, Math.min(binCount - 1, Math.floor(((pos - start) / span) * binCount)));
-            const samples = row.carrierSamples || [];
-            if (samples.length) {
-                samples.forEach(sample => {
-                    if (matches(sample)) bins[idx].sampleIds.add(sample.id);
-                });
-            } else {
-                bins[idx].fallbackCount += Number(row.carrierCount || 0);
-            }
-        });
-        return bins.map(bin => bin.sampleIds.size || bin.fallbackCount);
-    },
-
     locusDensityColumns() {
         const { start, end } = this.winBp;
         const span = (end - start) || 1;
         const map = this.positionCarrierCountMap;
         const max = this.locusDensityMax;
         const plotHeight = this.locusDensityPlotHeightPx;
+        const maxBarHeight = Math.max(2, plotHeight - 3);
         if (this.isBaseLevel) {
             const cols = [];
             const s = Math.ceil(start);
@@ -1263,7 +1232,7 @@ export const pbGeneComputed = {
                     count: item.count,
                     variantIds: item.variantIds,
                     isQueried: pos === this.queriedBp,
-                    heightPx: item.count > 0 ? Math.max(7, Math.round((item.count / max) * plotHeight)) : 2,
+                    heightPx: item.count > 0 ? Math.min(maxBarHeight, Math.max(7, Math.round((item.count / max) * maxBarHeight))) : 2,
                     title: `chr${this.geneInfo.chromosome}:${pos.toLocaleString()} · ${item.count} carriers`,
                 });
             }
@@ -1311,56 +1280,10 @@ export const pbGeneComputed = {
                 count,
                 variantIds: bin.variantIds,
                 isQueried: bin.isQueried,
-                heightPx: count > 0 ? Math.max(7, Math.round((count / max) * plotHeight)) : 2,
+                heightPx: count > 0 ? Math.min(maxBarHeight, Math.max(7, Math.round((count / max) * maxBarHeight))) : 2,
                 title: `chr${this.geneInfo.chromosome}:${Math.round(bin.start).toLocaleString()}-${Math.round(bin.end).toLocaleString()} · ${count} carriers${variantLabel}`,
             };
         });
-    },
-
-    filteredVariantRows() {
-        const rawMax = String(this.variantGnomadMax || "").trim();
-        if (!rawMax) return this.variantRows || [];
-        const max = this.parseAfValue(rawMax);
-        if (max == null) return this.variantRows || [];
-        return (this.variantRows || []).filter(row => {
-            const gnomad = this.gnomadAfValue(row);
-            return gnomad != null && gnomad < max;
-        });
-    },
-
-    sortedVariantRows() {
-        const key = this.variantSortKey || "carriers";
-        const dir = this.variantSortDir === "asc" ? 1 : -1;
-        return [...this.filteredVariantRows].sort((a, b) => {
-            const av = this.variantSortValue(a, key);
-            const bv = this.variantSortValue(b, key);
-            if (av == null && bv == null) return String(a.id || "").localeCompare(String(b.id || ""), undefined, { numeric: true });
-            if (av == null) return 1;
-            if (bv == null) return -1;
-            const bothNumeric = typeof av === "number" && typeof bv === "number";
-            let cmp = 0;
-            if (bothNumeric) cmp = av - bv;
-            else cmp = String(av || "").localeCompare(String(bv || ""), undefined, { numeric: true, sensitivity: "base" });
-            if (cmp === 0) cmp = this.variantPosition(a.id) - this.variantPosition(b.id);
-            if (cmp === 0) cmp = String(a.id || "").localeCompare(String(b.id || ""), undefined, { numeric: true });
-            return cmp * dir;
-        });
-    },
-
-    visibleVariantRows() {
-        return this.sortedVariantRows.slice(0, this.showCountVariantRows || VARIANT_TABLE_LIMIT);
-    },
-
-    hiddenVariantRowCount() {
-        return Math.max(0, this.sortedVariantRows.length - this.visibleVariantRows.length);
-    },
-
-    variantTableCountLabel() {
-        const shown = this.visibleVariantRows.length;
-        const filtered = this.filteredVariantRows.length;
-        const total = (this.variantRows || []).length;
-        if (filtered !== total) return `${shown} of ${filtered} shown (${total} total)`;
-        return `${shown} of ${total} shown`;
     },
 
     baseContextBases() {
@@ -1500,19 +1423,54 @@ export const pbGeneComputed = {
         return (this.geneLevelPhenotypeCategories || []).slice(0, 4);
     },
 
-    pathwayDetailItems() {
-        const pathways = (this.geneInfo.referenceAnnotation || {}).pathways || {};
-        if (Array.isArray(pathways.items) && pathways.items.length) {
-            return pathways.items.map(item => ({
-                source: item.source || this.inferPathwaySource(item.raw || item.name),
-                name: item.name || item.raw || "",
-            }));
-        }
-        const names = pathways.allNames || pathways.displayNames || [];
-        return names.map(name => ({
-            source: this.inferPathwaySource(name),
-            name,
-        }));
+    externalPhenotypeResultUrl() {
+        const terms = String(this.contextInput || "")
+            .toUpperCase()
+            .split(/[\s,;]+/)
+            .filter(Boolean)
+            .filter((term, index, all) => all.indexOf(term) === index);
+        if (!terms.length || terms.some(term => !/^HP:\d{7}$/.test(term))) return "";
+        return `${PHENOTYPE_RESULT_URL}?query=${encodeURIComponent(terms.join(","))}`;
+    },
+
+    pathogenicEvidenceVariantCount() {
+        const labels = ["LOFTEE", "AlphaMissense", "REVEL"];
+        return (this.variantRows || []).filter(row =>
+            labels.some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))
+        ).length;
+    },
+
+    sortedVariantRows() {
+        const rows = [...(this.variantRows || [])];
+        if (!this.variantSortKey) return rows;
+        const key = this.variantSortKey;
+        const dir = this.variantSortDir === "asc" ? 1 : -1;
+        return rows.sort((a, b) => {
+            if (key === "variantScore") {
+                const aScore = this.variantScoreValue(a);
+                const bScore = this.variantScoreValue(b);
+                const aRank = aScore != null ? 0 : this.hasRevelOnlyScore(a) ? 1 : 2;
+                const bRank = bScore != null ? 0 : this.hasRevelOnlyScore(b) ? 1 : 2;
+                if (aRank !== bRank) return aRank - bRank;
+                if (aScore != null && bScore != null) return (aScore - bScore) * dir || a.id.localeCompare(b.id);
+                return a.id.localeCompare(b.id);
+            }
+            const av = this.variantSortValue(a, key);
+            const bv = this.variantSortValue(b, key);
+            if (av == null && bv == null) return a.id.localeCompare(b.id);
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir || a.id.localeCompare(b.id);
+            return String(av).localeCompare(String(bv)) * dir || a.id.localeCompare(b.id);
+        });
+    },
+
+    visibleVariantRows() {
+        return this.sortedVariantRows.slice(0, this.showCountVariants || VARIANT_LIMIT);
+    },
+
+    hiddenVariantCount() {
+        return Math.max(0, (this.variantRows || []).length - (this.showCountVariants || VARIANT_LIMIT));
     },
 
     // ── Most severe observed variant by annotation-only score ────────────────
@@ -1521,7 +1479,7 @@ export const pbGeneComputed = {
         let best = null;
         let bestScore = -1;
         for (const row of this.variantRows) {
-            const score = this.variantScoreValue(row);
+            const score = this.extendedVariantScoreValue(row);
             if (score == null) continue;
             if (score > bestScore) {
                 bestScore = score;
@@ -1531,86 +1489,63 @@ export const pbGeneComputed = {
                     am: this.variantEvidenceValue(row, "AlphaMissense"),
                     loftee: this.variantEvidenceValue(row, "LOFTEE"),
                     topScore: score,
-                    scoreSource: this.variantScoreSource(row),
+                    scoreSource: this.extendedVariantScoreSource(row),
                 };
             }
         }
         return best;
     },
 
-    meanCarrierBurdenScore() {
-        const sampleMax = new Map();
-        (this.variantRows || []).forEach(row => {
-            const score = this.variantScoreValue(row);
-            if (score == null) return;
-            (row.carrierSamples || []).forEach(sample => {
-                const burden = score * this.gtDosage(sample.gt);
-                const prev = sampleMax.get(sample.id);
-                if (prev == null || burden > prev) sampleMax.set(sample.id, burden);
-            });
-        });
-        const values = Array.from(sampleMax.values());
-        if (!values.length) return null;
-        return values.reduce((sum, value) => sum + value, 0) / values.length;
-    },
 };
 
 export const pbGeneMethods = {
-    clampPct(value, min = 0, max = 100) {
-        const n = Number(value);
-        if (Number.isNaN(n)) return min;
-        return Math.max(min, Math.min(max, n));
+    displayMetric(value) {
+        return value == null || value === "" ? "Unavailable" : value;
     },
 
-    clampMarkerNudge(leftPct, nudgePx) {
-        if (leftPct <= 1.2) return Math.max(0, nudgePx);
-        if (leftPct >= 98.8) return Math.min(0, nudgePx);
-        return Math.max(-18, Math.min(18, nudgePx));
+    metricRatio(value) {
+        if (this.isUnavailableValue(value)) return "Unavailable";
+        const total = Number(this.totalGeneCarriers || 0);
+        const count = Number(value);
+        return total ? `${count} / ${total} (${Math.round(count / total * 100)}%)` : `${count}`;
     },
 
-    variantSortValue(row, key) {
-        if (!row) return null;
-        if (key === "variant") return row.id || "";
-        if (key === "position") return this.variantPosition(row.id) || 0;
-        if (key === "carriers") return Number(row.carrierCount || 0);
-        if (key === "affected") return Number(this.variantAffectedCount(row) || 0);
-        if (key === "af") {
-            const value = this.parseAfValue(this.crdcAF(row));
-            return value == null ? null : value;
-        }
-        if (key === "gnomad") return this.gnomadAfValue(row);
-        if (key === "classification") return this.variantClassification(row) || "";
-        if (key === "score") {
-            const value = Number(this.variantScoreValue(row));
-            return Number.isFinite(value) ? value : null;
-        }
-        if (key === "match") {
-            const raw = row.matchScoreNumeric || row.matchScore || row.match_score || row.matchScoreDisplay;
-            const value = Number(raw);
-            if (Number.isFinite(value)) return value;
-            return raw || null;
-        }
-        return row[key] || null;
+    cohortCount(value) {
+        const count = Number(value);
+        return Number.isFinite(count) && count > 0 ? count.toLocaleString() : "Unavailable";
     },
 
-    sortVariantEvidence(key) {
-        if (this.variantSortKey === key) {
-            this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
-        } else {
-            this.variantSortKey = key;
-            this.variantSortDir = ["variant", "classification"].includes(key) ? "asc" : "desc";
-        }
-        this.showCountVariantRows = VARIANT_TABLE_LIMIT;
+    cohortRatio(value) {
+        const count = Number(value);
+        const total = Number((this.crdcEvidence || {}).crdcCohortCount);
+        if (!Number.isFinite(count)) return "Unavailable";
+        if (!Number.isFinite(total) || total <= 0) return count.toLocaleString();
+        return `${count.toLocaleString()} / ${total.toLocaleString()} (${(count / total * 100).toFixed(1)}%)`;
     },
 
-    variantSortIndicator(key) {
-        if (this.variantSortKey !== key) return "▵";
-        return this.variantSortDir === "asc" ? "▲" : "▼";
+    coGeneItems(value) {
+        if (Array.isArray(value)) return value.map(item => String(item).trim()).filter(Boolean);
+        if (typeof value !== "string" || !/[,;|]/.test(value)) return [];
+        return value.split(/[,;|]/).map(item => item.trim()).filter(Boolean);
     },
 
-    clearVariantFilters() {
-        this.variantGnomadMax = "";
-        this.showCountVariantRows = VARIANT_TABLE_LIMIT;
+    coGenePreview(value) {
+        const items = this.coGeneItems(value);
+        return items.length ? items.slice(0, 3).join(", ") : this.displayMetric(value);
+    },
+
+    coGeneRemaining(value) {
+        return this.coGeneItems(value).slice(3);
+    },
+
+    isUnavailableValue(value) {
+        return value == null || value === "" || String(value).toLowerCase() === "unavailable";
+    },
+
+    isMissingMetadataValue(value) {
+        if (value == null || value === "") return true;
+        const normalized = String(value).trim().toLowerCase();
+        return ["unavailable", "unknown", "n/a", "na", "-", "—"].includes(normalized);
     },
 
     shortPhenotypeCategory(label) {
@@ -1623,13 +1558,12 @@ export const pbGeneMethods = {
         return simplified.charAt(0).toUpperCase() + simplified.slice(1);
     },
 
-    inferPathwaySource(name) {
-        const raw = String(name || "");
-        return raw.indexOf("WP_") === 0 || /wikipath/i.test(raw) ? "WikiPathways" : "Reactome";
-    },
-
-    togglePathwayDetails() {
-        this.showPathwayDetails = !this.showPathwayDetails;
+    clampMarkerNudge(nudgePx, leftPct) {
+        const markerHalfWidthPx = 6;
+        const maxTrackWidthPx = 980;
+        const leftRoomPx = (Math.max(0, leftPct) / 100) * maxTrackWidthPx - markerHalfWidthPx;
+        const rightRoomPx = ((100 - Math.min(100, leftPct)) / 100) * maxTrackWidthPx - markerHalfWidthPx;
+        return Math.max(-Math.max(leftRoomPx, 0), Math.min(Math.max(rightRoomPx, 0), nudgePx));
     },
 
     isSummaryCardExpanded(key) {
@@ -1638,6 +1572,179 @@ export const pbGeneMethods = {
 
     toggleSummaryCard(key) {
         this.$set(this.summaryExpandedCards, key, !this.isSummaryCardExpanded(key));
+    },
+
+    async runContextAnalysis() {
+        const terms = String(this.contextInput || "")
+            .toUpperCase()
+            .split(/[\s,;]+/)
+            .filter(Boolean)
+            .filter((term, index, all) => all.indexOf(term) === index);
+        const invalid = terms.find(term => !/^HP:\d{7}$/.test(term));
+        if (!terms.length || invalid) {
+            this.contextError = invalid ? `${invalid} is not a valid HPO ID.` : "Enter at least one HPO term.";
+            return;
+        }
+        const significanceThreshold = Number(this.contextSignificanceThreshold);
+        const minCarriers = Number(this.contextMinCarriers);
+        if (!Number.isFinite(significanceThreshold) || significanceThreshold <= 0 || significanceThreshold > 1) {
+            this.contextError = "Threshold must be greater than 0 and no more than 1.";
+            return;
+        }
+        if (!Number.isInteger(minCarriers) || minCarriers < 1) {
+            this.contextError = "Minimum carriers must be a whole number of at least 1.";
+            return;
+        }
+
+        this.contextLoading = true;
+        this.contextError = "";
+        try {
+            const response = LOCAL_CONTEXT_FIXTURE_ENABLED
+                ? await fetch("/__pb_gene_context_fixture__")
+                : await fetch("/phenotype-analyzer-api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        terms: terms.join(","),
+                        gene: this.geneInfo.symbol,
+                        advanced: {
+                            significance_metric: this.contextSignificanceMetric,
+                            significance_threshold: significanceThreshold,
+                            min_carriers: minCarriers,
+                        },
+                    }),
+                });
+            if (!response.ok) throw new Error(`Context API returned ${response.status}.`);
+            const payload = await response.json();
+            let result = payload;
+            let sourceLabel = "Private API";
+            if (LOCAL_CONTEXT_FIXTURE_ENABLED) {
+                const expectedTerms = Array.isArray(payload.query_hpo) ? payload.query_hpo : [];
+                const sameTerms = expectedTerms.length === terms.length && terms.every(term => expectedTerms.includes(term));
+                const gene = String((this.geneInfo || {}).symbol || "").toUpperCase();
+                if (!sameTerms || !payload.genes || !payload.genes[gene]) {
+                    throw new Error(`Local fixture supports only ${expectedTerms.join(", ")} for CEP152 or DMD.`);
+                }
+                result = payload.genes[gene];
+                sourceLabel = "Local validation fixture";
+                this.installLocalContextVariantRows(result);
+            }
+            this.applyVariantContextScores(result);
+            const burden = result.gene_burden || result.burden || {};
+            this.contextRuns.push({
+                id: `${Date.now()}-${this.contextRuns.length}`,
+                hpos: terms.join(", "),
+                beta: this.contextStatistic(burden.beta != null ? burden.beta : result.beta),
+                pValue: this.contextStatistic(
+                    burden.p_value != null ? burden.p_value : burden.pValue != null ? burden.pValue : result.p_value
+                ),
+                fdr: this.contextStatistic(burden.fdr),
+                status: burden.status || "unknown",
+                nPositiveBurden: burden.n_positive_burden,
+                minCarriers: burden.min_carriers,
+                nVariantsScored: burden.n_variants_scored,
+                nVariantsTotal: burden.n_variants_total,
+                interpretationScope: burden.interpretation_scope,
+                modelVersion: burden.model_version,
+                formula: burden.formula,
+                burdenPathogenicScoreVersion: burden.burden_pathogenic_score_version,
+                statusLabel: this.contextBurdenStatusLabel(burden),
+                coverageLabel: this.contextBurdenCoverageLabel(burden),
+                modelLabel: [burden.model_version, burden.formula].filter(Boolean).join(" · ") || "Model details unavailable",
+                sourceLabel,
+            });
+            this.activeContextTerms = terms;
+        } catch (error) {
+            this.contextError = String(error && error.message ? error.message : error);
+        } finally {
+            this.contextLoading = false;
+        }
+    },
+
+    installLocalContextVariantRows(result) {
+        if ((this.variantRows || []).length) return;
+        const scores = result.variant_match_scores || {};
+        this.variantRows = Object.keys(scores).map(variantId => ({
+            id: variantId,
+            carrierCount: Number(scores[variantId].carrier_count || 0),
+            affected: null,
+            carrierSamples: [],
+            crdcAF: "Unavailable",
+            classification: "Unavailable",
+            consequence: "Unavailable",
+            phenotypeCategories: [],
+            variantEvidence: [],
+            phenotypeMatchScore: null,
+        }));
+        this.crdcEvidence = {
+            ...(this.crdcEvidence || {}),
+            currentGeneCarrierTotal: Number(result.carrier_sample_count || 0),
+            variantCount: this.variantRows.length,
+        };
+    },
+
+    applyVariantContextScores(result) {
+        const scores = result && result.variant_match_scores && typeof result.variant_match_scores === "object"
+            ? result.variant_match_scores
+            : {};
+        const scoreByVariant = new Map(
+            Object.keys(scores).map(variantId => [String(variantId).toLowerCase(), scores[variantId]])
+        );
+        (this.variantRows || []).forEach(row => {
+            const context = scoreByVariant.get(String(row.id || "").toLowerCase()) || null;
+            const score = context && context.match_score != null ? Number(context.match_score) : NaN;
+            row.phenotypeMatchScore = Number.isFinite(score) ? score : null;
+            row.phenotypeMatchStatus = context && context.status ? context.status : "not_returned";
+            row.phenotypeMatchCarrierCount = context && context.carrier_count != null
+                ? Number(context.carrier_count)
+                : null;
+            row.phenotypeMatchScoredCarrierCount = context && context.scored_carrier_count != null
+                ? Number(context.scored_carrier_count)
+                : null;
+        });
+    },
+
+    contextBurdenStatusLabel(burden) {
+        const status = String(burden.status || "unknown");
+        const positive = Number(burden.n_positive_burden);
+        const minimum = Number(burden.min_carriers);
+        if (status === "ok") {
+            return Number.isFinite(positive)
+                ? `Calculated · ${positive.toLocaleString()} positive-burden samples`
+                : "Calculated";
+        }
+        if (status === "insufficient_carriers") {
+            const support = Number.isFinite(positive) && Number.isFinite(minimum) ? ` · ${positive}/${minimum}` : "";
+            return `Insufficient positive-burden samples${support}`;
+        }
+        const labels = {
+            constant_input: "No variable burden signal",
+            singular_design: "Singular model design",
+            non_converged: "Model did not converge",
+            invalid_standard_error: "Invalid standard error",
+            zero_residual_scale: "Zero residual scale",
+            invalid_data: "Invalid analysis data",
+        };
+        return labels[status] || `Unavailable · ${status}`;
+    },
+
+    contextBurdenCoverageLabel(burden) {
+        const scored = Number(burden.n_variants_scored);
+        const total = Number(burden.n_variants_total);
+        if (!Number.isFinite(scored) || !Number.isFinite(total)) return "Burden Pathogenic Score coverage unavailable";
+        if (total === 0) return "No gene variants in this context result";
+        const percent = ((scored / total) * 100).toFixed(1);
+        const partial = burden.interpretation_scope === "exploratory_scored_variants_only"
+            ? " · exploratory scored-variants-only burden"
+            : "";
+        return `${scored}/${total} variants scored (${percent}%)${partial}`;
+    },
+
+    contextStatistic(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return "—";
+        if (number !== 0 && Math.abs(number) < 0.001) return number.toExponential(2);
+        return number.toFixed(3);
     },
 
     async submitGeneSearch() {
@@ -1651,7 +1758,7 @@ export const pbGeneMethods = {
         this.searchGeneLoading = true;
         this.searchGeneError = "";
         try {
-            await this.loadBioIndexGene(query, { replaceUrl: true });
+            await this.loadLiveGeneData(query, true);
         } catch (error) {
             this.searchGeneError = String(error && error.message ? error.message : error);
         } finally {
@@ -1659,31 +1766,50 @@ export const pbGeneMethods = {
         }
     },
 
-    async loadBioIndexGene(queryOverride = null, opts = {}) {
-        const query = normalizeGeneQuery(queryOverride || this.searchGeneQuery || (this.geneInfo && this.geneInfo.symbol));
+    async loadLiveGeneData(queryOverride = null, updateUrl = false) {
+        const query = normalizeGeneQuery(queryOverride || this.searchGeneQuery || (this.geneInfo || {}).symbol);
         if (!query) return;
-        const current = normalizeGeneQuery(this.geneInfo && this.geneInfo.symbol);
-        this.bioIndexLoading = true;
-        this.bioIndexError = "";
-        if (query !== current) {
-            const skeleton = createPbGeneRuntimeState(createEmptyPbGeneBase(query), query, new URLSearchParams());
-            Object.keys(skeleton).forEach(key => {
-                this[key] = skeleton[key];
-            });
-            this.bioIndexLoading = true;
-            this.searchGeneQuery = query;
+        if (LOCAL_CONTEXT_FIXTURE_ENABLED) {
+            if (updateUrl) {
+                const url = new URL(window.location.href);
+                url.pathname = "/pb_Gene.html";
+                url.searchParams.set("query", query);
+                window.location.assign(url.toString());
+            }
+            return;
         }
+        this.searchGeneLoading = true;
+        this.searchGeneProgress = "Loading gene evidence";
+        this.searchGeneError = "";
         try {
-            const state = await fetchPbGeneBioIndexState(this.$data, query);
-            const hasVariantRows = !!(state && state.variantRows && state.variantRows.length);
-            const resolvedSymbol = normalizeGeneQuery((state.geneInfo || {}).symbol || query);
-            const nextState = createPbGeneRuntimeState(state, resolvedSymbol, new URLSearchParams());
+            const pageCounts = {};
+            const geneState = await fetchPbGeneBioIndexState(query, {
+                onPartial: partialState => {
+                    Object.keys(partialState).forEach(key => {
+                        this[key] = partialState[key];
+                    });
+                    this.liveDataLoaded = true;
+                    this.liveDataSource = "private BioIndex · carrier evidence loading";
+                    this.searchGeneProgress = "Loading variant and carrier evidence";
+                },
+                onProgress: (index) => {
+                    pageCounts[index] = (pageCounts[index] || 0) + 1;
+                    const label = index === "gene-samples"
+                        ? "carrier evidence"
+                        : index === "gene-variants2"
+                            ? "variant annotations"
+                            : "gene summary";
+                    this.searchGeneProgress = `Loading ${label} · page ${pageCounts[index]}`;
+                },
+            });
+            const resolvedSymbol = normalizeGeneQuery((geneState.geneInfo || {}).symbol || query);
+            const nextState = createPbGeneRuntimeState(geneState, resolvedSymbol, new URLSearchParams());
             Object.keys(nextState).forEach(key => {
                 this[key] = nextState[key];
             });
-            this.bioIndexLoaded = hasVariantRows;
-            this.searchGeneQuery = resolvedSymbol;
-            if (opts.replaceUrl) {
+            this.liveDataLoaded = true;
+            this.liveDataSource = "private BioIndex";
+            if (updateUrl) {
                 const url = new URL(window.location.href);
                 url.pathname = "/pb_Gene.html";
                 url.searchParams.set("query", resolvedSymbol);
@@ -1691,36 +1817,15 @@ export const pbGeneMethods = {
                 url.searchParams.delete("locusView");
                 window.history.pushState({}, "", url.toString());
             }
-            if (!hasVariantRows) {
-                this.bioIndexError = `BioIndex gene-page data unavailable or no records returned for ${resolvedSymbol}.`;
-            }
         } catch (error) {
-            this.bioIndexError = String(error && error.message ? error.message : error);
+            this.liveDataLoaded = false;
+            this.liveDataSource = "mock fallback";
+            this.searchGeneError = String(error && error.message ? error.message : error);
             throw error;
         } finally {
-            this.bioIndexLoading = false;
+            this.searchGeneLoading = false;
+            this.searchGeneProgress = "";
         }
-    },
-
-    async fetchLocalGeneFixture(query) {
-        const endpoint = window.PB_GENE_FIXTURE_ENDPOINT || "http://127.0.0.1:8091/pb-gene-fixture";
-        const url = new URL(endpoint);
-        url.searchParams.set("gene", query);
-        const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
-        const bodyText = await response.text();
-        let payload = null;
-        try {
-            payload = bodyText ? JSON.parse(bodyText) : null;
-        } catch (error) {
-            throw new Error("Local pb_Gene fixture helper returned invalid JSON.");
-        }
-        if (!response.ok) {
-            throw new Error((payload && (payload.detail || payload.error)) || `Fixture helper failed for ${query}.`);
-        }
-        if (!payload || !payload.gene || !payload.gene.geneInfo) {
-            throw new Error(`No pb_Gene fixture returned for ${query}.`);
-        }
-        return payload;
     },
 
     // ── gene-level tab ────────────────────────────────────────────────────────
@@ -1896,13 +2001,6 @@ export const pbGeneMethods = {
         this.$set(this.showCountCarrierMap, variantId, Math.min(cur + 5, total));
     },
 
-    showMoreVariantRows() {
-        this.showCountVariantRows = Math.min(
-            (this.showCountVariantRows || VARIANT_TABLE_LIMIT) + VARIANT_TABLE_LIMIT,
-            (this.variantRows || []).length
-        );
-    },
-
     showMoreGeneCarriers() {
         this.showCountGeneCarriers = Math.min(
             this.showCountGeneCarriers + 5,
@@ -1912,6 +2010,13 @@ export const pbGeneMethods = {
 
     showLessGeneCarriers() {
         this.showCountGeneCarriers = 5;
+    },
+
+    showMoreVariants() {
+        this.showCountVariants = Math.min(
+            (this.showCountVariants || VARIANT_LIMIT) + VARIANT_LIMIT,
+            (this.variantRows || []).length
+        );
     },
 
     // ── expandable phenotype categories ───────────────────────────────────────
@@ -1966,11 +2071,35 @@ export const pbGeneMethods = {
         return this.sortDir === "asc" ? "▲" : "▼";
     },
 
+    sortVariantsBy(key) {
+        if (this.variantSortKey === key) {
+            this.variantSortDir = this.variantSortDir === "asc" ? "desc" : "asc";
+        } else {
+            this.variantSortKey = key;
+            this.variantSortDir = key === "variantScore" || key === "matchScore" ? "desc" : "asc";
+        }
+    },
+
+    variantSortIndicator(key) {
+        if (this.variantSortKey !== key) return "▵";
+        return this.variantSortDir === "asc" ? "▲" : "▼";
+    },
+
+    variantSortValue(row, key) {
+        if (key === "variant") return row.id || "";
+        if (key === "carriers") return Number(row.carrierCount || 0);
+        if (key === "crdcAF") return this.parseAfValue(this.crdcAF(row));
+        if (key === "classification") return `${this.variantClassification(row)} ${row.consequence || ""}`.trim().toLowerCase();
+        if (key === "variantScore") return this.variantScoreValue(row);
+        if (key === "matchScore") return row.phenotypeMatchScore;
+        return null;
+    },
+
     // ── Block 3 evidence helpers ──────────────────────────────────────────────
-    variantEvidenceValue(row, label) {
+    variantEvidenceValue(row, label, fallback = "—") {
         const target = String(label || "").toLowerCase();
         const item = (row.variantEvidence || []).find(ev => String(ev.label || "").toLowerCase() === target);
-        return item && item.value != null && item.value !== "" ? item.value : "—";
+        return item && item.value != null && item.value !== "" ? item.value : fallback;
     },
 
     variantEvidenceHref(row, label) {
@@ -1998,19 +2127,9 @@ export const pbGeneMethods = {
         const crdc = this.parseAfValue(this.crdcAF(row));
         const gnomad = this.parseAfValue(row.gnomadAF || this.variantEvidenceValue(row, "gnomAD AF"));
         const sources = [];
-        if (crdc != null && crdc >= 0.10) sources.push(`CRDC AF ${(crdc * 100).toFixed(1)}%`);
+        if (crdc != null && crdc >= 0.10) sources.push(`CRDC carrier frequency ${(crdc * 100).toFixed(1)}%`);
         if (gnomad != null && gnomad >= 0.10) sources.push(`gnomAD AF ${(gnomad * 100).toFixed(1)}%`);
         return sources;
-    },
-
-    gnomadAfValue(row) {
-        return this.parseAfValue(row && (row.gnomadAF || this.variantEvidenceValue(row, "gnomAD AF")));
-    },
-
-    matchScoreDisplay(row) {
-        const raw = row && (row.matchScoreDisplay || row.matchScore || row.match_score);
-        if (raw == null || raw === "" || raw === "NA") return "no context";
-        return String(raw);
     },
 
     variantHasHighAf(row) {
@@ -2024,7 +2143,9 @@ export const pbGeneMethods = {
     },
 
     variantClassification(row) {
-        return row.classification || row.clinvar || "—";
+        const clinvar = this.variantEvidenceValue(row, "ClinVar", "");
+        if (!this.isMissingMetadataValue(clinvar)) return clinvar;
+        return row.clinvar || row.classification || "—";
     },
 
     variantAffectedCount(row) {
@@ -2047,21 +2168,36 @@ export const pbGeneMethods = {
         if (this.isLofteeHC(row)) return 1;
         const alphaMissense = this.parseEvidenceNumber(row, "AlphaMissense");
         if (alphaMissense != null) return alphaMissense;
+        return null;
+    },
+
+    extendedVariantScoreValue(row) {
+        const score = this.variantScoreValue(row);
+        if (score != null) return score;
         const revel = this.parseEvidenceNumber(row, "REVEL");
         if (revel != null) return revel;
         return null;
     },
 
-    variantScoreSource(row) {
+    extendedVariantScoreSource(row) {
         if (this.isLofteeHC(row)) return "LoFTEE HC";
         if (this.parseEvidenceNumber(row, "AlphaMissense") != null) return "AlphaMissense";
         if (this.parseEvidenceNumber(row, "REVEL") != null) return "REVEL";
         return "unavailable";
     },
 
+    hasRevelOnlyScore(row) {
+        return this.variantScoreValue(row) == null && this.parseEvidenceNumber(row, "REVEL") != null;
+    },
+
     variantScoreDisplay(row) {
         const value = this.variantScoreValue(row);
-        return value == null ? "—" : value.toFixed(2);
+        if (value != null) return value.toFixed(2);
+        return "—";
+    },
+
+    variantScoreTitle(row) {
+        return this.hasRevelOnlyScore(row) ? "REVEL is available but excluded from this score." : null;
     },
 
     variantScoreClass(row) {
@@ -2069,19 +2205,9 @@ export const pbGeneMethods = {
         return value == null ? "" : this.scoreClass(value);
     },
 
-    gtDosage(gt) {
-        const normalized = String(gt || "").replace(/\|/g, "/");
-        if (normalized === "1/1") return 2;
-        if (normalized === "0/1" || normalized === "1/0") return 1;
-        return normalized.split(/[\/]/).reduce((sum, allele) => {
-            if (allele === "." || allele === "") return sum;
-            return sum + (Number(allele) > 0 ? 1 : 0);
-        }, 0);
-    },
-
     variantEvidenceRows(row) {
         return [
-            { label: "CRDC AF", value: this.crdcAF(row) },
+            { label: "CRDC carrier frequency", value: this.crdcAF(row) },
             { label: "AlphaMissense", value: this.variantEvidenceValue(row, "AlphaMissense") },
             { label: "REVEL", value: this.variantEvidenceValue(row, "REVEL") },
             { label: "LOFTEE", value: this.variantEvidenceValue(row, "LOFTEE") },
@@ -2092,7 +2218,7 @@ export const pbGeneMethods = {
             },
             {
                 label: "ClinVar",
-                value: this.variantClassification(row),
+                value: this.variantEvidenceValue(row, "ClinVar", "Unavailable"),
                 href: this.variantEvidenceHref(row, "ClinVar"),
             },
         ];
@@ -2118,10 +2244,20 @@ export const pbGeneMethods = {
 
     pathogenicityClass(clinvar) {
         if (!clinvar) return "";
-        const v = clinvar.toLowerCase();
-        if (v.startsWith("likely pathogenic")) return "pbg-badge--likely-path";
-        if (v.startsWith("pathogenic"))        return "pbg-badge--pathogenic";
-        if (v === "vus")                        return "pbg-badge--vus";
+        const values = String(clinvar)
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .split(/[&,;|/]+/)
+            .map(value => value.trim());
+        if (values.some(value => value === "p" || /^pathogenic\b/.test(value))) {
+            return "pbg-badge--pathogenic";
+        }
+        if (values.some(value => value === "lp" || /^likely pathogenic\b/.test(value))) {
+            return "pbg-badge--likely-path";
+        }
+        if (values.some(value => value === "vus" || /^uncertain significance\b/.test(value))) {
+            return "pbg-badge--vus";
+        }
         return "";
     },
 
