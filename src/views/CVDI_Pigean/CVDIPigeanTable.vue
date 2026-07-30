@@ -27,7 +27,6 @@ export default Vue.component("cvdi-pigean-table", {
             perPage: 10,
             currentPage: 1,
             subtableData: {},
-            subtable2Data: {},
             plotColors: plotUtils.plotColors(),
         };
     },
@@ -160,15 +159,6 @@ export default Vue.component("cvdi-pigean-table", {
                 inputData[i]["phenotypeDesc"] = phenotypeDesc;
             }
             return inputData;
-        },
-        hideLocusButton(phenotype) {
-            if (!!this.phenotypeMap) {
-                return (
-                    this.phenotypeMap[phenotype] === undefined ||
-                    this.phenotypeMap[phenotype].trait_group !== "portal"
-                );
-            }
-            return this.traitGroup !== "portal";
         },
     },
 });
