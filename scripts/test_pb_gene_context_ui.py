@@ -17,6 +17,13 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("@submit.prevent=\"runContextAnalysis\"", TEMPLATE)
         self.assertIn("contextRuns.push", MODEL)
 
+    def test_context_links_valid_hpo_terms_to_the_temporary_phenotype_page(self):
+        self.assertIn("http://100.80.30.199/phenotypeResult.html", MODEL)
+        self.assertIn("externalPhenotypeResultUrl", TEMPLATE)
+        self.assertIn('target="_blank"', TEMPLATE)
+        self.assertIn('rel="noopener noreferrer"', TEMPLATE)
+        self.assertIn("encodeURIComponent(terms.join(\",\"))", MODEL)
+
     def test_advanced_contains_statistical_filter_controls(self):
         for text in ("P-value", "FDR", "Threshold", "Minimum carriers"):
             self.assertIn(text, TEMPLATE)
@@ -40,6 +47,12 @@ class PbGeneContextUiTest(unittest.TestCase):
         self.assertIn("no context", TEMPLATE)
         self.assertNotIn("Variant score <em>", TEMPLATE)
         self.assertNotIn("Match score <em>", TEMPLATE)
+
+    def test_gene_summary_counts_variants_with_pathogenicity_evidence(self):
+        self.assertIn("Pathogenic variants in this gene", TEMPLATE)
+        self.assertIn("pathogenicEvidenceVariantCount", TEMPLATE)
+        self.assertIn('const labels = ["LOFTEE", "AlphaMissense", "REVEL"]', MODEL)
+        self.assertNotIn("<em>Variants in this gene</em>", TEMPLATE)
 
     def test_table_score_excludes_revel_but_marks_revel_only_rows(self):
         self.assertIn("const score = this.extendedVariantScoreValue(row)", MODEL)

@@ -226,6 +226,17 @@
     opacity: 0.65;
 }
 
+.pbg-context-external {
+    margin: 0.45rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+.pbg-context-external a {
+    color: #0b66a3;
+    font-weight: 800;
+}
+
 .pbg-context-advanced {
     position: relative;
 }

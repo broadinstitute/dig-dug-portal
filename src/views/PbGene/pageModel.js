@@ -6,6 +6,7 @@ import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
 
 const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
+const PHENOTYPE_RESULT_URL = "http://100.80.30.199/phenotypeResult.html";
 
 export function createPbGeneState() {
     const params = new URLSearchParams(window.location.search);
@@ -1422,6 +1423,23 @@ export const pbGeneComputed = {
 
     topHeroPhenotypeCategories() {
         return (this.geneLevelPhenotypeCategories || []).slice(0, 4);
+    },
+
+    externalPhenotypeResultUrl() {
+        const terms = String(this.contextInput || "")
+            .toUpperCase()
+            .split(/[\s,;]+/)
+            .filter(Boolean)
+            .filter((term, index, all) => all.indexOf(term) === index);
+        if (!terms.length || terms.some(term => !/^HP:\d{7}$/.test(term))) return "";
+        return `${PHENOTYPE_RESULT_URL}?query=${encodeURIComponent(terms.join(","))}`;
+    },
+
+    pathogenicEvidenceVariantCount() {
+        const labels = ["LOFTEE", "AlphaMissense", "REVEL"];
+        return (this.variantRows || []).filter(row =>
+            labels.some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))
+        ).length;
     },
 
     sortedVariantRows() {

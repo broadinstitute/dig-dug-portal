@@ -89,6 +89,12 @@
                             </div>
                         </details>
                     </form>
+                    <p v-if="externalPhenotypeResultUrl" class="pbg-context-external">
+                        Temporary residual PheRS source:
+                        <a :href="externalPhenotypeResultUrl"
+                           target="_blank"
+                           rel="noopener noreferrer">Open phenotype result ↗</a>
+                    </p>
                     <p v-if="contextError" class="pbg-context-error">{{ contextError }}</p>
                     <div class="pbg-context-results">
                         <div class="pbg-context-result-head">
@@ -221,10 +227,11 @@
                                 <small v-if="crdcEvidence.largestClinicalArea">{{ metricRatio(crdcEvidence.largestClinicalArea.count) }}</small>
                                 <em>Largest contributing clinical area</em>
                             </div>
-                            <div class="pbg-metric-item">
+                            <div class="pbg-metric-item"
+                                 title="Variants with at least one LoFTEE, AlphaMissense, or REVEL annotation">
                                 <img class="pbg-metric-icon" :src="metricIcons.variants" alt="" aria-hidden="true">
-                                <strong>{{ crdcEvidence.variantCount }}</strong>
-                                <em>Variants in this gene</em>
+                                <strong>{{ pathogenicEvidenceVariantCount.toLocaleString() }} / {{ variantRows.length.toLocaleString() }}</strong>
+                                <em>Pathogenic variants in this gene</em>
                             </div>
                         </div>
 
