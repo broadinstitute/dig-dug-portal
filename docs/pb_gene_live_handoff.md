@@ -3,6 +3,10 @@
 Date: 2026-07-14
 Page: `/pb_Gene.html?query={HGNC_SYMBOL}`
 
+For the current production integration sequence, start with
+`docs/pb_gene_production_integration_handoff.md`. This document remains the
+detailed BioIndex and Context API mapping reference.
+
 This is the entry point for Helen's implementation review. It records what the
 current Gene Page reads from BioIndex, what the new context endpoint must
 calculate, and which method decisions are still provisional.
