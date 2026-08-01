@@ -35,6 +35,15 @@
                 Ensembl {{ geneEnsemblLink.id }} ↗
             </a>
             <span v-else class="pbg-meta-pill">Ensembl Unavailable</span>
+            <a v-if="geneRefseqLink"
+               class="pbg-meta-pill pbg-meta-pill--link"
+               :href="geneRefseqLink.href"
+               target="_blank"
+               rel="noopener noreferrer"
+               :aria-label="'Open NCBI RefSeq transcript ' + geneRefseqLink.id + ' in a new tab'">
+                RefSeq {{ geneRefseqLink.id }} ↗
+            </a>
+            <span v-else class="pbg-meta-pill">RefSeq Unavailable</span>
         </div>
 
         <table class="pbg-ref-table">
@@ -119,6 +128,14 @@ export default {
             const id = String(this.geneInfo.ensemblId || "").trim();
             return /^ENSG\d+$/.test(id)
                 ? { id, href: `https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${encodeURIComponent(id)}` }
+                : null;
+        },
+        geneRefseqLink() {
+            const maneRefseq = String(this.geneInfo.maneSelect || "").split("|")
+                .find(value => /^N[MR]_\d+(?:\.\d+)?$/.test(value));
+            const id = maneRefseq || String(this.geneInfo.refseqAccession || "").split(",")[0].trim();
+            return /^N[MR]_\d+(?:\.\d+)?$/.test(id)
+                ? { id, href: `https://www.ncbi.nlm.nih.gov/nuccore/${encodeURIComponent(id)}` }
                 : null;
         },
         pathwayDetailItems() {

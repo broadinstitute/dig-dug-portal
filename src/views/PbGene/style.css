@@ -268,6 +268,73 @@
 }
 
 /* ── Context analysis ───────────────────────────────────────────────────── */
+.pbg-context-disclosure {
+    margin-bottom: 1.25rem;
+    border-top: 1px solid var(--pbg-border);
+    border-bottom: 1px solid var(--pbg-border);
+}
+
+.pbg-context-disclosure > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+.pbg-context-disclosure > summary::-webkit-details-marker {
+    display: none;
+}
+
+.pbg-context-disclosure > summary::before {
+    content: "›";
+    width: 0.8rem;
+    color: #0ea5a3;
+    font-weight: 900;
+    font-size: 1.15rem;
+    line-height: 1;
+    text-align: center;
+    transform-origin: center;
+}
+
+.pbg-context-disclosure[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.pbg-context-disclosure > summary strong {
+    color: var(--pbg-text-strong);
+    font-size: 0.88rem;
+}
+
+.pbg-context-summary-sub {
+    color: var(--pbg-text-soft);
+    font-size: 0.78rem;
+    font-weight: 400;
+}
+
+.pbg-context-summary-pill {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 0.15rem 0.55rem;
+    border: 1px solid #99e6e0;
+    border-radius: 999px;
+    background: #e6fbfa;
+    color: #0a7775;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.pbg-context-disclosure > .pbg-context-card {
+    margin: 0 0 1rem;
+    padding: 0.5rem 0 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
 .pbg-context-card {
     margin-bottom: 1rem;
     padding: 1rem 1.2rem;
@@ -884,6 +951,16 @@
     line-height: 1;
     vertical-align: middle;
     font-variant-numeric: tabular-nums;
+}
+
+.pbg-metric-item--variant-count strong {
+    font-size: 0.9rem;
+    line-height: 1.25;
+}
+
+.pbg-metric-item--variant-count .pbg-metric-icon {
+    width: 1.4rem;
+    height: 1.4rem;
 }
 
 .pbg-metric-item strong.pbg-metric-ratio {
@@ -3628,9 +3705,10 @@
 }
 
 .pbg-ve-classification .pbg-clinvar-badge {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    white-space: normal;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .pbg-ve-classification small {
@@ -3686,6 +3764,25 @@
     min-width: 0;
     padding-right: 1rem;
     border-right: 1px solid #dbe5f0;
+}
+
+.pbg-selected-variant-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.45rem;
+}
+
+.pbg-selected-variant-head .pbg-section-label {
+    margin: 0;
+}
+
+.pbg-selected-variant-head .pbg-nav-link--variant-page {
+    padding: 0.12rem 0.35rem;
+    border-radius: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 800;
 }
 
 .pbg-af-warning-note {

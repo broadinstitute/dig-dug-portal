@@ -87,7 +87,7 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier table "show more" (+5 increments)
         showCountCarrierMap:  {},   // variantId → count shown
         showCountGeneCarriers: 5,
-        showCountVariants: 10,
+        showCountVariants: 5,
 
         // Expandable phenotype categories
         expandedPhenoCategories: {},
@@ -172,7 +172,7 @@ const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
 const TERMS_LIMIT    = 5;
 const CARRIER_LIMIT  = 5;
-const VARIANT_LIMIT  = 10;
+const VARIANT_LIMIT  = 5;
 const PHENO_CAT_LIMIT = 5;
 const SUMMARY_PHENO_LIMIT = 4;
 const SUMMARY_GENE_LIMIT = 6;
@@ -903,6 +903,35 @@ export const pbGeneComputed = {
         });
     },
 
+    locusWindowVariantRows() {
+        const { start, end } = this.winBp;
+        return (this.variantRows || []).filter(row => {
+            const pos = this.variantPosition(row.id);
+            return pos && pos >= start && pos <= end;
+        });
+    },
+
+    locusWindowVariantCount() {
+        return this.locusWindowVariantRows.length;
+    },
+
+    locusWindowPositionCount() {
+        return new Set(this.locusWindowVariantRows.map(row => this.variantPosition(row.id))).size;
+    },
+
+    locusWindowDistinctCarrierCount() {
+        if (!this.locusWindowVariantRows.length) return 0;
+        if (this.locusWindowVariantRows.some(row => !(row.carrierSamples || []).length)) return null;
+        const matches = this.variantFilterMatches;
+        const sampleIds = new Set();
+        this.locusWindowVariantRows.forEach(row => {
+            row.carrierSamples.forEach(sample => {
+                if (matches(sample)) sampleIds.add(sample.id);
+            });
+        });
+        return sampleIds.size;
+    },
+
     codingTrackContext() {
         const cc = this.queriedVariantCodingContext;
         if (!cc || !cc.bases || !cc.bases.length) return null;
@@ -1433,7 +1462,7 @@ export const pbGeneComputed = {
         return `${PHENOTYPE_RESULT_URL}?query=${encodeURIComponent(terms.join(","))}`;
     },
 
-    pathogenicEvidenceVariantCount() {
+    predictionAnnotatedVariantCount() {
         const labels = ["LOFTEE", "AlphaMissense", "REVEL"];
         return (this.variantRows || []).filter(row =>
             labels.some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))

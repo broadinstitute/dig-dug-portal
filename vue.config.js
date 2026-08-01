@@ -52,6 +52,13 @@ let pages = {
         title: "PB Gene Search",
         chunks: ["chunk-vendors", "chunk-common", "pbGene"]
     },
+    pbVariant: {
+        entry: "src/views/PbVariant/main.js",
+        template: "public/index.html",
+        filename: "pb_variant.html",
+        title: "PB Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbVariant"]
+    },
     datasets: {
         entry: "src/views/Datasets/main.js",
         template: "public/index.html",
@@ -273,6 +280,10 @@ if (process.env.NODE_ENV === "production") {
 
 const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
     || "http://127.0.0.1:8092";
+const bioindexHostPrivateBrowser = process.env.BIOINDEX_HOST_PRIVATE_BROWSER
+    || (process.env.BIOINDEX_HOST_PRIVATE
+        ? "/__bioindex_private__"
+        : "https://bioindex.hugeamp.org");
 
 module.exports = {
     devServer: {
@@ -285,11 +296,27 @@ module.exports = {
             });
         },
         proxy: {
+            ...(process.env.BIOINDEX_HOST_PRIVATE ? {
+                "/__bioindex_private__": {
+                    target: process.env.BIOINDEX_HOST_PRIVATE,
+                    changeOrigin: true,
+                    pathRewrite: { "^/__bioindex_private__": "" },
+                },
+            } : {}),
             "/phenotype-analyzer-api": {
                 target: phenotypeAnalyzerHostPrivate,
                 changeOrigin: true,
             },
         },
+    },
+    chainWebpack: config => {
+        config.module
+            .rule("js")
+            .use("cache-loader")
+            .tap(options => ({
+                ...options,
+                cacheIdentifier: `${options.cacheIdentifier}-${bioindexHostPrivateBrowser}`,
+            }));
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
@@ -297,6 +324,7 @@ module.exports = {
         //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
+        let bioindex_host_private_browser = bioindexHostPrivateBrowser;
 
         if (!!bioindex_dev) {
             bioindex_host =
@@ -307,7 +335,7 @@ module.exports = {
 
         // output which vue config file and bioindex is being used
         console.log(
-            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private}`
+            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host} and ${bioindex_host_private} via ${bioindex_host_private_browser}`
         );
 
         // add the transform rule for bioindex
@@ -328,7 +356,7 @@ module.exports = {
             loader: "string-replace-loader",
             options: {
                 search: "SERVER_IP_PRIVATE",
-                replace: bioindex_host_private,
+                replace: bioindex_host_private_browser,
                 flags: "g"
             }
         });

@@ -40,7 +40,7 @@
                         </form>
                     </div>
                     <div class="pbg-toolbar-right">
-                        <a href="/krVariant.html" class="pbg-nav-link">Variant search</a>
+                        <a href="/pb_variant.html" class="pbg-nav-link">Variant search</a>
                         <a href="https://a2f.hugeamp.org/"
                            class="pbg-nav-link pbg-nav-link--a2fkp"
                            target="_blank"
@@ -49,18 +49,27 @@
                     </div>
                 </div>
 
-                <hpo-context-panel
-                    :active-context-terms="activeContextTerms"
-                    :context-input.sync="contextInput"
-                    :context-loading="contextLoading"
-                    :context-significance-metric.sync="contextSignificanceMetric"
-                    :context-significance-threshold.sync="contextSignificanceThreshold"
-                    :context-min-carriers.sync="contextMinCarriers"
-                    :external-phenotype-result-url="externalPhenotypeResultUrl"
-                    :context-error="contextError"
-                    :context-runs="contextRuns"
-                    @run="runContextAnalysis"
-                ></hpo-context-panel>
+                <details class="pbg-context-disclosure">
+                    <summary>
+                        <strong>HPO Context</strong>
+                        <span class="pbg-context-summary-sub">gene burden and carrier matching</span>
+                        <span class="pbg-context-summary-pill">
+                            {{ contextLoading ? 'Calculating' : activeContextTerms.length ? 'Context active' : 'On-demand tool' }}
+                        </span>
+                    </summary>
+                    <hpo-context-panel
+                        :active-context-terms="activeContextTerms"
+                        :context-input.sync="contextInput"
+                        :context-loading="contextLoading"
+                        :context-significance-metric.sync="contextSignificanceMetric"
+                        :context-significance-threshold.sync="contextSignificanceThreshold"
+                        :context-min-carriers.sync="contextMinCarriers"
+                        :external-phenotype-result-url="externalPhenotypeResultUrl"
+                        :context-error="contextError"
+                        :context-runs="contextRuns"
+                        @run="runContextAnalysis"
+                    ></hpo-context-panel>
+                </details>
 
                 <!-- ══════════════════════════════════════════════════════
                      BLOCK 1 — Gene identity + Primary CRDC evidence
@@ -78,7 +87,7 @@
                                 <strong>{{ cohortCount(crdcEvidence.crdcCohortCount) }}</strong>
                             </span>
                             <span>
-                                <small>Gene carriers:</small>
+                                <small>Distinct gene carriers:</small>
                                 <strong>{{ cohortRatio(totalGeneCarriers) }}</strong>
                             </span>
                         </div>
@@ -100,11 +109,11 @@
                                 <small v-if="crdcEvidence.largestClinicalArea">{{ metricRatio(crdcEvidence.largestClinicalArea.count) }}</small>
                                 <em>Largest contributing clinical area</em>
                             </div>
-                            <div class="pbg-metric-item"
+                            <div class="pbg-metric-item pbg-metric-item--variant-count"
                                  title="Variants with at least one LoFTEE, AlphaMissense, or REVEL annotation">
                                 <img class="pbg-metric-icon" :src="metricIcons.variants" alt="" aria-hidden="true">
-                                <strong>{{ pathogenicEvidenceVariantCount.toLocaleString() }} / {{ variantRows.length.toLocaleString() }}</strong>
-                                <em>Pathogenic variants in this gene</em>
+                                <strong>{{ predictionAnnotatedVariantCount.toLocaleString() }} scored / {{ variantRows.length.toLocaleString() }} observed</strong>
+                                <em>Variants with LoFTEE / AlphaMissense / REVEL data</em>
                             </div>
                         </div>
 
@@ -244,7 +253,8 @@
 
                         <div class="pbg-window-row pbg-window-row--variants">
                             <div class="pbg-window-track-label">
-                                <strong>Variant positions ({{ variantRows.length }})</strong>
+                                <strong>Variant positions</strong>
+                                <span>{{ locusWindowPositionCount.toLocaleString() }} positions · {{ locusWindowVariantCount.toLocaleString() }} variants in view</span>
                             </div>
                             <div class="pbg-window-variant-track">
                                 <button v-for="m in locusVariantMarkerItems" :key="'variant-marker-' + m.id"
@@ -268,7 +278,9 @@
 
                         <div class="pbg-window-row pbg-window-row--density">
                             <div class="pbg-window-track-label">
-                                <strong>Carrier count</strong>
+                                <strong>Distinct carriers</strong>
+                                <span v-if="locusWindowDistinctCarrierCount != null">{{ locusWindowDistinctCarrierCount.toLocaleString() }} people in view</span>
+                                <span v-else>Unavailable for this view</span>
                             </div>
                             <div class="pbg-window-density-plot" :style="{ height: locusDensityPlotHeightPx + 'px' }">
                                 <button v-for="(col, colIndex) in locusDensityColumns" :key="'density-col-' + colIndex + '-' + col.pos"
@@ -317,7 +329,7 @@
                                 {{ selectedEvidenceVariant.id }} · {{ selectedEvidenceVariant.carrierCount }} carriers
                             </strong>
                             <strong v-else>
-                                {{ geneInfo.symbol }} · {{ totalGeneCarriers }} current gene carriers
+                                {{ geneInfo.symbol }} · {{ totalGeneCarriers }} distinct people with at least one observed variant
                             </strong>
                         </div>
                         <div class="pbg-summary-mode">
@@ -451,7 +463,7 @@
                                 Variant evidence for {{ geneInfo.symbol }}
                                 <span class="pbg-crdc-badge" title="Source: CRDC cohort">CRDC</span>
                             </p>
-                            <span>{{ variantRows.length }} variants</span>
+                            <span>{{ variantRows.length }} distinct variants · each observed in at least one carrier</span>
                         </div>
 
                         <div class="pbg-ve-table-head">
@@ -530,10 +542,12 @@
                                  :key="row.id + '-details'"
                                  class="pbg-variant-expanded">
                                 <div class="pbg-selected-variant-evidence">
-                                    <p class="pbg-section-label">
-                                        Selected variant evidence
-                                        <span class="pbg-crdc-badge">CRDC</span>
-                                    </p>
+                                    <div class="pbg-selected-variant-head">
+                                        <p class="pbg-section-label">Selected variant evidence</p>
+                                        <a class="pbg-nav-link pbg-nav-link--variant-page"
+                                           :href="`/pb_variant.html?query=${row.id}&gene=${geneInfo.symbol}`"
+                                           @click.stop>Variant ↗</a>
+                                    </div>
                                     <div v-if="variantHasHighAf(row)" class="pbg-af-warning-note">
                                         <strong>* High AF review</strong>
                                         <span>{{ variantAfWarningText(row) }}</span>
@@ -609,7 +623,7 @@
                                 class="pbg-show-more-btn pbg-show-more-btn--variants"
                                 type="button"
                                 @click.stop="showMoreVariants">
-                            +10 more ({{ hiddenVariantCount }} remaining)
+                            +5 more ({{ hiddenVariantCount }} remaining)
                         </button>
                     </div>
                 </section>
