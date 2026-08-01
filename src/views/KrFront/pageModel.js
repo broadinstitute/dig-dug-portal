@@ -1,21 +1,29 @@
 import { hasClinicalFocus } from "../KrClinicalFocus/focusComparison";
+import { clearClinicalFocus } from "../KrClinicalFocus/focusStore";
 
 const searchModes = [
     { key: "cohort", label: "Search by sample ID", shortLabel: "Sample ID" },
     { key: "phenotype", label: "Search by phenotype profile", shortLabel: "Phenotype" },
-    { key: "variant", label: "Search by variant / gene", shortLabel: "Variant / gene" },
+    { key: "gene", label: "Search by gene", shortLabel: "Gene" },
+    { key: "variant", label: "Search by variant", shortLabel: "Variant" },
 ];
 
 const fixtures = {
-    variant: {
-        destination: "/krVariant.html",
-        placeholder: "chr5:150203773:T:A / SLC6A7",
-        fallback: "chr5:150203773:T:A",
+    gene: {
+        destination: "/pb_Gene.html",
+        placeholder: "SLC6A7",
+        fallback: "SLC6A7",
         examples: [
-            "chr5:150203773:T:A",
             "SLC6A7",
-            "exact variant carrier set",
+            "ADCY10",
         ],
+        hint: "Use this to review gene-level carrier and observed-variant evidence.",
+    },
+    variant: {
+        destination: "/pb_variant.html",
+        placeholder: "chr12:102912793:CA:C",
+        fallback: "chr12:102912793:CA:C",
+        examples: ["chr12:102912793:CA:C"],
         hint: "Use this when you want exact-variant or same-gene carrier evidence. Counts should stay labeled by scope.",
     },
     phenotype: {
@@ -23,11 +31,7 @@ const fixtures = {
         placeholder:
             "Progressive muscle weakness [HP:0003323], Tremor [HP:0001337], Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
         fallback: "Progressive muscle weakness [HP:0003323], Tremor [HP:0001337], Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
-        examples: [
-            "Progressive muscle weakness [HP:0003323]",
-            "Tremor [HP:0001337]",
-            "Intellectual disability [HP:0001249], Narrow chest [HP:0000774]",
-        ],
+        examples: ["Progressive muscle weakness [HP:0003323]"],
         hint: "Use this for a phenotype profile. Runtime PheRS/GRS can remain not calculated until backend support exists.",
     },
     cohort: {
@@ -66,10 +70,10 @@ const workflows = [
     },
     {
         key: "variant",
-        kicker: "Variant-first workflow",
+        kicker: "Gene / variant-first workflow",
         title: "Carrier profile in context",
         steps: [
-            "Separate exact queried-variant, same-gene, and nearby-region evidence",
+            "Review gene-level evidence or narrow to an exact variant and its carriers",
             "Inspect carrier HPO profile and carrier sample recurrence",
             "If context is active, compare context HPO terms to carrier HPO profiles",
         ],
@@ -80,9 +84,12 @@ export function createFrontPageState() {
     return {
         activeMode: "cohort",
         query: "",
+        confirmedSearchKey: "",
         pendingMessage: "",
         summaryOpen: false,
         contextPanelOpen: false,
+        workflowReviewOpen: false,
+        returnToWorkflowReview: false,
         searchModes,
         fixtures,
         workflows,
@@ -99,6 +106,16 @@ export const frontComputed = {
         activeExamples() {
             return this.activeFixture.examples;
         },
+        activeModeLabel() {
+            const mode = this.searchModes.find((item) => item.key === this.activeMode);
+            return mode ? mode.shortLabel : "Search subject";
+        },
+        activeSearchValue() {
+            return this.query || this.activeFixture.fallback;
+        },
+        searchSubjectConfirmed() {
+            return this.confirmedSearchKey === `${this.activeMode}:${this.activeSearchValue}`;
+        },
         hasActiveContext() {
             return hasClinicalFocus(this.clinicalFocus);
         },
@@ -108,27 +125,52 @@ export const frontComputed = {
             const sourceId =
                 this.clinicalFocus.orphaId ||
                 this.clinicalFocus.mondoId ||
-                this.clinicalFocus.decipherId ||
                 this.clinicalFocus.sourceId;
             const termCount = this.clinicalFocus.contextTermCount || this.clinicalFocus.hpoTerms.length;
-            const terms = `${termCount} HPO terms`;
+            const terms = `${termCount} HPO ${termCount === 1 ? "term" : "terms"}`;
             return [this.clinicalFocus.label, sourceId, terms].filter(Boolean).join(" · ");
         },
     };
 
 export const frontMethods = {
+        confirmSearchSubject() {
+            this.query = this.activeSearchValue;
+            this.confirmedSearchKey = `${this.activeMode}:${this.activeSearchValue}`;
+            this.pendingMessage = `${this.activeModeLabel} search ready`;
+        },
         openResults() {
-            const value = this.query || this.activeFixture.fallback;
             this.pendingMessage = "";
 
             if (!this.activeFixture.destination) {
-                this.pendingMessage = `Search captured, but this workflow does not have a target page yet: ${value}`;
+                this.pendingMessage = `Search captured, but this workflow does not have a target page yet: ${this.activeSearchValue}`;
                 return;
             }
+
+            this.query = this.activeSearchValue;
+            this.workflowReviewOpen = true;
+        },
+        runWorkflow() {
+            const value = this.activeSearchValue;
 
             const param = this.activeFixture.queryParam || "query";
             window.location.assign(
                 `${this.activeFixture.destination}?${param}=${encodeURIComponent(value)}`
             );
+        },
+        closeWorkflowReview() {
+            this.workflowReviewOpen = false;
+        },
+        openContextEditor(returnToWorkflowReview = false) {
+            this.returnToWorkflowReview = returnToWorkflowReview;
+            this.workflowReviewOpen = false;
+            this.contextPanelOpen = true;
+        },
+        closeContextEditor() {
+            this.contextPanelOpen = false;
+            if (this.returnToWorkflowReview) this.workflowReviewOpen = true;
+            this.returnToWorkflowReview = false;
+        },
+        clearContext() {
+            clearClinicalFocus();
         },
     };

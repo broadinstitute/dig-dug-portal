@@ -4,6 +4,7 @@ import {
 } from "./mockData";
 import { applyPbGeneFixturePipeline, fixtureGeneSymbol, fixtureLoaded } from "./fixturePipeline";
 import { fetchPbGeneBioIndexState } from "./pbGeneBioIndexAdapter";
+import { readClinicalFocus } from "../KrClinicalFocus/focusStore";
 
 const LOCAL_CONTEXT_FIXTURE_ENABLED = process.env.VUE_APP_PB_GENE_CONTEXT_FIXTURE === "true";
 const PHENOTYPE_RESULT_URL = "http://100.80.30.199/phenotypeResult.html";
@@ -33,6 +34,10 @@ export function createPbGeneState() {
 }
 
 function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams()) {
+    const clinicalFocus = readClinicalFocus();
+    const initialContextTerms = clinicalFocus && Array.isArray(clinicalFocus.hpoTerms)
+        ? clinicalFocus.hpoTerms.filter((term) => /^HP:\d{7}$/.test(String(term.id || "")))
+        : [];
     const initialLocusMode = params.get("locus") || params.get("locusView") || "";
     const initialVariantId =
         ((resolved.genomeWindow.markers || []).find(m => m.focal) || {}).variantId ||
@@ -57,11 +62,12 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         liveDataSource: fixtureLoaded ? "local fixture" : "mock fallback",
 
         // User-entered HPO context and accumulated gene-level runs
-        contextInput: "",
+        contextInput: initialContextTerms.map((term) => term.id).join(", "),
         contextLoading: false,
         contextError: "",
         contextRuns: [],
-        activeContextTerms: [],
+        activeContextTerms: initialContextTerms.map((term) => term.id),
+        contextTermDetails: initialContextTerms.map((term) => ({ id: term.id, label: term.label || term.id })),
         contextSignificanceMetric: "p_value",
         contextSignificanceThreshold: 0.05,
         contextMinCarriers: 10,
@@ -87,7 +93,7 @@ function createPbGeneRuntimeState(resolved, query, params = new URLSearchParams(
         // Carrier table "show more" (+5 increments)
         showCountCarrierMap:  {},   // variantId → count shown
         showCountGeneCarriers: 5,
-        showCountVariants: 10,
+        showCountVariants: 5,
 
         // Expandable phenotype categories
         expandedPhenoCategories: {},
@@ -172,7 +178,7 @@ const MAX_ZOOM = 5;
 const LOCUS_DENSITY_PLOT_PX = 108;
 const TERMS_LIMIT    = 5;
 const CARRIER_LIMIT  = 5;
-const VARIANT_LIMIT  = 10;
+const VARIANT_LIMIT  = 5;
 const PHENO_CAT_LIMIT = 5;
 const SUMMARY_PHENO_LIMIT = 4;
 const SUMMARY_GENE_LIMIT = 6;
@@ -903,6 +909,35 @@ export const pbGeneComputed = {
         });
     },
 
+    locusWindowVariantRows() {
+        const { start, end } = this.winBp;
+        return (this.variantRows || []).filter(row => {
+            const pos = this.variantPosition(row.id);
+            return pos && pos >= start && pos <= end;
+        });
+    },
+
+    locusWindowVariantCount() {
+        return this.locusWindowVariantRows.length;
+    },
+
+    locusWindowPositionCount() {
+        return new Set(this.locusWindowVariantRows.map(row => this.variantPosition(row.id))).size;
+    },
+
+    locusWindowDistinctCarrierCount() {
+        if (!this.locusWindowVariantRows.length) return 0;
+        if (this.locusWindowVariantRows.some(row => !(row.carrierSamples || []).length)) return null;
+        const matches = this.variantFilterMatches;
+        const sampleIds = new Set();
+        this.locusWindowVariantRows.forEach(row => {
+            row.carrierSamples.forEach(sample => {
+                if (matches(sample)) sampleIds.add(sample.id);
+            });
+        });
+        return sampleIds.size;
+    },
+
     codingTrackContext() {
         const cc = this.queriedVariantCodingContext;
         if (!cc || !cc.bases || !cc.bases.length) return null;
@@ -1433,7 +1468,7 @@ export const pbGeneComputed = {
         return `${PHENOTYPE_RESULT_URL}?query=${encodeURIComponent(terms.join(","))}`;
     },
 
-    pathogenicEvidenceVariantCount() {
+    predictionAnnotatedVariantCount() {
         const labels = ["LOFTEE", "AlphaMissense", "REVEL"];
         return (this.variantRows || []).filter(row =>
             labels.some(label => !this.isMissingMetadataValue(this.variantEvidenceValue(row, label)))
@@ -1657,6 +1692,10 @@ export const pbGeneMethods = {
             });
             this.contextRuns.sort((a, b) => a.fdrSortValue - b.fdrSortValue);
             this.activeContextTerms = terms;
+            this.contextTermDetails = terms.map((id) => {
+                const existing = this.contextTermDetails.find((term) => term.id === id);
+                return existing || { id, label: id };
+            });
         } catch (error) {
             this.contextError = String(error && error.message ? error.message : error);
         } finally {

@@ -38,12 +38,12 @@ let pages = {
         title: "Variant Info",
         chunks: ["chunk-vendors", "chunk-common", "variant"],
     },
-    krFront: {
+    pbFront: {
         entry: "src/views/KrFront/main.js",
         template: "public/index.html",
-        filename: "krFront.html",
-        title: "KR Front",
-        chunks: ["chunk-vendors", "chunk-common", "krFront"],
+        filename: "pb_Front.html",
+        title: "PB Front",
+        chunks: ["chunk-vendors", "chunk-common", "pbFront"],
     },
     krPhenotype: {
         entry: "src/views/KrPhenotype/main.js",
@@ -72,6 +72,13 @@ let pages = {
         filename: "pb_Gene.html",
         title: "PB Gene Search",
         chunks: ["chunk-vendors", "chunk-common", "pbGene"],
+    },
+    pbVariant: {
+        entry: "src/views/PbVariant/main.js",
+        template: "public/index.html",
+        filename: "pb_variant.html",
+        title: "PB Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "pbVariant"],
     },
     gene: {
         entry: "src/views/Gene/main.js",
@@ -394,9 +401,17 @@ let devOnlyPages = {
     },
 };
 
-const devPagesEnabled = process.env.PORTAL_DEV_PAGES === "true" && process.env.NODE_ENV !== "production";
-const phenotypeAnalyzerHostPrivate = process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE
-    || (devPagesEnabled ? "http://127.0.0.1:8092" : null);
+const devPagesEnabled =
+    process.env.PORTAL_DEV_PAGES === "true" &&
+    process.env.NODE_ENV !== "production";
+const phenotypeAnalyzerHostPrivate =
+    process.env.PHENOTYPE_ANALYZER_HOST_PRIVATE ||
+    (devPagesEnabled ? "http://127.0.0.1:8092" : null);
+const bioindexHostPrivateBrowser =
+    process.env.BIOINDEX_HOST_PRIVATE_BROWSER ||
+    (process.env.BIOINDEX_HOST_PRIVATE
+        ? "/__bioindex_private__"
+        : "https://bioindex.hugeamp.org");
 
 if (devPagesEnabled) {
     pages = {
@@ -420,25 +435,48 @@ module.exports = {
         before(app) {
             const fixturePath = process.env.PB_GENE_CONTEXT_FIXTURE_PATH;
             if (!fixturePath) return;
-            app.get("/__pb_gene_context_fixture__", (request, response, next) => {
-                response.sendFile(fixturePath, error => { if (error) next(error); });
-            });
+            app.get(
+                "/__pb_gene_context_fixture__",
+                (request, response, next) => {
+                    response.sendFile(fixturePath, (error) => {
+                        if (error) next(error);
+                    });
+                }
+            );
         },
-        proxy: process.env.BIOINDEX_HOST_PRIVATE || phenotypeAnalyzerHostPrivate ? {
-            ...(process.env.BIOINDEX_HOST_PRIVATE ? {
-                "/__bioindex_private__": {
-                    target: process.env.BIOINDEX_HOST_PRIVATE,
-                    changeOrigin: true,
-                    pathRewrite: { "^/__bioindex_private__": "" },
-                },
-            } : {}),
-            ...(phenotypeAnalyzerHostPrivate ? {
-                "/phenotype-analyzer-api": {
-                    target: phenotypeAnalyzerHostPrivate,
-                    changeOrigin: true,
-                },
-            } : {}),
-        } : undefined,
+        proxy:
+            process.env.BIOINDEX_HOST_PRIVATE || phenotypeAnalyzerHostPrivate
+                ? {
+                      ...(process.env.BIOINDEX_HOST_PRIVATE
+                          ? {
+                                "/__bioindex_private__": {
+                                    target: process.env.BIOINDEX_HOST_PRIVATE,
+                                    changeOrigin: true,
+                                    pathRewrite: {
+                                        "^/__bioindex_private__": "",
+                                    },
+                                },
+                            }
+                          : {}),
+                      ...(phenotypeAnalyzerHostPrivate
+                          ? {
+                                "/phenotype-analyzer-api": {
+                                    target: phenotypeAnalyzerHostPrivate,
+                                    changeOrigin: true,
+                                },
+                            }
+                          : {}),
+                  }
+                : undefined,
+    },
+    chainWebpack: (config) => {
+        config.module
+            .rule("js")
+            .use("cache-loader")
+            .tap((options) => ({
+                ...options,
+                cacheIdentifier: `${options.cacheIdentifier}-${bioindexHostPrivateBrowser}`,
+            }));
     },
     configureWebpack: (config) => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
@@ -447,9 +485,7 @@ module.exports = {
         //set private bioindex host if variable is defined, otherwise use default
         let bioindex_host_private =
             process.env.BIOINDEX_HOST_PRIVATE || "https://bioindex.hugeamp.org";
-        let bioindex_host_private_browser =
-            process.env.BIOINDEX_HOST_PRIVATE_BROWSER ||
-            (process.env.BIOINDEX_HOST_PRIVATE ? "/__bioindex_private__" : bioindex_host_private);
+        let bioindex_host_private_browser = bioindexHostPrivateBrowser;
 
         if (!!bioindex_dev && !process.env.BIOINDEX_HOST) {
             bioindex_host =

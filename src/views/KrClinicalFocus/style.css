@@ -73,7 +73,7 @@
 
 .glens-clinical-focus-resolve-row button,
 .glens-clinical-focus-add button,
-.glens-clinical-focus-editor-actions button:first-child {
+.glens-clinical-focus-editor-actions button:last-child {
     border-color: #5d789e;
     background: #243b5a;
     color: #fff;
@@ -89,6 +89,23 @@
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid #e1e8f2;
+}
+
+.glens-clinical-focus-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid #dbe5f0;
+    border-radius: 0.65rem;
+    background: #fff;
+}
+
+.glens-clinical-focus-editor-column {
+    min-width: 0;
+    padding: 1rem;
+}
+
+.glens-clinical-focus-editor-column + .glens-clinical-focus-editor-column {
+    border-left: 1px solid #dbe5f0;
 }
 
 .glens-clinical-focus-source-row label {
@@ -131,8 +148,97 @@
     line-height: 1.4;
 }
 
+.glens-clinical-focus-error {
+    color: #9f2d2d !important;
+    font-weight: 750;
+}
+
+.glens-clinical-focus-suggestions,
+.glens-clinical-focus-hpo-results {
+    display: grid;
+    margin-top: 0.35rem;
+    border: 1px solid #dbe5f0;
+    border-radius: 0.65rem;
+    background: #fff;
+    overflow: hidden;
+}
+
+.glens-clinical-focus-suggestions button,
+.glens-clinical-focus-hpo-results button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    width: 100%;
+    min-height: 2.25rem;
+    padding: 0.42rem 0.58rem;
+    border: 0;
+    border-bottom: 1px solid #e6edf5;
+    background: #fff;
+    color: #17223a;
+    text-align: left;
+}
+
+.glens-clinical-focus-suggestions button:last-child,
+.glens-clinical-focus-hpo-results button:last-child {
+    border-bottom: 0;
+}
+
+.glens-clinical-focus-suggestions button:hover,
+.glens-clinical-focus-suggestions button:focus-visible,
+.glens-clinical-focus-hpo-results button:hover,
+.glens-clinical-focus-hpo-results button:focus-visible {
+    background: #f5f8fc;
+}
+
+.glens-clinical-focus-suggestions strong,
+.glens-clinical-focus-hpo-results strong {
+    font-size: 0.84rem;
+    line-height: 1.25;
+}
+
+.glens-clinical-focus-suggestions span,
+.glens-clinical-focus-hpo-results code {
+    flex: 0 0 auto;
+    color: #52657f;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 750;
+}
+
+.glens-clinical-focus-hpo-picker {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #e1e8f2;
+}
+
+.glens-clinical-focus-draft-head small {
+    color: #718096;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.glens-clinical-focus-hpo-results button:disabled {
+    color: #718096;
+    cursor: default;
+}
+
+.glens-clinical-focus-empty {
+    margin: 0;
+    padding: 0.72rem;
+    color: #718096;
+    font-size: 0.82rem;
+}
+
 .glens-clinical-focus-add {
     margin-top: 0.75rem;
+}
+
+.glens-clinical-focus-hpo-help {
+    margin: 0.4rem 0 0;
+    color: #52657f;
+    font-size: 0.8rem;
+    line-height: 1.4;
 }
 
 .glens-clinical-focus-draft-head {
@@ -140,6 +246,24 @@
     justify-content: space-between;
     gap: 1rem;
     margin: 0.75rem 0 0.45rem;
+}
+
+.glens-clinical-focus-selected-head {
+    align-items: center;
+}
+
+.glens-clinical-focus-bulk-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.glens-clinical-focus-bulk-actions button {
+    border: 0;
+    background: transparent;
+    color: #355374;
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 0.1rem 0.2rem;
 }
 
 .glens-clinical-focus-draft-head span,
@@ -159,32 +283,33 @@
     background: #fff;
 }
 
-.glens-clinical-focus-term-head,
 .glens-clinical-focus-term-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 7.2rem 4.7rem;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.5rem;
     align-items: center;
-    padding: 0.45rem 0.6rem;
-}
-
-.glens-clinical-focus-term-head {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #f8fafc;
-    color: #52657f;
-    font-size: 0.72rem;
-    font-weight: 850;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    padding: 0.55rem 0.65rem;
 }
 
 .glens-clinical-focus-term-row {
-    border-top: 1px solid #e6edf5;
+    border-bottom: 1px solid #e6edf5;
     color: #17223a;
     font-size: 0.86rem;
     font-weight: 700;
+}
+
+.glens-clinical-focus-term-row:last-child {
+    border-bottom: 0;
+}
+
+.glens-clinical-focus-term-row span,
+.glens-clinical-focus-term-row strong,
+.glens-clinical-focus-term-row code {
+    display: block;
+}
+
+.glens-clinical-focus-term-row code {
+    margin-top: 0.12rem;
 }
 
 .glens-clinical-focus-term-row code {
@@ -202,6 +327,23 @@
     text-align: right;
 }
 
+.glens-clinical-focus-term-row label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    min-width: 0;
+    margin: 0;
+}
+
+.glens-clinical-focus-term-row label input {
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+}
+
+.glens-clinical-focus-term-row label span {
+    min-width: 0;
+}
+
 .glens-clinical-focus-editor-actions {
     justify-content: flex-end;
     margin-top: 0.95rem;
@@ -212,6 +354,72 @@
 .glens-front-focus-bar .glens-clinical-focus-main {
     align-items: flex-start;
     gap: 0.6rem;
+}
+
+.glens-front-focus-bar {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-editor {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 1.2rem 1.35rem 1.3rem;
+    border: 0;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-editor-grid {
+    width: 100%;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-source-row,
+.glens-front-focus-bar .glens-clinical-focus-resolve-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.4rem;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-source-row select,
+.glens-front-focus-bar .glens-clinical-focus-source-input input,
+.glens-front-focus-bar .glens-clinical-focus-add input,
+.glens-front-focus-bar .glens-clinical-focus-resolve-row button {
+    width: 100%;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-source-input,
+.glens-front-focus-bar .glens-clinical-focus-hpo-picker,
+.glens-front-focus-bar .glens-clinical-focus-draft-head,
+.glens-front-focus-bar .glens-clinical-focus-term-list,
+.glens-front-focus-bar .glens-clinical-focus-editor-actions {
+    margin: 0;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-editor-actions {
+    position: sticky;
+    bottom: -1.3rem;
+    z-index: 1;
+    padding-top: 1rem;
+    padding-bottom: 1.3rem;
+    background: #fff;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-hpo-picker {
+    padding-top: 1rem;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-editor-actions .glens-clinical-focus-clear {
+    margin-right: auto;
+    border-color: transparent;
+    background: #fff;
+    color: #75504c;
+}
+
+.glens-front-focus-bar .glens-clinical-focus-add {
+    margin-top: 0.45rem;
 }
 
 .glens-front-focus-bar .glens-clinical-focus-main > div:first-child {
@@ -587,6 +795,15 @@
 }
 
 @media (max-width: 767.98px) {
+    .glens-clinical-focus-editor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .glens-clinical-focus-editor-column + .glens-clinical-focus-editor-column {
+        border-top: 1px solid #dbe5f0;
+        border-left: 0;
+    }
+
     .glens-clinical-focus-main,
     .glens-focus-result-card__head {
         flex-direction: column;
@@ -613,8 +830,4 @@
         justify-content: flex-start;
     }
 
-    .glens-clinical-focus-term-head,
-    .glens-clinical-focus-term-row {
-        grid-template-columns: minmax(0, 1fr) 6.5rem 4.5rem;
-    }
 }

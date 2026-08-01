@@ -140,6 +140,8 @@ function buildVariantRow(entry) {
         return {
             id: sampleId,
             age: displayValue(value(row, ["age_for_portal", "age_at_enrollment", "age", "age_band"]), "Unavailable"),
+            ageBin: value(row, ["age_bin", "age_band", "age_group"]),
+            ageYears: numericValue(row, ["age_years", "age_at_enrollment", "age"]),
             sex: displayValue(value(row, ["sex", "gender"]), "Unavailable"),
             gt: displayValue(value(row, ["GT", "gt", "genotype"]), "Unavailable"),
             hpo: hpoCount == null ? "Unavailable" : hpoCount,
@@ -149,6 +151,10 @@ function buildVariantRow(entry) {
             affected: flagLabel(value(row, ["affected_flag", "affected", "is_affected"]), "Unavailable", "Yes", "No"),
             diagnosed: flagLabel(value(row, ["diagnosed_flag", "gendx_flag", "diagnosed"]), "N/A", "Yes", "No"),
             gendx: displayValue(value(row, ["gendx_detail_label", "gendx", "diagnosed_interpretation"]), "N/A"),
+            phenotypeCategories: value(row, ["phenotype_categories", "phenotypes_by_category", "carrier_phenotypes_by_category"]),
+            phenoTerms: value(row, ["phenotype_terms_by_category", "hpo_terms_by_category"]),
+            coGenes: value(row, ["co_carrier_genes", "co_genes"]),
+            coVariants: value(row, ["same_gene_variants", "co_variants"]),
         };
     });
 
@@ -211,6 +217,8 @@ function buildGeneInfo(gene, geneRow, variants, exons = []) {
         strand: displayValue(value(geneRow, ["strand"]), "+"),
         build: "GRCh38",
         omim: displayValue(referenceIds[1] || value(geneRow, ["omim", "omim_id"]), "Unavailable"),
+        refseqAccession: displayValue(referenceIds[2], "Unavailable"),
+        maneSelect: displayValue(referenceIds[3], "Unavailable"),
         referenceAnnotation: getGeneReferenceAnnotation(gene) || emptyReferenceAnnotation(),
         variantStats: {
             highestRevel: null,
@@ -319,7 +327,9 @@ function optionalAnnotationValue(row, keys) {
 }
 
 function numericValue(row, keys) {
-    const parsed = Number(value(row, keys));
+    const raw = value(row, keys);
+    if (raw == null) return null;
+    const parsed = Number(raw);
     return Number.isFinite(parsed) ? parsed : null;
 }
 
