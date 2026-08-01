@@ -9,6 +9,11 @@
             <div class="pbg-shell">
                 <div class="pbg-toolbar">
                     <div class="pbg-toolbar-left">
+                        <a href="/pb_Front.html" class="pbg-home-link" aria-label="PB portal home">
+                            <b-icon-house-door-fill aria-hidden="true"></b-icon-house-door-fill>
+                            <span>Home</span>
+                        </a>
+                        <span class="pbg-breadcrumb-sep">&gt;</span>
                         <span class="pbg-breadcrumb-link">Variant search</span>
                         <span class="pbg-breadcrumb-sep">&gt;</span>
                         <form
@@ -38,13 +43,32 @@
                             </span>
                         </form>
                     </div>
-                    <div v-if="geneQuery" class="pbg-toolbar-right">
-                        <span class="pbv-toolbar-gene-label">{{ geneQuery }} gene</span>
-                        <a :href="`/pb_Gene.html?query=${geneQuery}`" class="pbg-nav-link">Gene view →</a>
+                    <div class="pbg-toolbar-right">
+                        <span v-if="geneQuery" class="pbv-toolbar-gene-label">{{ geneQuery }} gene</span>
+                        <a :href="geneQuery ? `/pb_Gene.html?query=${geneQuery}` : '/pb_Gene.html'" class="pbg-nav-link">
+                            {{ geneQuery ? 'Gene view →' : 'Gene search' }}
+                        </a>
                     </div>
                 </div>
 
                 <p v-if="searchError" class="pbg-context-error" role="alert">{{ searchError }}</p>
+                <section v-else-if="geneChoices.length" class="pbv-gene-choice" aria-labelledby="pbv-gene-choice-title">
+                    <h2 id="pbv-gene-choice-title">Choose gene context</h2>
+                    <p>
+                        This variant overlaps multiple genes. Carrier evidence is gene-scoped, so choose
+                        the gene you want to review.
+                    </p>
+                    <div>
+                        <button
+                            v-for="gene in geneChoices"
+                            :key="gene"
+                            type="button"
+                            @click="selectGeneContext(gene)"
+                        >
+                            {{ gene }}
+                        </button>
+                    </div>
+                </section>
                 <p v-else-if="!variantAvailable && !searchLoading" class="pbg-context-empty">
                     Enter an exact <code>chr:pos:ref:alt</code> ID or an <code>rsID</code>. Gene context is resolved automatically when available.
                 </p>
@@ -79,6 +103,12 @@
                                 >
                                 <button type="submit" :disabled="contextLoading">{{ contextLoading ? 'Calculating' : 'Go' }}</button>
                             </form>
+                            <div v-if="contextTermDetails.length" class="pbg-context-imported-terms" aria-label="Selected HPO context">
+                                <span v-for="term in contextTermDetails" :key="term.id">
+                                    <strong>{{ term.label }}</strong>
+                                    <code>{{ term.id }}</code>
+                                </span>
+                            </div>
                             <p v-if="contextError" class="pbg-context-error" role="alert">{{ contextError }}</p>
                             <div v-if="contextMatch" class="pbg-context-results">
                                 <div class="pbg-context-result-head pbv-context-result-grid">
@@ -142,8 +172,24 @@
                                         >{{ variantIdentity.gnomadAF || 'View in gnomAD' }} ↗</a>
                                         <strong v-else class="pbg-unavailable-value">Unavailable</strong>
                                     </div>
-                                    <div class="pbg-selected-kv-row"><span>ClinVar</span><strong>{{ variantIdentity.clinvar || 'Unavailable' }}</strong></div>
-                                    <div class="pbg-selected-kv-row"><span>LoFTEE</span><strong>{{ variantIdentity.loftee || 'Unavailable' }}</strong></div>
+                                    <div class="pbg-selected-kv-row">
+                                        <span>ClinVar</span>
+                                        <a
+                                            v-if="variantIdentity.clinvar"
+                                            class="pbv-evidence-value"
+                                            :class="clinvarClass(variantIdentity.clinvar)"
+                                            :href="clinvarHref(variantIdentity.canonicalId)"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >{{ variantIdentity.clinvar }} ↗</a>
+                                        <strong v-else class="pbv-evidence-value pbv-evidence--other">Unavailable</strong>
+                                    </div>
+                                    <div class="pbg-selected-kv-row">
+                                        <span>LoFTEE</span>
+                                        <strong class="pbv-evidence-value" :class="lofteeClass(variantIdentity.loftee)">
+                                            {{ variantIdentity.loftee || 'Unavailable' }}
+                                        </strong>
+                                    </div>
                                     <div class="pbg-selected-kv-row"><span>AlphaMissense</span><strong>{{ variantIdentity.alphaMissense || 'Unavailable' }}</strong></div>
                                     <div class="pbg-selected-kv-row"><span>REVEL</span><strong>{{ variantIdentity.revel || 'Unavailable' }}</strong></div>
                                 </div>

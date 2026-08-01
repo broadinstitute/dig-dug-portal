@@ -8,6 +8,13 @@
 
 .pbv-toolbar-gene-label { font-size: 0.9rem; font-weight: 700; color: var(--pbg-text-soft); }
 
+.pbv-gene-choice { margin: 1rem 0; padding: 1rem; border: 1px solid var(--pbg-border); border-radius: 0.5rem; background: #fff; }
+.pbv-gene-choice h2 { margin: 0; color: var(--pbg-text-strong); font-size: 1.15rem; }
+.pbv-gene-choice p { margin: 0.3rem 0 0.8rem; color: var(--pbg-text-soft); }
+.pbv-gene-choice div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pbv-gene-choice button { border: 1px solid var(--pbg-primary); border-radius: 0.4rem; background: #fff; color: var(--pbg-primary); padding: 0.45rem 0.8rem; font-weight: 800; }
+.pbv-gene-choice button:hover, .pbv-gene-choice button:focus-visible { background: var(--pbg-primary); color: #fff; }
+
 .pbv-context-result-grid { grid-template-columns: minmax(14rem, 1fr) minmax(10rem, 0.45fr) minmax(9rem, 0.4fr) minmax(7rem, 0.3fr); }
 .pbv-context-crossref { font-size: 0.9rem; color: var(--pbg-text-soft); margin: 0.6rem 0 0; padding: 0.5rem 0.7rem; background: var(--pbg-surface-subtle); border-radius: 0.4rem; }
 .pbv-context-crossref strong { color: var(--pbg-text-strong); }

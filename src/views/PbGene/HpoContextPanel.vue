@@ -46,6 +46,12 @@
                 </div>
             </details>
         </form>
+        <div v-if="contextTermDetails.length" class="pbg-context-imported-terms" aria-label="Selected HPO context">
+            <span v-for="term in contextTermDetails" :key="term.id">
+                <strong>{{ term.label }}</strong>
+                <code>{{ term.id }}</code>
+            </span>
+        </div>
         <p v-if="externalPhenotypeResultUrl" class="pbg-context-external">
             Temporary residual PheRS source:
             <a :href="externalPhenotypeResultUrl" target="_blank" rel="noopener noreferrer">Open phenotype result ↗</a>
@@ -84,6 +90,7 @@ export default {
     name: "HpoContextPanel",
     props: {
         activeContextTerms: { type: Array, required: true },
+        contextTermDetails: { type: Array, default: () => [] },
         contextInput: { type: String, required: true },
         contextLoading: { type: Boolean, required: true },
         contextSignificanceMetric: { type: String, required: true },

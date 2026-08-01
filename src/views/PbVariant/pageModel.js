@@ -1,5 +1,6 @@
 import { fetchPbGeneBioIndexState } from "@/views/PbGene/pbGeneBioIndexAdapter";
 import { query } from "@/utils/bioIndexUtils";
+import { readClinicalFocus } from "@/views/KrClinicalFocus/focusStore";
 
 const {
     attachSameGeneCoVariants,
@@ -19,6 +20,7 @@ const {
     resolveRsidReference,
     resolveVariantReference,
     splitHgvs,
+    transcriptGeneChoices,
 } = require("./variantIdentifiers");
 
 const FACETS = ["affected", "proband", "sex", "age", "investigator", "phenotype"];
@@ -89,12 +91,17 @@ export function createPbVariantState() {
     const params = new URLSearchParams(window.location.search);
     const query = params.get("query") || "";
     const gene = normalizeGene(params.get("gene") || "");
+    const clinicalFocus = readClinicalFocus();
+    const initialContextTerms = clinicalFocus && Array.isArray(clinicalFocus.hpoTerms)
+        ? clinicalFocus.hpoTerms.filter((term) => /^HP:\d{7}$/.test(String(term.id || "")))
+        : [];
     return {
         searchQuery: query,
         geneQuery: gene,
         searchLoading: false,
         searchProgress: "",
         searchError: "",
+        geneChoices: [],
         variantAvailable: false,
         liveDataSource: "",
         variantIdentity: emptyIdentity(query, gene),
@@ -113,10 +120,11 @@ export function createPbVariantState() {
         expandedCategories: [],
         phenotypeQuery: "",
         phenotypeSuggestOpen: false,
-        contextInput: "",
+        contextInput: initialContextTerms.map((term) => term.id).join(", "),
         contextLoading: false,
         contextError: "",
-        activeContextTerms: [],
+        activeContextTerms: initialContextTerms.map((term) => term.id),
+        contextTermDetails: initialContextTerms.map((term) => ({ id: term.id, label: term.label || term.id })),
         contextMatch: null,
     };
 }
@@ -323,6 +331,25 @@ export const pbVariantMethods = {
     isUnavailableValue(value) {
         return !available(value);
     },
+    clinvarHref(variantId) {
+        return `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(variantId)}`;
+    },
+    clinvarClass(value) {
+        const labels = String(value || "")
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .split(/[&,;|/]+/)
+            .map((label) => label.trim());
+        if (labels.some((label) => label === "p" || /^pathogenic\b/.test(label))) return "pbv-evidence--pathogenic";
+        if (labels.some((label) => label === "lp" || /^likely pathogenic\b/.test(label))) return "pbv-evidence--likely-pathogenic";
+        if (labels.some((label) => label === "vus" || /uncertain significance/.test(label))) return "pbv-evidence--vus";
+        return "pbv-evidence--other";
+    },
+    lofteeClass(value) {
+        return /^HC(?:\b|[;&,|/])/i.test(String(value || "").trim())
+            ? "pbv-evidence--pathogenic"
+            : "pbv-evidence--other";
+    },
     addFacet(facet) {
         const value = this.filterDrafts[facet];
         if (value && !this.filters[facet].includes(value)) {
@@ -447,6 +474,10 @@ export const pbVariantMethods = {
             if (!match) throw new Error("The Context API did not return this exact variant.");
             this.contextMatch = match;
             this.activeContextTerms = terms;
+            this.contextTermDetails = terms.map((id) => {
+                const existing = this.contextTermDetails.find((term) => term.id === id);
+                return existing || { id, label: id };
+            });
         } catch (error) {
             this.contextError = String(error && error.message ? error.message : error);
         } finally {
@@ -454,6 +485,13 @@ export const pbVariantMethods = {
         }
     },
     async submitVariantSearch() {
+        if (normalizeVariant(this.searchQuery) !== normalizeVariant(this.variantIdentity.canonicalId)) {
+            this.geneQuery = "";
+        }
+        await this.loadLiveVariantData(true);
+    },
+    async selectGeneContext(gene) {
+        this.geneQuery = normalizeGene(gene);
         await this.loadLiveVariantData(true);
     },
     async loadLiveVariantData(updateUrl = false) {
@@ -462,6 +500,7 @@ export const pbVariantMethods = {
         let variant = requested;
         let rsid = null;
         this.searchError = "";
+        this.geneChoices = [];
         this.variantAvailable = false;
         if (isRsid(requested)) {
             const reference = resolveRsidReference(requested);
@@ -488,14 +527,12 @@ export const pbVariantMethods = {
                 onResolve: () => { this.searchProgress = "Loading transcript consequences"; },
             }, true);
             if (!gene) {
-                const genes = Array.from(new Set(transcriptRows
-                    .map(row => normalizeGene(row.symbol || row.gene_symbol || row.geneId))
-                    .filter(Boolean)));
-                if (genes.length !== 1) {
-                    throw new Error(genes.length
-                        ? `${variant} overlaps multiple genes (${genes.join(", ")}); open it from PB Gene to select the carrier context.`
-                        : `${variant} has no gene mapping in the current transcript-consequences index.`);
+                const genes = transcriptGeneChoices(transcriptRows);
+                if (genes.length > 1) {
+                    this.geneChoices = genes;
+                    return;
                 }
+                if (!genes.length) throw new Error(`${variant} has no gene mapping in the current transcript-consequences index.`);
                 gene = genes[0];
             }
             this.searchProgress = `Loading complete ${gene} carrier evidence`;
@@ -511,7 +548,6 @@ export const pbVariantMethods = {
             this.showCountCoVariants = COOCCURRENCE_LIMIT;
             this.showCountCarrierSamples = CARRIER_TABLE_LIMIT;
             this.expandedCategories = [];
-            this.activeContextTerms = [];
             this.contextMatch = null;
             this.contextError = "";
             this.searchQuery = next.variantIdentity.canonicalId;

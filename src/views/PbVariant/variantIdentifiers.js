@@ -52,6 +52,10 @@ function transcriptGene(row) {
     return clean(row && (row.symbol || row.gene_symbol || row.geneId)).toUpperCase();
 }
 
+function transcriptGeneChoices(rows) {
+    return Array.from(new Set((rows || []).map(transcriptGene).filter(Boolean)));
+}
+
 function chooseTranscript(rows, geneInfo = {}) {
     const gene = clean(geneInfo.symbol).toUpperCase();
     const candidates = (rows || []).filter(row => !gene || transcriptGene(row) === gene);
@@ -105,4 +109,5 @@ module.exports = {
     resolveRsidReference,
     resolveVariantReference,
     splitHgvs,
+    transcriptGeneChoices,
 };

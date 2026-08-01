@@ -11,6 +11,11 @@
                 <!-- ── Toolbar ──────────────────────────────────────────── -->
                 <div class="pbg-toolbar">
                     <div class="pbg-toolbar-left">
+                        <a href="/pb_Front.html" class="pbg-home-link" aria-label="PB portal home">
+                            <b-icon-house-door-fill aria-hidden="true"></b-icon-house-door-fill>
+                            <span>Home</span>
+                        </a>
+                        <span class="pbg-breadcrumb-sep">&gt;</span>
                         <span class="pbg-breadcrumb-link">Gene search</span>
                         <span class="pbg-breadcrumb-sep">&gt;</span>
                         <form class="pbg-gene-search-form"
@@ -59,6 +64,7 @@
                     </summary>
                     <hpo-context-panel
                         :active-context-terms="activeContextTerms"
+                        :context-term-details="contextTermDetails"
                         :context-input.sync="contextInput"
                         :context-loading="contextLoading"
                         :context-significance-metric.sync="contextSignificanceMetric"
