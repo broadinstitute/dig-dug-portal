@@ -68,8 +68,13 @@ The compile replaces `SERVER_IP_PRIVATE` in `src/utils/bioIndexUtils.js`. Do not
 ```
 
 - `query` accepts an exact `chr:pos:ref:alt` identifier.
-- `gene` is recommended and is required when the transcript index maps the variant to zero or multiple genes.
-- When `gene` is omitted, the page queries `transcript-consequences` and proceeds only if exactly one gene can be selected.
+- `gene` is recommended. When a direct variant maps to multiple genes, the
+  browser presents the returned genes and requires an explicit selection
+  before loading carrier evidence; the selected gene is then written to the
+  URL. A mapping with no gene remains an error.
+- When `gene` is omitted, the page queries `transcript-consequences`, proceeds
+  immediately for one gene, pauses for explicit selection for multiple genes,
+  and reports an error when no gene is mapped.
 - rsID input is accepted only when the current generated GRCh38 reference resolves it. General rsID resolution is not connected yet.
 - Successful searches update `query` and `gene` with `history.pushState`; the page does not navigate away.
 
@@ -356,7 +361,10 @@ GET /api/reference/variants/resolve?query=rs1558177664&assembly=GRCh38
 }
 ```
 
-Return multiple mappings explicitly. The browser must not silently select an allele, assembly, or gene when the result is ambiguous.
+Return multiple mappings explicitly. The browser must not silently select an
+allele, assembly, or gene when the result is ambiguous. PB Variant renders the
+candidate genes as controls; selecting one reloads the variant with the chosen
+carrier context and adds `gene` to the URL.
 
 ### DIRECT-02 — Authorized exact-variant carrier details
 
