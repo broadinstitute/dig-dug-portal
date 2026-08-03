@@ -223,6 +223,15 @@
     background-color: #fff3eb;
     color: #333;
 }
+.reveal-ops-menu-list .reveal-ops-menu-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #888;
+    padding: 0.4rem 1rem 0.15rem;
+    margin-bottom: 0;
+}
 
 .query-guidelines-panel {
     width: 100%;

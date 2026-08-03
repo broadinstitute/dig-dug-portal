@@ -1,5 +1,7 @@
 import {
+    DEFAULT_JSON_RESPONSE_PREFIX,
     DEFAULT_LLM,
+    buildPayload,
     extractHugeampResponseText,
     llmEndpointUrl,
 } from "@/utils/llmClient.js";
@@ -9,6 +11,26 @@ describe("llmClient bedrock defaults", () => {
         expect(DEFAULT_LLM).toBe("bedrock");
         expect(llmEndpointUrl("bedrock")).toBe("https://llm.hugeamp.org/bedrock");
         expect(llmEndpointUrl("openai")).toBe("https://llm.hugeamp.org/openai");
+    });
+
+    test("buildPayload includes responsePrefix when provided", () => {
+        expect(
+            buildPayload({
+                systemPrompt: "sys",
+                userPrompt: "Find an ECM mechanism.",
+                responsePrefix: DEFAULT_JSON_RESPONSE_PREFIX,
+            })
+        ).toEqual({
+            systemPrompt: "sys",
+            userPrompt: "Find an ECM mechanism.",
+            responsePrefix: "{",
+        });
+        expect(
+            buildPayload({
+                systemPrompt: "sys",
+                userPrompt: "plain",
+            })
+        ).not.toHaveProperty("responsePrefix");
     });
 
     test("extractHugeampResponseText reads bedrock_response strings", () => {

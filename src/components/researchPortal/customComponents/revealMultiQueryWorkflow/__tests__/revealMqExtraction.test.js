@@ -19,6 +19,12 @@ describe("revealMqExtraction", () => {
         expect(result.json.phenotype_terms).toEqual(["t2d"]);
     });
 
+    test("parseLlmJsonResponse restores forced-brace continuation", () => {
+        const result = parseLlmJsonResponse('"phenotype_terms":["t2d"],"genes_of_interest":[]}');
+        expect(result.ok).toBe(true);
+        expect(result.json.phenotype_terms).toEqual(["t2d"]);
+    });
+
     test("parseLlmJsonResponse rejects truncated JSON", () => {
         const truncated =
             '```json\n{"phenotype_terms":["dyslipidemia"],"mechanism_terms":["cholester';

@@ -51,12 +51,28 @@ export function stripLlmJsonFences(rawString) {
 }
 
 /**
+ * After a gateway `responsePrefix: "{"` (or similar prefill), Claude may continue
+ * without repeating `{`. Strip fences and ensure a leading `{` when needed.
+ */
+export function normalizeForcedJsonReply(rawString) {
+    let s = stripLlmJsonFences(rawString);
+    if (!s) return "";
+    const trimmed = s.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) return trimmed;
+    // Continuation after a prefilled `{` — e.g. `"phenotype_terms": [] ... }`
+    if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
+        return `{${trimmed}`;
+    }
+    return trimmed;
+}
+
+/**
  * Extract and parse JSON from an LLM string response.
  * Tolerates markdown fences and leading/trailing prose around a top-level object.
  * Does not salvage truncated objects by picking a nested array fragment.
  */
 export function parseLlmJsonResponse(rawString) {
-    let cleanString = stripLlmJsonFences(rawString);
+    let cleanString = normalizeForcedJsonReply(rawString);
     if (!cleanString) {
         return { ok: false, json: null, parseError: new Error("Empty LLM response") };
     }
@@ -111,13 +127,14 @@ export function looksLikeJsonText(rawString) {
 
 /**
  * True when text is usable as an LLM result.
- * JSON-shaped (or fenced) text must parse; otherwise truncated Bedrock cuts trigger provider fallback.
+ * JSON-shaped (or fenced) text must parse.
  */
 export function isViableLlmText(rawString, { requireJson = false } = {}) {
     const raw = String(rawString || "");
     if (!raw.trim()) return false;
-    if (requireJson || looksLikeJsonText(raw)) {
-        return parseLlmJsonResponse(raw).ok;
+    const normalized = normalizeForcedJsonReply(raw);
+    if (requireJson || looksLikeJsonText(raw) || looksLikeJsonText(normalized)) {
+        return parseLlmJsonResponse(normalized).ok;
     }
     return true;
 }

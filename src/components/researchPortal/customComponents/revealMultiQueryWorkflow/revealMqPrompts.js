@@ -5,7 +5,7 @@
 
 const MULTI_ROUTE_EXTRACT_SYSTEM_PROMPT = `
 You are an expert biomedical bioinformatics routing assistant for CFDE REVEAL.
-Parse the user's biological query, diversify it into retrieval directions, and output ONLY raw valid JSON.
+Parse the user's biological query and diversify it into retrieval directions.
 
 Return this exact top-level shape:
 {
@@ -55,14 +55,13 @@ Term extraction rules:
 - mechanism_terms should be concise, positive biological anchors. Avoid exclusions like "non-X", "without X", "independent of X", or "except X".
 - If the user uses anti-anchor wording, translate to positive mechanism anchors and record the excluded terms in ambiguity_check.anti_anchor_terms.
 
-Output rules:
-- Output JSON only. No markdown, no prose.
+Routing rules:
 - selected_routes must have no more than 3 items.
 - If the query is out of domain, return empty arrays, empty research_context, selected_routes: [], and ambiguity_check.has_ambiguity false.
 `;
 
 const EXTRACT_SYSTEM_PROMPT = `
-You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with these fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (array of strings), "research_context" (string), "suggested_queries" (array of strings), and optional "ambiguity_check" (object). You must output ONLY raw, valid JSON. Do not wrap your response in markdown code blocks or include any conversational text.
+You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with these fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (array of strings), "research_context" (string), "suggested_queries" (array of strings), and optional "ambiguity_check" (object). You must output ONLY raw, valid JSON. The first character of your reply must be "{" and the last character must be "}". Do not wrap your response in markdown code blocks or include any conversational text.
 
 CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
 1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
@@ -256,11 +255,12 @@ Use a concise pattern like: "[User Pathway/Genes] Query Resolves to a [Supported
 Example: "ACVR1C/INHBE Query Resolves to a SMAD3-Centered Adipose ECM Hypothesis".
 
 ### Discovery logic
-1. **Modifier rule:** Each hypothesis MUST relate a well-known gene (when present in the KG for that group) with at least one 'Functional (Novel)' category gene from the data where possible.
-2. **Gene sets:** The CSV links phenotypes to gene sets with \`associated_with\` (phenotype subject, gene set object), genes to gene sets with \`contributes_to_pathway\`, and phenotypes to genes with \`contains_gene\`. Treat those as the full pathway layer—there is no factor/cluster node between phenotype and gene set.
-3. **Support priority:** Prefer genes with \`context_combined_score\` on \`contains_gene\` rows; prioritize strong functional signal where appropriate.
-4. **Data fidelity:** Use only labels and categories present in the KG CSV.
-5. **Site of Action Constraint:** The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
+1. **Novelty rule:** Genes marked \`included_from_request: true\` / category \`Search gene (query anchor)\` are the user's search anchors. Genes that co-occur with them in the same phenotype–gene-set–gene graph (category \`Functional (Novel)\`) are novel *in this search context*—do not require GWAS/score columns.
+2. **Modifier rule:** Each hypothesis MUST relate at least one search-anchor gene (when present) with at least one \`Functional (Novel)\` context gene from the data where possible.
+3. **Gene sets:** The CSV links phenotypes to gene sets with \`associated_with\` (phenotype subject, gene set object), genes to gene sets with \`contributes_to_pathway\`, and phenotypes to genes with \`contains_gene\`. Treat those as the full pathway layer—there is no factor/cluster node between phenotype and gene set.
+4. **Support priority:** Prefer search-anchor genes first, then co-occurring context genes connected through shared gene sets / phenotypes. Do not rely on Combined / GWAS / gene-set numeric scores (they are omitted from this payload).
+5. **Data fidelity:** Use only labels and categories present in the KG CSV and phenotype summary JSON.
+6. **Site of Action Constraint:** The mechanistic hypothesis MUST take place in the specific anatomical location defined in the research context. Do not shift the mechanism to a different organ simply because the provided gene sets originate from there. If the data comes from a different organ, explain how the products of those genes circulate to influence the target anatomical site.
 
 ### STRICT ANTI-HALLUCINATION DIRECTIVES (THE "SAY NO" RULES)
 Before building a hypothesis, you MUST evaluate the provided JSON \`meta\` block and graph topology. LLMs naturally try to invent biological cross-talk—DO NOT DO THIS. You must rely STRICTLY on the data. If the data triggers any of the following cases, adjust the \`diagnostic_assessment\` object accordingly.
@@ -315,7 +315,7 @@ When research context mentions adipose depots, WHR, or visceral vs subcutaneous 
 Null when depot biology is not in scope.
 
 ### Effect direction notes
-For each named candidate gene in \`genes\`, add an entry in \`effect_direction_notes\` with \`gene\`, \`direction\` (\`increase\`, \`decrease\`, or \`unknown\`), and optional \`note\` tied to GWAS/functional scores in the CSV when inferable—otherwise \`unknown\`.
+For each named candidate gene in \`genes\`, add an entry in \`effect_direction_notes\` with \`gene\`, \`direction\` (\`increase\`, \`decrease\`, or \`unknown\`), and optional \`note\`. Without score columns in the payload, default to \`unknown\` unless direction is explicit in research context or graph labels.
 
 ### Pathway shift rationale
 If user-requested target genes or the named pathway lack sufficient direct edge density in the retrieved subgraph but downstream effectors or alternative receptor nodes are supported, populate \`pathway_shift_rationale\` with a clear 1-2 sentence callout.
@@ -324,7 +324,7 @@ If no material shift occurred, set \`pathway_shift_rationale\` to null.
 
 ### Evidence-derived candidate inventory
 For each hypothesis, populate \`candidate_inventory\` using ONLY genes explicitly present in the compact multi-direction evidence bundles and/or the KG CSV. Do not extrapolate.
-Genes marked \`included_because: "explicit_user_gene"\` or \`included_because: "gene_of_interest"\` were preserved as user/request anchors even when they were not top-scoring; treat them as alignment-critical but still evaluate their scores and graph support honestly.
+Genes marked \`included_because: "explicit_user_gene"\` or \`included_because: "gene_of_interest"\`, or KG rows with \`included_from_request: true\`, are search anchors; treat them as alignment-critical and evaluate graph connectivity (not numeric scores).
 Group candidates into these five capped roles. Each list must contain at most 5 items:
 1. \`core_pathway_anchors\`: foundational pathway components found in evidence.
 2. \`route_specific_support_genes\`: genes surfaced strongly in one route/modality.
@@ -352,7 +352,7 @@ Provide 2 to 3 optimized follow-up queries that allow the user to dig deeper int
 - Focus these queries on testing the downstream consequences, interacting genes, or specific cellular processes you just proposed.
 
 ### Output (strict JSON)
-Return ONLY valid JSON in the following structure:
+Return this exact top-level shape:
 {
   "data_tracing_scratchpad": "Briefly list the CSV row IDs you use: \`associated_with\` (phenotype→gene set), \`contains_gene\` (phenotype→gene), and \`contributes_to_pathway\` (gene→gene set) for the hypothesis. Do not use outside knowledge.",
   "overall_summary": "1-2 sentence session-level summary of findings for the Overview section.",
@@ -447,9 +447,9 @@ Return ONLY valid JSON in the following structure:
 - **Gene limits:** At least 5 high-impact candidate genes per hypothesis where the KG provides enough genes. Order by impact.
 
 CRITICAL EVALUATION INSTRUCTION (BEATING THE CANONICAL BIAS):
-Because broad phenotypes have massive statistical weight, top retrieved genes are often canonical disease drivers. Your job is to act as a strict semantic filter.
-1. MECHANISTIC PRIORITIZATION: Elevate any gene in the retrieved list that directly executes the requested biochemical mechanism.
-2. CANONICAL SEGREGATION: You must explicitly segregate genes in the JSON output using the "group" field. Assign them as either "Primary Mechanistic Candidate" (directly executes the requested mechanism) or "Supporting Canonical Network" (generic hubs providing downstream phenotypic context).
+Search-anchor genes and co-occurring context genes (Functional Novel in this search) are the primary evidence; do not invent score-based ranks.
+1. MECHANISTIC PRIORITIZATION: Elevate search anchors and context genes that directly execute the requested biochemical mechanism in the graph.
+2. ROLE SEGREGATION: Segregate genes in the JSON output using the "group" field: "Primary Mechanistic Candidate" (executes the mechanism / search or tightly linked novel context gene) or "Supporting Canonical Network" (broader phenotypic context hubs).
 `;
 
 const MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX = `

@@ -7,6 +7,8 @@ import {
     buildMechanismLlmContextBlock,
     flattenKGData,
     flattenedKGToCSV,
+    serializeFactorDataForHypothesisPrompt,
+    transformMergedDataToKG,
 } from "./revealMqKgTransform.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 import {
@@ -205,14 +207,14 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
     const scopedFactorData = associationFilterActive
         ? filterFactorDataByAssociationFilters(factorData, associationFilters)
         : factorData;
-    const scopedKgTriples =
-        associationFilterActive && typeof vm.transformMergedDataToKG === "function"
-            ? vm.transformMergedDataToKG(scopedFactorData, "factors")
-            : kgTriples;
+    // Always rebuild a slim KG for the LLM (topology + search/context roles; no score columns).
+    const scopedKgTriples = transformMergedDataToKG(scopedFactorData, "factors", {
+        forHypothesisPrompt: true,
+    });
     const flattened = flattenKGData(scopedKgTriples);
     vm.lastFlattenedKG = flattened;
     const kgBlock = flattenedKGToCSV(flattened);
-    const phenoSummary = vm.serializeFactorDataForPrompt(scopedFactorData);
+    const phenoSummary = serializeFactorDataForHypothesisPrompt(scopedFactorData);
     const hypothesesUserPrompt = buildHypothesesUserPrompt(vm, {
         kgBlock,
         phenoSummary,
@@ -291,20 +293,20 @@ function generateHypothesisForRemainingPair(vm, row) {
         vm.remainingPairGenerateError = "Could not build data for this pair.";
         return;
     }
-    const kgTriples = vm.transformMergedDataToKG(subset, "factors");
+    const kgTriples = transformMergedDataToKG(subset, "factors", { forHypothesisPrompt: true });
     if (!kgTriples || !kgTriples.length) {
         vm.remainingPairGenerateError = "No knowledge graph triples for this pair.";
         return;
     }
     vm.generatingRemainingRowKey = pairKey;
     vm.startRemainingGenerateTimer();
-    const flattened = vm.flattenKGData(kgTriples);
+    const flattened = flattenKGData(kgTriples);
     const researchContext =
         (vm.searchCriteria && vm.searchCriteria[1] && vm.searchCriteria[1].values) != null
             ? String(vm.searchCriteria[1].values)
             : "";
-    const factorSummary = vm.serializeFactorDataForPrompt(subset);
-    const kgBlock = vm.flattenedKGToCSV(flattened);
+    const factorSummary = serializeFactorDataForHypothesisPrompt(subset);
+    const kgBlock = flattenedKGToCSV(flattened);
     const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
     const factorLabelForKg =
         row.factorLabel != null && String(row.factorLabel).trim() !== ""

@@ -2,7 +2,7 @@
     <div class="reveal-ops-menu-bar">
         <div class="reveal-ops-menu-group">
             <b-dropdown
-                text="Search mode"
+                text="Search"
                 size="sm"
                 variant="link"
                 class="reveal-ops-menu"
@@ -10,6 +10,11 @@
                 menu-class="reveal-ops-menu-list"
                 :disabled="busy"
             >
+                <b-dropdown-item link-class="reveal-ops-menu-item" @click="$emit('reset-search')">
+                    Reset search
+                </b-dropdown-item>
+                <b-dropdown-divider />
+                <b-dropdown-header class="reveal-ops-menu-header">Search mode</b-dropdown-header>
                 <b-dropdown-item
                     :link-class="modeItemClass('strict')"
                     @click="$emit('set-mode', 'strict')"

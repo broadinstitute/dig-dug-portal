@@ -10,6 +10,7 @@
                         :busy="workflowExportImportBusy"
                         :query-builder-visible="queryHelperLinkVisible"
                         @set-mode="onOpsSetMode"
+                        @reset-search="onOpsResetSearch"
                         @export-workflow="exportWorkflowSnapshot"
                         @import-workflow-file="onWorkflowImportFile"
                         @open-query-builder="openQueryHelperModal"
@@ -1590,16 +1591,19 @@ export default Vue.component("factor-base-reveal", {
         },
     },
     created() {
-        // Default provider is Bedrock; llmClient falls back to OpenAI on failure.
+        // Bedrock only (no OpenAI fallback). expectJson sends responsePrefix: "{".
         this.llmExtract = createLLMClient({
             system_prompt: MULTI_ROUTE_EXTRACT_SYSTEM_PROMPT,
+            expectJson: true,
         });
 
         this.llmAnalyze = createLLMClient({
             system_prompt: this.mechanismHypothesisSystemPrompt,
+            expectJson: true,
         });
         this.llmQueryHelper = createLLMClient({
             system_prompt: QUERY_HELPER_COMPOSE_SYSTEM_PROMPT,
+            expectJson: true,
         });
 
     },
@@ -1641,6 +1645,41 @@ export default Vue.component("factor-base-reveal", {
         },
         onOpsSetMode(mode) {
             this.hypothesisModeRelaxedSwitch = mode === "relaxed";
+        },
+        onOpsResetSearch() {
+            if (this.stepApprovalGateActive) {
+                this.cancelStepGate(false);
+            }
+            this.abortWorkflowClients();
+            this.bumpWorkflowRunId();
+            this.resetWorkflowStateForNewRun();
+            this.userQuery = "";
+            this.geneEntryProgressDismissed = false;
+            if (this.geneEntry) {
+                this.geneEntry = {
+                    status: "idle",
+                    inputGenes: [],
+                    errors: { phenotypes: null, perPhenotype: {} },
+                    phenotypesResponse: null,
+                    topTraits: [],
+                    progress: { message: "", detail: "" },
+                    researchIntention: "",
+                    offerMainPathFallback: false,
+                    failureReason: null,
+                };
+            }
+            if (keyParams && typeof keyParams.set === "function") {
+                keyParams.set({ query: null, genes: null, geneEntryFail: null });
+            }
+            this.placeholderRotationPaused = false;
+            this.startPlaceholderRotation();
+            this.setLoadStatus("Ready", true);
+            this.$nextTick(() => {
+                const bar = this.$refs.workflowQueryBar;
+                if (bar && typeof bar.focusQueryInput === "function") {
+                    bar.focusQueryInput();
+                }
+            });
         },
         ensureQueryHelperPhenotypeCatalog() {
             if (Array.isArray(this.queryHelperPhenotypeCatalog) && this.queryHelperPhenotypeCatalog.length) return;
@@ -4381,8 +4420,8 @@ export default Vue.component("factor-base-reveal", {
          * @param {Object} mergedData - factorData: { [phenotype]: { genes: {}, factors: [] } }
          * @returns {Array<{ subject, predicate, object, context }>}
          */
-        transformMergedDataToKG(mergedData, factorsKey) {
-            return buildKgTriplesFromFactorData(mergedData, factorsKey);
+        transformMergedDataToKG(mergedData, factorsKey, options) {
+            return buildKgTriplesFromFactorData(mergedData, factorsKey, options);
         },
         /**
          * Normalize factor id for matching API response rows to factor objects. API may return

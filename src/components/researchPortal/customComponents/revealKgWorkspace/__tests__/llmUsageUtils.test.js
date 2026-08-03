@@ -1,7 +1,9 @@
 import {
     extractOpenAiResponseText,
     extractUsageFromHugeampResponse,
+    normalizeForcedJsonReply,
     normalizeOpenAiUsage,
+    parseLlmJsonResponse,
     resolveLlmUsage,
 } from "@/utils/llmUsageUtils.js";
 
@@ -56,5 +58,14 @@ describe("llmUsageUtils", () => {
         expect(usage.source).toBe("estimate");
         expect(usage.model).toBe("gpt-5-mini");
         expect(usage.total_tokens).toBeGreaterThan(0);
+    });
+
+    it("normalizeForcedJsonReply restores continuation after responsePrefix", () => {
+        expect(normalizeForcedJsonReply('"phenotype_terms":[],"genes_of_interest":[]}')).toBe(
+            '{"phenotype_terms":[],"genes_of_interest":[]}'
+        );
+        const parsed = parseLlmJsonResponse('"phenotype_terms":["t2d"]}');
+        expect(parsed.ok).toBe(true);
+        expect(parsed.json).toEqual({ phenotype_terms: ["t2d"] });
     });
 });

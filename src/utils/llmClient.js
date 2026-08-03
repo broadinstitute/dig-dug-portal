@@ -8,8 +8,9 @@
 
     // Responses are returned as-is from llm, it is up to dev to parse them appropriately.
 
-    // Default provider is Bedrock (`https://llm.hugeamp.org/bedrock`). If a Bedrock
-    // call fails, the client retries once with OpenAI (`/openai`) unless fallback is disabled.
+    // Default provider is Bedrock (`https://llm.hugeamp.org/bedrock`). OpenAI fallback is
+    // OFF by default (set fallbackLlm: "openai" to re-enable) to avoid burning tokens on
+    // Bedrock JSON parse failures.
 
     // How to use:
 
@@ -29,7 +30,7 @@
             system_prompt: "You are a pirate"
         });
 
-        // Default: Bedrock, with OpenAI fallback on failure
+        // Default: Bedrock only (no OpenAI fallback unless fallbackLlm is set)
         const defaultClient = createLLMClient({
             system_prompt: "You are a helpful assistant"
         });
@@ -59,8 +60,12 @@
 import {
   extractOpenAiResponseText,
   isViableLlmText,
+  normalizeForcedJsonReply,
   resolveLlmUsage,
 } from "@/utils/llmUsageUtils";
+
+/** Prefill for Bedrock/Claude JSON replies (gateway assistant continuation). */
+const DEFAULT_JSON_RESPONSE_PREFIX = "{";
 
 const LLM_ENDPOINT_BY_PROVIDER = {
   openai: "https://llm.hugeamp.org/openai",
@@ -96,13 +101,16 @@ function extractHugeampResponseText(llm, res) {
   return gemini != null ? gemini : "";
 }
 
-function buildPayload({ model, systemPrompt, userPrompt }) {
+function buildPayload({ model, systemPrompt, userPrompt, responsePrefix }) {
   const payload = {
     systemPrompt,
     userPrompt,
   };
   if (model != null && String(model).trim() !== "") {
     payload.model = model;
+  }
+  if (responsePrefix != null && String(responsePrefix) !== "") {
+    payload.responsePrefix = String(responsePrefix);
   }
   return payload;
 }
@@ -112,12 +120,22 @@ export function createLLMClient({
   model,
   system_prompt,
   stream = false,
-  fallbackLlm = llm === "bedrock" ? "openai" : null,
+  /** Optional secondary provider (e.g. "openai"). Default null — no fallback. */
+  fallbackLlm = null,
   fallbackModel,
   /** When true, non-JSON text also fails the attempt. JSON-shaped text always must parse. */
   expectJson = false,
+  /**
+   * When true, send gateway `responsePrefix: "{"` and normalize continuation replies.
+   * Defaults to on for Bedrock when expectJson is true.
+   */
+  forceJsonReply = null,
 } = {}) {
   let abortController = null;
+  const shouldForceJsonReply =
+    forceJsonReply === true ||
+    (forceJsonReply !== false && llm === "bedrock" && !!expectJson);
+  const jsonResponsePrefix = shouldForceJsonReply ? DEFAULT_JSON_RESPONSE_PREFIX : null;
 
   async function sendPrompt({ userPrompt, systemPrompt, onResponse, onUsage, onToken, onError, onState, onEnd }) {
     if (!userPrompt) {
@@ -158,6 +176,7 @@ export function createLLMClient({
               model: attempts[0].model,
               systemPrompt: effectiveSystem,
               userPrompt,
+              responsePrefix: jsonResponsePrefix,
             })
           ),
           signal,
@@ -189,6 +208,7 @@ export function createLLMClient({
               model: attempt.model,
               systemPrompt: effectiveSystem,
               userPrompt,
+              responsePrefix: jsonResponsePrefix,
             })
           ),
           signal,
@@ -196,7 +216,7 @@ export function createLLMClient({
         const result = await callOnce(url, options, {
           llm: attempt.llm,
           model: attempt.model,
-          expectJson,
+          expectJson: expectJson || shouldForceJsonReply,
           onResponse,
           onUsage,
           onState,
@@ -288,8 +308,8 @@ export function createLLMClient({
       return { ok: false, aborted: true };
     }
 
-    const data = extractHugeampResponseText(provider, res);
-    if (!data || !String(data).trim()) {
+    const rawData = extractHugeampResponseText(provider, res);
+    if (!rawData || !String(rawData).trim()) {
       return {
         ok: false,
         aborted: false,
@@ -297,8 +317,10 @@ export function createLLMClient({
       };
     }
 
-    // Truncated Bedrock JSON (markdown fences, cut mid-object) must not count as success —
-    // fail this attempt so OpenAI fallback can run.
+    // Strip fences / restore leading `{` after a forced-JSON user prompt.
+    const data = normalizeForcedJsonReply(rawData) || String(rawData).trim();
+
+    // Truncated / malformed JSON must not count as success.
     if (!isViableLlmText(data, { requireJson: !!requireJsonShape })) {
       return {
         ok: false,
@@ -422,8 +444,10 @@ export function createLLMClient({
 }
 
 export {
+  DEFAULT_JSON_RESPONSE_PREFIX,
   DEFAULT_LLM,
   DEFAULT_OPENAI_FALLBACK_MODEL,
+  buildPayload,
   extractHugeampResponseText,
   llmEndpointUrl,
 };

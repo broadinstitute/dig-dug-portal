@@ -2468,7 +2468,7 @@ Provide 2 to 3 optimized follow-up queries that allow the user to dig deeper int
 - Focus these queries on testing the downstream consequences, interacting genes, or specific cellular processes you just proposed.
 
 ### Output (strict JSON)
-Return ONLY valid JSON in the following structure:
+Return this exact top-level shape:
 {
   "data_tracing_scratchpad": "Briefly list the CSV row IDs you use: \`associated_with\` (phenotype→gene set), \`contains_gene\` (phenotype→gene), and \`contributes_to_pathway\` (gene→gene set) for the hypothesis. Do not use outside knowledge.",
   "diagnostic_assessment": {
@@ -2967,16 +2967,19 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
         },
     },
     created() {
-        // Default provider is Bedrock; llmClient falls back to OpenAI on failure.
+        // Bedrock only (no OpenAI fallback). expectJson sends responsePrefix: "{".
         this.llmExtract = createLLMClient({
-            system_prompt: this.extractSystemPrompt
+            system_prompt: this.extractSystemPrompt,
+            expectJson: true,
         });
 
         this.llmAnalyze = createLLMClient({
             system_prompt: this.mechanismHypothesisSystemPrompt,
+            expectJson: true,
         });
         this.llmQueryHelper = createLLMClient({
             system_prompt: this.queryHelperComposeSystemPrompt,
+            expectJson: true,
         });
 
     },
