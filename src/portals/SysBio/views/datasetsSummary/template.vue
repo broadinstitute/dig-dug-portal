@@ -2,8 +2,8 @@
     <div class="sysbio f-layout">
         <sysbio-header></sysbio-header>
         <div class="sysbio-body">
-            <h2 class="static-header">Data Summary Browser</h2>
-            <div id="pageDescription" v-html="$parent.pageDesc">
+            <h2>Data Summary Browser</h2>
+            <div id="pageDescription" style="font-size:16px" v-html="$parent.pageDesc">
             </div>
             <div v-if="$parent.convertedData" class="summary-section">
                 <label class="font-weight-bold mb-2">Programs</label>

@@ -1,68 +1,79 @@
 <template>
-    <div class="header f-row align-v-center spread-out">
-        <a class="logo f-row align-v-center" href="./">
-            <img :src="'images/sysbio/logos/sb-color-h.svg'" />
-        </a>
-        <div class="beta">beta</div>
-        <div class="menu f-row">
-            <div
-                v-for="item in nav.menuItems"
-                class="menu-item-wrapper"
-                :class="{ active: isActive(item.path) }"
-            >
-                <a
-                    class="menu-item"
-                    :href="item.path || null"
-                    :target="item.external ? '_blank' : null"
-                    v-html="item.label"
+    <div class="header-container f-col">
+        <div class="header-message">
+            Welcome to SysBio FAIRplex. This platform is newly launched and actively scaling. Stay updated or <a href="https://www.google.com/url?q=https://redcap.vumc.org/surveys/?s%3D4FPLKJEYAWFCHRNL&sa=D&source=docs&ust=1785261217863919&usg=AOvVaw0ITAMCZZOUnNYgecifYavD" target="_blank">send feedback</a>.
+        </div>
+        <div class="header f-row align-v-center spread-out">
+            <a class="logo f-row align-v-center" href="./">
+                <img :src="'images/sysbio/logos/sb-color-h.svg'" />
+            </a>
+            <!--<div class="beta">beta</div>-->
+            <div class="menu-btn" :class="{open: toggleMenu}" @click="toggleMenu = !toggleMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="menu" :class="{open: toggleMenu}">
+                <div
+                    v-for="item in nav.menuItems"
+                    class="menu-item-wrapper"
+                    :class="{ active: isActive(item.path) }"
                 >
-                </a>
-                <div v-if="item.subMenuItems" class="submenu">
                     <a
-                        v-for="subItem in item.subMenuItems.filter(
-                            (i) =>
-                                !i.hide &&
-                                !(i.requiresLogin && !showLogin)
-                        )"
-                        class="submenu-item"
-                        :class="{ active: isActive(subItem.path) }"
-                        :href="subItem.path || null"
-                        :target="subItem.external ? '_blank' : null"
+                        class="menu-item"
+                        :href="item.path || null"
+                        :target="item.external ? '_blank' : null"
+                        v-html="item.label"
                     >
-                        {{ subItem.label }}
+                    </a>
+                    <div v-if="item.subMenuItems" class="submenu">
+                        <a
+                            v-for="subItem in item.subMenuItems.filter(
+                                (i) =>
+                                    !i.hide &&
+                                    !(i.requiresLogin && !showLogin)
+                            )"
+                            class="submenu-item"
+                            :class="{ active: isActive(subItem.path) }"
+                            :href="subItem.path || null"
+                            :target="subItem.external ? '_blank' : null"
+                        >
+                            {{ subItem.label }}
+                        </a>
+                    </div>
+                </div>
+                <div
+                    v-if="showLogin"
+                    style="
+                        height: 2em;
+                        width: 0;
+                        border: 1px solid black;
+                        margin: 0 10px;
+                        align-self: center;
+                    "
+                ></div>
+                <div class="menu-item-wrapper" v-if="showLogin">
+                    <a class="menu-item" :href="'/account'">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <g
+                                stroke="#000"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="3"
+                            >
+                                <path
+                                    d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7"
+                                />
+                            </g>
+                        </svg>
+                        {{ userInfo || "Login" }}
                     </a>
                 </div>
-            </div>
-            <div
-                v-if="showLogin"
-                style="
-                    height: 2em;
-                    width: 0;
-                    border: 1px solid black;
-                    margin: 0 10px;
-                    align-self: center;
-                "
-            ></div>
-            <div class="menu-item-wrapper" v-if="showLogin">
-                <a class="menu-item" :href="'/account'">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <g
-                            stroke="#000"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="3"
-                        >
-                            <path
-                                d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0M12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7"
-                            />
-                        </g>
-                    </svg>
-                    {{ userInfo || "Login" }}
-                </a>
             </div>
         </div>
     </div>
@@ -83,6 +94,7 @@ export default Vue.component("sysbio-header", {
             nav: sysbioMenu,
             userInfo: null,
             showLogin: SHOW_LOGIN,
+            toggleMenu: false,
         };
     },
     computed: {},
@@ -137,13 +149,31 @@ export default Vue.component("sysbio-header", {
 });
 </script>
 <style scoped>
+.header-container{
+    position: relative;
+    display: contents;
+    z-index: 100;
+    width: 100%;
+}
+.header-message{
+    background: black;
+    color:white;
+    padding: 5px 40px;
+    text-align: center;
+
+    a, a:visited{
+        color: white !important;
+        text-decoration: underline;
+    }
+}
 .header {
     padding: 0 40px;
     background: white;
     box-shadow: 0 2px 2px 0px black;
-    position: fixed;
-    z-index: 100;
     width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 
     .beta {
         font-size: 12px;
@@ -173,6 +203,78 @@ export default Vue.component("sysbio-header", {
     }
     .logo img {
         height: 100%;
+    }
+
+
+    .menu-btn {
+        width: 30px;
+        height: 23px;
+        position: relative;
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-transition: .5s ease-in-out;
+        -moz-transition: .5s ease-in-out;
+        -o-transition: .5s ease-in-out;
+        transition: .5s ease-in-out;
+        cursor: pointer;
+        display:none;
+    }
+    .menu-btn span {
+        display: block;
+        position: absolute;
+        height: 4px;
+        width: 100%;
+        background: black;
+        border-radius: 3px;
+        opacity: 1;
+        left: 0;
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+        -webkit-transition: .25s ease-in-out;
+        -moz-transition: .25s ease-in-out;
+        -o-transition: .25s ease-in-out;
+        transition: .25s ease-in-out;
+    }
+    .menu-btn span:nth-child(1) {
+        top: 0px;
+    }
+
+    .menu-btn span:nth-child(2),.menu-btn span:nth-child(3) {
+        top: 10px;
+    }
+
+    .menu-btn span:nth-child(4) {
+        top: 20px;
+    }
+
+    .menu-btn.open span:nth-child(1) {
+        top: 18px;
+        width: 0%;
+        left: 50%;
+    }
+
+    .menu-btn.open span:nth-child(2) {
+        -webkit-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
+    .menu-btn.open span:nth-child(3) {
+        -webkit-transform: rotate(-45deg);
+        -moz-transform: rotate(-45deg);
+        -o-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+
+    .menu-btn.open span:nth-child(4) {
+        top: 18px;
+        width: 0%;
+        left: 50%;
     }
 
     /* menu */
@@ -259,6 +361,47 @@ export default Vue.component("sysbio-header", {
         width: -webkit-fill-available;
         text-align: right;
         font-weight: normal;
+    }
+
+    @media screen and (max-width: 1010px) {
+        .menu-btn{
+            display:block;
+        }
+        .menu{
+            flex-direction: column;
+            background-color: white;
+            top:100%;
+            right:0;
+            width:100%;
+            position: absolute;
+            padding: 20px 0;
+            display:none;
+            box-shadow: 0 2px 2px 0px black;
+        }
+        .menu.open{
+            display:flex;
+        }
+        .menu-item-wrapper{
+            padding: 0 40px;
+            flex-direction: column;
+        }
+        .menu-item-wrapper:hover .menu-item{
+            box-shadow: none;
+        }
+        .menu-item-wrapper:hover .submenu{
+            box-shadow: none;
+        }
+        .menu-item{
+            padding: 5px;
+        }
+        .submenu{
+            position: relative;
+            display: flex;
+            padding-top: 0;
+        }
+        .submenu-item{
+            text-align: left;
+        }
     }
 }
 </style>

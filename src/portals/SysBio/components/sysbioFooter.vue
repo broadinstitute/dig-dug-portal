@@ -68,16 +68,15 @@ export default Vue.component("sysbioFooter", {
     font-size: 14px;
 
     .footer-top{
-        display:flex;
-        width: 100%;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 20px;
     }
     .footer-title{
         font-size: 18px;
         font-weight: bold;
     }
     .footer-logo{
-        width: 250px;
         display: flex;
         justify-content: flex-end;
     }
@@ -86,7 +85,7 @@ export default Vue.component("sysbioFooter", {
         mix-blend-mode: hard-light;
     }
     .footer-contact{
-        width:250px;
+
     }
     .footer-contact a, .footer-contact a:visited {
         margin-top:10px;
@@ -125,6 +124,19 @@ export default Vue.component("sysbioFooter", {
     }
     .colophon{
         font-size: 12px;
+    }
+
+    @media screen and (max-width: 1010px) {
+        .footer-top{
+            grid-template-columns: 1fr;
+        }
+        .menu{
+            gap: 20px;
+        }
+        .footer-logo{
+            display: flex;
+            justify-content: center;
+        }
     }
 }
 </style>

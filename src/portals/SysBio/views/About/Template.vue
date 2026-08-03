@@ -4,7 +4,7 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body" v-if="!!$parent.pageContent">
-            <h2 class="static-header">{{ $parent.pageContent.title }}</h2>
+            <h2>{{ $parent.pageContent.title }}</h2>
             <div v-if="!$parent.showData" v-html="$parent.pageContent.body"  class="static-content"></div>
             <div v-else-if="$parent.keyParamsPage === 'team'" class="static-content">
                 <div v-if="$parent.teamSections.length > 0">

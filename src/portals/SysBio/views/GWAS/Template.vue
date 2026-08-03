@@ -4,10 +4,8 @@
         <sysbio-header></sysbio-header>
         <!-- BODY -->
         <div class="sysbio-body">
-            <div>
-                <h2>Genetic Studies</h2>
-                <div v-html="$parent.docs"></div>
-            </div>
+            <h2>Genetic Studies</h2>
+            <div v-html="$parent.docs"></div>
             <div class="f-row gwas-plots" style="margin:20px 0 40px 0">
                 <div style="flex:1">
                     <img :src="'images/sysbio/images/manhattan.png'" />
