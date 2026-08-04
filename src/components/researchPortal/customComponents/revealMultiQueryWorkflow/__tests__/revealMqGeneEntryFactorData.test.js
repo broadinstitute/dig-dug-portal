@@ -370,3 +370,102 @@ describe("buildFactorDataFromPhenotypePigean", () => {
         expect(factors[0].geneSets.GS_A.genes).toContain("HP");
     });
 });
+
+describe("buildFactorDataFromBayesPigean", () => {
+    test("builds Factor×gene/gene-set matrix from factorization payload", () => {
+        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js");
+        const json = {
+            input_genes: ["APOE", "LDLR"],
+            gene_scores: {
+                APOE: 0.5,
+                APOA2: 0.2,
+                LDLR: 0.4,
+                TINY: 0.005,
+            },
+            gene_sets: [
+                { gene_set: "HP_X", p_value: 1e-10 },
+                { gene_set: "GS_Y", p_value: 0.01 },
+                { gene_set: "GS_NS", p_value: 0.2 },
+            ],
+            "pigean-factor": {
+                data: [
+                    {
+                        factor: "Factor0",
+                        label: "HP_HYPERLIPOPROTEINEMIA",
+                        gene_score: 0.5,
+                        gene_set_score: 1.2,
+                        top_genes: "APOE;APOA2",
+                        top_gene_sets: "HP_X;GS_Y",
+                    },
+                ],
+            },
+            "gene-factor": {
+                Factor0: [
+                    { gene: "APOE", factor_value: 1.5, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                    { gene: "APOA2", factor_value: 0.8, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                    { gene: "LDLR", factor_value: 0.4, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                    { gene: "TINY", factor_value: 0.9, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                ],
+            },
+            "gene-set-factor": {
+                Factor0: [
+                    { gene_set: "HP_X", factor_value: 1.7, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                    { gene_set: "GS_Y", factor_value: 0.9, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                    { gene_set: "GS_NS", factor_value: 1.1, label: "HP_HYPERLIPOPROTEINEMIA", label_factor: "Factor0" },
+                ],
+            },
+        };
+        const factorData = buildFactorDataFromBayesPigean(json, ["APOE", "LDLR"], {
+            maxGenesPerFactor: 10,
+            maxGeneSetsPerFactor: 10,
+        });
+        expect(Object.keys(factorData)).toEqual(["Factor0"]);
+        const f = factorData.Factor0.factors[0];
+        expect(f.label).toBe("HP_HYPERLIPOPROTEINEMIA");
+        expect(f.genes.APOE.includedFromRequest).toBe(true);
+        expect(f.genes.APOE.factor_value).toBe(1.5);
+        expect(f.genes.APOE.gene_score).toBe(0.5);
+        expect(f.genes.APOA2.includedFromRequest).toBe(false);
+        expect(f.genes.LDLR.includedFromRequest).toBe(true);
+        expect(f.genes.TINY).toBeUndefined();
+        expect(f.top_gene_sets.split(";")).toEqual(["HP_X", "GS_Y"]);
+        expect(f.geneSets.HP_X.factor_value).toBe(1.7);
+        expect(f.geneSets.HP_X.p_value).toBe(1e-10);
+        expect(f.geneSets.HP_X.gene_set_score).toBeCloseTo(10, 5);
+        expect(f.geneSets.GS_NS).toBeUndefined();
+        expect(f.geneSets.HP_X.genes).toEqual(expect.arrayContaining(["APOE", "LDLR", "APOA2"]));
+        // No Combined / GWAS scores on phenotype gene map.
+        expect(factorData.Factor0.genes.APOE.combined).toBeUndefined();
+    });
+
+    test("omits gene sets with p ≥ 0.05 or missing p; sizes with -log10(p)", () => {
+        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js");
+        const json = {
+            input_genes: ["APOE"],
+            gene_scores: { APOE: 0.4 },
+            gene_sets: [
+                { gene_set: "HP_X", p_value: 0.001 },
+                { gene_set: "GS_Y", p_value: 0.2 },
+            ],
+            "pigean-factor": {
+                data: [{ factor: "Factor0", label: "L", gene_score: 0.4, gene_set_score: 1.0 }],
+            },
+            "gene-factor": {
+                Factor0: [{ gene: "APOE", factor_value: 0.8, label: "L", label_factor: "Factor0" }],
+            },
+            "gene-set-factor": {
+                Factor0: [
+                    { gene_set: "HP_X", factor_value: 0.5, label: "L", label_factor: "Factor0" },
+                    { gene_set: "GS_Y", factor_value: 0.9, label: "L", label_factor: "Factor0" },
+                    { gene_set: "GS_NO_P", factor_value: 1.0, label: "L", label_factor: "Factor0" },
+                ],
+            },
+        };
+        const factorData = buildFactorDataFromBayesPigean(json, ["APOE"]);
+        const f = factorData.Factor0.factors[0];
+        expect(f.geneSets.HP_X).toBeDefined();
+        expect(f.geneSets.HP_X.gene_set_score).toBeCloseTo(3, 5);
+        expect(f.geneSets.GS_Y).toBeUndefined();
+        expect(f.geneSets.GS_NO_P).toBeUndefined();
+    });
+});

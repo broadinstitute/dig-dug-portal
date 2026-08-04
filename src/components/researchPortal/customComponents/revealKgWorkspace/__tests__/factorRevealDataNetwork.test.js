@@ -46,6 +46,45 @@ describe("factorRevealDataNetwork", () => {
         expect(types).toContain("Pathway");
         expect(types).toContain("Gene");
         expect(net.edges.length).toBeGreaterThan(0);
+        expect(net.edges.some((e) => e.predicate === "contributes_to_pathway")).toBe(true);
+    });
+
+    it("skips gene↔gene-set edges when linkGenesToGeneSets is false", () => {
+        const factorObj = makeFactorObj({
+            geneSets: { GS1: { genes: ["APOE", "LDLR"], factor_value: 0.8 } },
+            genes: {
+                APOE: { geneSetIds: ["GS1"], factor_value: 0.5, gene_score: 0.4 },
+                LDLR: { factor_value: 0.3, gene_score: 0.2 },
+            },
+        });
+        const net = buildFactorConnectivityNetwork({
+            phenotype: "PHENO1",
+            factorObj,
+            factorData: makeFactorData(),
+            phenotypeDisplay: () => "LDL cholesterol",
+            linkGenesToGeneSets: false,
+        });
+        expect(net.edges.some((e) => e.predicate === "contributes_to_pathway")).toBe(false);
+        expect(net.edges.some((e) => e.predicate === "associated_with_cluster")).toBe(true);
+        expect(net.edges.some((e) => e.predicate === "linked_to_pathway")).toBe(true);
+        expect(net.nodes.some((n) => n.type === "Pathway")).toBe(true);
+        expect(net.nodes.some((n) => n.type === "Gene")).toBe(true);
+    });
+
+    it("omits phenotype nodes when includePhenotypeNode is false", () => {
+        const net = buildFactorConnectivityNetwork({
+            phenotype: "Factor0",
+            factorObj: makeFactorObj({ label: "HP_ARTERIOSCLEROSIS" }),
+            factorData: {
+                Factor0: makeFactorData().PHENO1,
+            },
+            phenotypeDisplay: (id) => id,
+            linkGenesToGeneSets: false,
+            includePhenotypeNode: false,
+        });
+        expect(net.nodes.some((n) => n.type === "Phenotype")).toBe(false);
+        expect(net.nodes.some((n) => n.type === "Factor")).toBe(true);
+        expect(net.edges.some((e) => e.predicate === "associated_with")).toBe(false);
     });
 
     it("merges graphs across pairs without duplicate gene nodes", () => {

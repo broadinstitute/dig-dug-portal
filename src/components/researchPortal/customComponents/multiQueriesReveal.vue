@@ -193,6 +193,9 @@
                                     :phenotype-description-by-id="phenotypeDescriptionById"
                                     :row-label-mode="isGeneEntryMode ? 'factor' : 'phenotype'"
                                     :emphasize-search-context-genes="emphasizeSearchContextGenes"
+                                    :cell-color-mode="isGeneEntryMode ? 'factorValue' : 'association'"
+                                    :show-association-score-header="!isGeneEntryMode"
+                                    :show-association-legend="!isGeneEntryMode"
                                     :phenotype-association-filters.sync="phenotypeAssociationFilters"
                                     :selected-nodes.sync="heatmapSelectedNodes"
                                     show-workflow-selection-chrome
@@ -614,8 +617,9 @@ export default Vue.component("factor-base-reveal", {
             geneEntry: {
                 status: "idle",
                 inputGenes: [],
-                errors: { phenotypes: null, perPhenotype: {} },
+                errors: { phenotypes: null, perPhenotype: {}, pigean: null },
                 phenotypesResponse: null,
+                pigeanResponse: null,
                 topTraits: [],
                 progress: { message: "", detail: "" },
                 researchIntention: "",
@@ -1659,8 +1663,9 @@ export default Vue.component("factor-base-reveal", {
                 this.geneEntry = {
                     status: "idle",
                     inputGenes: [],
-                    errors: { phenotypes: null, perPhenotype: {} },
+                    errors: { phenotypes: null, perPhenotype: {}, pigean: null },
                     phenotypesResponse: null,
+                    pigeanResponse: null,
                     topTraits: [],
                     progress: { message: "", detail: "" },
                     researchIntention: "",

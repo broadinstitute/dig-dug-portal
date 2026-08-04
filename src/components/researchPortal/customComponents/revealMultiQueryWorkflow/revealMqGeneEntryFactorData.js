@@ -13,8 +13,18 @@
 const DEFAULT_MAX_GENE_SETS = 30;
 const DEFAULT_MAX_GENES = 50;
 const DEFAULT_MAX_FACTORS = 5;
+/** Caps for factorization.html-style bayes_gene/pigean heatmaps (per factor). */
+const DEFAULT_MAX_GENES_PER_FACTOR = 40;
+const DEFAULT_MAX_GENE_SETS_PER_FACTOR = 30;
 /** Gene sets with beta at or below this threshold are treated as non-significant. */
 const DEFAULT_MIN_GENE_SET_BETA = 0.01;
+/**
+ * Genes with |gene_score| below this are omitted from factorization heatmaps/networks.
+ * Overall factor value is not subject to this floor. Gene sets use p-value instead.
+ */
+const DEFAULT_MIN_FACTORIZATION_SCORE = 0.01;
+/** Gene sets with p ≥ this are omitted; node size uses -log10(p). */
+const DEFAULT_MAX_GENE_SET_P_VALUE = 0.05;
 
 /** True when gene-set beta is present and strictly greater than the significance floor. */
 function isSignificantGeneSetBeta(beta, minBeta = DEFAULT_MIN_GENE_SET_BETA) {
@@ -655,18 +665,260 @@ function buildFactorDataFromPhenotypePigean(
     );
 }
 
+function absFactorValue(row) {
+    const n = row && row.factor_value != null ? Number(row.factor_value) : NaN;
+    return Number.isFinite(n) ? Math.abs(n) : -Infinity;
+}
+
+function sortRowsByAbsFactorValueDesc(rows) {
+    return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => absFactorValue(b) - absFactorValue(a));
+}
+
+function readScoreMap(raw) {
+    const out = {};
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+    Object.keys(raw).forEach((key) => {
+        const v = raw[key];
+        if (v == null || v === "" || Number.isNaN(Number(v))) return;
+        out[String(key)] = Number(v);
+    });
+    return out;
+}
+
+/** True when |score| meets the factorization render floor. */
+function isSignificantFactorizationScore(score, minScore = DEFAULT_MIN_FACTORIZATION_SCORE) {
+    if (score == null || Number.isNaN(Number(score))) return false;
+    return Math.abs(Number(score)) >= Number(minScore);
+}
+
+/** True when gene-set enrichment p-value is present and strictly below the significance ceiling. */
+function isSignificantGeneSetPValue(pValue, maxP = DEFAULT_MAX_GENE_SET_P_VALUE) {
+    if (pValue == null || Number.isNaN(Number(pValue))) return false;
+    const p = Number(pValue);
+    return p >= 0 && p < Number(maxP);
+}
+
+/** -log10(p) for sizing; clamps tiny/zero p to avoid Infinity. */
+function negLog10P(pValue) {
+    if (pValue == null || Number.isNaN(Number(pValue))) return null;
+    const p = Number(pValue);
+    if (p < 0) return null;
+    const clamped = Math.max(p, Number.MIN_VALUE);
+    return -Math.log10(clamped);
+}
+
+/** Map `gene_sets: [{gene_set, p_value}, ...]` → { [gene_set]: p_value }. */
+function readGeneSetPValueMap(raw) {
+    const out = {};
+    if (!Array.isArray(raw)) return out;
+    raw.forEach((row) => {
+        if (!row || row.gene_set == null) return;
+        const id = String(row.gene_set);
+        if (row.p_value == null || row.p_value === "" || Number.isNaN(Number(row.p_value))) return;
+        out[id] = Number(row.p_value);
+    });
+    return out;
+}
+
+/**
+ * Build Multi Query `factorData` from factorization.html's bayes_gene/pigean payload.
+ * One phenotype bucket per Factor (Factor0…); heatmap uses row-label-mode=factor.
+ * Cell values are Overall factor value (`factor_value`); no Combined/GWAS/gene-set scores.
+ *
+ * Genes with |gene_score| < 0.01 are omitted.
+ * Gene sets with enrichment p ≥ 0.05 (or missing p) are omitted; `gene_set_score` stores -log10(p)
+ * for network node size. Overall factor value is not used for those thresholds.
+ *
+ * @param {Object} pigeanJson - raw bayes_gene/pigean response
+ * @param {string[]} inputGenes - search genes
+ * @param {{ maxGenesPerFactor?: number, maxGeneSetsPerFactor?: number, minScore?: number, maxGeneSetPValue?: number }} [options]
+ */
+function buildFactorDataFromBayesPigean(pigeanJson, inputGenes = [], options = {}) {
+    const maxGenesPerFactor = Math.max(
+        1,
+        Number(options.maxGenesPerFactor) || DEFAULT_MAX_GENES_PER_FACTOR
+    );
+    const maxGeneSetsPerFactor = Math.max(
+        1,
+        Number(options.maxGeneSetsPerFactor) || DEFAULT_MAX_GENE_SETS_PER_FACTOR
+    );
+    const minScore =
+        options.minScore != null && !Number.isNaN(Number(options.minScore))
+            ? Number(options.minScore)
+            : DEFAULT_MIN_FACTORIZATION_SCORE;
+    const maxGeneSetP =
+        options.maxGeneSetPValue != null && !Number.isNaN(Number(options.maxGeneSetPValue))
+            ? Number(options.maxGeneSetPValue)
+            : DEFAULT_MAX_GENE_SET_P_VALUE;
+    const searchSet = new Set(
+        (Array.isArray(inputGenes) ? inputGenes : []).map((g) => String(g).toUpperCase())
+    );
+    const roundTrip =
+        Array.isArray(pigeanJson && pigeanJson.input_genes) && pigeanJson.input_genes.length
+            ? pigeanJson.input_genes.map((g) => String(g))
+            : Array.isArray(inputGenes)
+              ? inputGenes.map((g) => String(g))
+              : [];
+    roundTrip.forEach((g) => searchSet.add(String(g).toUpperCase()));
+
+    const geneScoreByGene = readScoreMap(pigeanJson && pigeanJson.gene_scores);
+    const geneSetPById = readGeneSetPValueMap(pigeanJson && pigeanJson.gene_sets);
+
+    const factorMetaById = {};
+    const factorRows =
+        pigeanJson &&
+        pigeanJson["pigean-factor"] &&
+        Array.isArray(pigeanJson["pigean-factor"].data)
+            ? pigeanJson["pigean-factor"].data
+            : [];
+    factorRows.forEach((row) => {
+        if (!row || row.factor == null) return;
+        const id = String(row.factor);
+        factorMetaById[id] = {
+            factor: id,
+            label: row.label != null ? String(row.label) : id,
+            gene_score: row.gene_score != null && !isNaN(Number(row.gene_score)) ? Number(row.gene_score) : null,
+            gene_set_score:
+                row.gene_set_score != null && !isNaN(Number(row.gene_set_score))
+                    ? Number(row.gene_set_score)
+                    : null,
+            top_genes: row.top_genes != null ? String(row.top_genes) : "",
+            top_gene_sets: row.top_gene_sets != null ? String(row.top_gene_sets) : "",
+        };
+    });
+
+    const geneFactor = (pigeanJson && pigeanJson["gene-factor"]) || {};
+    const geneSetFactor = (pigeanJson && pigeanJson["gene-set-factor"]) || {};
+    const factorIds = Object.keys(geneFactor).length
+        ? Object.keys(geneFactor)
+        : Object.keys(factorMetaById);
+    const out = {};
+
+    factorIds.forEach((factorId) => {
+        const meta = factorMetaById[factorId] || { factor: factorId, label: factorId };
+        const geneRows = sortRowsByAbsFactorValueDesc(geneFactor[factorId] || []).filter((row) => {
+            const gene = row && row.gene != null ? String(row.gene) : "";
+            if (!gene) return false;
+            return isSignificantFactorizationScore(geneScoreByGene[gene], minScore);
+        });
+        const geneSetRows = sortRowsByAbsFactorValueDesc(geneSetFactor[factorId] || []).filter((row) => {
+            const gs = row && row.gene_set != null ? String(row.gene_set) : "";
+            if (!gs) return false;
+            return isSignificantGeneSetPValue(geneSetPById[gs], maxGeneSetP);
+        });
+
+        const selectedGeneRows = [];
+        const geneSeen = new Set();
+        // Prefer search genes that pass the score floor.
+        geneRows.forEach((row) => {
+            const gene = row && row.gene != null ? String(row.gene) : "";
+            if (!gene) return;
+            const key = gene.toUpperCase();
+            if (!searchSet.has(key) || geneSeen.has(key)) return;
+            geneSeen.add(key);
+            selectedGeneRows.push(row);
+        });
+        geneRows.forEach((row) => {
+            if (selectedGeneRows.length >= maxGenesPerFactor) return;
+            const gene = row && row.gene != null ? String(row.gene) : "";
+            if (!gene) return;
+            const key = gene.toUpperCase();
+            if (geneSeen.has(key)) return;
+            geneSeen.add(key);
+            selectedGeneRows.push(row);
+        });
+
+        const selectedGeneSetRows = geneSetRows.slice(0, maxGeneSetsPerFactor);
+        const genes = {};
+        const phenotypeGenes = {};
+        selectedGeneRows.forEach((row) => {
+            const gene = String(row.gene);
+            const fv = row.factor_value != null && !isNaN(Number(row.factor_value)) ? Number(row.factor_value) : null;
+            const geneScore = geneScoreByGene[gene] != null ? geneScoreByGene[gene] : null;
+            const isSearch = searchSet.has(gene.toUpperCase());
+            genes[gene] = {
+                factor_value: fv,
+                factorRelevance: fv,
+                gene_score: geneScore,
+                includedFromRequest: isSearch,
+            };
+            phenotypeGenes[gene] = {
+                includedFromRequest: isSearch,
+                gene_score: geneScore,
+            };
+        });
+
+        const geneSets = {};
+        const topGeneSetIds = [];
+        const allGeneNames = Object.keys(genes);
+        selectedGeneSetRows.forEach((row) => {
+            const gs = row && row.gene_set != null ? String(row.gene_set) : "";
+            if (!gs) return;
+            topGeneSetIds.push(gs);
+            const fv = row.factor_value != null && !isNaN(Number(row.factor_value)) ? Number(row.factor_value) : null;
+            const pValue = geneSetPById[gs] != null ? geneSetPById[gs] : null;
+            // gene_set_score carries -log10(p) for network sizing (not the raw API gene_set_scores).
+            const geneSetScore = negLog10P(pValue);
+            // Approximate membership: genes on this factor co-occur with the gene set on the factor.
+            geneSets[gs] = {
+                genes: allGeneNames.slice(),
+                factor_value: fv,
+                p_value: pValue,
+                gene_set_score: geneSetScore,
+            };
+        });
+
+        if (!Object.keys(genes).length && !Object.keys(geneSets).length) return;
+
+        const factorObj = {
+            factor: factorId,
+            label: meta.label || factorId,
+            labelFromApi: meta.label || factorId,
+            top_gene_sets: topGeneSetIds.join(";"),
+            gene_set_program: "",
+            gene_set_description: "",
+            genes,
+            geneSets,
+            overall_gene_score: meta.gene_score,
+            overall_gene_set_score: meta.gene_set_score,
+            fetched_direction: "Factorization",
+            route_category: "Factorization",
+            source: "bayes_gene_pigean",
+        };
+
+        // Phenotype key = factor id so each factor is one heatmap row / table row.
+        out[factorId] = {
+            genes: phenotypeGenes,
+            factors: [factorObj],
+            allFactors: [factorObj],
+            filterRationale: meta.label ? `Factorization cluster: ${meta.label}` : "",
+            source: "bayes_gene_pigean",
+        };
+    });
+
+    return out;
+}
+
 export {
     DEFAULT_MAX_GENE_SETS,
     DEFAULT_MAX_GENES,
     DEFAULT_MAX_FACTORS,
+    DEFAULT_MAX_GENES_PER_FACTOR,
+    DEFAULT_MAX_GENE_SETS_PER_FACTOR,
     DEFAULT_MIN_GENE_SET_BETA,
+    DEFAULT_MIN_FACTORIZATION_SCORE,
+    DEFAULT_MAX_GENE_SET_P_VALUE,
     attachCrossingContextGenes,
+    buildFactorDataFromBayesPigean,
     buildFactorDataFromPhenotypePigean,
     buildGenePhenotypeScoreLookup,
     fillMissingFactorWithTrait,
     filterFactorDataToSearchGenes,
     filterSignificantGeneSetRows,
+    isSignificantFactorizationScore,
     isSignificantGeneSetBeta,
+    isSignificantGeneSetPValue,
+    negLog10P,
     pruneFactorsWithoutSearchGeneCrossings,
     scopeGeneRows,
     selectTopFactorIds,

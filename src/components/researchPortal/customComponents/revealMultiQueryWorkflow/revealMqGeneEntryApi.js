@@ -1,13 +1,14 @@
 /**
  * HTTP calls for the genes-first entry point:
- * - Broad Translator bayes_gene/phenotypes (top traits for the gene list)
- * - Per-phenotype cfde bioindex: pigean-gene-phenotype, pigean-gene-set-phenotype
- * - Per (phenotype, gene set) membership: pigean-joined-gene-set
+ * - Broad Translator bayes_gene/pigean (factorization: factors × genes × gene sets)
+ * - Broad Translator bayes_gene/phenotypes (optional ranked traits)
+ * - Legacy per-phenotype cfde bioindex helpers (kept for other tooling / tests)
  *
  * Empty/missing results are normal (phenotype id vocabularies only partially overlap) and never throw.
  */
 
 const BAYES_GENE_BASE_URL = "https://translator.broadinstitute.org/genetics_provider/bayes_gene";
+const DEFAULT_FETCH_CONCURRENCY = 10;
 
 /**
  * Builds a cfde bioindex query URL from the configured pigean-factor template's host/path prefix.
@@ -42,6 +43,42 @@ async function fetchGenePhenotypes(vm, genes, { maxNumberGeneSets = 100 } = {}) 
     const json = await resp.json().catch(() => ({}));
     if (!resp.ok) {
         throw new Error(`bayes_gene/phenotypes failed: ${resp.status} ${vm.hybridSearchErrorMessage(resp.status, json)}`);
+    }
+    return json;
+}
+
+/**
+ * POST bayes_gene/pigean — same payload as factorization.html (`Factorization/store.js`).
+ * Returns factors, gene↔factor loadings, gene-set↔factor loadings, scores, and network_graph.
+ * Default gene-set family is CFDE (`cfde` heartbeat key).
+ */
+const DEFAULT_BAYES_GENE_SETS = "cfde";
+
+async function fetchBayesGenePigean(
+    vm,
+    genes,
+    { geneSets = DEFAULT_BAYES_GENE_SETS, maxNumberPhenotypes = 100, calculateGeneScores = true } = {}
+) {
+    const geneList = Array.isArray(genes) ? genes.filter(Boolean) : [];
+    const resp = await vm.fetchWithTimeout(
+        `${BAYES_GENE_BASE_URL}/pigean`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                genes: geneList,
+                gene_sets: geneSets,
+                max_number_phenotypes: maxNumberPhenotypes,
+                calculate_gene_scores: !!calculateGeneScores,
+            }),
+        },
+        vm.hybridSearchTimeoutMs
+    );
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+        throw new Error(
+            `bayes_gene/pigean failed: ${resp.status} ${vm.hybridSearchErrorMessage(resp.status, json)}`
+        );
     }
     return json;
 }
@@ -183,8 +220,6 @@ async function mapInBatches(items, concurrency, mapper, onProgress) {
     return out;
 }
 
-const DEFAULT_FETCH_CONCURRENCY = 10;
-
 /**
  * Fetches gene + gene-set phenotype scores for each phenotype.
  * Individual GETs are capped at `concurrency` in flight (default 10).
@@ -252,7 +287,9 @@ async function fetchJoinedGeneSetMembersForPairs(
 
 export {
     DEFAULT_FETCH_CONCURRENCY,
+    DEFAULT_BAYES_GENE_SETS,
     cfdeBioQueryUrl,
+    fetchBayesGenePigean,
     fetchGeneAndGeneSetScoresForPhenotypes,
     fetchGenePhenotypes,
     fetchGenePigeanScoresForPhenotype,

@@ -162,6 +162,8 @@ export default {
         showOriginalHypothesisMap: { type: Boolean, default: false },
         /** Optional: scale Gene node size by this numeric metadata key (e.g., "gwas_support"). */
         geneNodeMetricKey: { type: String, default: "" },
+        /** Optional: scale Pathway (gene set) node size by this numeric metadata key (e.g., "gene_set_score"). */
+        geneSetNodeMetricKey: { type: String, default: "" },
         /** When true, color Gene nodes by metadata.gwas_support tiers (data-tab network view). */
         geneColorByGwasSupport: { type: Boolean, default: false },
         /** Optional: map edge distance from this numeric metadata key (e.g., "functional_support"). */
@@ -672,17 +674,27 @@ export default {
         },
         buildVisNodes(nodes) {
             const geneToGroup = this.geneNameToGroup;
-            const metricKey = String(this.geneNodeMetricKey || "").trim();
+            const geneMetricKey = String(this.geneNodeMetricKey || "").trim();
+            const geneSetMetricKey = String(this.geneSetNodeMetricKey || "").trim();
             const geneMetricValues = [];
-            if (metricKey) {
+            const geneSetMetricValues = [];
+            if (geneMetricKey || geneSetMetricKey) {
                 (nodes || []).forEach((n) => {
-                    if (!n || n.type !== "Gene") return;
-                    const v = this.readNumericMetric(n.metadata || {}, metricKey);
-                    if (v != null) geneMetricValues.push(v);
+                    if (!n) return;
+                    if (geneMetricKey && n.type === "Gene") {
+                        const v = this.readNumericMetric(n.metadata || {}, geneMetricKey);
+                        if (v != null) geneMetricValues.push(Math.abs(v));
+                    }
+                    if (geneSetMetricKey && n.type === "Pathway") {
+                        const v = this.readNumericMetric(n.metadata || {}, geneSetMetricKey);
+                        if (v != null) geneSetMetricValues.push(Math.abs(v));
+                    }
                 });
             }
             const geneMetricMin = geneMetricValues.length ? Math.min(...geneMetricValues) : null;
             const geneMetricMax = geneMetricValues.length ? Math.max(...geneMetricValues) : null;
+            const geneSetMetricMin = geneSetMetricValues.length ? Math.min(...geneSetMetricValues) : null;
+            const geneSetMetricMax = geneSetMetricValues.length ? Math.max(...geneSetMetricValues) : null;
             return (nodes || []).map((n) => {
                 const type = n.type || "Gene";
                 let color = NODE_COLORS[type] || DEFAULT_NODE_COLOR;
@@ -712,9 +724,13 @@ export default {
                     const combinedVal = meta.combined_score ?? meta.c ?? combined;
                     const gwasVal = meta.gwas_support ?? meta.g ?? gwas;
                     const funcVal = meta.functional_support ?? meta.f ?? functional;
+                    const geneScoreVal = meta.gene_score ?? scores.gene_score;
                     parts.push(`Combined: ${combinedVal != null ? Number(combinedVal).toFixed(2) : "—"}`);
                     parts.push(`GWAS support: ${gwasVal != null ? Number(gwasVal).toFixed(2) : "—"}`);
                     parts.push(`Functional support: ${funcVal != null ? Number(funcVal).toFixed(2) : "—"}`);
+                    if (geneScoreVal != null && !Number.isNaN(Number(geneScoreVal))) {
+                        parts.push(`Gene score: ${Number(geneScoreVal).toFixed(3)}`);
+                    }
                     if (this.geneColorByGwasSupport) {
                         color = DATA_TAB_GENE_COLOR.background;
                         geneBorder = DATA_TAB_GENE_COLOR.border;
@@ -722,6 +738,19 @@ export default {
                         const group = geneToGroup[geneName];
                         color = colorForGeneRole(group);
                         if (biolinkColor) color = biolinkColor;
+                    }
+                }
+                if (type === "Pathway") {
+                    const gsScore = meta.gene_set_score;
+                    const pVal = meta.p_value;
+                    if (pVal != null && !Number.isNaN(Number(pVal))) {
+                        parts.push(`P-value: ${Number(pVal).toExponential(2)}`);
+                    }
+                    if (gsScore != null && !Number.isNaN(Number(gsScore))) {
+                        parts.push(`-log10(p): ${Number(gsScore).toFixed(2)}`);
+                    }
+                    if (meta.factor_value != null && !Number.isNaN(Number(meta.factor_value))) {
+                        parts.push(`Overall factor value: ${Number(meta.factor_value).toFixed(3)}`);
                     }
                 }
                 if (biolinkClass) {
@@ -755,6 +784,29 @@ export default {
                         : rawLabel.length > 12
                           ? `${rawLabel.slice(0, 10)}…`
                           : rawLabel;
+                let size = 20;
+                if (type === "Gene") {
+                    if (!geneMetricKey) size = 16;
+                    else {
+                        const v = this.readNumericMetric(meta, geneMetricKey);
+                        size = this.scaleLinear(
+                            v != null ? Math.abs(v) : null,
+                            geneMetricMin,
+                            geneMetricMax,
+                            12,
+                            30
+                        );
+                    }
+                } else if (type === "Pathway" && geneSetMetricKey) {
+                    const v = this.readNumericMetric(meta, geneSetMetricKey);
+                    size = this.scaleLinear(
+                        v != null ? Math.abs(v) : null,
+                        geneSetMetricMin,
+                        geneSetMetricMax,
+                        12,
+                        28
+                    );
+                }
                 return {
                     id: n.id,
                     label,
@@ -768,14 +820,7 @@ export default {
                         color: "#333",
                     },
                     borderWidth: meta.biolink_unmapped ? 3 : 1.5,
-                    size:
-                        type === "Gene"
-                            ? (() => {
-                                if (!metricKey) return 16;
-                                const v = this.readNumericMetric(meta, metricKey);
-                                return this.scaleLinear(v, geneMetricMin, geneMetricMax, 12, 30);
-                            })()
-                            : 20,
+                    size,
                 };
             });
         },
@@ -791,7 +836,7 @@ export default {
             if (distanceMetricKey) {
                 (edges || []).forEach((e) => {
                     const v = this.readNumericMetric(e.metadata || {}, distanceMetricKey);
-                    if (v != null) edgeMetricValues.push(v);
+                    if (v != null) edgeMetricValues.push(Math.abs(v));
                 });
             }
             const edgeMetricMin = edgeMetricValues.length ? Math.min(...edgeMetricValues) : null;
@@ -840,8 +885,14 @@ export default {
                 if (distanceMetricKey) {
                     const rawDistanceMetric = this.readNumericMetric(e.metadata || {}, distanceMetricKey);
                     if (rawDistanceMetric != null) {
-                        // Higher functional support -> shorter spring length.
-                        edge.length = this.scaleLinear(rawDistanceMetric, edgeMetricMin, edgeMetricMax, 210, 80);
+                        // Higher metric (e.g. Overall factor value / functional support) -> shorter spring.
+                        edge.length = this.scaleLinear(
+                            Math.abs(rawDistanceMetric),
+                            edgeMetricMin,
+                            edgeMetricMax,
+                            210,
+                            80
+                        );
                     }
                 }
                 return edge;

@@ -3,6 +3,8 @@
  * row-id networks, hypothesis-in-KG flow diagrams, gene score lookup).
  */
 
+import { buildFactorConnectivityNetwork as buildFactorConnectivityNetworkFromData } from "../factorRevealDataNetwork.js";
+
 function factorLabelsForPhenotypeGene(factorData, phenotype, geneSymbol) {
     const pData = factorData && factorData[phenotype];
     const out = [];
@@ -37,139 +39,19 @@ function buildFactorConnectivityNetwork(vm, item) {
         allFactors.find((x) => String(x.factor) === factor);
     if (!factorItem) return { nodes: [], edges: [] };
 
-    const nodes = [];
-    const edges = [];
-    const nodeSeen = new Set();
-    const edgeSeen = new Set();
-    const addNode = (n) => {
-        if (!n || !n.id || nodeSeen.has(n.id)) return;
-        nodeSeen.add(n.id);
-        nodes.push(n);
-    };
-    const addEdge = (e) => {
-        if (!e || !e.source || !e.target) return;
-        const id = `${e.source}|${e.predicate || e.label || ""}|${e.target}`;
-        if (edgeSeen.has(id)) return;
-        edgeSeen.add(id);
-        edges.push(e);
-    };
+    const isGeneEntry =
+        !!(vm.isGeneEntryMode) ||
+        String(factorItem.source || pData.source || "") === "bayes_gene_pigean";
 
-    const phenotypeNodeId = `pheno:${phenotype}`;
-    const factorNodeId = `factor:${phenotype}|${factor}`;
-    const factorLabel =
-        factorItem.label != null && String(factorItem.label).trim() !== ""
-            ? String(factorItem.label).trim()
-            : (item.factorLabel != null && String(item.factorLabel).trim() !== ""
-                ? String(item.factorLabel).trim()
-                : factor);
-
-    addNode({ id: phenotypeNodeId, label: vm.getPhenotypeDisplay(phenotype), type: "Phenotype" });
-    addNode({
-        id: factorNodeId,
-        label: vm.getFactorClusterDisplayString(factorLabel || factor),
-        type: "Factor",
+    return buildFactorConnectivityNetworkFromData({
+        phenotype,
+        factorObj: factorItem,
+        factorData: vm.factorData || {},
+        phenotypeDisplay: (id) =>
+            typeof vm.getPhenotypeDisplay === "function" ? vm.getPhenotypeDisplay(id) : id,
+        linkGenesToGeneSets: !isGeneEntry,
+        includePhenotypeNode: !isGeneEntry,
     });
-    addEdge({ source: phenotypeNodeId, target: factorNodeId, predicate: "associated_with" });
-
-    const topGeneSets = (typeof factorItem.top_gene_sets === "string" && factorItem.top_gene_sets)
-        ? factorItem.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
-        : [];
-    const topPrograms = (typeof factorItem.gene_set_program === "string" && factorItem.gene_set_program)
-        ? factorItem.gene_set_program.split("|").map((s) => s.trim()).filter(Boolean)
-        : [];
-    const geneSetNodeByName = {};
-    const allGeneSetNames = new Set(topGeneSets);
-    Object.keys(factorItem.genes || {}).forEach((geneName) => {
-        const rel = factorItem.genes[geneName] || {};
-        (rel.geneSetIds || []).forEach((gs) => {
-            if (gs) allGeneSetNames.add(String(gs).trim());
-        });
-    });
-    Object.keys(factorItem.geneSets || {}).forEach((gs) => {
-        if (gs) allGeneSetNames.add(String(gs).trim());
-    });
-    [...allGeneSetNames].forEach((gs, idx) => {
-        const gsNodeId = `gs:${phenotype}|${factor}|${gs}`;
-        geneSetNodeByName[gs] = gsNodeId;
-        addNode({
-            id: gsNodeId,
-            label: gs,
-            type: "Pathway",
-            metadata: { program: topPrograms[idx] || "" },
-        });
-        addEdge({ source: factorNodeId, target: gsNodeId, predicate: "linked_to_pathway" });
-    });
-
-    const factorGenes = factorItem.genes || {};
-    const globalGenes = pData.genes || {};
-    const factorGeneSets = factorItem.geneSets || {};
-    const fallbackGs = topGeneSets.length ? topGeneSets[0] : "";
-    Object.keys(factorGenes).forEach((geneName) => {
-        const gene = String(geneName || "").trim();
-        if (!gene) return;
-        const geneNodeId = `gene:${gene}`;
-        const stats = globalGenes[gene] || {};
-        const gwas = stats.gwasSupport != null && !isNaN(Number(stats.gwasSupport)) ? Number(stats.gwasSupport) : null;
-        const functional =
-            stats.geneSetSupport != null && !isNaN(Number(stats.geneSetSupport))
-                ? Number(stats.geneSetSupport)
-                : null;
-        const combined = stats.combined != null && !isNaN(Number(stats.combined)) ? Number(stats.combined) : null;
-        addNode({
-            id: geneNodeId,
-            label: gene,
-            type: "Gene",
-            metadata: {
-                gwas_support: gwas,
-                functional_support: functional,
-                combined_score: combined,
-            },
-        });
-
-        let linked = 0;
-        const explicitGeneSetIds = Array.isArray(factorGenes[gene] && factorGenes[gene].geneSetIds)
-            ? factorGenes[gene].geneSetIds.map((x) => String(x || "").trim()).filter(Boolean)
-            : [];
-        const connectedSets = explicitGeneSetIds.length
-            ? explicitGeneSetIds
-            : Object.keys(factorGeneSets).filter((gsName) => {
-                const members = factorGeneSets[gsName] && Array.isArray(factorGeneSets[gsName].genes)
-                    ? factorGeneSets[gsName].genes
-                    : [];
-                return members.includes(gene);
-            });
-        connectedSets.forEach((gsName) => {
-            const gsNodeId = geneSetNodeByName[gsName];
-            if (!gsNodeId) return;
-            linked += 1;
-            addEdge({
-                source: geneNodeId,
-                target: gsNodeId,
-                predicate: "contributes_to_pathway",
-                metadata: { functional_support: functional },
-            });
-        });
-        if (!linked) {
-            if (fallbackGs && geneSetNodeByName[fallbackGs]) {
-                addEdge({
-                    source: geneNodeId,
-                    target: geneSetNodeByName[fallbackGs],
-                    predicate: "contributes_to_pathway",
-                    metadata: { functional_support: functional, linkage_fallback: true },
-                    dashes: true,
-                });
-            } else {
-                addEdge({
-                    source: geneNodeId,
-                    target: factorNodeId,
-                    predicate: "associated_with_cluster",
-                    metadata: { functional_support: functional, no_pathway_membership: true },
-                    dashes: true,
-                });
-            }
-        }
-    });
-    return { nodes, edges };
 }
 
 /**
