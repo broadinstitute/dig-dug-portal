@@ -87,6 +87,61 @@ describe("factorRevealDataNetwork", () => {
         expect(net.edges.some((e) => e.predicate === "associated_with")).toBe(false);
     });
 
+    it("honors includeGeneSets / includeGenes / genesInSearchOnly filters", () => {
+        const factorObj = makeFactorObj({
+            geneSets: { GS1: { factor_value: 0.8 } },
+            genes: {
+                APOE: { includedFromRequest: true, gene_score: 0.4, factor_value: 0.5 },
+                LDLR: { includedFromRequest: false, gene_score: 0.2, factor_value: 0.3 },
+            },
+        });
+        const base = {
+            phenotype: "PHENO1",
+            factorObj,
+            factorData: makeFactorData(),
+            phenotypeDisplay: () => "LDL",
+            linkGenesToGeneSets: false,
+            includePhenotypeNode: false,
+        };
+        const noGs = buildFactorConnectivityNetwork({ ...base, includeGeneSets: false });
+        expect(noGs.nodes.some((n) => n.type === "Pathway")).toBe(false);
+        expect(noGs.nodes.some((n) => n.type === "Gene")).toBe(true);
+
+        const noGenes = buildFactorConnectivityNetwork({ ...base, includeGenes: false });
+        expect(noGenes.nodes.some((n) => n.type === "Gene")).toBe(false);
+        expect(noGenes.nodes.some((n) => n.type === "Pathway")).toBe(true);
+
+        const searchOnly = buildFactorConnectivityNetwork({
+            ...base,
+            genesInSearchOnly: true,
+        });
+        const genes = searchOnly.nodes.filter((n) => n.type === "Gene").map((n) => n.label);
+        expect(genes).toEqual(["APOE"]);
+    });
+
+    it("honors allowedGeneSets / allowedGenes allow-lists", () => {
+        const factorObj = makeFactorObj({
+            top_gene_sets: "GS1;GS2",
+            geneSets: { GS1: {}, GS2: {} },
+            genes: {
+                APOE: { gene_score: 0.4 },
+                LDLR: { gene_score: 0.2 },
+            },
+        });
+        const net = buildFactorConnectivityNetwork({
+            phenotype: "PHENO1",
+            factorObj,
+            factorData: makeFactorData(),
+            phenotypeDisplay: () => "LDL",
+            linkGenesToGeneSets: false,
+            includePhenotypeNode: false,
+            allowedGeneSets: new Set(["GS1"]),
+            allowedGenes: new Set(["LDLR"]),
+        });
+        expect(net.nodes.filter((n) => n.type === "Pathway").map((n) => n.label)).toEqual(["GS1"]);
+        expect(net.nodes.filter((n) => n.type === "Gene").map((n) => n.label)).toEqual(["LDLR"]);
+    });
+
     it("merges graphs across pairs without duplicate gene nodes", () => {
         const pairs = [
             {

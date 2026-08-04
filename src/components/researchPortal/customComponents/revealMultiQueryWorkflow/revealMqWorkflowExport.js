@@ -1,7 +1,11 @@
 import userUtils from "@/utils/userUtils";
 
 const REVEAL_MQ_WORKFLOW_EXPORT_KIND = "reveal-mq-workflow-export";
-const REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION = 5;
+const REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION = 6;
+
+/** URL / entry mode: genes-first (`?genes=`) vs text query (`?query=`). */
+const SEARCH_PATH_GENES = "genes";
+const SEARCH_PATH_QUERY = "query";
 
 function cloneJson(value, fallback) {
     try {
@@ -28,9 +32,53 @@ function slugFromQuery(query) {
         .slice(0, 48);
 }
 
-function defaultWorkflowExportFilename(userQuery) {
+function geneEntryInputGenes(vmOrWorkflow) {
+    const ge = vmOrWorkflow && vmOrWorkflow.geneEntry;
+    if (!ge || !Array.isArray(ge.inputGenes)) return [];
+    return ge.inputGenes.map((g) => String(g || "").trim()).filter(Boolean);
+}
+
+function resolveSearchPath(vmOrWorkflow) {
+    const explicit = vmOrWorkflow && vmOrWorkflow.searchPath;
+    if (explicit === SEARCH_PATH_GENES || explicit === SEARCH_PATH_QUERY) return explicit;
+    if (geneEntryInputGenes(vmOrWorkflow).length) return SEARCH_PATH_GENES;
+    return SEARCH_PATH_QUERY;
+}
+
+function collectGeneEntryForExport(vm) {
+    const genes = geneEntryInputGenes(vm);
+    if (!genes.length) return null;
+    const ge = vm.geneEntry || {};
+    return {
+        inputGenes: cloneJson(genes, []),
+        researchIntention: String(ge.researchIntention || ""),
+        status: ge.status != null ? String(ge.status) : "ready",
+    };
+}
+
+function emptyGeneEntryImportState() {
+    return {
+        status: "idle",
+        inputGenes: [],
+        errors: { phenotypes: null, perPhenotype: {}, pigean: null },
+        phenotypesResponse: null,
+        pigeanResponse: null,
+        topTraits: [],
+        progress: { message: "", detail: "" },
+        researchIntention: "",
+        offerMainPathFallback: false,
+        failureReason: null,
+    };
+}
+
+function defaultWorkflowExportFilename(userQuery, searchPath, geneEntry) {
     const stamp = new Date().toISOString().slice(0, 10);
-    const slug = slugFromQuery(userQuery) || "workflow";
+    let slug = slugFromQuery(userQuery);
+    if (!slug && searchPath === SEARCH_PATH_GENES) {
+        const genes = geneEntry && Array.isArray(geneEntry.inputGenes) ? geneEntry.inputGenes : [];
+        slug = slugFromQuery(genes.slice(0, 6).join("-")) || "genes";
+    }
+    if (!slug) slug = "workflow";
     return `reveal-mq-workflow-${slug}-${stamp}.json`;
 }
 
@@ -62,6 +110,7 @@ function hasWorkflowResults(workflow) {
 function hasExportableWorkflowState(vm) {
     if (!vm) return false;
     if (String(vm.userQuery || "").trim()) return true;
+    if (geneEntryInputGenes(vm).length) return true;
     if (vm.searchCriteria) return true;
     if ((vm.multiQueryRoutes || []).length) return true;
     if ((vm.steps || []).some((s) => s && s.id && s.type !== "error")) return true;
@@ -85,8 +134,12 @@ function resolvePendingStepGateForExport(vm) {
  * @param {object} vm - multiQueriesReveal component instance
  */
 function collectMultiQueryRevealWorkflowState(vm) {
+    const searchPath = resolveSearchPath(vm);
+    const geneEntry = collectGeneEntryForExport(vm);
     return {
         userQuery: String(vm.userQuery || ""),
+        searchPath,
+        geneEntry,
         searchMode: vm.searchMode || "auto",
         searchCriteria: cloneJson(vm.searchCriteria, null),
         searchCriteriaEditRows: cloneJson(vm.searchCriteriaEditRows, []),
@@ -146,9 +199,15 @@ function buildMultiQueryRevealExportBundle(vm, { label, filename } = {}) {
         return null;
     }
     const workflow = collectMultiQueryRevealWorkflowState(vm);
-    const exportLabel =
-        String(label !== undefined ? label : workflow.userQuery || "").trim() ||
-        "REVEAL workflow";
+    const genesLabel =
+        workflow.searchPath === SEARCH_PATH_GENES && workflow.geneEntry
+            ? `Genes: ${(workflow.geneEntry.inputGenes || []).slice(0, 8).join(", ")}`
+            : "";
+    const preferred =
+        label !== undefined && String(label).trim() !== ""
+            ? String(label).trim()
+            : String(workflow.userQuery || "").trim() || genesLabel;
+    const exportLabel = preferred || "REVEAL workflow";
     return {
         bundle: {
             kind: REVEAL_MQ_WORKFLOW_EXPORT_KIND,
@@ -158,7 +217,12 @@ function buildMultiQueryRevealExportBundle(vm, { label, filename } = {}) {
             workflow,
         },
         filename: userUtils.normalizeExportFilename(
-            filename || defaultWorkflowExportFilename(workflow.userQuery)
+            filename ||
+                defaultWorkflowExportFilename(
+                    workflow.userQuery,
+                    workflow.searchPath,
+                    workflow.geneEntry
+                )
         ),
     };
 }
@@ -177,6 +241,8 @@ function workflowPayloadFromImport(record) {
         record.userQuery ||
         record.searchCriteria ||
         record.factorData ||
+        record.searchPath === SEARCH_PATH_GENES ||
+        geneEntryInputGenes(record).length ||
         (Array.isArray(record.steps) && record.steps.length)
     ) {
         return record;
@@ -187,6 +253,7 @@ function workflowPayloadFromImport(record) {
 function hasImportableWorkflowContent(workflow) {
     if (!workflow || typeof workflow !== "object") return false;
     if (String(workflow.userQuery || "").trim()) return true;
+    if (geneEntryInputGenes(workflow).length) return true;
     if (workflow.searchCriteria) return true;
     if ((workflow.multiQueryRoutes || []).length) return true;
     if (workflow.factorData && Object.keys(workflow.factorData).length) return true;
@@ -219,10 +286,14 @@ function parseMultiQueryRevealWorkflowImportFile(file) {
                     );
                     return;
                 }
+                const genesLabel =
+                    resolveSearchPath(workflow) === SEARCH_PATH_GENES
+                        ? `Genes: ${geneEntryInputGenes(workflow).slice(0, 8).join(", ")}`
+                        : "";
                 resolve({
                     workflow,
                     label:
-                        String(parsed?.label || workflow.userQuery || "").trim() ||
+                        String(parsed?.label || workflow.userQuery || genesLabel || "").trim() ||
                         "Imported workflow",
                 });
             } catch (e) {
@@ -308,6 +379,7 @@ async function exportMultiQueryRevealWorkflow(vm, { label, filename } = {}) {
 
 const WORKFLOW_IMPORT_FIELDS = [
     "userQuery",
+    "searchPath",
     "searchMode",
     "searchCriteria",
     "searchCriteriaEditRows",
@@ -356,6 +428,63 @@ const WORKFLOW_IMPORT_FIELDS = [
     "loadStatus",
 ];
 
+/**
+ * Sync browser URL (`?genes=` / `?query=`) to the imported search path.
+ * @param {object} workflow
+ * @param {(map: object) => void} [setKeyParams]
+ */
+function applySearchPathToUrl(workflow, setKeyParams) {
+    const apply =
+        typeof setKeyParams === "function"
+            ? setKeyParams
+            : (map) => {
+                  try {
+                      const keyParams = require("@/utils/keyParams").default;
+                      if (keyParams && typeof keyParams.set === "function") keyParams.set(map);
+                  } catch (e) {
+                      /* ignore missing keyParams in non-browser tests */
+                  }
+              };
+    const path = resolveSearchPath(workflow);
+    if (path === SEARCH_PATH_GENES) {
+        const genes = geneEntryInputGenes(workflow);
+        apply({
+            genes: genes.length ? genes.join(",") : null,
+            query: null,
+            geneEntryFail: null,
+        });
+        return path;
+    }
+    const q = String(workflow.userQuery || "").trim();
+    apply({
+        query: q || null,
+        genes: null,
+        geneEntryFail: null,
+    });
+    return SEARCH_PATH_QUERY;
+}
+
+function restoreGeneEntryFromImport(vm, workflow) {
+    const path = resolveSearchPath(workflow);
+    if (path === SEARCH_PATH_GENES) {
+        const imported = workflow.geneEntry && typeof workflow.geneEntry === "object" ? workflow.geneEntry : {};
+        const genes = geneEntryInputGenes(workflow);
+        assignVmState(vm, "geneEntry", {
+            ...emptyGeneEntryImportState(),
+            ...cloneJson(imported, {}),
+            inputGenes: genes,
+            status: imported.status || (genes.length ? "ready" : "idle"),
+            offerMainPathFallback: false,
+            failureReason: null,
+            progress: { message: "", detail: "" },
+        });
+        assignVmState(vm, "geneEntryProgressDismissed", true);
+        return;
+    }
+    assignVmState(vm, "geneEntry", emptyGeneEntryImportState());
+    assignVmState(vm, "geneEntryProgressDismissed", true);
+}
+
 function restoreImportedStepGate(vm, workflow) {
     const hasData = hasFactorDataLoaded(workflow);
     const hasResults = hasWorkflowResults(workflow);
@@ -400,9 +529,10 @@ function restoreImportedStepGate(vm, workflow) {
 
 /**
  * Apply an imported workflow snapshot onto the component (resume at Terms, Data, or Results).
- * @returns {{ pendingStepGate: string|null, label: string, hasData: boolean, hasResults: boolean }}
+ * Restores `searchPath` / `geneEntry` and updates the page URL (`?genes=` or `?query=`).
+ * @returns {{ pendingStepGate: string|null, label: string, hasData: boolean, hasResults: boolean, searchPath: string }}
  */
-function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "" } = {}) {
+function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "", setKeyParams } = {}) {
     if (vm.stepApprovalGateActive && typeof vm.cancelStepGate === "function") {
         vm.cancelStepGate(false);
     }
@@ -428,6 +558,9 @@ function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "" } = {}) 
     });
 
     assignVmState(vm, "steps", nonErrorWorkflowSteps(cloneJson(workflow.steps, vm.steps || [])));
+    restoreGeneEntryFromImport(vm, workflow);
+    const searchPath = applySearchPathToUrl(workflow, setKeyParams);
+    assignVmState(vm, "searchPath", searchPath);
 
     const hasData = hasFactorDataLoaded(workflow);
     const hasResults = hasWorkflowResults(workflow);
@@ -442,18 +575,27 @@ function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "" } = {}) 
     restoreImportedStepGate(vm, workflow);
 
     const pendingStepGate = workflow.pendingStepGate ? String(workflow.pendingStepGate) : null;
+    const genesLabel =
+        searchPath === SEARCH_PATH_GENES
+            ? `Genes: ${geneEntryInputGenes(workflow).slice(0, 8).join(", ")}`
+            : "";
     return {
         pendingStepGate,
         hasData,
         hasResults,
-        label: String(label || workflow.userQuery || "").trim() || "Imported workflow",
+        searchPath,
+        label:
+            String(label || workflow.userQuery || genesLabel || "").trim() || "Imported workflow",
     };
 }
 
 export {
     REVEAL_MQ_WORKFLOW_EXPORT_KIND,
     REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION,
+    SEARCH_PATH_GENES,
+    SEARCH_PATH_QUERY,
     applyMultiQueryRevealWorkflowImport,
+    applySearchPathToUrl,
     buildMultiQueryRevealExportBundle,
     canExportMultiQueryRevealWorkflow,
     collectMultiQueryRevealWorkflowState,
@@ -466,5 +608,6 @@ export {
     parseMultiQueryRevealWorkflowImport,
     parseMultiQueryRevealWorkflowImportFile,
     resolvePendingStepGateForExport,
+    resolveSearchPath,
     workflowPayloadFromImport,
 };

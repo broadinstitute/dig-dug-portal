@@ -58,12 +58,31 @@ function makeVm(overrides = {}) {
 }
 
 describe("revealMqWorkflowExport", () => {
-    test("canExport allows query-only and full data snapshots", () => {
+    test("canExport allows query-only, genes-only, and full data snapshots", () => {
         expect(canExportMultiQueryRevealWorkflow(makeVm())).toBe(true);
         expect(canExportMultiQueryRevealWorkflow(makeVm({ userQuery: "test", factorData: {} }))).toBe(true);
         expect(
             canExportMultiQueryRevealWorkflow(
-                makeVm({ userQuery: "", searchCriteria: null, factorData: {}, steps: [], multiQueryRoutes: [] })
+                makeVm({
+                    userQuery: "",
+                    searchCriteria: null,
+                    factorData: {},
+                    steps: [],
+                    multiQueryRoutes: [],
+                    geneEntry: { status: "ready", inputGenes: ["APOE"] },
+                })
+            )
+        ).toBe(true);
+        expect(
+            canExportMultiQueryRevealWorkflow(
+                makeVm({
+                    userQuery: "",
+                    searchCriteria: null,
+                    factorData: {},
+                    steps: [],
+                    multiQueryRoutes: [],
+                    geneEntry: { status: "idle", inputGenes: [] },
+                })
             )
         ).toBe(false);
     });
@@ -108,10 +127,13 @@ describe("revealMqWorkflowExport", () => {
         expect(snapshot.hypothesisGenerationMode).toBe("strict");
         expect(snapshot.heatmapSelectedNodes).toHaveLength(1);
         expect(snapshot.heatmapSelectedNodes[0].key).toBe("gene:APOE");
+        expect(snapshot.searchPath).toBe("query");
 
         const built = buildMultiQueryRevealExportBundle(vm);
         expect(built.bundle.kind).toBe(REVEAL_MQ_WORKFLOW_EXPORT_KIND);
         expect(built.bundle.schemaVersion).toBe(REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION);
+        expect(built.bundle.schemaVersion).toBe(6);
+        expect(built.bundle.workflow.searchPath).toBe("query");
         expect(built.bundle.workflow.factorData.pheno1).toBeDefined();
         expect(built.bundle.workflow.mechanisms).toHaveLength(1);
         expect(built.bundle.workflow.heatmapSelectedNodes).toHaveLength(1);
@@ -139,7 +161,7 @@ describe("revealMqWorkflowExport", () => {
         expect(snapshot.selectedNodesExplanations[0].id).toBe("exp-1");
 
         const built = buildMultiQueryRevealExportBundle(vm);
-        expect(built.bundle.schemaVersion).toBe(5);
+        expect(built.bundle.schemaVersion).toBe(6);
         expect(built.bundle.workflow.selectedNodesExplanations).toHaveLength(1);
         expect(built.bundle.workflow.selectedNodesExplanations[0].entry.interpretation).toContain("APOE");
     });
@@ -162,6 +184,12 @@ describe("revealMqWorkflowExport", () => {
             parseMultiQueryRevealWorkflowImport({
                 userQuery: "Only a query",
                 steps: [{ id: "1", title: "Extract" }],
+            })
+        ).toBeTruthy();
+        expect(
+            parseMultiQueryRevealWorkflowImport({
+                searchPath: "genes",
+                geneEntry: { inputGenes: ["APOE"], status: "ready" },
             })
         ).toBeTruthy();
         expect(parseMultiQueryRevealWorkflowImport({})).toBeNull();
@@ -275,5 +303,66 @@ describe("revealMqWorkflowExport", () => {
         expect(vm.showTab).toBe("terms");
         expect(vm.stepApprovalGateStepId).toBe("1");
         expect(vm.importedWorkflowPendingResearchRun).toBe(true);
+    });
+
+    test("export/import genes search path and updates URL params", () => {
+        const urlCalls = [];
+        const vm = makeVm({
+            userQuery: "",
+            geneEntry: {
+                status: "ready",
+                inputGenes: ["APOE", "LDLR", "PCSK9"],
+                researchIntention: "lipid biology",
+            },
+            mechanisms: null,
+            loadComplete: false,
+            revealResultsTabUnlocked: false,
+        });
+        const snapshot = collectMultiQueryRevealWorkflowState(vm);
+        expect(snapshot.searchPath).toBe("genes");
+        expect(snapshot.geneEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
+        expect(snapshot.geneEntry.researchIntention).toBe("lipid biology");
+
+        const built = buildMultiQueryRevealExportBundle(vm);
+        expect(built.bundle.label).toContain("APOE");
+        expect(built.bundle.schemaVersion).toBe(6);
+
+        const target = makeVm({
+            userQuery: "old query",
+            geneEntry: { status: "idle", inputGenes: [] },
+            mechanisms: null,
+            loadComplete: false,
+        });
+        const result = applyMultiQueryRevealWorkflowImport(target, built.bundle.workflow, {
+            setKeyParams: (map) => urlCalls.push(map),
+        });
+        expect(result.searchPath).toBe("genes");
+        expect(target.geneEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
+        expect(target.geneEntry.researchIntention).toBe("lipid biology");
+        expect(urlCalls).toEqual([
+            { genes: "APOE,LDLR,PCSK9", query: null, geneEntryFail: null },
+        ]);
+    });
+
+    test("apply import query path clears genes URL param", () => {
+        const urlCalls = [];
+        const workflow = {
+            userQuery: "TREM2 microglia",
+            searchPath: "query",
+            geneEntry: null,
+            searchCriteriaExtractionGateDone: false,
+            steps: [{ id: "1", title: "Extract" }],
+            pendingStepGate: "1",
+            factorData: {},
+            genesAndFactorValuesLoaded: false,
+        };
+        const vm = makeVm({ geneEntry: { status: "ready", inputGenes: ["APOE"] } });
+        applyMultiQueryRevealWorkflowImport(vm, workflow, {
+            setKeyParams: (map) => urlCalls.push(map),
+        });
+        expect(vm.geneEntry.inputGenes).toEqual([]);
+        expect(urlCalls).toEqual([
+            { query: "TREM2 microglia", genes: null, geneEntryFail: null },
+        ]);
     });
 });

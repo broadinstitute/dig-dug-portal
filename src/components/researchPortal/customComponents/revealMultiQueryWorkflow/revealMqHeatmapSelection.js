@@ -8,6 +8,21 @@ export const HEATMAP_SELECTION_KIND = {
     NETWORK_NODE: "network-node",
 };
 
+/** Genes-entry heatmap ↔ table view filters (does not mutate factorData). */
+export const DEFAULT_HEATMAP_VIEW_FILTERS = {
+    showGeneSets: true,
+    showGenes: true,
+    genesInSearchOnly: false,
+    onlySelected: false,
+};
+
+export function normalizeHeatmapViewFilters(raw) {
+    return {
+        ...DEFAULT_HEATMAP_VIEW_FILTERS,
+        ...(raw && typeof raw === "object" ? raw : {}),
+    };
+}
+
 /** Orange highlight shared by heatmap and data-tab network selection. */
 export const SELECTION_HIGHLIGHT_ORANGE = {
     nodeBackground: "#ff6600",
@@ -223,6 +238,9 @@ export function isHeatmapCellHighlighted(rowMeta, colLabel, colIndex, geneSetCou
 
 function geneSetIdsForRow(row) {
     const top = row && row.top_gene_sets;
+    if (Array.isArray(top)) {
+        return top.map((s) => String(s || "").trim()).filter(Boolean);
+    }
     if (typeof top !== "string" || !top.trim()) return [];
     return top.split(";").map((s) => s.trim()).filter(Boolean);
 }
@@ -230,8 +248,16 @@ function geneSetIdsForRow(row) {
 function rowHasGene(row, gene, factorData) {
     const phenotype = row && row.phenotype;
     const data = factorData && phenotype ? factorData[phenotype] : null;
-    if (!data || !data.genes) return false;
-    return Object.prototype.hasOwnProperty.call(data.genes, gene);
+    if (!data) return false;
+    if (data.genes && Object.prototype.hasOwnProperty.call(data.genes, gene)) return true;
+    // Genes-entry: membership often lives on the factor payload, not phenotype.genes.
+    const factors = [...(data.factors || []), ...(data.allFactors || [])];
+    const factorId = row && row.factor != null ? String(row.factor) : "";
+    return factors.some((f) => {
+        if (!f || !f.genes) return false;
+        if (factorId && String(f.factor) !== factorId) return false;
+        return Object.prototype.hasOwnProperty.call(f.genes, gene);
+    });
 }
 
 /**
@@ -277,6 +303,43 @@ export function filterTableRowsByHeatmapSelection(rows, selectedNodes, factorDat
             !genes.size || Array.from(genes).some((g) => rowHasGene(row, g, factorData));
         return rowOk && gsOk && geneOk;
     });
+}
+
+/**
+ * Mirror heatmap "Only selected" row filtering for the Data table.
+ * Rows/crossings → keep matching rows; column-only selection → keep all rows
+ * (columns are filtered in gene/gene-set subtables separately).
+ * Empty selection → empty table (same as the heatmap).
+ */
+export function filterTableRowsForOnlySelectedView(rows, selectedNodes) {
+    const list = Array.isArray(rows) ? rows : [];
+    const selected = Array.isArray(selectedNodes) ? selectedNodes : [];
+    if (!selected.length) return [];
+
+    const hasRowSel = selected.some(
+        (n) =>
+            n &&
+            (n.kind === HEATMAP_SELECTION_KIND.ROW || n.kind === HEATMAP_SELECTION_KIND.CROSSING)
+    );
+    if (!hasRowSel) return list;
+
+    return list.filter((row) =>
+        isHeatmapRowHighlighted(
+            {
+                phenotype: row.phenotype,
+                factor: row.factor,
+                fetchedDirection:
+                    row.fetched_direction != null && String(row.fetched_direction).trim() !== ""
+                        ? String(row.fetched_direction).trim()
+                        : row.fetchDirection != null && String(row.fetchDirection).trim() !== ""
+                          ? String(row.fetchDirection).trim()
+                          : row.route_category != null
+                            ? String(row.route_category).trim()
+                            : "",
+            },
+            selected
+        )
+    );
 }
 
 export function parseFactorNetworkNodeId(id) {

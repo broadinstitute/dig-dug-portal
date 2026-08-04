@@ -23,6 +23,12 @@ function clusterDisplayLabel(factorObj, fallback = "") {
  *   Membership from bayes_gene/pigean is only a co-loading approximation.
  * @param {boolean} [params.includePhenotypeNode=true] - When false, omit the phenotype
  *   hub (genes-entry uses factor id as phenotype key; the red Phenotype node is noise).
+ * @param {boolean} [params.includeGeneSets=true] - Include pathway / gene-set nodes.
+ * @param {boolean} [params.includeGenes=true] - Include gene nodes.
+ * @param {boolean} [params.genesInSearchOnly=false] - When true, only genes with
+ *   includedFromRequest (search genes).
+ * @param {Set<string>|null} [params.allowedGeneSets=null] - When set, only these gene-set ids.
+ * @param {Set<string>|null} [params.allowedGenes=null] - When set, only these gene symbols.
  */
 export function buildFactorConnectivityNetwork({
     phenotype,
@@ -31,6 +37,11 @@ export function buildFactorConnectivityNetwork({
     phenotypeDisplay,
     linkGenesToGeneSets = true,
     includePhenotypeNode = true,
+    includeGeneSets = true,
+    includeGenes = true,
+    genesInSearchOnly = false,
+    allowedGeneSets = null,
+    allowedGenes = null,
 } = {}) {
     if (!phenotype || !factorObj || factorObj.factor == null) {
         return { nodes: [], edges: [] };
@@ -97,6 +108,8 @@ export function buildFactorConnectivityNetwork({
         if (gs) allGeneSetNames.add(String(gs).trim());
     });
     [...allGeneSetNames].forEach((gs, idx) => {
+        if (!includeGeneSets) return;
+        if (allowedGeneSets && !allowedGeneSets.has(gs)) return;
         const gsNodeId = `gs:${pheno}|${factor}|${gs}`;
         geneSetNodeByName[gs] = gsNodeId;
         const gsMeta = (factorObj.geneSets && factorObj.geneSets[gs]) || {};
@@ -137,11 +150,14 @@ export function buildFactorConnectivityNetwork({
     const factorGeneSets = factorObj.geneSets || {};
     const fallbackGs = topGeneSets.length ? topGeneSets[0] : "";
     Object.keys(factorGenes).forEach((geneName) => {
+        if (!includeGenes) return;
         const gene = String(geneName || "").trim();
         if (!gene) return;
+        const rel = factorGenes[gene] || {};
+        if (genesInSearchOnly && rel.includedFromRequest !== true) return;
+        if (allowedGenes && !allowedGenes.has(gene)) return;
         const geneNodeId = `gene:${gene}`;
         const stats = globalGenes[gene] || {};
-        const rel = factorGenes[gene] || {};
         const gwas =
             stats.gwasSupport != null && !isNaN(Number(stats.gwasSupport))
                 ? Number(stats.gwasSupport)
@@ -257,7 +273,16 @@ export function buildFactorConnectivityNetwork({
 export function buildMergedFactorDataNetwork(
     pairs,
     factorData = {},
-    { phenotypeDisplay, linkGenesToGeneSets = true, includePhenotypeNode = true } = {}
+    {
+        phenotypeDisplay,
+        linkGenesToGeneSets = true,
+        includePhenotypeNode = true,
+        includeGeneSets = true,
+        includeGenes = true,
+        genesInSearchOnly = false,
+        allowedGeneSets = null,
+        allowedGenes = null,
+    } = {}
 ) {
     const merged = { nodes: [], edges: [] };
     const nodeSeen = new Set();
@@ -271,6 +296,11 @@ export function buildMergedFactorDataNetwork(
             phenotypeDisplay,
             linkGenesToGeneSets,
             includePhenotypeNode,
+            includeGeneSets,
+            includeGenes,
+            genesInSearchOnly,
+            allowedGeneSets,
+            allowedGenes,
         });
         (net.nodes || []).forEach((n) => {
             if (!n || !n.id || nodeSeen.has(n.id)) return;

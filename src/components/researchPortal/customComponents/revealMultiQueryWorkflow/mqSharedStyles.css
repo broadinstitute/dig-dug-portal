@@ -272,3 +272,23 @@
     border-color: #f16822;
     color: #fff;
 }
+
+/* Soft-wrap long Factor / gene-set labels at `_` (ZWSP inserted in templates). */
+.reveal-factor-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.reveal-factor-table-wrap .table {
+    table-layout: fixed;
+    width: 100%;
+}
+.reveal-soft-wrap-cell,
+.reveal-soft-wrap-td {
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+    max-width: 100%;
+}
+.reveal-soft-wrap-cell {
+    display: inline-block;
+}

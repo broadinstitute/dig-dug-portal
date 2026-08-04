@@ -122,7 +122,7 @@ The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflow
 | **Workflow** | `steps`, `showTab`, `workflowRunId`, gate flags |
 | **Results** | `mechanisms`, `mechanismDiagnosticAssessment` |
 
-**Export / Import:** `revealMqWorkflowExport.js` snapshots full session including Results (`kind: reveal-mq-workflow-export`, schema v2).
+**Export / Import:** `revealMqWorkflowExport.js` snapshots full session including Results (`kind: reveal-mq-workflow-export`, schema v6). Includes `searchPath` (`genes` | `query`) and slim `geneEntry` (`inputGenes`, `researchIntention`, `status`). On import, restores genes-first vs text-query mode and syncs the URL (`?genes=` / `?query=`).
 
 ## Workflow steps
 

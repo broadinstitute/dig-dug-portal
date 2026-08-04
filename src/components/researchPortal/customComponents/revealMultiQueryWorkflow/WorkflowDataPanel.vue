@@ -140,8 +140,11 @@
                                 <div class="mb-4" style="margin-top:20px;">
                                     <slot name="data-viz" />
                                 </div>
-                                    <!-- Phenotype path: Selected Rationale section above table -->
-                                    <div v-if="isPhenotypePath && phenotypeRationaleList.length" class="mb-3">
+                                    <!-- Phenotype path: Selected Rationale (text-query only; hidden on genes-first) -->
+                                    <div
+                                        v-if="isPhenotypePath && !isGeneEntryMode && phenotypeRationaleList.length"
+                                        class="mb-3"
+                                    >
                                         <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
                                         <ul class="list-unstyled small text-muted mb-0">
                                             <li v-for="item in phenotypeRationaleList" :key="item.phenotype" class="mb-2">
@@ -159,7 +162,7 @@
                                             Raw data
                                         </button>
                                     </div>
-                                    <div>
+                                    <div class="reveal-factor-table-wrap">
                                         <!-- Phenotype path: custom table, no rationale column (text-query only) -->
                                         <b-table-simple v-if="isPhenotypePath && !isGeneEntryMode" small striped hover class="mb-0">
                                             <thead variant="light">
@@ -228,15 +231,12 @@
                                                                     @open-popup="$emit('open-factor-connectivity', row)"
                                                                 />
                                                             </div>
-                                                            <div v-if="helpers.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                                <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                                <!--
-                                                                <div v-for="gs in helpers.getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
-                                                                    <span>{{ gs.geneset }}</span>
-                                                                    <span>[{{ gs.program }}]</span>
-                                                                    <a role="button" v-if="gs.program === 'gtex'" @click="getProvenance(gs.geneset, gs.program)">info</a>
-                                                                </div>
-                                                                -->
+                                                            <div
+                                                                v-if="showGeneSetSubtable && helpers.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction).length"
+                                                                class="py-2 px-3"
+                                                                style="display:flex; flex:1; flex-direction: column;"
+                                                            >
+                                                                <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
                                                                 <b-table
                                                                     striped
                                                                     hover
@@ -244,21 +244,24 @@
                                                                     responsive="sm"
                                                                     head-variant="light"
                                                                     :items="helpers.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction)"
-                                                                    :fields="[
-                                                                        { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                        { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                        { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                                    ]"
+                                                                    :fields="geneSetSubtableFields"
+                                                                    :per-page="subtablePerPage"
+                                                                    :current-page="helpers.getGeneSetSubtableCurrentPage(row)"
                                                                 >
                                                                     <template #cell(geneset)="gsRow">
                                                                         <a
+                                                                            v-if="!isGeneEntryMode"
                                                                             :href="helpers.cfdeExploreAssociationHref(row.phenotype, gsRow.item.geneset, gsRow.item.program)"
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
-                                                                            class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                            class="cfde-explore-geneset-link reveal-soft-wrap-cell"
                                                                             :title="gsRow.item.geneset"
-                                                                            style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                        >{{ gsRow.item.geneset }}</a>
+                                                                        >{{ softWrapAtUnderscore(gsRow.item.geneset) }}</a>
+                                                                        <span
+                                                                            v-else
+                                                                            class="reveal-soft-wrap-cell"
+                                                                            :title="gsRow.item.geneset"
+                                                                        >{{ softWrapAtUnderscore(gsRow.item.geneset) }}</span>
                                                                     </template>
                                                                     <template #cell(actions)="gsRow">
                                                                         <button
@@ -271,10 +274,6 @@
                                                                     </template>  
                                                                     <template #row-details="gsRow">
                                                                         <div style="padding: 10px;">
-                                                                            <!--
-                                                                            <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
-                                                                            <pre>{{ geneSetSources[gsRow.item.geneset] }}</pre>
-                                                                            -->
                                                                             <div v-if="geneSetSources[gsRow.item.geneset]">
                                                                                 <b-card>
                                                                                     <a :href="geneSetSources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ geneSetSources[gsRow.item.geneset].geneSet }}</a>
@@ -299,10 +298,18 @@
                                                                         </div>
                                                                     </template>  
                                                                 </b-table>
+                                                                <b-pagination
+                                                                    v-if="helpers.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction).length > subtablePerPage"
+                                                                    :value="subtableCurrentPages[helpers.getRowKey(row) + '|gs']"
+                                                                    @input="$emit('update:subtable-page', { rowKey: helpers.getRowKey(row) + '|gs', page: $event })"
+                                                                    class="pagination-sm justify-content-center mt-2"
+                                                                    :total-rows="helpers.getGenesetForFactor(row.phenotype, row.factor, row.fetched_direction).length"
+                                                                    :per-page="subtablePerPage"
+                                                                />
                                                             </div>
-                                                            <div class="subtable-container py-2 px-3" style="flex:1">
+                                                            <div v-if="showGeneSubtable" class="subtable-container py-2 px-3" style="flex:1">
                                                                 <div v-if="loadingGenesForFactor[helpers.getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                                <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                 <b-table
                                                                     v-if="!loadingGenesForFactor[helpers.getRowKey(row)]"
                                                                     striped
@@ -311,19 +318,18 @@
                                                                     responsive="sm"
                                                                     head-variant="light"
                                                                     :items="helpers.getGenesForFactor(row.phenotype, row.factor, row.fetched_direction)"
-                                                                    :fields="[
-                                                                        { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                        { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                        { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                        { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                                    ]"
+                                                                    :fields="geneSubtableFields"
                                                                     :per-page="subtablePerPage"
                                                                     :current-page="helpers.getSubtableCurrentPage(row)"
                                                                 >
                                                                     <template #cell(gene)="gRow">
-                                                                        <span :style="emphasizeSearchContextGenes && gRow.item.userRequested === 'Yes' ? { fontWeight: 700 } : { fontWeight: 400 }">
+                                                                        <span :style="emphasizeSearchContextGenes && (gRow.item.inSearch || gRow.item.userRequested === 'Yes') ? { fontWeight: 700 } : { fontWeight: 400 }">
                                                                             {{ gRow.item.gene }}
                                                                         </span>
+                                                                    </template>
+                                                                    <template #cell(inSearch)="gRow">
+                                                                        <span v-if="gRow.item.inSearch" class="text-success" aria-label="In search">✓</span>
+                                                                        <span v-else class="text-muted">—</span>
                                                                     </template>
                                                                 </b-table>
                                                                 <b-pagination
@@ -362,10 +368,10 @@
                                                 </div>
                                             </template>
                                             <template #cell(factor)="row">
-                                                {{ helpers.getFactorClusterDisplay(row.item) }}
+                                                <span class="reveal-soft-wrap-cell">{{ softWrapAtUnderscore(helpers.getFactorClusterDisplay(row.item)) }}</span>
                                             </template>
                                             <template #cell(phenotype)="row">
-                                                {{ helpers.getPhenotypeDisplay(row.item.phenotype) }}
+                                                <span class="reveal-soft-wrap-cell">{{ softWrapAtUnderscore(helpers.getPhenotypeDisplay(row.item.phenotype)) }}</span>
                                             </template>
                                             <template #cell(fetchDirection)="row">
                                                 {{ helpers.getFetchDirectionDisplay(row.item) }}
@@ -406,15 +412,12 @@
                                                             @open-popup="$emit('open-factor-connectivity', row.item)"
                                                         />
                                                     </div>
-                                                    <div v-if="helpers.getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)" class="py-2 px-3" style="display:flex; flex:1; flex-direction: column;">
-                                                        <div class="small text-muted mb-2">Gene sets in cluster</div>
-                                                        <!--
-                                                        <div v-for="gs in helpers.getGenesetForFactor(row.phenotype, row.factor)" class="small" style="display: flex; gap: 5px">
-                                                            <span>{{ gs.geneset }}</span>
-                                                            <span>[{{ gs.program }}]</span>
-                                                            <a role="button" v-if="gs.program === 'gtex'" @click="getProvenance(gs.geneset, gs.program)">info</a>
-                                                        </div>
-                                                        -->
+                                                    <div
+                                                        v-if="showGeneSetSubtable && helpers.getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length"
+                                                        class="py-2 px-3"
+                                                        style="display:flex; flex:1; flex-direction: column;"
+                                                    >
+                                                        <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
                                                         <b-table
                                                             striped
                                                             hover
@@ -422,21 +425,24 @@
                                                             responsive="sm"
                                                             head-variant="light"
                                                             :items="helpers.getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
-                                                            :fields="[
-                                                                { key: 'geneset', label: 'Gene Set', thClass: 'text-nowrap'},
-                                                                { key: 'program', label: 'Program', thClass: 'text-nowrap'},
-                                                                { key: 'actions', label: 'Source Data', thClass: 'text-nowrap'}
-                                                            ]"
+                                                            :fields="geneSetSubtableFields"
+                                                            :per-page="subtablePerPage"
+                                                            :current-page="helpers.getGeneSetSubtableCurrentPage(row.item)"
                                                         >
                                                             <template #cell(geneset)="gsRow">
                                                                 <a
+                                                                    v-if="!isGeneEntryMode"
                                                                     :href="helpers.cfdeExploreAssociationHref(row.item.phenotype, gsRow.item.geneset, gsRow.item.program)"
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    class="cfde-explore-geneset-link truncate-cell d-inline-block"
+                                                                    class="cfde-explore-geneset-link reveal-soft-wrap-cell"
                                                                     :title="gsRow.item.geneset"
-                                                                    style="max-width:350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                                                >{{ gsRow.item.geneset }}</a>
+                                                                >{{ softWrapAtUnderscore(gsRow.item.geneset) }}</a>
+                                                                <span
+                                                                    v-else
+                                                                    class="reveal-soft-wrap-cell"
+                                                                    :title="gsRow.item.geneset"
+                                                                >{{ softWrapAtUnderscore(gsRow.item.geneset) }}</span>
                                                             </template>
                                                             <template #cell(actions)="gsRow">
                                                                 <button
@@ -449,10 +455,6 @@
                                                             </template>  
                                                             <template #row-details="gsRow">
                                                                 <div style="padding: 10px;">
-                                                                    <!--
-                                                                    <a role="button" @click="getProvenance(gsRow.item.geneset, gsRow.item.program)">info</a>
-                                                                    <pre>{{ geneSetSources[gsRow.item.geneset] }}</pre>
-                                                                    -->
                                                                     <div v-if="geneSetSources[gsRow.item.geneset]">
                                                                         <b-card>
                                                                             <a :href="geneSetSources[gsRow.item.geneset].geneSetUrl" target="_blank">{{ geneSetSources[gsRow.item.geneset].geneSet }}</a>
@@ -477,9 +479,17 @@
                                                                 </div>
                                                             </template>  
                                                         </b-table>
+                                                        <b-pagination
+                                                            v-if="helpers.getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length > subtablePerPage"
+                                                            :value="subtableCurrentPages[helpers.getRowKey(row.item) + '|gs']"
+                                                            @input="$emit('update:subtable-page', { rowKey: helpers.getRowKey(row.item) + '|gs', page: $event })"
+                                                            class="pagination-sm justify-content-center mt-2"
+                                                            :total-rows="helpers.getGenesetForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction).length"
+                                                            :per-page="subtablePerPage"
+                                                        />
                                                     </div>
-                                                    <div class="subtable-container py-2" style="flex:1">
-                                                        <div class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                    <div v-if="showGeneSubtable" class="subtable-container py-2" style="flex:1">
+                                                        <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                         <b-table
                                                             striped
                                                             hover
@@ -487,19 +497,18 @@
                                                             responsive="sm"
                                                             head-variant="light"
                                                             :items="helpers.getGenesForFactor(row.item.phenotype, row.item.factor, row.item.fetched_direction)"
-                                                            :fields="[
-                                                                { key: 'gene', label: 'Gene', thStyle: { width: '100px' } },
-                                                                { key: 'combined', label: 'Combined score', thStyle: { width: '110px' } },
-                                                                { key: 'gwasSupport', label: 'GWAS support', thStyle: { width: '110px' } },
-                                                                { key: 'geneSetSupport', label: 'Functional support', thStyle: { width: '120px' } }
-                                                            ]"
+                                                            :fields="geneSubtableFields"
                                                             :per-page="subtablePerPage"
                                                             :current-page="helpers.getSubtableCurrentPage(row.item)"
                                                         >
                                                             <template #cell(gene)="gRow">
-                                                                <span :style="emphasizeSearchContextGenes && gRow.item.userRequested === 'Yes' ? { fontWeight: 700 } : { fontWeight: 400 }">
+                                                                <span :style="emphasizeSearchContextGenes && (gRow.item.inSearch || gRow.item.userRequested === 'Yes') ? { fontWeight: 700 } : { fontWeight: 400 }">
                                                                     {{ gRow.item.gene }}
                                                                 </span>
+                                                            </template>
+                                                            <template #cell(inSearch)="gRow">
+                                                                <span v-if="gRow.item.inSearch" class="text-success" aria-label="In search">✓</span>
+                                                                <span v-else class="text-muted">—</span>
                                                             </template>
                                                         </b-table>
                                                         <b-pagination
@@ -563,6 +572,16 @@ export default {
         isGeneEntryMode: { type: Boolean, default: false },
         /** Bold genes of interest vs context (genes-first or text-query with GOI). */
         emphasizeSearchContextGenes: { type: Boolean, default: false },
+        /** Genes-entry heatmap ↔ table view filters (view-only). */
+        heatmapViewFilters: {
+            type: Object,
+            default: () => ({
+                showGeneSets: true,
+                showGenes: true,
+                genesInSearchOnly: false,
+                onlySelected: false,
+            }),
+        },
         /** Data-step timeline while retrieving (hybrid + genes-first). */
         revealDataSteps: { type: Array, default: () => [] },
         loadStatus: { type: String, default: "" },
@@ -620,15 +639,124 @@ export default {
             if (this.gateActive && this.gateStepId === "2") return false;
             return !!(this.loadStatus || this.geneEntryLoading);
         },
+        showGeneSetSubtable() {
+            if (!this.isGeneEntryMode) return true;
+            return !!(this.heatmapViewFilters && this.heatmapViewFilters.showGeneSets);
+        },
+        showGeneSubtable() {
+            if (!this.isGeneEntryMode) return true;
+            const vf = this.heatmapViewFilters || {};
+            return !!(vf.showGenes || vf.genesInSearchOnly);
+        },
+        geneSetSubtableFields() {
+            if (this.isGeneEntryMode) {
+                return [
+                    {
+                        key: "geneset",
+                        label: "Gene set",
+                        thStyle: { minWidth: "140px", maxWidth: "360px", width: "45%" },
+                        tdClass: "reveal-soft-wrap-td",
+                    },
+                    {
+                        key: "factor_value_display",
+                        label: "Overall factor value",
+                        thStyle: { width: "140px" },
+                        thClass: "text-center",
+                        tdClass: "text-center",
+                    },
+                    {
+                        key: "p_value_display",
+                        label: "P-value",
+                        thStyle: { width: "110px" },
+                        thClass: "text-center",
+                        tdClass: "text-center",
+                    },
+                ];
+            }
+            return [
+                {
+                    key: "geneset",
+                    label: "Gene Set",
+                    thStyle: { minWidth: "140px", maxWidth: "360px", width: "45%" },
+                    tdClass: "reveal-soft-wrap-td",
+                },
+                { key: "program", label: "Program", thClass: "text-nowrap" },
+                { key: "actions", label: "Source Data", thClass: "text-nowrap" },
+            ];
+        },
+        geneSubtableFields() {
+            if (this.isGeneEntryMode) {
+                return [
+                    { key: "gene", label: "Gene", thStyle: { width: "100px" } },
+                    {
+                        key: "factor_value_display",
+                        label: "Overall factor value",
+                        thStyle: { width: "140px" },
+                        thClass: "text-center",
+                        tdClass: "text-center",
+                    },
+                    {
+                        key: "gene_score_display",
+                        label: "Gene score",
+                        thStyle: { width: "110px" },
+                        thClass: "text-center",
+                        tdClass: "text-center",
+                    },
+                    {
+                        key: "inSearch",
+                        label: "In Search",
+                        thStyle: { width: "90px" },
+                        thClass: "text-center",
+                        tdClass: "text-center",
+                    },
+                ];
+            }
+            return [
+                { key: "gene", label: "Gene", thStyle: { width: "100px" } },
+                {
+                    key: "combined",
+                    label: "Combined score",
+                    thStyle: { width: "110px" },
+                    thClass: "text-center",
+                    tdClass: "text-center",
+                },
+                {
+                    key: "gwasSupport",
+                    label: "GWAS support",
+                    thStyle: { width: "110px" },
+                    thClass: "text-center",
+                    tdClass: "text-center",
+                },
+                {
+                    key: "geneSetSupport",
+                    label: "Functional support",
+                    thStyle: { width: "120px" },
+                    thClass: "text-center",
+                    tdClass: "text-center",
+                },
+            ];
+        },
         mainAssociationTableFields() {
             const included = {
                 key: "included",
                 label: "Included",
                 thStyle: { width: "72px" },
+                thClass: "text-center",
+                tdClass: "text-center",
                 stickyColumn: false,
             };
-            const phenotype = { key: "phenotype", label: "Phenotype", thStyle: { width: "120px" } };
-            const factor = { key: "factor", label: "Factor", thStyle: { width: "160px" } };
+            const phenotype = {
+                key: "phenotype",
+                label: "Phenotype",
+                thStyle: { minWidth: "100px", maxWidth: "220px", width: "18%" },
+                tdClass: "reveal-soft-wrap-td",
+            };
+            const factor = {
+                key: "factor",
+                label: "Factor",
+                thStyle: { minWidth: "120px", maxWidth: "320px", width: "28%" },
+                tdClass: "reveal-soft-wrap-td",
+            };
             const fetchDirection = {
                 key: "fetchDirection",
                 label: "Fetch direction",
@@ -638,6 +766,7 @@ export default {
                 key: "geneSetCount",
                 label: "Number of gene sets",
                 thStyle: { width: "120px" },
+                thClass: "text-center",
                 tdClass: "text-center",
             };
             const geneCount = {
@@ -646,6 +775,7 @@ export default {
                     ? "Number of genes (search:context)"
                     : "Number of genes",
                 thStyle: { width: this.emphasizeSearchContextGenes ? "150px" : "110px" },
+                thClass: "text-center",
                 tdClass: "text-center",
             };
             const rationale = {
@@ -657,9 +787,11 @@ export default {
                 key: "view_genes",
                 label: "Genes and gene sets in cluster",
                 thStyle: { width: "140px" },
+                thClass: "text-center",
+                tdClass: "text-center",
             };
             if (this.isGeneEntryMode) {
-                return [included, factor, phenotype, geneSetCount, geneCount, rationale, viewGenes];
+                return [included, factor, geneSetCount, geneCount, viewGenes];
             }
             return [included, phenotype, fetchDirection, geneSetCount, geneCount, rationale, viewGenes];
         },
@@ -667,6 +799,10 @@ export default {
     methods: {
         toggleFetchProgress() {
             this.fetchProgressExpanded = !this.fetchProgressExpanded;
+        },
+        /** Insert break opportunities after `_` so long ontology IDs wrap cleanly. */
+        softWrapAtUnderscore(text) {
+            return String(text == null ? "" : text).replace(/_/g, "_\u200B");
         },
     },
 };

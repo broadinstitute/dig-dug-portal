@@ -172,6 +172,11 @@ export default {
         selectedNodes: { type: Array, default: () => [] },
         /** Enable click-to-select UX (data-tab graph only). */
         nodeSelectionEnabled: { type: Boolean, default: false },
+        /**
+         * When true (e.g. heatmap "Only selected" view), keep original node/edge colors
+         * instead of painting the whole visible graph orange.
+         */
+        suppressSelectionHighlight: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -304,6 +309,9 @@ export default {
             },
             deep: true,
         },
+        suppressSelectionHighlight() {
+            this.$nextTick(() => this.applySelectionHighlights());
+        },
     },
     mounted() {
         this.render();
@@ -329,6 +337,7 @@ export default {
             if (!this.visNetwork || !this.nodesDataSet || !this.edgesDataSet) return null;
             const selectedNodes = this.pendingSelectionNodes || this.selectedNodes || [];
             const orange = SELECTION_HIGHLIGHT_ORANGE;
+            const highlightOn = !this.suppressSelectionHighlight;
             const nodeIds = this.nodesDataSet.getIds();
             if (!nodeIds || !nodeIds.length) return null;
             const positions = this.visNetwork.getPositions(nodeIds);
@@ -365,7 +374,7 @@ export default {
                     const p1 = project(fromPos);
                     const p2 = project(toPos);
                     const title = e.title || "";
-                    const selected = isNetworkEdgeHighlighted(e, selectedNodes);
+                    const selected = highlightOn && isNetworkEdgeHighlighted(e, selectedNodes);
                     const stroke = selected ? orange.edge : "#999";
                     const strokeWidth = selected ? 3 : 1.5;
                     const strokeOpacity = selected ? 1 : 0.6;
@@ -384,8 +393,7 @@ export default {
                     if (!node || !pos) return "";
                     const p = project(pos);
                     const r = (node.size || 18) * 1.1;
-                    const highlighted = isNetworkNodeHighlighted(id, selectedNodes);
-                    const base = this.baseVisNodeStyles[id] || {};
+                    const highlighted = highlightOn && isNetworkNodeHighlighted(id, selectedNodes);
                     const fill = highlighted
                         ? orange.nodeBackground
                         : node.color && node.color.background
@@ -516,6 +524,41 @@ export default {
         },
         applySelectionHighlights(selectedNodes = this.pendingSelectionNodes || this.selectedNodes) {
             if (!this.nodesDataSet || !this.edgesDataSet || !this.nodeSelectionEnabled) return;
+            // "Only selected" already scopes the graph — keep type/metric colors, not orange paint.
+            if (this.suppressSelectionHighlight) {
+                const nodeUpdates = [];
+                this.nodesDataSet.getIds().forEach((id) => {
+                    const base = this.baseVisNodeStyles[id];
+                    if (!base) return;
+                    nodeUpdates.push({
+                        id,
+                        color: base.color,
+                        borderWidth: base.borderWidth,
+                        font: base.font,
+                    });
+                });
+                if (nodeUpdates.length) this.nodesDataSet.update(nodeUpdates);
+                const edgeUpdates = [];
+                this.edgesDataSet.getIds().forEach((id) => {
+                    const base = this.baseVisEdgeStyles[id];
+                    if (!base) return;
+                    edgeUpdates.push({
+                        id,
+                        color: base.color,
+                        width: base.width,
+                    });
+                });
+                if (edgeUpdates.length) this.edgesDataSet.update(edgeUpdates);
+                if (this.visNetwork) {
+                    try {
+                        this.visNetwork.setSelection({ nodes: [], edges: [] });
+                    } catch (e) {
+                        /* ignore */
+                    }
+                    this.visNetwork.redraw();
+                }
+                return;
+            }
             const orange = SELECTION_HIGHLIGHT_ORANGE;
             const orangeEdgeColor = {
                 color: orange.edge,

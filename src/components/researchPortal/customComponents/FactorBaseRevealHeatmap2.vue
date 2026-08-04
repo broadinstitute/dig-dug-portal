@@ -89,11 +89,82 @@
           :selected-nodes="selectedNodes"
           @remove="onRemoveSelectedNode"
         />
+    <!-- Genes-entry filters shared by heatmap + network -->
+    <div
+      v-if="showFactorValueColumnFilters"
+      class="viz-legend"
+    >
+      <div class="legend-content">
+        <div class="legend-item">
+          <span class="legend-color-item">
+            <span class="legend-color factor-relevance" aria-hidden="true"></span>
+            <span class="legend-color-text">Overall factor value</span>
+          </span>
+        </div>
+        <div
+          class="legend-item fbr-heatmap-legend-filters"
+          role="group"
+          aria-label="Heatmap column filters"
+        >
+          <label class="fbr-heatmap-filter-toggle mb-0">
+            <input
+              type="checkbox"
+              :checked="viewFilters.showGeneSets"
+              @change="onHeatmapViewFilterChange('showGeneSets', $event.target.checked)"
+            />
+            <span>Gene sets</span>
+          </label>
+          <label class="fbr-heatmap-filter-toggle mb-0">
+            <input
+              type="checkbox"
+              :checked="viewFilters.showGenes"
+              @change="onHeatmapViewFilterChange('showGenes', $event.target.checked)"
+            />
+            <span>Genes</span>
+          </label>
+          <label class="fbr-heatmap-filter-toggle mb-0">
+            <input
+              type="checkbox"
+              :checked="viewFilters.genesInSearchOnly"
+              @change="onHeatmapViewFilterChange('genesInSearchOnly', $event.target.checked)"
+            />
+            <span>Genes in search</span>
+          </label>
+          <label class="fbr-heatmap-filter-toggle mb-0">
+            <input
+              type="checkbox"
+              :checked="viewFilters.onlySelected"
+              @change="onHeatmapViewFilterChange('onlySelected', $event.target.checked)"
+            />
+            <span>Only selected</span>
+          </label>
+        </div>
+      </div>
+      <div v-if="dataVizTab === 'heatmap'" class="legend-actions">
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+          @click="downloadHeatmap"
+        >
+          <b-icon icon="download" class="mr-1" aria-hidden="true" />
+          Heatmap
+        </button>
+      </div>
+    </div>
     <div
       v-show="!useFactorBaseRevealData || dataVizTab === 'heatmap'"
       class="fbr-data-viz-heatmap-pane"
     >
-    <div class="viz-legend" v-if="!loading && (useFactorBaseRevealData ? (heatmapDataFromFactorData && heatmapDataFromFactorData.ready) : (heatmapData && heatmapData.genes && heatmapData.genes.length > 0))">
+    <div
+      class="viz-legend"
+      v-if="
+        !loading &&
+        cellColorMode !== 'factorValue' &&
+        (useFactorBaseRevealData
+          ? heatmapDataFromFactorData && heatmapDataFromFactorData.ready
+          : heatmapData && heatmapData.genes && heatmapData.genes.length > 0)
+      "
+    >
       <div class="legend-content">
         <div v-if="showAssociationLegend" class="legend-item">
           <span class="legend-label">Phenotype associations:</span>
@@ -134,14 +205,10 @@
             <span class="legend-color-text">Not Significant (&lt; 1)</span>
           </label>
         </div>
-        <div v-if="cellColorMode === 'factorValue'" class="legend-item">
-          <span class="legend-label">Overall factor value:</span>
-          <span class="legend-color-item">
-            <span class="legend-color factor-relevance"></span>
-            <span class="legend-color-text">Purple shades (stronger = darker)</span>
-          </span>
-        </div>
-        <div v-if="emphasizeSearchContextGenes && heatmapHasSearchContextGeneColumns" class="legend-item mt-1">
+        <div
+          v-if="emphasizeSearchContextGenes && heatmapHasSearchContextGeneColumns"
+          class="legend-item mt-1"
+        >
           <span class="legend-label">Gene columns:</span>
           <span class="legend-color-item">
             <span class="legend-gene-sample legend-gene-sample-search">GENE</span>
@@ -171,6 +238,7 @@
       >
         <template v-if="!heatmapPairCount">No phenotypes or data categories available to plot.</template>
         <template v-else-if="heatmapGroupMode !== 'all' && !selectedHeatmapGroup">Select a {{ heatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.</template>
+        <template v-else-if="cellColorMode === 'factorValue' && viewFilters.onlySelected && !(selectedNodes && selectedNodes.length)">Select rows or columns to show with Only selected.</template>
         <template v-else>No matrix data for this selection.</template>
       </div>
       <div v-else-if="!useFactorBaseRevealData && (!heatmapData || !heatmapData.genes || heatmapData.genes.length === 0)" class="text-center p-3 text-muted">
@@ -202,7 +270,10 @@
         v-else-if="!dataViewNetwork.nodes.length"
         class="text-center p-3 text-muted"
       >
-        No network data for this selection.
+        <template v-if="cellColorMode === 'factorValue' && viewFilters.onlySelected && !(selectedNodes && selectedNodes.length)">
+          Select rows or columns to show with Only selected.
+        </template>
+        <template v-else>No network data for this selection.</template>
       </div>
       <div
         v-else
@@ -224,6 +295,7 @@
           :genes="dataViewNetworkGenes"
           :height="dataViewNetworkHeight"
           :selected-nodes="selectedNodes"
+          :suppress-selection-highlight="cellColorMode === 'factorValue' && viewFilters.onlySelected"
           @update:selectedNodes="$emit('update:selectedNodes', $event)"
           :gene-node-metric-key="cellColorMode === 'factorValue' ? 'node_score' : 'combined_score'"
           :gene-set-node-metric-key="cellColorMode === 'factorValue' ? 'node_score' : ''"
@@ -262,6 +334,9 @@ import {
   genesFromFactorDataNetwork,
 } from "./factorRevealDataNetwork.js";
 import {
+  HEATMAP_SELECTION_KIND,
+  DEFAULT_HEATMAP_VIEW_FILTERS,
+  normalizeHeatmapViewFilters,
   buildCrossingSelectionNode,
   buildGeneSelectionNode,
   buildGeneSetSelectionNode,
@@ -381,6 +456,14 @@ export default Vue.component("pigean-factors-viz", {
       type: Object,
       default: () => ({ ...DEFAULT_ASSOCIATION_FILTERS }),
     },
+    /**
+     * Genes-entry view filters shared with the Data table (parent-owned; emit updates).
+     * Filtering is view-only — underlying factorData is never mutated.
+     */
+    heatmapViewFilters: {
+      type: Object,
+      default: () => ({ ...DEFAULT_HEATMAP_VIEW_FILTERS }),
+    },
   },
   data() {
     return {
@@ -407,6 +490,9 @@ export default Vue.component("pigean-factors-viz", {
         ...(this.phenotypeAssociationFilters || {}),
       };
     },
+    viewFilters() {
+      return normalizeHeatmapViewFilters(this.heatmapViewFilters);
+    },
     /** True when used inside FactorBaseReveal with factorData / factorDataTableRows passed in. */
     useFactorBaseRevealData() {
       const hasRows = this.factorDataTableRows && this.factorDataTableRows.length > 0;
@@ -415,6 +501,14 @@ export default Vue.component("pigean-factors-viz", {
     },
     heatmapPairCount() {
       return this.buildHeatmapPairs().length;
+    },
+    showFactorValueColumnFilters() {
+      return (
+        !this.loading &&
+        this.cellColorMode === "factorValue" &&
+        this.useFactorBaseRevealData &&
+        this.heatmapPairCount > 0
+      );
     },
     /** True when gene columns are classified as search vs context (includedFromRequest). */
     heatmapHasSearchContextGeneColumns() {
@@ -447,12 +541,76 @@ export default Vue.component("pigean-factors-viz", {
       const isFactorizationView = this.cellColorMode === "factorValue";
       // Heatmap in factorization mode shows all factors; keep the network in sync
       // (pairsInView is phenotype-group scoped and was dropping other factors).
-      const pairs = isFactorizationView ? this.buildHeatmapPairs() : this.pairsInView;
+      let pairs = isFactorizationView ? this.buildHeatmapPairs() : this.pairsInView;
+      const vf = this.viewFilters;
+      let includeGeneSets = true;
+      let includeGenes = true;
+      let genesInSearchOnly = false;
+      let allowedGeneSets = null;
+      let allowedGenes = null;
+
+      if (isFactorizationView) {
+        includeGeneSets = !!vf.showGeneSets;
+        genesInSearchOnly = !!vf.genesInSearchOnly;
+        includeGenes = genesInSearchOnly || !!vf.showGenes;
+
+        if (vf.onlySelected) {
+          const selected = Array.isArray(this.selectedNodes) ? this.selectedNodes : [];
+          if (!selected.length) return { nodes: [], edges: [] };
+          const hasRowSel = selected.some(
+            (n) =>
+              n &&
+              (n.kind === HEATMAP_SELECTION_KIND.ROW || n.kind === HEATMAP_SELECTION_KIND.CROSSING)
+          );
+          const hasColSel = selected.some(
+            (n) =>
+              n &&
+              (n.kind === HEATMAP_SELECTION_KIND.GENE ||
+                n.kind === HEATMAP_SELECTION_KIND.GENE_SET ||
+                n.kind === HEATMAP_SELECTION_KIND.CROSSING)
+          );
+          if (hasRowSel) {
+            pairs = pairs.filter((p) =>
+              isHeatmapRowHighlighted(
+                {
+                  phenotype: p.phenotype,
+                  factor: p.factorObj && p.factorObj.factor,
+                  fetchedDirection: p.fetchedDirection,
+                },
+                selected
+              )
+            );
+          }
+          if (hasColSel) {
+            allowedGeneSets = new Set();
+            allowedGenes = new Set();
+            selected.forEach((n) => {
+              if (!n) return;
+              if (n.kind === HEATMAP_SELECTION_KIND.GENE_SET && n.geneSetId) {
+                allowedGeneSets.add(String(n.geneSetId));
+              } else if (n.kind === HEATMAP_SELECTION_KIND.GENE && n.gene) {
+                allowedGenes.add(String(n.gene));
+              } else if (n.kind === HEATMAP_SELECTION_KIND.CROSSING) {
+                if (n.colIsGeneSet && n.colLabel) allowedGeneSets.add(String(n.colLabel));
+                else if (!n.colIsGeneSet && n.colLabel) allowedGenes.add(String(n.colLabel));
+              }
+            });
+            if (!includeGeneSets) allowedGeneSets = new Set();
+            if (!includeGenes) allowedGenes = new Set();
+          }
+        }
+      }
+
       return buildMergedFactorDataNetwork(pairs, this.factorData || {}, {
         phenotypeDisplay: (id) => this.phenoDisplay(id),
         // Genes-entry: membership is co-loading only — no gene↔gene-set edges; no phenotype hub.
         linkGenesToGeneSets: !isFactorizationView,
         includePhenotypeNode: !isFactorizationView,
+        includeGeneSets,
+        includeGenes,
+        genesInSearchOnly,
+        allowedGeneSets,
+        allowedGenes,
       });
     },
     dataViewNetworkGenes() {
@@ -462,11 +620,22 @@ export default Vue.component("pigean-factors-viz", {
       return 450;
     },
     dataViewNetworkKey() {
+      const vf = this.viewFilters;
+      const selKey = (this.selectedNodes || [])
+        .map((n) => (n && n.key) || "")
+        .filter(Boolean)
+        .sort()
+        .join(",");
       return [
         this.heatmapGroupMode,
         this.selectedHeatmapGroup,
         this.pairsInView.length,
         (this.dataViewNetwork.nodes || []).length,
+        vf.showGeneSets ? 1 : 0,
+        vf.showGenes ? 1 : 0,
+        vf.genesInSearchOnly ? 1 : 0,
+        vf.onlySelected ? 1 : 0,
+        selKey,
       ].join("|");
     },
     heatmapNodeMenuIsSelected() {
@@ -657,7 +826,7 @@ export default Vue.component("pigean-factors-viz", {
 
       const filters = this.associationFilters;
       // Search genes first (bold), then context genes; optionally drop by Combined tier.
-      const geneOrder = Array.from(geneSeen)
+      let geneOrder = Array.from(geneSeen)
         .filter((g) => {
           if (useFactorValue) {
             // Threshold is on gene_score only — not Overall factor value.
@@ -676,11 +845,19 @@ export default Vue.component("pigean-factors-viz", {
           return String(a).localeCompare(String(b));
         });
 
-      const columnLabels = [...filteredGeneSetOrder, ...geneOrder];
-      const geneSetCount = filteredGeneSetOrder.length;
-      const geneColumnIsSearch = geneOrder.map((g) => !!geneIsSearch[g]);
+      let visibleGeneSets = filteredGeneSetOrder.slice();
+      let visibleGenes = geneOrder.slice();
+      if (useFactorValue) {
+        const vf = this.viewFilters;
+        if (!vf.showGeneSets) visibleGeneSets = [];
+        if (vf.genesInSearchOnly) {
+          visibleGenes = geneOrder.filter((g) => !!geneIsSearch[g]);
+        } else if (!vf.showGenes) {
+          visibleGenes = [];
+        }
+      }
 
-      const factorRows = orderedPairs.map((p) => ({
+      let factorRows = orderedPairs.map((p) => ({
         phenotype: p.phenotype,
         phenotypeDisplay: p.phenotypeDisplay,
         fetchedDirection: p.fetchedDirection,
@@ -688,6 +865,38 @@ export default Vue.component("pigean-factors-viz", {
         factor: p.factorObj.factor,
         factorObj: p.factorObj
       }));
+
+      if (useFactorValue && this.viewFilters.onlySelected) {
+        const selected = Array.isArray(this.selectedNodes) ? this.selectedNodes : [];
+        if (!selected.length) {
+          return out;
+        }
+        const hasRowSel = selected.some(
+          (n) =>
+            n &&
+            (n.kind === HEATMAP_SELECTION_KIND.ROW || n.kind === HEATMAP_SELECTION_KIND.CROSSING)
+        );
+        const hasColSel = selected.some(
+          (n) =>
+            n &&
+            (n.kind === HEATMAP_SELECTION_KIND.GENE ||
+              n.kind === HEATMAP_SELECTION_KIND.GENE_SET ||
+              n.kind === HEATMAP_SELECTION_KIND.CROSSING)
+        );
+        if (hasRowSel) {
+          factorRows = factorRows.filter((row) => isHeatmapRowHighlighted(row, selected));
+        }
+        if (hasColSel) {
+          visibleGeneSets = visibleGeneSets.filter((id) =>
+            isHeatmapColHighlighted(id, 0, 1, selected)
+          );
+          visibleGenes = visibleGenes.filter((g) => isHeatmapColHighlighted(g, 1, 0, selected));
+        }
+      }
+
+      const columnLabels = [...visibleGeneSets, ...visibleGenes];
+      const geneSetCount = visibleGeneSets.length;
+      const geneColumnIsSearch = visibleGenes.map((g) => !!geneIsSearch[g]);
 
       if (columnLabels.length === 0 || factorRows.length === 0) return out;
 
@@ -935,11 +1144,15 @@ export default Vue.component("pigean-factors-viz", {
     },
     heatmapDataFromFactorData: {
       handler(val) {
-        if (!this.useFactorBaseRevealData || !val || !val.ready) return;
+        if (!this.useFactorBaseRevealData) return;
         this.cleanupTooltips();
         this.$nextTick(() => {
           setTimeout(() => {
-            this.renderFactorBaseRevealHeatmap();
+            if (val && val.ready) {
+              this.renderFactorBaseRevealHeatmap();
+            } else {
+              this.clearFactorBaseHeatmapDom();
+            }
           }, 100);
         });
       },
@@ -958,14 +1171,15 @@ export default Vue.component("pigean-factors-viz", {
     selectedNodes: {
       handler() {
         if (!this.useFactorBaseRevealData) return;
-        this.cleanupTooltips();
-        this.$nextTick(() => {
-          setTimeout(() => {
-            if (this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
-              this.renderFactorBaseRevealHeatmap();
-            }
-          }, 50);
-        });
+        // Selection highlight always needs a redraw; Only selected also changes matrix shape.
+        this.scheduleFactorBaseHeatmapRerender();
+      },
+      deep: true,
+    },
+    heatmapViewFilters: {
+      handler() {
+        if (!this.useFactorBaseRevealData || this.cellColorMode !== "factorValue") return;
+        this.scheduleFactorBaseHeatmapRerender();
       },
       deep: true,
     },
@@ -996,6 +1210,23 @@ export default Vue.component("pigean-factors-viz", {
     this.cleanupTooltips();
   },
   methods: {
+    scheduleFactorBaseHeatmapRerender() {
+      if (!this.useFactorBaseRevealData) return;
+      this.cleanupTooltips();
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (this.heatmapDataFromFactorData && this.heatmapDataFromFactorData.ready) {
+            this.renderFactorBaseRevealHeatmap();
+          } else {
+            this.clearFactorBaseHeatmapDom();
+          }
+        }, 50);
+      });
+    },
+    clearFactorBaseHeatmapDom() {
+      if (this.$refs.heatmapContainer) this.$refs.heatmapContainer.innerHTML = "";
+      if (this.$refs.heatmapLabelsContainer) this.$refs.heatmapLabelsContainer.innerHTML = "";
+    },
     beginDataViewNetworkRender() {
       this.clearDataViewNetworkRenderTimer();
       this.dataVizNetworkRendering = true;
@@ -1021,6 +1252,13 @@ export default Vue.component("pigean-factors-viz", {
         [tierId]: !!checked,
       };
       this.$emit("update:phenotypeAssociationFilters", next);
+    },
+    onHeatmapViewFilterChange(key, checked) {
+      const next = {
+        ...normalizeHeatmapViewFilters(this.heatmapViewFilters),
+        [key]: !!checked,
+      };
+      this.$emit("update:heatmapViewFilters", next);
     },
     phenoDisplay(pid) {
       const descById = this.phenotypeDescriptionById || {};
@@ -1240,16 +1478,20 @@ export default Vue.component("pigean-factors-viz", {
         phen.setAttribute("font-family", "Arial");
         const pFull = rowMeta.phenotypeDisplay;
         const showDirPrefix =
-          (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
+          this.rowLabelMode !== "factor" &&
+          (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
+          rowMeta.fetchedDirection;
         const directionTag = showDirPrefix ? `[${rowMeta.fetchedDirection}] ` : "";
         const rowDisplay = this.heatmapRowDisplayLabel(rowMeta);
         const fullLabel = `${directionTag}${rowDisplay}`;
         phen.textContent = this.truncateLabel(fullLabel, 52);
         const tooltipParts = [];
-        if (rowMeta.fetchedDirection) tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
+        if (this.rowLabelMode !== "factor" && rowMeta.fetchedDirection) {
+          tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
+        }
         if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
-        tooltipParts.push(`Phenotype: ${pFull}`);
-        phen.setAttribute("title", tooltipParts.join(" · "));
+        if (this.rowLabelMode !== "factor") tooltipParts.push(`Phenotype: ${pFull}`);
+        phen.setAttribute("title", tooltipParts.join(" · ") || fullLabel);
         const rowNode = buildRowSelectionNode(rowMeta);
         this.applyHeatmapRowLabelHighlight(phen, isHeatmapRowHighlighted(rowMeta, this.selectedNodes));
         this.attachHeatmapSelectClick(phen, rowNode);
@@ -1380,7 +1622,9 @@ export default Vue.component("pigean-factors-viz", {
           rect.setAttribute("stroke-width", "1");
           const rowMeta = factorRows[r];
           const showDirInRowLine =
-            (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") && rowMeta.fetchedDirection;
+            this.rowLabelMode !== "factor" &&
+            (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
+            rowMeta.fetchedDirection;
           const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
           const rowLine = `${directionTag}${this.heatmapRowDisplayLabel(rowMeta)}`;
           const colLabel = columnLabels[c];
@@ -3176,6 +3420,24 @@ export default Vue.component("pigean-factors-viz", {
 
 .legend-color.factor-relevance {
   background-color: #9c27b0; /* Dark purple matching heatmap gradient */
+}
+
+.fbr-heatmap-legend-filters {
+  gap: 0.85rem 1.1rem;
+}
+.fbr-heatmap-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  margin: 0;
+  color: #444;
+}
+.fbr-heatmap-filter-toggle input {
+  margin: 0;
+  cursor: pointer;
 }
 
 .legend-color.very-strong {

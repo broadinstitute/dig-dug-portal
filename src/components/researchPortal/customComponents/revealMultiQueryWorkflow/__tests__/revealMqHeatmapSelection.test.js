@@ -7,6 +7,7 @@ import {
     buildRowSelectionNode,
     edgeMatchesHeatmapCrossing,
     filterTableRowsByHeatmapSelection,
+    filterTableRowsForOnlySelectedView,
     isHeatmapCellHighlighted,
     isHeatmapColHighlighted,
     isHeatmapRowHighlighted,
@@ -164,5 +165,58 @@ describe("revealMqHeatmapSelection", () => {
         const geneNode = buildGeneSelectionNode("TREM2");
         expect(filterTableRowsByHeatmapSelection(rows, [geneNode], factorData)).toHaveLength(1);
         expect(filterTableRowsByHeatmapSelection(rows, [geneNode], factorData)[0].phenotype).toBe("PH2");
+    });
+
+    test("filterTableRowsByHeatmapSelection accepts array top_gene_sets", () => {
+        const rows = [
+            {
+                phenotype: "Factor0",
+                factor: "Factor0",
+                fetched_direction: "Factorization",
+                top_gene_sets: ["HP_ARTERIOSCLEROSIS", "HP_OTHER"],
+            },
+            {
+                phenotype: "Factor1",
+                factor: "Factor1",
+                fetched_direction: "Factorization",
+                top_gene_sets: ["GOBP_OTHER"],
+            },
+        ];
+        const gsNode = buildGeneSetSelectionNode("HP_ARTERIOSCLEROSIS");
+        const filtered = filterTableRowsByHeatmapSelection(rows, [gsNode], {});
+        expect(filtered).toHaveLength(1);
+        expect(filtered[0].phenotype).toBe("Factor0");
+    });
+
+    test("filterTableRowsForOnlySelectedView mirrors heatmap axis logic", () => {
+        const rows = [
+            {
+                phenotype: "Factor0",
+                factor: "Factor0",
+                fetched_direction: "Factorization",
+                top_gene_sets: ["HP_A"],
+            },
+            {
+                phenotype: "Factor1",
+                factor: "Factor1",
+                fetched_direction: "Factorization",
+                top_gene_sets: ["HP_B"],
+            },
+        ];
+        expect(filterTableRowsForOnlySelectedView(rows, [])).toEqual([]);
+
+        const row0 = buildRowSelectionNode({
+            phenotype: "Factor0",
+            factor: "Factor0",
+            fetchedDirection: "Factorization",
+        });
+        const gene = buildGeneSelectionNode("APOE");
+        // Row + column selections: keep matching rows (do not AND-require gene membership).
+        const withBoth = filterTableRowsForOnlySelectedView(rows, [row0, gene]);
+        expect(withBoth).toHaveLength(1);
+        expect(withBoth[0].phenotype).toBe("Factor0");
+
+        // Column-only: keep all rows (columns filtered elsewhere).
+        expect(filterTableRowsForOnlySelectedView(rows, [gene])).toHaveLength(2);
     });
 });

@@ -197,6 +197,7 @@
                                     :show-association-score-header="!isGeneEntryMode"
                                     :show-association-legend="!isGeneEntryMode"
                                     :phenotype-association-filters.sync="phenotypeAssociationFilters"
+                                    :heatmap-view-filters.sync="heatmapViewFilters"
                                     :selected-nodes.sync="heatmapSelectedNodes"
                                     show-workflow-selection-chrome
                                     :saved-explanations="savedSelectedNodesExplainMenuItems"
@@ -429,7 +430,11 @@ import {
     workflowErrorSteps as computeWorkflowErrorSteps,
 } from "./revealMultiQueryWorkflow/revealMqStepGates.js";
 import {
+    DEFAULT_HEATMAP_VIEW_FILTERS,
     filterTableRowsByHeatmapSelection,
+    filterTableRowsForOnlySelectedView,
+    isHeatmapColHighlighted,
+    normalizeHeatmapViewFilters,
 } from "./revealMultiQueryWorkflow/revealMqHeatmapSelection.js";
 import {
     annotateFactorDataWithFetchedDirection as annotateRouteFactorData,
@@ -647,6 +652,11 @@ export default Vue.component("factor-base-reveal", {
             searchTermsExtractionOpen: false,
             /** Heatmap-selected traits, gene sets, genes, and crossings for scoped hypothesis generation. */
             heatmapSelectedNodes: [],
+            /**
+             * Genes-entry heatmap ↔ table view filters (view-only; never mutates factorData).
+             * Toggled from the heatmap legend strip.
+             */
+            heatmapViewFilters: { ...DEFAULT_HEATMAP_VIEW_FILTERS },
             /** Legend checkbox filters for Combined-score phenotype-association tiers. */
             phenotypeAssociationFilters: { ...DEFAULT_ASSOCIATION_FILTERS },
             selectedNodesExplanations: [],
@@ -945,9 +955,8 @@ export default Vue.component("factor-base-reveal", {
             };
         },
         dataPanelProps() {
-            const rowCount = this.isPhenotypePath
-                ? (this.factorDataTableRowsWithRationaleMeta || []).length
-                : (this.factorDataTableRows || []).length;
+            const rowsForTable = this.factorTableRowsForDisplay || [];
+            const rowCount = rowsForTable.length;
             return {
                 showFactorTable:
                     (this.genesAndFactorValuesLoaded || this.loadComplete) &&
@@ -972,6 +981,7 @@ export default Vue.component("factor-base-reveal", {
                     (this.geneEntry && this.geneEntry.researchIntention) || "",
                 isGeneEntryMode: this.isGeneEntryMode,
                 emphasizeSearchContextGenes: this.emphasizeSearchContextGenes,
+                heatmapViewFilters: this.normalizedHeatmapViewFilters,
                 revealDataSteps: this.revealDataSteps,
                 loadStatus: this.loadStatus,
                 loadComplete: this.loadComplete,
@@ -999,6 +1009,7 @@ export default Vue.component("factor-base-reveal", {
                 getGenesForFactor: (...args) => vm.getGenesForFactor(...args),
                 cfdeExploreAssociationHref: (...args) => vm.cfdeExploreAssociationHref(...args),
                 getSubtableCurrentPage: (row) => vm.getSubtableCurrentPage(row),
+                getGeneSetSubtableCurrentPage: (row) => vm.getGeneSetSubtableCurrentPage(row),
                 getRowKey: (row) => vm.getRowKey(row),
                 formatTime: (t) => vm.formatTime(t),
                 currStepTime: (step) => vm.currStepTime(step),
@@ -1292,6 +1303,23 @@ export default Vue.component("factor-base-reveal", {
             const base = this.factorDataTableRowsFiltered || [];
             return filterTableRowsByHeatmapSelection(base, this.heatmapSelectedNodes, this.factorData);
         },
+        normalizedHeatmapViewFilters() {
+            return normalizeHeatmapViewFilters(this.heatmapViewFilters);
+        },
+        /**
+         * Rows shown in the Data table. Genes-entry "Only selected" mirrors the heatmap
+         * without mutating factorData (full rows return when the filter is cleared).
+         */
+        factorTableRowsForDisplay() {
+            const base = this.isPhenotypePath
+                ? this.factorDataTableRowsWithRationaleMeta || []
+                : this.factorDataTableRows || [];
+            if (!this.isGeneEntryMode) return base;
+            const vf = this.normalizedHeatmapViewFilters;
+            if (!vf.onlySelected) return base;
+            // Match heatmap axis filtering (not hypothesis AND-scoping).
+            return filterTableRowsForOnlySelectedView(base, this.heatmapSelectedNodes);
+        },
         selectedNodesExplainHelperText() {
             return selectedNodesExplainHelperText(this.heatmapSelectedNodes.length);
         },
@@ -1308,9 +1336,7 @@ export default Vue.component("factor-base-reveal", {
             return (this.selectedNodesExplainEntry?.graph_edges || []).length;
         },
         mainFactorTableRowsPaged() {
-            const rows = this.isPhenotypePath
-                ? (this.factorDataTableRowsWithRationaleMeta || [])
-                : (this.factorDataTableRows || []);
+            const rows = this.factorTableRowsForDisplay || [];
             const start = (Math.max(1, this.mainTableCurrentPage) - 1) * this.mainTablePerPage;
             return rows.slice(start, start + this.mainTablePerPage);
         },
@@ -2226,7 +2252,10 @@ export default Vue.component("factor-base-reveal", {
                     this.cancelStepGate(false);
                 }
                 const { workflow, label } = await parseMultiQueryRevealWorkflowImportFile(file);
-                const result = applyMultiQueryRevealWorkflowImport(this, workflow, { label });
+                const result = applyMultiQueryRevealWorkflowImport(this, workflow, {
+                    label,
+                    setKeyParams: (map) => keyParams.set(map),
+                });
                 this.workflowVisualKey = (this.workflowVisualKey || 0) + 1;
                 this.$nextTick(() => {
                     this.normalizeHeatmapSelectionAfterRegroup();
@@ -3825,11 +3854,19 @@ export default Vue.component("factor-base-reveal", {
             const key = this.getRowKey(item);
             return (this.subtableCurrentPages || {})[key] || 1;
         },
+        getGeneSetSubtableCurrentPage(item) {
+            const key = `${this.getRowKey(item)}|gs`;
+            return (this.subtableCurrentPages || {})[key] || 1;
+        },
         toggleFactorGenesRow(row) {
             if (!row) return;
             const key = this.getRowKey(row.item);
             if (!this.subtableCurrentPages[key]) {
                 this.$set(this.subtableCurrentPages, key, 1);
+            }
+            const gsKey = `${key}|gs`;
+            if (!this.subtableCurrentPages[gsKey]) {
+                this.$set(this.subtableCurrentPages, gsKey, 1);
             }
             const willExpand = !this.expandedFactorRowKeys[key];
             this.$set(this.expandedFactorRowKeys, key, willExpand);
@@ -3874,6 +3911,9 @@ export default Vue.component("factor-base-reveal", {
             return factors.find(matches) || allFactors.find(matches) || null;
         },
         getGenesetForFactor(phenotype, factor, fetchedDirection = null){
+            if (this.isGeneEntryMode && !this.normalizedHeatmapViewFilters.showGeneSets) {
+                return [];
+            }
             const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
             if (!f) return [];
             const topGeneSetsStr = f.top_gene_sets;
@@ -3884,55 +3924,133 @@ export default Vue.component("factor-base-reveal", {
             const topGeneSetPrograms = (typeof topGeneSetProgramsStr === "string" && topGeneSetProgramsStr)
                 ? topGeneSetProgramsStr.split("|").map((s) => s.trim()).filter(Boolean)
                 : [];
-            const result = topGeneSets.map((g, i) => ({
-                geneset: g,
-                program: topGeneSetPrograms[i]
-            }));
-            return result;
+            const geneSetsMeta = f.geneSets || {};
+            let result = topGeneSets.map((g, i) => {
+                const meta = geneSetsMeta[g] || {};
+                const rawFv = meta.factor_value;
+                const fvNum =
+                    rawFv != null && rawFv !== "" && !isNaN(Number(rawFv)) ? Number(rawFv) : null;
+                const pRaw = meta.p_value;
+                const pNum =
+                    pRaw != null && pRaw !== "" && !isNaN(Number(pRaw)) ? Number(pRaw) : null;
+                return {
+                    geneset: g,
+                    program: topGeneSetPrograms[i],
+                    factor_value: fvNum != null ? Number(fvNum.toFixed(3)) : null,
+                    factor_value_display: fvNum != null ? fvNum.toFixed(3) : "—",
+                    p_value: pNum,
+                    p_value_display:
+                        pNum == null
+                            ? "—"
+                            : pNum > 0 && pNum < 0.001
+                              ? pNum.toExponential(2)
+                              : pNum != null
+                                ? pNum.toFixed(3)
+                                : "—",
+                    _sortAbs: fvNum != null ? Math.abs(fvNum) : -1,
+                };
+            });
+            if (
+                this.isGeneEntryMode &&
+                this.normalizedHeatmapViewFilters.onlySelected &&
+                (this.heatmapSelectedNodes || []).length
+            ) {
+                const selected = this.heatmapSelectedNodes;
+                const hasColSel = selected.some(
+                    (n) =>
+                        n &&
+                        (n.kind === "gene-set" || n.kind === "gene" || n.kind === "crossing")
+                );
+                if (hasColSel) {
+                    result = result.filter((row) =>
+                        isHeatmapColHighlighted(row.geneset, 0, 1, selected)
+                    );
+                }
+            }
+            result.sort((a, b) => b._sortAbs - a._sortAbs);
+            return result.map(({ _sortAbs, ...row }) => row);
         },
         getGenesForFactor(phenotype, factor, fetchedDirection = null) {
+            const vf = this.normalizedHeatmapViewFilters;
+            if (this.isGeneEntryMode && !vf.genesInSearchOnly && !vf.showGenes) {
+                return [];
+            }
             const data = this.factorData || {};
             const pData = data[phenotype];
             if (!pData) return [];
             const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
             if (!f || !f.genes) return [];
             const globalGenes = pData.genes || {};
-            const rows = Object.keys(f.genes).map((geneName) => {
+            const geneEntry = this.isGeneEntryMode;
+            let rows = Object.keys(f.genes).map((geneName) => {
                 const rel = f.genes[geneName];
                 const global = globalGenes[geneName] || {};
                 const rawVal = rel.factor_value ?? rel.factorRelevance;
-                const factorValue = rawVal != null && rawVal !== ""
-                    ? (typeof rawVal === "number" && !isNaN(rawVal) ? Number(rawVal).toFixed(3) : String(rawVal))
-                    : "—";
-                const numForSort = typeof rawVal === "number" && !isNaN(rawVal)
-                    ? rawVal
-                    : (rel.factorRelevance != null && !isNaN(Number(rel.factorRelevance))
-                        ? Number(rel.factorRelevance)
-                        : 0);
+                const fvNum =
+                    rawVal != null && rawVal !== "" && !isNaN(Number(rawVal)) ? Number(rawVal) : null;
+                const factorValueDisplay = fvNum != null ? fvNum.toFixed(3) : "—";
                 const pinned = rel.includedFromRequest === true;
+                const geneScoreRaw =
+                    rel.gene_score != null && !isNaN(Number(rel.gene_score))
+                        ? Number(rel.gene_score)
+                        : global.gene_score != null && !isNaN(Number(global.gene_score))
+                          ? Number(global.gene_score)
+                          : null;
                 const combinedNum = global.combined != null && !isNaN(Number(global.combined))
                     ? Number(global.combined)
-                    : (rawVal != null && rawVal !== "" && !isNaN(Number(rawVal)) ? Number(rawVal) : null);
-                if (!associationTierPasses(combinedNum, this.phenotypeAssociationFilters)) return null;
+                    : fvNum;
+                if (!geneEntry && !associationTierPasses(combinedNum, this.phenotypeAssociationFilters)) {
+                    return null;
+                }
                 return {
                     gene: geneName,
                     userRequested: pinned ? "Yes" : "—",
-                    factorRelevance: factorValue,
+                    inSearch: pinned,
+                    factor_value: fvNum != null ? Number(fvNum.toFixed(3)) : null,
+                    factor_value_display: factorValueDisplay,
+                    factorRelevance: factorValueDisplay,
+                    gene_score: geneScoreRaw,
+                    gene_score_display:
+                        geneScoreRaw != null ? Number(geneScoreRaw).toFixed(3) : "—",
                     combined: global.combined != null ? Number(global.combined).toFixed(2) : "—",
                     gwasSupport: global.gwasSupport != null ? Number(global.gwasSupport).toFixed(2) : "—",
                     geneSetSupport: global.geneSetSupport != null ? Number(global.geneSetSupport).toFixed(2) : "—",
                     _sortPin: pinned ? 1 : 0,
-                    _sortAbs: Math.abs(numForSort),
+                    _sortAbs: fvNum != null ? Math.abs(fvNum) : 0,
                 };
             }).filter(Boolean);
+            if (geneEntry && vf.genesInSearchOnly) {
+                rows = rows.filter((r) => r.inSearch);
+            }
+            if (
+                geneEntry &&
+                vf.onlySelected &&
+                (this.heatmapSelectedNodes || []).length
+            ) {
+                const selected = this.heatmapSelectedNodes;
+                const hasColSel = selected.some(
+                    (n) =>
+                        n &&
+                        (n.kind === "gene-set" || n.kind === "gene" || n.kind === "crossing")
+                );
+                if (hasColSel) {
+                    rows = rows.filter((r) => isHeatmapColHighlighted(r.gene, 1, 0, selected));
+                }
+            }
             rows.sort((a, b) => {
+                if (geneEntry) return b._sortAbs - a._sortAbs;
                 if (b._sortPin !== a._sortPin) return b._sortPin - a._sortPin;
                 return b._sortAbs - a._sortAbs;
             });
             return rows.map((r) => ({
                 gene: r.gene,
                 userRequested: r.userRequested,
+                inSearch: r.inSearch,
+                factor_value: r.factor_value,
+                factor_value_display: r.factor_value_display,
                 factorRelevance: r.factorRelevance,
+                gene_score: r.gene_score,
+                gene_score_display: r.gene_score_display,
                 combined: r.combined,
                 gwasSupport: r.gwasSupport,
                 geneSetSupport: r.geneSetSupport,
