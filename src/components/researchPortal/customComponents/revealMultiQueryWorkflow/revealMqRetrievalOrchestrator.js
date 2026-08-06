@@ -19,7 +19,7 @@ import {
     setMultiQueryRouteStatus,
 } from "./revealMqMultiRoute.js";
 import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
-import { applySearchTermGenesOfInterestFlags } from "./revealMqGeneEntryFallback.js";
+import { applySearchTermGenesOfInterestFlags } from "./revealMqGeneSetEntryFallback.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 import {
     classifyAndReportError,

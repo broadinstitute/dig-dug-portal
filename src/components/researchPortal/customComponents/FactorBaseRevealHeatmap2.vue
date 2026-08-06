@@ -70,41 +70,27 @@
             Graph network
           </button>
         </div>
-        <workflow-viz-toolbar-menus
-          v-if="showWorkflowSelectionChrome"
-          :selected-nodes="selectedNodes"
-          :saved-explanations="savedExplanations"
-          :saved-dataset-runs="savedDatasetRuns"
-          @analyze-explain="$emit('analyze-explain')"
-          @analyze-provenance="$emit('analyze-provenance')"
-          @open-saved-explanation="$emit('open-saved-explanation', $event)"
-          @open-saved-dataset="$emit('open-saved-dataset', $event)"
-        />
+        <div class="fbr-data-viz-toolbar-end">
+          <workflow-viz-toolbar-menus
+            v-if="showWorkflowSelectionChrome"
+            :selected-nodes="selectedNodes"
+            :saved-explanations="savedExplanations"
+            :saved-dataset-runs="savedDatasetRuns"
+            @analyze-explain="$emit('analyze-explain')"
+            @analyze-provenance="$emit('analyze-provenance')"
+            @open-saved-explanation="$emit('open-saved-explanation', $event)"
+            @open-saved-dataset="$emit('open-saved-dataset', $event)"
+          />
+        </div>
       </div>
       <div
         :class="useFactorBaseRevealData && heatmapPairCount ? 'fbr-data-viz-panel' : ''"
       >
-        <workflow-viz-selected-node-chips
-          v-if="showWorkflowSelectionChrome"
-          :selected-nodes="selectedNodes"
-          @remove="onRemoveSelectedNode"
-        />
-    <!-- Genes-entry filters shared by heatmap + network -->
-    <div
-      v-if="showFactorValueColumnFilters"
-      class="viz-legend"
-    >
-      <div class="legend-content">
-        <div class="legend-item">
-          <span class="legend-color-item">
-            <span class="legend-color factor-relevance" aria-hidden="true"></span>
-            <span class="legend-color-text">Overall factor value</span>
-          </span>
-        </div>
         <div
-          class="legend-item fbr-heatmap-legend-filters"
+          v-if="showFactorValueColumnFilters"
+          class="fbr-data-viz-view-filters"
           role="group"
-          aria-label="Heatmap column filters"
+          aria-label="Visualization filters"
         >
           <label class="fbr-heatmap-filter-toggle mb-0">
             <input
@@ -139,8 +125,20 @@
             <span>Only selected</span>
           </label>
         </div>
+    <!-- Gene-set entry heatmap legend (network has its own legend) -->
+    <div
+      v-if="showFactorValueColumnFilters && dataVizTab === 'heatmap'"
+      class="viz-legend viz-legend--plain"
+    >
+      <div class="legend-content">
+        <div class="legend-item">
+          <span class="legend-color-item">
+            <span class="legend-color factor-relevance" aria-hidden="true"></span>
+            <span class="legend-color-text">Overall factor value</span>
+          </span>
+        </div>
       </div>
-      <div v-if="dataVizTab === 'heatmap'" class="legend-actions">
+      <div class="legend-actions">
         <button
           type="button"
           class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
@@ -328,7 +326,6 @@ import { resolveCfdePhenotypeLabel, resolveCfdeFactorClusterDisplayLabel } from 
 import FactorBaseRevealNetwork from "./FactorBaseRevealNetwork2.vue";
 import WorkflowHeatmapNodeActionMenu from "./revealMultiQueryWorkflow/WorkflowHeatmapNodeActionMenu.vue";
 import WorkflowVizToolbarMenus from "./revealMultiQueryWorkflow/WorkflowVizToolbarMenus.vue";
-import WorkflowVizSelectedNodeChips from "./revealMultiQueryWorkflow/WorkflowVizSelectedNodeChips.vue";
 import {
   buildMergedFactorDataNetwork,
   genesFromFactorDataNetwork,
@@ -358,7 +355,6 @@ export default Vue.component("pigean-factors-viz", {
     FactorBaseRevealNetwork,
     WorkflowHeatmapNodeActionMenu,
     WorkflowVizToolbarMenus,
-    WorkflowVizSelectedNodeChips,
   },
   props: {
     pigeanFactorData: {
@@ -415,7 +411,7 @@ export default Vue.component("pigean-factors-viz", {
       default: () => [],
     },
     /**
-     * Y-axis body row label: "phenotype" (default, text-query) or "factor" (genes-first —
+     * Y-axis body row label: "phenotype" (default, text-query) or "factor" (gene-set entry —
      * many factors share one phenotype id, so the factor/cluster label is the useful row text).
      */
     rowLabelMode: {
@@ -424,7 +420,7 @@ export default Vue.component("pigean-factors-viz", {
       validator: (v) => v === "phenotype" || v === "factor",
     },
     /**
-     * Genes-first: bold search-gene column headers vs normal context genes,
+     * Gene-set entry: bold search-gene column headers vs normal context genes,
      * and show the matching legend entries.
      */
     emphasizeSearchContextGenes: {
@@ -433,7 +429,7 @@ export default Vue.component("pigean-factors-viz", {
     },
     /**
      * association (default): Combined/GWAS header + binary gene-set cells + [0,1] purple genes.
-     * factorValue (genes-entry / factorization): no score header; gene-set + gene cells colored
+     * factorValue (gene-set entry / factorization): no score header; gene-set + gene cells colored
      * by Overall factor value (purple shades); columns sorted by |factor_value|.
      */
     cellColorMode: {
@@ -457,7 +453,7 @@ export default Vue.component("pigean-factors-viz", {
       default: () => ({ ...DEFAULT_ASSOCIATION_FILTERS }),
     },
     /**
-     * Genes-entry view filters shared with the Data table (parent-owned; emit updates).
+     * Gene-set entry view filters shared with the Data table (parent-owned; emit updates).
      * Filtering is view-only — underlying factorData is never mutated.
      */
     heatmapViewFilters: {
@@ -603,7 +599,7 @@ export default Vue.component("pigean-factors-viz", {
 
       return buildMergedFactorDataNetwork(pairs, this.factorData || {}, {
         phenotypeDisplay: (id) => this.phenoDisplay(id),
-        // Genes-entry: membership is co-loading only — no gene↔gene-set edges; no phenotype hub.
+        // Gene-set entry: membership is co-loading only — no gene↔gene-set edges; no phenotype hub.
         linkGenesToGeneSets: !isFactorizationView,
         includePhenotypeNode: !isFactorizationView,
         includeGeneSets,
@@ -1136,6 +1132,11 @@ export default Vue.component("pigean-factors-viz", {
       if (next === "network" && (this.dataViewNetwork.nodes || []).length) {
         this.beginDataViewNetworkRender();
       }
+      // Heatmap SVG can be cleared while the pane is display:none (e.g. selection
+      // updates during network view). Re-draw when returning to the heatmap tab.
+      if (next === "heatmap" && this.useFactorBaseRevealData) {
+        this.scheduleFactorBaseHeatmapRerender();
+      }
     },
     dataViewNetworkKey() {
       if (this.dataVizTab === "network" && (this.dataViewNetwork.nodes || []).length) {
@@ -1212,6 +1213,8 @@ export default Vue.component("pigean-factors-viz", {
   methods: {
     scheduleFactorBaseHeatmapRerender() {
       if (!this.useFactorBaseRevealData) return;
+      // Avoid clearing/redrawing into a display:none pane (network tab); redraw on tab return.
+      if (this.dataVizTab === "network") return;
       this.cleanupTooltips();
       this.$nextTick(() => {
         setTimeout(() => {
@@ -1395,6 +1398,8 @@ export default Vue.component("pigean-factors-viz", {
       const h = this.heatmapDataFromFactorData;
       if (!h || !h.ready || !h.data.length) return;
       if (!this.$refs.heatmapContainer || !this.$refs.heatmapLabelsContainer) return;
+      // Pane is hidden on the network tab; redraw when switching back instead.
+      if (this.useFactorBaseRevealData && this.dataVizTab === "network") return;
 
       this.cleanupTooltips();
       this.$refs.heatmapContainer.innerHTML = "";
@@ -3138,8 +3143,30 @@ export default Vue.component("pigean-factors-viz", {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 0.15rem;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.fbr-data-viz-toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem 0.85rem;
   flex: 1 1 auto;
   min-width: 0;
+  padding-bottom: 0.35rem;
+}
+
+.fbr-data-viz-view-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin: 0 0 0.45rem;
+  padding: 0.15rem 0 0.25rem;
+  font-size: 12px;
+  color: #444;
 }
 
 .fbr-data-viz-tab {
@@ -3147,7 +3174,7 @@ export default Vue.component("pigean-factors-viz", {
   margin: 0 0 -1px;
   padding: 0.5rem 0.85rem 0.6rem;
   border: 1px solid #d4cdc2;
-  border-bottom: 1px solid #d4cdc2;
+  border-bottom: solid 1px #ffffff;
   border-radius: 10px 10px 0 0;
   background: #f0ebe3;
   color: #33363d;
@@ -3262,6 +3289,12 @@ export default Vue.component("pigean-factors-viz", {
   font-size: 12px;
   align-items: center;
   justify-content: space-between;
+}
+
+.viz-legend--plain {
+  padding: 4px 0 10px;
+  background-color: transparent;
+  border-bottom: none;
 }
 
 .legend-content {
@@ -3422,9 +3455,6 @@ export default Vue.component("pigean-factors-viz", {
   background-color: #9c27b0; /* Dark purple matching heatmap gradient */
 }
 
-.fbr-heatmap-legend-filters {
-  gap: 0.85rem 1.1rem;
-}
 .fbr-heatmap-filter-toggle {
   display: inline-flex;
   align-items: center;
@@ -3434,6 +3464,7 @@ export default Vue.component("pigean-factors-viz", {
   font-weight: 500;
   margin: 0;
   color: #444;
+  white-space: nowrap;
 }
 .fbr-heatmap-filter-toggle input {
   margin: 0;

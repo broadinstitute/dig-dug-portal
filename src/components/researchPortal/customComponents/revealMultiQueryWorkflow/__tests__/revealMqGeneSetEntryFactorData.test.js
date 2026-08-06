@@ -4,7 +4,7 @@ import {
     scopeGeneRows,
     selectTopFactorIds,
     selectTopGeneSetsFromRows,
-} from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js";
+} from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneSetEntryFactorData.js";
 
 const GENE_ROWS = [
     { gene: "PCSK9", factor: "Factor0", label: "Lipid cluster", combined: 4.2, gwasSupport: 5.1, geneSetSupport: 3.0 },
@@ -373,7 +373,7 @@ describe("buildFactorDataFromPhenotypePigean", () => {
 
 describe("buildFactorDataFromBayesPigean", () => {
     test("builds Factor×gene/gene-set matrix from factorization payload", () => {
-        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js");
+        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneSetEntryFactorData.js");
         const json = {
             input_genes: ["APOE", "LDLR"],
             gene_scores: {
@@ -439,7 +439,7 @@ describe("buildFactorDataFromBayesPigean", () => {
     });
 
     test("omits gene sets with p ≥ 0.05 or missing p; sizes with -log10(p)", () => {
-        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryFactorData.js");
+        const { buildFactorDataFromBayesPigean } = require("@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneSetEntryFactorData.js");
         const json = {
             input_genes: ["APOE"],
             gene_scores: { APOE: 0.4 },

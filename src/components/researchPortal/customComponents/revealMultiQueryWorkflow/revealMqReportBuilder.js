@@ -14,43 +14,214 @@ function getMechanismTopGenes(mechanism, limit = 10) {
     return genes.slice(0, Math.max(1, limit));
 }
 
-function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes) {
+function formatClipboardScore(value, digits = 3) {
+    if (value == null || value === "" || Number.isNaN(Number(value))) return "—";
+    return Number(value).toFixed(digits);
+}
+
+/**
+ * Clipboard text aligned with Results card content.
+ * @param {object} [options]
+ * @param {boolean} [options.geneSetPath]
+ * @param {(id: string) => string} [options.formatFactorLabel]
+ */
+function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, options = {}) {
+    const geneSetPath = !!(options && options.geneSetPath);
+    const formatFactorLabel =
+        typeof options.formatFactorLabel === "function"
+            ? options.formatFactorLabel
+            : (id) => (id != null ? String(id) : "—");
     const context = researchContext != null ? String(researchContext).trim() : "";
     const genes = Array.isArray(topGenes) ? topGenes : getMechanismTopGenes(mechanism, 10);
-    const topGenesBlock = genes.length
-        ? genes.map((g, i) => {
-            const score = g && g.scores && (g.scores.combined ?? g.scores.c) != null
-                ? Number(g.scores.combined ?? g.scores.c).toFixed(2)
-                : "—";
-            const gene = g && g.gene != null ? String(g.gene) : "—";
-            const role = g && g.group != null ? String(g.group) : "—";
-            return `${i + 1}. ${gene} - ${role} (Combined: ${score})`;
-        }).join("\n")
-        : "None listed.";
-    const flow = mechanism?.hypothesis_in_kg || {};
-    const flowCaption = flow.caption != null ? String(flow.caption) : "";
-    const flowEdges = Array.isArray(flow.edges)
-        ? flow.edges.slice(0, 8).map((e) => `${e.from} -> ${e.to}${e.label ? ` (${e.label})` : ""}`).join("\n")
-        : "";
+
     const nextSteps = Array.isArray(mechanism?.next_steps) ? mechanism.next_steps.slice(0, 3) : [];
     const nextStepsBlock = nextSteps.length
-        ? nextSteps.map((s) => {
-            const cat = s && s.category != null && String(s.category).trim() !== ""
-                ? String(s.category).trim()
-                : "Uncategorized";
-            const action = s && s.action != null && String(s.action).trim() !== ""
-                ? String(s.action).trim()
-                : "—";
-            const reason = s && s.reason != null && String(s.reason).trim() !== ""
-                ? ` (Reason: ${String(s.reason).trim()})`
-                : "";
-            return `[${cat}] ${action}${reason}`;
-        }).join("\n")
+        ? nextSteps
+              .map((s) => {
+                  const cat =
+                      s && s.category != null && String(s.category).trim() !== ""
+                          ? String(s.category).trim()
+                          : "Uncategorized";
+                  const action =
+                      s && s.action != null && String(s.action).trim() !== ""
+                          ? String(s.action).trim()
+                          : "—";
+                  const reason =
+                      s && s.reason != null && String(s.reason).trim() !== ""
+                          ? ` (Reason: ${String(s.reason).trim()})`
+                          : "";
+                  return `[${cat}] ${action}${reason}`;
+              })
+              .join("\n")
         : "None listed.";
     const nextQueries = Array.isArray(mechanism?.next_queries) ? mechanism.next_queries.slice(0, 3) : [];
     const nextQueriesBlock = nextQueries.length
         ? nextQueries.map((q, i) => `${i + 1}. ${q}`).join("\n")
         : "None listed.";
+
+    if (geneSetPath) {
+        const topGenesBlock = genes.length
+            ? genes
+                  .map((g, i) => {
+                      const gene = g && g.gene != null ? String(g.gene) : "—";
+                      const roleGroup = g && g.group != null ? String(g.group) : "—";
+                      const reason =
+                          g && g.reason != null
+                              ? String(g.reason)
+                              : g && g.role != null
+                                ? String(g.role)
+                                : "—";
+                      const inSearch =
+                          g && g.is_input === true ? "Yes" : g && g.is_input === false ? "No" : "—";
+                      const scores = (g && g.scores) || {};
+                      const factorRel = formatClipboardScore(
+                          scores.factor_relevance ?? scores.combined,
+                          3
+                      );
+                      const geneScore = formatClipboardScore(
+                          scores.gene_score ?? scores.functional,
+                          3
+                      );
+                      return `${i + 1}. ${gene} [${roleGroup}] In search: ${inSearch}; Factor relevance: ${factorRel}; Gene score: ${geneScore}; Reason: ${reason}`;
+                  })
+                  .join("\n")
+            : "None listed.";
+
+        const spineNet = mechanism?.core_spine_network || {};
+        const flowCaption =
+            mechanism?.hypothesis_in_kg?.caption != null
+                ? String(mechanism.hypothesis_in_kg.caption)
+                : mechanism?.hypothesis_spine?.caption != null
+                  ? String(mechanism.hypothesis_spine.caption)
+                  : "";
+        const flowEdges = Array.isArray(spineNet.edges)
+            ? spineNet.edges
+                  .slice(0, 12)
+                  .map((e) => {
+                      const from = e.source != null ? e.source : e.from;
+                      const to = e.target != null ? e.target : e.to;
+                      const pred = e.predicate || e.label || "";
+                      return `${from} -> ${to}${pred ? ` (${pred})` : ""}`;
+                  })
+                  .join("\n")
+            : "";
+
+        const phenotypeMaps = Array.isArray(mechanism?.phenotype_disease_mappings)
+            ? mechanism.phenotype_disease_mappings
+            : [];
+        const phenotypeBlock = phenotypeMaps.length
+            ? phenotypeMaps
+                  .map((m) => {
+                      const term = m && m.term != null ? String(m.term) : "—";
+                      const prov = m && m.provenance != null ? String(m.provenance) : "—";
+                      const refs =
+                          m && Array.isArray(m.source_refs) && m.source_refs.length
+                              ? ` (sources: ${m.source_refs.join(", ")})`
+                              : "";
+                      return `- ${term} [${prov}]${refs}`;
+                  })
+                  .join("\n")
+            : "None listed.";
+
+        const factorIds = Array.isArray(mechanism?.associated_factor_ids)
+            ? mechanism.associated_factor_ids
+            : [];
+        const factorsBlock = factorIds.length
+            ? factorIds.map((id) => `- ${formatFactorLabel(id)}`).join("\n")
+            : "None listed.";
+
+        const citedSets =
+            Array.isArray(mechanism?.cited_gene_set_names) && mechanism.cited_gene_set_names.length
+                ? mechanism.cited_gene_set_names
+                : Array.isArray(mechanism?.relevant_gene_sets)
+                  ? mechanism.relevant_gene_sets
+                  : [];
+        const setsBlock = citedSets.length
+            ? citedSets.map((s) => `- ${s}`).join("\n")
+            : "None listed.";
+
+        const rationale =
+            mechanism?.rationale != null && String(mechanism.rationale).trim()
+                ? String(mechanism.rationale).trim()
+                : "";
+
+        const lines = [
+            "Instruction for assistant:",
+            "Act as an expert principal investigator and systems biologist. Use only the evidence below; mark assumptions explicitly.",
+            "",
+            `Research Context: ${context || "—"}`,
+            "",
+            `Hypothesis ${idx + 1}: ${mechanism?.group_name || "(unnamed)"}`,
+            `${mechanism?.hypothesis || "—"}`,
+            "",
+        ];
+        if (rationale) {
+            lines.push("Biological rationale:", rationale, "");
+        }
+        lines.push(
+            "Phenotype / disease mappings:",
+            phenotypeBlock,
+            "",
+            "Biological mechanism map:",
+            `${flowCaption || "—"}`,
+            `${flowEdges || ""}`,
+            "",
+            "Candidate genes:",
+            topGenesBlock,
+            "",
+            "Associated factors:",
+            factorsBlock,
+            "",
+            "Cited gene sets:",
+            setsBlock,
+            "",
+            "Suggested Next Steps:",
+            nextStepsBlock,
+            "",
+            "Next Queries:",
+            nextQueriesBlock,
+            "",
+            "Task options:",
+            "A) Critically evaluate biological plausibility.",
+            "B) Draft a step-by-step experimental validation plan.",
+            "C) Expand or refine next steps.",
+            "D) Suggest confounders and alternative pathways."
+        );
+        return lines.join("\n");
+    }
+
+    const topGenesBlock = genes.length
+        ? genes
+              .map((g, i) => {
+                  const score =
+                      g && g.scores && (g.scores.combined ?? g.scores.c) != null
+                          ? Number(g.scores.combined ?? g.scores.c).toFixed(2)
+                          : "—";
+                  const gene = g && g.gene != null ? String(g.gene) : "—";
+                  const role = g && g.group != null ? String(g.group) : "—";
+                  return `${i + 1}. ${gene} - ${role} (Combined: ${score})`;
+              })
+              .join("\n")
+        : "None listed.";
+    const flow = mechanism?.hypothesis_in_kg || {};
+    const flowCaption = flow.caption != null ? String(flow.caption) : "";
+    const spineNet = mechanism?.core_spine_network || {};
+    const flowEdges = Array.isArray(spineNet.edges) && spineNet.edges.length
+        ? spineNet.edges
+              .slice(0, 8)
+              .map((e) => {
+                  const from = e.source != null ? e.source : e.from;
+                  const to = e.target != null ? e.target : e.to;
+                  const pred = e.predicate || e.label || "";
+                  return `${from} -> ${to}${pred ? ` (${pred})` : ""}`;
+              })
+              .join("\n")
+        : Array.isArray(flow.edges)
+          ? flow.edges
+                .slice(0, 8)
+                .map((e) => `${e.from} -> ${e.to}${e.label ? ` (${e.label})` : ""}`)
+                .join("\n")
+          : "";
 
     return [
         "Instruction for assistant:",
@@ -86,6 +257,7 @@ function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes) 
 }
 
 function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
+    const geneSetPath = !!(vm && vm.searchPath === "genes");
     const genes = Array.isArray(m.candidate_genes || m.genes) ? (m.candidate_genes || m.genes) : [];
     const geneRows = genes.map((g) => {
         const scores = g.scores || {};
@@ -95,6 +267,30 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                 ? m.gene_connections[geneName]
                 : { gene_sets: [] };
         const gss = Array.isArray(conn.gene_sets) ? conn.gene_sets : [];
+        if (geneSetPath) {
+            const inSearch =
+                typeof vm.isGeneInSearchSet === "function"
+                    ? vm.isGeneInSearchSet(g)
+                    : g.is_input === true
+                      ? true
+                      : g.is_input === false
+                        ? false
+                        : null;
+            const anchor = inSearch === true ? "Yes" : inSearch === false ? "No" : "—";
+            const factorRel = scores.factor_relevance ?? scores.combined ?? "—";
+            const geneScore = scores.gene_score ?? scores.functional ?? "—";
+            return `
+                <tr>
+                    <td>${vm.escapeHtml(g.gene || "—")}</td>
+                    <td>${vm.escapeHtml(g.group || "—")}</td>
+                    <td>${vm.escapeHtml(anchor)}</td>
+                    <td>${vm.escapeHtml(g.reason != null ? g.reason : g.role || "—")}</td>
+                    <td>${vm.escapeHtml(factorRel)}</td>
+                    <td>${vm.escapeHtml(geneScore)}</td>
+                    <td>${vm.escapeHtml(gss.length ? gss.join(", ") : "—")}</td>
+                </tr>
+            `;
+        }
         return `
                 <tr>
                     <td>${vm.escapeHtml(g.gene || "—")}</td>
@@ -137,15 +333,18 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                         .join("")}</ol>
                 </div>`
             : "";
-    const crosstalkSection = m.cross_route_crosstalk_model
-        ? `<div class="report-subsection"><strong>Cross-route crosstalk model</strong><p class="report-body-tight">${vm.escapeHtml(m.cross_route_crosstalk_model)}</p></div>`
-        : "";
-    const cellularSection = m.cellular_assignment
-        ? `<div class="report-subsection"><strong>Cellular assignment</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatCellularAssignmentDisplay(m.cellular_assignment))}</p></div>`
-        : "";
-    const depotSection = m.depot_contrast
-        ? `<div class="report-subsection"><strong>Depot contrast</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatDepotContrastDisplay(m.depot_contrast))}</p></div>`
-        : "";
+    const crosstalkSection =
+        !geneSetPath && m.cross_route_crosstalk_model
+            ? `<div class="report-subsection"><strong>Cross-route crosstalk model</strong><p class="report-body-tight">${vm.escapeHtml(m.cross_route_crosstalk_model)}</p></div>`
+            : "";
+    const cellularSection =
+        !geneSetPath && m.cellular_assignment
+            ? `<div class="report-subsection"><strong>Cellular assignment</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatCellularAssignmentDisplay(m.cellular_assignment))}</p></div>`
+            : "";
+    const depotSection =
+        !geneSetPath && m.depot_contrast
+            ? `<div class="report-subsection"><strong>Depot contrast</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatDepotContrastDisplay(m.depot_contrast))}</p></div>`
+            : "";
     const directionNotes = Array.isArray(m.effect_direction_notes) ? m.effect_direction_notes : [];
     const directionSection =
         directionNotes.length > 0
@@ -154,7 +353,7 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
     const pathwayShiftSection = m.pathway_shift_rationale
         ? `<div class="report-subsection report-shift-callout"><strong>Why the hypothesis shifted</strong><p class="report-body-tight">${vm.escapeHtml(m.pathway_shift_rationale)}</p></div>`
         : "";
-    const inventoryRows = candidateInventoryRows(m.candidate_inventory);
+    const inventoryRows = geneSetPath ? [] : candidateInventoryRows(m.candidate_inventory);
     const inventorySection = inventoryRows.length
         ? `
                 <div class="report-subsection">
@@ -206,26 +405,40 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                     }
                 </div>`
         : "";
-    const mechanismCardTitle = vm.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
-    return `
-            <section class="report-section report-card">
-                <h2>${mechanismCardTitle}</h2>
-                <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${vm.escapeHtml(m.hypothesis || "—")}</p></div>
-                ${pathwayShiftSection}
-                <div class="report-subsection"><strong>Rationale</strong><p class="report-body-tight">${vm.escapeHtml(m.novelty_explanation || m.novelty || "—")}</p></div>
-                ${crosstalkSection}
-                ${cellularSection}
-                ${depotSection}
-                ${directionSection}
-                ${hypothesisMapSection}
-                ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${vm.escapeHtml(m.relevance)}</p></div>` : ""}
-                ${inventorySection}
-                <div class="report-subsection">
-                    <h3>Candidate genes (${genes.length})</h3>
-                    ${genes.length ? `
-                        <table class="report-table">
-                            <thead>
-                                <tr>
+    const noveltyLabel = geneSetPath ? "Novelty" : "Rationale";
+    const noveltySection = !geneSetPath
+        ? `<div class="report-subsection"><strong>${noveltyLabel}</strong><p class="report-body-tight">${vm.escapeHtml(m.novelty_explanation || m.novelty || "—")}</p></div>`
+        : "";
+    const rationaleSection =
+        geneSetPath && m.rationale
+            ? `<div class="report-subsection"><strong>Biological rationale</strong><p class="report-body-tight">${vm.escapeHtml(m.rationale)}</p></div>`
+            : "";
+    const phenotypeMappings = Array.isArray(m.phenotype_disease_mappings)
+        ? m.phenotype_disease_mappings
+        : [];
+    const phenotypeMappingSection =
+        geneSetPath && phenotypeMappings.length
+            ? `<div class="report-subsection"><strong>Phenotype / disease mappings</strong>${vm.buildReportList(
+                  phenotypeMappings,
+                  (mapping) =>
+                      `${mapping.term || "—"} [${mapping.provenance || "—"}]${
+                          mapping.source_refs && mapping.source_refs.length
+                              ? ` — sources: ${mapping.source_refs.join(", ")}`
+                              : ""
+                      }${mapping.note ? ` (${mapping.note})` : ""}`
+              )}</div>`
+            : "";
+    const geneTableHeader = geneSetPath
+        ? `<tr>
+                                    <th>Gene</th>
+                                    <th>Gene role</th>
+                                    <th>In search</th>
+                                    <th>Reason</th>
+                                    <th>Factor relevance</th>
+                                    <th>Gene score</th>
+                                    <th>Cited gene sets</th>
+                                </tr>`
+        : `<tr>
                                     <th>Gene</th>
                                     <th>Gene role</th>
                                     <th>Reason</th>
@@ -233,13 +446,30 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                                     <th>GWAS</th>
                                     <th>Functional</th>
                                     <th>Relevant gene sets</th>
-                                </tr>
-                            </thead>
-                            <tbody>${geneRows}</tbody>
-                        </table>
-                    ` : '<div class="report-empty">No candidate genes listed.</div>'}
-                </div>
-                ${m.genes_collective_reason ? `<div class="report-subsection"><strong>How these genes work together</strong><p class="report-body-tight">${vm.escapeHtml(m.genes_collective_reason)}</p></div>` : ""}
+                                </tr>`;
+    const evidenceSection = geneSetPath
+        ? `
+                <div class="report-subsection">
+                    <h3>Cited factorization evidence</h3>
+                    <div class="report-subsection"><strong>Associated factors</strong>${vm.buildReportList(
+                        m.associated_factor_ids && m.associated_factor_ids.length
+                            ? m.associated_factor_ids
+                            : (m.associated_pairs || []).map((p) => p.factor || p.phenotype),
+                        (id) =>
+                            typeof vm.getGeneSetFactorDisplayLabel === "function"
+                                ? vm.getGeneSetFactorDisplayLabel(id)
+                                : vm.getFactorClusterDisplayString(id)
+                    )}</div>
+                    <div class="report-subsection"><strong>Cited gene sets</strong>${vm.buildReportList(
+                        vm.formatRelevantGeneSetsForDisplay(
+                            m.cited_gene_set_names && m.cited_gene_set_names.length
+                                ? m.cited_gene_set_names
+                                : m.relevant_gene_sets || []
+                        ),
+                        (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`
+                    )}</div>
+                </div>`
+        : `
                 <div class="report-subsection">
                     <h3>Data network behind this hypothesis</h3>
                     <p class="report-fine-print">Connections from your selected phenotypes, genes, and gene sets (as in the app).</p>
@@ -259,7 +489,56 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                 <div class="report-subsection">
                     <strong>Gene sets in scope</strong>
                     ${vm.buildReportList(vm.formatRelevantGeneSetsForDisplay(m.relevant_gene_sets || []), (set) => `${set.gs}${set.program ? ` (${set.program})` : ""}`)}
+                </div>`;
+    const mechanismCardTitle = vm.escapeHtml(m.group_name || `Hypothesis ${idx + 1}`);
+    const candidateGenesSection = `
+                <div class="report-subsection">
+                    <h3>Candidate genes (${genes.length})</h3>
+                    ${genes.length ? `
+                        <table class="report-table">
+                            <thead>
+                                ${geneTableHeader}
+                            </thead>
+                            <tbody>${geneRows}</tbody>
+                        </table>
+                    ` : '<div class="report-empty">No candidate genes listed.</div>'}
                 </div>
+                ${m.genes_collective_reason ? `<div class="report-subsection"><strong>How these genes work together</strong><p class="report-body-tight">${vm.escapeHtml(m.genes_collective_reason)}</p></div>` : ""}`;
+
+    if (geneSetPath) {
+        return `
+            <section class="report-section report-card">
+                <h2>${mechanismCardTitle}</h2>
+                <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${vm.escapeHtml(m.hypothesis || "—")}</p></div>
+                ${pathwayShiftSection}
+                ${rationaleSection}
+                ${hypothesisMapSection}
+                ${phenotypeMappingSection}
+                ${evidenceSection}
+                ${candidateGenesSection}
+                ${nextStepsSection}
+                ${nextQueriesSection}
+            </section>
+        `;
+    }
+
+    return `
+            <section class="report-section report-card">
+                <h2>${mechanismCardTitle}</h2>
+                <div class="report-subsection"><strong>Mechanistic hypothesis</strong><p class="report-body-tight">${vm.escapeHtml(m.hypothesis || "—")}</p></div>
+                ${pathwayShiftSection}
+                ${noveltySection}
+                ${rationaleSection}
+                ${phenotypeMappingSection}
+                ${crosstalkSection}
+                ${cellularSection}
+                ${depotSection}
+                ${directionSection}
+                ${hypothesisMapSection}
+                ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${vm.escapeHtml(m.relevance)}</p></div>` : ""}
+                ${inventorySection}
+                ${candidateGenesSection}
+                ${evidenceSection}
                 ${nextStepsSection}
                 ${nextQueriesSection}
             </section>
@@ -537,29 +816,29 @@ function buildMechanismHandoffHtmlDocument(vm, {
 <style>
 html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
 body, body * { box-sizing: border-box; }
-body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
+body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 14px; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
 .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
 .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
-.report-header h1 { font-size: 22pt; margin: 0 0 8px; }
-.report-header p { margin: 0; }
+.report-header h1 { font-size: 28px; margin: 0 0 8px; }
+.report-header p { margin: 0; font-size: 14px; }
 .report-section { margin-bottom: 28px; }
-.report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
-.report-section h3 { font-size: 15pt; margin: 0 0 8px; }
+.report-section h2 { font-size: 22px; margin: 0 0 12px; color: #f16822; }
+.report-section h3 { font-size: 18px; margin: 0 0 8px; }
 .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
 .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
+.report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; font-size: 14px; }
 .report-table th { background: #f3f4f6; width: 24%; }
-.report-subsection { margin-bottom: 14px; }
+.report-subsection { margin-bottom: 14px; font-size: 14px; }
 .report-shift-callout { border: 1px solid #f4c27a; background: #fff8e6; border-radius: 6px; padding: 10px 12px; }
-.report-empty { color: #667; font-style: italic; }
+.report-empty { color: #667; font-style: italic; font-size: 14px; }
 .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
-.report-network-meta { margin-bottom: 8px; color: #555; }
-.report-map-caption { margin: 0 0 10px; }
-.report-body-tight { margin: 6px 0 0; }
-.report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
+.report-network-meta { margin-bottom: 8px; color: #555; font-size: 14px; }
+.report-map-caption { margin: 0 0 10px; font-size: 14px; }
+.report-body-tight { margin: 6px 0 0; font-size: 14px; }
+.report-fine-print { margin: 0 0 12px; font-size: 14px; color: #555; }
 .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
-.report-next-steps-list { margin: 0; padding-left: 1.35rem; }
-.report-next-steps-list li { margin-bottom: 12px; }
+.report-next-steps-list { margin: 0; padding-left: 1.35rem; font-size: 14px; }
+.report-next-steps-list li { margin-bottom: 12px; font-size: 14px; }
 .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
 .report-page-break { page-break-before: always; }
 .report-json-download {
@@ -571,6 +850,7 @@ body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11p
     text-decoration: none;
     border-radius: 6px;
     font-weight: 600;
+    font-size: 14px;
 }
 .report-json-download:hover { filter: brightness(0.95); }
 .report-handoff-json-actions { margin: 0; }
@@ -689,33 +969,33 @@ function buildHtmlReportDocument(vm, { researchContext, mechanismImages, factorS
 <style>
 html, body { margin: 0; padding: 0; background: #f5f6f8; color: #1f2933; }
 body, body * { box-sizing: border-box; }
-body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 11pt; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
+body, p, li, td, th, div, span, a, button, input, textarea, pre { font-size: 14px; font-family: Arial, Helvetica, sans-serif; line-height: 1.45; }
 .report { max-width: 1180px; margin: 0 auto; padding: 24px; background: #fff; }
 .report-header { border-bottom: 2px solid #f16822; padding-bottom: 16px; margin-bottom: 24px; }
-.report-header h1 { font-size: 24pt; margin: 0 0 8px; }
-.report-header p { margin: 0; }
+.report-header h1 { font-size: 28px; margin: 0 0 8px; }
+.report-header p { margin: 0; font-size: 14px; }
 .report-section { margin-bottom: 28px; }
-.report-section h2 { font-size: 18pt; margin: 0 0 12px; color: #f16822; }
-.report-section h3 { font-size: 15pt; margin: 0 0 8px; }
-.report-section h4 { font-size: 14pt; margin: 0 0 10px; }
-.report-section h5 { font-size: 11pt; margin: 0 0 8px; }
+.report-section h2 { font-size: 22px; margin: 0 0 12px; color: #f16822; }
+.report-section h3 { font-size: 18px; margin: 0 0 8px; }
+.report-section h4 { font-size: 16px; margin: 0 0 10px; }
+.report-section h5 { font-size: 14px; margin: 0 0 8px; }
 .report-card { border: 1px solid #d8dee4; border-radius: 8px; padding: 18px; background: #fafbfc; margin-bottom: 18px; }
 .report-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; }
+.report-table th, .report-table td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; word-break: break-word; font-size: 14px; }
 .report-table th { background: #f3f4f6; width: 24%; }
-.report-subsection { margin-bottom: 14px; }
-.report-empty { color: #667; font-style: italic; }
+.report-subsection { margin-bottom: 14px; font-size: 14px; }
+.report-empty { color: #667; font-style: italic; font-size: 14px; }
 .report-network-image { max-width: 100%; width: 100%; height: auto; border: 1px solid #d8dee4; border-radius: 6px; background: #fff; }
-.report-network-meta { margin-bottom: 8px; color: #555; }
-.report-map-caption { margin: 0 0 10px; }
-.report-body-tight { margin: 6px 0 0; }
-.report-fine-print { margin: 0 0 12px; font-size: 10pt; color: #555; }
+.report-network-meta { margin-bottom: 8px; color: #555; font-size: 14px; }
+.report-map-caption { margin: 0 0 10px; font-size: 14px; }
+.report-body-tight { margin: 6px 0 0; font-size: 14px; }
+.report-fine-print { margin: 0 0 12px; font-size: 14px; color: #555; }
 .report-next-steps-block { border-top: 1px solid #d8dee4; padding-top: 14px; margin-top: 8px; }
-.report-next-steps-list { margin: 0; padding-left: 1.35rem; }
-.report-next-steps-list li { margin-bottom: 12px; }
+.report-next-steps-list { margin: 0; padding-left: 1.35rem; font-size: 14px; }
+.report-next-steps-list li { margin-bottom: 12px; font-size: 14px; }
 .report-next-steps-list li em { font-style: normal; font-weight: 600; color: #374151; }
-.report-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: #f7f7f8; border: 1px solid #d8dee4; padding: 12px; border-radius: 6px; }
-.report-keyvals > div { margin-bottom: 6px; }
+.report-pre { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; background: #f7f7f8; border: 1px solid #d8dee4; padding: 12px; border-radius: 6px; font-size: 14px; }
+.report-keyvals > div { margin-bottom: 6px; font-size: 14px; }
 .report-page-break { page-break-before: always; }
 @media print {
     html, body { background: #fff; }

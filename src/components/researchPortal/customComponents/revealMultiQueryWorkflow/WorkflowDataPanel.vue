@@ -1,6 +1,6 @@
 <template>
     <div style="display:flex; flex-direction: column; gap: 12px; color: #555;">
-                            <!-- Live data-fetch progress (text-query hybrid + genes-first). -->
+                            <!-- Live data-fetch progress (text-query hybrid + gene-set entry). -->
                             <div
                                 v-if="showFetchProgress"
                                 class="mb-2"
@@ -67,11 +67,11 @@
                                         </span>
                                     </div>
                                     <div
-                                        v-if="geneEntryLoading && geneEntryProgress && geneEntryProgress.detail"
+                                        v-if="geneSetEntryLoading && geneSetEntryProgress && geneSetEntryProgress.detail"
                                         class="small text-muted"
                                         style="white-space: pre-line; line-height: 1.4; padding-left: 18px;"
                                     >
-                                        {{ geneEntryProgress.detail }}
+                                        {{ geneSetEntryProgress.detail }}
                                     </div>
                                 </div>
                             </div>
@@ -103,8 +103,38 @@
                                             placeholder="Describe what you want to learn or hypothesize about these genes…"
                                             @input="$emit('update:researchIntention', $event.target.value)"
                                         ></textarea>
-                                        <div class="small mt-1 reveal-gate-text" style="opacity: 0.9;">
+                                        <div class="small mt-1 mb-3 reveal-gate-text" style="opacity: 0.9;">
                                             Used as research context when generating mechanistic hypotheses.
+                                        </div>
+                                        <div class="reveal-gate-text">
+                                            <div class="small font-weight-bold mb-1">
+                                                Hypothesis evidence scope
+                                            </div>
+                                            <div class="small mb-2" style="opacity: 0.9;">
+                                                Choose what to send to the LLM. Scope is applied before formatting (slim factors + gene membership indices).
+                                            </div>
+                                            <div
+                                                v-for="opt in llmFeedScopeOptions"
+                                                :key="opt.value"
+                                                class="custom-control custom-radio mb-1"
+                                            >
+                                                <input
+                                                    :id="'gene-set-entry-llm-scope-' + opt.value"
+                                                    type="radio"
+                                                    name="gene-set-entry-llm-feed-scope"
+                                                    class="custom-control-input"
+                                                    :value="opt.value"
+                                                    :checked="llmFeedScope === opt.value"
+                                                    @change="$emit('update:llmFeedScope', opt.value)"
+                                                />
+                                                <label
+                                                    class="custom-control-label reveal-gate-text"
+                                                    :for="'gene-set-entry-llm-scope-' + opt.value"
+                                                >
+                                                    <span class="font-weight-bold">{{ opt.label }}</span>
+                                                    <span class="d-block small" style="opacity: 0.9;">{{ opt.help }}</span>
+                                                </label>
+                                            </div>
                                         </div>
                                     </template>
                                 </workflow-step-gate>
@@ -140,9 +170,9 @@
                                 <div class="mb-4" style="margin-top:20px;">
                                     <slot name="data-viz" />
                                 </div>
-                                    <!-- Phenotype path: Selected Rationale (text-query only; hidden on genes-first) -->
+                                    <!-- Phenotype path: Selected Rationale (text-query only; hidden on gene-set entry) -->
                                     <div
-                                        v-if="isPhenotypePath && !isGeneEntryMode && phenotypeRationaleList.length"
+                                        v-if="isPhenotypePath && !isGeneSetEntryMode && phenotypeRationaleList.length"
                                         class="mb-3"
                                     >
                                         <div class="font-weight-bold small text-muted mb-2">Selected Rationale</div>
@@ -164,7 +194,7 @@
                                     </div>
                                     <div class="reveal-factor-table-wrap">
                                         <!-- Phenotype path: custom table, no rationale column (text-query only) -->
-                                        <b-table-simple v-if="isPhenotypePath && !isGeneEntryMode" small striped hover class="mb-0">
+                                        <b-table-simple v-if="isPhenotypePath && !isGeneSetEntryMode" small striped hover class="mb-0">
                                             <thead variant="light">
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
@@ -236,7 +266,7 @@
                                                                 class="py-2 px-3"
                                                                 style="display:flex; flex:1; flex-direction: column;"
                                                             >
-                                                                <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
+                                                                <div v-if="!isGeneSetEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
                                                                 <b-table
                                                                     striped
                                                                     hover
@@ -250,7 +280,7 @@
                                                                 >
                                                                     <template #cell(geneset)="gsRow">
                                                                         <a
-                                                                            v-if="!isGeneEntryMode"
+                                                                            v-if="!isGeneSetEntryMode"
                                                                             :href="helpers.cfdeExploreAssociationHref(row.phenotype, gsRow.item.geneset, gsRow.item.program)"
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
@@ -309,7 +339,7 @@
                                                             </div>
                                                             <div v-if="showGeneSubtable" class="subtable-container py-2 px-3" style="flex:1">
                                                                 <div v-if="loadingGenesForFactor[helpers.getRowKey(row)]" class="small text-muted mb-2">Loading genes…</div>
-                                                                <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                                <div v-if="!isGeneSetEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                                 <b-table
                                                                     v-if="!loadingGenesForFactor[helpers.getRowKey(row)]"
                                                                     striped
@@ -417,7 +447,7 @@
                                                         class="py-2 px-3"
                                                         style="display:flex; flex:1; flex-direction: column;"
                                                     >
-                                                        <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
+                                                        <div v-if="!isGeneSetEntryMode" class="small text-muted mb-2">Gene sets in cluster</div>
                                                         <b-table
                                                             striped
                                                             hover
@@ -431,7 +461,7 @@
                                                         >
                                                             <template #cell(geneset)="gsRow">
                                                                 <a
-                                                                    v-if="!isGeneEntryMode"
+                                                                    v-if="!isGeneSetEntryMode"
                                                                     :href="helpers.cfdeExploreAssociationHref(row.item.phenotype, gsRow.item.geneset, gsRow.item.program)"
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
@@ -489,7 +519,7 @@
                                                         />
                                                     </div>
                                                     <div v-if="showGeneSubtable" class="subtable-container py-2" style="flex:1">
-                                                        <div v-if="!isGeneEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
+                                                        <div v-if="!isGeneSetEntryMode" class="small text-muted mb-2">Genes share membership with anchor gene(s)</div>
                                                         <b-table
                                                             striped
                                                             hover
@@ -541,6 +571,7 @@
 <script>
 import WorkflowStepGate from "./WorkflowStepGate.vue";
 import FactorBaseRevealNetwork from "../FactorBaseRevealNetwork2.vue";
+import { GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS } from "./revealMqGeneSetEntryLlmFeed.js";
 
 export default {
     name: "WorkflowDataPanel",
@@ -565,14 +596,16 @@ export default {
         subtableCurrentPages: { type: Object, default: () => ({}) },
         loadingGenesForFactor: { type: Object, default: () => ({}) },
         geneSetSources: { type: Object, default: () => ({}) },
-        /** Genes-first only: research intention input under the Data Continue gate. */
+        /** Gene-set entry only: research intention input under the Data Continue gate. */
         showResearchIntention: { type: Boolean, default: false },
         researchIntention: { type: String, default: "" },
-        /** Genes-first table columns (Factor before Phenotype; no Fetch direction). */
-        isGeneEntryMode: { type: Boolean, default: false },
-        /** Bold genes of interest vs context (genes-first or text-query with GOI). */
+        /** Gene-set entry: which evidence subset to format for the hypothesis LLM. */
+        llmFeedScope: { type: String, default: "visualizer" },
+        /** Gene-set entry table columns (Factor before Phenotype; no Fetch direction). */
+        isGeneSetEntryMode: { type: Boolean, default: false },
+        /** Bold genes of interest vs context (gene-set entry or text-query with GOI). */
         emphasizeSearchContextGenes: { type: Boolean, default: false },
-        /** Genes-entry heatmap ↔ table view filters (view-only). */
+        /** Gene-set entry heatmap ↔ table view filters (view-only). */
         heatmapViewFilters: {
             type: Object,
             default: () => ({
@@ -582,21 +615,22 @@ export default {
                 onlySelected: false,
             }),
         },
-        /** Data-step timeline while retrieving (hybrid + genes-first). */
+        /** Data-step timeline while retrieving (hybrid + gene-set entry). */
         revealDataSteps: { type: Array, default: () => [] },
         loadStatus: { type: String, default: "" },
         loadComplete: { type: Boolean, default: false },
         loadStepSeconds: { type: Number, default: 0 },
-        geneEntryProgress: {
+        geneSetEntryProgress: {
             type: Object,
             default: () => ({ message: "", detail: "" }),
         },
-        geneEntryLoading: { type: Boolean, default: false },
+        geneSetEntryLoading: { type: Boolean, default: false },
         helpers: { type: Object, required: true },
     },
     data() {
         return {
             fetchProgressExpanded: true,
+            llmFeedScopeOptions: GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS,
         };
     },
     watch: {
@@ -613,12 +647,12 @@ export default {
             return (
                 (this.revealDataSteps && this.revealDataSteps.length > 0) ||
                 !!String(this.loadStatus || "").trim() ||
-                this.geneEntryLoading
+                this.geneSetEntryLoading
             );
         },
         /** True while APIs are still running (before factor table is available). */
         isDataFetchActive() {
-            if (this.geneEntryLoading) return true;
+            if (this.geneSetEntryLoading) return true;
             if (this.showFactorTable) return false;
             return (
                 (this.revealDataSteps && this.revealDataSteps.length > 0) ||
@@ -637,19 +671,19 @@ export default {
         showLoadStatusSpinner() {
             if (this.loadComplete) return false;
             if (this.gateActive && this.gateStepId === "2") return false;
-            return !!(this.loadStatus || this.geneEntryLoading);
+            return !!(this.loadStatus || this.geneSetEntryLoading);
         },
         showGeneSetSubtable() {
-            if (!this.isGeneEntryMode) return true;
+            if (!this.isGeneSetEntryMode) return true;
             return !!(this.heatmapViewFilters && this.heatmapViewFilters.showGeneSets);
         },
         showGeneSubtable() {
-            if (!this.isGeneEntryMode) return true;
+            if (!this.isGeneSetEntryMode) return true;
             const vf = this.heatmapViewFilters || {};
             return !!(vf.showGenes || vf.genesInSearchOnly);
         },
         geneSetSubtableFields() {
-            if (this.isGeneEntryMode) {
+            if (this.isGeneSetEntryMode) {
                 return [
                     {
                         key: "geneset",
@@ -685,7 +719,7 @@ export default {
             ];
         },
         geneSubtableFields() {
-            if (this.isGeneEntryMode) {
+            if (this.isGeneSetEntryMode) {
                 return [
                     { key: "gene", label: "Gene", thStyle: { width: "100px" } },
                     {
@@ -790,7 +824,7 @@ export default {
                 thClass: "text-center",
                 tdClass: "text-center",
             };
-            if (this.isGeneEntryMode) {
+            if (this.isGeneSetEntryMode) {
                 return [included, factor, geneSetCount, geneCount, viewGenes];
             }
             return [included, phenotype, fetchDirection, geneSetCount, geneCount, rationale, viewGenes];

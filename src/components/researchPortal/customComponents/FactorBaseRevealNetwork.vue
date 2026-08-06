@@ -267,10 +267,10 @@ export default {
                 const parts = [n.label || n.id, type];
                 if (type === "Gene") {
                     const geneName = (n.id || n.label || "").toString().trim();
-                    const geneEntry = (this.genes || []).find(
+                    const candidateGeneRow = (this.genes || []).find(
                         (g) => (g.gene != null ? String(g.gene).trim() : "") === geneName
                     );
-                    const scores = geneEntry && geneEntry.scores ? geneEntry.scores : meta;
+                    const scores = candidateGeneRow && candidateGeneRow.scores ? candidateGeneRow.scores : meta;
                     const combined = scores.combined ?? scores.c;
                     const gwas = scores.gwas ?? scores.g;
                     const functional = scores.functional ?? scores.f;

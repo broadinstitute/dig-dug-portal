@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cfde.reveal/schemas/gene-set-mechanism-hypothesis-response.v1.json",
+  "title": "GeneSetMechanismHypothesisResponse",
+  "description": "LLM generation schema for gene-set entry factorization hypotheses (v1). App joins scores/tables from the slim feed via cited IDs. No raw score dumps, CSV row ids, or forced null legacy fields. App must post-validate hypothesis_spine edges (from/to ∈ node ids) and optionally warn on refs missing from the feed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "overall_summary", "diagnostic_assessment", "hypotheses"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "overall_summary": {
+      "type": "string",
+      "description": "1–2 sentence session-level summary for the report Overview.",
+      "maxLength": 600
+    },
+    "diagnostic_assessment": {
+      "$ref": "#/$defs/DiagnosticAssessment"
+    },
+    "hypotheses": {
+      "type": "array",
+      "description": "Empty iff can_generate_hypothesis is false; otherwise 1–5 hypotheses.",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/Hypothesis" }
+    }
+  },
+  "$defs": {
+    "DiagnosticAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "can_generate_hypothesis",
+        "rejection_reason",
+        "warning_flag",
+        "suggested_optimized_query",
+        "exploratory_mode"
+      ],
+      "properties": {
+        "can_generate_hypothesis": { "type": "boolean" },
+        "rejection_reason": {
+          "type": ["string", "null"],
+          "description": "Required when can_generate_hypothesis is false."
+        },
+        "warning_flag": { "type": ["string", "null"] },
+        "suggested_optimized_query": { "type": ["string", "null"] },
+        "exploratory_mode": { "type": "boolean" }
+      }
+    },
+
+    "Hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_name",
+        "hypothesis",
+        "associated_factor_ids",
+        "associated_pairs",
+        "cited_gene_symbols",
+        "cited_gene_set_names",
+        "phenotype_disease_mappings",
+        "hypothesis_spine",
+        "genes",
+        "next_steps",
+        "next_queries"
+      ],
+      "properties": {
+        "group_name": {
+          "type": "string",
+          "description": "Short mechanistic headline for the card.",
+          "maxLength": 160
+        },
+        "hypothesis": {
+          "type": "string",
+          "description": "2–3 sentences: gene → mechanism → disease/phenotype. Narrative only — no p-values, enrichment scores, or tables.",
+          "maxLength": 1200
+        },
+        "novelty": {
+          "type": "string",
+          "description": "Deprecated on gene-set path. Omit. Kept optional for backward compatibility with older model outputs.",
+          "maxLength": 600
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Optional short biological reasoning. Omit if unused. Stats are joined by the app from cited IDs — do not restate numeric scores.",
+          "maxLength": 1200
+        },
+
+        "associated_factor_ids": {
+          "type": "array",
+          "description": "Factor ids from the feed (e.g. Factor0) supporting this hypothesis. Copy verbatim. UI joins factor rows/scores.",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cited_gene_symbols": {
+          "type": "array",
+          "description": "Gene symbols from the feed used in the story (anchors + key context). Copy verbatim. UI builds evidence table.",
+          "minItems": 1,
+          "maxItems": 25,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cited_gene_set_names": {
+          "type": "array",
+          "description": "Gene-set names from the feed cited as pathway/phenotype evidence. Copy verbatim.",
+          "minItems": 1,
+          "maxItems": 25,
+          "items": { "type": "string", "minLength": 1 }
+        },
+
+        "associated_pairs": {
+          "type": "array",
+          "description": "Required Results UI / report compatibility. For each cited factor id include phenotype and factor both equal to that factor id (gene-set entry).",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["phenotype", "factor"],
+            "properties": {
+              "phenotype": { "type": "string" },
+              "factor": { "type": "string" }
+            }
+          }
+        },
+
+        "phenotype_disease_mappings": {
+          "type": "array",
+          "description": "Disease/phenotype endpoints for the G→M→D spine. Prefer DIRECT_FEED_LABEL from gene-set/factor labels.",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/PhenotypeDiseaseMapping" }
+        },
+
+        "hypothesis_spine": {
+          "$ref": "#/$defs/HypothesisSpine",
+          "description": "3–6 node causal map (prefer 3–5). Linear or simple branching: n1 upstream driver → mediators → phenotype sink."
+        },
+
+        "genes": {
+          "type": "array",
+          "description": "Ranked candidate gene cards (roles only; scores joined by app).",
+          "minItems": 1,
+          "maxItems": 15,
+          "items": { "$ref": "#/$defs/HypothesisGene" }
+        },
+
+        "next_steps": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/NextStep" }
+        },
+        "next_queries": {
+          "type": "array",
+          "description": "2–3 self-contained follow-up questions using concrete gene symbols, gene-set names, and/or phenotype terms from the feed. Do not use vague 'factors' without naming labels.",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": { "type": "string", "minLength": 8, "maxLength": 300 }
+        },
+
+        "pathway_shift_rationale": {
+          "type": "string",
+          "description": "Optional. Omit when unused (do not emit null).",
+          "maxLength": 600
+        },
+        "effect_direction_notes": {
+          "type": "array",
+          "description": "Optional. Omit when unused.",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["gene", "direction"],
+            "properties": {
+              "gene": { "type": "string" },
+              "direction": { "enum": ["increase", "decrease", "unknown"] },
+              "note": { "type": "string", "maxLength": 240 }
+            }
+          }
+        }
+      }
+    },
+
+    "PhenotypeDiseaseMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term", "provenance", "source_refs"],
+      "properties": {
+        "term": {
+          "type": "string",
+          "description": "Phenotype or disease label shown in the report.",
+          "maxLength": 200
+        },
+        "provenance": {
+          "enum": ["DIRECT_FEED_LABEL", "LLM_INFERRED", "USER_CONTEXT"],
+          "description": "DIRECT_FEED_LABEL = copied/near-copied from feed gene-set or factor label; LLM_INFERRED = model generalization; USER_CONTEXT = from research intention."
+        },
+        "source_refs": {
+          "type": "array",
+          "description": "Feed gene-set names and/or factor ids that justify the term. Copy verbatim.",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string" }
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional. Omit when unused.",
+          "maxLength": 240
+        }
+      }
+    },
+
+    "HypothesisSpine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["caption", "nodes", "edges"],
+      "properties": {
+        "caption": { "type": "string", "maxLength": 300 },
+        "nodes": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/SpineNode" }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/SpineEdge" }
+        }
+      }
+    },
+
+    "SpineNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^n[0-9]+$",
+          "description": "Stable node id within this spine, e.g. n1."
+        },
+        "label": { "type": "string", "maxLength": 80 },
+        "type": {
+          "enum": ["GENE", "GENE_SET", "FACTOR", "PROCESS", "PHENOTYPE", "OTHER"]
+        },
+        "ref": {
+          "type": ["string", "null"],
+          "description": "Feed identifier: gene symbol (GENE), gene-set name (GENE_SET), or factor id (FACTOR). Prefer gene-set name for PHENOTYPE when provenance is DIRECT_FEED_LABEL. Null for abstract PROCESS / inferred PHENOTYPE / OTHER."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "enum": ["GENE", "GENE_SET", "FACTOR"] } },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["ref"],
+            "properties": {
+              "ref": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+
+    "SpineEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "predicate"],
+      "properties": {
+        "from": {
+          "type": "string",
+          "pattern": "^n[0-9]+$",
+          "description": "Must match a nodes[].id (enforced by app post-validation)."
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^n[0-9]+$",
+          "description": "Must match a nodes[].id (enforced by app post-validation)."
+        },
+        "predicate": {
+          "enum": [
+            "ACTIVATES",
+            "INHIBITS",
+            "REGULATES",
+            "ASSOCIATED_WITH",
+            "MEMBER_OF",
+            "MAPS_TO_PHENOTYPE",
+            "OTHER"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional display label; recommended when predicate is OTHER. Omit when unused.",
+          "maxLength": 40
+        }
+      }
+    },
+
+    "HypothesisGene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gene", "group", "role"],
+      "properties": {
+        "gene": {
+          "type": "string",
+          "description": "Gene symbol copied verbatim from the feed."
+        },
+        "group": {
+          "enum": ["Primary Mechanistic Candidate", "Supporting Canonical Network"]
+        },
+        "role": { "type": "string", "maxLength": 240 },
+        "is_input": {
+          "type": "boolean",
+          "description": "Optional echo of feed is_input; app may overwrite from feed. Omit when unused."
+        },
+        "source_factor_ids": {
+          "type": "array",
+          "description": "Factors where this gene appears in the feed for this hypothesis.",
+          "maxItems": 8,
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "NextStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "action", "reason"],
+      "properties": {
+        "category": {
+          "enum": [
+            "Experimental Validation",
+            "In Silico Profiling",
+            "Literature Review",
+            "Drug Repurposing"
+          ]
+        },
+        "action": { "type": "string", "maxLength": 240 },
+        "reason": { "type": "string", "maxLength": 360 }
+      }
+    }
+  }
+}

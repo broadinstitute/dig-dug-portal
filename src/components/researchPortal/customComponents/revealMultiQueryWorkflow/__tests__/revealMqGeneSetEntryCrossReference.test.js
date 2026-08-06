@@ -1,4 +1,4 @@
-import { selectTopTraits } from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneEntryCrossReference.js";
+import { selectTopTraits } from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqGeneSetEntryCrossReference.js";
 
 const PHENOTYPES_RESPONSE = {
     phenotypes: [
@@ -9,7 +9,7 @@ const PHENOTYPES_RESPONSE = {
     ],
 };
 
-describe("revealMqGeneEntryCrossReference", () => {
+describe("revealMqGeneSetEntryCrossReference", () => {
     test("selectTopTraits sorts ascending by p_value and ranks", () => {
         const top = selectTopTraits(PHENOTYPES_RESPONSE, { limit: 2 });
         expect(top).toHaveLength(2);

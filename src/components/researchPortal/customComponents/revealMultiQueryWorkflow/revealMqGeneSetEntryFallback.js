@@ -1,7 +1,7 @@
 /**
- * Genes-first → main (text-query) path fallback helpers.
+ * Gene-set entry → main (text-query) path fallback helpers.
  *
- * When genes-first APIs are down or return no usable data, offer to rewrite the
+ * When gene-set entry APIs are down or return no usable data, offer to rewrite the
  * session as a normal user-query workflow (URL `query=`, extraction, hybrid retrieval).
  */
 
@@ -9,7 +9,7 @@
  * Default fallback query: genes as the subject; no phenotype/gene-set ask
  * (those come back from retrieval).
  */
-function buildDefaultGeneEntryFallbackQuery(genes) {
+function buildDefaultGeneSetEntryFallbackQuery(genes) {
     const list = (Array.isArray(genes) ? genes : [])
         .map((g) => String(g || "").trim())
         .filter(Boolean);
@@ -20,20 +20,20 @@ function buildDefaultGeneEntryFallbackQuery(genes) {
 }
 
 /**
- * Marks genes-first as unable to continue and enables the main-path fallback CTA.
+ * Marks gene-set entry as unable to continue and enables the main-path fallback CTA.
  * @param {"api_error"|"insufficient_data"} reason
  */
-function markGeneEntryCannotProceed(vm, { message, detail = "", reason = "insufficient_data" } = {}) {
-    if (!vm || !vm.geneEntry) return;
-    vm.geneEntry.status = "error";
-    vm.$set(vm.geneEntry, "offerMainPathFallback", true);
-    vm.$set(vm.geneEntry, "failureReason", reason);
-    const msg = String(message || "Genes-first retrieval could not continue.");
+function markGeneSetEntryCannotProceed(vm, { message, detail = "", reason = "insufficient_data" } = {}) {
+    if (!vm || !vm.geneSetEntry) return;
+    vm.geneSetEntry.status = "error";
+    vm.$set(vm.geneSetEntry, "offerMainPathFallback", true);
+    vm.$set(vm.geneSetEntry, "failureReason", reason);
+    const msg = String(message || "Gene-set entry retrieval could not continue.");
     const det = String(detail || "");
     if (typeof vm.$set === "function") {
-        vm.$set(vm.geneEntry, "progress", { message: msg, detail: det });
+        vm.$set(vm.geneSetEntry, "progress", { message: msg, detail: det });
     } else {
-        vm.geneEntry.progress = { message: msg, detail: det };
+        vm.geneSetEntry.progress = { message: msg, detail: det };
     }
     if (typeof vm.setLoadStatus === "function") {
         vm.setLoadStatus(msg, true);
@@ -42,7 +42,7 @@ function markGeneEntryCannotProceed(vm, { message, detail = "", reason = "insuff
         vm.setStep({
             id: "2",
             substep: {
-                id: "2.gene-entry-live",
+                id: "2.gene-set-entry-live",
                 title: msg,
                 result: det ? { title: det } : { title: "" },
             },
@@ -51,17 +51,17 @@ function markGeneEntryCannotProceed(vm, { message, detail = "", reason = "insuff
 }
 
 /**
- * Clears genes-first mode, writes `query=` (drops `genes=`), fills the search box,
+ * Clears gene-set entry mode, writes `query=` (drops `genes=`), fills the search box,
  * and starts search-terms extraction via `vm.queryParse()`.
  * Optional `setKeyParams` injects URL updates (defaults to `@/utils/keyParams`.set).
  */
-function switchGeneEntryToMainPath(vm, { setKeyParams } = {}) {
+function switchGeneSetEntryToMainPath(vm, { setKeyParams } = {}) {
     if (!vm) return false;
     const genes =
-        vm.geneEntry && Array.isArray(vm.geneEntry.inputGenes) ? vm.geneEntry.inputGenes.slice() : [];
-    const query = buildDefaultGeneEntryFallbackQuery(genes);
-    vm.geneEntryProgressDismissed = true;
-    vm.geneEntry = {
+        vm.geneSetEntry && Array.isArray(vm.geneSetEntry.inputGenes) ? vm.geneSetEntry.inputGenes.slice() : [];
+    const query = buildDefaultGeneSetEntryFallbackQuery(genes);
+    vm.geneSetEntryProgressDismissed = true;
+    vm.geneSetEntry = {
         status: "idle",
         inputGenes: [],
         errors: { phenotypes: null, perPhenotype: {} },
@@ -73,6 +73,9 @@ function switchGeneEntryToMainPath(vm, { setKeyParams } = {}) {
         failureReason: null,
     };
     vm.userQuery = query;
+    if (Object.prototype.hasOwnProperty.call(vm, "searchPath")) {
+        vm.searchPath = "query";
+    }
     const applyParams =
         typeof setKeyParams === "function"
             ? setKeyParams
@@ -82,7 +85,7 @@ function switchGeneEntryToMainPath(vm, { setKeyParams } = {}) {
                   const keyParams = require("@/utils/keyParams").default;
                   if (keyParams && typeof keyParams.set === "function") keyParams.set(map);
               };
-    applyParams({ genes: null, query, geneEntryFail: null });
+    applyParams({ genes: null, query, geneSetEntryFail: null });
     if (typeof vm.queryParse === "function") {
         vm.queryParse();
         return true;
@@ -122,7 +125,7 @@ function applySearchTermGenesOfInterestFlags(factorData, genesOfInterest) {
 
 export {
     applySearchTermGenesOfInterestFlags,
-    buildDefaultGeneEntryFallbackQuery,
-    markGeneEntryCannotProceed,
-    switchGeneEntryToMainPath,
+    buildDefaultGeneSetEntryFallbackQuery,
+    markGeneSetEntryCannotProceed,
+    switchGeneSetEntryToMainPath,
 };

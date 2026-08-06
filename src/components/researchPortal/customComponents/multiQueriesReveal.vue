@@ -21,7 +21,9 @@
                         ref="workflowQueryBar"
                         :user-query="userQuery"
                         :search-input-placeholder="searchInputPlaceholder"
+                        :search-criteria-type="searchCriteriaType"
                         @update:userQuery="onUserQueryUpdate"
+                        @update:searchCriteriaType="onSearchCriteriaTypeUpdate"
                         @query-focus="onQueryInputFocus"
                         @query-blur="onQueryInputBlur"
                         @reveal="queryParse"
@@ -181,7 +183,8 @@
                             @gene-set-row-toggle="onGeneSetRowToggled"
                             @update:mainTableCurrentPage="mainTableCurrentPage = $event"
                             @update:subtable-page="onSubtablePageUpdate"
-                            @update:researchIntention="onGeneEntryResearchIntentionUpdate"
+                            @update:researchIntention="onGeneSetEntryResearchIntentionUpdate"
+                            @update:llmFeedScope="onGeneSetEntryLlmFeedScopeUpdate"
                         >
                             <template #data-viz>
                                 <factor-base-reveal-heatmap
@@ -191,11 +194,11 @@
                                     :factor-data="factorData"
                                     :factor-data-table-rows="factorDataTableRowsFiltered"
                                     :phenotype-description-by-id="phenotypeDescriptionById"
-                                    :row-label-mode="isGeneEntryMode ? 'factor' : 'phenotype'"
+                                    :row-label-mode="isGeneSetEntryMode ? 'factor' : 'phenotype'"
                                     :emphasize-search-context-genes="emphasizeSearchContextGenes"
-                                    :cell-color-mode="isGeneEntryMode ? 'factorValue' : 'association'"
-                                    :show-association-score-header="!isGeneEntryMode"
-                                    :show-association-legend="!isGeneEntryMode"
+                                    :cell-color-mode="isGeneSetEntryMode ? 'factorValue' : 'association'"
+                                    :show-association-score-header="!isGeneSetEntryMode"
+                                    :show-association-legend="!isGeneSetEntryMode"
                                     :phenotype-association-filters.sync="phenotypeAssociationFilters"
                                     :heatmap-view-filters.sync="heatmapViewFilters"
                                     :selected-nodes.sync="heatmapSelectedNodes"
@@ -248,39 +251,39 @@
                 -->
 
                 <b-modal
-                    id="gene-entry-progress-modal"
-                    v-model="geneEntryProgressModalOpen"
+                    id="gene-set-entry-progress-modal"
+                    v-model="geneSetEntryProgressModalOpen"
                     centered
                     hide-header-close
                     no-close-on-backdrop
                     no-close-on-esc
-                    :hide-footer="geneEntry.status === 'loading'"
-                    :title="geneEntry.offerMainPathFallback ? 'Genes-first retrieval failed' : 'Genes-first data loading'"
+                    :hide-footer="geneSetEntry.status === 'loading'"
+                    :title="geneSetEntry.offerMainPathFallback ? 'Gene-set entry retrieval failed' : 'Gene-set entry data loading'"
                 >
                     <div class="d-flex align-items-start">
-                        <b-spinner v-if="geneEntry.status === 'loading'" class="mr-3 mt-1"></b-spinner>
+                        <b-spinner v-if="geneSetEntry.status === 'loading'" class="mr-3 mt-1"></b-spinner>
                         <div style="min-width: 0;">
                             <div class="font-weight-bold mb-1">
-                                {{ (geneEntry.progress && geneEntry.progress.message) || "Working…" }}
+                                {{ (geneSetEntry.progress && geneSetEntry.progress.message) || "Working…" }}
                             </div>
                             <div
-                                v-if="geneEntry.progress && geneEntry.progress.detail"
+                                v-if="geneSetEntry.progress && geneSetEntry.progress.detail"
                                 class="small text-muted"
                                 style="white-space: pre-line; line-height: 1.45;"
                             >
-                                {{ geneEntry.progress.detail }}
+                                {{ geneSetEntry.progress.detail }}
                             </div>
-                            <div v-if="geneEntry.inputGenes && geneEntry.inputGenes.length" class="small text-muted mt-2">
-                                {{ geneEntry.inputGenes.length }} gene(s)
-                                <span v-if="geneEntry.inputGenes.length <= 12">
-                                    : {{ geneEntry.inputGenes.join(", ") }}
+                            <div v-if="geneSetEntry.inputGenes && geneSetEntry.inputGenes.length" class="small text-muted mt-2">
+                                {{ geneSetEntry.inputGenes.length }} gene(s)
+                                <span v-if="geneSetEntry.inputGenes.length <= 12">
+                                    : {{ geneSetEntry.inputGenes.join(", ") }}
                                 </span>
                                 <span v-else>
-                                    : {{ geneEntry.inputGenes.slice(0, 8).join(", ") }}…
+                                    : {{ geneSetEntry.inputGenes.slice(0, 8).join(", ") }}…
                                 </span>
                             </div>
                             <div
-                                v-if="geneEntry.offerMainPathFallback"
+                                v-if="geneSetEntry.offerMainPathFallback"
                                 class="mt-3 p-2 border rounded"
                                 style="background: #f8f9fa; font-size: 0.9rem; line-height: 1.45;"
                             >
@@ -291,18 +294,18 @@
                     </div>
                     <template #modal-footer>
                         <b-button
-                            v-if="geneEntry.offerMainPathFallback"
+                            v-if="geneSetEntry.offerMainPathFallback"
                             variant="outline-secondary"
                             size="sm"
-                            @click="dismissGeneEntryProgressModal"
+                            @click="dismissGeneSetEntryProgressModal"
                         >
                             Dismiss
                         </b-button>
                         <b-button
-                            v-if="geneEntry.offerMainPathFallback"
+                            v-if="geneSetEntry.offerMainPathFallback"
                             variant="primary"
                             size="sm"
-                            @click="onSwitchGeneEntryToMainPath"
+                            @click="onSwitchGeneSetEntryToMainPath"
                         >
                             Switch to text-query search
                         </b-button>
@@ -310,7 +313,7 @@
                             v-else
                             variant="primary"
                             size="sm"
-                            @click="dismissGeneEntryProgressModal"
+                            @click="dismissGeneSetEntryProgressModal"
                         >
                             OK
                         </b-button>
@@ -526,8 +529,13 @@ import {
     buildHelperFallbackQuery,
     continueWithQueryHelper,
 } from "./revealMultiQueryWorkflow/revealMqQueryHelperOrchestrator.js";
-import { runGeneEntryWorkflow } from "./revealMultiQueryWorkflow/revealMqGeneEntryOrchestrator.js";
-import { switchGeneEntryToMainPath } from "./revealMultiQueryWorkflow/revealMqGeneEntryFallback.js";
+import { parseGenesParam, runGeneSetEntryWorkflow } from "./revealMultiQueryWorkflow/revealMqGeneSetEntryOrchestrator.js";
+import { switchGeneSetEntryToMainPath } from "./revealMultiQueryWorkflow/revealMqGeneSetEntryFallback.js";
+import { buildGeneSetEntryRawExport } from "./revealMultiQueryWorkflow/revealMqGeneSetEntryRawExport.js";
+import {
+    GENE_SET_ENTRY_LLM_FEED_SCOPE,
+    buildGeneSetEntryLlmFeed,
+} from "./revealMultiQueryWorkflow/revealMqGeneSetEntryLlmFeed.js";
 import {
     edgeEndpointIdsFromMappedNode,
     edgeSupportedByTrapiRelay,
@@ -615,11 +623,11 @@ export default Vue.component("factor-base-reveal", {
     data() {
         return {
             /**
-             * Genes-first entry point (?genes=... URL param). Populated by runGeneEntryWorkflow,
-             * which also assigns vm.factorData/vm.showTab -- see revealMqGeneEntryOrchestrator.js
-             * and ARCHITECTURE.md's "Genes-first entry point" section for the full data flow.
+             * Gene-set entry point (?genes=... URL param). Populated by runGeneSetEntryWorkflow,
+             * which also assigns vm.factorData/vm.showTab -- see revealMqGeneSetEntryOrchestrator.js
+             * and ARCHITECTURE.md's "Gene-set entry point" section for the full data flow.
              */
-            geneEntry: {
+            geneSetEntry: {
                 status: "idle",
                 inputGenes: [],
                 errors: { phenotypes: null, perPhenotype: {}, pigean: null },
@@ -632,7 +640,21 @@ export default Vue.component("factor-base-reveal", {
                 failureReason: null,
             },
             /** Keeps error/partial progress modal open until the user dismisses it. */
-            geneEntryProgressDismissed: false,
+            geneSetEntryProgressDismissed: false,
+            /**
+             * Gene-set entry: which evidence subset to format for hypothesis LLM.
+             * @see GENE_SET_ENTRY_LLM_FEED_SCOPE
+             */
+            geneSetEntryLlmFeedScope: GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
+            /** Last slim JSON feed sent to the gene-set hypothesis LLM (debug / future export). */
+            lastGeneSetEntryLlmFeed: null,
+            /**
+             * Entry / search path for the main query box.
+             * - "query": free-text → extraction / hybrid retrieval
+             * - "genes": gene-list entry (`?genes=` or gene-set entry session)
+             * Future entity types (phenotypes, gene sets, …) will extend this.
+             */
+            searchPath: "query",
             userQuery: "",
             searchMode: "auto",
             /** Rotating best-practice placeholder examples (Strict Anchor + Semantic Net + Context + Phenotype). */
@@ -653,7 +675,7 @@ export default Vue.component("factor-base-reveal", {
             /** Heatmap-selected traits, gene sets, genes, and crossings for scoped hypothesis generation. */
             heatmapSelectedNodes: [],
             /**
-             * Genes-entry heatmap ↔ table view filters (view-only; never mutates factorData).
+             * Gene-set entry heatmap ↔ table view filters (view-only; never mutates factorData).
              * Toggled from the heatmap legend strip.
              */
             heatmapViewFilters: { ...DEFAULT_HEATMAP_VIEW_FILTERS },
@@ -939,7 +961,7 @@ export default Vue.component("factor-base-reveal", {
         networkModalsHelpers() {
             const vm = this;
             return {
-                openNetworkPopup: (idx) => vm.openNetworkPopup(idx),
+                openNetworkPopup: (idx, options) => vm.openNetworkPopup(idx, options),
                 closeNetworkPopup: () => vm.closeNetworkPopup(),
                 isMechanismUsingBiolinkMap: (m) => vm.isMechanismUsingBiolinkMap(m),
                 hasMechanismBiolinkNetwork: (m) => vm.hasMechanismBiolinkNetwork(m),
@@ -976,21 +998,22 @@ export default Vue.component("factor-base-reveal", {
                 subtableCurrentPages: this.subtableCurrentPages,
                 loadingGenesForFactor: this.loadingGenesForFactor,
                 geneSetSources: this.gene_set_sources,
-                showResearchIntention: this.isGeneEntryMode,
+                showResearchIntention: this.isGeneSetEntryMode,
                 researchIntention:
-                    (this.geneEntry && this.geneEntry.researchIntention) || "",
-                isGeneEntryMode: this.isGeneEntryMode,
+                    (this.geneSetEntry && this.geneSetEntry.researchIntention) || "",
+                llmFeedScope: this.geneSetEntryLlmFeedScope || GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
+                isGeneSetEntryMode: this.isGeneSetEntryMode,
                 emphasizeSearchContextGenes: this.emphasizeSearchContextGenes,
                 heatmapViewFilters: this.normalizedHeatmapViewFilters,
                 revealDataSteps: this.revealDataSteps,
                 loadStatus: this.loadStatus,
                 loadComplete: this.loadComplete,
                 loadStepSeconds: this.loadStepSeconds,
-                geneEntryProgress:
-                    this.geneEntry && this.geneEntry.progress
-                        ? this.geneEntry.progress
+                geneSetEntryProgress:
+                    this.geneSetEntry && this.geneSetEntry.progress
+                        ? this.geneSetEntry.progress
                         : { message: "", detail: "" },
-                geneEntryLoading: !!(this.geneEntry && this.geneEntry.status === "loading"),
+                geneSetEntryLoading: !!(this.geneSetEntry && this.geneSetEntry.status === "loading"),
             };
         },
         dataPanelHelpers() {
@@ -1044,6 +1067,7 @@ export default Vue.component("factor-base-reveal", {
                 generatingRemainingRowKey: this.generatingRemainingRowKey,
                 handoffCopiedMechanismIndex: this.handoffCopiedMechanismIndex,
                 isPhenotypePath: this.isPhenotypePath,
+                isGeneSetEntryMode: this.isGeneSetEntryMode,
                 mainTablePerPage: this.mainTablePerPage,
                 remainingTableCurrentPage: this.remainingTableCurrentPage,
                 subtablePerPage: this.subtablePerPage,
@@ -1065,9 +1089,12 @@ export default Vue.component("factor-base-reveal", {
                 candidateInventoryRows: (inv) => vm.candidateInventoryRows(inv),
                 mechanismGeneGroupPillStyle: (g) => vm.mechanismGeneGroupPillStyle(g),
                 getGeneConnectionForMechanism: (m, g) => vm.getGeneConnectionForMechanism(m, g),
+                formatGeneSetNamesForTableWrap: (sets) => vm.formatGeneSetNamesForTableWrap(sets),
                 getRelevantPhenotypesDisplay: (p) => vm.getRelevantPhenotypesDisplay(p),
                 getPhenotypeDisplay: (p) => vm.getPhenotypeDisplay(p),
                 getFactorClusterDisplayString: (f) => vm.getFactorClusterDisplayString(f),
+                getGeneSetFactorDisplayLabel: (f) => vm.getGeneSetFactorDisplayLabel(f),
+                isGeneInSearchSet: (g) => vm.isGeneInSearchSet(g),
                 formatRelevantGeneSetsForDisplay: (s) => vm.formatRelevantGeneSetsForDisplay(s),
                 cfdeExploreGeneSetHref: (...args) => vm.cfdeExploreGeneSetHref(...args),
                 c2m2GeneSetDownloadNodes: (gs) => vm.c2m2GeneSetDownloadNodes(gs),
@@ -1085,10 +1112,17 @@ export default Vue.component("factor-base-reveal", {
             };
         },
         searchInputPlaceholder() {
+            if (this.searchPath === "genes") {
+                return "e.g., APOE, LDLR, PCSK9, PPARG";
+            }
             const list = Array.isArray(this.placeholderExamples) ? this.placeholderExamples : [];
             if (!list.length) return "Describe what you're researching or curious about...";
             const idx = Math.max(0, Math.min(this.currentPlaceholderIndex, list.length - 1));
             return String(list[idx] || list[0]);
+        },
+        /** Query-bar entity select: gene_set ↔ searchPath genes, free_text ↔ query. */
+        searchCriteriaType() {
+            return this.searchPath === "genes" ? "gene_set" : "free_text";
         },
         hypothesisModeRelaxedSwitch: {
             get() {
@@ -1307,14 +1341,14 @@ export default Vue.component("factor-base-reveal", {
             return normalizeHeatmapViewFilters(this.heatmapViewFilters);
         },
         /**
-         * Rows shown in the Data table. Genes-entry "Only selected" mirrors the heatmap
+         * Rows shown in the Data table. Gene-set entry "Only selected" mirrors the heatmap
          * without mutating factorData (full rows return when the filter is cleared).
          */
         factorTableRowsForDisplay() {
             const base = this.isPhenotypePath
                 ? this.factorDataTableRowsWithRationaleMeta || []
                 : this.factorDataTableRows || [];
-            if (!this.isGeneEntryMode) return base;
+            if (!this.isGeneSetEntryMode) return base;
             const vf = this.normalizedHeatmapViewFilters;
             if (!vf.onlySelected) return base;
             // Match heatmap axis filtering (not hypothesis AND-scoping).
@@ -1400,30 +1434,31 @@ export default Vue.component("factor-base-reveal", {
             );
         },
         /**
-         * True when Data came from the genes-first (?genes=) entry point.
-         * Used for genes-first-only heatmap presentation (e.g. factor labels on Y-axis).
+         * True when Data came from the gene-set entry path (`?genes=` / searchPath genes).
+         * Used for gene-set entry-only heatmap presentation (e.g. factor labels on Y-axis).
          */
-        isGeneEntryMode() {
-            return !!(this.geneEntry && this.geneEntry.inputGenes && this.geneEntry.inputGenes.length);
+        isGeneSetEntryMode() {
+            if (this.searchPath === "genes") return true;
+            return !!(this.geneSetEntry && this.geneSetEntry.inputGenes && this.geneSetEntry.inputGenes.length);
         },
         /**
-         * Bold search-term genes of interest vs context genes (genes-first input genes,
+         * Bold search-term genes of interest vs context genes (gene-set entry input genes,
          * or extracted genes_of_interest on the text-query path).
          */
         emphasizeSearchContextGenes() {
-            if (this.isGeneEntryMode) return true;
+            if (this.isGeneSetEntryMode) return true;
             return !!(this.lastGenesOfInterest && this.lastGenesOfInterest.length);
         },
-        /** Error / fallback popup for genes-first (loading progress lives under the Data tab). */
-        geneEntryProgressModalOpen: {
+        /** Error / fallback popup for gene-set entry (loading progress lives under the Data tab). */
+        geneSetEntryProgressModalOpen: {
             get() {
-                if (!this.geneEntry) return false;
-                if (this.geneEntry.status === "loading") return false;
-                if (this.geneEntryProgressDismissed) return false;
-                return this.geneEntry.status === "error" || this.geneEntry.status === "partial";
+                if (!this.geneSetEntry) return false;
+                if (this.geneSetEntry.status === "loading") return false;
+                if (this.geneSetEntryProgressDismissed) return false;
+                return this.geneSetEntry.status === "error" || this.geneSetEntry.status === "partial";
             },
             set(open) {
-                if (!open) this.dismissGeneEntryProgressModal();
+                if (!open) this.dismissGeneSetEntryProgressModal();
             },
         },
         /** Mount Data panel only while the Data tab is active and Results generation has not started. */
@@ -1497,8 +1532,9 @@ export default Vue.component("factor-base-reveal", {
             return [...new Set(rows.map((r) => this.getFactorClusterDisplay(r)))].sort();
         },
         /**
-         * Phenotype–table-row keys cited in mechanism results: inferred from supporting_row_ids
-         * plus merged factorData (hybrid KG has no cluster nodes; edges are phenotype–gene set / gene).
+         * Phenotype–table-row keys cited in mechanism results.
+         * Free-text: inferred from supporting_row_ids + flattened KG.
+         * Gene-set: from associated_pairs / associated_factor_ids (no flattened KG).
          */
         mechanismResultPhenotypeFactorPairKeys() {
             const keys = new Set();
@@ -1506,9 +1542,49 @@ export default Vue.component("factor-base-reveal", {
             const mechs = this.mechanisms || [];
             const data = this.factorData || {};
             if (!mechs.length) return keys;
+            const geneSetPath = this.searchPath === "genes";
             for (const m of mechs) {
                 if (m._fromRemainingPair && Array.isArray(m._remainingPairCoverKeys)) {
                     m._remainingPairCoverKeys.forEach((k) => keys.add(k));
+                    continue;
+                }
+                if (geneSetPath) {
+                    const pairs = Array.isArray(m.associated_pairs) ? m.associated_pairs : [];
+                    pairs.forEach((pair) => {
+                        if (!pair) return;
+                        const p = pair.phenotype != null ? String(pair.phenotype).trim() : "";
+                        const f = pair.factor != null ? String(pair.factor).trim() : "";
+                        if (p && f) {
+                            keys.add(`${p}|${this.collapseWsLower(f)}`);
+                            keys.add(`${f}|${this.collapseWsLower(p)}`);
+                        } else if (f) {
+                            keys.add(`${f}|${this.collapseWsLower(f)}`);
+                        } else if (p) {
+                            keys.add(`${p}|${this.collapseWsLower(p)}`);
+                        }
+                    });
+                    const factorIds = Array.isArray(m.associated_factor_ids)
+                        ? m.associated_factor_ids
+                        : [];
+                    factorIds.forEach((fid) => {
+                        const id = fid != null ? String(fid).trim() : "";
+                        if (!id) return;
+                        keys.add(`${id}|${this.collapseWsLower(id)}`);
+                        const bucket = data[id];
+                        const factorObj =
+                            bucket && Array.isArray(bucket.factors) && bucket.factors[0]
+                                ? bucket.factors[0]
+                                : null;
+                        const label =
+                            factorObj && factorObj.label != null
+                                ? String(factorObj.label).trim()
+                                : factorObj && factorObj.factorLabel != null
+                                  ? String(factorObj.factorLabel).trim()
+                                  : "";
+                        if (label) {
+                            keys.add(`${id}|${this.collapseWsLower(label)}`);
+                        }
+                    });
                     continue;
                 }
                 if (!flat || !flat.length) continue;
@@ -1639,11 +1715,19 @@ export default Vue.component("factor-base-reveal", {
     },
     async mounted() {
         if (keyParams.genes) {
-            this.geneEntryProgressDismissed = false;
-            await runGeneEntryWorkflow(this, keyParams.genes, {
-                failMode: keyParams.geneEntryFail,
+            const genes = parseGenesParam(this, keyParams.genes);
+            if (genes.length) {
+                // Surface genes in the main query input and lock gene-set entry search path.
+                this.userQuery = genes.join(", ");
+                this.searchPath = "genes";
+                this.placeholderRotationPaused = true;
+            }
+            this.geneSetEntryProgressDismissed = false;
+            await runGeneSetEntryWorkflow(this, keyParams.genes, {
+                failMode: keyParams.geneSetEntryFail,
             });
         } else if (keyParams.query) {
+            this.searchPath = "query";
             this.userQuery = keyParams.query;
         }
         this.currentPlaceholderIndex = 0;
@@ -1684,9 +1768,12 @@ export default Vue.component("factor-base-reveal", {
             this.bumpWorkflowRunId();
             this.resetWorkflowStateForNewRun();
             this.userQuery = "";
-            this.geneEntryProgressDismissed = false;
-            if (this.geneEntry) {
-                this.geneEntry = {
+            this.searchPath = "query";
+            this.geneSetEntryProgressDismissed = false;
+            this.geneSetEntryLlmFeedScope = GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER;
+            this.lastGeneSetEntryLlmFeed = null;
+            if (this.geneSetEntry) {
+                this.geneSetEntry = {
                     status: "idle",
                     inputGenes: [],
                     errors: { phenotypes: null, perPhenotype: {}, pigean: null },
@@ -1700,7 +1787,7 @@ export default Vue.component("factor-base-reveal", {
                 };
             }
             if (keyParams && typeof keyParams.set === "function") {
-                keyParams.set({ query: null, genes: null, geneEntryFail: null });
+                keyParams.set({ query: null, genes: null, geneSetEntryFail: null });
             }
             this.placeholderRotationPaused = false;
             this.startPlaceholderRotation();
@@ -2081,6 +2168,20 @@ export default Vue.component("factor-base-reveal", {
             this.userQuery = val;
             this.onQueryInput();
         },
+        onSearchCriteriaTypeUpdate(value) {
+            if (value === "gene_set") {
+                this.searchPath = "genes";
+                this.placeholderRotationPaused = true;
+                return;
+            }
+            if (value === "free_text") {
+                this.searchPath = "query";
+                if (!String(this.userQuery || "").trim()) {
+                    this.placeholderRotationPaused = false;
+                    this.startPlaceholderRotation();
+                }
+            }
+        },
         /**
          * CFDE C2M2 provenance API. Returns json.data (array) or null.
          * @see https://cfde-dev.hugeampkpnbi.org/api/bio/query/c2m2-provenance
@@ -2152,6 +2253,10 @@ export default Vue.component("factor-base-reveal", {
                     const id = String(gs || "").trim();
                     if (id) ids.add(id);
                 });
+                (m.cited_gene_set_names || []).forEach((gs) => {
+                    const id = String(gs || "").trim();
+                    if (id) ids.add(id);
+                });
             });
             ids.forEach((id) => this.ensureC2m2ProvenanceForGeneSet(id));
         },
@@ -2201,15 +2306,36 @@ export default Vue.component("factor-base-reveal", {
             this.$set(this.gene_set_sources, key, result);
         },
         downloadLastHybridSearchRawJson() {
-            const payload = this.lastHybridSearchResponse;
-            if (!payload || typeof payload !== "object") return;
+            let payload = null;
+            let filenamePrefix = "hybrid-search-response";
+
+            // Gene-set path only: slim factorization export (not nested factorData).
+            if (this.searchPath === "genes") {
+                const factorData =
+                    this.factorData && typeof this.factorData === "object" ? this.factorData : {};
+                const inputGenes =
+                    this.geneSetEntry && Array.isArray(this.geneSetEntry.inputGenes)
+                        ? this.geneSetEntry.inputGenes.slice()
+                        : [];
+                payload = buildGeneSetEntryRawExport(factorData, {
+                    inputGenes,
+                    source: "bayes_gene/pigean",
+                    searchPath: "genes",
+                });
+                if (!payload) return;
+                filenamePrefix = "gene-set-factorization-response";
+            } else {
+                payload = this.lastHybridSearchResponse;
+                if (!payload || typeof payload !== "object") return;
+            }
+
             try {
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json;charset=utf-8" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `hybrid-search-response-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+                a.download = `${filenamePrefix}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -2581,28 +2707,35 @@ export default Vue.component("factor-base-reveal", {
             if (stopTimer) this.stopStepTimer();
             else this.startStepTimer();
         },
-        dismissGeneEntryProgressModal() {
-            this.geneEntryProgressDismissed = true;
+        dismissGeneSetEntryProgressModal() {
+            this.geneSetEntryProgressDismissed = true;
         },
-        onSwitchGeneEntryToMainPath() {
-            switchGeneEntryToMainPath(this);
+        onSwitchGeneSetEntryToMainPath() {
+            switchGeneSetEntryToMainPath(this);
         },
-        onGeneEntryResearchIntentionUpdate(value) {
-            if (!this.geneEntry) return;
+        onGeneSetEntryResearchIntentionUpdate(value) {
+            if (!this.geneSetEntry) return;
             const text = value != null ? String(value) : "";
-            this.$set(this.geneEntry, "researchIntention", text);
+            this.$set(this.geneSetEntry, "researchIntention", text);
             this.sharedResearchContextTerm = text;
         },
-        syncGeneEntryResearchIntentionToSession() {
-            if (!this.geneEntry) return;
+        onGeneSetEntryLlmFeedScopeUpdate(value) {
+            const allowed = Object.values(GENE_SET_ENTRY_LLM_FEED_SCOPE);
+            const next = String(value || "");
+            this.geneSetEntryLlmFeedScope = allowed.includes(next)
+                ? next
+                : GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER;
+        },
+        syncGeneSetEntryResearchIntentionToSession() {
+            if (!this.geneSetEntry) return;
             const text =
-                this.geneEntry.researchIntention != null
-                    ? String(this.geneEntry.researchIntention).trim()
+                this.geneSetEntry.researchIntention != null
+                    ? String(this.geneSetEntry.researchIntention).trim()
                     : "";
             this.sharedResearchContextTerm = text;
             if (!Array.isArray(this.searchCriteria) || this.searchCriteria.length < 2) {
                 this.searchCriteria = [
-                    { type: "genes", values: (this.geneEntry.inputGenes || []).join(", ") },
+                    { type: "genes", values: (this.geneSetEntry.inputGenes || []).join(", ") },
                     { type: "research_context", values: text },
                 ];
                 return;
@@ -3057,8 +3190,23 @@ export default Vue.component("factor-base-reveal", {
                     });
                 }
             } else if (gateStepId === WORKFLOW_STEP_IDS.DATA) {
-                if (this.isGeneEntryMode) {
-                    this.syncGeneEntryResearchIntentionToSession();
+                if (this.isGeneSetEntryMode) {
+                    this.syncGeneSetEntryResearchIntentionToSession();
+                }
+                if (this.searchPath === "genes") {
+                    const preview = buildGeneSetEntryLlmFeed(this.factorData, {
+                        scopeMode: this.geneSetEntryLlmFeedScope || GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
+                        selectedNodes: this.heatmapSelectedNodes || [],
+                        viewFilters: this.heatmapViewFilters || {},
+                        inputGenes:
+                            this.geneSetEntry && Array.isArray(this.geneSetEntry.inputGenes)
+                                ? this.geneSetEntry.inputGenes
+                                : [],
+                    });
+                    if (!preview.feed) {
+                        this.setLoadStatus(preview.emptyReason || "No evidence in the chosen LLM scope.", true);
+                        return;
+                    }
                 }
                 this.revealResultsTabUnlocked = true;
                 this.switchRevealTab("results");
@@ -3137,7 +3285,7 @@ export default Vue.component("factor-base-reveal", {
             if (!row) return 0;
             return this.getGenesForFactor(row.phenotype, row.factor, row.fetched_direction).length;
         },
-        /** Genes-first: "search:context" counts for the Number of genes column. */
+        /** Gene-set entry: "search:context" counts for the Number of genes column. */
         getGeneSearchContextCountDisplay(row) {
             const genes = this.getGenesForFactor(
                 row && row.phenotype,
@@ -3155,6 +3303,72 @@ export default Vue.component("factor-base-reveal", {
         /** Pills / KG strings: same resolution as table (Orphanet_*, gcat_*, etc.). */
         getFactorClusterDisplayString(raw) {
             return resolveCfdeFactorClusterDisplayLabel(raw);
+        },
+        /**
+         * Gene-set path: show factorization cluster label (e.g. HP_ARTERIOSCLEROSIS) for FactorN ids.
+         * Falls back to CFDE display resolution / raw id.
+         */
+        getGeneSetFactorDisplayLabel(factorId) {
+            const id = factorId != null ? String(factorId).trim() : "";
+            if (!id) return "—";
+            const data = this.factorData || {};
+            const pickLabel = (factorObj) => {
+                if (!factorObj || typeof factorObj !== "object") return "";
+                const raw =
+                    factorObj.label != null && String(factorObj.label).trim()
+                        ? String(factorObj.label).trim()
+                        : factorObj.factorLabel != null && String(factorObj.factorLabel).trim()
+                          ? String(factorObj.factorLabel).trim()
+                          : factorObj.labelFromApi != null && String(factorObj.labelFromApi).trim()
+                            ? String(factorObj.labelFromApi).trim()
+                            : "";
+                return raw;
+            };
+            const direct = data[id];
+            if (direct) {
+                const factors = [
+                    ...(Array.isArray(direct.factors) ? direct.factors : []),
+                    ...(Array.isArray(direct.allFactors) ? direct.allFactors : []),
+                ];
+                const hit =
+                    factors.find((f) => f && String(f.factor || "").trim() === id) || factors[0] || null;
+                const label = pickLabel(hit);
+                if (label) {
+                    return resolveCfdeFactorClusterDisplayLabel(label) || label;
+                }
+            }
+            for (const key of Object.keys(data)) {
+                const bucket = data[key];
+                if (!bucket) continue;
+                const factors = [
+                    ...(Array.isArray(bucket.factors) ? bucket.factors : []),
+                    ...(Array.isArray(bucket.allFactors) ? bucket.allFactors : []),
+                ];
+                const hit = factors.find((f) => f && String(f.factor || "").trim() === id);
+                const label = pickLabel(hit);
+                if (label) {
+                    return resolveCfdeFactorClusterDisplayLabel(label) || label;
+                }
+            }
+            return this.getFactorClusterDisplayString(id) || id;
+        },
+        /** Whether a candidate gene is in the gene-set search / input gene list. */
+        isGeneInSearchSet(geneRow) {
+            if (!geneRow || typeof geneRow !== "object") return null;
+            if (typeof geneRow.is_input === "boolean") return geneRow.is_input;
+            const sym =
+                geneRow.gene != null
+                    ? String(geneRow.gene).trim().toUpperCase()
+                    : geneRow.symbol != null
+                      ? String(geneRow.symbol).trim().toUpperCase()
+                      : "";
+            if (!sym) return null;
+            const inputs =
+                this.geneSetEntry && Array.isArray(this.geneSetEntry.inputGenes)
+                    ? this.geneSetEntry.inputGenes
+                    : [];
+            if (!inputs.length) return null;
+            return inputs.some((g) => String(g || "").trim().toUpperCase() === sym);
         },
         /** Comma-separated list of phenotype descriptions for on-screen report. */
         getRelevantPhenotypesDisplay(phenotypeIds) {
@@ -3311,6 +3525,18 @@ export default Vue.component("factor-base-reveal", {
                 factors: Array.isArray(conn.factors) ? conn.factors : [],
                 gene_sets: Array.isArray(conn.gene_sets) ? conn.gene_sets : [],
             };
+        },
+        /**
+         * Soft-wrap long gene-set IDs at underscores (ZWSP after `_`). Gene symbols are not passed here.
+         */
+        formatGeneSetNamesForTableWrap(geneSets) {
+            const list = Array.isArray(geneSets) ? geneSets : [];
+            if (!list.length) return "—";
+            const zwsp = "\u200B";
+            return list
+                .map((gs) => String(gs == null ? "" : gs).replace(/_/g, `_${zwsp}`))
+                .filter(Boolean)
+                .join(", ");
         },
         buildCrossRouteCrosstalkFallback(routeBundles) {
             const bundles = Array.isArray(routeBundles) ? routeBundles : [];
@@ -3600,7 +3826,10 @@ export default Vue.component("factor-base-reveal", {
                     ? String(this.searchCriteria[1].values).trim()
                     : "";
             const topGenes = this.getMechanismTopGenes(mechanism, 10);
-            return buildMechanismClipboardText(mechanism, idx, researchContext, topGenes);
+            return buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, {
+                geneSetPath: this.searchPath === "genes",
+                formatFactorLabel: (id) => this.getGeneSetFactorDisplayLabel(id),
+            });
         },
         isMechanismBiolinkMapped(mechanism) {
             return !!(
@@ -3815,11 +4044,42 @@ export default Vue.component("factor-base-reveal", {
             } catch {
             }
         },
-        openNetworkPopup(mechanismIndex, options = {}) {
-            this.networkPopupMechanismIndex = mechanismIndex;
-            this.networkPopupIsHypothesisMap = !!(options && options.hypothesisMap);
-            this.popupNetworkWidth = Math.max(400, Math.round((typeof window !== "undefined" && window.innerWidth) ? window.innerWidth * 0.9 : 960));
-            this.popupNetworkHeight = Math.max(300, Math.round((typeof window !== "undefined" && window.innerHeight) ? window.innerHeight * 0.9 - 56 : 640));
+        openNetworkPopup(mechanismIndexOrPayload, options = {}) {
+            let mechanismIndex = mechanismIndexOrPayload;
+            let opts = options && typeof options === "object" ? options : {};
+            // Prefer a single payload object so Vue listeners that only forward $event
+            // still receive hypothesisMap / index together.
+            if (
+                mechanismIndexOrPayload != null &&
+                typeof mechanismIndexOrPayload === "object" &&
+                !Array.isArray(mechanismIndexOrPayload)
+            ) {
+                const payload = mechanismIndexOrPayload;
+                mechanismIndex =
+                    payload.index != null
+                        ? payload.index
+                        : payload.mechanismIndex != null
+                          ? payload.mechanismIndex
+                          : null;
+                opts = payload;
+            }
+            if (mechanismIndex == null || Number.isNaN(Number(mechanismIndex))) return;
+            this.networkPopupMechanismIndex = Number(mechanismIndex);
+            this.networkPopupIsHypothesisMap = !!opts.hypothesisMap;
+            this.popupNetworkWidth = Math.max(
+                400,
+                Math.round(
+                    typeof window !== "undefined" && window.innerWidth ? window.innerWidth * 0.9 : 960
+                )
+            );
+            this.popupNetworkHeight = Math.max(
+                300,
+                Math.round(
+                    typeof window !== "undefined" && window.innerHeight
+                        ? window.innerHeight * 0.9 - 56
+                        : 640
+                )
+            );
         },
         closeNetworkPopup() {
             this.networkPopupMechanismIndex = null;
@@ -3911,7 +4171,7 @@ export default Vue.component("factor-base-reveal", {
             return factors.find(matches) || allFactors.find(matches) || null;
         },
         getGenesetForFactor(phenotype, factor, fetchedDirection = null){
-            if (this.isGeneEntryMode && !this.normalizedHeatmapViewFilters.showGeneSets) {
+            if (this.isGeneSetEntryMode && !this.normalizedHeatmapViewFilters.showGeneSets) {
                 return [];
             }
             const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
@@ -3951,7 +4211,7 @@ export default Vue.component("factor-base-reveal", {
                 };
             });
             if (
-                this.isGeneEntryMode &&
+                this.isGeneSetEntryMode &&
                 this.normalizedHeatmapViewFilters.onlySelected &&
                 (this.heatmapSelectedNodes || []).length
             ) {
@@ -3972,7 +4232,7 @@ export default Vue.component("factor-base-reveal", {
         },
         getGenesForFactor(phenotype, factor, fetchedDirection = null) {
             const vf = this.normalizedHeatmapViewFilters;
-            if (this.isGeneEntryMode && !vf.genesInSearchOnly && !vf.showGenes) {
+            if (this.isGeneSetEntryMode && !vf.genesInSearchOnly && !vf.showGenes) {
                 return [];
             }
             const data = this.factorData || {};
@@ -3981,7 +4241,7 @@ export default Vue.component("factor-base-reveal", {
             const f = this.getFactorForPhenotypeRow(phenotype, factor, fetchedDirection);
             if (!f || !f.genes) return [];
             const globalGenes = pData.genes || {};
-            const geneEntry = this.isGeneEntryMode;
+            const geneSetPath = this.isGeneSetEntryMode;
             let rows = Object.keys(f.genes).map((geneName) => {
                 const rel = f.genes[geneName];
                 const global = globalGenes[geneName] || {};
@@ -3999,7 +4259,7 @@ export default Vue.component("factor-base-reveal", {
                 const combinedNum = global.combined != null && !isNaN(Number(global.combined))
                     ? Number(global.combined)
                     : fvNum;
-                if (!geneEntry && !associationTierPasses(combinedNum, this.phenotypeAssociationFilters)) {
+                if (!geneSetPath && !associationTierPasses(combinedNum, this.phenotypeAssociationFilters)) {
                     return null;
                 }
                 return {
@@ -4019,11 +4279,11 @@ export default Vue.component("factor-base-reveal", {
                     _sortAbs: fvNum != null ? Math.abs(fvNum) : 0,
                 };
             }).filter(Boolean);
-            if (geneEntry && vf.genesInSearchOnly) {
+            if (geneSetPath && vf.genesInSearchOnly) {
                 rows = rows.filter((r) => r.inSearch);
             }
             if (
-                geneEntry &&
+                geneSetPath &&
                 vf.onlySelected &&
                 (this.heatmapSelectedNodes || []).length
             ) {
@@ -4038,7 +4298,7 @@ export default Vue.component("factor-base-reveal", {
                 }
             }
             rows.sort((a, b) => {
-                if (geneEntry) return b._sortAbs - a._sortAbs;
+                if (geneSetPath) return b._sortAbs - a._sortAbs;
                 if (b._sortPin !== a._sortPin) return b._sortPin - a._sortPin;
                 return b._sortAbs - a._sortAbs;
             });
@@ -4102,13 +4362,49 @@ export default Vue.component("factor-base-reveal", {
                 this.$set(this.loadingGenesForFactor, key, false);
             }
         },
-        queryParse() {
-            if (!this.userQuery || !this.userQuery.trim()) return;
+        async queryParse() {
+            const q = String(this.userQuery || "").trim();
+            if (!q) return;
             if (this.stepApprovalGateActive) {
                 this.cancelStepGate(false);
             }
             this.bumpWorkflowRunId();
+            this.abortWorkflowClients();
+
+            // Gene set: require Reveal → write ?genes= and run gene-set entry to Data.
+            // URL ?genes= on load still auto-runs without Reveal (see mounted).
+            if (this.searchPath === "genes") {
+                const genes = parseGenesParam(this, q);
+                if (!genes.length) {
+                    this.setLoadStatus("Enter one or more gene symbols separated by commas.", true);
+                    return;
+                }
+                this.resetWorkflowStateForNewRun();
+                this.searchPath = "genes";
+                this.userQuery = genes.join(", ");
+                this.placeholderRotationPaused = true;
+                this.geneSetEntryProgressDismissed = false;
+                if (keyParams && typeof keyParams.set === "function") {
+                    keyParams.set({
+                        genes: genes.join(","),
+                        query: null,
+                        geneSetEntryFail: null,
+                    });
+                }
+                await runGeneSetEntryWorkflow(this, genes.join(","));
+                return;
+            }
+
             this.resetWorkflowStateForNewRun();
+            this.searchPath = "query";
+            this.userQuery = q;
+            if (keyParams && typeof keyParams.set === "function") {
+                keyParams.set({
+                    query: q,
+                    genes: null,
+                    geneSetEntryFail: null,
+                });
+            }
             this.beginFlow();
         },
         bumpWorkflowRunId() {
@@ -4565,7 +4861,7 @@ export default Vue.component("factor-base-reveal", {
 
 <style scoped>
 .factor-base-reveal {
-    --reveal-min-font-size: 11pt;
+    --reveal-min-font-size: 14px;
 }
 .factor-base-reveal .small,
 .factor-base-reveal .btn-sm,

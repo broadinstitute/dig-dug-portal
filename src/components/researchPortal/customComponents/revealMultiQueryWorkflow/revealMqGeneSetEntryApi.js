@@ -1,5 +1,5 @@
 /**
- * HTTP calls for the genes-first entry point:
+ * HTTP calls for the gene-set entry point:
  * - Broad Translator bayes_gene/pigean (factorization: factors × genes × gene sets)
  * - Broad Translator bayes_gene/phenotypes (optional ranked traits)
  * - Legacy per-phenotype cfde bioindex helpers (kept for other tooling / tests)
@@ -140,7 +140,7 @@ async function fetchGeneSetPigeanScoresForPhenotype(vm, phenotypeId, { limit = 1
                 factor: row && row.factor != null ? String(row.factor) : "",
                 label: row && row.label != null ? String(row.label) : "",
                 rsScore: row && row.rs_score != null && !isNaN(Number(row.rs_score)) ? Number(row.rs_score) : null,
-                // Effect size; genes-first keeps only gene sets with beta > MIN_GENE_SET_BETA.
+                // Effect size; gene-set entry keeps only gene sets with beta > MIN_GENE_SET_BETA.
                 beta: row && row.beta != null && !isNaN(Number(row.beta)) ? Number(row.beta) : null,
                 description: row && row.gene_set_description != null ? String(row.gene_set_description) : "",
                 program: row && row.gene_set_program != null ? String(row.gene_set_program) : "",

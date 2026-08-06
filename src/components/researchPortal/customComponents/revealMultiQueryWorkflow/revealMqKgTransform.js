@@ -18,9 +18,9 @@ function ensureGeneSetMembers(factorObj, gsName, geneName) {
     }
 }
 
-function geneIsSearchAnchor(factorGeneEntry, globalGeneEntry) {
-    if (factorGeneEntry && factorGeneEntry.includedFromRequest === true) return true;
-    if (globalGeneEntry && globalGeneEntry.includedFromRequest === true) return true;
+function geneIsSearchAnchor(factorGeneMeta, globalGeneMeta) {
+    if (factorGeneMeta && factorGeneMeta.includedFromRequest === true) return true;
+    if (globalGeneMeta && globalGeneMeta.includedFromRequest === true) return true;
     return false;
 }
 

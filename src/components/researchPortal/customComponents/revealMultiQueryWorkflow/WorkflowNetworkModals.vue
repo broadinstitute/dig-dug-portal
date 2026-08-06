@@ -12,7 +12,7 @@
                 :width="640"
                 :height="360"
                 :show-popup-button="true"
-                @open-popup="helpers.openNetworkPopup(999)"
+                @open-popup="helpers.openNetworkPopup({ index: 999, hypothesisMap: false })"
             />
         </div>
 
@@ -22,10 +22,16 @@
                 networkPopupMechanismIndex !== null &&
                 mechanisms &&
                 mechanisms[networkPopupMechanismIndex] &&
-                (!networkPopupIsHypothesisMap ||
-                    (mechanisms[networkPopupMechanismIndex].core_spine_network &&
-                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes &&
-                        mechanisms[networkPopupMechanismIndex].core_spine_network.nodes.length))
+                (networkPopupIsHypothesisMap
+                    ? mechanisms[networkPopupMechanismIndex].core_spine_network &&
+                      mechanisms[networkPopupMechanismIndex].core_spine_network.nodes &&
+                      mechanisms[networkPopupMechanismIndex].core_spine_network.nodes.length
+                    : (mechanisms[networkPopupMechanismIndex].supporting_network &&
+                          mechanisms[networkPopupMechanismIndex].supporting_network.nodes &&
+                          mechanisms[networkPopupMechanismIndex].supporting_network.nodes.length) ||
+                      (mechanisms[networkPopupMechanismIndex].network &&
+                          mechanisms[networkPopupMechanismIndex].network.nodes &&
+                          mechanisms[networkPopupMechanismIndex].network.nodes.length))
             "
             class="network-popup-overlay"
             @click.self="helpers.closeNetworkPopup"

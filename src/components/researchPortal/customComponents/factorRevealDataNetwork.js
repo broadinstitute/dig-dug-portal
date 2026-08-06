@@ -18,11 +18,11 @@ function clusterDisplayLabel(factorObj, fallback = "") {
  * @param {object} params.factorObj
  * @param {object} params.factorData
  * @param {(id: string) => string} params.phenotypeDisplay
- * @param {boolean} [params.linkGenesToGeneSets=true] - When false (genes-entry /
+ * @param {boolean} [params.linkGenesToGeneSets=true] - When false (gene-set entry /
  *   factorization), skip gene↔gene-set edges and attach genes to the factor instead.
  *   Membership from bayes_gene/pigean is only a co-loading approximation.
  * @param {boolean} [params.includePhenotypeNode=true] - When false, omit the phenotype
- *   hub (genes-entry uses factor id as phenotype key; the red Phenotype node is noise).
+ *   hub (gene-set entry uses factor id as phenotype key; the red Phenotype node is noise).
  * @param {boolean} [params.includeGeneSets=true] - Include pathway / gene-set nodes.
  * @param {boolean} [params.includeGenes=true] - Include gene nodes.
  * @param {boolean} [params.genesInSearchOnly=false] - When true, only genes with

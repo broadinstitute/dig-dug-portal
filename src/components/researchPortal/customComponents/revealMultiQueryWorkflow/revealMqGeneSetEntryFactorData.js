@@ -1,5 +1,5 @@
 /**
- * Builds canonical factorData from genes-first per-phenotype pigean fetches:
+ * Builds canonical factorData from gene-set entry per-phenotype pigean fetches:
  *   phenotype → genes → factors   (pigean-gene-phenotype)
  *   phenotype → gene sets → factors (pigean-gene-set-phenotype)
  *   phenotype + gene set → genes  (pigean-joined-gene-set)

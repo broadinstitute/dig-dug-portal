@@ -48,6 +48,9 @@ function resetWorkflowStateForNewRun(vm) {
     vm.searchCriteriaEditRowsDefault = [];
     vm.searchCriteriaExtractionGateDone = false;
     vm.heatmapSelectedNodes = [];
+    if (Object.prototype.hasOwnProperty.call(vm, "searchPath") || vm.searchPath !== undefined) {
+        vm.searchPath = "query";
+    }
     if (vm.heatmapViewFilters != null) {
         vm.heatmapViewFilters = {
             showGeneSets: true,

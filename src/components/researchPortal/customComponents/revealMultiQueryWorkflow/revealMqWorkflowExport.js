@@ -3,7 +3,7 @@ import userUtils from "@/utils/userUtils";
 const REVEAL_MQ_WORKFLOW_EXPORT_KIND = "reveal-mq-workflow-export";
 const REVEAL_MQ_WORKFLOW_EXPORT_SCHEMA_VERSION = 6;
 
-/** URL / entry mode: genes-first (`?genes=`) vs text query (`?query=`). */
+/** URL / entry mode: gene-set entry (`?genes=`) vs text query (`?query=`). */
 const SEARCH_PATH_GENES = "genes";
 const SEARCH_PATH_QUERY = "query";
 
@@ -32,8 +32,8 @@ function slugFromQuery(query) {
         .slice(0, 48);
 }
 
-function geneEntryInputGenes(vmOrWorkflow) {
-    const ge = vmOrWorkflow && vmOrWorkflow.geneEntry;
+function geneSetEntryInputGenes(vmOrWorkflow) {
+    const ge = vmOrWorkflow && vmOrWorkflow.geneSetEntry;
     if (!ge || !Array.isArray(ge.inputGenes)) return [];
     return ge.inputGenes.map((g) => String(g || "").trim()).filter(Boolean);
 }
@@ -41,14 +41,14 @@ function geneEntryInputGenes(vmOrWorkflow) {
 function resolveSearchPath(vmOrWorkflow) {
     const explicit = vmOrWorkflow && vmOrWorkflow.searchPath;
     if (explicit === SEARCH_PATH_GENES || explicit === SEARCH_PATH_QUERY) return explicit;
-    if (geneEntryInputGenes(vmOrWorkflow).length) return SEARCH_PATH_GENES;
+    if (geneSetEntryInputGenes(vmOrWorkflow).length) return SEARCH_PATH_GENES;
     return SEARCH_PATH_QUERY;
 }
 
-function collectGeneEntryForExport(vm) {
-    const genes = geneEntryInputGenes(vm);
+function collectGeneSetEntryForExport(vm) {
+    const genes = geneSetEntryInputGenes(vm);
     if (!genes.length) return null;
-    const ge = vm.geneEntry || {};
+    const ge = vm.geneSetEntry || {};
     return {
         inputGenes: cloneJson(genes, []),
         researchIntention: String(ge.researchIntention || ""),
@@ -56,7 +56,7 @@ function collectGeneEntryForExport(vm) {
     };
 }
 
-function emptyGeneEntryImportState() {
+function emptyGeneSetEntryImportState() {
     return {
         status: "idle",
         inputGenes: [],
@@ -71,11 +71,11 @@ function emptyGeneEntryImportState() {
     };
 }
 
-function defaultWorkflowExportFilename(userQuery, searchPath, geneEntry) {
+function defaultWorkflowExportFilename(userQuery, searchPath, geneSetEntry) {
     const stamp = new Date().toISOString().slice(0, 10);
     let slug = slugFromQuery(userQuery);
     if (!slug && searchPath === SEARCH_PATH_GENES) {
-        const genes = geneEntry && Array.isArray(geneEntry.inputGenes) ? geneEntry.inputGenes : [];
+        const genes = geneSetEntry && Array.isArray(geneSetEntry.inputGenes) ? geneSetEntry.inputGenes : [];
         slug = slugFromQuery(genes.slice(0, 6).join("-")) || "genes";
     }
     if (!slug) slug = "workflow";
@@ -110,7 +110,7 @@ function hasWorkflowResults(workflow) {
 function hasExportableWorkflowState(vm) {
     if (!vm) return false;
     if (String(vm.userQuery || "").trim()) return true;
-    if (geneEntryInputGenes(vm).length) return true;
+    if (geneSetEntryInputGenes(vm).length) return true;
     if (vm.searchCriteria) return true;
     if ((vm.multiQueryRoutes || []).length) return true;
     if ((vm.steps || []).some((s) => s && s.id && s.type !== "error")) return true;
@@ -135,11 +135,11 @@ function resolvePendingStepGateForExport(vm) {
  */
 function collectMultiQueryRevealWorkflowState(vm) {
     const searchPath = resolveSearchPath(vm);
-    const geneEntry = collectGeneEntryForExport(vm);
+    const geneSetEntry = collectGeneSetEntryForExport(vm);
     return {
         userQuery: String(vm.userQuery || ""),
         searchPath,
-        geneEntry,
+        geneSetEntry,
         searchMode: vm.searchMode || "auto",
         searchCriteria: cloneJson(vm.searchCriteria, null),
         searchCriteriaEditRows: cloneJson(vm.searchCriteriaEditRows, []),
@@ -200,8 +200,8 @@ function buildMultiQueryRevealExportBundle(vm, { label, filename } = {}) {
     }
     const workflow = collectMultiQueryRevealWorkflowState(vm);
     const genesLabel =
-        workflow.searchPath === SEARCH_PATH_GENES && workflow.geneEntry
-            ? `Genes: ${(workflow.geneEntry.inputGenes || []).slice(0, 8).join(", ")}`
+        workflow.searchPath === SEARCH_PATH_GENES && workflow.geneSetEntry
+            ? `Genes: ${(workflow.geneSetEntry.inputGenes || []).slice(0, 8).join(", ")}`
             : "";
     const preferred =
         label !== undefined && String(label).trim() !== ""
@@ -221,7 +221,7 @@ function buildMultiQueryRevealExportBundle(vm, { label, filename } = {}) {
                 defaultWorkflowExportFilename(
                     workflow.userQuery,
                     workflow.searchPath,
-                    workflow.geneEntry
+                    workflow.geneSetEntry
                 )
         ),
     };
@@ -242,7 +242,7 @@ function workflowPayloadFromImport(record) {
         record.searchCriteria ||
         record.factorData ||
         record.searchPath === SEARCH_PATH_GENES ||
-        geneEntryInputGenes(record).length ||
+        geneSetEntryInputGenes(record).length ||
         (Array.isArray(record.steps) && record.steps.length)
     ) {
         return record;
@@ -253,7 +253,7 @@ function workflowPayloadFromImport(record) {
 function hasImportableWorkflowContent(workflow) {
     if (!workflow || typeof workflow !== "object") return false;
     if (String(workflow.userQuery || "").trim()) return true;
-    if (geneEntryInputGenes(workflow).length) return true;
+    if (geneSetEntryInputGenes(workflow).length) return true;
     if (workflow.searchCriteria) return true;
     if ((workflow.multiQueryRoutes || []).length) return true;
     if (workflow.factorData && Object.keys(workflow.factorData).length) return true;
@@ -288,7 +288,7 @@ function parseMultiQueryRevealWorkflowImportFile(file) {
                 }
                 const genesLabel =
                     resolveSearchPath(workflow) === SEARCH_PATH_GENES
-                        ? `Genes: ${geneEntryInputGenes(workflow).slice(0, 8).join(", ")}`
+                        ? `Genes: ${geneSetEntryInputGenes(workflow).slice(0, 8).join(", ")}`
                         : "";
                 resolve({
                     workflow,
@@ -447,11 +447,11 @@ function applySearchPathToUrl(workflow, setKeyParams) {
               };
     const path = resolveSearchPath(workflow);
     if (path === SEARCH_PATH_GENES) {
-        const genes = geneEntryInputGenes(workflow);
+        const genes = geneSetEntryInputGenes(workflow);
         apply({
             genes: genes.length ? genes.join(",") : null,
             query: null,
-            geneEntryFail: null,
+            geneSetEntryFail: null,
         });
         return path;
     }
@@ -459,18 +459,18 @@ function applySearchPathToUrl(workflow, setKeyParams) {
     apply({
         query: q || null,
         genes: null,
-        geneEntryFail: null,
+        geneSetEntryFail: null,
     });
     return SEARCH_PATH_QUERY;
 }
 
-function restoreGeneEntryFromImport(vm, workflow) {
+function restoreGeneSetEntryFromImport(vm, workflow) {
     const path = resolveSearchPath(workflow);
     if (path === SEARCH_PATH_GENES) {
-        const imported = workflow.geneEntry && typeof workflow.geneEntry === "object" ? workflow.geneEntry : {};
-        const genes = geneEntryInputGenes(workflow);
-        assignVmState(vm, "geneEntry", {
-            ...emptyGeneEntryImportState(),
+        const imported = workflow.geneSetEntry && typeof workflow.geneSetEntry === "object" ? workflow.geneSetEntry : {};
+        const genes = geneSetEntryInputGenes(workflow);
+        assignVmState(vm, "geneSetEntry", {
+            ...emptyGeneSetEntryImportState(),
             ...cloneJson(imported, {}),
             inputGenes: genes,
             status: imported.status || (genes.length ? "ready" : "idle"),
@@ -478,11 +478,11 @@ function restoreGeneEntryFromImport(vm, workflow) {
             failureReason: null,
             progress: { message: "", detail: "" },
         });
-        assignVmState(vm, "geneEntryProgressDismissed", true);
+        assignVmState(vm, "geneSetEntryProgressDismissed", true);
         return;
     }
-    assignVmState(vm, "geneEntry", emptyGeneEntryImportState());
-    assignVmState(vm, "geneEntryProgressDismissed", true);
+    assignVmState(vm, "geneSetEntry", emptyGeneSetEntryImportState());
+    assignVmState(vm, "geneSetEntryProgressDismissed", true);
 }
 
 function restoreImportedStepGate(vm, workflow) {
@@ -529,7 +529,7 @@ function restoreImportedStepGate(vm, workflow) {
 
 /**
  * Apply an imported workflow snapshot onto the component (resume at Terms, Data, or Results).
- * Restores `searchPath` / `geneEntry` and updates the page URL (`?genes=` or `?query=`).
+ * Restores `searchPath` / `geneSetEntry` and updates the page URL (`?genes=` or `?query=`).
  * @returns {{ pendingStepGate: string|null, label: string, hasData: boolean, hasResults: boolean, searchPath: string }}
  */
 function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "", setKeyParams } = {}) {
@@ -558,7 +558,7 @@ function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "", setKeyP
     });
 
     assignVmState(vm, "steps", nonErrorWorkflowSteps(cloneJson(workflow.steps, vm.steps || [])));
-    restoreGeneEntryFromImport(vm, workflow);
+    restoreGeneSetEntryFromImport(vm, workflow);
     const searchPath = applySearchPathToUrl(workflow, setKeyParams);
     assignVmState(vm, "searchPath", searchPath);
 
@@ -577,7 +577,7 @@ function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "", setKeyP
     const pendingStepGate = workflow.pendingStepGate ? String(workflow.pendingStepGate) : null;
     const genesLabel =
         searchPath === SEARCH_PATH_GENES
-            ? `Genes: ${geneEntryInputGenes(workflow).slice(0, 8).join(", ")}`
+            ? `Genes: ${geneSetEntryInputGenes(workflow).slice(0, 8).join(", ")}`
             : "";
     return {
         pendingStepGate,

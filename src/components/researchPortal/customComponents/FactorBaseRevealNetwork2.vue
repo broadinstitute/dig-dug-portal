@@ -1,14 +1,36 @@
 <template>
     <div class="factor-base-reveal-network">
-        <div v-if="legendItems.length" class="network-legend mb-2">
-            <span
-                v-for="(item, i) in legendItems"
-                :key="i"
-                class="legend-item"
-                :style="{ borderLeftColor: item.color }"
-            >
-                {{ item.label }}
-            </span>
+        <div v-if="legendItems.length || showMetricLegends" class="network-legend mb-2">
+            <div v-if="legendItems.length" class="network-legend-row">
+                <span
+                    v-for="(item, i) in legendItems"
+                    :key="'c-' + i"
+                    class="legend-item"
+                >
+                    <span
+                        class="legend-swatch"
+                        :style="{ backgroundColor: item.color }"
+                        aria-hidden="true"
+                    ></span>
+                    {{ item.label }}
+                </span>
+            </div>
+            <div v-if="showMetricLegends" class="network-legend-row network-legend-metrics">
+                <span v-if="showNodeSizeLegend" class="legend-metric-item">
+                    <span class="legend-size-demo" aria-hidden="true">
+                        <span class="legend-size-circle legend-size-circle--sm"></span>
+                        <span class="legend-size-circle legend-size-circle--lg"></span>
+                    </span>
+                    <span>{{ nodeSizeLegendText }}</span>
+                </span>
+                <span v-if="showEdgeLengthLegend" class="legend-metric-item">
+                    <span class="legend-edge-demo" aria-hidden="true">
+                        <span class="legend-edge-line legend-edge-line--short"></span>
+                        <span class="legend-edge-line legend-edge-line--long"></span>
+                    </span>
+                    <span>{{ edgeLengthLegendText }}</span>
+                </span>
+            </div>
         </div>
         <div class="network-wrapper">
             <div ref="container" class="network-container" :style="{ height: height + 'px' }"></div>
@@ -74,7 +96,7 @@
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { resolveCfdeFactorClusterDisplayLabel } from "@/utils/cfdeUtils";
-import { colorForGeneRole, compareGeneRoleLegend, DEFAULT_GENE_NODE_COLOR } from "@/utils/factorRevealGeneColors";
+import { colorForGeneRole, DEFAULT_GENE_NODE_COLOR } from "@/utils/factorRevealGeneColors";
 import WorkflowHeatmapNodeActionMenu from "./revealMultiQueryWorkflow/WorkflowHeatmapNodeActionMenu.vue";
 import {
     SELECTION_HIGHLIGHT_ORANGE,
@@ -254,27 +276,40 @@ export default {
                     { label: "Gene", color: DATA_TAB_GENE_COLOR.background },
                 ];
             }
-            const items = [];
-            items.push(
-                { label: "Phenotype", color: NODE_COLORS.Phenotype },
-                { label: "Gene set cluster group.", color: NODE_COLORS.Factor },
-                { label: "Gene Set", color: NODE_COLORS.Pathway }
-            );
-            const groupsUsed = new Set();
-            (this.genes || []).forEach((g) => {
-                if (g.group != null && String(g.group).trim()) groupsUsed.add(String(g.group).trim());
-            });
-            if (groupsUsed.size > 0) {
-                [...groupsUsed].sort(compareGeneRoleLegend).forEach((grp) => {
-                    items.push({
-                        label: grp,
-                        color: colorForGeneRole(grp),
-                    });
-                });
-            } else {
-                items.push({ label: "Unclassified role", color: DEFAULT_GENE_COLOR });
+            // Genes-entry / factorization network: compact type legend.
+            return [
+                { label: "Factor", color: NODE_COLORS.Factor },
+                { label: "Gene set", color: NODE_COLORS.Pathway },
+                { label: "Gene", color: DEFAULT_GENE_COLOR },
+                { label: "Selected", color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground },
+            ];
+        },
+        showNodeSizeLegend() {
+            return !!(String(this.geneNodeMetricKey || "").trim() || String(this.geneSetNodeMetricKey || "").trim());
+        },
+        showEdgeLengthLegend() {
+            return !!String(this.edgeDistanceMetricKey || "").trim();
+        },
+        showMetricLegends() {
+            return this.showNodeSizeLegend || this.showEdgeLengthLegend;
+        },
+        nodeSizeLegendText() {
+            const geneKey = String(this.geneNodeMetricKey || "").trim();
+            const geneSetKey = String(this.geneSetNodeMetricKey || "").trim();
+            if (geneKey === "node_score" && geneSetKey === "node_score") {
+                return "Larger node = higher gene / gene-set score";
             }
-            return items;
+            if (geneKey === "combined_score") {
+                return "Larger gene node = higher combined score";
+            }
+            return "Larger node = higher score";
+        },
+        edgeLengthLegendText() {
+            const key = String(this.edgeDistanceMetricKey || "").trim();
+            if (key === "factor_value") {
+                return "Shorter edge = higher Overall factor value";
+            }
+            return "Shorter edge = stronger association";
         },
     },
     watch: {
@@ -415,7 +450,7 @@ export default {
 
             const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-  <rect width="100%" height="100%" fill="#fafafa" />
+  <rect width="100%" height="100%" fill="#ffffff" />
   <g class="edges">
     ${edgeEls}
   </g>
@@ -757,10 +792,10 @@ export default {
                         .toString()
                         .trim()
                         .replace(/^gene:/i, "");
-                    const geneEntry = (this.genes || []).find(
+                    const candidateGeneRow = (this.genes || []).find(
                         (g) => (g.gene != null ? String(g.gene).trim() : "") === geneName
                     );
-                    const scores = geneEntry && geneEntry.scores ? geneEntry.scores : meta;
+                    const scores = candidateGeneRow && candidateGeneRow.scores ? candidateGeneRow.scores : meta;
                     const combined = scores.combined ?? scores.c;
                     const gwas = scores.gwas ?? scores.g;
                     const functional = scores.functional ?? scores.f;
@@ -1126,15 +1161,79 @@ export default {
 }
 .network-legend {
     display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem;
+    align-items: flex-start;
+    gap: 0.45rem 0.75rem;
     font-size: 0.8rem;
     color: #555;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+.network-legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
 }
 .legend-item {
-    padding-left: 0.5rem;
-    border-left: 3px solid #999;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.legend-swatch {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    flex: 0 0 auto;
+}
+.network-legend-metrics {
+    color: #666;
+}
+.legend-metric-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.legend-size-demo {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.2rem;
+    height: 0.95rem;
+}
+.legend-size-circle {
+    display: inline-block;
+    border-radius: 50%;
+    background: #888;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.legend-size-circle--sm {
+    width: 0.4rem;
+    height: 0.4rem;
+}
+.legend-size-circle--lg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+.legend-edge-demo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.legend-edge-line {
+    display: inline-block;
+    height: 2px;
+    background: #999;
+    border-radius: 1px;
+}
+.legend-edge-line--short {
+    width: 0.55rem;
+}
+.legend-edge-line--long {
+    width: 1.35rem;
 }
 .network-wrapper {
     position: relative;
@@ -1159,7 +1258,7 @@ export default {
     min-height: 200px;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    background: #fafafa;
+    background: #ffffff;
 }
 .zoom-slider-outer {
     position: absolute;

@@ -18,6 +18,15 @@ import {
     runLlmWithRetry,
 } from "./revealMqOrchestratorShared.js";
 import { filterFactorDataByAssociationFilters, DEFAULT_ASSOCIATION_FILTERS, ASSOCIATION_TIER_IDS } from "./revealMqAssociationScore.js";
+import {
+    GENE_SET_ENTRY_LLM_FEED_SCOPE,
+    buildGeneSetEntryHypothesesUserPrompt,
+    buildGeneSetEntryLlmFeed,
+} from "./revealMqGeneSetEntryLlmFeed.js";
+import {
+    GENE_SET_MECHANISM_HYPOTHESIS_SYSTEM_PROMPT,
+    GENE_SET_MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,
+} from "./revealMqPrompts.js";
 
 const DEFAULT_HYPOTHESIS_MAX_ATTEMPTS = 3;
 
@@ -44,11 +53,11 @@ function getResearchContextFromSession(vm) {
     const fromShared =
         vm.sharedResearchContextTerm != null ? String(vm.sharedResearchContextTerm).trim() : "";
     if (fromShared) return fromShared;
-    const fromGeneEntry =
-        vm.geneEntry && vm.geneEntry.researchIntention != null
-            ? String(vm.geneEntry.researchIntention).trim()
+    const fromGeneSetEntry =
+        vm.geneSetEntry && vm.geneSetEntry.researchIntention != null
+            ? String(vm.geneSetEntry.researchIntention).trim()
             : "";
-    return fromGeneEntry;
+    return fromGeneSetEntry;
 }
 
 function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext, routeEvidenceBundles = null }) {
@@ -198,6 +207,58 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
     vm.mechanismDiagnosticAssessment = null;
 
     const researchContext = getResearchContextFromSession(vm);
+
+    // Gene-set entry path: slim JSON feed (scoped before format). No CSV KG.
+    if (vm.searchPath === "genes") {
+        const scopeMode = vm.geneSetEntryLlmFeedScope || GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER;
+        const inputGenes =
+            vm.geneSetEntry && Array.isArray(vm.geneSetEntry.inputGenes) ? vm.geneSetEntry.inputGenes : [];
+        const built = buildGeneSetEntryLlmFeed(factorData, {
+            scopeMode,
+            selectedNodes: vm.heatmapSelectedNodes || [],
+            viewFilters: vm.heatmapViewFilters || {},
+            inputGenes,
+            source: "bayes_gene/pigean",
+            searchPath: "genes",
+        });
+        if (!built.feed) {
+            vm.error_mechanisms = true;
+            vm.error_msg_mechanisms = built.emptyReason || "No gene-set evidence in the chosen LLM scope.";
+            vm.setLoadStatus("Ready", true);
+            vm.loadComplete = true;
+            return;
+        }
+        vm.lastGeneSetEntryLlmFeed = built.feed;
+        vm.lastFlattenedKG = [];
+        const hypothesesUserPrompt = buildGeneSetEntryHypothesesUserPrompt(built.feed, researchContext);
+        let systemPromptForRun = GENE_SET_MECHANISM_HYPOTHESIS_SYSTEM_PROMPT;
+        if (vm.hypothesisGenerationMode === "relaxed") {
+            systemPromptForRun = `${systemPromptForRun}\n\n${GENE_SET_MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX}`;
+        }
+        const maxAttempts = DEFAULT_HYPOTHESIS_MAX_ATTEMPTS;
+        (async () => {
+            const result = await runLlmWithRetry(vm, {
+                caller: vm.llmAnalyze,
+                maxAttempts,
+                sendArgs: { systemPrompt: systemPromptForRun, userPrompt: hypothesesUserPrompt },
+                isRetryableError: isLlmTimeoutError,
+                incompleteMessage: "Incomplete LLM response.",
+                parseResponse: (raw) => {
+                    console.log("FactorBaseReveal: gene-set hypotheses LLM raw response", raw);
+                    return vm.parseLLMResponse(raw);
+                },
+                onAttemptStart: (attempt, max) =>
+                    vm.setLoadStatus(`Generating mechanistic hypotheses… (attempt ${attempt}/${max})`),
+            });
+            if (!result.ok) {
+                applyMechanismHypothesisFailure(vm, result.err);
+                return;
+            }
+            applyMechanismHypothesisSuccess(vm, result.json, vm.hypothesisGenerationMode);
+        })();
+        return;
+    }
+
     // Honor phenotype-association legend checkboxes: only visible-tier genes go to the LLM.
     const associationFilters = {
         ...DEFAULT_ASSOCIATION_FILTERS,

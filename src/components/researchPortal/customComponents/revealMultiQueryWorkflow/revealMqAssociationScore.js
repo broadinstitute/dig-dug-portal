@@ -36,13 +36,13 @@ function associationTierPasses(combined, filters) {
     return f[tier] !== false;
 }
 
-function geneCombinedForFilter(phenoGenes, factorGeneEntry, geneName) {
+function geneCombinedForFilter(phenoGenes, factorGeneMeta, geneName) {
     const phenoScore = phenoGenes && phenoGenes[geneName];
     if (phenoScore && phenoScore.combined != null && !isNaN(Number(phenoScore.combined))) {
         return Number(phenoScore.combined);
     }
-    if (!factorGeneEntry) return null;
-    const raw = factorGeneEntry.factor_value ?? factorGeneEntry.factorRelevance;
+    if (!factorGeneMeta) return null;
+    const raw = factorGeneMeta.factor_value ?? factorGeneMeta.factorRelevance;
     if (raw != null && raw !== "" && !isNaN(Number(raw))) return Number(raw);
     return null;
 }

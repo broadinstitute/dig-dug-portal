@@ -8,7 +8,7 @@ export const HEATMAP_SELECTION_KIND = {
     NETWORK_NODE: "network-node",
 };
 
-/** Genes-entry heatmap ↔ table view filters (does not mutate factorData). */
+/** Gene-set entry heatmap ↔ table view filters (does not mutate factorData). */
 export const DEFAULT_HEATMAP_VIEW_FILTERS = {
     showGeneSets: true,
     showGenes: true,
@@ -250,7 +250,7 @@ function rowHasGene(row, gene, factorData) {
     const data = factorData && phenotype ? factorData[phenotype] : null;
     if (!data) return false;
     if (data.genes && Object.prototype.hasOwnProperty.call(data.genes, gene)) return true;
-    // Genes-entry: membership often lives on the factor payload, not phenotype.genes.
+    // Gene-set entry: membership often lives on the factor payload, not phenotype.genes.
     const factors = [...(data.factors || []), ...(data.allFactors || [])];
     const factorId = row && row.factor != null ? String(row.factor) : "";
     return factors.some((f) => {

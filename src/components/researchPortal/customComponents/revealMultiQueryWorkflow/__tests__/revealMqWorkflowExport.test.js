@@ -69,7 +69,7 @@ describe("revealMqWorkflowExport", () => {
                     factorData: {},
                     steps: [],
                     multiQueryRoutes: [],
-                    geneEntry: { status: "ready", inputGenes: ["APOE"] },
+                    geneSetEntry: { status: "ready", inputGenes: ["APOE"] },
                 })
             )
         ).toBe(true);
@@ -81,7 +81,7 @@ describe("revealMqWorkflowExport", () => {
                     factorData: {},
                     steps: [],
                     multiQueryRoutes: [],
-                    geneEntry: { status: "idle", inputGenes: [] },
+                    geneSetEntry: { status: "idle", inputGenes: [] },
                 })
             )
         ).toBe(false);
@@ -189,7 +189,7 @@ describe("revealMqWorkflowExport", () => {
         expect(
             parseMultiQueryRevealWorkflowImport({
                 searchPath: "genes",
-                geneEntry: { inputGenes: ["APOE"], status: "ready" },
+                geneSetEntry: { inputGenes: ["APOE"], status: "ready" },
             })
         ).toBeTruthy();
         expect(parseMultiQueryRevealWorkflowImport({})).toBeNull();
@@ -309,7 +309,7 @@ describe("revealMqWorkflowExport", () => {
         const urlCalls = [];
         const vm = makeVm({
             userQuery: "",
-            geneEntry: {
+            geneSetEntry: {
                 status: "ready",
                 inputGenes: ["APOE", "LDLR", "PCSK9"],
                 researchIntention: "lipid biology",
@@ -320,8 +320,8 @@ describe("revealMqWorkflowExport", () => {
         });
         const snapshot = collectMultiQueryRevealWorkflowState(vm);
         expect(snapshot.searchPath).toBe("genes");
-        expect(snapshot.geneEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
-        expect(snapshot.geneEntry.researchIntention).toBe("lipid biology");
+        expect(snapshot.geneSetEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
+        expect(snapshot.geneSetEntry.researchIntention).toBe("lipid biology");
 
         const built = buildMultiQueryRevealExportBundle(vm);
         expect(built.bundle.label).toContain("APOE");
@@ -329,7 +329,7 @@ describe("revealMqWorkflowExport", () => {
 
         const target = makeVm({
             userQuery: "old query",
-            geneEntry: { status: "idle", inputGenes: [] },
+            geneSetEntry: { status: "idle", inputGenes: [] },
             mechanisms: null,
             loadComplete: false,
         });
@@ -337,10 +337,10 @@ describe("revealMqWorkflowExport", () => {
             setKeyParams: (map) => urlCalls.push(map),
         });
         expect(result.searchPath).toBe("genes");
-        expect(target.geneEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
-        expect(target.geneEntry.researchIntention).toBe("lipid biology");
+        expect(target.geneSetEntry.inputGenes).toEqual(["APOE", "LDLR", "PCSK9"]);
+        expect(target.geneSetEntry.researchIntention).toBe("lipid biology");
         expect(urlCalls).toEqual([
-            { genes: "APOE,LDLR,PCSK9", query: null, geneEntryFail: null },
+            { genes: "APOE,LDLR,PCSK9", query: null, geneSetEntryFail: null },
         ]);
     });
 
@@ -349,20 +349,20 @@ describe("revealMqWorkflowExport", () => {
         const workflow = {
             userQuery: "TREM2 microglia",
             searchPath: "query",
-            geneEntry: null,
+            geneSetEntry: null,
             searchCriteriaExtractionGateDone: false,
             steps: [{ id: "1", title: "Extract" }],
             pendingStepGate: "1",
             factorData: {},
             genesAndFactorValuesLoaded: false,
         };
-        const vm = makeVm({ geneEntry: { status: "ready", inputGenes: ["APOE"] } });
+        const vm = makeVm({ geneSetEntry: { status: "ready", inputGenes: ["APOE"] } });
         applyMultiQueryRevealWorkflowImport(vm, workflow, {
             setKeyParams: (map) => urlCalls.push(map),
         });
-        expect(vm.geneEntry.inputGenes).toEqual([]);
+        expect(vm.geneSetEntry.inputGenes).toEqual([]);
         expect(urlCalls).toEqual([
-            { query: "TREM2 microglia", genes: null, geneEntryFail: null },
+            { query: "TREM2 microglia", genes: null, geneSetEntryFail: null },
         ]);
     });
 });

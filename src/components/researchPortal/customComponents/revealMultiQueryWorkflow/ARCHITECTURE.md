@@ -103,9 +103,9 @@ flowchart TB
 | **Utils — biolink** | `revealMqBiolinkApi.js` | NameRes/NodeNorm/TRAPI relay HTTP calls (paired with `revealMqBiolinkOrchestrator.js` above) |
 | **Utils — query helper** | `revealMqQueryHelperApi.js`, `revealMqQueryHelperOrchestrator.js` | Gene autocomplete + factor-row HTTP, guided-builder query composition |
 | **Utils — config/prompts** | `revealMqConfig.js`, `revealMqPrompts.js`, `revealMqStepTime.js`, `revealMqWorkflowSession.js`, `revealMqWorkflowExport.js` | Env-var runtime config, LLM system prompts, step-timer formatting, session shape, export/import |
-| **Utils — genes-first entry point** | `revealMqGeneEntryApi.js`, `revealMqGeneEntryCrossReference.js`, `revealMqGeneEntryFactorData.js`, `revealMqGeneEntryOrchestrator.js`, `revealMqGeneEntryFallback.js` | `?genes=` URL entry point: top traits from Bayes-gene phenotypes, per-phenotype gene/gene-set/membership fetches, factorData builder, orchestration, and text-query fallback when APIs fail / return no usable data. See dedicated section below. |
+| **Utils — gene-set entry point** | `revealMqGeneSetEntryApi.js`, `revealMqGeneSetEntryCrossReference.js`, `revealMqGeneSetEntryFactorData.js`, `revealMqGeneSetEntryOrchestrator.js`, `revealMqGeneSetEntryFallback.js` | `?genes=` URL entry point: top traits from Bayes-gene phenotypes, per-phenotype gene/gene-set/membership fetches, factorData builder, orchestration, and text-query fallback when APIs fail / return no usable data. See dedicated section below. |
 | **Styles** | `mqSharedStyles.css` | Shared tab, gate, alt-query styles |
-| **Shared viz** | `../FactorBaseRevealHeatmap2.vue`, `../FactorBaseRevealNetwork2.vue` | Heatmap + network (outside folder; also used by `hybridSearchReveal.vue` — do not change their behavior without checking that sibling tool). Genes-first populates the same `factorData` shape these consume. |
+| **Shared viz** | `../FactorBaseRevealHeatmap2.vue`, `../FactorBaseRevealNetwork2.vue` | Heatmap + network (outside folder; also used by `hybridSearchReveal.vue` — do not change their behavior without checking that sibling tool). Gene-set entry populates the same `factorData` shape these consume. |
 | **Tests** | `__tests__/*.test.js` | Unit tests |
 
 ## Session model
@@ -122,7 +122,11 @@ The shell's `data()` mirrors `createEmptyWorkflowSession()` in `revealMqWorkflow
 | **Workflow** | `steps`, `showTab`, `workflowRunId`, gate flags |
 | **Results** | `mechanisms`, `mechanismDiagnosticAssessment` |
 
-**Export / Import:** `revealMqWorkflowExport.js` snapshots full session including Results (`kind: reveal-mq-workflow-export`, schema v6). Includes `searchPath` (`genes` | `query`) and slim `geneEntry` (`inputGenes`, `researchIntention`, `status`). On import, restores genes-first vs text-query mode and syncs the URL (`?genes=` / `?query=`).
+**Search criteria select** (`WorkflowQueryBar`): Gene / Disease / Gene set / Dataset / Free text. Only **Gene set** and **Free text** are enabled (others dimmed/disabled). Gene set ↔ `searchPath: "genes"` / `?genes=`; Free text ↔ `searchPath: "query"` / `?query=`.
+
+**Gene-set entry point:** `?genes=APOE,LDLR` sets the select to Gene set, fills the query input, and runs `bayes_gene/pigean` → Data **without** clicking Reveal. Manual Gene set + Reveal writes `?genes=` then runs the same path. Free text + Reveal writes `?query=` and starts extraction.
+
+**Export / Import:** `revealMqWorkflowExport.js` snapshots full session including Results (`kind: reveal-mq-workflow-export`, schema v6). Includes `searchPath` (`genes` | `query`) and slim `geneSetEntry` (`inputGenes`, `researchIntention`, `status`). On import, restores gene-set entry vs text-query mode and syncs the URL (`?genes=` / `?query=`).
 
 ## Workflow steps
 
@@ -142,9 +146,9 @@ Step-id literals are centralized in `WORKFLOW_STEP_IDS` (`revealMqStepGates.js`)
 
 All three orchestrator files share `runLlmWithRetry` and `classifyAndReportError` (`revealMqOrchestratorShared.js`) instead of each hand-rolling its own retry loop and error-classification branches.
 
-## Genes-first entry point (`?genes=`)
+## Gene-set entry point (`?genes=`)
 
-A **fourth, alternate entry point** into the same shell: instead of a free-text query that the LLM extracts terms from, the user supplies a raw gene list via `genes=`, bypassing Search-terms/extraction. It lands on the **Data** tab and populates the same `vm.factorData` shape the text-query path uses, so heatmap / network / factor table / KG run without a separate genes-first viz fork.
+A **fourth, alternate entry point** into the same shell: instead of a free-text query that the LLM extracts terms from, the user supplies a raw gene list via `genes=`, bypassing Search-terms/extraction. It lands on the **Data** tab and populates the same `vm.factorData` shape the text-query path uses, so heatmap / network / factor table / KG run without a separate gene-set entry viz fork.
 
 ### Wiring
 
@@ -153,7 +157,7 @@ A **fourth, alternate entry point** into the same shell: instead of a free-text 
 ```js
 async mounted() {
     if (keyParams.genes) {
-        await runGeneEntryWorkflow(this, keyParams.genes);
+        await runGeneSetEntryWorkflow(this, keyParams.genes);
     } else if (keyParams.query) {
         this.userQuery = keyParams.query;
     }
@@ -161,16 +165,16 @@ async mounted() {
 },
 ```
 
-`this.geneEntry` holds status / input genes / top traits for debugging. **UI hand-off is `vm.factorData`.**
+`this.geneSetEntry` holds status / input genes / top traits for debugging. **UI hand-off is `vm.factorData`.**
 
-### Files (`revealMqGeneEntry*.js`)
+### Files (`revealMqGeneSetEntry*.js`)
 
 | File | Layer | Responsibility |
 |------|-------|-----------------|
-| `revealMqGeneEntryApi.js` | HTTP | `fetchGenePhenotypes` (Bayes-gene translator). `fetchGenePigeanScoresForPhenotype` / `fetchGeneSetPigeanScoresForPhenotype` / `fetchJoinedGeneSetMembers` (cfde bioindex). Gene-phenotype scores map `combined` → Combined, `log_bf` → GWAS support, `prior` → Gene set support. Gene-set rows include `beta` (effect size). Batch helpers for phenotypes and membership pairs. Empty results never throw. |
-| `revealMqGeneEntryCrossReference.js` | Pure logic | `selectTopTraits` — ranked phenotypes by p_value (optionally capped). |
-| `revealMqGeneEntryFactorData.js` | Bridge | `buildFactorDataFromPhenotypePigean` — merges gene rows, gene-set rows, and joined membership into canonical `factorData[phenotype] = {genes, factors, allFactors}` with real `geneSets[gs].genes` membership. Keeps gene sets with **`beta > 0.01`** only; drops traits with none. Bounds gene columns to input genes (fallback top-N) and gene-set columns to top-N factor-assigned sets. |
-| `revealMqGeneEntryOrchestrator.js` | Orchestration | `runGeneEntryWorkflow(vm, rawGenesParam)`. |
+| `revealMqGeneSetEntryApi.js` | HTTP | `fetchGenePhenotypes` (Bayes-gene translator). `fetchGenePigeanScoresForPhenotype` / `fetchGeneSetPigeanScoresForPhenotype` / `fetchJoinedGeneSetMembers` (cfde bioindex). Gene-phenotype scores map `combined` → Combined, `log_bf` → GWAS support, `prior` → Gene set support. Gene-set rows include `beta` (effect size). Batch helpers for phenotypes and membership pairs. Empty results never throw. |
+| `revealMqGeneSetEntryCrossReference.js` | Pure logic | `selectTopTraits` — ranked phenotypes by p_value (optionally capped). |
+| `revealMqGeneSetEntryFactorData.js` | Bridge | `buildFactorDataFromPhenotypePigean` — merges gene rows, gene-set rows, and joined membership into canonical `factorData[phenotype] = {genes, factors, allFactors}` with real `geneSets[gs].genes` membership. Keeps gene sets with **`beta > 0.01`** only; drops traits with none. Bounds gene columns to input genes (fallback top-N) and gene-set columns to top-N factor-assigned sets. |
+| `revealMqGeneSetEntryOrchestrator.js` | Orchestration | `runGeneSetEntryWorkflow(vm, rawGenesParam)`. |
 
 ### Data flow
 
@@ -178,29 +182,29 @@ async mounted() {
 2. Walk traits in p_value order (batched GETs) until **10 traits** return non-empty `pigean-gene-phenotype` rows (skip empty/id-mismatch traits). If fewer than 10 have data after scanning all candidates, **proceed with whatever was found**. Also fetch `pigean-gene-set-phenotype` for those. Console logs unique gene names from those calls (and overlap with the search list).
 3. Keep **top 5 factors** per usable trait; for gene sets on those factors (≤30 by `rs_score`), keep only rows with **`beta > 0.01`** (non-significant / missing beta dropped). If a trait has **no** such gene sets, **drop the trait**. Membership (`pigean-joined-gene-set`) is fetched only for the remaining significant gene sets (batched, **10 concurrent**). Rows with null/empty `factor` are assigned the **phenotype id as factor** (one phenotype×genes/gene-sets row when the trait has no real clusters).
 4. `buildFactorDataFromPhenotypePigean` → filter to search genes → prune factors without search-gene crossings → **attach context genes** that appear in ≥2 survived gene sets (`includedFromRequest: false`), filling Combined / GWAS / Gene-set support from the already-fetched `pigean-gene-phenotype` rows when present. Then `transformMergedDataToKG`, `setStep(DATA)`, `showTab = "data"`.
-5. Data-tab **Continue** gate (same `waitForStepApproval` as text-query). Genes-first shows an optional **Research intention** field under the Continue strip; on Continue, that text is used as research context for `requestMechanismHypotheses`.
+5. Data-tab **Continue** gate (same `waitForStepApproval` as text-query). Gene-set entry shows an optional **Research intention** field under the Continue strip; on Continue, that text is used as research context for `requestMechanismHypotheses`.
 
 Heatmap axes (existing `FactorBaseRevealHeatmap2`): **rows = factors** (Y-axis shows **factor/cluster labels** via `row-label-mode="factor"`; phenotype remains in the hover tooltip), **columns = gene sets then genes** (search genes bold; context genes normal). Table **Number of genes** shows `search:context`. KG/network use the same membership-filled `geneSets` maps as the text-query path.
 
-### `vm.geneEntry` state shape
+### `vm.geneSetEntry` state shape
 
 ```js
-geneEntry: {
+geneSetEntry: {
     status: "idle",  // idle | loading | partial | error | ready
     inputGenes: [],
     errors: { phenotypes: null, perPhenotype: {} },
     phenotypesResponse: null,
     topTraits: [],
     progress: { message: "", detail: "" },
-    researchIntention: "",  // genes-first only; fed into hypothesis research context
+    researchIntention: "",  // gene-set entry only; fed into hypothesis research context
 }
 ```
 
-A centered BootstrapVue modal shows on genes-first **error / fallback** (not while loading). Live fetch progress for both text-query and genes-first is shown under the **Data** tab (`WorkflowDataPanel`: `revealDataSteps` timeline + `loadStatus`). Genes-first opens the Data tab early and mirrors `geneEntry.progress` into `setLoadStatus` / Data substeps.
+A centered BootstrapVue modal shows on gene-set entry **error / fallback** (not while loading). Live fetch progress for both text-query and gene-set entry is shown under the **Data** tab (`WorkflowDataPanel`: `revealDataSteps` timeline + `loadStatus`). Gene-set entry opens the Data tab early and mirrors `geneSetEntry.progress` into `setLoadStatus` / Data substeps.
 
 ### Gotchas
 
-- **Tab bar + panels gated behind `v-if="steps && steps.length"`** — genes-first must call `vm.setStep(...)` or nothing renders.
+- **Tab bar + panels gated behind `v-if="steps && steps.length"`** — gene-set entry must call `vm.setStep(...)` or nothing renders.
 - **Phenotype ID vocabularies only partially overlap** — Bayes-gene traits (esp. Orphanet-style) may return empty cfde bioindex results; treat empty as normal, skip that phenotype.
 - Factor ids (`Factor0`, …) are **per-phenotype**, not comparable across traits.
 - Membership fetches are bounded to gene sets on the **top 5 factors** per phenotype (≤30 gene sets) and run with **concurrency 10** (same for per-phenotype score fetches) to avoid 503 bursts from the bioindex.
@@ -208,17 +212,17 @@ A centered BootstrapVue modal shows on genes-first **error / fallback** (not whi
 
 ### Fallback to text-query path
 
-When genes-first cannot proceed (API unresponsive / hard HTTP errors, or zero usable data after scanning), the progress modal offers **Switch to text-query search**:
+When gene-set entry cannot proceed (API unresponsive / hard HTTP errors, or zero usable data after scanning), the progress modal offers **Switch to text-query search**:
 
-1. Notify where it failed (`geneEntry.progress` + `failureReason`: `api_error` | `insufficient_data`).
-2. On approve: clear genes-first state, set `userQuery` to  
+1. Notify where it failed (`geneSetEntry.progress` + `failureReason`: `api_error` | `insufficient_data`).
+2. On approve: clear gene-set entry state, set `userQuery` to  
    `Investigate shared biological mechanisms and pathways among GENE1, GENE2, ….`  
    (no phenotype/gene-set ask in the question), replace URL `genes=` with `query=`, call `queryParse()` → search-term extraction.
 3. On the text-query Data tab, genes listed in extracted **genes of interest** (search-term genes) are bolded vs context genes (`applySearchTermGenesOfInterestFlags` after hybrid normalize).
 
-Helpers: `revealMqGeneEntryFallback.js`.
+Helpers: `revealMqGeneSetEntryFallback.js`.
 
-**Simulated failure (dev/QA):** append `geneEntryFail=api` (or `=1`) / `geneEntryFail=empty` alongside `genes=`. The orchestrator skips real fetches, shows the failure modal after a short fake progress, and the Switch CTA clears `genes` + `geneEntryFail` and starts the text-query path.
+**Simulated failure (dev/QA):** append `geneSetEntryFail=api` (or `=1`) / `geneSetEntryFail=empty` alongside `genes=`. The orchestrator skips real fetches, shows the failure modal after a short fake progress, and the Switch CTA clears `genes` + `geneSetEntryFail` and starts the text-query path.
 
 ## Migration status
 
@@ -233,8 +237,8 @@ Helpers: `revealMqGeneEntryFallback.js`.
 | Unified orchestration façade (`revealMqWorkflowPipeline.js`) + shared retry/error helpers | Done |
 | Shell-inline logic extraction (mechanism normalize, network build, report builder, biolink, query helper, prompts, config) | Done |
 | `hybridSearchReveal.vue` fork consolidation | Out of scope — separate portal section component |
-| Genes-first entry point — phenotype→gene/gene-set/membership → unified `factorData` | Done — same Data-tab visualizers as text-query path |
-| Genes-first entry point — Data Continue + research intention → hypotheses | Done |
+| Gene-set entry point — phenotype→gene/gene-set/membership → unified `factorData` | Done — same Data-tab visualizers as text-query path |
+| Gene-set entry point — Data Continue + research intention → hypotheses | Done |
 
 ## External dependencies
 

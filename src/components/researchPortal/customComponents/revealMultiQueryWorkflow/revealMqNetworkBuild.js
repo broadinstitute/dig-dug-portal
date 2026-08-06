@@ -39,8 +39,8 @@ function buildFactorConnectivityNetwork(vm, item) {
         allFactors.find((x) => String(x.factor) === factor);
     if (!factorItem) return { nodes: [], edges: [] };
 
-    const isGeneEntry =
-        !!(vm.isGeneEntryMode) ||
+    const isGeneSetEntry =
+        !!(vm.isGeneSetEntryMode) ||
         String(factorItem.source || pData.source || "") === "bayes_gene_pigean";
 
     return buildFactorConnectivityNetworkFromData({
@@ -49,8 +49,8 @@ function buildFactorConnectivityNetwork(vm, item) {
         factorData: vm.factorData || {},
         phenotypeDisplay: (id) =>
             typeof vm.getPhenotypeDisplay === "function" ? vm.getPhenotypeDisplay(id) : id,
-        linkGenesToGeneSets: !isGeneEntry,
-        includePhenotypeNode: !isGeneEntry,
+        linkGenesToGeneSets: !isGeneSetEntry,
+        includePhenotypeNode: !isGeneSetEntry,
     });
 }
 
@@ -184,8 +184,12 @@ function buildMechanismFlowNetworkFromHypothesisKg(hik) {
         cell: "Cell",
         drug: "Drug",
         pathway_db: "Pathway",
+        pathway: "Pathway",
         "gene set": "Pathway",
         geneset: "Pathway",
+        gene_set: "Pathway",
+        factor: "Factor",
+        other: "Entity",
     };
 
     const normalizeGroup = (g) => {
@@ -208,7 +212,9 @@ function buildMechanismFlowNetworkFromHypothesisKg(hik) {
         customNodes.push({
             id,
             label,
-            type: normalizeGroup(n.group != null ? n.group : n.type),
+            type: normalizeGroup(
+                n.group != null ? n.group : n.type != null ? n.type : n.node_type
+            ),
             metadata: {},
         });
     }

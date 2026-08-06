@@ -78,6 +78,146 @@
     text-decoration: underline;
 }
 
+/* Evidence / phenotype chips (Results panel is a child SFC — needs shared, not parent-scoped, pill rules) */
+.pill {
+    display: inline-block;
+    padding: 0.28em 0.75em;
+    border-radius: 999px;
+    background: #e9ecef;
+    color: #212529;
+    width: fit-content;
+    max-width: 100%;
+    line-height: 1.35;
+    font-size: inherit;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    word-break: break-word;
+}
+.pill.text-white {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.reveal-evidence-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+}
+.reveal-evidence-chips-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+/* Results mechanism cards: labels inherit size; hierarchy via weight/color only */
+.mechanism-card {
+    font-size: 14px;
+}
+.mechanism-section-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6c757d;
+    letter-spacing: 0.02em;
+    font-size: inherit;
+}
+.mechanism-card-title {
+    font-weight: 700;
+    font-size: 16px;
+}
+.mechanism-card .pill {
+    font-size: inherit;
+}
+.mechanism-gene-symbol {
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+.mechanism-gene-sets-cell {
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+/* Relevant / cited gene sets: program source pill + hover menu for C2M2 file links */
+.fbr-program-download-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+.fbr-program-download-trigger {
+    cursor: default;
+    max-width: min(280px, 100%);
+}
+.fbr-program-download-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.fbr-program-download-menu {
+    display: none;
+    position: absolute;
+    z-index: 1060;
+    right: 0;
+    top: 100%;
+    margin-top: -1px;
+    min-width: 220px;
+    max-width: min(500px, 85vw);
+}
+.fbr-program-download-wrap:hover .fbr-program-download-menu,
+.fbr-program-download-wrap:focus-within .fbr-program-download-menu {
+    display: block;
+}
+.fbr-program-download-menu-heading {
+    font-size: inherit;
+    letter-spacing: 0.04em;
+}
+.fbr-provenance-menu-link {
+    word-break: break-word;
+}
+.fbr-provenance-menu-link:hover {
+    background: #f3f4f6;
+}
+
+/* Network viz fullscreen overlay (rendered in WorkflowNetworkModals — must not rely on parent scoped CSS) */
+.network-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.network-popup-box {
+    width: 90vw;
+    height: 90vh;
+    max-width: 100%;
+    max-height: 100%;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.network-popup-header {
+    flex-shrink: 0;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+.network-popup-body {
+    flex: 1;
+    min-height: 0;
+    padding: 1rem;
+    overflow: auto;
+}
+
 .reveal-extraction-section-gap {
     margin-top: 25px;
 }
@@ -143,6 +283,66 @@
 }
 .reveal-query-input-wrap {
     position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    background: #fff;
+}
+.reveal-query-input-wrap:focus-within {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+.reveal-query-criteria-slot {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+    border-right: 1px solid #ced4da;
+    background: #f8f9fa;
+    border-radius: 0.25rem 0 0 0.25rem;
+}
+.reveal-query-criteria-select {
+    border: none;
+    border-radius: 0;
+    height: auto;
+    min-height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+    background-color: transparent;
+    font-size: 0.95rem;
+    color: #495057;
+    max-width: 9.75rem;
+    cursor: pointer;
+    box-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236c757d' d='M1.4 0.6L6 5.2 10.6 0.6 12 2 6 8 0 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.55rem center;
+    background-size: 10px 7px;
+}
+.reveal-query-criteria-select:focus {
+    box-shadow: none;
+    outline: none;
+}
+.reveal-query-criteria-select option:disabled {
+    color: #adb5bd;
+}
+.reveal-query-criteria-select option:not(:disabled) {
+    color: #212529;
+    font-weight: 600;
+}
+.reveal-query-text-input {
+    border: none !important;
+    box-shadow: none !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-right: 140px;
+    border-radius: 0 0.25rem 0.25rem 0;
+}
+.reveal-query-text-input:focus {
+    box-shadow: none !important;
+    outline: none;
 }
 .reveal-query-input-actions {
     position: absolute;

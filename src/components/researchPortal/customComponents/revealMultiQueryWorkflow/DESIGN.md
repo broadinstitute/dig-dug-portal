@@ -14,6 +14,11 @@ UI and product conventions for **Multi Query REVEAL**. See [`ARCHITECTURE.md`](.
 - Inactive tabs use `tab-inactive` when not yet available.
 - Active tab: orange underline (`#FF6600` / `#f16822` family).
 
+## Typography
+
+- **Minimum readable font size: 13px** (same baseline as `revealKgWorkspace/DESIGN.md`). Do not go below 13px for labels, body, meta, or button copy.
+- **HTML reports / handoffs** (`revealMqReportBuilder.js`): use explicit **14px** for body, tables, fine-print, and list copy so downloaded reports stay above the floor; headings use larger px steps (16 / 18 / 22 / 28).
+
 ## Query bar
 
 - **Export / Import** dropdown above the query input (outline-secondary, same style as Raw data).

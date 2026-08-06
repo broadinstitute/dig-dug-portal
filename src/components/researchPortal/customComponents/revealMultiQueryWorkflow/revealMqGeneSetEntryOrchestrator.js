@@ -1,5 +1,5 @@
 /**
- * Genes-first entry point orchestration for Multi Query REVEAL.
+ * Gene-set entry point orchestration for Multi Query REVEAL.
  *
  * Flow (aligned with factorization.html / bayes_gene/pigean):
  * 1. POST bayes_gene/pigean for the search gene list → factors, gene↔factor, gene-set↔factor
@@ -7,17 +7,17 @@
  * 3. Data-tab Continue gate (+ optional research intention) → mechanistic hypotheses
  */
 
-import { fetchBayesGenePigean } from "./revealMqGeneEntryApi.js";
-import { buildFactorDataFromBayesPigean } from "./revealMqGeneEntryFactorData.js";
+import { fetchBayesGenePigean } from "./revealMqGeneSetEntryApi.js";
+import { buildFactorDataFromBayesPigean } from "./revealMqGeneSetEntryFactorData.js";
 import { requestMechanismHypotheses } from "./revealMqHypothesisOrchestrator.js";
-import { markGeneEntryCannotProceed } from "./revealMqGeneEntryFallback.js";
+import { markGeneSetEntryCannotProceed } from "./revealMqGeneSetEntryFallback.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
 
 /**
- * Dev/QA: `?geneEntryFail=api|empty|1` forces genes-first to fail before real fetches.
+ * Dev/QA: `?geneSetEntryFail=api|empty|1` forces gene-set entry to fail before real fetches.
  * @returns {"api_error"|"insufficient_data"|null}
  */
-function resolveGeneEntryFailMode(raw) {
+function resolveGeneSetEntryFailMode(raw) {
     const v = String(raw == null ? "" : raw)
         .trim()
         .toLowerCase();
@@ -35,37 +35,37 @@ function delayMs(ms) {
 /**
  * Brief fake progress then surface the fallback modal (no real API calls).
  */
-async function runSimulatedGeneEntryFailure(vm, genes, mode) {
-    ensureGeneEntryDataTab(vm, genes);
-    setGeneEntryProgress(
+async function runSimulatedGeneSetEntryFailure(vm, genes, mode) {
+    ensureGeneSetEntryDataTab(vm, genes);
+    setGeneSetEntryProgress(
         vm,
-        "Starting genes-first retrieval…",
+        "Starting gene-set entry retrieval…",
         `Looking up factors for ${genes.length} gene(s). [simulated failure]`
     );
     await delayMs(450);
-    setGeneEntryProgress(vm, "Calling bayes_gene/pigean…", "Factorization request. [simulated]");
+    setGeneSetEntryProgress(vm, "Calling bayes_gene/pigean…", "Factorization request. [simulated]");
     await delayMs(450);
     if (mode === "insufficient_data") {
-        markGeneEntryCannotProceed(vm, {
+        markGeneSetEntryCannotProceed(vm, {
             reason: "insufficient_data",
             message: "No factorization factors returned. [simulated]",
             detail:
-                "Simulated empty results (geneEntryFail=empty). No real API calls were made. " +
+                "Simulated empty results (geneSetEntryFail=empty). No real API calls were made. " +
                 "Use Switch to text-query search to exercise the main-path fallback.",
         });
         return false;
     }
-    markGeneEntryCannotProceed(vm, {
+    markGeneSetEntryCannotProceed(vm, {
         reason: "api_error",
         message: "Could not load factorization (bayes_gene/pigean). [simulated]",
         detail:
-            "Simulated API failure (geneEntryFail=api). No real API calls were made. " +
+            "Simulated API failure (geneSetEntryFail=api). No real API calls were made. " +
             "Use Switch to text-query search to exercise the main-path fallback.",
     });
     return false;
 }
 
-function emptyGeneEntryState() {
+function emptyGeneSetEntryState() {
     return {
         status: "idle", // idle | loading | partial | error | ready
         inputGenes: [],
@@ -80,19 +80,19 @@ function emptyGeneEntryState() {
     };
 }
 
-function setGeneEntryProgress(vm, message, detail = "") {
-    if (!vm.geneEntry) return;
+function setGeneSetEntryProgress(vm, message, detail = "") {
+    if (!vm.geneSetEntry) return;
     const msg = String(message || "");
     const det = String(detail || "");
-    vm.$set(vm.geneEntry, "progress", { message: msg, detail: det });
-    if (typeof vm.setLoadStatus === "function" && vm.geneEntry.status === "loading") {
+    vm.$set(vm.geneSetEntry, "progress", { message: msg, detail: det });
+    if (typeof vm.setLoadStatus === "function" && vm.geneSetEntry.status === "loading") {
         vm.setLoadStatus(msg);
     }
     if (typeof vm.setStep === "function") {
         vm.setStep({
             id: WORKFLOW_STEP_IDS.DATA,
             substep: {
-                id: "2.gene-entry-live",
+                id: "2.gene-set-entry-live",
                 title: msg || "Working…",
                 result: det ? { title: det } : { title: "" },
             },
@@ -101,14 +101,14 @@ function setGeneEntryProgress(vm, message, detail = "") {
 }
 
 /** Ensure Data tab + step timeline exist so live progress is visible under Data. */
-function ensureGeneEntryDataTab(vm, genes) {
+function ensureGeneSetEntryDataTab(vm, genes) {
     if (typeof vm.setStep === "function") {
         vm.setStep({
             id: WORKFLOW_STEP_IDS.DATA,
             title: "Retrieving gene-derived data",
             substep: {
-                id: "2.gene-entry-live",
-                title: "Starting genes-first retrieval…",
+                id: "2.gene-set-entry-live",
+                title: "Starting gene-set entry retrieval…",
                 result: {
                     title: `Looking up factors for ${(genes || []).length} gene(s).`,
                 },
@@ -132,31 +132,42 @@ function parseGenesParam(vm, rawGenesParam) {
  *
  * Options:
  * - `failMode`: force simulated failure (`api_error` | `insufficient_data`) without calling APIs.
- *   Also honored from URL `?geneEntryFail=api|empty|1` when passed as `failMode` from the shell.
+ *   Also honored from URL `?geneSetEntryFail=api|empty|1` when passed as `failMode` from the shell.
  */
-async function runGeneEntryWorkflow(vm, rawGenesParam, options = {}) {
+async function runGeneSetEntryWorkflow(vm, rawGenesParam, options = {}) {
     const genes = parseGenesParam(vm, rawGenesParam);
     if (!genes.length) return false;
 
-    vm.geneEntry = { ...emptyGeneEntryState(), inputGenes: genes, status: "loading" };
-    ensureGeneEntryDataTab(vm, genes);
-    setGeneEntryProgress(
+    // Gene-set entry path: keep the gene list visible in the main query box.
+    if (Object.prototype.hasOwnProperty.call(vm, "searchPath") || vm.searchPath !== undefined) {
+        vm.searchPath = "genes";
+    }
+    if (!String(vm.userQuery || "").trim()) {
+        vm.userQuery = genes.join(", ");
+    }
+    if (typeof vm.placeholderRotationPaused !== "undefined") {
+        vm.placeholderRotationPaused = true;
+    }
+
+    vm.geneSetEntry = { ...emptyGeneSetEntryState(), inputGenes: genes, status: "loading" };
+    ensureGeneSetEntryDataTab(vm, genes);
+    setGeneSetEntryProgress(
         vm,
-        "Starting genes-first retrieval…",
+        "Starting gene-set entry retrieval…",
         `Looking up factors for ${genes.length} gene(s).`
     );
 
     const failMode =
         options.failMode != null
-            ? resolveGeneEntryFailMode(options.failMode)
-            : resolveGeneEntryFailMode(options.geneEntryFail);
+            ? resolveGeneSetEntryFailMode(options.failMode)
+            : resolveGeneSetEntryFailMode(options.geneSetEntryFail);
     if (failMode) {
-        return runSimulatedGeneEntryFailure(vm, genes, failMode);
+        return runSimulatedGeneSetEntryFailure(vm, genes, failMode);
     }
 
     let pigeanResponse = null;
     try {
-        setGeneEntryProgress(
+        setGeneSetEntryProgress(
             vm,
             "Running gene-set factorization…",
             "Calling bayes_gene/pigean with CFDE gene sets."
@@ -168,24 +179,28 @@ async function runGeneEntryWorkflow(vm, rawGenesParam, options = {}) {
         });
     } catch (err) {
         const errMsg = err && err.message ? err.message : "Request failed.";
-        vm.$set(vm.geneEntry.errors, "pigean", errMsg);
-        markGeneEntryCannotProceed(vm, {
+        vm.$set(vm.geneSetEntry.errors, "pigean", errMsg);
+        markGeneSetEntryCannotProceed(vm, {
             reason: "api_error",
             message: "Could not load factorization (bayes_gene/pigean).",
             detail: errMsg,
         });
         return false;
     }
-    vm.geneEntry.pigeanResponse = pigeanResponse;
+    vm.geneSetEntry.pigeanResponse = pigeanResponse;
     if (Array.isArray(pigeanResponse.input_genes) && pigeanResponse.input_genes.length) {
-        vm.geneEntry.inputGenes = pigeanResponse.input_genes.map((g) => String(g));
+        vm.geneSetEntry.inputGenes = pigeanResponse.input_genes.map((g) => String(g));
+        // Prefer API-normalized symbols in the query box when still showing the URL list.
+        if (vm.searchPath === "genes") {
+            vm.userQuery = vm.geneSetEntry.inputGenes.join(", ");
+        }
     }
 
-    setGeneEntryProgress(vm, "Building factor × gene / gene-set matrix…", "Merging factorization loadings.");
-    const factorData = buildFactorDataFromBayesPigean(pigeanResponse, vm.geneEntry.inputGenes);
+    setGeneSetEntryProgress(vm, "Building factor × gene / gene-set matrix…", "Merging factorization loadings.");
+    const factorData = buildFactorDataFromBayesPigean(pigeanResponse, vm.geneSetEntry.inputGenes);
     const factorCount = Object.keys(factorData).length;
     if (!factorCount) {
-        markGeneEntryCannotProceed(vm, {
+        markGeneSetEntryCannotProceed(vm, {
             reason: "insufficient_data",
             message: "No factors returned for these genes.",
             detail: "bayes_gene/pigean completed but produced no Factor0… gene/gene-set loadings.",
@@ -213,16 +228,16 @@ async function runGeneEntryWorkflow(vm, rawGenesParam, options = {}) {
         id: WORKFLOW_STEP_IDS.DATA,
         title: "Gene-derived factors ready",
         substep: {
-            id: "2.gene-entry",
-            title: `${vm.geneEntry.inputGenes.length} input gene(s)`,
+            id: "2.gene-set-entry",
+            title: `${vm.geneSetEntry.inputGenes.length} input gene(s)`,
             result: {
                 title: `Found ${factorCount} factor(s) · ~${geneSetColEstimate} gene-set / ~${geneColEstimate} gene loadings.`,
             },
         },
     });
     vm.showTab = "data";
-    vm.geneEntry.status = "ready";
-    setGeneEntryProgress(
+    vm.geneSetEntry.status = "ready";
+    setGeneSetEntryProgress(
         vm,
         "Gene-derived data ready.",
         `${factorCount} factor(s) from bayes_gene/pigean.`
@@ -244,4 +259,4 @@ async function runGeneEntryWorkflow(vm, rawGenesParam, options = {}) {
     return true;
 }
 
-export { emptyGeneEntryState, parseGenesParam, resolveGeneEntryFailMode, runGeneEntryWorkflow };
+export { emptyGeneSetEntryState, parseGenesParam, resolveGeneSetEntryFailMode, runGeneSetEntryWorkflow };

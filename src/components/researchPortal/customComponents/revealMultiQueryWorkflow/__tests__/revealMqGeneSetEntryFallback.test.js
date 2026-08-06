@@ -1,23 +1,23 @@
 import {
     applySearchTermGenesOfInterestFlags,
-    buildDefaultGeneEntryFallbackQuery,
-    markGeneEntryCannotProceed,
-    switchGeneEntryToMainPath,
-} from "../revealMqGeneEntryFallback.js";
+    buildDefaultGeneSetEntryFallbackQuery,
+    markGeneSetEntryCannotProceed,
+    switchGeneSetEntryToMainPath,
+} from "../revealMqGeneSetEntryFallback.js";
 
-describe("revealMqGeneEntryFallback", () => {
-    test("buildDefaultGeneEntryFallbackQuery lists genes without phenotype ask", () => {
-        expect(buildDefaultGeneEntryFallbackQuery(["PCSK9", "APOB"])).toBe(
+describe("revealMqGeneSetEntryFallback", () => {
+    test("buildDefaultGeneSetEntryFallbackQuery lists genes without phenotype ask", () => {
+        expect(buildDefaultGeneSetEntryFallbackQuery(["PCSK9", "APOB"])).toBe(
             "Investigate shared biological mechanisms and pathways among PCSK9, APOB."
         );
-        expect(buildDefaultGeneEntryFallbackQuery([])).toMatch(/among these genes/);
-        expect(buildDefaultGeneEntryFallbackQuery(["PCSK9"])).not.toMatch(/phenotype/i);
+        expect(buildDefaultGeneSetEntryFallbackQuery([])).toMatch(/among these genes/);
+        expect(buildDefaultGeneSetEntryFallbackQuery(["PCSK9"])).not.toMatch(/phenotype/i);
     });
 
-    test("markGeneEntryCannotProceed enables main-path fallback CTA", () => {
+    test("markGeneSetEntryCannotProceed enables main-path fallback CTA", () => {
         const sets = [];
         const vm = {
-            geneEntry: {
+            geneSetEntry: {
                 status: "loading",
                 progress: { message: "", detail: "" },
             },
@@ -26,48 +26,50 @@ describe("revealMqGeneEntryFallback", () => {
                 obj[key] = val;
             },
         };
-        markGeneEntryCannotProceed(vm, {
+        markGeneSetEntryCannotProceed(vm, {
             reason: "api_error",
             message: "Could not load phenotypes.",
             detail: "503",
         });
-        expect(vm.geneEntry.status).toBe("error");
-        expect(vm.geneEntry.offerMainPathFallback).toBe(true);
-        expect(vm.geneEntry.failureReason).toBe("api_error");
-        expect(vm.geneEntry.progress.message).toBe("Could not load phenotypes.");
-        expect(vm.geneEntry.progress.detail).toBe("503");
+        expect(vm.geneSetEntry.status).toBe("error");
+        expect(vm.geneSetEntry.offerMainPathFallback).toBe(true);
+        expect(vm.geneSetEntry.failureReason).toBe("api_error");
+        expect(vm.geneSetEntry.progress.message).toBe("Could not load phenotypes.");
+        expect(vm.geneSetEntry.progress.detail).toBe("503");
         expect(sets.some(([k]) => k === "offerMainPathFallback")).toBe(true);
     });
 
-    test("switchGeneEntryToMainPath clears genes mode, sets query URL, starts extraction", () => {
+    test("switchGeneSetEntryToMainPath clears genes mode, sets query URL, starts extraction", () => {
         const paramMaps = [];
         let parsed = 0;
         const vm = {
-            geneEntry: {
+            geneSetEntry: {
                 status: "error",
                 inputGenes: ["PCSK9", "APOB"],
                 offerMainPathFallback: true,
             },
-            geneEntryProgressDismissed: false,
+            geneSetEntryProgressDismissed: false,
             userQuery: "",
+            searchPath: "genes",
             queryParse() {
                 parsed += 1;
             },
         };
-        const ok = switchGeneEntryToMainPath(vm, {
+        const ok = switchGeneSetEntryToMainPath(vm, {
             setKeyParams: (map) => paramMaps.push(map),
         });
         expect(ok).toBe(true);
+        expect(vm.searchPath).toBe("query");
         expect(vm.userQuery).toBe(
             "Investigate shared biological mechanisms and pathways among PCSK9, APOB."
         );
-        expect(vm.geneEntry.inputGenes).toEqual([]);
-        expect(vm.geneEntry.status).toBe("idle");
+        expect(vm.geneSetEntry.inputGenes).toEqual([]);
+        expect(vm.geneSetEntry.status).toBe("idle");
         expect(paramMaps).toEqual([
             {
                 genes: null,
                 query: "Investigate shared biological mechanisms and pathways among PCSK9, APOB.",
-                geneEntryFail: null,
+                geneSetEntryFail: null,
             },
         ]);
         expect(parsed).toBe(1);

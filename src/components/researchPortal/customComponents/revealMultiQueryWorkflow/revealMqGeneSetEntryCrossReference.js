@@ -1,5 +1,5 @@
 /**
- * Pure selection helpers for the genes-first entry point.
+ * Pure selection helpers for the gene-set entry point.
  */
 
 /**
