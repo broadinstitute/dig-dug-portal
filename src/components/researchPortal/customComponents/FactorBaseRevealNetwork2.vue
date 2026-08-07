@@ -271,14 +271,14 @@ export default {
             if (this.geneColorByGwasSupport) {
                 return [
                     { label: "Phenotype", color: NODE_COLORS.Phenotype },
-                    { label: "Gene set cluster group.", color: NODE_COLORS.Factor },
+                    { label: "Gene set cluster", color: NODE_COLORS.Factor },
                     { label: "Gene Set", color: NODE_COLORS.Pathway },
                     { label: "Gene", color: DATA_TAB_GENE_COLOR.background },
                 ];
             }
             // Genes-entry / factorization network: compact type legend.
             return [
-                { label: "Factor", color: NODE_COLORS.Factor },
+                { label: "Gene set cluster", color: NODE_COLORS.Factor },
                 { label: "Gene set", color: NODE_COLORS.Pathway },
                 { label: "Gene", color: DEFAULT_GENE_COLOR },
                 { label: "Selected", color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground },
@@ -307,7 +307,7 @@ export default {
         edgeLengthLegendText() {
             const key = String(this.edgeDistanceMetricKey || "").trim();
             if (key === "factor_value") {
-                return "Shorter edge = higher Overall factor value";
+                return "Shorter edge = higher Overall gene set cluster value";
             }
             return "Shorter edge = stronger association";
         },
@@ -828,7 +828,7 @@ export default {
                         parts.push(`-log10(p): ${Number(gsScore).toFixed(2)}`);
                     }
                     if (meta.factor_value != null && !Number.isNaN(Number(meta.factor_value))) {
-                        parts.push(`Overall factor value: ${Number(meta.factor_value).toFixed(3)}`);
+                        parts.push(`Overall gene set cluster value: ${Number(meta.factor_value).toFixed(3)}`);
                     }
                 }
                 if (biolinkClass) {

@@ -64,17 +64,17 @@
                                 v-if="queryHelperNoFactorPhenotypeLabels.length"
                                 class="small text-warning mt-1"
                             >
-                                No factors returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
+                                No gene set clusters returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
                             </div>
                         </div>
 
-                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Factors)</div>
+                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Gene set clusters)</div>
                         <div v-if="queryHelperFactorRows.length" class="small text-muted mb-2">
                             Select 1-2 pathways to force the AI to investigate these specific mechanisms.
                         </div>
                         <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
                             <b-spinner small class="mr-2"></b-spinner>
-                            Loading factors for selected phenotypes...
+                            Loading gene set clusters for selected phenotypes...
                         </div>
                         <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
                             {{ queryHelperFactorError }}

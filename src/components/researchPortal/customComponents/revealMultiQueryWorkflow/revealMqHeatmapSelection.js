@@ -10,6 +10,7 @@ export const HEATMAP_SELECTION_KIND = {
 
 /** Gene-set entry heatmap ↔ table view filters (does not mutate factorData). */
 export const DEFAULT_HEATMAP_VIEW_FILTERS = {
+    showGeneSetClusters: true,
     showGeneSets: true,
     showGenes: true,
     genesInSearchOnly: false,

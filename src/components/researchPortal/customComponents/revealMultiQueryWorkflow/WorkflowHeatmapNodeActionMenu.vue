@@ -8,7 +8,7 @@
         @click.stop
     >
         <button type="button" class="mq-heatmap-node-action-btn" role="menuitem" @click="onToggleSelect">
-            {{ isSelected ? "Deselect node(s)" : "Select node(s)" }}
+            {{ isSelected ? "Deselect node(s)" : "Select node" }}
         </button>
     </div>
 </template>

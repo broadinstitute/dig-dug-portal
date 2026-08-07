@@ -2572,7 +2572,7 @@ export default Vue.component("factor-base-reveal", {
                     <thead>
                         <tr>
                             <th>Phenotype</th>
-                            <th>Trait group</th>
+                            <th>Gene set cluster</th>
                             <th>Included</th>
                             <th>Rationale</th>
                             <th>Gene sets</th>

@@ -83,7 +83,7 @@
                                 >
                                     <template v-if="showResearchIntention">
                                         Gene-derived evidence is ready. Review phenotypes, gene-set clusters, and genes below.
-                                        Optionally add a research intention, then hit Continue.
+                                        Optionally add a research intention (used as research context for mechanistic hypotheses), then hit Continue.
                                         REVEAL will generate mechanistic hypotheses using the data.
                                     </template>
                                     <template v-else>
@@ -103,15 +103,9 @@
                                             placeholder="Describe what you want to learn or hypothesize about these genes…"
                                             @input="$emit('update:researchIntention', $event.target.value)"
                                         ></textarea>
-                                        <div class="small mt-1 mb-3 reveal-gate-text" style="opacity: 0.9;">
-                                            Used as research context when generating mechanistic hypotheses.
-                                        </div>
-                                        <div class="reveal-gate-text">
-                                            <div class="small font-weight-bold mb-1">
-                                                Hypothesis evidence scope
-                                            </div>
-                                            <div class="small mb-2" style="opacity: 0.9;">
-                                                Choose what to send to the LLM. Scope is applied before formatting (slim factors + gene membership indices).
+                                        <div class="reveal-gate-text mt-3">
+                                            <div class="small font-weight-bold mb-1 d-block reveal-gate-text">
+                                                Data
                                             </div>
                                             <div
                                                 v-for="opt in llmFeedScopeOptions"
@@ -131,8 +125,7 @@
                                                     class="custom-control-label reveal-gate-text"
                                                     :for="'gene-set-entry-llm-scope-' + opt.value"
                                                 >
-                                                    <span class="font-weight-bold">{{ opt.label }}</span>
-                                                    <span class="d-block small" style="opacity: 0.9;">{{ opt.help }}</span>
+                                                    <span class="font-weight-bold">{{ opt.label }}</span><span class="small" style="opacity: 0.9;"> ({{ opt.help }})</span>
                                                 </label>
                                             </div>
                                         </div>
@@ -158,7 +151,7 @@
                                         <span class="pill" v-for="p in phenotypeList" :key="p">{{ helpers.getPhenotypeDisplay(p) }}</span>
                                     </div>
                                     <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                        <strong>Factors:</strong>
+                                        <strong>Gene set clusters:</strong>
                                         <span class="pill" v-for="f in factorLabelsListDisplay" :key="f">{{ f }}</span>
                                     </div>
                                 </div>
@@ -693,7 +686,7 @@ export default {
                     },
                     {
                         key: "factor_value_display",
-                        label: "Overall factor value",
+                        label: "Overall gene set cluster value",
                         thStyle: { width: "140px" },
                         thClass: "text-center",
                         tdClass: "text-center",
@@ -724,7 +717,7 @@ export default {
                     { key: "gene", label: "Gene", thStyle: { width: "100px" } },
                     {
                         key: "factor_value_display",
-                        label: "Overall factor value",
+                        label: "Overall gene set cluster value",
                         thStyle: { width: "140px" },
                         thClass: "text-center",
                         tdClass: "text-center",
@@ -787,7 +780,7 @@ export default {
             };
             const factor = {
                 key: "factor",
-                label: "Factor",
+                label: "Gene set cluster",
                 thStyle: { minWidth: "120px", maxWidth: "320px", width: "28%" },
                 tdClass: "reveal-soft-wrap-td",
             };

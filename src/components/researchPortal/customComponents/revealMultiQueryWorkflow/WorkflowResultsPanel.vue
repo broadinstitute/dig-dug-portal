@@ -114,7 +114,7 @@
                                         >
                                             <strong>Exploratory hypothesis.</strong>
                                             <template v-if="isGeneSetEntryMode">
-                                                This run used relaxed mode: check diagnostic warnings—interpretation may bridge sparse factor membership not proven by dense gene-set overlap.
+                                                This run used relaxed mode: check diagnostic warnings—interpretation may bridge sparse gene set cluster membership not proven by dense gene-set overlap.
                                             </template>
                                             <template v-else>
                                                 This run used relaxed mode: check diagnostic warnings and Biolink map edge validation—speculative interpretation may bridge gaps not proven by single-hop graph evidence.
@@ -180,28 +180,6 @@
                                                     </p>
                                                 </div>
                                                 <div
-                                                    v-if="mechanism.phenotype_disease_mappings && mechanism.phenotype_disease_mappings.length"
-                                                   
-                                                >
-                                                    <div class="mechanism-section-label mb-1">Phenotype / disease mappings</div>
-                                                    <ul class="mb-0 pl-3">
-                                                        <li
-                                                            v-for="(mapping, midx) in mechanism.phenotype_disease_mappings"
-                                                            :key="'pdm-' + idx + '-' + midx + '-' + (mapping.term || '')"
-                                                        >
-                                                            <strong>{{ mapping.term }}</strong>
-                                                            <span class="badge badge-light border ml-1">{{ mapping.provenance || '—' }}</span>
-                                                            <span v-if="mapping.note" class="text-muted"> — {{ mapping.note }}</span>
-                                                            <div
-                                                                v-if="mapping.source_refs && mapping.source_refs.length"
-                                                                class="text-muted"
-                                                            >
-                                                                Sources: {{ mapping.source_refs.join(', ') }}
-                                                            </div>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div
                                                     v-if="
                                                         (mechanism.associated_factor_ids && mechanism.associated_factor_ids.length) ||
                                                         (mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) ||
@@ -210,12 +188,12 @@
                                                     "
                                                    
                                                 >
-                                                    <div class="mechanism-section-label mb-2">Cited factorization evidence</div>
+                                                    <div class="mechanism-section-label mb-2">Cited gene set cluster evidence</div>
                                                     <div
                                                         v-if="mechanism.associated_factor_ids && mechanism.associated_factor_ids.length"
                                                         class="mb-2"
                                                     >
-                                                        <div class="mechanism-section-label mb-1">Associated factors</div>
+                                                        <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
                                                             <div
                                                                 v-for="(fid, fidx) in mechanism.associated_factor_ids"
@@ -232,7 +210,7 @@
                                                         v-else-if="mechanism.associated_pairs && mechanism.associated_pairs.length"
                                                         class="mb-2"
                                                     >
-                                                        <div class="mechanism-section-label mb-1">Associated factors</div>
+                                                        <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
                                                             <div
                                                                 v-for="(pair, ridx) in mechanism.associated_pairs"
@@ -321,7 +299,7 @@
                                                             { key: 'in_search', label: 'In search', thStyle: { width: '80px' } },
                                                             { key: 'reason', label: 'Reason' },
                                                             { key: 'gene_sets', label: 'Cited gene sets', thStyle: { width: '180px' } },
-                                                            { key: 'scores_factor_relevance', label: 'Factor relevance', thStyle: { width: '110px' } },
+                                                            { key: 'scores_factor_relevance', label: 'Gene set cluster relevance', thStyle: { width: '110px' } },
                                                             { key: 'scores_gene_score', label: 'Gene score', thStyle: { width: '90px' } }
                                                         ]"
                                                     >
@@ -715,7 +693,7 @@
                                                                 <tr>
                                                                     <th style="width: 72px;">Included</th>
                                                                     <th style="width: auto;">Phenotype</th>
-                                                                    <th style="width: auto;">Trait group</th>
+                                                                    <th style="width: auto;">Gene set cluster</th>
                                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                                     <th style="width: 130px;">Hypothesis</th>
                                                                 </tr>
@@ -861,7 +839,7 @@
                                                             :fields="[
                                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
+                                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
                                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } },
                                                                 { key: 'hypothesis', label: 'Hypothesis', thStyle: { width: '130px' } }

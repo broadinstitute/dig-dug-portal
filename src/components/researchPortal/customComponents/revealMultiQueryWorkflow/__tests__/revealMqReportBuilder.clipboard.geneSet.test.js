@@ -11,13 +11,6 @@ describe("buildMechanismClipboardText gene-set path", () => {
                 hypothesis: "PCSK9 impairs LDL clearance.",
                 novelty: "Should not appear",
                 rationale: "Factorization supports lipid clearance.",
-                phenotype_disease_mappings: [
-                    {
-                        term: "Arteriosclerosis",
-                        provenance: "DIRECT_FEED_LABEL",
-                        source_refs: ["HP_ARTERIOSCLEROSIS"],
-                    },
-                ],
                 hypothesis_in_kg: { caption: "PCSK9 → clearance → arteriosclerosis" },
                 core_spine_network: {
                     nodes: [
@@ -55,12 +48,11 @@ describe("buildMechanismClipboardText gene-set path", () => {
 
         expect(text).toContain("Biological rationale:");
         expect(text).toContain("Factorization supports lipid clearance.");
-        expect(text).toContain("Phenotype / disease mappings:");
-        expect(text).toContain("Arteriosclerosis");
-        expect(text).toContain("Associated factors:");
+        expect(text).not.toContain("Phenotype / disease mappings:");
+        expect(text).toContain("Associated gene set clusters:");
         expect(text).toContain("HP_ARTERIOSCLEROSIS");
         expect(text).toContain("In search: Yes");
-        expect(text).toContain("Factor relevance: 0.900");
+        expect(text).toContain("Gene set cluster relevance: 0.900");
         expect(text).toContain("n1 -> n2 (REGULATES)");
         expect(text).not.toContain("Novelty");
         expect(text).not.toContain("Should not appear");

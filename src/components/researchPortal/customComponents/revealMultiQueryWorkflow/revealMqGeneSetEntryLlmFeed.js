@@ -23,17 +23,17 @@ export const GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS = [
     {
         value: GENE_SET_ENTRY_LLM_FEED_SCOPE.SELECTED,
         label: "Selected only",
-        help: "Only factors, genes, and gene sets you selected in the visualizer.",
+        help: "only gene set clusters, genes, and gene sets you selected in the visualizer",
     },
     {
         value: GENE_SET_ENTRY_LLM_FEED_SCOPE.SELECTED_PLUS_SEARCH,
         label: "Selected + searched genes",
-        help: "Your selections, plus search/input genes (and their factors) from the visualizer.",
+        help: "your selections, plus search/input genes and their gene set clusters from the visualizer",
     },
     {
         value: GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
         label: "Full data in the visualizer",
-        help: "Everything currently shown given the Gene sets / Genes / Genes in search / Only selected filters.",
+        help: "everything currently shown given the Gene set clusters / Gene sets / Genes / Genes in search / Only selected filters",
     },
 ];
 

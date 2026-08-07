@@ -137,17 +137,17 @@
                                 v-if="queryHelperNoFactorPhenotypeLabels.length"
                                 class="small text-warning mt-1"
                             >
-                                No factors returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
+                                No gene set clusters returned for: {{ queryHelperNoFactorPhenotypeLabels.join(", ") }}.
                             </div>
                         </div>
 
-                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Factors)</div>
+                        <div class="mb-1 font-weight-bold">2. Select Biological Mechanisms (Gene set clusters)</div>
                         <div v-if="queryHelperFactorRows.length" class="small text-muted mb-2">
                             Select 1-2 pathways to force the AI to investigate these specific mechanisms.
                         </div>
                         <div v-if="queryHelperLoadingFactors" class="small text-muted d-flex align-items-center mb-3">
                             <b-spinner small class="mr-2"></b-spinner>
-                            Loading factors for selected phenotypes...
+                            Loading gene set clusters for selected phenotypes...
                         </div>
                         <div v-else-if="queryHelperFactorError" class="alert alert-warning py-2 mb-3">
                             {{ queryHelperFactorError }}
@@ -774,7 +774,7 @@
                                         <span class="pill" v-for="p in phenotypeList" :key="p">{{ getPhenotypeDisplay(p) }}</span>
                                     </div>
                                     <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                        <strong>Factors:</strong>
+                                        <strong>Gene set clusters:</strong>
                                         <span class="pill" v-for="f in factorLabelsListDisplay" :key="f">{{ f }}</span>
                                     </div>
                                 </div>
@@ -818,7 +818,7 @@
                                                 <tr>
                                                     <th style="width: 72px;">Included</th>
                                                     <th style="width: auto;">Phenotype</th>
-                                                    <th style="width: auto;">Trait group</th>
+                                                    <th style="width: auto;">Gene set cluster</th>
                                                     <!--<th style="width: auto;">Top gene sets</th>-->
                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                 </tr>
@@ -985,7 +985,7 @@
                                             :fields="[
                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
+                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
                                                 //{ key: 'top_gene_sets', label: 'Top gene sets', thStyle: { width: 'auto' } },
                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } }
@@ -1563,7 +1563,7 @@
                                                                 <tr>
                                                                     <th style="width: 72px;">Included</th>
                                                                     <th style="width: auto;">Phenotype</th>
-                                                                    <th style="width: auto;">Trait group</th>
+                                                                    <th style="width: auto;">Gene set cluster</th>
                                                                     <th style="width: 300px;">Genes and gene sets in cluster</th>
                                                                     <th style="width: 130px;">Hypothesis</th>
                                                                 </tr>
@@ -1710,7 +1710,7 @@
                                                             :fields="[
                                                                 { key: 'included', label: 'Included', thStyle: { width: '72px' }, stickyColumn: false },
                                                                 { key: 'phenotype', label: 'Phenotype', thStyle: { width: '120px' } },
-                                                                { key: 'factorLabel', label: 'Trait group', thStyle: { width: '180px' } },
+                                                                { key: 'factorLabel', label: 'Gene set cluster', thStyle: { width: '180px' } },
                                                                 { key: 'rationale', label: 'Selection rationale', thStyle: { width: '220px' } },
                                                                 { key: 'view_genes', label: 'Genes and gene sets in cluster', thStyle: { width: '140px' } },
                                                                 { key: 'hypothesis', label: 'Hypothesis', thStyle: { width: '130px' } }
@@ -4042,7 +4042,7 @@ The user enabled **relaxed / exploratory** hypothesis generation. Apply these **
                     <thead>
                         <tr>
                             <th>Phenotype</th>
-                            <th>Trait group</th>
+                            <th>Gene set cluster</th>
                             <th>Included</th>
                             <th>Rationale</th>
                             <th>Gene sets</th>

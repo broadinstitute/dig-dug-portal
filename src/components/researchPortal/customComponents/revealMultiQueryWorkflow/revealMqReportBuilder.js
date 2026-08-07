@@ -82,7 +82,7 @@ function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, 
                           scores.gene_score ?? scores.functional,
                           3
                       );
-                      return `${i + 1}. ${gene} [${roleGroup}] In search: ${inSearch}; Factor relevance: ${factorRel}; Gene score: ${geneScore}; Reason: ${reason}`;
+                      return `${i + 1}. ${gene} [${roleGroup}] In search: ${inSearch}; Gene set cluster relevance: ${factorRel}; Gene score: ${geneScore}; Reason: ${reason}`;
                   })
                   .join("\n")
             : "None listed.";
@@ -105,23 +105,6 @@ function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, 
                   })
                   .join("\n")
             : "";
-
-        const phenotypeMaps = Array.isArray(mechanism?.phenotype_disease_mappings)
-            ? mechanism.phenotype_disease_mappings
-            : [];
-        const phenotypeBlock = phenotypeMaps.length
-            ? phenotypeMaps
-                  .map((m) => {
-                      const term = m && m.term != null ? String(m.term) : "—";
-                      const prov = m && m.provenance != null ? String(m.provenance) : "—";
-                      const refs =
-                          m && Array.isArray(m.source_refs) && m.source_refs.length
-                              ? ` (sources: ${m.source_refs.join(", ")})`
-                              : "";
-                      return `- ${term} [${prov}]${refs}`;
-                  })
-                  .join("\n")
-            : "None listed.";
 
         const factorIds = Array.isArray(mechanism?.associated_factor_ids)
             ? mechanism.associated_factor_ids
@@ -159,9 +142,6 @@ function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, 
             lines.push("Biological rationale:", rationale, "");
         }
         lines.push(
-            "Phenotype / disease mappings:",
-            phenotypeBlock,
-            "",
             "Biological mechanism map:",
             `${flowCaption || "—"}`,
             `${flowEdges || ""}`,
@@ -169,7 +149,7 @@ function buildMechanismClipboardText(mechanism, idx, researchContext, topGenes, 
             "Candidate genes:",
             topGenesBlock,
             "",
-            "Associated factors:",
+            "Associated gene set clusters:",
             factorsBlock,
             "",
             "Cited gene sets:",
@@ -413,28 +393,13 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
         geneSetPath && m.rationale
             ? `<div class="report-subsection"><strong>Biological rationale</strong><p class="report-body-tight">${vm.escapeHtml(m.rationale)}</p></div>`
             : "";
-    const phenotypeMappings = Array.isArray(m.phenotype_disease_mappings)
-        ? m.phenotype_disease_mappings
-        : [];
-    const phenotypeMappingSection =
-        geneSetPath && phenotypeMappings.length
-            ? `<div class="report-subsection"><strong>Phenotype / disease mappings</strong>${vm.buildReportList(
-                  phenotypeMappings,
-                  (mapping) =>
-                      `${mapping.term || "—"} [${mapping.provenance || "—"}]${
-                          mapping.source_refs && mapping.source_refs.length
-                              ? ` — sources: ${mapping.source_refs.join(", ")}`
-                              : ""
-                      }${mapping.note ? ` (${mapping.note})` : ""}`
-              )}</div>`
-            : "";
     const geneTableHeader = geneSetPath
         ? `<tr>
                                     <th>Gene</th>
                                     <th>Gene role</th>
                                     <th>In search</th>
                                     <th>Reason</th>
-                                    <th>Factor relevance</th>
+                                    <th>Gene set cluster relevance</th>
                                     <th>Gene score</th>
                                     <th>Cited gene sets</th>
                                 </tr>`
@@ -450,8 +415,8 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
     const evidenceSection = geneSetPath
         ? `
                 <div class="report-subsection">
-                    <h3>Cited factorization evidence</h3>
-                    <div class="report-subsection"><strong>Associated factors</strong>${vm.buildReportList(
+                    <h3>Cited gene set cluster evidence</h3>
+                    <div class="report-subsection"><strong>Associated gene set clusters</strong>${vm.buildReportList(
                         m.associated_factor_ids && m.associated_factor_ids.length
                             ? m.associated_factor_ids
                             : (m.associated_pairs || []).map((p) => p.factor || p.phenotype),
@@ -513,7 +478,6 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                 ${pathwayShiftSection}
                 ${rationaleSection}
                 ${hypothesisMapSection}
-                ${phenotypeMappingSection}
                 ${evidenceSection}
                 ${candidateGenesSection}
                 ${nextStepsSection}
@@ -529,7 +493,6 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                 ${pathwayShiftSection}
                 ${noveltySection}
                 ${rationaleSection}
-                ${phenotypeMappingSection}
                 ${crosstalkSection}
                 ${cellularSection}
                 ${depotSection}

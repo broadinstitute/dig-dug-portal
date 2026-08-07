@@ -341,7 +341,7 @@
                                         <span class="pill" v-for="p in phenotypeList" :key="p">{{ getPhenotypeDisplay(p) }}</span>
                                     </div>
                                     <div class="d-flex flex-wrap align-items-baseline gap-2">
-                                        <strong>Factors:</strong>
+                                        <strong>Gene set clusters:</strong>
                                         <span class="pill" v-for="f in factorLabelsList" :key="f">{{ f }}</span>
                                     </div>
                                 </div>
@@ -3794,7 +3794,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             const list = phenotypes && phenotypes.length ? phenotypes : Object.keys(this.factorData || {});
             if (!list.length) return;
 
-            this.setLoadStatus("Loading factor values (factor_value)…");
+            this.setLoadStatus("Loading gene set cluster values…");
             //this.setLoadStep("API: Getting gene loadings for factors")
             this.setStep({
                 id: "6",
@@ -3804,7 +3804,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             for (const phenotype of list) {
                 const factors = this.factorData[phenotype] && this.factorData[phenotype].factors || [];
                 for (const factorItem of factors) {
-                    this.setLoadStatus(`Loading factor values (${phenotype})…`);
+                    this.setLoadStatus(`Loading gene set cluster values (${phenotype})…`);
                     //this.setLoadStep("API: Getting gene loadings for factors", `${phenotype} / ${factorItem.label}`);
                     this.setStep({
                         id: "6",
@@ -3960,7 +3960,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             for (const phenotype of phenotypes) {
                 this.$set(this.factorData, phenotype, { genes: {}, factors: [] });
             }
-            this.setLoadStatus("Loading factors…");
+            this.setLoadStatus("Loading gene set clusters…");
             //this.setLoadStep("API: Loading factors")
             this.setStep({
                 id: "3",
@@ -3968,7 +3968,7 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
             })
             let idx = 0;
             for (const phenotype of phenotypes) {
-                this.setLoadStatus(`Loading factors (${phenotype})…`);
+                this.setLoadStatus(`Loading gene set clusters (${phenotype})…`);
                 //this.setLoadStep("API: Loading factors", phenotype)
                 this.setStep({
                     id: "3",
@@ -4059,10 +4059,10 @@ The \`hypotheses\` array MUST contain exactly **one** element for the single gro
                 (p) => (this.factorData[p] && this.factorData[p].factors || []).length > 0
             );
             if (filteredPhenotypes.length === 0) {
-                this.setLoadStatus("No factors selected after filtering.", true);
+                this.setLoadStatus("No gene set clusters selected after filtering.", true);
                 this.setStep({
                     type: "error",
-                    title: "No factors selected after filtering."
+                    title: "No gene set clusters selected after filtering."
                 });
                 this.loadComplete = true;
                 return;

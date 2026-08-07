@@ -196,13 +196,13 @@ async function runGeneSetEntryWorkflow(vm, rawGenesParam, options = {}) {
         }
     }
 
-    setGeneSetEntryProgress(vm, "Building factor × gene / gene-set matrix…", "Merging factorization loadings.");
+    setGeneSetEntryProgress(vm, "Building gene set cluster × gene / gene-set matrix…", "Merging factorization loadings.");
     const factorData = buildFactorDataFromBayesPigean(pigeanResponse, vm.geneSetEntry.inputGenes);
     const factorCount = Object.keys(factorData).length;
     if (!factorCount) {
         markGeneSetEntryCannotProceed(vm, {
             reason: "insufficient_data",
-            message: "No factors returned for these genes.",
+            message: "No gene set clusters returned for these genes.",
             detail: "bayes_gene/pigean completed but produced no Factor0… gene/gene-set loadings.",
         });
         return false;

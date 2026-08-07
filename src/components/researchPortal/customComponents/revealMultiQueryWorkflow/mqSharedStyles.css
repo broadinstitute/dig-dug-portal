@@ -128,6 +128,10 @@
 .mechanism-card .pill {
     font-size: inherit;
 }
+.mechanism-card .reveal-evidence-chips .pill,
+.mechanism-card .cfde-explore-geneset-link.pill {
+    font-size: 13px;
+}
 .mechanism-gene-symbol {
     white-space: nowrap;
     word-break: keep-all;
@@ -286,6 +290,7 @@
     display: flex;
     align-items: stretch;
     width: 100%;
+    padding: 5px;
     border: 1px solid #ced4da;
     border-radius: 0.25rem;
     background: #fff;
@@ -297,31 +302,37 @@
 .reveal-query-criteria-slot {
     flex: 0 0 auto;
     display: flex;
-    align-items: stretch;
-    border-right: 1px solid #ced4da;
-    background: #f8f9fa;
-    border-radius: 0.25rem 0 0 0.25rem;
+    align-items: center;
+    margin-right: 6px;
+    border-right: none;
+    background: transparent;
+    border-radius: 0.25rem;
 }
 .reveal-query-criteria-select {
-    border: none;
-    border-radius: 0;
+    border: 1px solid #f16822;
+    border-radius: 0.25rem;
     height: auto;
-    min-height: calc(1.5em + 0.75rem + 2px);
-    padding: 0.375rem 1.75rem 0.375rem 0.75rem;
-    background-color: transparent;
+    min-height: calc(1.5em + 0.7rem);
+    padding: 0.35rem 1.75rem 0.35rem 0.75rem;
+    background-color: #f16822;
     font-size: 0.95rem;
-    color: #495057;
+    font-weight: 500;
+    color: #fff;
     max-width: 9.75rem;
     cursor: pointer;
     box-shadow: none;
     -webkit-appearance: none;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236c757d' d='M1.4 0.6L6 5.2 10.6 0.6 12 2 6 8 0 2z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffffff' d='M1.4 0.6L6 5.2 10.6 0.6 12 2 6 8 0 2z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.55rem center;
     background-size: 10px 7px;
 }
+.reveal-query-criteria-select:hover,
 .reveal-query-criteria-select:focus {
+    background-color: #d15618;
+    border-color: #f16822;
+    color: #fff;
     box-shadow: none;
     outline: none;
 }

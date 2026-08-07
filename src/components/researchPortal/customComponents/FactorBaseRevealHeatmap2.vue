@@ -92,10 +92,28 @@
           role="group"
           aria-label="Visualization filters"
         >
-          <label class="fbr-heatmap-filter-toggle mb-0">
+          <label
+            class="fbr-heatmap-filter-toggle mb-0"
+            :class="{ 'is-locked': geneSetClustersFilterLocked }"
+            :title="geneSetClustersFilterLocked ? 'Required on Y-axis for current Render by' : null"
+          >
             <input
               type="checkbox"
-              :checked="viewFilters.showGeneSets"
+              :checked="effectiveShowGeneSetClusters"
+              :disabled="geneSetClustersFilterLocked"
+              @change="onHeatmapViewFilterChange('showGeneSetClusters', $event.target.checked)"
+            />
+            <span>Gene set clusters</span>
+          </label>
+          <label
+            class="fbr-heatmap-filter-toggle mb-0"
+            :class="{ 'is-locked': geneSetsFilterLocked }"
+            :title="geneSetsFilterLocked ? 'Required on Y-axis for current Render by' : null"
+          >
+            <input
+              type="checkbox"
+              :checked="effectiveShowGeneSets"
+              :disabled="geneSetsFilterLocked"
               @change="onHeatmapViewFilterChange('showGeneSets', $event.target.checked)"
             />
             <span>Gene sets</span>
@@ -124,6 +142,21 @@
             />
             <span>Only selected</span>
           </label>
+          <div
+            v-if="dataVizTab === 'heatmap'"
+            class="fbr-heatmap-axis-layout"
+          >
+            <label for="fbr-heatmap-axis-layout-select" class="fbr-heatmap-axis-layout-label mb-0">Render by:</label>
+            <select
+              id="fbr-heatmap-axis-layout-select"
+              v-model="heatmapAxisLayout"
+              class="form-control form-control-sm fbr-heatmap-axis-layout-select"
+              aria-label="Render heatmap by"
+            >
+              <option value="factorsRows">Gene set clusters × gene sets &amp; genes</option>
+              <option value="geneSetsRows">Gene sets × gene set clusters &amp; genes</option>
+            </select>
+          </div>
         </div>
     <!-- Gene-set entry heatmap legend (network has its own legend) -->
     <div
@@ -134,7 +167,7 @@
         <div class="legend-item">
           <span class="legend-color-item">
             <span class="legend-color factor-relevance" aria-hidden="true"></span>
-            <span class="legend-color-text">Overall factor value</span>
+            <span class="legend-color-text">Overall gene set cluster value</span>
           </span>
         </div>
       </div>
@@ -214,7 +247,7 @@
           </span>
           <span class="legend-color-item">
             <span class="legend-gene-sample legend-gene-sample-context">GENE</span>
-            <span class="legend-color-text">Other genes on factor</span>
+            <span class="legend-color-text">Other genes on gene set cluster</span>
           </span>
         </div>
       </div>
@@ -477,6 +510,12 @@ export default Vue.component("pigean-factors-viz", {
       dataVizTab: "heatmap",
       dataVizNetworkRendering: false,
       dataVizNetworkRenderTimerId: null,
+      /**
+       * Gene-set entry (factorValue) axis layout:
+       * factorsRows = factors (Y) × gene sets & genes (X) — default
+       * geneSetsRows = gene sets (Y) × factors & genes (X)
+       */
+      heatmapAxisLayout: "factorsRows",
     };
   },
   computed: {
@@ -488,6 +527,20 @@ export default Vue.component("pigean-factors-viz", {
     },
     viewFilters() {
       return normalizeHeatmapViewFilters(this.heatmapViewFilters);
+    },
+    /** Y-axis is gene set clusters (default Render by). */
+    geneSetClustersFilterLocked() {
+      return this.cellColorMode === "factorValue" && this.heatmapAxisLayout === "factorsRows";
+    },
+    /** Y-axis is gene sets. */
+    geneSetsFilterLocked() {
+      return this.cellColorMode === "factorValue" && this.heatmapAxisLayout === "geneSetsRows";
+    },
+    effectiveShowGeneSetClusters() {
+      return this.geneSetClustersFilterLocked || !!this.viewFilters.showGeneSetClusters;
+    },
+    effectiveShowGeneSets() {
+      return this.geneSetsFilterLocked || !!this.viewFilters.showGeneSets;
     },
     /** True when used inside FactorBaseReveal with factorData / factorDataTableRows passed in. */
     useFactorBaseRevealData() {
@@ -546,7 +599,7 @@ export default Vue.component("pigean-factors-viz", {
       let allowedGenes = null;
 
       if (isFactorizationView) {
-        includeGeneSets = !!vf.showGeneSets;
+        includeGeneSets = this.effectiveShowGeneSets;
         genesInSearchOnly = !!vf.genesInSearchOnly;
         includeGenes = genesInSearchOnly || !!vf.showGenes;
 
@@ -627,10 +680,12 @@ export default Vue.component("pigean-factors-viz", {
         this.selectedHeatmapGroup,
         this.pairsInView.length,
         (this.dataViewNetwork.nodes || []).length,
-        vf.showGeneSets ? 1 : 0,
+        this.effectiveShowGeneSetClusters ? 1 : 0,
+        this.effectiveShowGeneSets ? 1 : 0,
         vf.showGenes ? 1 : 0,
         vf.genesInSearchOnly ? 1 : 0,
         vf.onlySelected ? 1 : 0,
+        this.heatmapAxisLayout,
         selKey,
       ].join("|");
     },
@@ -675,7 +730,10 @@ export default Vue.component("pigean-factors-viz", {
       const out = {
         ready: false,
         columnLabels: [],
+        columnDisplayLabels: [],
         geneSetCount: 0,
+        factorColumnCount: 0,
+        factorColumnMetas: [],
         factorRows: [],
         data: [],
         geneScoresForHeader: [],
@@ -684,6 +742,7 @@ export default Vue.component("pigean-factors-viz", {
           : [],
         cellColorMode: useFactorValue ? "factorValue" : "association",
         valueScaleMax: 1,
+        axisLayout: "factorsRows",
       };
       const pairs = this.buildHeatmapPairs();
       if (!pairs.length) return out;
@@ -845,7 +904,7 @@ export default Vue.component("pigean-factors-viz", {
       let visibleGenes = geneOrder.slice();
       if (useFactorValue) {
         const vf = this.viewFilters;
-        if (!vf.showGeneSets) visibleGeneSets = [];
+        if (!this.effectiveShowGeneSets) visibleGeneSets = [];
         if (vf.genesInSearchOnly) {
           visibleGenes = geneOrder.filter((g) => !!geneIsSearch[g]);
         } else if (!vf.showGenes) {
@@ -859,7 +918,8 @@ export default Vue.component("pigean-factors-viz", {
         fetchedDirection: p.fetchedDirection,
         factorClusterLabel: p.factorClusterLabel,
         factor: p.factorObj.factor,
-        factorObj: p.factorObj
+        factorObj: p.factorObj,
+        rowKind: "factor",
       }));
 
       if (useFactorValue && this.viewFilters.onlySelected) {
@@ -888,6 +948,139 @@ export default Vue.component("pigean-factors-viz", {
           );
           visibleGenes = visibleGenes.filter((g) => isHeatmapColHighlighted(g, 1, 0, selected));
         }
+      }
+
+      const useGeneSetsRows =
+        useFactorValue && this.heatmapAxisLayout === "geneSetsRows";
+
+      if (useGeneSetsRows) {
+        // Gene sets (Y) × factors & genes (X). Selection filters already applied above.
+        const selected = Array.isArray(this.selectedNodes) ? this.selectedNodes : [];
+        let bodyRows = visibleGeneSets.map((geneSetId) => ({
+          rowKind: "geneSet",
+          geneSetId,
+          phenotype: "",
+          phenotypeDisplay: geneSetId,
+          fetchedDirection: "",
+          factorClusterLabel: geneSetId,
+          factor: "",
+          factorObj: null,
+        }));
+        // Keep full factorRows for membership lookups; checkbox only hides cluster columns.
+        let factorCols = this.effectiveShowGeneSetClusters ? factorRows.slice() : [];
+        let geneCols = visibleGenes.slice();
+        const membershipFactors = factorRows.slice();
+
+        if (this.viewFilters.onlySelected && selected.length) {
+          const hasGsRowSel = selected.some(
+            (n) =>
+              n &&
+              (n.kind === HEATMAP_SELECTION_KIND.GENE_SET ||
+                (n.kind === HEATMAP_SELECTION_KIND.CROSSING && n.colIsGeneSet))
+          );
+          const hasFactorColSel = selected.some(
+            (n) =>
+              n &&
+              (n.kind === HEATMAP_SELECTION_KIND.ROW ||
+                (n.kind === HEATMAP_SELECTION_KIND.CROSSING && n.colIsGeneSet))
+          );
+          const hasGeneColSel = selected.some(
+            (n) =>
+              n &&
+              (n.kind === HEATMAP_SELECTION_KIND.GENE ||
+                (n.kind === HEATMAP_SELECTION_KIND.CROSSING && !n.colIsGeneSet))
+          );
+          if (hasGsRowSel) {
+            bodyRows = bodyRows.filter((row) =>
+              isHeatmapColHighlighted(row.geneSetId, 0, 1, selected)
+            );
+          }
+          if (hasFactorColSel) {
+            factorCols = factorCols.filter((row) => isHeatmapRowHighlighted(row, selected));
+          }
+          if (hasGeneColSel) {
+            geneCols = geneCols.filter((g) => isHeatmapColHighlighted(g, 1, 0, selected));
+          }
+        }
+
+        const factorColumnCount = factorCols.length;
+        const columnLabels = [
+          ...factorCols.map((r, i) => `factorCol:${i}:${r.phenotype}|${r.factor}|${r.fetchedDirection || ""}`),
+          ...geneCols,
+        ];
+        const columnDisplayLabels = [
+          ...factorCols.map(
+            (r) =>
+              (r.factorClusterLabel && String(r.factorClusterLabel).trim()) ||
+              (r.factor != null ? String(r.factor) : "") ||
+              r.phenotypeDisplay ||
+              ""
+          ),
+          ...geneCols,
+        ];
+
+        if (!bodyRows.length || !columnLabels.length) return out;
+
+        const geneInGeneSetMember = (geneSetId, gene, factorRow) => {
+          const gsMeta = factorRow.factorObj && factorRow.factorObj.geneSets && factorRow.factorObj.geneSets[geneSetId];
+          if (!gsMeta || !Array.isArray(gsMeta.genes)) return false;
+          const upper = String(gene).toUpperCase();
+          return gsMeta.genes.some((g) => String(g).toUpperCase() === upper);
+        };
+
+        let valueScaleMax = 0;
+        const data = bodyRows.map((gsRow) => {
+          const geneSetId = gsRow.geneSetId;
+          return columnLabels.map((colLabel, c) => {
+            if (c < factorColumnCount) {
+              const factorRow = factorCols[c];
+              const gsMeta =
+                factorRow.factorObj &&
+                factorRow.factorObj.geneSets &&
+                factorRow.factorObj.geneSets[geneSetId];
+              if (gsMeta && gsMeta.factor_value != null && !isNaN(Number(gsMeta.factor_value))) {
+                const v = Number(gsMeta.factor_value);
+                valueScaleMax = Math.max(valueScaleMax, Math.abs(v));
+                return v;
+              }
+              return null;
+            }
+            const gene = colLabel;
+            let best = null;
+            membershipFactors.forEach((factorRow) => {
+              if (!geneInGeneSetMember(geneSetId, gene, factorRow)) return;
+              const geneData =
+                factorRow.factorObj && factorRow.factorObj.genes && factorRow.factorObj.genes[gene];
+              const raw = geneData && (geneData.factor_value ?? geneData.factorRelevance);
+              if (raw != null && raw !== "" && !isNaN(Number(raw))) {
+                const v = Number(raw);
+                if (best == null || Math.abs(v) > Math.abs(best)) best = v;
+              } else if (best == null) {
+                best = 0;
+              }
+            });
+            if (best != null) valueScaleMax = Math.max(valueScaleMax, Math.abs(best));
+            return best;
+          });
+        });
+
+        out.axisLayout = "geneSetsRows";
+        out.columnLabels = columnLabels;
+        out.columnDisplayLabels = columnDisplayLabels;
+        out.geneSetCount = 0;
+        out.factorColumnCount = factorColumnCount;
+        out.factorColumnMetas = factorCols;
+        out.geneColumnIsSearch = geneCols.map((g) => !!geneIsSearch[g]);
+        out.factorRows = bodyRows;
+        out.geneScoresForHeader = columnLabels.map(() => ({
+          combined: null,
+          gwasSupport: null,
+          geneSetSupport: null,
+        }));
+        out.data = data;
+        out.valueScaleMax = valueScaleMax > 0 ? valueScaleMax : 1;
+        out.ready = data.length > 0 && data[0].length > 0;
+        return out;
       }
 
       const columnLabels = [...visibleGeneSets, ...visibleGenes];
@@ -934,8 +1127,12 @@ export default Vue.component("pigean-factors-viz", {
         });
       });
 
+      out.axisLayout = "factorsRows";
       out.columnLabels = columnLabels;
+      out.columnDisplayLabels = columnLabels.slice();
       out.geneSetCount = geneSetCount;
+      out.factorColumnCount = 0;
+      out.factorColumnMetas = [];
       out.geneColumnIsSearch = geneColumnIsSearch;
       out.factorRows = factorRows;
       out.geneScoresForHeader = geneScoresForHeader;
@@ -1044,6 +1241,13 @@ export default Vue.component("pigean-factors-viz", {
     },
     rowLabelMode() {
       if (!this.useFactorBaseRevealData || !this.heatmapDataFromFactorData || !this.heatmapDataFromFactorData.ready) return;
+      this.cleanupTooltips();
+      this.$nextTick(() => {
+        setTimeout(() => this.renderFactorBaseRevealHeatmap(), 50);
+      });
+    },
+    heatmapAxisLayout() {
+      if (!this.useFactorBaseRevealData || this.cellColorMode !== "factorValue") return;
       this.cleanupTooltips();
       this.$nextTick(() => {
         setTimeout(() => this.renderFactorBaseRevealHeatmap(), 50);
@@ -1407,7 +1611,10 @@ export default Vue.component("pigean-factors-viz", {
 
       const {
         columnLabels,
+        columnDisplayLabels,
         geneSetCount,
+        factorColumnCount,
+        factorColumnMetas,
         factorRows,
         data,
         geneScoresForHeader,
@@ -1415,6 +1622,7 @@ export default Vue.component("pigean-factors-viz", {
         geneColumnIsSearch,
         cellColorMode,
         valueScaleMax,
+        axisLayout,
       } = h;
       const numCols = columnLabels.length;
       const numFactorRows = data.length;
@@ -1431,6 +1639,13 @@ export default Vue.component("pigean-factors-viz", {
       const searchFlags = Array.isArray(geneColumnIsSearch) ? geneColumnIsSearch : [];
       const useFactorValueColors = cellColorMode === "factorValue";
       const scaleMax = valueScaleMax > 0 ? valueScaleMax : 1;
+      const isGeneSetsRows = axisLayout === "geneSetsRows";
+      const factorColCount = Number(factorColumnCount) || 0;
+      const displayLabels =
+        Array.isArray(columnDisplayLabels) && columnDisplayLabels.length === columnLabels.length
+          ? columnDisplayLabels
+          : columnLabels;
+      const factorMetas = Array.isArray(factorColumnMetas) ? factorColumnMetas : [];
 
       const getRelevanceColor = (value) => {
         if (value === null || value === undefined || isNaN(value)) return "#f0f0f0";
@@ -1483,22 +1698,34 @@ export default Vue.component("pigean-factors-viz", {
         phen.setAttribute("font-family", "Arial");
         const pFull = rowMeta.phenotypeDisplay;
         const showDirPrefix =
+          !isGeneSetsRows &&
           this.rowLabelMode !== "factor" &&
           (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
           rowMeta.fetchedDirection;
         const directionTag = showDirPrefix ? `[${rowMeta.fetchedDirection}] ` : "";
-        const rowDisplay = this.heatmapRowDisplayLabel(rowMeta);
+        const rowDisplay = isGeneSetsRows
+          ? rowMeta.geneSetId || rowMeta.phenotypeDisplay || ""
+          : this.heatmapRowDisplayLabel(rowMeta);
         const fullLabel = `${directionTag}${rowDisplay}`;
         phen.textContent = this.truncateLabel(fullLabel, 52);
         const tooltipParts = [];
-        if (this.rowLabelMode !== "factor" && rowMeta.fetchedDirection) {
-          tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
+        if (isGeneSetsRows) {
+          tooltipParts.push(`Gene set: ${rowMeta.geneSetId || fullLabel}`);
+        } else {
+          if (this.rowLabelMode !== "factor" && rowMeta.fetchedDirection) {
+            tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
+          }
+          if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
+          if (this.rowLabelMode !== "factor") tooltipParts.push(`Phenotype: ${pFull}`);
         }
-        if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
-        if (this.rowLabelMode !== "factor") tooltipParts.push(`Phenotype: ${pFull}`);
         phen.setAttribute("title", tooltipParts.join(" · ") || fullLabel);
-        const rowNode = buildRowSelectionNode(rowMeta);
-        this.applyHeatmapRowLabelHighlight(phen, isHeatmapRowHighlighted(rowMeta, this.selectedNodes));
+        const rowNode = isGeneSetsRows
+          ? buildGeneSetSelectionNode(rowMeta.geneSetId)
+          : buildRowSelectionNode(rowMeta);
+        const rowHighlighted = isGeneSetsRows
+          ? isHeatmapColHighlighted(rowMeta.geneSetId, 0, 1, this.selectedNodes)
+          : isHeatmapRowHighlighted(rowMeta, this.selectedNodes);
+        this.applyHeatmapRowLabelHighlight(phen, rowHighlighted);
         this.attachHeatmapSelectClick(phen, rowNode);
         labelsG.appendChild(phen);
       });
@@ -1515,16 +1742,30 @@ export default Vue.component("pigean-factors-viz", {
       columnLabels.forEach((colLabel, colIndex) => {
         const labelX = colIndex * cellWidth + 2;
         const labelY = 0 + cellHeight / 2;
-        const isGeneSetCol = colIndex < geneSetCount;
-        const colNode = isGeneSetCol
-          ? buildGeneSetSelectionNode(colLabel)
-          : buildGeneSelectionNode(colLabel);
-        const colHighlighted = isHeatmapColHighlighted(
-          colLabel,
-          colIndex,
-          geneSetCount,
-          this.selectedNodes
-        );
+        const displayLabel = displayLabels[colIndex] || colLabel;
+        let colNode;
+        let colHighlighted;
+        if (isGeneSetsRows) {
+          if (colIndex < factorColCount) {
+            const factorMeta = factorMetas[colIndex];
+            colNode = buildRowSelectionNode(factorMeta);
+            colHighlighted = isHeatmapRowHighlighted(factorMeta, this.selectedNodes);
+          } else {
+            colNode = buildGeneSelectionNode(colLabel);
+            colHighlighted = isHeatmapColHighlighted(colLabel, 1, 0, this.selectedNodes);
+          }
+        } else {
+          const isGeneSetCol = colIndex < geneSetCount;
+          colNode = isGeneSetCol
+            ? buildGeneSetSelectionNode(colLabel)
+            : buildGeneSelectionNode(colLabel);
+          colHighlighted = isHeatmapColHighlighted(
+            colLabel,
+            colIndex,
+            geneSetCount,
+            this.selectedNodes
+          );
+        }
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x", labelX);
         text.setAttribute("y", labelY);
@@ -1533,8 +1774,12 @@ export default Vue.component("pigean-factors-viz", {
         text.setAttribute("class", "heatmap-label");
         text.setAttribute("font-size", "10pt");
         text.setAttribute("font-family", "Arial");
-        if (!isGeneSetCol && this.emphasizeSearchContextGenes) {
-          const geneIdx = colIndex - geneSetCount;
+        const isGeneCol =
+          isGeneSetsRows ? colIndex >= factorColCount : colIndex >= geneSetCount;
+        if (isGeneCol && this.emphasizeSearchContextGenes) {
+          const geneIdx = isGeneSetsRows
+            ? colIndex - factorColCount
+            : colIndex - geneSetCount;
           if (searchFlags[geneIdx]) {
             text.classList.add("heatmap-label-search-gene");
           } else {
@@ -1542,8 +1787,8 @@ export default Vue.component("pigean-factors-viz", {
           }
         }
         text.setAttribute("transform", `rotate(-45, ${labelX}, ${labelY})`);
-        text.textContent = this.truncateLabel(colLabel, 14);
-        if (colLabel.length > 14) text.setAttribute("title", colLabel);
+        text.textContent = this.truncateLabel(displayLabel, 14);
+        if (String(displayLabel).length > 14) text.setAttribute("title", displayLabel);
         this.applyHeatmapColLabelHighlight(text, colHighlighted);
         this.attachHeatmapSelectClick(text, colNode);
         g.appendChild(text);
@@ -1554,7 +1799,9 @@ export default Vue.component("pigean-factors-viz", {
         geneScoresForHeader.map((s) => s.gwasSupport),
         geneScoresForHeader.map((s) => s.geneSetSupport)
       ];
-      const phenosInHeatmapRows = new Set(factorRows.map((r) => r.phenotype));
+      const phenosInHeatmapRows = new Set(
+        factorRows.filter((r) => r && r.phenotype).map((r) => r.phenotype)
+      );
       const headerScoreSuffix = phenosInHeatmapRows.size > 1 ? " (max across phenotypes)" : "";
 
       for (let rowIndex = 0; rowIndex < scoreHeaderCount; rowIndex++) {
@@ -1622,37 +1869,75 @@ export default Vue.component("pigean-factors-viz", {
           rect.setAttribute("y", y);
           rect.setAttribute("width", cellWidth);
           rect.setAttribute("height", cellHeightBody);
-          rect.setAttribute("fill", getCellColor(value, c < geneSetCount));
+          const isGeneSetCol = !isGeneSetsRows && c < geneSetCount;
+          rect.setAttribute("fill", getCellColor(value, isGeneSetCol));
           rect.setAttribute("stroke", "#fff");
           rect.setAttribute("stroke-width", "1");
           const rowMeta = factorRows[r];
-          const showDirInRowLine =
-            this.rowLabelMode !== "factor" &&
-            (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
-            rowMeta.fetchedDirection;
-          const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
-          const rowLine = `${directionTag}${this.heatmapRowDisplayLabel(rowMeta)}`;
-          const colLabel = columnLabels[c];
-          const isGeneSetCol = c < geneSetCount;
-          const cellHighlighted = isHeatmapCellHighlighted(
-            rowMeta,
-            colLabel,
-            c,
-            geneSetCount,
-            this.selectedNodes
-          );
+          const displayCol = displayLabels[c] || columnLabels[c];
+          let rowLine;
+          let crossingNode;
+          let cellHighlighted;
+          if (isGeneSetsRows) {
+            rowLine = rowMeta.geneSetId || "";
+            if (c < factorColCount) {
+              const factorMeta = factorMetas[c];
+              crossingNode = buildCrossingSelectionNode(factorMeta, rowMeta.geneSetId, true);
+              cellHighlighted = isHeatmapCellHighlighted(
+                factorMeta,
+                rowMeta.geneSetId,
+                0,
+                1,
+                this.selectedNodes
+              );
+            } else {
+              const gene = columnLabels[c];
+              // Prefer a factor that contains both for stable crossing identity.
+              const factorMeta =
+                factorMetas.find((fm) => {
+                  const gs =
+                    fm.factorObj && fm.factorObj.geneSets && fm.factorObj.geneSets[rowMeta.geneSetId];
+                  if (!gs || !Array.isArray(gs.genes)) return false;
+                  const upper = String(gene).toUpperCase();
+                  return gs.genes.some((g) => String(g).toUpperCase() === upper);
+                }) || factorMetas[0];
+              crossingNode = factorMeta
+                ? buildCrossingSelectionNode(factorMeta, gene, false)
+                : buildGeneSelectionNode(gene);
+              cellHighlighted = factorMeta
+                ? isHeatmapCellHighlighted(factorMeta, gene, 1, 0, this.selectedNodes)
+                : isHeatmapColHighlighted(gene, 1, 0, this.selectedNodes);
+            }
+          } else {
+            const showDirInRowLine =
+              this.rowLabelMode !== "factor" &&
+              (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
+              rowMeta.fetchedDirection;
+            const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
+            rowLine = `${directionTag}${this.heatmapRowDisplayLabel(rowMeta)}`;
+            const colLabel = columnLabels[c];
+            crossingNode = buildCrossingSelectionNode(rowMeta, colLabel, isGeneSetCol);
+            cellHighlighted = isHeatmapCellHighlighted(
+              rowMeta,
+              colLabel,
+              c,
+              geneSetCount,
+              this.selectedNodes
+            );
+          }
           this.applyHeatmapCrossingCellHighlight(rect, cellHighlighted);
-          const crossingNode = buildCrossingSelectionNode(rowMeta, colLabel, isGeneSetCol);
           this.attachHeatmapSelectClick(rect, crossingNode);
           const showTooltip = (event) => {
             this.cleanupTooltips();
             const tip = document.createElement("div");
             tip.className = "heatmap-tooltip";
-            if (c < geneSetCount) {
-              tip.textContent = `${rowLine} × ${colLabel}: ${value === 1 ? "Yes" : "No"}`;
+            if (!useFactorValueColors && isGeneSetCol) {
+              tip.textContent = `${rowLine} × ${displayCol}: ${value === 1 ? "Yes" : "No"}`;
             } else {
               tip.textContent =
-                value != null ? `${rowLine} × ${colLabel}: ${Number(value).toFixed(3)}` : `${rowLine} × ${colLabel}: —`;
+                value != null
+                  ? `${rowLine} × ${displayCol}: ${Number(value).toFixed(3)}`
+                  : `${rowLine} × ${displayCol}: —`;
             }
             tip.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;z-index:10000;pointer-events:none;";
             document.body.appendChild(tip);
@@ -2853,18 +3138,18 @@ export default Vue.component("pigean-factors-viz", {
           metadata: {
             phenotype: this.phenotypeName,
             timestamp: new Date().toISOString(),
-            description: 'Factors × Gene Sets heatmap data'
+            description: 'Gene set clusters × gene sets heatmap data'
           },
           geneSets: this.geneSetsHeatmapData.geneSets || [],
           factors: this.geneSetsHeatmapData.factors || [],
           factorLabels: this.geneSetsHeatmapData.factorLabels || [],
           factorScores: {
             data: this.geneSetsHeatmapData.factorScores || [],
-            description: 'Array of factor relevance scores to phenotype'
+            description: 'Array of gene set cluster relevance scores to phenotype'
           },
           data: {
             data: this.geneSetsHeatmapData.data || [],
-            description: '2D array [factor][geneSet] of gene relevance to factor (factor_value)'
+            description: '2D array [gene set cluster][geneSet] of gene relevance to gene set cluster (factor_value)'
           }
         };
         
@@ -3311,6 +3596,31 @@ export default Vue.component("pigean-factors-viz", {
   gap: 10px;
 }
 
+.fbr-heatmap-axis-layout {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.25rem;
+}
+
+.fbr-heatmap-axis-layout-label {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.fbr-heatmap-axis-layout-select {
+  max-width: 280px;
+  min-width: 200px;
+  width: auto;
+  height: calc(1.5em + 0.5rem + 2px);
+  padding: 0.15rem 0.5rem;
+  font-size: 12px;
+}
+
 .legend-item {
   display: flex;
   align-items: center;
@@ -3466,9 +3776,16 @@ export default Vue.component("pigean-factors-viz", {
   color: #444;
   white-space: nowrap;
 }
+.fbr-heatmap-filter-toggle.is-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .fbr-heatmap-filter-toggle input {
   margin: 0;
   cursor: pointer;
+}
+.fbr-heatmap-filter-toggle.is-locked input {
+  cursor: not-allowed;
 }
 
 .legend-color.very-strong {
