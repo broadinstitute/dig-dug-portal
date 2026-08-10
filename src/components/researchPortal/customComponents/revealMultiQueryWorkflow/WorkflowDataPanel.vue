@@ -88,22 +88,25 @@
                                     </template>
                                     <template v-else>
                                         Knowledge graph is ready. Please review the phenotypes, genes and gene sets retrieved with the search terms and research context.
-                                        Select / unselect phenotypes x gene set cluster families if necessary. Please hit Continue button.
+                                        Select / unselect phenotypes x gene set cluster families if necessary.
+                                        Choose which Data to send for hypotheses, then hit Continue.
                                         REVEAL will generate mechanistic hypotheses using the data.
                                     </template>
-                                    <template v-if="showResearchIntention" v-slot:extra>
-                                        <label class="small font-weight-bold mb-1 d-block reveal-gate-text">
-                                            Research intention (optional)
-                                        </label>
-                                        <textarea
-                                            class="form-control form-control-sm"
-                                            :value="researchIntention"
-                                            rows="3"
-                                            style="min-height: 5em; resize: vertical;"
-                                            placeholder="Describe what you want to learn or hypothesize about these genes…"
-                                            @input="$emit('update:researchIntention', $event.target.value)"
-                                        ></textarea>
-                                        <div class="reveal-gate-text mt-3">
+                                    <template v-slot:extra>
+                                        <template v-if="showResearchIntention">
+                                            <label class="small font-weight-bold mb-1 d-block reveal-gate-text">
+                                                Research intention (optional)
+                                            </label>
+                                            <textarea
+                                                class="form-control form-control-sm"
+                                                :value="researchIntention"
+                                                rows="3"
+                                                style="min-height: 5em; resize: vertical;"
+                                                placeholder="Describe what you want to learn or hypothesize about these genes…"
+                                                @input="$emit('update:researchIntention', $event.target.value)"
+                                            ></textarea>
+                                        </template>
+                                        <div class="reveal-gate-text" :class="{ 'mt-3': showResearchIntention }">
                                             <div class="small font-weight-bold mb-1 d-block reveal-gate-text">
                                                 Data
                                             </div>
@@ -113,9 +116,9 @@
                                                 class="custom-control custom-radio mb-1"
                                             >
                                                 <input
-                                                    :id="'gene-set-entry-llm-scope-' + opt.value"
+                                                    :id="llmFeedScopeIdPrefix + opt.value"
                                                     type="radio"
-                                                    name="gene-set-entry-llm-feed-scope"
+                                                    :name="llmFeedScopeRadioName"
                                                     class="custom-control-input"
                                                     :value="opt.value"
                                                     :checked="llmFeedScope === opt.value"
@@ -123,7 +126,7 @@
                                                 />
                                                 <label
                                                     class="custom-control-label reveal-gate-text"
-                                                    :for="'gene-set-entry-llm-scope-' + opt.value"
+                                                    :for="llmFeedScopeIdPrefix + opt.value"
                                                 >
                                                     <span class="font-weight-bold">{{ opt.label }}</span><span class="small" style="opacity: 0.9;"> ({{ opt.help }})</span>
                                                 </label>
@@ -248,6 +251,7 @@
                                                                     :network="helpers.getFactorConnectivityNetwork(row)"
                                                                     :height="220"
                                                                     :show-popup-button="true"
+                                                                    keep-physics-enabled
                                                                     gene-node-metric-key="gwas_support"
                                                                     gene-color-by-gwas-support
                                                                     edge-distance-metric-key="functional_support"
@@ -429,6 +433,7 @@
                                                             :network="helpers.getFactorConnectivityNetwork(row.item)"
                                                             :height="220"
                                                             :show-popup-button="true"
+                                                            keep-physics-enabled
                                                             gene-node-metric-key="gwas_support"
                                                             gene-color-by-gwas-support
                                                             edge-distance-metric-key="functional_support"
@@ -565,6 +570,7 @@
 import WorkflowStepGate from "./WorkflowStepGate.vue";
 import FactorBaseRevealNetwork from "../FactorBaseRevealNetwork2.vue";
 import { GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS } from "./revealMqGeneSetEntryLlmFeed.js";
+import { FREE_TEXT_LLM_FEED_SCOPE_OPTIONS } from "./revealMqFreeTextLlmFeed.js";
 
 export default {
     name: "WorkflowDataPanel",
@@ -592,8 +598,8 @@ export default {
         /** Gene-set entry only: research intention input under the Data Continue gate. */
         showResearchIntention: { type: Boolean, default: false },
         researchIntention: { type: String, default: "" },
-        /** Gene-set entry: which evidence subset to format for the hypothesis LLM. */
-        llmFeedScope: { type: String, default: "visualizer" },
+        /** Which evidence subset to send for hypothesis generation (path-specific options). */
+        llmFeedScope: { type: String, default: "full" },
         /** Gene-set entry table columns (Factor before Phenotype; no Fetch direction). */
         isGeneSetEntryMode: { type: Boolean, default: false },
         /** Bold genes of interest vs context (gene-set entry or text-query with GOI). */
@@ -623,7 +629,6 @@ export default {
     data() {
         return {
             fetchProgressExpanded: true,
-            llmFeedScopeOptions: GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS,
         };
     },
     watch: {
@@ -636,6 +641,19 @@ export default {
         },
     },
     computed: {
+        llmFeedScopeOptions() {
+            return this.isGeneSetEntryMode
+                ? GENE_SET_ENTRY_LLM_FEED_SCOPE_OPTIONS
+                : FREE_TEXT_LLM_FEED_SCOPE_OPTIONS;
+        },
+        llmFeedScopeIdPrefix() {
+            return this.isGeneSetEntryMode ? "gene-set-entry-llm-scope-" : "free-text-llm-scope-";
+        },
+        llmFeedScopeRadioName() {
+            return this.isGeneSetEntryMode
+                ? "gene-set-entry-llm-feed-scope"
+                : "free-text-llm-feed-scope";
+        },
         showFetchProgress() {
             return (
                 (this.revealDataSteps && this.revealDataSteps.length > 0) ||

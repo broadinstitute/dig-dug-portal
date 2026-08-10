@@ -10,8 +10,29 @@ function makeVm(overrides = {}) {
         loadComplete: true,
         showTab: "data",
         lastKgTriples: [{ subject: "a", predicate: "b", object: "c" }],
-        factorData: { pheno1: { factors: [] } },
-        factorDataTableRowsFiltered: [],
+        factorData: {
+            pheno1: {
+                genes: { GENE1: { includedFromRequest: true } },
+                factors: [
+                    {
+                        factor: "F1",
+                        factorLabel: "CLUSTER_1",
+                        fetched_direction: "Genetics",
+                        genes: { GENE1: { includedFromRequest: true, factorRelevance: 0.5 } },
+                        geneSets: { GS_1: { genes: ["GENE1"] } },
+                        top_gene_sets: "GS_1",
+                    },
+                ],
+            },
+        },
+        factorDataTableRowsFiltered: [{ phenotype: "pheno1", factor: "F1", factorLabel: "CLUSTER_1" }],
+        factorDataTableRowsHeatmapScoped: [],
+        heatmapSelectedNodes: [],
+        lastGenesOfInterest: ["GENE1"],
+        lastExplicitUserGenes: [],
+        freeTextLlmFeedScope: "full",
+        phenotypeAssociationFilters: {},
+        searchPath: "query",
         multiQueryEvidenceBundles: [],
         hypothesisGenerationMode: "strict",
         mechanismHypothesisSystemPromptEffective: "system",
@@ -32,7 +53,6 @@ function makeVm(overrides = {}) {
         normalizeMechanismHypotheses: jest.fn((h) => h),
         getReportSessionSummary: jest.fn(() => "summary"),
         autoMapAllMechanismsToBiolink: jest.fn(),
-        buildCrossRouteCrosstalkFallback: jest.fn(),
         $nextTick: jest.fn((fn) => (fn ? fn() : undefined)),
         llmAnalyze: {
             sendPrompt: jest.fn(({ onResponse }) => {

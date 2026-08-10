@@ -10,7 +10,7 @@
     <div v-if="error" class="error-alert">
       {{ error }}
     </div>
-    <div v-if="useFactorBaseRevealData && heatmapPairCount && cellColorMode !== 'factorValue'" class="mb-2 d-flex flex-nowrap align-items-center overflow-auto fbr-heatmap-toolbar">
+    <div v-if="useFactorBaseRevealData && heatmapPairCount && cellColorMode !== 'factorValue' && showGroupByControls" class="mb-2 d-flex flex-nowrap align-items-center overflow-auto fbr-heatmap-toolbar">
       <div class="fbr-heatmap-control-group">
         <label for="fbr-heatmap-group-mode-select" class="mb-0 font-weight-bold small text-secondary fbr-heatmap-toolbar-label">Group by:</label>
         <b-form-select
@@ -268,7 +268,7 @@
         class="text-center p-3 text-muted"
       >
         <template v-if="!heatmapPairCount">No phenotypes or data categories available to plot.</template>
-        <template v-else-if="heatmapGroupMode !== 'all' && !selectedHeatmapGroup">Select a {{ heatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.</template>
+        <template v-else-if="effectiveHeatmapGroupMode !== 'all' && !selectedHeatmapGroup">Select a {{ effectiveHeatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.</template>
         <template v-else-if="cellColorMode === 'factorValue' && viewFilters.onlySelected && !(selectedNodes && selectedNodes.length)">Select rows or columns to show with Only selected.</template>
         <template v-else>No matrix data for this selection.</template>
       </div>
@@ -292,10 +292,10 @@
         No phenotypes or data categories available to plot.
       </div>
       <div
-        v-else-if="heatmapGroupMode !== 'all' && !selectedHeatmapGroup"
+        v-else-if="effectiveHeatmapGroupMode !== 'all' && !selectedHeatmapGroup"
         class="text-center p-3 text-muted"
       >
-        Select a {{ heatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.
+        Select a {{ effectiveHeatmapGroupMode === 'direction' ? 'data category' : 'phenotype' }}.
       </div>
       <div
         v-else-if="!dataViewNetwork.nodes.length"
@@ -480,6 +480,19 @@ export default Vue.component("pigean-factors-viz", {
       type: Boolean,
       default: true,
     },
+    /**
+     * When false, hide Group by controls and always show every phenotype×factor row
+     * (used by Multi Query free-text after single-direction retrieval).
+     */
+    showGroupByControls: {
+      type: Boolean,
+      default: true,
+    },
+    /** When false, omit `[Data category]` / direction prefix on heatmap row labels. */
+    showDirectionInRowLabels: {
+      type: Boolean,
+      default: true,
+    },
     /** Phenotype-association Combined-score tier checkboxes (legend filters). */
     phenotypeAssociationFilters: {
       type: Object,
@@ -575,13 +588,17 @@ export default Vue.component("pigean-factors-viz", {
       if (this.heatmapGroupMode === "direction") return "Data category";
       return "Phenotype";
     },
+    /** Active group mode; forced to Show all when Group by UI is hidden. */
+    effectiveHeatmapGroupMode() {
+      return this.showGroupByControls ? this.heatmapGroupMode : "all";
+    },
     pairsInView() {
       const pairs = this.buildHeatmapPairs();
       if (!pairs.length) return [];
-      if (this.heatmapGroupMode === "all") return pairs.slice();
+      if (this.effectiveHeatmapGroupMode === "all") return pairs.slice();
       const selected = String(this.selectedHeatmapGroup || "").trim();
       if (!selected) return [];
-      return this.heatmapGroupMode === "direction"
+      return this.effectiveHeatmapGroupMode === "direction"
         ? pairs.filter((p) => (p.fetchedDirection || "(unknown direction)") === selected)
         : pairs.filter((p) => p.phenotype === selected);
     },
@@ -676,7 +693,7 @@ export default Vue.component("pigean-factors-viz", {
         .sort()
         .join(",");
       return [
-        this.heatmapGroupMode,
+        this.effectiveHeatmapGroupMode,
         this.selectedHeatmapGroup,
         this.pairsInView.length,
         (this.dataViewNetwork.nodes || []).length,
@@ -698,8 +715,8 @@ export default Vue.component("pigean-factors-viz", {
     heatmapGroupOptions() {
       const pairs = this.buildHeatmapPairs();
       if (!pairs.length) return [];
-      if (this.heatmapGroupMode === "all") return [];
-      if (this.heatmapGroupMode === "direction") {
+      if (this.effectiveHeatmapGroupMode === "all") return [];
+      if (this.effectiveHeatmapGroupMode === "direction") {
         const seen = new Set();
         const dirs = [];
         pairs.forEach((p) => {
@@ -748,13 +765,13 @@ export default Vue.component("pigean-factors-viz", {
       if (!pairs.length) return out;
 
       let itemsInView;
-      if (useFactorValue || this.heatmapGroupMode === "all") {
+      if (useFactorValue || this.effectiveHeatmapGroupMode === "all") {
         itemsInView = pairs.slice();
       } else {
         const selected = String(this.selectedHeatmapGroup || "").trim();
         if (!selected) return out;
         itemsInView =
-          this.heatmapGroupMode === "direction"
+          this.effectiveHeatmapGroupMode === "direction"
             ? pairs.filter((p) => (p.fetchedDirection || "(unknown direction)") === selected)
             : pairs.filter((p) => p.phenotype === selected);
       }
@@ -769,12 +786,12 @@ export default Vue.component("pigean-factors-viz", {
             { numeric: true }
           );
         }
-        if (this.heatmapGroupMode === "all") {
+        if (this.effectiveHeatmapGroupMode === "all") {
           const pCmp = a.phenotypeDisplay.localeCompare(b.phenotypeDisplay);
           if (pCmp !== 0) return pCmp;
           return String(a.fetchedDirection || "").localeCompare(String(b.fetchedDirection || ""));
         }
-        if (this.heatmapGroupMode === "direction") {
+        if (this.effectiveHeatmapGroupMode === "direction") {
           return a.phenotypeDisplay.localeCompare(b.phenotypeDisplay);
         }
         const dirCmp = String(a.fetchedDirection || "").localeCompare(String(b.fetchedDirection || ""));
@@ -1698,9 +1715,10 @@ export default Vue.component("pigean-factors-viz", {
         phen.setAttribute("font-family", "Arial");
         const pFull = rowMeta.phenotypeDisplay;
         const showDirPrefix =
+          this.showDirectionInRowLabels &&
           !isGeneSetsRows &&
           this.rowLabelMode !== "factor" &&
-          (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
+          (this.effectiveHeatmapGroupMode === "phenotype" || this.effectiveHeatmapGroupMode === "all") &&
           rowMeta.fetchedDirection;
         const directionTag = showDirPrefix ? `[${rowMeta.fetchedDirection}] ` : "";
         const rowDisplay = isGeneSetsRows
@@ -1712,7 +1730,7 @@ export default Vue.component("pigean-factors-viz", {
         if (isGeneSetsRows) {
           tooltipParts.push(`Gene set: ${rowMeta.geneSetId || fullLabel}`);
         } else {
-          if (this.rowLabelMode !== "factor" && rowMeta.fetchedDirection) {
+          if (this.showDirectionInRowLabels && this.rowLabelMode !== "factor" && rowMeta.fetchedDirection) {
             tooltipParts.push(`Data category: ${rowMeta.fetchedDirection}`);
           }
           if (rowMeta.factorClusterLabel) tooltipParts.push(`Gene set cluster: ${rowMeta.factorClusterLabel}`);
@@ -1910,8 +1928,9 @@ export default Vue.component("pigean-factors-viz", {
             }
           } else {
             const showDirInRowLine =
+              this.showDirectionInRowLabels &&
               this.rowLabelMode !== "factor" &&
-              (this.heatmapGroupMode === "phenotype" || this.heatmapGroupMode === "all") &&
+              (this.effectiveHeatmapGroupMode === "phenotype" || this.effectiveHeatmapGroupMode === "all") &&
               rowMeta.fetchedDirection;
             const directionTag = showDirInRowLine ? `${rowMeta.fetchedDirection} · ` : "";
             rowLine = `${directionTag}${this.heatmapRowDisplayLabel(rowMeta)}`;

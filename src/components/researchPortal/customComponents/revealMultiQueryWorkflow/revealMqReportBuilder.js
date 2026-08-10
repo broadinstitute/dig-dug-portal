@@ -5,8 +5,6 @@
  * already used by the shell's `dataPanelHelpers`/`resultsPanelHelpers` computed bundles.
  */
 
-import { candidateInventoryRows } from "./revealMqMechanismNormalize.js";
-
 function getMechanismTopGenes(mechanism, limit = 10) {
     const genes = Array.isArray(mechanism?.candidate_genes) && mechanism.candidate_genes.length
         ? mechanism.candidate_genes
@@ -313,52 +311,8 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                         .join("")}</ol>
                 </div>`
             : "";
-    const crosstalkSection =
-        !geneSetPath && m.cross_route_crosstalk_model
-            ? `<div class="report-subsection"><strong>Cross-route crosstalk model</strong><p class="report-body-tight">${vm.escapeHtml(m.cross_route_crosstalk_model)}</p></div>`
-            : "";
-    const cellularSection =
-        !geneSetPath && m.cellular_assignment
-            ? `<div class="report-subsection"><strong>Cellular assignment</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatCellularAssignmentDisplay(m.cellular_assignment))}</p></div>`
-            : "";
-    const depotSection =
-        !geneSetPath && m.depot_contrast
-            ? `<div class="report-subsection"><strong>Depot contrast</strong><p class="report-body-tight">${vm.escapeHtml(vm.formatDepotContrastDisplay(m.depot_contrast))}</p></div>`
-            : "";
-    const directionNotes = Array.isArray(m.effect_direction_notes) ? m.effect_direction_notes : [];
-    const directionSection =
-        directionNotes.length > 0
-            ? `<div class="report-subsection"><strong>Effect direction notes</strong>${vm.buildReportList(directionNotes, (n) => `${n.gene}: ${n.direction || "unknown"}${n.note ? ` (${n.note})` : ""}`)}</div>`
-            : "";
     const pathwayShiftSection = m.pathway_shift_rationale
         ? `<div class="report-subsection report-shift-callout"><strong>Why the hypothesis shifted</strong><p class="report-body-tight">${vm.escapeHtml(m.pathway_shift_rationale)}</p></div>`
-        : "";
-    const inventoryRows = geneSetPath ? [] : candidateInventoryRows(m.candidate_inventory);
-    const inventorySection = inventoryRows.length
-        ? `
-                <div class="report-subsection">
-                    <h3>Evidence-derived candidate inventory</h3>
-                    <table class="report-table">
-                        <thead>
-                            <tr>
-                                <th>Role</th>
-                                <th>Gene</th>
-                                <th>Route provenance</th>
-                                <th>Reason / note</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${inventoryRows.map((row) => `
-                                <tr>
-                                    <td>${vm.escapeHtml(row.category)}</td>
-                                    <td>${vm.escapeHtml(row.symbol)}</td>
-                                    <td>${vm.escapeHtml(row.provenance)}</td>
-                                    <td>${vm.escapeHtml(row.reason)}</td>
-                                </tr>
-                            `).join("")}
-                        </tbody>
-                    </table>
-                </div>`
         : "";
     const hasHypothesisMapVisual =
         (m.core_spine_network &&
@@ -493,13 +447,8 @@ function buildMechanismReportOneCardHtml(vm, m, idx, supImg, hypImg) {
                 ${pathwayShiftSection}
                 ${noveltySection}
                 ${rationaleSection}
-                ${crosstalkSection}
-                ${cellularSection}
-                ${depotSection}
-                ${directionSection}
                 ${hypothesisMapSection}
                 ${m.relevance ? `<div class="report-subsection"><strong>Relevance</strong><p class="report-body-tight">${vm.escapeHtml(m.relevance)}</p></div>` : ""}
-                ${inventorySection}
                 ${candidateGenesSection}
                 ${evidenceSection}
                 ${nextStepsSection}

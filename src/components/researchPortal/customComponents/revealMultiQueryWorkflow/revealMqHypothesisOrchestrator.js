@@ -4,10 +4,7 @@
  */
 
 import {
-    buildMechanismLlmContextBlock,
     flattenKGData,
-    flattenedKGToCSV,
-    serializeFactorDataForHypothesisPrompt,
     transformMergedDataToKG,
 } from "./revealMqKgTransform.js";
 import { WORKFLOW_STEP_IDS } from "./revealMqStepGates.js";
@@ -23,6 +20,12 @@ import {
     buildGeneSetEntryHypothesesUserPrompt,
     buildGeneSetEntryLlmFeed,
 } from "./revealMqGeneSetEntryLlmFeed.js";
+import {
+    FREE_TEXT_LLM_FEED_SCOPE,
+    buildFreeTextHypothesesUserPrompt,
+    buildFreeTextLlmFeed,
+    scopeFreeTextFactorDataForLlm,
+} from "./revealMqFreeTextLlmFeed.js";
 import {
     GENE_SET_MECHANISM_HYPOTHESIS_SYSTEM_PROMPT,
     GENE_SET_MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,
@@ -60,13 +63,12 @@ function getResearchContextFromSession(vm) {
     return fromGeneSetEntry;
 }
 
-function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext, routeEvidenceBundles = null }) {
-    const baseContextSuffix = buildMechanismLlmContextBlock(kgBlock, phenoSummary, researchContext);
+function collectAssociatedPairsForPrompt(vm) {
     const hasHeatmapScope = Array.isArray(vm.heatmapSelectedNodes) && vm.heatmapSelectedNodes.length > 0;
     const scopeRows = hasHeatmapScope
         ? vm.factorDataTableRowsHeatmapScoped || []
         : vm.factorDataTableRowsFiltered || [];
-    const selectedPairs = scopeRows
+    return scopeRows
         .map((r) => ({
             phenotype: String(r.phenotype || "").trim(),
             factor: String(
@@ -74,26 +76,14 @@ function buildHypothesesUserPrompt(vm, { kgBlock, phenoSummary, researchContext,
             ).trim(),
         }))
         .filter((p) => p.phenotype && p.factor);
-    const hybridMetaJson = JSON.stringify(vm.lastHybridSearchMeta || {}, null, 2);
-    const routeEvidenceJson =
-        Array.isArray(routeEvidenceBundles) && routeEvidenceBundles.length
-            ? JSON.stringify(routeEvidenceBundles, null, 2)
-            : "";
-    const routeEvidenceBlock = routeEvidenceJson
-        ? `\n\n**Compact multi-direction evidence bundles (use these to compare retrieval directions; do not assume omitted raw rows are negative evidence):**\n\`\`\`json\n${routeEvidenceJson}\n\`\`\`\n`
-        : "";
-    const routeCount = Array.isArray(routeEvidenceBundles) ? routeEvidenceBundles.length : 0;
-    const multiRouteInstruction =
-        routeCount >= 3
-            ? `\n\n**Multi-route requirement:** ${routeCount} route bundles are attached. You MUST populate a non-null \`cross_route_crosstalk_model\` on each hypothesis comparing the route axes. Also populate \`overall_summary\` at the top level.\n`
-            : routeCount >= 2
-              ? `\n\n**Multi-route note:** ${routeCount} route bundles are attached. Compare route axes in \`cross_route_crosstalk_model\` when supported.\n`
-              : "";
+}
+
+function buildHypothesesUserPrompt(vm, { feed, researchContext }) {
     const modeLine =
         vm.hypothesisGenerationMode === "relaxed"
             ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply the relaxed overrides in your system prompt; set diagnostic_assessment.exploratory_mode to true.\n"
             : "";
-    return `**UI-selected phenotype–gene-set-cluster rows (grouping / associated_pairs must match these labels; the CSV graph has phenotypes, gene sets, and genes only):**\n\`\`\`json\n${JSON.stringify(selectedPairs, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (use for diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n${routeEvidenceBlock}${multiRouteInstruction}${baseContextSuffix}\n${modeLine}\nGenerate hypotheses per your system instructions. Return ONLY JSON including diagnostic_assessment and overall_summary. The hypotheses array must be non-empty only when can_generate_hypothesis is true; otherwise leave hypotheses empty and follow rejection / warning / suggested_optimized_query rules.`;
+    return `${buildFreeTextHypothesesUserPrompt(feed, researchContext)}${modeLine}`;
 }
 
 function applyMechanismHypothesisFailure(vm, lastFailed) {
@@ -171,13 +161,6 @@ function applyMechanismHypothesisSuccess(vm, parsed, modeSnapshot) {
     }
 
     vm.mechanisms = vm.normalizeMechanismHypotheses(hypotheses);
-    if (vm.multiQueryEvidenceBundles.length >= 2) {
-        vm.mechanisms = vm.mechanisms.map((m) => {
-            if (m.cross_route_crosstalk_model) return m;
-            const fb = vm.buildCrossRouteCrosstalkFallback(vm.multiQueryEvidenceBundles);
-            return fb ? { ...m, cross_route_crosstalk_model: fb } : m;
-        });
-    }
     if (!vm.mechanisms_summary) {
         vm.mechanisms_summary = vm.getReportSessionSummary();
     }
@@ -259,6 +242,25 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
         return;
     }
 
+    // Free-text Data scope (selected / selected+GOI / full), then association legend filters.
+    const freeTextScopeMode = vm.freeTextLlmFeedScope || FREE_TEXT_LLM_FEED_SCOPE.FULL;
+    const genesOfInterest = [
+        ...(Array.isArray(vm.lastGenesOfInterest) ? vm.lastGenesOfInterest : []),
+        ...(Array.isArray(vm.lastExplicitUserGenes) ? vm.lastExplicitUserGenes : []),
+    ];
+    const freeTextScoped = scopeFreeTextFactorDataForLlm(factorData, {
+        scopeMode: freeTextScopeMode,
+        selectedNodes: vm.heatmapSelectedNodes || [],
+        genesOfInterest,
+    });
+    if (freeTextScoped.emptyReason) {
+        vm.error_mechanisms = true;
+        vm.error_msg_mechanisms = freeTextScoped.emptyReason;
+        vm.setLoadStatus("Ready", true);
+        vm.loadComplete = true;
+        return;
+    }
+
     // Honor phenotype-association legend checkboxes: only visible-tier genes go to the LLM.
     const associationFilters = {
         ...DEFAULT_ASSOCIATION_FILTERS,
@@ -266,21 +268,33 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
     };
     const associationFilterActive = ASSOCIATION_TIER_IDS.some((id) => associationFilters[id] === false);
     const scopedFactorData = associationFilterActive
-        ? filterFactorDataByAssociationFilters(factorData, associationFilters)
-        : factorData;
-    // Always rebuild a slim KG for the LLM (topology + search/context roles; no score columns).
+        ? filterFactorDataByAssociationFilters(freeTextScoped.factorData, associationFilters)
+        : freeTextScoped.factorData;
+
+    // Local KG for post-LLM evidence networks / gene scores (not sent in the prompt).
     const scopedKgTriples = transformMergedDataToKG(scopedFactorData, "factors", {
         forHypothesisPrompt: true,
     });
-    const flattened = flattenKGData(scopedKgTriples);
-    vm.lastFlattenedKG = flattened;
-    const kgBlock = flattenedKGToCSV(flattened);
-    const phenoSummary = serializeFactorDataForHypothesisPrompt(scopedFactorData);
+    vm.lastFlattenedKG = flattenKGData(scopedKgTriples);
+
+    const built = buildFreeTextLlmFeed(scopedFactorData, {
+        genesOfInterest,
+        hybridMeta: vm.lastHybridSearchMeta,
+        routeBundles: routeEvidenceBundles,
+        associatedPairs: collectAssociatedPairsForPrompt(vm),
+    });
+    if (!built.feed) {
+        vm.error_mechanisms = true;
+        vm.error_msg_mechanisms = built.emptyReason || "No evidence in the chosen LLM scope.";
+        vm.setLoadStatus("Ready", true);
+        vm.loadComplete = true;
+        return;
+    }
+    vm.lastFreeTextLlmFeed = built.feed;
+
     const hypothesesUserPrompt = buildHypothesesUserPrompt(vm, {
-        kgBlock,
-        phenoSummary,
+        feed: built.feed,
         researchContext,
-        routeEvidenceBundles,
     });
     const maxAttempts = DEFAULT_HYPOTHESIS_MAX_ATTEMPTS;
     const systemPromptForRun = vm.mechanismHypothesisSystemPromptEffective;
@@ -366,30 +380,38 @@ function generateHypothesisForRemainingPair(vm, row) {
         (vm.searchCriteria && vm.searchCriteria[1] && vm.searchCriteria[1].values) != null
             ? String(vm.searchCriteria[1].values)
             : "";
-    const factorSummary = serializeFactorDataForHypothesisPrompt(subset);
-    const kgBlock = flattenedKGToCSV(flattened);
-    const baseCtx = `**Knowledge graph (CSV):**\n\`\`\`\n${kgBlock}\n\`\`\`\n\n**Factor data summary:**\n\`\`\`json\n${factorSummary}\n\`\`\`\n\n**Research context:** ${researchContext}`;
     const factorLabelForKg =
         row.factorLabel != null && String(row.factorLabel).trim() !== ""
             ? String(row.factorLabel).trim()
             : row.factor != null
               ? String(row.factor).trim()
               : "";
-    const singlePairRequest = {
-        group_name: factorLabelForKg ? `${factorLabelForKg} × ${row.phenotype}` : `Remaining pair ${pairKey}`,
-        associated_pairs: [
+    const genesOfInterest = [
+        ...(Array.isArray(vm.lastGenesOfInterest) ? vm.lastGenesOfInterest : []),
+        ...(Array.isArray(vm.lastExplicitUserGenes) ? vm.lastExplicitUserGenes : []),
+    ];
+    const built = buildFreeTextLlmFeed(subset, {
+        genesOfInterest,
+        hybridMeta: vm.lastHybridSearchMeta,
+        routeBundles: vm.multiQueryEvidenceBundles,
+        associatedPairs: [
             {
                 phenotype: String(row.phenotype).trim(),
                 factor: factorLabelForKg,
             },
         ],
-    };
-    const hybridMetaJson = JSON.stringify(vm.lastHybridSearchMeta || {}, null, 2);
+    });
+    if (!built.feed) {
+        vm.remainingPairGenerateError = built.emptyReason || "Could not build slim evidence for this pair.";
+        vm.generatingRemainingRowKey = "";
+        vm.stopRemainingGenerateTimer();
+        return;
+    }
     const pairModeLine =
         vm.hypothesisGenerationMode === "relaxed"
             ? "\n\n**Mode:** EXPLORATORY (RELAXED) — apply relaxed system-prompt overrides; set diagnostic_assessment.exploratory_mode to true.\n"
             : "";
-    const fullPrompt = `**Fixed phenotype-factor request (single pair):**\n\`\`\`json\n${JSON.stringify(singlePairRequest, null, 2)}\n\`\`\`\n\n**Hybrid retrieval meta (diagnostic_assessment / Case 1–4):**\n\`\`\`json\n${hybridMetaJson}\n\`\`\`\n\n${baseCtx}${pairModeLine}\n\nReturn ONLY JSON per your system instructions: include diagnostic_assessment. When can_generate_hypothesis is true, the "hypotheses" array must contain exactly one element for this pair. When false, hypotheses must be empty and rejection fields populated. Include warning_flag / suggested_optimized_query whenever required by the prompt.`;
+    const fullPrompt = `${buildFreeTextHypothesesUserPrompt(built.feed, researchContext)}${pairModeLine}\n\n**Fixed phenotype-factor request:** return exactly one hypothesis for this pair when can_generate_hypothesis is true.`;
     const systemPromptForPair = vm.mechanismHypothesisSystemPromptEffective;
 
     let finished = false;

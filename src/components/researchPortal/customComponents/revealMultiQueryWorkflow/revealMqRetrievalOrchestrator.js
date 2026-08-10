@@ -59,13 +59,34 @@ function handleHybridRetrievalError(vm, err) {
         reportLoadStatus: true,
         markLoadComplete: true,
     });
+    reopenTermsGateAfterRetrievalFailure(vm);
+}
+
+/** Stop the Data spinner, return to Search terms, and let Continue retry retrieval. */
+function reopenTermsGateAfterRetrievalFailure(vm) {
+    if (!vm) return;
+    vm.genesAndFactorValuesLoaded = false;
+    vm.searchCriteriaExtractionGateDone = false;
+    vm.importedWorkflowPendingResearchRun = true;
+    if (typeof vm.switchRevealTab === "function") {
+        vm.switchRevealTab("terms");
+    }
+    if (typeof vm.pauseStepsElapsedForReview === "function") {
+        vm.pauseStepsElapsedForReview();
+    }
+    vm.stepApprovalGateActive = true;
+    vm.stepApprovalGateStepId = WORKFLOW_STEP_IDS.EXTRACTION;
+    vm.stepApprovalGateMessage =
+        "Data retrieval failed. Review or edit search terms, then continue to try again.";
+    if (typeof vm.stepApprovalGateResolver !== "function") {
+        vm.stepApprovalGateResolver = () => {};
+    }
 }
 
 async function fetchMultiQueryRouteEvidence(vm, route, index) {
     const routeId = route.route_id || `route-${index + 1}`;
     setMultiQueryRouteStatus(vm, routeId, "loading");
     const terms = route.extracted_terms || {};
-    const phenotypeTerms = normalizeLlmTermList(terms.phenotype_terms);
     const mechanismTerms = normalizeLlmTermList(terms.mechanism_terms);
     const tissueTerms = normalizeLlmTermList(terms.tissues);
     const cellTypeTerms = normalizeLlmTermList(terms.cell_types);
@@ -75,9 +96,11 @@ async function fetchMultiQueryRouteEvidence(vm, route, index) {
             : "";
     const ctx = routeResearchContextForFetch(route, sharedResearchContext);
     const phenos = resolveMultiRouteHybridPhenotypeFilterTerms(route, vm.lastPhenotypeTerms);
-    if (!phenos.length) {
+    const mechanismForFetch = [...mechanismTerms, ...tissueTerms, ...cellTypeTerms];
+    // Hybrid search accepts mechanism_terms / research_context without phenotype_terms.
+    if (!phenos.length && !mechanismForFetch.length && !String(ctx || "").trim()) {
         throw new Error(
-            `No phenotype terms for ${route.category || routeId}. Add route-specific phenotype terms before retrieval.`
+            `No search terms for ${route.category || routeId}. Add phenotype terms, mechanism terms, or research context before retrieval.`
         );
     }
     const genesOfInterest = routeGenesOfInterestForFetch(route, vm.lastExplicitUserGenes);
@@ -86,7 +109,7 @@ async function fetchMultiQueryRouteEvidence(vm, route, index) {
     if (vm.hybridSearchUseClientEmbedding) {
         let queryText = vm.buildHybridQueryText({
             phenotypeTerms: phenos,
-            mechanismTerms: [...mechanismTerms, ...tissueTerms, ...cellTypeTerms],
+            mechanismTerms: mechanismForFetch,
             researchContext: ctx,
         });
         queryText = sanitizeEmbeddingText(queryText || ctx);
@@ -95,7 +118,6 @@ async function fetchMultiQueryRouteEvidence(vm, route, index) {
 
     let constraintUsed = route.constraint_spec || null;
     let hybridJson;
-    const mechanismForFetch = [...mechanismTerms, ...tissueTerms, ...cellTypeTerms];
     try {
         hybridJson = await callHybridRevealSearch(vm, {
             queryEmbedding,
@@ -118,8 +140,12 @@ async function fetchMultiQueryRouteEvidence(vm, route, index) {
         });
     }
     const routeForEvidence = { ...route, constraint_spec: constraintUsed };
+    // When phenotype_terms are empty, bucket results under the route category so factors are kept.
+    const phenosForNormalize = phenos.length
+        ? phenos
+        : [String(route.category || routeId || "query").trim()].filter(Boolean);
     const factorData = annotateFactorDataWithFetchedDirection(
-        normalizeHybridFactorsToFactorData(hybridJson, phenos),
+        normalizeHybridFactorsToFactorData(hybridJson, phenosForNormalize),
         routeForEvidence
     );
     const phenotypes = Object.keys(factorData).filter((p) => (factorData[p].factors || []).length > 0);
@@ -310,7 +336,14 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
     vm.multiQueryRouteResults = successes;
     vm.multiQueryRouteErrors = errors;
     vm.multiQueryEvidenceBundles = successes.map((r) => r.evidenceBundle);
-    if (!successes.length) return false;
+    if (!successes.length) {
+        const first = errors[0];
+        const detail =
+            first && first.message
+                ? String(first.message)
+                : "Hybrid retrieval returned no phenotype–factor results.";
+        throw new Error(detail);
+    }
 
     vm.factorData = mergeRouteFactorData(successes);
     applySearchTermGenesOfInterestFlags(vm.factorData, vm.lastGenesOfInterest);
@@ -401,6 +434,7 @@ export {
     fetchMultiQueryRouteEvidence,
     handleHybridRetrievalError,
     onResearch,
+    reopenTermsGateAfterRetrievalFailure,
     runHybridRetrievalWorkflow,
     runMultiQueryRetrievalWorkflow,
 };

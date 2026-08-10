@@ -99,7 +99,7 @@ flowchart TB
 | **Orchestration-shared** | `revealMqOrchestratorShared.js`, `revealMqStepGates.js` | `runLlmWithRetry`/`classifyAndReportError`/session-reset/KG-triple-cache helpers shared by all phases; step-id constants + selectors + the `setStep`/`applyStepUpdate` state machine |
 | **Utils — extraction/session** | `revealMqExtraction.js`, `revealMqExtractionAmbiguity.js`, `revealMqMultiRoute.js`, `revealMqSearchCriteriaGate.js`, `revealMqRouteEdit.js` | Term normalization, anti-anchor detection, multi-route reshaping + constraint specs, step-1 gate edit reconciliation |
 | **Utils — retrieval** | `revealMqHybridSearch.js`, `revealMqHybridSearchApi.js` | Hybrid-search request/response shaping, HTTP |
-| **Utils — mechanism/report** | `revealMqKgTransform.js`, `revealMqMechanismNormalize.js`, `revealMqNetworkBuild.js`, `revealMqReportBuilder.js` | KG flatten/CSV, gene-score attachment + candidate inventory, graph builders (factor connectivity, flattened-KG networks, hypothesis-in-KG flow), HTML report/handoff assembly |
+| **Utils — mechanism/report** | `revealMqKgTransform.js`, `revealMqMechanismNormalize.js`, `revealMqNetworkBuild.js`, `revealMqReportBuilder.js` | KG flatten/CSV, gene-score attachment, graph builders (factor connectivity, flattened-KG networks, hypothesis-in-KG flow), HTML report/handoff assembly |
 | **Utils — biolink** | `revealMqBiolinkApi.js` | NameRes/NodeNorm/TRAPI relay HTTP calls (paired with `revealMqBiolinkOrchestrator.js` above) |
 | **Utils — query helper** | `revealMqQueryHelperApi.js`, `revealMqQueryHelperOrchestrator.js` | Gene autocomplete + factor-row HTTP, guided-builder query composition |
 | **Utils — config/prompts** | `revealMqConfig.js`, `revealMqPrompts.js`, `revealMqStepTime.js`, `revealMqWorkflowSession.js`, `revealMqWorkflowExport.js` | Env-var runtime config, LLM system prompts, step-timer formatting, session shape, export/import |
@@ -219,6 +219,8 @@ When gene-set entry cannot proceed (API unresponsive / hard HTTP errors, or zero
    `Investigate shared biological mechanisms and pathways among GENE1, GENE2, ….`  
    (no phenotype/gene-set ask in the question), replace URL `genes=` with `query=`, call `queryParse()` → search-term extraction.
 3. On the text-query Data tab, genes listed in extracted **genes of interest** (search-term genes) are bolded vs context genes (`applySearchTermGenesOfInterestFlags` after hybrid normalize).
+4. Text-query Data Continue gate offers LLM **Data** scope radios (`FREE_TEXT_LLM_FEED_SCOPE` in `revealMqFreeTextLlmFeed.js`): Selected; Selected + genes of interest; Full data (association legend filters still apply). Gene-set entry keeps its own scope options (`GENE_SET_ENTRY_LLM_FEED_SCOPE`).
+5. Free-text hypothesis generation uses a **single slim JSON feed** (clusters + `gene_indices`, slim `diagnostic_meta`, route headers without `top_hits`) — not CSV + phenotype summary + route evidence bundles. Local flattened KG is still built for evidence-network mapping from `cited_gene_set_names` / genes / `associated_pairs`.
 
 Helpers: `revealMqGeneSetEntryFallback.js`.
 

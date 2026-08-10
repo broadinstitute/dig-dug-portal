@@ -96,6 +96,7 @@
                 :width="popupNetworkWidth"
                 :height="popupNetworkHeight"
                 :show-popup-button="false"
+                keep-physics-enabled
                 gene-node-metric-key="gwas_support"
                 gene-color-by-gwas-support
                 edge-distance-metric-key="functional_support"

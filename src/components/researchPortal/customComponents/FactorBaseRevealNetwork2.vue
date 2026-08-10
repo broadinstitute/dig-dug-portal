@@ -176,6 +176,11 @@ export default {
         showPopupButton: { type: Boolean, default: false },
         /** LLM biological mechanism map: keep causal order, show action labels, legend from node types. */
         isMechanismFlowMap: { type: Boolean, default: false },
+        /**
+         * Keep physics running after initial layout (cluster subtable / popup graphs).
+         * Default Data-tab networks freeze after stabilize for a static layout.
+         */
+        keepPhysicsEnabled: { type: Boolean, default: false },
         /** When true, render Biolink-oriented legend labels/colors for mechanism flow maps. */
         isBiolinkMap: { type: Boolean, default: false },
         /** Show “Original map” checkbox between zoom and fullscreen (when Biolink network exists). */
@@ -1090,8 +1095,9 @@ export default {
             const emitNetworkReady = () => {
                 if (readyEmitted || !this.visNetwork) return;
                 readyEmitted = true;
-                // Results hypothesis maps keep physics on; Data-tab networks freeze after layout.
-                if (!this.isMechanismFlowMap) {
+                // Results hypothesis maps and cluster-connectivity graphs keep physics on;
+                // other Data-tab networks freeze after layout.
+                if (!this.isMechanismFlowMap && !this.keepPhysicsEnabled) {
                     this.visNetwork.setOptions({ physics: false });
                 }
                 const scale = this.visNetwork.getScale();

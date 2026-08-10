@@ -378,29 +378,6 @@
                                                         <div class="mechanism-section-label mb-1">Rationale</div>
                                                         <div>{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
                                                     </div>
-                                                    <div v-if="mechanism.cross_route_crosstalk_model">
-                                                        <div class="mechanism-section-label mb-1">Cross-route crosstalk model</div>
-                                                        <div>{{ mechanism.cross_route_crosstalk_model }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.cellular_assignment">
-                                                        <div class="mechanism-section-label mb-1">Cellular assignment</div>
-                                                        <div>{{ helpers.formatCellularAssignmentDisplay(mechanism.cellular_assignment) }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.depot_contrast">
-                                                        <div class="mechanism-section-label mb-1">Depot contrast</div>
-                                                        <div>{{ helpers.formatDepotContrastDisplay(mechanism.depot_contrast) }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div v-if="mechanism.effect_direction_notes && mechanism.effect_direction_notes.length">
-                                                        <div class="mechanism-section-label mb-1">Effect direction notes</div>
-                                                        <ul class="mb-0 pl-3">
-                                                            <li
-                                                                v-for="(note, nidx) in mechanism.effect_direction_notes"
-                                                                :key="'dir-' + idx + '-' + nidx + '-' + (note.gene || '')"
-                                                            >
-                                                                <strong>{{ note.gene }}</strong>: {{ note.direction || 'unknown' }}<span v-if="note.note"> — {{ note.note }}</span><span class="ai-gen">AI</span>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
                                                 </div>
                                                 <div
                                                     v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
@@ -459,29 +436,6 @@
                                             <div v-if="mechanism.relevance" class="mb-3">
                                                 <div class="mechanism-section-label mb-1">Relevance</div>
                                                 <div>{{ mechanism.relevance }}</div>
-                                            </div>
-                                            <div v-if="helpers.candidateInventoryRows(mechanism.candidate_inventory).length" class="mb-3">
-                                                <div class="mechanism-section-label mb-2">Evidence-derived candidate inventory</div>
-                                                <b-table
-                                                    striped
-                                                    hover
-                                                    responsive="sm"
-                                                    head-variant="light"
-                                                    :items="helpers.candidateInventoryRows(mechanism.candidate_inventory)"
-                                                    :fields="[
-                                                        { key: 'category', label: 'Role', thStyle: { width: '230px' } },
-                                                        { key: 'symbol', label: 'Gene', thStyle: { width: '95px' } },
-                                                        { key: 'provenance', label: 'Route provenance', thStyle: { width: '180px' } },
-                                                        { key: 'reason', label: 'Reason / note' }
-                                                    ]"
-                                                >
-                                                    <template #cell(symbol)="row">
-                                                        <span class="pill">{{ row.item.symbol }}</span>
-                                                    </template>
-                                                    <template #cell(provenance)="row">
-                                                        <span>{{ row.item.provenance }}</span>
-                                                    </template>
-                                                </b-table>
                                             </div>
                                             <div style="display:flex; flex-direction: row; gap:20px">
                                                 <div style="display:flex; flex-direction: column; flex:1; overflow-x: auto;">
@@ -772,6 +726,7 @@
                                                                                     :network="helpers.getFactorConnectivityNetwork(row)"
                                                                                     :height="220"
                                                                                     :show-popup-button="true"
+                                                                                    keep-physics-enabled
                                                                                     gene-node-metric-key="gwas_support"
                                                                                     gene-color-by-gwas-support
                                                                                     edge-distance-metric-key="functional_support"
@@ -926,6 +881,7 @@
                                                                             :network="helpers.getFactorConnectivityNetwork(row.item)"
                                                                             :height="220"
                                                                             :show-popup-button="true"
+                                                                            keep-physics-enabled
                                                                             gene-node-metric-key="gwas_support"
                                                                             gene-color-by-gwas-support
                                                                             edge-distance-metric-key="functional_support"

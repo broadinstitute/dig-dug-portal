@@ -312,6 +312,12 @@
     color: #d15618;
     text-decoration: none;
 }
+.reveal-other-directions {
+    margin-top: 25px;
+}
+.reveal-other-directions-panel .reveal-route-direction-card:nth-child(n + 2) {
+    margin-top: 25px;
+}
 .route-terms-edit-content {
     border-color: rgba(0, 0, 0, 0.08) !important;
 }

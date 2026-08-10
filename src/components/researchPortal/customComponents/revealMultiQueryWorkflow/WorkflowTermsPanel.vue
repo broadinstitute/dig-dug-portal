@@ -90,8 +90,7 @@
                                 v-if="otherDirectionsOpen"
                                 id="reveal-other-directions-panel"
                                 role="region"
-                                class="d-flex flex-column"
-                                style="gap: 8px;"
+                                class="d-flex flex-column reveal-other-directions-panel"
                             >
                                 <workflow-route-direction-card
                                     v-for="route in otherRoutes"
@@ -123,7 +122,7 @@
                                 class="form-control form-control-sm"
                                 :value="sharedResearchContext"
                                 rows="4"
-                                style="min-height: 6.5em; resize: vertical;"
+                                style="min-height: 10em; resize: vertical;"
                                 placeholder="Enter research context"
                                 :disabled="!termsEditable"
                                 @input="$emit('update:sharedResearchContext', $event.target.value)"

@@ -184,7 +184,7 @@
                             @update:mainTableCurrentPage="mainTableCurrentPage = $event"
                             @update:subtable-page="onSubtablePageUpdate"
                             @update:researchIntention="onGeneSetEntryResearchIntentionUpdate"
-                            @update:llmFeedScope="onGeneSetEntryLlmFeedScopeUpdate"
+                            @update:llmFeedScope="onLlmFeedScopeUpdate"
                         >
                             <template #data-viz>
                                 <factor-base-reveal-heatmap
@@ -203,6 +203,8 @@
                                     :heatmap-view-filters.sync="heatmapViewFilters"
                                     :selected-nodes.sync="heatmapSelectedNodes"
                                     show-workflow-selection-chrome
+                                    :show-group-by-controls="false"
+                                    :show-direction-in-row-labels="false"
                                     :saved-explanations="savedSelectedNodesExplainMenuItems"
                                     :saved-dataset-runs="savedSelectedNodesProvenanceMenuItems"
                                     height="auto"
@@ -498,8 +500,6 @@ import {
     getGeneScoresFromFlattenedKG,
 } from "./revealMultiQueryWorkflow/revealMqNetworkBuild.js";
 import {
-    candidateInventoryRows,
-    normalizeCandidateInventory,
     normalizeMechanismHypotheses,
 } from "./revealMultiQueryWorkflow/revealMqMechanismNormalize.js";
 import {
@@ -537,6 +537,11 @@ import {
     GENE_SET_ENTRY_LLM_FEED_SCOPE,
     buildGeneSetEntryLlmFeed,
 } from "./revealMultiQueryWorkflow/revealMqGeneSetEntryLlmFeed.js";
+import {
+    FREE_TEXT_LLM_FEED_SCOPE,
+    buildFreeTextLlmFeed,
+    scopeFreeTextFactorDataForLlm,
+} from "./revealMultiQueryWorkflow/revealMqFreeTextLlmFeed.js";
 import {
     edgeEndpointIdsFromMappedNode,
     edgeSupportedByTrapiRelay,
@@ -649,6 +654,13 @@ export default Vue.component("factor-base-reveal", {
             geneSetEntryLlmFeedScope: GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
             /** Last slim JSON feed sent to the gene-set hypothesis LLM (debug / future export). */
             lastGeneSetEntryLlmFeed: null,
+            /**
+             * Free-text path: which evidence subset to send for hypothesis LLM.
+             * @see FREE_TEXT_LLM_FEED_SCOPE
+             */
+            freeTextLlmFeedScope: FREE_TEXT_LLM_FEED_SCOPE.FULL,
+            /** Last slim JSON feed sent to the free-text hypothesis LLM (debug / export). */
+            lastFreeTextLlmFeed: null,
             /**
              * Entry / search path for the main query box.
              * - "query": free-text → extraction / hybrid retrieval
@@ -1004,7 +1016,9 @@ export default Vue.component("factor-base-reveal", {
                 showResearchIntention: this.isGeneSetEntryMode,
                 researchIntention:
                     (this.geneSetEntry && this.geneSetEntry.researchIntention) || "",
-                llmFeedScope: this.geneSetEntryLlmFeedScope || GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER,
+                llmFeedScope: this.isGeneSetEntryMode
+                    ? this.geneSetEntryLlmFeedScope || GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER
+                    : this.freeTextLlmFeedScope || FREE_TEXT_LLM_FEED_SCOPE.FULL,
                 isGeneSetEntryMode: this.isGeneSetEntryMode,
                 emphasizeSearchContextGenes: this.emphasizeSearchContextGenes,
                 heatmapViewFilters: this.normalizedHeatmapViewFilters,
@@ -1085,11 +1099,8 @@ export default Vue.component("factor-base-reveal", {
             return {
                 formatTime: (t) => vm.formatTime(t),
                 currStepTime: (step) => vm.currStepTime(step),
-                formatCellularAssignmentDisplay: (v) => vm.formatCellularAssignmentDisplay(v),
-                formatDepotContrastDisplay: (v) => vm.formatDepotContrastDisplay(v),
                 isMechanismUsingBiolinkMap: (m) => vm.isMechanismUsingBiolinkMap(m),
                 hasMechanismBiolinkNetwork: (m) => vm.hasMechanismBiolinkNetwork(m),
-                candidateInventoryRows: (inv) => vm.candidateInventoryRows(inv),
                 mechanismGeneGroupPillStyle: (g) => vm.mechanismGeneGroupPillStyle(g),
                 getGeneConnectionForMechanism: (m, g) => vm.getGeneConnectionForMechanism(m, g),
                 formatGeneSetNamesForTableWrap: (sets) => vm.formatGeneSetNamesForTableWrap(sets),
@@ -1777,7 +1788,9 @@ export default Vue.component("factor-base-reveal", {
             this.searchPath = "query";
             this.geneSetEntryProgressDismissed = false;
             this.geneSetEntryLlmFeedScope = GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER;
+            this.freeTextLlmFeedScope = FREE_TEXT_LLM_FEED_SCOPE.FULL;
             this.lastGeneSetEntryLlmFeed = null;
+            this.lastFreeTextLlmFeed = null;
             if (this.geneSetEntry) {
                 this.geneSetEntry = {
                     status: "idle",
@@ -2732,6 +2745,20 @@ export default Vue.component("factor-base-reveal", {
                 ? next
                 : GENE_SET_ENTRY_LLM_FEED_SCOPE.VISUALIZER;
         },
+        onFreeTextLlmFeedScopeUpdate(value) {
+            const allowed = Object.values(FREE_TEXT_LLM_FEED_SCOPE);
+            const next = String(value || "");
+            this.freeTextLlmFeedScope = allowed.includes(next)
+                ? next
+                : FREE_TEXT_LLM_FEED_SCOPE.FULL;
+        },
+        onLlmFeedScopeUpdate(value) {
+            if (this.isGeneSetEntryMode || this.searchPath === "genes") {
+                this.onGeneSetEntryLlmFeedScopeUpdate(value);
+                return;
+            }
+            this.onFreeTextLlmFeedScopeUpdate(value);
+        },
         syncGeneSetEntryResearchIntentionToSession() {
             if (!this.geneSetEntry) return;
             const text =
@@ -3231,6 +3258,29 @@ export default Vue.component("factor-base-reveal", {
                         this.setLoadStatus(preview.emptyReason || "No evidence in the chosen LLM scope.", true);
                         return;
                     }
+                } else {
+                    const genesOfInterest = [
+                        ...(Array.isArray(this.lastGenesOfInterest) ? this.lastGenesOfInterest : []),
+                        ...(Array.isArray(this.lastExplicitUserGenes) ? this.lastExplicitUserGenes : []),
+                    ];
+                    const scoped = scopeFreeTextFactorDataForLlm(this.factorData, {
+                        scopeMode: this.freeTextLlmFeedScope || FREE_TEXT_LLM_FEED_SCOPE.FULL,
+                        selectedNodes: this.heatmapSelectedNodes || [],
+                        genesOfInterest,
+                    });
+                    if (scoped.emptyReason) {
+                        this.setLoadStatus(scoped.emptyReason, true);
+                        return;
+                    }
+                    const preview = buildFreeTextLlmFeed(scoped.factorData, {
+                        genesOfInterest,
+                        hybridMeta: this.lastHybridSearchMeta,
+                        routeBundles: this.multiQueryEvidenceBundles,
+                    });
+                    if (!preview.feed) {
+                        this.setLoadStatus(preview.emptyReason || "No evidence in the chosen LLM scope.", true);
+                        return;
+                    }
                 }
                 this.revealResultsTabUnlocked = true;
                 this.switchRevealTab("results");
@@ -3562,113 +3612,27 @@ export default Vue.component("factor-base-reveal", {
                 .filter(Boolean)
                 .join(", ");
         },
-        buildCrossRouteCrosstalkFallback(routeBundles) {
-            const bundles = Array.isArray(routeBundles) ? routeBundles : [];
-            if (bundles.length < 2) return null;
-            const lines = bundles.map((b) => {
-                const cat =
-                    (b && (b.category || b.route_category || b.route_id)) != null
-                        ? String(b.category || b.route_category || b.route_id).trim()
-                        : "Route";
-                const hits = Array.isArray(b.top_hits)
-                    ? b.top_hits
-                          .slice(0, 5)
-                          .map((h) => (h && (h.gene || h.symbol)) != null ? String(h.gene || h.symbol).trim() : "")
-                          .filter(Boolean)
-                    : [];
-                return `${cat}: ${hits.length ? hits.join(", ") : "no top hits listed"}`;
-            });
-            return `Multi-direction retrieval compared ${bundles.length} routes (${lines.join(" | ")}). Treat as a provisional axis comparison—not confirmed causal crosstalk without independent validation.`;
-        },
-        normalizeCellularAssignment(raw) {
-            if (raw == null || typeof raw !== "object") return null;
-            const pick = (k) => (raw[k] != null && String(raw[k]).trim() !== "" ? String(raw[k]).trim() : null);
-            const out = {
-                producer: pick("producer"),
-                matrix_builder: pick("matrix_builder"),
-                metabolic_target: pick("metabolic_target"),
-                confidence: pick("confidence"),
-                caveat: pick("caveat"),
-            };
-            return Object.values(out).some(Boolean) ? out : null;
-        },
-        normalizeDepotContrast(raw) {
-            if (raw == null || typeof raw !== "object") return null;
-            const pick = (k) => (raw[k] != null && String(raw[k]).trim() !== "" ? String(raw[k]).trim() : null);
-            const out = {
-                subcutaneous: pick("subcutaneous"),
-                visceral: pick("visceral"),
-                comparison: pick("comparison"),
-                evidence_basis: pick("evidence_basis"),
-            };
-            return Object.values(out).some(Boolean) ? out : null;
-        },
-        normalizeEffectDirectionNotes(raw) {
-            if (!Array.isArray(raw)) return [];
-            return raw
-                .map((entry) => {
-                    if (entry == null || typeof entry !== "object") return null;
-                    const gene = entry.gene != null ? String(entry.gene).trim() : "";
-                    if (!gene) return null;
-                    const direction =
-                        entry.direction != null && String(entry.direction).trim() !== ""
-                            ? String(entry.direction).trim()
-                            : entry.effect != null && String(entry.effect).trim() !== ""
-                              ? String(entry.effect).trim()
-                              : "unknown";
-                    const note =
-                        entry.note != null && String(entry.note).trim() !== ""
-                            ? String(entry.note).trim()
-                            : null;
-                    return { gene, direction, note };
-                })
-                .filter(Boolean);
-        },
-        formatCellularAssignmentDisplay(ca) {
-            if (!ca || typeof ca !== "object") return "";
-            const parts = [];
-            if (ca.producer) parts.push(`Producer: ${ca.producer}`);
-            if (ca.matrix_builder) parts.push(`Matrix builder: ${ca.matrix_builder}`);
-            if (ca.metabolic_target) parts.push(`Metabolic target: ${ca.metabolic_target}`);
-            if (ca.confidence) parts.push(`Confidence: ${ca.confidence}`);
-            if (ca.caveat) parts.push(`Caveat: ${ca.caveat}`);
-            return parts.join(" · ");
-        },
-        formatDepotContrastDisplay(dc) {
-            if (!dc || typeof dc !== "object") return "";
-            const parts = [];
-            if (dc.subcutaneous) parts.push(`Subcutaneous: ${dc.subcutaneous}`);
-            if (dc.visceral) parts.push(`Visceral: ${dc.visceral}`);
-            if (dc.comparison) parts.push(`Comparison: ${dc.comparison}`);
-            if (dc.evidence_basis) parts.push(`Evidence: ${dc.evidence_basis}`);
-            return parts.join(" · ");
-        },
         /** Format relevant gene sets for display: "id (description)" when description exists. */
         formatRelevantGeneSetsForDisplay(geneSetIds) {
-            if (!Array.isArray(geneSetIds) || !geneSetIds.length) return "";
+            if (!Array.isArray(geneSetIds) || !geneSetIds.length) return [];
             const infoMap = this.buildGeneSetInfoMap();
             return geneSetIds.map((gs) => {
-                const info = infoMap[gs];
-                const desc = (info.description != null && String(info.description).trim() !== "") ? String(info.description).trim() : "";
-                const program = (info.gene_set_program != null && String(info.gene_set_program).trim() !== "") ? String(info.gene_set_program).trim() : "";
-                const geneSet = {};
-                geneSet.gs = gs;
+                const id = gs != null ? String(gs).trim() : "";
+                if (!id) return { gs: "" };
+                const info = infoMap[id] || {};
+                const desc =
+                    info.description != null && String(info.description).trim() !== ""
+                        ? String(info.description).trim()
+                        : "";
+                const program =
+                    info.gene_set_program != null && String(info.gene_set_program).trim() !== ""
+                        ? String(info.gene_set_program).trim()
+                        : "";
+                const geneSet = { gs: id };
                 if (desc) geneSet.desc = desc;
                 if (program) geneSet.program = program;
                 return geneSet;
-            })
-            /*
-            return geneSetIds.map((gs) => {
-                const info = infoMap[gs];
-                if (!info) return gs;
-                const desc = (info.description != null && String(info.description).trim() !== "") ? String(info.description).trim() : "";
-                const program = (info.gene_set_program != null && String(info.gene_set_program).trim() !== "") ? String(info.gene_set_program).trim() : "";
-                if (desc && program) return `${gs} (${desc}, ${program})`;
-                if (desc) return `${gs} (${desc})`;
-                if (program) return `${gs} (${program})`;
-                return gs;
-            }).join(", ");
-            */
+            }).filter((row) => row.gs);
         },
         /**
          * Build a map from gene set id to { description, gene_set_program } using factorData.
@@ -3678,7 +3642,7 @@ export default Vue.component("factor-base-reveal", {
             const map = {};
             const data = this.factorData || {};
             Object.keys(data).forEach((phenotype) => {
-                const factors = data[phenotype] && data[phenotype].factors || [];
+                const factors = (data[phenotype] && data[phenotype].factors) || [];
                 factors.forEach((f) => {
                     const ids = (typeof f.top_gene_sets === "string" && f.top_gene_sets)
                         ? f.top_gene_sets.split(";").map((s) => s.trim()).filter(Boolean)
@@ -3692,10 +3656,40 @@ export default Vue.component("factor-base-reveal", {
                     ids.forEach((id, i) => {
                         if (!id) return;
                         if (!map[id]) {
-                            map[id] = { description: descs[i] != null ? descs[i] : "", gene_set_program: programs[i] != null ? programs[i] : "" };
+                            map[id] = {
+                                description: descs[i] != null ? descs[i] : "",
+                                gene_set_program: programs[i] != null ? programs[i] : "",
+                            };
                         } else {
-                            if ((descs[i] != null && descs[i] !== "") && !map[id].description) map[id].description = descs[i];
-                            if ((programs[i] != null && programs[i] !== "") && !map[id].gene_set_program) map[id].gene_set_program = programs[i];
+                            if ((descs[i] != null && descs[i] !== "") && !map[id].description) {
+                                map[id].description = descs[i];
+                            }
+                            if ((programs[i] != null && programs[i] !== "") && !map[id].gene_set_program) {
+                                map[id].gene_set_program = programs[i];
+                            }
+                        }
+                    });
+                    // Also index geneSets keys (LLM citations may not appear in top_gene_sets).
+                    const gsMap = f.geneSets && typeof f.geneSets === "object" ? f.geneSets : {};
+                    Object.keys(gsMap).forEach((id) => {
+                        if (!id) return;
+                        const entry = gsMap[id] || {};
+                        if (!map[id]) {
+                            map[id] = {
+                                description:
+                                    entry.description != null ? String(entry.description) : "",
+                                gene_set_program:
+                                    entry.gene_set_program != null
+                                        ? String(entry.gene_set_program)
+                                        : "",
+                            };
+                            return;
+                        }
+                        if (!map[id].description && entry.description) {
+                            map[id].description = String(entry.description);
+                        }
+                        if (!map[id].gene_set_program && entry.gene_set_program) {
+                            map[id].gene_set_program = String(entry.gene_set_program);
                         }
                     });
                 });
@@ -4787,12 +4781,6 @@ export default Vue.component("factor-base-reveal", {
          */
         buildMechanismFlowNetworkFromHypothesisKg(hik) {
             return buildMechanismFlowNetworkFromHypothesisKg(hik);
-        },
-        normalizeCandidateInventory(raw) {
-            return normalizeCandidateInventory(raw);
-        },
-        candidateInventoryRows(inventory) {
-            return candidateInventoryRows(inventory);
         },
         /**
          * Build network { nodes, edges } from flattened KG rows by row ids (for LLM response with supporting_row_ids).
