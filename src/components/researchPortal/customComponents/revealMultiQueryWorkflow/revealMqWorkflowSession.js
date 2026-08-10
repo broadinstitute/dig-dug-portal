@@ -23,6 +23,7 @@ function createEmptyWorkflowSession() {
         extractionAmbiguityCheck: null,
         extractionAmbiguityDismissed: false,
         multiQueryRoutes: [],
+        selectedRouteId: "",
         multiQueryRouteEditRows: [],
         multiQueryRouteEditRowsDefault: [],
         routeTermsEditAccordionOpen: {},

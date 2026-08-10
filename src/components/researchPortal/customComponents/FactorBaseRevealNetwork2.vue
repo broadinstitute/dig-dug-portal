@@ -1090,7 +1090,10 @@ export default {
             const emitNetworkReady = () => {
                 if (readyEmitted || !this.visNetwork) return;
                 readyEmitted = true;
-                this.visNetwork.setOptions({ physics: false });
+                // Results hypothesis maps keep physics on; Data-tab networks freeze after layout.
+                if (!this.isMechanismFlowMap) {
+                    this.visNetwork.setOptions({ physics: false });
+                }
                 const scale = this.visNetwork.getScale();
                 if (typeof scale === "number" && !Number.isNaN(scale)) {
                     this.zoomLevel = Math.max(this.zoomMin, Math.min(this.zoomMax, scale));

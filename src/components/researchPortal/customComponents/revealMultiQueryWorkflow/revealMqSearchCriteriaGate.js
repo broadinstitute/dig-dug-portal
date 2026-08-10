@@ -33,8 +33,14 @@ function computeUnionTermsFromRoutes(routes) {
 }
 
 function syncUnionTermsFromMultiQueryRoutes(vm) {
+    const routes = Array.isArray(vm.multiQueryRoutes) ? vm.multiQueryRoutes : [];
+    const selectedId = vm.selectedRouteId != null ? String(vm.selectedRouteId) : "";
+    const scoped =
+        selectedId && routes.some((r) => r && String(r.route_id) === selectedId)
+            ? routes.filter((r) => r && String(r.route_id) === selectedId)
+            : routes;
     const { phenotypeTerms, mechanismTerms, genesOfInterest, searchTerms } =
-        computeUnionTermsFromRoutes(vm.multiQueryRoutes);
+        computeUnionTermsFromRoutes(scoped);
     vm.lastPhenotypeTerms = phenotypeTerms;
     vm.lastMechanismTerms = mechanismTerms;
     vm.lastGenesOfInterest = genesOfInterest;

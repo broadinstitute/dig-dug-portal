@@ -20,6 +20,7 @@ Return this exact top-level shape:
       "category": "Tissue Expression",
       "biological_query_variation": "",
       "rationale": "",
+      "fit_rank": 1,
       "extracted_terms": {
         "phenotype_terms": [],
         "mechanism_terms": [],
@@ -37,8 +38,12 @@ Workflow:
 2. Select exactly 3 orthogonal routes when possible, one each from: "Tissue Expression", "Perturbations", and "Genetics".
 3. Keep each "biological_query_variation" focused on biological modality, mechanism, tissue/cell context, phenotype, and genes.
 4. Extract strict route-specific terms for each selected route.
-5. Populate "explicit_user_genes" only with official symbols directly named or directly aliased by the user's original query.
-6. Populate the top-level phenotype_terms, mechanism_terms, genes_of_interest, and research_context as a concise union / summary for UI review. genes_of_interest may include route-expanded pathway anchors, but explicit_user_genes must stay faithful to user input.
+5. Rank the 3 selected routes by how well each matches the user's original query intent.
+   Set "fit_rank" to 1, 2, or 3 (exactly one of each). Rank 1 = best match to the user query;
+   ranks 2 and 3 are alternate directions the user may still choose to run as a separate query.
+   Do not invent extra prose fields for ranking (no fit_rationale / fit_explanation).
+6. Populate "explicit_user_genes" only with official symbols directly named or directly aliased by the user's original query.
+7. Populate the top-level phenotype_terms, mechanism_terms, genes_of_interest, and research_context as a concise union / summary for UI review. genes_of_interest may include route-expanded pathway anchors, but explicit_user_genes must stay faithful to user input.
 
 CRITICAL MODALITY DECOUPLING AND REPOSITORY ANTI-TOKEN RULE:
 When generating "biological_query_variation", describe the biological MODALITY, never a specific repository or database program.
@@ -57,156 +62,9 @@ Term extraction rules:
 
 Routing rules:
 - selected_routes must have no more than 3 items.
+- Prefer exactly one route per category: "Tissue Expression", "Perturbations", "Genetics".
+- Each selected_routes item must include integer fit_rank in {1,2,3} with no duplicates.
 - If the query is out of domain, return empty arrays, empty research_context, selected_routes: [], and ambiguity_check.has_ambiguity false.
-`;
-
-const EXTRACT_SYSTEM_PROMPT = `
-You are an expert biomedical bioinformatics assistant. Your task is to parse a user's biological query and extract the core concepts into a strict JSON format with these fields: "phenotype_terms" (array of strings), "genes_of_interest" (array of strings), "mechanism_terms" (array of strings), "research_context" (string), "suggested_queries" (array of strings), and optional "ambiguity_check" (object). You must output ONLY raw, valid JSON. The first character of your reply must be "{" and the last character must be "}". Do not wrap your response in markdown code blocks or include any conversational text.
-
-CRITICAL INSTRUCTIONS FOR "phenotype_terms" (THE NULL SAFETY RULE):
-1. Mechanistic Queries: If the user is asking about a specific biological mechanism, intracellular pathway, cell type, or molecular interaction, you MUST leave the "phenotype_terms" array EMPTY []. This applies even if a broad disease is mentioned anywhere in the prompt; the presence of a mechanism always overrides the disease.
-2. Broad Disease Queries: ONLY populate the "phenotype_terms" array if the user is asking a purely generic, broad question about a disease or trait (e.g., "Find genes for Type 2 Diabetes") with no specific mechanism attached.
-
-INSTRUCTIONS FOR "genes_of_interest":
-Extract specific, explicit gene or protein targets mentioned by the user. 
-CRITICAL RULE 1 (Official Symbols Only): You MUST convert any protein names or aliases into their official, primary human gene symbols (HGNC). For example, if the user asks for "ALK7", you must output "ACVR1C". If the user asks for "Activin E", output "INHBE".
-CRITICAL RULE 2 (Strip Parentheses): If the user provides a symbol alongside an alias or description in parentheses (e.g., "ACVR1C(ALK7)" or "INHBE (Activin E)"), extract ONLY the primary official gene symbol and discard the parentheses (e.g., output exactly "ACVR1C" and "INHBE"). 
-Output this as an array of strings containing ONLY the clean, official gene symbols (e.g., ["ACVR1C", "INHBE"]). Do NOT put metabolites (e.g., lactate), broad protein classes (e.g., kinases), or pathways in this list. If no specific genes or proteins are explicitly mentioned in the query, leave the array EMPTY [].
-
-INSTRUCTIONS FOR "mechanism_terms":
-Extract the core biological mechanisms, specific metabolites, or molecular targets EXPLICITLY mentioned in the query. DO NOT over-expand the list with downstream pathways, unmentioned gene families, or tangentially related biological processes (e.g., if the user asks about TRAP1, do not list every senescence pathway). Distill the user's intent into a STRICT MAXIMUM of 3 to 5 highly precise, comma-separated search terms to ensure targeted exact-matching. 
-
-INSTRUCTIONS FOR "research_context":
-Write a clear, 1-2 sentence summary of the biological investigation including both the mechanisms and diseases.
-
-CRITICAL INSTRUCTIONS FOR "suggested_queries":
-First, strictly evaluate the user's query against the following four Optimal Query Guidelines:
-1. Anchor: Explicitly names a specific gene, protein, metabolite, or cellular structure/state to force graph anchoring.
-2. Semantic Net: Defines a specific conceptual biochemical mechanism or pathway.
-3. Spatial Anchoring: Specifies a tissue, cell type, or anatomical location.
-4. Phenotypic Scope: Limits the outcome to a specific clinical trait, biomarker, or focused disease state.
-
-EVALUATION ACTION:
-- If the user's query successfully meets ALL FOUR of these guidelines, it is already fully optimized. You MUST leave the "suggested_queries" array EMPTY [] to avoid confusing the user with redundant alternatives.
-- If the user's query FAILS ANY of these guidelines (e.g., it is a broad disease search, lacks a tissue context, or lacks a specific anchor), generate 2 to 3 highly specific, optimized alternative search queries based on their original intent. These suggestions MUST strictly follow the "Anchor + Semantic Net" formula:
-"Find a [Broad Mechanism/Semantic Net] involving [Explicit Anchor] in [Cell/Tissue Type] that drives [Specific Biomarker/Phenotype]."
-
-AMBIGUITY AND SUBJECTIVE TERMS RULE:
-If you detect subjective or ambiguous wording (e.g., "novel", "new", "top", "best", "unexplored"), include an "ambiguity_check" object and keep extraction moving:
-1. Set "ambiguity_check.has_ambiguity" to true.
-2. Add a concise "ambiguity_check.warning_message" explaining your default interpretation.
-3. Still produce actionable extraction fields and include 1-2 pivot options in "ambiguity_check.alternative_queries".
-4. For "novel", default interpretation is "contextually novel" (known biology used as a potentially underappreciated link to this phenotype) and reflect that in "research_context".
-
-NEGATIVE CONSTRAINTS (ANTI-ANCHORS) RULE:
-Vector/semantic retrieval is weak at pure exclusions like "non-X", "without X", "independent of X", or "except X". When these appear:
-1. Set "ambiguity_check.has_ambiguity" to true.
-2. In "ambiguity_check.warning_message", explicitly state the pro-anchor substitution. The message MUST include language equivalent to:
-   "we translated the anti-anchor constraint into pro-anchor alternatives"
-   and mention at least one positive mechanism/pathway anchor used for the substitution.
-3. Add 2-3 "ambiguity_check.alternative_queries" that convert the negative request into positive, testable mechanism anchors while preserving the user's tissue/process context.
-4. Include "ambiguity_check.anti_anchor_terms" as an array of detected excluded anchors (e.g., ["UCP1"]).
-
-ANTI-ANCHOR LEAKAGE PROHIBITION (STRICT):
-If anti-anchor terms are detected, DO NOT carry anti-anchor connotations into:
-- "mechanism_terms"
-- "research_context"
-Keep anti-anchor references only inside "ambiguity_check.anti_anchor_terms" and the explanatory warning message.
-Do not include negative constraint wording in mechanism_terms or research_context (e.g., "non-", "without", "independent of", "except", "excluding", "other than").
-
-FINAL SELF-CHECK (REQUIRED BEFORE OUTPUT):
-If "ambiguity_check.anti_anchor_terms" is non-empty:
-1) mechanism_terms contain only positive pro-anchor mechanisms.
-2) research_context contains only positive pro-anchor framing.
-3) warning_message explicitly states anti-anchor -> pro-anchor translation.
-4) alternative_queries are positive-anchor rewrites only.
-If any check fails, revise and regenerate JSON before responding.
-
-When no ambiguity is detected, set "ambiguity_check.has_ambiguity" to false and leave warning_message/alternative_queries empty.
-
-OUT OF DOMAIN INSTRUCTION:
-If the user's query is not related to biology or bioinformatics, return empty arrays for phenotype_terms, genes_of_interest, mechanism_terms, and suggested_queries; use empty string for research_context; and set ambiguity_check.has_ambiguity to false.
-
-EXAMPLES:
-
-User: "Find an oxidative phosphorylation mechanism involving TRAP1 in vascular smooth muscle cells that promotes atherosclerosis."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": ["TRAP1"],
-  "mechanism_terms": ["oxidative phosphorylation", "mitochondrial dysfunction", "metabolic reprogramming"],
-  "research_context": "Investigating how the TRAP1 mitochondrial chaperone alters oxidative phosphorylation in vascular smooth muscle cells to drive atherosclerosis.",
-  "suggested_queries": [],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-// (Note: suggested_queries is empty because the user's prompt perfectly met all 4 Optimal Query Guidelines.)
-
-User: "Find a microbiome-metabolite mechanism linking host signaling to insulin resistance."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": [],
-  "mechanism_terms": ["gut microbiota-derived metabolites", "short-chain fatty acids (SCFAs)", "microbial metabolite receptors"],
-  "research_context": "Investigating how gut microbiome-derived metabolites modulate host signaling pathways to influence insulin resistance and Type 2 Diabetes.",
-  "suggested_queries": [
-    "Find a short-chain fatty acid receptor mechanism involving GPR43 in the intestinal epithelium that alters systemic insulin sensitivity.",
-    "Find a secondary bile acid signaling mechanism involving FXR in hepatocytes linked to glucose tolerance."
-  ],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-// (Note: suggested_queries populated because the user lacked a specific anchor and tissue context.)
-
-User: "What are the genes for early-onset Alzheimer's disease?"
-Output:
-{
-  "phenotype_terms": ["Alzheimer's disease", "early-onset Alzheimer's", "dementia", "neurodegeneration"],
-  "genes_of_interest": [],
-  "mechanism_terms": [],
-  "research_context": "Investigating the primary genetic drivers and risk factors associated with early-onset Alzheimer's disease.",
-  "suggested_queries": [
-    "Find a microglial phagocytosis mechanism involving TREM2 in the cortex linked to amyloid-beta clearance.",
-    "Find a lipid transport mechanism involving APOE in astrocytes associated with early-onset neurodegeneration."
-  ],
-  "ambiguity_check": { "has_ambiguity": false, "warning_message": "", "alternative_queries": [] }
-}
-
-User: "what are novel candidate genes for waist-hip ratio in the ACVR1C(ALK7) / Activin E pathway?"
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": ["ACVR1C", "INHBE"],
-  "mechanism_terms": ["activin/TGF-beta receptor signaling", "ligand signaling"],
-  "research_context": "Investigating contextually novel candidate genes within the ACVR1C (ALK7) / INHBE (Activin E) pathway that modulate fat distribution and influence waist-to-hip ratio.",
-  "suggested_queries": [],
-  "ambiguity_check": {
-    "has_ambiguity": true,
-    "warning_message": "You used 'novel'. We interpreted this as contextually novel mechanisms for this phenotype.",
-    "alternative_queries": [
-      "Find completely uncharacterized candidate genes for waist-hip ratio in the ACVR1C / INHBE pathway.",
-      "Find established canonical GWAS-linked genes for waist-hip ratio in the ACVR1C / INHBE pathway."
-    ]
-  }
-}
-
-User: "Tell me about interesting genes that drive non-UCP1 thermogenesis in white/beige adipocytes."
-Output:
-{
-  "phenotype_terms": [],
-  "genes_of_interest": [],
-  "mechanism_terms": ["adipocyte thermogenesis", "calcium cycling thermogenesis", "creatine substrate cycling"],
-  "research_context": "Investigating calcium cycling, creatine substrate cycling, and lipid cycling thermogenic mechanisms in white/beige adipocytes.",
-  "suggested_queries": [],
-  "ambiguity_check": {
-    "has_ambiguity": true,
-    "warning_message": "You asked for non-UCP1 mechanisms. We translated the anti-anchor constraint into pro-anchor alternatives, focusing on calcium cycling and creatine substrate cycling pathways in adipocytes.",
-    "anti_anchor_terms": ["UCP1"],
-    "alternative_queries": [
-      "Find candidate genes driving calcium-cycling thermogenesis in white/beige adipocytes.",
-      "Find candidate genes driving creatine substrate cycling thermogenesis in white/beige adipocytes.",
-      "Find candidate genes driving lipid-cycling thermogenesis in white/beige adipocytes."
-    ]
-  }
-}
 `;
 
 const QUERY_HELPER_COMPOSE_SYSTEM_PROMPT = `
@@ -614,7 +472,6 @@ Still supply \`suggested_optimized_query\` when it would help the user refine sc
 `;
 
 export {
-    EXTRACT_SYSTEM_PROMPT,
     GENE_SET_MECHANISM_HYPOTHESIS_SYSTEM_PROMPT,
     GENE_SET_MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,
     MECHANISM_HYPOTHESIS_EXPLORATORY_MODE_SUFFIX,

@@ -19,6 +19,7 @@ import {
     normalizeAlternativeQueries,
     normalizeExtractionAmbiguity,
 } from "./revealMqExtractionAmbiguity.js";
+import { pickRecommendedRouteId } from "./revealMqMultiRoute.js";
 
 const DEFAULT_EXTRACTION_MAX_ATTEMPTS = 3;
 const DEFAULT_EXTRACTION_TIMEOUT_MS = 120000;
@@ -36,6 +37,7 @@ function resetWorkflowStateForNewRun(vm) {
     vm.extractionAmbiguityCheck = null;
     vm.extractionAmbiguityDismissed = false;
     vm.multiQueryRoutes = [];
+    vm.selectedRouteId = "";
     vm.multiQueryRouteResults = [];
     vm.multiQueryEvidenceBundles = [];
     vm.multiQueryRouteErrors = [];
@@ -247,6 +249,7 @@ async function processExtractionResponse(vm, response, options = {}) {
     vm.extractionAmbiguityCheck = extractionAmbiguity;
     vm.extractionAmbiguityDismissed = false;
     vm.multiQueryRoutes = selectedRoutes;
+    vm.selectedRouteId = pickRecommendedRouteId(selectedRoutes);
     vm.multiQueryRouteResults = [];
     vm.multiQueryEvidenceBundles = [];
     vm.multiQueryRouteErrors = [];

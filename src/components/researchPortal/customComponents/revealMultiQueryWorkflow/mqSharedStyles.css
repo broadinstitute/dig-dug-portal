@@ -103,6 +103,16 @@
     gap: 6px;
     align-items: flex-start;
 }
+.mechanism-evidence-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    align-items: flex-start;
+}
+.mechanism-evidence-col {
+    flex: 1 1 240px;
+    min-width: 0;
+}
 .reveal-evidence-chips-stack {
     display: flex;
     flex-direction: column;
@@ -120,6 +130,70 @@
     color: #6c757d;
     letter-spacing: 0.02em;
     font-size: inherit;
+}
+.mechanism-hypothesis-caption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+}
+.mechanism-hypothesis-caption-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px 8px;
+    max-width: 100%;
+}
+.mechanism-hypothesis-caption-pill {
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 100%;
+}
+.mechanism-hypothesis-caption-sep {
+    color: #6c757d;
+    font-weight: 700;
+    user-select: none;
+}
+/* Match Canvas (revealKgWorkspace) AI pill badges */
+.ai-gen {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    flex-shrink: 0;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 8px;
+    margin: 0 0 0 6px;
+    border-radius: 999px;
+    border: 1px solid #c4b5fd;
+    background: #f3efff;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    position: relative;
+}
+.ai-gen:hover::after {
+    content: "Written by AI";
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: calc(100% + 4px);
+    width: max-content;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #c4b5fd;
+    background: #f3efff;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 .mechanism-card-title {
     font-weight: 700;

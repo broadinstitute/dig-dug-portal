@@ -160,13 +160,13 @@
                             :use-per-route-search-terms-editor="usePerRouteSearchTermsEditor"
                             :shared-research-context="sharedResearchContextTerm"
                             :multi-query-routes="multiQueryRoutes"
+                            :selected-route-id="selectedRouteId"
                             :alternative-queries="lastAlternativeQueries"
-                            :route-terms-edit-accordion-open="routeTermsEditAccordionOpen"
                             @approve-gate="approveStepGate"
                             @update:sharedResearchContext="sharedResearchContextTerm = $event"
                             @dismiss-ambiguity="extractionAmbiguityDismissed = true"
-                            @toggle-route-terms-edit="toggleRouteTermsEditAccordion"
                             @update-route-edit-field="onRouteEditFieldUpdate"
+                            @select-route="onSelectRetrievalRoute"
                             @select-alternative-query="onAlternativeQuerySelected"
                         />
 
@@ -449,6 +449,7 @@ import {
     mergeRouteFactorData as mergeMultiRouteFactorData,
     normalizeMultiQueryRoutes,
     normalizeRouteCategory,
+    pickRecommendedRouteId,
     resolveHybridPhenotypeFilterTerms as resolveHybridPhenotypeTerms,
     resolveMultiRouteHybridPhenotypeFilterTerms as resolveMultiRoutePhenotypeTerms,
     routeFactorSupportScore as scoreRouteFactorSupport,
@@ -729,6 +730,8 @@ export default Vue.component("factor-base-reveal", {
             extractionAmbiguityCheck: null,
             extractionAmbiguityDismissed: false,
             multiQueryRoutes: [],
+            /** Which extraction direction to retrieve (fit_rank 1 pre-selected). */
+            selectedRouteId: "",
             multiQueryRouteResults: [],
             multiQueryEvidenceBundles: [],
             multiQueryRouteErrors: [],
@@ -1728,7 +1731,10 @@ export default Vue.component("factor-base-reveal", {
             });
         } else if (keyParams.query) {
             this.searchPath = "query";
-            this.userQuery = keyParams.query;
+            this.userQuery = String(keyParams.query);
+            this.placeholderRotationPaused = true;
+            // Explore further / shared ?query= links: free-text path + start term extraction.
+            this.beginFlow();
         }
         this.currentPlaceholderIndex = 0;
         this.startPlaceholderRotation();
@@ -2928,11 +2934,29 @@ export default Vue.component("factor-base-reveal", {
         onAlternativeQuerySelected(query) {
             const nextQuery = String(query || "").trim();
             if (!nextQuery) return;
-            this.userQuery = nextQuery;
-            if (this.stepApprovalGateActive && this.stepApprovalGateStepId === WORKFLOW_STEP_IDS.EXTRACTION) {
-                this.cancelStepGate(false);
+            // Open a fresh free-text session in a new tab so gene-set mode
+            // (`?genes=` / searchPath genes) is not reused for follow-up questions.
+            let href;
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("genes");
+                url.searchParams.delete("geneSetEntryFail");
+                url.searchParams.set("query", nextQuery);
+                href = url.toString();
+            } catch (e) {
+                href = `${window.location.pathname}?query=${encodeURIComponent(nextQuery)}`;
             }
-            this.queryParse();
+            window.open(href, "_blank", "noopener,noreferrer");
+        },
+        onSelectRetrievalRoute(routeId) {
+            const id = routeId != null ? String(routeId).trim() : "";
+            if (!id) return;
+            if (!(this.multiQueryRoutes || []).some((r) => r && String(r.route_id) === id)) return;
+            this.selectedRouteId = id;
+            this.syncUnionTermsFromMultiQueryRoutes();
+        },
+        pickRecommendedRouteId(routes) {
+            return pickRecommendedRouteId(routes);
         },
         /**
          * From mechanism diagnostics: fill the main search box and restart the workflow (extraction-first via queryParse).
@@ -4975,29 +4999,42 @@ export default Vue.component("factor-base-reveal", {
 }
 
 .ai-gen {
-    display: inline;
-    background: #cce5ff;
-    color: #004085;
-    padding: 0 3px;
-    border-radius: 3px;
-    font-size: inherit;
-    margin: 0 0 0 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    flex-shrink: 0;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 8px;
+    margin: 0 0 0 6px;
+    border-radius: 999px;
+    border: 1px solid #c4b5fd;
+    background: #f3efff;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
     position: relative;
-    border: 0;
-    line-height: inherit;
 }
 .ai-gen:hover::after {
-    content: 'Written by a AI';
+    content: "Written by AI";
     position: absolute;
-    background: #cce5ff;
-    color: #004085;
-    width: max-content;
-    padding: 0 3px;
-    top: 0;
+    z-index: 2;
     left: 0;
-    font-size: inherit;
-    line-height: initial;
-    border-radius: 3px;
+    top: calc(100% + 4px);
+    width: max-content;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #c4b5fd;
+    background: #f3efff;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 .criteria-detail.collapsed {
     display: none;

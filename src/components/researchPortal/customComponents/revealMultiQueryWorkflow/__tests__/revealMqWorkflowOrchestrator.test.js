@@ -27,6 +27,7 @@ describe("revealMqWorkflowOrchestrator", () => {
         expect(vm.mechanisms).toBeNull();
         expect(vm.steps).toEqual([]);
         expect(vm.multiQueryRoutes).toEqual([]);
+        expect(vm.selectedRouteId).toBe("");
         expect(vm.switchRevealTab).toHaveBeenCalledWith("terms");
         expect(vm.revealResultsTabUnlocked).toBe(false);
     });

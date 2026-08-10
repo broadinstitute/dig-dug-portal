@@ -149,6 +149,7 @@ function collectMultiQueryRevealWorkflowState(vm) {
         extractionAmbiguityCheck: cloneJson(vm.extractionAmbiguityCheck, null),
         extractionAmbiguityDismissed: !!vm.extractionAmbiguityDismissed,
         multiQueryRoutes: cloneJson(vm.multiQueryRoutes, []),
+        selectedRouteId: vm.selectedRouteId != null ? String(vm.selectedRouteId) : "",
         multiQueryRouteEditRows: cloneJson(vm.multiQueryRouteEditRows, []),
         multiQueryRouteEditRowsDefault: cloneJson(vm.multiQueryRouteEditRowsDefault, []),
         routeTermsEditAccordionOpen: cloneJson(vm.routeTermsEditAccordionOpen, {}),
@@ -389,6 +390,7 @@ const WORKFLOW_IMPORT_FIELDS = [
     "extractionAmbiguityCheck",
     "extractionAmbiguityDismissed",
     "multiQueryRoutes",
+    "selectedRouteId",
     "multiQueryRouteEditRows",
     "multiQueryRouteEditRowsDefault",
     "routeTermsEditAccordionOpen",
@@ -556,6 +558,17 @@ function applyMultiQueryRevealWorkflowImport(vm, workflow, { label = "", setKeyP
             assignVmState(vm, key, cloneJson(workflow[key], vm[key]));
         }
     });
+
+    if (
+        !(vm.selectedRouteId != null && String(vm.selectedRouteId).trim()) &&
+        Array.isArray(vm.multiQueryRoutes) &&
+        vm.multiQueryRoutes.length
+    ) {
+        const ranked = vm.multiQueryRoutes
+            .slice()
+            .sort((a, b) => Number((a && a.fit_rank) || 99) - Number((b && b.fit_rank) || 99));
+        assignVmState(vm, "selectedRouteId", ranked[0] && ranked[0].route_id ? String(ranked[0].route_id) : "");
+    }
 
     assignVmState(vm, "steps", nonErrorWorkflowSteps(cloneJson(workflow.steps, vm.steps || [])));
     restoreGeneSetEntryFromImport(vm, workflow);

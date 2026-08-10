@@ -9,6 +9,7 @@ import { normalizeLlmTermList } from "./revealMqExtraction.js";
 import {
     annotateFactorDataWithFetchedDirection,
     buildCompactRouteEvidence,
+    getSelectedMultiQueryRoutes,
     isConstraintValidationError,
     mergeRouteFactorData,
     resolveHybridPhenotypeFilterTerms,
@@ -268,15 +269,24 @@ async function runMultiQueryRetrievalWorkflow(vm, routes = []) {
     if (vm.usePerRouteSearchTermsEditor) {
         vm.applyRouteEditRowsToMultiQueryRoutes();
     }
-    const routeList = (
+    const allRoutes = (
         Array.isArray(vm.multiQueryRoutes) && vm.multiQueryRoutes.length ? vm.multiQueryRoutes : routes
     ).slice(0, vm.multiQueryEvidenceLimits.maxRoutes || 3);
+    const routeList = getSelectedMultiQueryRoutes(vm, allRoutes);
     if (!routeList.length) return false;
+    const directionLabel =
+        routeList.length === 1 && routeList[0] && routeList[0].category
+            ? String(routeList[0].category)
+            : "selected directions";
     vm.setStep({
         id: WORKFLOW_STEP_IDS.DATA,
-        title: "Retrieving data across selected directions",
+        title: `Retrieving data for ${directionLabel}`,
     });
-    vm.setLoadStatus("Hybrid retrieval: searching selected biological directions…");
+    vm.setLoadStatus(
+        routeList.length === 1
+            ? `Hybrid retrieval: searching ${directionLabel}…`
+            : "Hybrid retrieval: searching selected biological directions…"
+    );
     const successes = [];
     const errors = [];
     for (let idx = 0; idx < routeList.length; idx += 1) {
@@ -367,7 +377,7 @@ async function onResearch(vm, phenotypeTermsFromExtract, options = {}) {
                 : "";
         const useMultiRoute =
             Array.isArray(vm.multiQueryRoutes) &&
-            vm.multiQueryRoutes.length > 1 &&
+            vm.multiQueryRoutes.length > 0 &&
             opts.helperConstraintSpec == null;
         const usedHybrid = useMultiRoute
             ? await runMultiQueryRetrievalWorkflow(vm, vm.multiQueryRoutes)

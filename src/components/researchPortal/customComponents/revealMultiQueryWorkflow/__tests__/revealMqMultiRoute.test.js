@@ -1,7 +1,10 @@
 import {
     buildCompactRouteEvidence,
     factorMatchesEvidenceHit,
+    getSelectedMultiQueryRoutes,
     mergeRouteFactorData,
+    normalizeMultiQueryRoutes,
+    pickRecommendedRouteId,
     resolveHybridPhenotypeFilterTerms,
     sanitizeEmbeddingText,
 } from "@/components/researchPortal/customComponents/revealMultiQueryWorkflow/revealMqMultiRoute.js";
@@ -59,5 +62,59 @@ describe("revealMqMultiRoute", () => {
 
     test("sanitizeEmbeddingText strips portal keywords", () => {
         expect(sanitizeEmbeddingText("GTEX portal database query")).not.toMatch(/gtex|portal|database/i);
+    });
+
+    test("normalizeMultiQueryRoutes enforces one category each and unique fit_rank", () => {
+        const routes = normalizeMultiQueryRoutes(
+            [
+                {
+                    category: "Genetics",
+                    fit_rank: 2,
+                    biological_query_variation: "genetics direction about APOE",
+                    extracted_terms: { genes_of_interest: ["APOE"] },
+                },
+                {
+                    category: "Tissue Expression",
+                    fit_rank: 1,
+                    biological_query_variation: "tissue direction about APOE",
+                    extracted_terms: { genes_of_interest: ["APOE"] },
+                },
+                {
+                    category: "Tissue Expression",
+                    fit_rank: 3,
+                    biological_query_variation: "duplicate tissue should drop",
+                    extracted_terms: { genes_of_interest: ["APOE"] },
+                },
+                {
+                    category: "Perturbations",
+                    fit_rank: 3,
+                    biological_query_variation: "perturbation direction about APOE",
+                    extracted_terms: { genes_of_interest: ["APOE"] },
+                },
+            ],
+            {},
+            { userQuery: "APOE in brain" }
+        );
+        expect(routes).toHaveLength(3);
+        expect(routes.map((r) => r.category).sort()).toEqual([
+            "Genetics",
+            "Perturbations",
+            "Tissue Expression",
+        ]);
+        expect(new Set(routes.map((r) => r.fit_rank)).size).toBe(3);
+        expect(pickRecommendedRouteId(routes)).toBe(routes.find((r) => r.fit_rank === 1).route_id);
+    });
+
+    test("getSelectedMultiQueryRoutes returns only the selected direction", () => {
+        const routes = [
+            { route_id: "route-1", fit_rank: 1, category: "Tissue Expression" },
+            { route_id: "route-2", fit_rank: 2, category: "Perturbations" },
+        ];
+        expect(getSelectedMultiQueryRoutes({ selectedRouteId: "route-2", multiQueryRoutes: routes })).toEqual([
+            routes[1],
+        ]);
+        expect(getSelectedMultiQueryRoutes({ selectedRouteId: "", multiQueryRoutes: routes })).toEqual([
+            routes[0],
+        ]);
     });
 });

@@ -47,12 +47,13 @@ function getRouteConstraintSpec(category) {
 /**
  * Reshape raw LLM route objects into the workflow's route shape, applying field-name fallbacks
  * and falling back to a single "General Biology" route when the LLM returned no usable routes.
+ * Enforces at most one route per known category and assigns unique fit_rank values (1 = best).
  */
 function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3, userQuery = "" } = {}) {
     const source = Array.isArray(rawRoutes) ? rawRoutes : [];
     const maxRoutesResolved = Math.max(1, Number(maxRoutes) || 3);
-    const normalized = source
-        .slice(0, maxRoutesResolved)
+    const mapped = source
+        .slice(0, Math.max(maxRoutesResolved * 2, maxRoutesResolved))
         .map((route, idx) => {
             const category = normalizeRouteCategory(route && route.category, idx);
             const extracted = route && route.extracted_terms && typeof route.extracted_terms === "object"
@@ -85,6 +86,7 @@ function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3
                 biological_query_variation: variation || sanitized,
                 sanitized_query: sanitized,
                 rationale: route && route.rationale != null ? String(route.rationale).trim() : "",
+                fit_rank: parseFitRank(route && (route.fit_rank != null ? route.fit_rank : route.priority)),
                 extracted_terms: {
                     phenotype_terms: phenotypeTerms,
                     mechanism_terms: mechanismTerms,
@@ -97,6 +99,8 @@ function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3
             };
         })
         .filter((route) => route.sanitized_query || route.biological_query_variation);
+
+    const normalized = assignFitRanks(enforceOneCategoryEach(mapped, maxRoutesResolved));
 
     if (normalized.length) return normalized;
 
@@ -113,6 +117,7 @@ function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3
             biological_query_variation: sanitized || String(userQuery || "").trim(),
             sanitized_query: sanitized || String(userQuery || "").trim(),
             rationale: "Fallback route derived from the extracted terms.",
+            fit_rank: 1,
             extracted_terms: {
                 phenotype_terms: phenotypeTerms,
                 mechanism_terms: mechanismTerms,
@@ -124,6 +129,103 @@ function normalizeMultiQueryRoutes(rawRoutes, fallbackJson = {}, { maxRoutes = 3
             status: "pending",
         },
     ];
+}
+
+function parseFitRank(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    const rank = Math.round(n);
+    return rank >= 1 && rank <= 9 ? rank : null;
+}
+
+/** Keep first route per known category; unknown categories fill remaining slots. */
+function enforceOneCategoryEach(routes, maxRoutes = 3) {
+    const list = Array.isArray(routes) ? routes : [];
+    const max = Math.max(1, Number(maxRoutes) || 3);
+    const byKnown = [];
+    const seenKnown = new Set();
+    const extras = [];
+    list.forEach((route) => {
+        const cat = route && route.category;
+        const isKnown = REVEAL_ROUTE_CATEGORIES.includes(cat);
+        if (isKnown) {
+            if (seenKnown.has(cat)) return;
+            seenKnown.add(cat);
+            byKnown.push(route);
+        } else {
+            extras.push(route);
+        }
+    });
+    const out = [...byKnown];
+    extras.forEach((route) => {
+        if (out.length < max) out.push(route);
+    });
+    return out.slice(0, max).map((route, idx) => ({
+        ...route,
+        route_id: `route-${idx + 1}`,
+    }));
+}
+
+/** Ensure unique fit_rank 1..n (1 = best). Prefer LLM ranks when they form a valid permutation. */
+function assignFitRanks(routes) {
+    const list = Array.isArray(routes) ? routes.slice() : [];
+    if (!list.length) return list;
+    const claimed = list.map((r) => parseFitRank(r && r.fit_rank));
+    const uniqueValid =
+        claimed.every((r) => r != null) &&
+        new Set(claimed).size === claimed.length &&
+        claimed.every((r) => r >= 1 && r <= list.length);
+    if (!uniqueValid) {
+        // Stable: keep LLM relative order when present, else input order.
+        list.sort((a, b) => {
+            const ar = parseFitRank(a && a.fit_rank);
+            const br = parseFitRank(b && b.fit_rank);
+            if (ar != null && br != null && ar !== br) return ar - br;
+            if (ar != null && br == null) return -1;
+            if (ar == null && br != null) return 1;
+            return 0;
+        });
+        return list.map((route, idx) => ({
+            ...route,
+            fit_rank: idx + 1,
+            route_id: `route-${idx + 1}`,
+        }));
+    }
+    return list
+        .slice()
+        .sort((a, b) => Number(a.fit_rank) - Number(b.fit_rank))
+        .map((route, idx) => ({
+            ...route,
+            fit_rank: Number(route.fit_rank),
+            route_id: `route-${idx + 1}`,
+        }));
+}
+
+function pickRecommendedRouteId(routes) {
+    const list = Array.isArray(routes) ? routes : [];
+    if (!list.length) return "";
+    const ranked = list.slice().sort((a, b) => Number(a.fit_rank || 99) - Number(b.fit_rank || 99));
+    return ranked[0] && ranked[0].route_id ? String(ranked[0].route_id) : "";
+}
+
+/** Routes to retrieve for the current selection (exactly one when selectedRouteId is set). */
+function getSelectedMultiQueryRoutes(vm, routes = null) {
+    const list = Array.isArray(routes)
+        ? routes
+        : Array.isArray(vm && vm.multiQueryRoutes)
+          ? vm.multiQueryRoutes
+          : [];
+    if (!list.length) return [];
+    const selectedId = vm && vm.selectedRouteId != null ? String(vm.selectedRouteId) : "";
+    if (selectedId) {
+        const match = list.filter((r) => r && String(r.route_id) === selectedId);
+        if (match.length) return match;
+    }
+    const recommendedId = pickRecommendedRouteId(list);
+    if (recommendedId) {
+        return list.filter((r) => r && String(r.route_id) === recommendedId);
+    }
+    return list.slice(0, 1);
 }
 
 function sanitizeEmbeddingText(text) {
@@ -471,14 +573,19 @@ function setMultiQueryRouteStatus(vm, routeId, status, patch = {}) {
 
 export {
     annotateFactorDataWithFetchedDirection,
+    assignFitRanks,
     buildCompactRouteEvidence,
+    enforceOneCategoryEach,
     factorMatchesEvidenceHit,
     filterRouteFactorDataToEvidenceHits,
     getRouteConstraintSpec,
+    getSelectedMultiQueryRoutes,
     isConstraintValidationError,
     mergeRouteFactorData,
     normalizeMultiQueryRoutes,
     normalizeRouteCategory,
+    parseFitRank,
+    pickRecommendedRouteId,
     resolveHybridPhenotypeFilterTerms,
     resolveMultiRouteHybridPhenotypeFilterTerms,
     REVEAL_ROUTE_CATEGORIES,

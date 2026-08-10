@@ -149,9 +149,24 @@
                                                     <div class="mechanism-section-label mb-2">
                                                         Hypothesis map (biological mechanism)
                                                     </div>
-                                                    <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="text-muted mb-2">
-                                                        {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
-                                                    </p>
+                                                    <div
+                                                        v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption"
+                                                        class="mechanism-hypothesis-caption mb-2"
+                                                    >
+                                                        <span
+                                                            v-for="(seg, sidx) in splitHypothesisCaption(mechanism.hypothesis_in_kg.caption)"
+                                                            :key="'cap-' + idx + '-' + sidx"
+                                                            class="mechanism-hypothesis-caption-item"
+                                                        >
+                                                            <span
+                                                                v-if="sidx > 0"
+                                                                class="mechanism-hypothesis-caption-sep"
+                                                                aria-hidden="true"
+                                                            >→</span>
+                                                            <span class="pill mechanism-hypothesis-caption-pill">{{ seg }}</span>
+                                                        </span>
+                                                        <span class="ai-gen">AI</span>
+                                                    </div>
                                                     <div style="min-height: 220px;">
                                                         <factor-base-reveal-network
                                                             :ref="'mechanismHypothesisMap-' + idx"
@@ -186,12 +201,11 @@
                                                         (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length) ||
                                                         (mechanism.associated_pairs && mechanism.associated_pairs.length)
                                                     "
-                                                   
+                                                    class="mechanism-evidence-columns"
                                                 >
-                                                    <div class="mechanism-section-label mb-2">Cited gene set cluster evidence</div>
                                                     <div
                                                         v-if="mechanism.associated_factor_ids && mechanism.associated_factor_ids.length"
-                                                        class="mb-2"
+                                                        class="mechanism-evidence-col"
                                                     >
                                                         <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
@@ -208,7 +222,7 @@
                                                     </div>
                                                     <div
                                                         v-else-if="mechanism.associated_pairs && mechanism.associated_pairs.length"
-                                                        class="mb-2"
+                                                        class="mechanism-evidence-col"
                                                     >
                                                         <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
@@ -225,7 +239,7 @@
                                                     </div>
                                                     <div
                                                         v-if="(mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) || (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)"
-                                                        class="mb-0"
+                                                        class="mechanism-evidence-col"
                                                     >
                                                         <div class="mechanism-section-label mb-1">Cited gene sets</div>
                                                         <div style="white-space: normal; display:flex; flex-direction: column; gap:6px">
@@ -303,6 +317,9 @@
                                                             { key: 'scores_gene_score', label: 'Gene score', thStyle: { width: '90px' } }
                                                         ]"
                                                     >
+                                                        <template #head(reason)>
+                                                            Reason<span class="ai-gen">AI</span>
+                                                        </template>
                                                         <template #cell(in_search)="row">
                                                             {{ helpers.isGeneInSearchSet(row.item) === true ? 'Yes' : (helpers.isGeneInSearchSet(row.item) === false ? 'No' : '—') }}
                                                         </template>
@@ -313,7 +330,7 @@
                                                             {{ row.item.scores && (row.item.scores.gene_score != null || row.item.scores.functional != null) ? Number(row.item.scores.gene_score ?? row.item.scores.functional).toFixed(3) : '—' }}
                                                         </template>
                                                         <template #cell(reason)="row">
-                                                            {{ row.item.reason != null ? row.item.reason : row.item.role }}<span class="ai-gen">AI</span>
+                                                            {{ row.item.reason != null ? row.item.reason : row.item.role }}
                                                         </template>
                                                         <template #cell(gene)="row">
                                                             <span
@@ -393,9 +410,24 @@
                                                     <div class="mechanism-section-label mb-2">
                                                         Hypothesis map (biological mechanism)
                                                     </div>
-                                                    <p v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption" class="text-muted mb-2">
-                                                        {{ mechanism.hypothesis_in_kg.caption }}<span class="ai-gen">AI</span>
-                                                    </p>
+                                                    <div
+                                                        v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption"
+                                                        class="mechanism-hypothesis-caption mb-2"
+                                                    >
+                                                        <span
+                                                            v-for="(seg, sidx) in splitHypothesisCaption(mechanism.hypothesis_in_kg.caption)"
+                                                            :key="'cap2-' + idx + '-' + sidx"
+                                                            class="mechanism-hypothesis-caption-item"
+                                                        >
+                                                            <span
+                                                                v-if="sidx > 0"
+                                                                class="mechanism-hypothesis-caption-sep"
+                                                                aria-hidden="true"
+                                                            >→</span>
+                                                            <span class="pill mechanism-hypothesis-caption-pill">{{ seg }}</span>
+                                                        </span>
+                                                        <span class="ai-gen">AI</span>
+                                                    </div>
                                                     <div class="flex-grow-1" style="min-height: 220px;">
                                                         <factor-base-reveal-network
                                                             :ref="'mechanismHypothesisMap-' + idx"
@@ -472,6 +504,9 @@
                                                                     { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' } }
                                                                 ]"
                                                             >
+                                                                <template #head(reason)>
+                                                                    Reason<span class="ai-gen">AI</span>
+                                                                </template>
                                                                 <template #cell(scores_combined)="row">
                                                                     {{ row.item.scores && (row.item.scores.combined != null || row.item.scores.c != null) ? Number(row.item.scores.combined ?? row.item.scores.c).toFixed(2) : '—' }}
                                                                 </template>
@@ -482,7 +517,7 @@
                                                                     {{ row.item.scores && (row.item.scores.functional != null || row.item.scores.f != null) ? Number(row.item.scores.functional ?? row.item.scores.f).toFixed(2) : '—' }}
                                                                 </template>
                                                                 <template #cell(reason)="row">
-                                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}<span class="ai-gen">AI</span>
+                                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}
                                                                 </template>
                                                                 <template #cell(gene)="row">
                                                                     <span
@@ -1038,6 +1073,18 @@ export default {
         geneSetSources: { type: Object, default: () => ({}) },
         nodeColors: { type: Object, default: () => ({}) },
         helpers: { type: Object, required: true },
+    },
+    methods: {
+        /** Split hypothesis map caption on arrows into pill segments. */
+        splitHypothesisCaption(caption) {
+            const raw = caption != null ? String(caption).trim() : "";
+            if (!raw) return [];
+            const parts = raw
+                .split(/\s*(?:→|->|⇒)\s*/)
+                .map((p) => p.trim())
+                .filter(Boolean);
+            return parts.length ? parts : [raw];
+        },
     },
 };
 </script>
