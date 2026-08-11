@@ -1,3 +1,5 @@
+import { tryParseJsonWithRepair } from "@/utils/llmJsonRepair.js";
+
 /** Parse or estimate token usage from hugeamp LLM passthrough responses. */
 
 function coerceTokenCount(value) {
@@ -111,9 +113,24 @@ export function parseLlmJsonResponse(rawString) {
     }
 
     try {
-        return { ok: true, json: JSON.parse(candidate) };
+        return { ok: true, json: JSON.parse(candidate), repaired: false, repairs: [] };
     } catch (e) {
-        return { ok: false, json: null, parseError: e };
+        const repaired = tryParseJsonWithRepair(candidate);
+        if (repaired.ok) {
+            return {
+                ok: true,
+                json: repaired.json,
+                repaired: repaired.repaired,
+                repairs: repaired.repairs,
+            };
+        }
+        return {
+            ok: false,
+            json: null,
+            parseError: repaired.parseError || e,
+            repaired: repaired.repaired,
+            repairs: repaired.repairs || [],
+        };
     }
 }
 

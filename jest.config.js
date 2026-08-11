@@ -1,5 +1,6 @@
 module.exports = {
     testMatch: [
+        "**/utils/__tests__/**/*.test.js",
         "**/revealKgWorkspace/__tests__/**/*.test.js",
         "**/revealMultiQueryWorkflow/__tests__/**/*.test.js",
     ],
