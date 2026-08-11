@@ -49,13 +49,57 @@ export async function request(path, query_params, host) {
     });
 }
 
+/**
+ * POST JSON body to a BioIndex path (no query-string params).
+ * Used when callers need to keep sensitive keys out of the URL.
+ */
+export async function requestPost(path, body, host) {
+    return fetch(apiUrl(path, false, host), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "x-bioindex-access-token": session_cookie,
+        },
+        body: JSON.stringify(body || {}),
+    });
+}
+
+/**
+ * Start a BioIndex query via GET or POST.
+ * @param {"GET"|"POST"} method
+ */
+function startQueryRequest(index, q, { limit, fmt, host, method = "GET" } = {}) {
+    if (String(method).toUpperCase() === "POST") {
+        const body = { q };
+        if (limit != null) {
+            body.limit = limit;
+        }
+        if (fmt != null) {
+            body.fmt = fmt;
+        }
+        return requestPost(`/api/bio/query/${index}`, body, host);
+    }
+    const params = { q, limit };
+    if (fmt != null) {
+        params.fmt = fmt;
+    }
+    return request(`/api/bio/query/${index}`, params, host);
+}
+
+function startContinuationRequest(token, { host, method = "GET" } = {}) {
+    if (String(method).toUpperCase() === "POST") {
+        return requestPost(`/api/bio/cont`, { token }, host);
+    }
+    return request(`/api/bio/cont`, { token }, host);
+}
+
 /* Perform a BioIndex query.
  */
 export async function query(index, q, opts = {}) {
-    let { limit, onResolve, onError, onLoad, limitWhile, host } = opts;
-    let req = request(`/api/bio/query/${index}`, { q, limit }, host);
+    let { limit, onResolve, onError, onLoad, limitWhile, host, method, fmt } = opts;
+    let req = startQueryRequest(index, q, { limit, fmt, host, method });
 
-    return await processRequest(req, onResolve, onError, onLoad, limitWhile, host);
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile, host, method);
 }
 
 /* Perform a BioIndex match.
@@ -87,7 +131,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, onResolve, onError, onLoad, limitWhile, host) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile, host, method = "GET") {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -107,10 +151,13 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile, host)
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let req = request(`/api/bio/cont`, { token: json.continuation }, host);
+            let contReq = startContinuationRequest(json.continuation, {
+                host,
+                method,
+            });
 
             // follow the continuation
-            resp = await req;
+            resp = await contReq;
             json = await resp.json();
 
             if (resp.status === 200) {
@@ -150,6 +197,7 @@ export default {
     match,
     apiUrl,
     request,
+    requestPost,
     rawUrl,
     BIO_INDEX_HOST,
     BIO_INDEX_HOST_PRIVATE,

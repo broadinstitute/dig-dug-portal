@@ -3,6 +3,8 @@
  *
  * Default (no project): portal BioIndex host (`biDomain()`), full phenotype prop list,
  * KP ancestry options. Giant: dedicated BioIndex host + curated phenotype/ancestry lists.
+ * GWAS-CE: token-gated associations BioIndex (`associations-{token}`) plus portal
+ * phenotype/ancestry for GE and other companion layers.
  *
  * Indexes present on the project BioIndex use that host; everything else (including
  * gene match / varIdLookup / genes / regions / tissue-regions / variant-links on Giant)
@@ -14,6 +16,18 @@ import { VARIANT_SIFTER_ANCESTRY_OPTIONS } from "./variantSifterSearchUtils.js";
 
 /** Empty string = default / no project. */
 export const VKS_PROJECT_DEFAULT_ID = "";
+
+/** GWAS Catalog CE — associations via access token; phenotype/ancestry for other layers. */
+export const VKS_GWAS_CE_PROJECT_ID = "gwas-ce";
+
+export const VKS_GWAS_CE_BIOINDEX_HOST =
+    "https://gwas-ce.kpndataregistry.org/bioidx";
+
+/** Placeholder written into exported session JSON instead of the real token. */
+export const VKS_GWAS_CE_TOKEN_REDACTION = "$token";
+
+/** Only associations are served from the GWAS-CE BioIndex host. */
+export const VKS_GWAS_CE_BIOINDEX_INDEXES = new Set(["associations"]);
 
 /**
  * Curated GIANT phenotype ids with display labels for search UI / header.
@@ -72,9 +86,12 @@ export const VKS_GIANT_BIOINDEX_INDEXES = new Set([
  * @property {string|null} bioIndexHost  null → use portal default host
  * @property {string[]|null} phenotypeNames  null → use portal phenotypesInUse
  * @property {Record<string, {description?: string, group?: string}>|null} phenotypeInfo
- * @property {string[]|null} ancestries  null → KP ancestry options
+ * @property {string[]|null} ancestries  null → KP ancestry options; empty → hide ancestry UI
  * @property {Set<string>|null} bioIndexIndexes  null → all indexes on project host
  * @property {string} ancestryAssociationsIndex  index name for non-Mixed association queries
+ * @property {boolean} [associationsOnly]  load associations (+ optional LD/recomb) only
+ * @property {boolean} [tokenSearch]  welcome also requires a Token field (in addition to phenotype)
+ * @property {boolean} [preferPostQuery]  BioIndex query via HTTP POST when supported
  */
 
 /** @type {VksProjectConfig[]} */
@@ -88,6 +105,9 @@ export const VKS_PROJECTS = [
         ancestries: null,
         bioIndexIndexes: null,
         ancestryAssociationsIndex: "ancestry-associations",
+        associationsOnly: false,
+        tokenSearch: false,
+        preferPostQuery: false,
     },
     {
         id: "giant",
@@ -98,9 +118,63 @@ export const VKS_PROJECTS = [
         ancestries: VKS_GIANT_ANCESTRIES,
         bioIndexIndexes: VKS_GIANT_BIOINDEX_INDEXES,
         ancestryAssociationsIndex: "associations",
+        associationsOnly: false,
+        tokenSearch: false,
+        preferPostQuery: false,
+    },
+    {
+        id: VKS_GWAS_CE_PROJECT_ID,
+        label: "GWAS-CE",
+        bioIndexHost: VKS_GWAS_CE_BIOINDEX_HOST,
+        // Portal phenotype catalog + KP ancestries for GE / CS / companion layers.
+        phenotypeNames: null,
+        phenotypeInfo: null,
+        ancestries: null,
+        bioIndexIndexes: VKS_GWAS_CE_BIOINDEX_INDEXES,
+        ancestryAssociationsIndex: "associations",
+        associationsOnly: false,
+        tokenSearch: true,
+        // GWAS-CE BioIndex only supports GET/HEAD on /api/bio/query/{index}.
+        preferPostQuery: false,
     },
 ];
 
+export function isGwasCeProject(projectId = VKS_PROJECT_DEFAULT_ID) {
+    return normalizeProjectId(projectId) === VKS_GWAS_CE_PROJECT_ID;
+}
+
+export function projectUsesTokenSearch(projectId = VKS_PROJECT_DEFAULT_ID) {
+    return Boolean(getProjectConfig(projectId).tokenSearch);
+}
+
+export function projectAssociationsOnly(projectId = VKS_PROJECT_DEFAULT_ID) {
+    return Boolean(getProjectConfig(projectId).associationsOnly);
+}
+
+export function projectHidesAncestry(projectId = VKS_PROJECT_DEFAULT_ID) {
+    const ancestries = getProjectConfig(projectId).ancestries;
+    return Array.isArray(ancestries) && ancestries.length === 0;
+}
+
+export function projectPrefersPostQuery(projectId = VKS_PROJECT_DEFAULT_ID) {
+    return Boolean(getProjectConfig(projectId).preferPostQuery);
+}
+
+/** Normalize a GWAS-CE access token from session / welcome form. */
+export function normalizeGwasCeToken(token) {
+    return String(token || "").trim();
+}
+
+/** Index name for GWAS-CE associations: associations-{token}. */
+export function gwasCeAssociationsIndex(token) {
+    const id = normalizeGwasCeToken(token);
+    return id ? `associations-${id}` : "associations";
+}
+
+/** Resolve the GWAS-CE token stored on a search session. */
+export function resolveGwasCeToken(session) {
+    return normalizeGwasCeToken(session?.gwasCeToken);
+}
 export function listVksProjects() {
     return VKS_PROJECTS.map((project) => ({
         id: project.id,
@@ -127,9 +201,11 @@ export function getProjectConfig(projectId = VKS_PROJECT_DEFAULT_ID) {
 
 export function projectAncestryOptions(projectId = VKS_PROJECT_DEFAULT_ID) {
     const ancestries = getProjectConfig(projectId).ancestries;
-    return Array.isArray(ancestries) && ancestries.length
-        ? [...ancestries]
-        : [...VARIANT_SIFTER_ANCESTRY_OPTIONS];
+    // Explicit empty array = hide ancestry (e.g. GWAS-CE); null = portal defaults.
+    if (Array.isArray(ancestries)) {
+        return [...ancestries];
+    }
+    return [...VARIANT_SIFTER_ANCESTRY_OPTIONS];
 }
 
 /**
@@ -169,8 +245,11 @@ export function projectPhenotypes(projectId, portalPhenotypes = []) {
     const config = getProjectConfig(projectId);
     const names = config.phenotypeNames;
     const portal = Array.isArray(portalPhenotypes) ? portalPhenotypes : [];
-    if (!Array.isArray(names) || !names.length) {
+    if (!Array.isArray(names)) {
         return portal;
+    }
+    if (!names.length) {
+        return [];
     }
     const byName = new Map(
         portal

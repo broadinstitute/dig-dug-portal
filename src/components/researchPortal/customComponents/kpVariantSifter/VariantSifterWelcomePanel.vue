@@ -15,6 +15,30 @@
                 <h3 class="vks-welcome-form-title">Start a new search</h3>
 
                 <div class="vks-welcome-fields">
+                    <div
+                        v-if="tokenSearchMode"
+                        class="vks-welcome-field vks-welcome-field--wide"
+                    >
+                        <label class="vks-welcome-label" :for="tokenInputId">
+                            Token
+                        </label>
+                        <input
+                            :id="tokenInputId"
+                            v-model="accessToken"
+                            type="text"
+                            class="vks-welcome-input"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Paste access token"
+                            @input="errorMessage = ''"
+                        />
+                        <p class="vks-welcome-hint">
+                            GWAS-CE associations load with this token. Phenotype and
+                            ancestry below are used for enrichment and other companion
+                            layers.
+                        </p>
+                    </div>
+
                     <div class="vks-welcome-field">
                         <label class="vks-welcome-label" :for="phenotypeInputId">
                             Phenotype
@@ -57,7 +81,7 @@
                         </div>
                     </div>
 
-                    <div class="vks-welcome-field">
+                    <div v-if="!hideAncestry" class="vks-welcome-field">
                         <label class="vks-welcome-label" :for="ancestrySelectId">
                             Ancestry
                         </label>
@@ -180,7 +204,10 @@ import {
     resolveGeneOrVariantToRegion,
 } from "./variantSifterSearchUtils.js";
 import {
+    normalizeGwasCeToken,
     projectAncestryOptions,
+    projectHidesAncestry,
+    projectUsesTokenSearch,
     VKS_PROJECT_DEFAULT_ID,
 } from "./variantSifterProjects.js";
 import {
@@ -220,10 +247,12 @@ export default {
         const suffix = welcomeFieldCounter;
         return {
             phenotypeInputId: `vks-welcome-phenotype-${suffix}`,
+            tokenInputId: `vks-welcome-token-${suffix}`,
             ancestrySelectId: `vks-welcome-ancestry-${suffix}`,
             locusInputId: `vks-welcome-locus-${suffix}`,
             expandSelectId: `vks-welcome-expand-${suffix}`,
             phenotypeQuery: "",
+            accessToken: "",
             selectedPhenotype: null,
             selectedAncestry: "Mixed",
             geneOrVariantQuery: "",
@@ -241,6 +270,12 @@ export default {
         };
     },
     computed: {
+        tokenSearchMode() {
+            return projectUsesTokenSearch(this.projectId);
+        },
+        hideAncestry() {
+            return projectHidesAncestry(this.projectId);
+        },
         phenotypeSuggestions() {
             return filterPhenotypes(this.phenotypes, this.phenotypeQuery);
         },
@@ -260,8 +295,9 @@ export default {
             },
         },
         projectId() {
-            if (!this.ancestryOptions.includes(this.selectedAncestry)) {
-                this.selectedAncestry = "Mixed";
+            this.selectedAncestry = "Mixed";
+            if (!this.tokenSearchMode) {
+                this.accessToken = "";
             }
             if (
                 this.selectedPhenotype &&
@@ -271,6 +307,13 @@ export default {
             ) {
                 this.phenotypeQuery = "";
                 this.selectedPhenotype = null;
+            }
+            if (
+                !this.hideAncestry &&
+                this.ancestryOptions.length &&
+                !this.ancestryOptions.includes(this.selectedAncestry)
+            ) {
+                this.selectedAncestry = this.ancestryOptions[0] || "Mixed";
             }
         },
         phenotypes() {
@@ -303,6 +346,7 @@ export default {
         ancestryLabel,
         resetFormFields() {
             this.phenotypeQuery = "";
+            this.accessToken = "";
             this.selectedPhenotype = null;
             this.selectedAncestry = "Mixed";
             this.geneOrVariantQuery = "";
@@ -315,6 +359,11 @@ export default {
             this.resolvedRegionLabel = "";
         },
         applyInitialValues(values) {
+            if (values.gwasCeToken || values.accessToken) {
+                this.accessToken = String(
+                    values.gwasCeToken || values.accessToken || ""
+                );
+            }
             if (values.phenotype) {
                 const match = (this.phenotypes || []).find(
                     (phenotype) => phenotype.name === values.phenotype
@@ -325,8 +374,14 @@ export default {
                     this.phenotypeQuery = values.phenotype;
                 }
             }
-            if (values.ancestry != null && values.ancestry !== "") {
+            if (
+                !this.hideAncestry &&
+                values.ancestry != null &&
+                values.ancestry !== ""
+            ) {
                 this.selectedAncestry = values.ancestry;
+            } else if (this.hideAncestry) {
+                this.selectedAncestry = "Mixed";
             }
             if (values.geneOrVariantQuery) {
                 this.geneOrVariantQuery = values.geneOrVariantQuery;
@@ -451,6 +506,14 @@ export default {
             this.errorMessage = "";
             this.resolvedRegionLabel = "";
 
+            const gwasCeToken = this.tokenSearchMode
+                ? normalizeGwasCeToken(this.accessToken)
+                : "";
+            if (this.tokenSearchMode && !gwasCeToken) {
+                this.errorMessage = "Enter an access token to continue.";
+                return;
+            }
+
             const phenotype =
                 this.selectedPhenotype ||
                 (this.phenotypes || []).find(
@@ -458,7 +521,6 @@ export default {
                         entry.name === this.phenotypeQuery ||
                         entry.description === this.phenotypeQuery
                 );
-
             if (!phenotype) {
                 this.errorMessage = "Select a phenotype to continue.";
                 return;
@@ -498,11 +560,14 @@ export default {
                 this.resolvedRegionLabel = formatRegion(region);
                 this.$emit("start-search", {
                     phenotype,
-                    ancestry: this.selectedAncestry || null,
+                    ancestry: this.hideAncestry
+                        ? "Mixed"
+                        : this.selectedAncestry || null,
                     region,
                     regionLabel: this.resolvedRegionLabel,
                     geneOrVariantQuery: this.geneOrVariantQuery.trim(),
                     regionExpandBp: this.regionExpandBp,
+                    gwasCeToken: gwasCeToken || null,
                 });
             } finally {
                 this.submitting = false;

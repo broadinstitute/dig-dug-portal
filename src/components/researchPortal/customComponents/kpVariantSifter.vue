@@ -356,7 +356,9 @@ import {
     parseMappingCategoryId,
 } from "./kpVariantSifter/variantSifterMappingData.js";
 import {
+    isGwasCeProject,
     normalizeProjectId,
+    projectAssociationsOnly,
     projectPhenotypes,
     resolveProjectBioIndexHost,
     resolveProjectPrimaryBioIndexHost,
@@ -629,7 +631,9 @@ export default Vue.component("kp-variant-sifter", {
             if (!this.searchSession) {
                 return "vks-session-export.json";
             }
-            return buildSessionExportFilename(this.searchSession);
+            return buildSessionExportFilename(this.searchSession, {
+                projectId: this.projectId,
+            });
         },
         exportSessionSummary() {
             const rows = this.associationsState?.rows?.length || 0;
@@ -665,7 +669,9 @@ export default Vue.component("kp-variant-sifter", {
             return parts.join(" · ");
         },
         searchSessionLabel() {
-            return formatSearchSessionLabel(this.searchSession);
+            return formatSearchSessionLabel(this.searchSession, {
+                projectId: this.projectId,
+            });
         },
         assistantCanRunActions() {
             return Boolean(this.searchSession || this.canvasActive);
@@ -1360,6 +1366,68 @@ export default Vue.component("kp-variant-sifter", {
                         : VKS_REGION_LOAD_STATUS.DONE
                 );
 
+                if (projectAssociationsOnly(this.projectId)) {
+                    this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
+                    this.setRegionLoadStep(
+                        "globalEnrichment",
+                        VKS_REGION_LOAD_STATUS.DONE
+                    );
+                    this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
+
+                    let recombFetchFailed = false;
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                    for (const gap of gaps) {
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        const gapRegion = {
+                            chr: activeRegion.chr,
+                            start: gap.start,
+                            end: gap.end,
+                        };
+                        try {
+                            const newRecomb = await fetchRecombinationRate(gapRegion);
+                            if (newRecomb) {
+                                mergedRecomb = mergeRecombData(mergedRecomb, newRecomb);
+                                this.flushStreamedRecomb(mergedRecomb, activeRegion);
+                            }
+                        } catch (recombError) {
+                            recombFetchFailed = true;
+                            console.warn("Variant Sifter recomb gap fetch failed", recombError);
+                        }
+                    }
+                    if (token !== this.regionExtendToken) {
+                        return;
+                    }
+                    this.setRegionLoadStep(
+                        "recomb",
+                        recombFetchFailed && !mergedRecomb?.position?.length
+                            ? VKS_REGION_LOAD_STATUS.FAILED
+                            : VKS_REGION_LOAD_STATUS.DONE
+                    );
+
+                    if (extendedAssociationRows) {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                        const ldOk = await this.refreshRegionLdScores(
+                            mergedRows,
+                            activeRegion,
+                            () => token !== this.regionExtendToken
+                        );
+                        if (token !== this.regionExtendToken) {
+                            return;
+                        }
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldOk ? VKS_REGION_LOAD_STATUS.DONE : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } else {
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                    }
+
+                    this.finishRegionExtendSync();
+                    return;
+                }
+
                 let genesFetchFailed = false;
                 let recombFetchFailed = false;
 
@@ -1582,7 +1650,23 @@ export default Vue.component("kp-variant-sifter", {
                     geneOrVariantQuery:
                         entry.geneOrVariantQuery || entry.regionLabel || "",
                     regionExpandBp: entry.regionExpandBp ?? null,
+                    gwasCeToken: entry.gwasCeToken || "",
                     errorMessage: `Phenotype "${entry.phenotypeName}" is not available in the current project.`,
+                };
+                this.welcomeOpen = true;
+                this.canvasActive = false;
+                return;
+            }
+
+            if (isGwasCeProject(this.projectId) && !String(entry.gwasCeToken || "").trim()) {
+                this.welcomeInitialValues = {
+                    phenotype: entry.phenotypeName,
+                    ancestry: entry.ancestry || "",
+                    geneOrVariantQuery:
+                        entry.geneOrVariantQuery || entry.regionLabel || "",
+                    regionExpandBp: entry.regionExpandBp ?? null,
+                    gwasCeToken: "",
+                    errorMessage: "Enter the GWAS-CE access token to continue.",
                 };
                 this.welcomeOpen = true;
                 this.canvasActive = false;
@@ -1602,6 +1686,7 @@ export default Vue.component("kp-variant-sifter", {
                     geneOrVariantQuery:
                         entry.geneOrVariantQuery || entry.regionLabel || "",
                     regionExpandBp: entry.regionExpandBp ?? null,
+                    gwasCeToken: entry.gwasCeToken || null,
                 },
                 { subAncestries: entry.subAncestries || [] }
             );
@@ -2224,6 +2309,10 @@ export default Vue.component("kp-variant-sifter", {
             this.v2gRequestToken += 1;
             this.s2gRequestToken += 1;
             this.lastCredibleSetsListRegion = null;
+            if (projectAssociationsOnly(this.projectId)) {
+                this.visibleSectionIds = ["associations"];
+                this.openDrawerId = null;
+            }
             this.canvasActive = true;
             this.welcomeOpen = false;
             this.syncUrlSearchParams(session);
@@ -2234,6 +2323,9 @@ export default Vue.component("kp-variant-sifter", {
             this.loadInitialSearchData(session);
         },
         syncCredibleSetsToActiveRegion(activeRegion) {
+            if (projectAssociationsOnly(this.projectId)) {
+                return;
+            }
             if (!this.searchSession?.phenotype || !activeRegion) {
                 return;
             }
@@ -2561,11 +2653,12 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const primary = primaryAssociationAncestry(this.searchSession);
-            const refRow = resolveLdReferenceRow(rows, {
+            const userPinnedRef = Boolean(this.plotOverlaysState.refVariantUserSet);
+            const preferredRefRow = resolveLdReferenceRow(rows, {
                 refVariant: this.plotOverlaysState.refVariant,
-                refVariantUserSet: this.plotOverlaysState.refVariantUserSet,
+                refVariantUserSet: userPinnedRef,
             });
-            if (!refRow) {
+            if (!preferredRefRow) {
                 this.associationsState = {
                     ...this.associationsState,
                     ldLoading: false,
@@ -2574,7 +2667,6 @@ export default Vue.component("kp-variant-sifter", {
                 return false;
             }
 
-            const refVariant = rowToLdVariant(refRow);
             this.associationsState = {
                 ...this.associationsState,
                 ldLoading: true,
@@ -2588,6 +2680,7 @@ export default Vue.component("kp-variant-sifter", {
                 ].filter((code, index, all) => code && all.indexOf(code) === index);
 
                 let enrichedRows = [];
+                let resolvedRefVariant = rowToLdVariant(preferredRefRow);
                 for (const ancestry of ancestries) {
                     if (isCancelled()) {
                         return false;
@@ -2606,12 +2699,26 @@ export default Vue.component("kp-variant-sifter", {
                     if (ancestry === primary) {
                         ancestrySession.ancestry = this.searchSession.ancestry;
                     }
-                    const seriesWithLd = await enrichAssociationRowsWithLdScoresForRef(
-                        seriesRows,
-                        ancestrySession,
-                        refRow,
-                        activeRegion
-                    );
+
+                    let seriesWithLd;
+                    if (userPinnedRef) {
+                        seriesWithLd = await enrichAssociationRowsWithLdScoresForRef(
+                            seriesRows,
+                            ancestrySession,
+                            preferredRefRow,
+                            activeRegion
+                        );
+                    } else {
+                        const ldResult = await enrichAssociationRowsWithLdScores(
+                            seriesRows,
+                            ancestrySession,
+                            activeRegion
+                        );
+                        seriesWithLd = ldResult.rows;
+                        if (ldResult.refVariant) {
+                            resolvedRefVariant = ldResult.refVariant;
+                        }
+                    }
                     enrichedRows = enrichedRows.concat(seriesWithLd);
                 }
 
@@ -2637,7 +2744,7 @@ export default Vue.component("kp-variant-sifter", {
                 };
                 this.plotOverlaysState = {
                     ...this.plotOverlaysState,
-                    refVariant,
+                    refVariant: resolvedRefVariant,
                 };
                 return ldAvailable;
             } catch (ldError) {
@@ -2717,6 +2824,97 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             if (token !== this.associationsRequestToken) {
+                return;
+            }
+
+            if (projectAssociationsOnly(this.projectId)) {
+                this.setRegionLoadStep("genes", VKS_REGION_LOAD_STATUS.DONE);
+                this.setRegionLoadStep("credibleSets", VKS_REGION_LOAD_STATUS.DONE);
+                this.setRegionLoadStep(
+                    "globalEnrichment",
+                    VKS_REGION_LOAD_STATUS.DONE
+                );
+
+                this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.LOADING);
+                try {
+                    const recombData = await fetchRecombinationRate(session.region);
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    const leadRow = pickLeadVariantRow(formattedRows);
+                    this.plotOverlaysState = {
+                        ready: true,
+                        loading: false,
+                        error: null,
+                        recombData,
+                        refVariant: rowToLdVariant(leadRow),
+                        refVariantUserSet: false,
+                    };
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.DONE);
+                } catch (error) {
+                    if (token !== this.associationsRequestToken) {
+                        return;
+                    }
+                    console.warn("Variant Sifter plot overlays load failed", error);
+                    this.plotOverlaysState = {
+                        ...emptyPlotOverlaysState(),
+                        ready: true,
+                        error: "Recombination overlay could not be loaded for this locus.",
+                    };
+                    this.setRegionLoadStep("recomb", VKS_REGION_LOAD_STATUS.FAILED);
+                }
+
+                if (!associationFailed && formattedRows.length) {
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
+                    try {
+                        const ldResult = await enrichAssociationRowsWithLdScores(
+                            formattedRows,
+                            session
+                        );
+                        const rowsWithLd = ldResult.rows;
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        const ldAvailable = rowsWithLd.some(
+                            (row) => row.LDS != null && !Number.isNaN(row.LDS)
+                        );
+                        this.associationsState = {
+                            ...this.associationsState,
+                            rows: rowsWithLd,
+                            ldLoading: false,
+                            ldError: ldAvailable
+                                ? null
+                                : "LD scores could not be loaded for this locus.",
+                        };
+                        if (ldResult.refVariant) {
+                            this.plotOverlaysState = {
+                                ...this.plotOverlaysState,
+                                refVariant: ldResult.refVariant,
+                            };
+                        }
+                        this.setRegionLoadStep(
+                            "ld",
+                            ldAvailable
+                                ? VKS_REGION_LOAD_STATUS.DONE
+                                : VKS_REGION_LOAD_STATUS.FAILED
+                        );
+                    } catch (error) {
+                        if (token !== this.associationsRequestToken) {
+                            return;
+                        }
+                        console.warn("Variant Sifter LD enrich failed", error);
+                        this.associationsState = {
+                            ...this.associationsState,
+                            ldLoading: false,
+                            ldError: "LD scores could not be loaded for this locus.",
+                        };
+                        this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.FAILED);
+                    }
+                } else {
+                    this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.DONE);
+                }
+
+                this.closeRegionLoadProgressIfSettled();
                 return;
             }
 
@@ -2841,17 +3039,17 @@ export default Vue.component("kp-variant-sifter", {
             if (!associationFailed && formattedRows.length) {
                 this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
                 try {
-                    const rowsWithLd = await enrichAssociationRowsWithLdScores(
+                    const ldResult = await enrichAssociationRowsWithLdScores(
                         formattedRows,
                         session
                     );
+                    const rowsWithLd = ldResult.rows;
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
                     const ldAvailable = rowsWithLd.some(
                         (row) => row.LDS != null && !Number.isNaN(row.LDS)
                     );
-                    const leadRow = pickLeadVariantRow(rowsWithLd);
                     this.associationsState = {
                         ...this.associationsState,
                         ldError: ldAvailable
@@ -2861,7 +3059,9 @@ export default Vue.component("kp-variant-sifter", {
                     };
                     this.plotOverlaysState = {
                         ...this.plotOverlaysState,
-                        refVariant: rowToLdVariant(leadRow),
+                        refVariant:
+                            ldResult.refVariant ||
+                            rowToLdVariant(pickLeadVariantRow(rowsWithLd)),
                     };
                     this.setRegionLoadStep(
                         "ld",
@@ -2922,6 +3122,18 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         async probeAncestryAssociationAvailabilityForSession(session) {
+            // GWAS-CE associations are a single token-gated series — no per-ancestry
+            // association indexes to probe (and probes would hit the wrong host/query).
+            if (isGwasCeProject(this.projectId)) {
+                this.associationsState = {
+                    ...this.associationsState,
+                    ancestryAvailability: [],
+                    ancestryAvailabilityLoading: false,
+                    ancestryAvailabilityError: null,
+                };
+                return;
+            }
+
             const host = this.bioIndexHostFor("ancestry-associations");
             const token = this.associationsRequestToken;
             if (!session?.phenotype || !session?.region || !host) {
@@ -3043,10 +3255,11 @@ export default Vue.component("kp-variant-sifter", {
                             ancestrySession.region
                         );
                     } else {
-                        formattedRows = await enrichAssociationRowsWithLdScores(
+                        const ldResult = await enrichAssociationRowsWithLdScores(
                             formattedRows,
                             ancestrySession
                         );
+                        formattedRows = ldResult.rows;
                     }
                 } catch (ldError) {
                     console.warn(`Variant Sifter ${ancestry} LD enrich failed`, ldError);
@@ -3104,7 +3317,22 @@ export default Vue.component("kp-variant-sifter", {
             }
 
             const params = this.utilsBox?.keyParams;
-            if (!params?.phenotype || !params?.region) {
+            if (!params?.region) {
+                return;
+            }
+
+            // GWAS-CE needs a token that is never stored in the URL — prefills welcome only.
+            if (isGwasCeProject(this.projectId) || isGwasCeProject(params.project)) {
+                this.welcomeInitialValues = {
+                    phenotype: params.phenotype || "",
+                    ancestry: params.ancestry || "Mixed",
+                    geneOrVariantQuery: params.region,
+                    gwasCeToken: "",
+                };
+                return;
+            }
+
+            if (!params?.phenotype) {
                 return;
             }
 

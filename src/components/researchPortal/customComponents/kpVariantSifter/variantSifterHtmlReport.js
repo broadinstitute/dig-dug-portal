@@ -15,7 +15,12 @@ import {
     formatRegion,
     formatSearchSessionLabel,
 } from "./variantSifterSearchUtils.js";
-import { normalizeProjectId } from "./variantSifterProjects.js";
+import {
+    isGwasCeProject,
+    normalizeProjectId,
+    resolveGwasCeToken,
+    VKS_GWAS_CE_TOKEN_REDACTION,
+} from "./variantSifterProjects.js";
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -358,14 +363,16 @@ export function buildVariantSifterHtmlReport({
     tableSnapshot = null,
     exportedAt = new Date(),
 } = {}) {
-    const title = formatSearchSessionLabel(searchSession) || "Variant Sifter report";
+    const title =
+        formatSearchSessionLabel(searchSession, { projectId }) ||
+        "Variant Sifter report";
     const viewLabel = viewRegion ? formatRegion(viewRegion) : searchSession?.regionLabel || "";
     const when =
         exportedAt instanceof Date
             ? exportedAt.toISOString()
             : String(exportedAt || new Date().toISOString());
 
-    return `<!DOCTYPE html>
+    let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -458,12 +465,24 @@ export function buildVariantSifterHtmlReport({
   ${renderVariantsTableSection(tableSnapshot || { columns: [], rows: [] })}
 </body>
 </html>`;
+
+    if (isGwasCeProject(projectId)) {
+        const token = resolveGwasCeToken(searchSession);
+        if (token) {
+            html = html.split(token).join(VKS_GWAS_CE_TOKEN_REDACTION);
+        }
+    }
+    return html;
 }
 
-export function buildHtmlReportFilename(searchSession) {
-    const trait = String(searchSession?.phenotype?.name || "session")
-        .trim()
-        .replace(/[^\w.-]+/g, "_");
+export function buildHtmlReportFilename(searchSession, { projectId } = {}) {
+    const trait = isGwasCeProject(projectId)
+        ? `GWAS-CE_${String(searchSession?.phenotype?.name || "session")
+              .trim()
+              .replace(/[^\w.-]+/g, "_")}`
+        : String(searchSession?.phenotype?.name || "session")
+              .trim()
+              .replace(/[^\w.-]+/g, "_");
     const ancestry = String(searchSession?.ancestry || "Mixed")
         .trim()
         .replace(/[^\w.-]+/g, "_");
@@ -559,5 +578,8 @@ export async function exportVariantSifterHtmlReport({
         tableSnapshot,
         exportedAt: new Date(),
     });
-    return saveHtmlBundle(buildHtmlReportFilename(searchSession), html);
+    return saveHtmlBundle(
+        buildHtmlReportFilename(searchSession, { projectId }),
+        html
+    );
 }

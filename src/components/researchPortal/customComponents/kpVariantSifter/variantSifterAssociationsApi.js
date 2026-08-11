@@ -5,7 +5,10 @@ import {
 } from "./variantSifterSearchUtils.js";
 import {
     getProjectConfig,
+    gwasCeAssociationsIndex,
+    isGwasCeProject,
     projectAncestryOptions,
+    resolveGwasCeToken,
     resolveProjectQueryIndex,
     VKS_PROJECT_DEFAULT_ID,
 } from "./variantSifterProjects.js";
@@ -28,6 +31,7 @@ export function primaryAssociationAncestry(session) {
  * Mixed ancestry uses associations without ancestry key.
  * Specific ancestries use ancestry-associations on KP, or associations
  * with phenotype,ancestry,region on projects like Giant.
+ * GWAS-CE uses associations-{token} with q=token,region (token on session.gwasCeToken).
  */
 export function resolveAssociationsRequest(
     session,
@@ -37,6 +41,24 @@ export function resolveAssociationsRequest(
     const phenotype = session.phenotype.name;
     const ancestry = session.ancestry;
     getProjectConfig(projectId);
+
+    if (isGwasCeProject(projectId)) {
+        const token = resolveGwasCeToken(session);
+        if (!token) {
+            return {
+                index: gwasCeAssociationsIndex(""),
+                q: "",
+                logicalIndex: "associations",
+                fmt: "row",
+            };
+        }
+        return {
+            index: gwasCeAssociationsIndex(token),
+            q: `${token},${region}`,
+            logicalIndex: "associations",
+            fmt: "row",
+        };
+    }
 
     if (ancestry && ancestry !== "Mixed") {
         const index = resolveProjectQueryIndex(
@@ -62,11 +84,14 @@ export async function fetchAssociations(
     host,
     projectId = VKS_PROJECT_DEFAULT_ID
 ) {
-    const { index, q, logicalIndex } = resolveAssociationsRequest(
+    if (isGwasCeProject(projectId) && !resolveGwasCeToken(session)) {
+        throw new Error("GWAS-CE access token is required.");
+    }
+    const { index, q, logicalIndex, fmt } = resolveAssociationsRequest(
         session,
         projectId
     );
-    const data = await query(index, q, { host });
+    const data = await query(index, q, { host, fmt });
     const rows = Array.isArray(data) ? data : [];
 
     rows.sort((a, b) => {
@@ -161,12 +186,17 @@ export function ancestryAssociationsCountQuery(phenotype, ancestry, region) {
 
 /**
  * Probe which specific ancestries have association data for this phenotype × region.
+ * Skipped for GWAS-CE (token dataset is not multi-ancestry association series).
  */
 export async function probeAncestryAssociationAvailability(
     session,
     host,
     projectId = VKS_PROJECT_DEFAULT_ID
 ) {
+    if (isGwasCeProject(projectId)) {
+        return [];
+    }
+
     const phenotype = session?.phenotype;
     const region = session?.region;
     if (!phenotype?.name || !region || !host) {

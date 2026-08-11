@@ -313,7 +313,7 @@ export function formatRegion(region) {
 }
 
 /** Phenotype · ancestry · region label for the workspace header. */
-export function formatSearchSessionLabel(searchSession) {
+export function formatSearchSessionLabel(searchSession, { projectId } = {}) {
     if (!searchSession) {
         return "";
     }
@@ -321,7 +321,13 @@ export function formatSearchSessionLabel(searchSession) {
     const phenotype =
         String(searchSession.phenotype?.description || "").trim() ||
         String(searchSession.phenotype?.name || "").trim();
-    const parts = [phenotype];
+    const parts = [];
+    if (projectId === "gwas-ce") {
+        parts.push("GWAS-CE");
+    }
+    if (phenotype) {
+        parts.push(phenotype);
+    }
     if (searchSession.ancestry) {
         parts.push(searchSession.ancestry);
     }
