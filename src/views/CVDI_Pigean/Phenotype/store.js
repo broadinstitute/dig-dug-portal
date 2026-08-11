@@ -38,8 +38,8 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, PHENOTYPE) {
             state.selectedPhenotype = PHENOTYPE;
             keyParams.set({ phenotype: PHENOTYPE.name });
-            state.traitGroupToQuery = PHENOTYPE.trait_group;
-            keyParams.set({ traitGroup: PHENOTYPE.trait_group });
+            //state.traitGroupToQuery = PHENOTYPE.trait_group;
+            //keyParams.set({ traitGroup: PHENOTYPE.trait_group });
         },
         setTraitGroup(state, traitGroup) {
             state.traitGroup = traitGroup || state.traitGroup;
@@ -72,7 +72,7 @@ export default new Vuex.Store({
 
             let query = {
                 q: `${name},${cvdiBioIndexUtils.DEFAULT_MODEL}`,
-                limit: 1000,
+                limit: 2000,
             };
             context.dispatch("pigeanPhenotype/query", query);
             context.dispatch("genesetPhenotype/query", query);

@@ -402,18 +402,17 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            // this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
             this.$store.dispatch("kp4cd/getPortals");
         },
     },
 
     async created() {
-        this.pigeanPhenotypeMap = await getPhecodeMap();
-        this.genesetSearchOptions = await getAllGenesets();
         this.$store.dispatch("bioPortal/getDiseaseSystems");
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.pigeanPhenotypeMap = await getPhecodeMap();
+        this.genesetSearchOptions = await getAllGenesets();
         this.getStats();
     },
 

@@ -1,5 +1,5 @@
 <!-- AUTO-GENERATED. Do not edit. -->
-<!-- Version: 1.0.11 | Generated: 2026-06-06T15:26:15Z | Hash: 6f68bdfab502 -->
+<!-- Version: 1.0.12 | Generated: 2026-07-29T22:03:53Z | Hash: 53bbf0ab0b5e -->
 <!-- Sources: dig-dug-portal/master/AGENTS.md + dig-dug-portal/AGENTS.md -->
 
 # dig-dug-portal — master

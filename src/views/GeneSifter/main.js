@@ -1029,8 +1029,4 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
 }).$mount("#app");
