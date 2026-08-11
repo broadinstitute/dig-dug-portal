@@ -59,6 +59,9 @@
                         :height="popupNetworkHeight"
                         :show-popup-button="false"
                         :is-mechanism-flow-map="networkPopupIsHypothesisMap"
+                        :keep-physics-enabled="!networkPopupIsHypothesisMap"
+                        :use-gene-role-colors="networkPopupIsHypothesisMap"
+                        :highlight-anchor-genes="!networkPopupIsHypothesisMap"
                         :is-biolink-map="networkPopupIsHypothesisMap && helpers.isMechanismUsingBiolinkMap(mechanisms[networkPopupMechanismIndex])"
                         :show-hypothesis-map-view-toggle="
                             networkPopupIsHypothesisMap &&

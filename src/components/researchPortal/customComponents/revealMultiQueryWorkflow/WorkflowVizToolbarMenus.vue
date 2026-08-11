@@ -1,6 +1,7 @@
 <template>
     <div class="mq-viz-toolbar-menus">
         <b-dropdown
+            v-if="showAnalyzeMenu"
             text="Analyze"
             size="sm"
             variant="link"
@@ -72,6 +73,8 @@ export default {
         selectedNodes: { type: Array, default: () => [] },
         savedExplanations: { type: Array, default: () => [] },
         savedDatasetRuns: { type: Array, default: () => [] },
+        /** Hidden until Analyze features are ready for release. */
+        showAnalyzeMenu: { type: Boolean, default: false },
     },
     computed: {
         hasGeneSetSelections() {

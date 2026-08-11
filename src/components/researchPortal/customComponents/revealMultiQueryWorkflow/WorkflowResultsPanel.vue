@@ -124,88 +124,129 @@
                                             <div class="mechanism-card-title">{{ mechanism.group_name }}</div>
                                         </div>
                                         <div style="display:flex; flex-direction: column; gap:20px; padding:20px">
-                                            <!-- Gene-set path: single-column card (no side-by-side dead space) -->
-                                            <template v-if="isGeneSetEntryMode">
-                                                <div>
+                                            <!-- Shared single-column card (gene-set + free-text aligned) -->
+                                            <div
+                                                class="mechanism-hypothesis-block"
+                                                :class="{ 'has-pathway-shift': !!mechanism.pathway_shift_rationale }"
+                                            >
+                                                <div class="mechanism-hypothesis-main">
                                                     <div class="mechanism-section-label mb-1">Mechanistic hypothesis</div>
-                                                    <div>{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
+                                                    <div>{{ mechanism.hypothesis }}</div>
+                                                    <div
+                                                        v-if="isGeneSetEntryMode && mechanism.rationale"
+                                                        class="mt-3"
+                                                    >
+                                                        <div class="mechanism-section-label mb-1">Biological rationale</div>
+                                                        <div>{{ mechanism.rationale }}</div>
+                                                    </div>
+                                                    <div
+                                                        v-else-if="!isGeneSetEntryMode && (mechanism.novelty_explanation || mechanism.novelty)"
+                                                        class="mt-3"
+                                                    >
+                                                        <div class="mechanism-section-label mb-1">Rationale</div>
+                                                        <div>{{ mechanism.novelty_explanation || mechanism.novelty }}</div>
+                                                    </div>
                                                 </div>
                                                 <div
                                                     v-if="mechanism.pathway_shift_rationale"
-                                                    class="alert alert-warning py-2 px-3 mb-0"
+                                                    class="mechanism-hypothesis-shift alert alert-warning py-2 px-3 mb-0"
                                                     role="status"
                                                 >
                                                     <strong>Why the hypothesis shifted:</strong>
-                                                    {{ mechanism.pathway_shift_rationale }}<span class="ai-gen">AI</span>
+                                                    {{ mechanism.pathway_shift_rationale }}
                                                 </div>
-                                                <div v-if="mechanism.rationale">
-                                                    <div class="mechanism-section-label mb-1">Biological rationale</div>
-                                                    <div>{{ mechanism.rationale }}<span class="ai-gen">AI</span></div>
+                                            </div>
+                                            <div v-if="!isGeneSetEntryMode && mechanism.relevance">
+                                                <div class="mechanism-section-label mb-1">Relevance</div>
+                                                <div>{{ mechanism.relevance }}</div>
+                                            </div>
+                                            <div
+                                                v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
+                                            >
+                                                <div class="mechanism-section-label mb-2">
+                                                    Hypothesis map (biological mechanism)
                                                 </div>
                                                 <div
-                                                    v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
-                                                   
+                                                    v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption"
+                                                    class="mechanism-hypothesis-caption mb-2"
                                                 >
-                                                    <div class="mechanism-section-label mb-2">
-                                                        Hypothesis map (biological mechanism)
-                                                    </div>
-                                                    <div
-                                                        v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption"
-                                                        class="mechanism-hypothesis-caption mb-2"
+                                                    <span
+                                                        v-for="(seg, sidx) in splitHypothesisCaption(mechanism.hypothesis_in_kg.caption)"
+                                                        :key="'cap-' + idx + '-' + sidx"
+                                                        class="mechanism-hypothesis-caption-item"
                                                     >
                                                         <span
-                                                            v-for="(seg, sidx) in splitHypothesisCaption(mechanism.hypothesis_in_kg.caption)"
-                                                            :key="'cap-' + idx + '-' + sidx"
-                                                            class="mechanism-hypothesis-caption-item"
-                                                        >
-                                                            <span
-                                                                v-if="sidx > 0"
-                                                                class="mechanism-hypothesis-caption-sep"
-                                                                aria-hidden="true"
-                                                            >→</span>
-                                                            <span class="pill mechanism-hypothesis-caption-pill">{{ seg }}</span>
-                                                        </span>
-                                                        <span class="ai-gen">AI</span>
-                                                    </div>
-                                                    <div style="min-height: 220px;">
-                                                        <factor-base-reveal-network
-                                                            :ref="'mechanismHypothesisMap-' + idx"
-                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
-                                                            :network="mechanism.core_spine_network"
-                                                            :genes="mechanism.candidate_genes || mechanism.genes || []"
-                                                            :width="640"
-                                                            :height="280"
-                                                            :show-popup-button="true"
-                                                            :is-mechanism-flow-map="true"
-                                                            :is-biolink-map="helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                            :show-hypothesis-map-view-toggle="helpers.hasMechanismBiolinkNetwork(mechanism)"
-                                                            :show-original-hypothesis-map="!helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                            @hypothesis-original-map="
-                                                                $emit('set-mechanism-map-view', idx, $event ? 'original' : 'biolink')
-                                                            "
-                                                            @open-popup="$emit('open-network-popup', { index: idx, hypothesisMap: true })"
-                                                        />
-                                                    </div>
-                                                    <p
-                                                        v-if="helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                        class="text-muted mt-2 mb-0"
-                                                    >
-                                                        Nodes in this view are mapped to Biolink Model categories (classes), and edges are labeled with Biolink predicates to standardize relationship types across knowledge graphs.
-                                                        Edge support is then checked through the NCATS Biomedical Data Translator using TRAPI queries against Translator knowledge sources.
-                                                    </p>
+                                                            v-if="sidx > 0"
+                                                            class="mechanism-hypothesis-caption-sep"
+                                                            aria-hidden="true"
+                                                        >→</span>
+                                                        <span class="pill mechanism-hypothesis-caption-pill">{{ seg }}</span>
+                                                    </span>
                                                 </div>
+                                                <div style="min-height: 220px;">
+                                                    <factor-base-reveal-network
+                                                        :ref="'mechanismHypothesisMap-' + idx"
+                                                        :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
+                                                        :network="mechanism.core_spine_network"
+                                                        :genes="mechanism.candidate_genes || mechanism.genes || []"
+                                                        :width="640"
+                                                        :height="280"
+                                                        :show-popup-button="true"
+                                                        :is-mechanism-flow-map="true"
+                                                        :is-biolink-map="helpers.isMechanismUsingBiolinkMap(mechanism)"
+                                                        :show-hypothesis-map-view-toggle="helpers.hasMechanismBiolinkNetwork(mechanism)"
+                                                        :show-original-hypothesis-map="!helpers.isMechanismUsingBiolinkMap(mechanism)"
+                                                        @hypothesis-original-map="
+                                                            $emit('set-mechanism-map-view', idx, $event ? 'original' : 'biolink')
+                                                        "
+                                                        @open-popup="$emit('open-network-popup', { index: idx, hypothesisMap: true })"
+                                                    />
+                                                </div>
+                                                <p
+                                                    v-if="helpers.isMechanismUsingBiolinkMap(mechanism)"
+                                                    class="text-muted mt-2 mb-0"
+                                                >
+                                                    Nodes in this view are mapped to Biolink Model categories (classes), and edges are labeled with Biolink predicates to standardize relationship types across knowledge graphs.
+                                                    Edge support is then checked through the NCATS Biomedical Data Translator using TRAPI queries against Translator knowledge sources.
+                                                </p>
+                                            </div>
+                                            <div
+                                                v-if="
+                                                    (mechanism.associated_factor_ids && mechanism.associated_factor_ids.length) ||
+                                                    (mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) ||
+                                                    (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length) ||
+                                                    (mechanism.associated_pairs && mechanism.associated_pairs.length) ||
+                                                    (!isGeneSetEntryMode && mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length) ||
+                                                    (!isGeneSetEntryMode && mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)
+                                                "
+                                                class="mechanism-evidence-columns"
+                                            >
                                                 <div
                                                     v-if="
+                                                        (!isGeneSetEntryMode && mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length) ||
                                                         (mechanism.associated_factor_ids && mechanism.associated_factor_ids.length) ||
-                                                        (mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) ||
-                                                        (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length) ||
                                                         (mechanism.associated_pairs && mechanism.associated_pairs.length)
                                                     "
-                                                    class="mechanism-evidence-columns"
+                                                    class="mechanism-evidence-half"
                                                 >
                                                     <div
+                                                        v-if="!isGeneSetEntryMode && mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length"
+                                                    >
+                                                        <div class="mechanism-section-label mb-1">Relevant phenotypes</div>
+                                                        <div class="reveal-evidence-chips">
+                                                            <div
+                                                                v-for="(phenotypeLabel, pidx) in helpers.getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)"
+                                                                :key="'mech-' + idx + '-rphen-' + pidx + '-' + (phenotypeLabel || '')"
+                                                                class="pill text-white"
+                                                                :style="`background:${nodeColors.Phenotype}`"
+                                                            >
+                                                                {{ phenotypeLabel }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
                                                         v-if="mechanism.associated_factor_ids && mechanism.associated_factor_ids.length"
-                                                        class="mechanism-evidence-col"
+                                                        :class="{ 'mt-3': !isGeneSetEntryMode && mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length }"
                                                     >
                                                         <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
@@ -222,7 +263,7 @@
                                                     </div>
                                                     <div
                                                         v-else-if="mechanism.associated_pairs && mechanism.associated_pairs.length"
-                                                        class="mechanism-evidence-col"
+                                                        :class="{ 'mt-3': !isGeneSetEntryMode && mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length }"
                                                     >
                                                         <div class="mechanism-section-label mb-1">Associated gene set clusters</div>
                                                         <div class="reveal-evidence-chips">
@@ -237,362 +278,224 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div
-                                                        v-if="(mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) || (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)"
-                                                        class="mechanism-evidence-col"
-                                                    >
-                                                        <div class="mechanism-section-label mb-1">Cited gene sets</div>
-                                                        <div style="white-space: normal; display:flex; flex-direction: column; gap:6px">
-                                                            <div
-                                                                v-for="set in helpers.formatRelevantGeneSetsForDisplay(mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length ? mechanism.cited_gene_set_names : mechanism.relevant_gene_sets)"
-                                                                :key="'mech-' + idx + '-cgs-' + set.gs"
-                                                            >
-                                                                <div style="display:flex; gap:10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-                                                                    <a
-                                                                        :href="helpers.cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        class="pill text-white text-decoration-none cfde-explore-geneset-link"
-                                                                        style="overflow: clip; text-overflow: ellipsis; max-width: 360px;"
-                                                                        :style="`background:${nodeColors.Pathway}`"
-                                                                        :title="set.desc || set.gs"
-                                                                    >{{ set.gs }}</a>
-                                                                    <div class="d-flex flex-wrap align-items-center fbr-relevant-geneset-programs" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
-                                                                        <template v-if="helpers.c2m2GeneSetDownloadNodes(set.gs).length">
-                                                                            <div class="fbr-program-download-wrap">
-                                                                                <div
-                                                                                    class="pill text-white d-inline-flex align-items-center fbr-program-download-trigger"
-                                                                                    :style="{ background: nodeColors.GeneSetProgramDownloads }"
-                                                                                    role="button"
-                                                                                    tabindex="0"
-                                                                                    :title="(set.program || 'Data files') + ' — hover for download links'"
-                                                                                >
-                                                                                    <span class="fbr-program-download-label">{{ set.program || "Data files" }}</span>
-                                                                                    <b-icon icon="three-dots-vertical" class="fbr-program-download-icon ml-1 flex-shrink-0" aria-hidden="true" />
-                                                                                </div>
-                                                                                <div class="fbr-program-download-menu border rounded bg-white shadow-sm">
-                                                                                    <div class="fbr-program-download-menu-heading px-2 pt-2 pb-1 text-muted text-uppercase">Open or download</div>
-                                                                                    <a
-                                                                                        v-for="(pn, nidx) in helpers.c2m2GeneSetDownloadNodes(set.gs)"
-                                                                                        :key="'mech-' + idx + '-cgs-prov-' + set.gs + '-' + nidx + '-' + pn.id"
-                                                                                        :href="pn.dcc_url"
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        class="fbr-provenance-menu-link d-block px-2 py-1 text-dark text-decoration-none"
-                                                                                    >{{ pn.id }}</a>
-                                                                                </div>
+                                                </div>
+                                                <div
+                                                    v-if="(mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length) || (mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)"
+                                                    class="mechanism-evidence-half"
+                                                >
+                                                    <div class="mechanism-section-label mb-1">{{ isGeneSetEntryMode ? 'Cited gene sets' : 'Cited / relevant gene sets' }}</div>
+                                                    <div style="white-space: normal; display:flex; flex-direction: column; gap:6px">
+                                                        <div
+                                                            v-for="set in helpers.formatRelevantGeneSetsForDisplay(mechanism.cited_gene_set_names && mechanism.cited_gene_set_names.length ? mechanism.cited_gene_set_names : mechanism.relevant_gene_sets)"
+                                                            :key="'mech-' + idx + '-cgs-' + set.gs"
+                                                        >
+                                                            <div style="display:flex; gap:10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+                                                                <a
+                                                                    :href="helpers.cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    class="pill text-white text-decoration-none cfde-explore-geneset-link"
+                                                                    style="overflow: clip; text-overflow: ellipsis; max-width: 360px;"
+                                                                    :style="`background:${nodeColors.Pathway}`"
+                                                                    :title="set.desc || set.gs"
+                                                                >{{ set.gs }}</a>
+                                                                <div class="d-flex flex-wrap align-items-center fbr-relevant-geneset-programs" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
+                                                                    <template v-if="helpers.c2m2GeneSetDownloadNodes(set.gs).length">
+                                                                        <div class="fbr-program-download-wrap">
+                                                                            <div
+                                                                                class="pill text-white d-inline-flex align-items-center fbr-program-download-trigger"
+                                                                                :style="{ background: nodeColors.GeneSetProgramDownloads }"
+                                                                                role="button"
+                                                                                tabindex="0"
+                                                                                :title="(set.program || 'Data files') + ' — hover for download links'"
+                                                                            >
+                                                                                <span class="fbr-program-download-label">{{ set.program || "Data files" }}</span>
+                                                                                <b-icon icon="three-dots-vertical" class="fbr-program-download-icon ml-1 flex-shrink-0" aria-hidden="true" />
                                                                             </div>
-                                                                        </template>
-                                                                        <span
-                                                                            v-else-if="helpers.c2m2ProvenanceEntry(set.gs) && helpers.c2m2ProvenanceEntry(set.gs).status === 'loading'"
-                                                                            class="text-muted"
-                                                                        >Provenance…</span>
-                                                                        <template v-else>
-                                                                            <div v-if="set.program" class="pill">{{ set.program }}</div>
-                                                                        </template>
-                                                                    </div>
+                                                                            <div class="fbr-program-download-menu border rounded bg-white shadow-sm">
+                                                                                <div class="fbr-program-download-menu-heading px-2 pt-2 pb-1 text-muted text-uppercase">Open or download</div>
+                                                                                <a
+                                                                                    v-for="(pn, nidx) in helpers.c2m2GeneSetDownloadNodes(set.gs)"
+                                                                                    :key="'mech-' + idx + '-cgs-prov-' + set.gs + '-' + nidx + '-' + pn.id"
+                                                                                    :href="pn.dcc_url"
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    class="fbr-provenance-menu-link d-block px-2 py-1 text-dark text-decoration-none"
+                                                                                >{{ pn.id }}</a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </template>
+                                                                    <span
+                                                                        v-else-if="helpers.c2m2ProvenanceEntry(set.gs) && helpers.c2m2ProvenanceEntry(set.gs).status === 'loading'"
+                                                                        class="text-muted"
+                                                                    >Provenance…</span>
+                                                                    <template v-else>
+                                                                        <div v-if="set.program" class="pill">{{ set.program }}</div>
+                                                                    </template>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div
-                                                    v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)"
-                                                   
+                                                    v-if="!isGeneSetEntryMode && mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length"
+                                                    class="mechanism-evidence-full"
                                                 >
-                                                    <div class="mechanism-section-label mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
-                                                    <b-table
-                                                        striped
-                                                        hover
-                                                        responsive="sm"
-                                                        head-variant="light"
-                                                        :items="mechanism.candidate_genes || mechanism.genes || []"
-                                                        :fields="[
-                                                            { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
-                                                            { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
-                                                            { key: 'in_search', label: 'In search', thStyle: { width: '80px' } },
-                                                            { key: 'reason', label: 'Reason' },
-                                                            { key: 'gene_sets', label: 'Cited gene sets', thStyle: { width: '180px' } },
-                                                            { key: 'scores_factor_relevance', label: 'Gene set cluster relevance', thStyle: { width: '110px' } },
-                                                            { key: 'scores_gene_score', label: 'Gene score', thStyle: { width: '90px' } }
-                                                        ]"
-                                                    >
-                                                        <template #head(reason)>
-                                                            Reason<span class="ai-gen">AI</span>
-                                                        </template>
-                                                        <template #cell(in_search)="row">
-                                                            {{ helpers.isGeneInSearchSet(row.item) === true ? 'Yes' : (helpers.isGeneInSearchSet(row.item) === false ? 'No' : '—') }}
-                                                        </template>
-                                                        <template #cell(scores_factor_relevance)="row">
-                                                            {{ row.item.scores && (row.item.scores.factor_relevance != null || row.item.scores.combined != null) ? Number(row.item.scores.factor_relevance ?? row.item.scores.combined).toFixed(3) : '—' }}
-                                                        </template>
-                                                        <template #cell(scores_gene_score)="row">
-                                                            {{ row.item.scores && (row.item.scores.gene_score != null || row.item.scores.functional != null) ? Number(row.item.scores.gene_score ?? row.item.scores.functional).toFixed(3) : '—' }}
-                                                        </template>
-                                                        <template #cell(reason)="row">
-                                                            {{ row.item.reason != null ? row.item.reason : row.item.role }}
-                                                        </template>
-                                                        <template #cell(gene)="row">
-                                                            <span
-                                                                class="pill mechanism-gene-symbol"
-                                                                :style="helpers.mechanismGeneGroupPillStyle(row.item.group)"
-                                                            >{{ row.item.gene }}</span>
-                                                        </template>
-                                                        <template #cell(gene_sets)="row">
-                                                            <span class="mechanism-gene-sets-cell">{{
-                                                                helpers.formatGeneSetNamesForTableWrap(
-                                                                    helpers.getGeneConnectionForMechanism(mechanism, row.item.gene).gene_sets || []
-                                                                )
-                                                            }}</span>
-                                                        </template>
-                                                        <template #cell(group)="row">
-                                                            {{ row.item.group || "—" }}
-                                                        </template>
-                                                    </b-table>
-                                                </div>
-                                            </template>
-
-                                            <!-- Free-text path: existing two-column layout -->
-                                            <template v-else>
-                                            <div
-                                                class="d-flex flex-column flex-lg-row align-items-stretch"
-                                                style="gap: 20px;"
-                                            >
-                                                <div class="mechanism-hypothesis-rationale-col flex-grow-1" style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
-                                                    <div>
-                                                        <div class="mechanism-section-label mb-1">Mechanistic hypothesis</div>
-                                                        <div>{{ mechanism.hypothesis }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                    <div
-                                                        v-if="mechanism.pathway_shift_rationale"
-                                                        class="alert alert-warning py-2 px-3 mb-0"
-                                                        role="status"
-                                                    >
-                                                        <strong>Why the hypothesis shifted:</strong>
-                                                        {{ mechanism.pathway_shift_rationale }}<span class="ai-gen">AI</span>
-                                                    </div>
-                                                    <div
-                                                        v-if="mechanism.novelty_explanation || mechanism.novelty"
-                                                       
-                                                    >
-                                                        <div class="mechanism-section-label mb-1">Rationale</div>
-                                                        <div>{{ mechanism.novelty_explanation || mechanism.novelty }}<span class="ai-gen">AI</span></div>
-                                                    </div>
-                                                </div>
-                                                <div
-                                                    v-if="mechanism.core_spine_network && mechanism.core_spine_network.nodes && mechanism.core_spine_network.nodes.length"
-                                                    class="mechanism-hypothesis-map-col flex-grow-1"
-                                                    style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;"
-                                                >
-                                                    <div class="mechanism-section-label mb-2">
-                                                        Hypothesis map (biological mechanism)
-                                                    </div>
-                                                    <div
-                                                        v-if="mechanism.hypothesis_in_kg && mechanism.hypothesis_in_kg.caption"
-                                                        class="mechanism-hypothesis-caption mb-2"
-                                                    >
-                                                        <span
-                                                            v-for="(seg, sidx) in splitHypothesisCaption(mechanism.hypothesis_in_kg.caption)"
-                                                            :key="'cap2-' + idx + '-' + sidx"
-                                                            class="mechanism-hypothesis-caption-item"
+                                                    <div class="mechanism-section-label mb-1">Related data categories</div>
+                                                    <div class="reveal-evidence-chips">
+                                                        <div
+                                                            v-for="(pair, ridx) in mechanism.redundant_associated_pairs"
+                                                            :key="'mech-' + idx + '-red-' + ridx + '-' + (pair.factor || '')"
+                                                            class="pill"
+                                                            style="background:#e2e3e5; color:#383d41;"
                                                         >
-                                                            <span
-                                                                v-if="sidx > 0"
-                                                                class="mechanism-hypothesis-caption-sep"
-                                                                aria-hidden="true"
-                                                            >→</span>
-                                                            <span class="pill mechanism-hypothesis-caption-pill">{{ seg }}</span>
+                                                            {{ helpers.getPhenotypeDisplay(pair.phenotype) }} - {{ helpers.getFactorClusterDisplayString(pair.factor) }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)"
+                                            >
+                                                <div class="mechanism-section-label mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
+                                                <!-- Gene-set columns -->
+                                                <b-table
+                                                    v-if="isGeneSetEntryMode"
+                                                    striped
+                                                    hover
+                                                    responsive="sm"
+                                                    head-variant="light"
+                                                    :items="mechanism.candidate_genes || mechanism.genes || []"
+                                                    :fields="[
+                                                        { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
+                                                        { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
+                                                        { key: 'in_search', label: 'In search', thStyle: { width: '80px' } },
+                                                        { key: 'reason', label: 'Reason' },
+                                                        { key: 'gene_sets', label: 'Cited gene sets', thStyle: { width: '180px' } },
+                                                        { key: 'scores_factor_relevance', label: 'Gene set cluster relevance', thStyle: { width: '110px' } },
+                                                        { key: 'scores_gene_score', label: 'Gene score', thStyle: { width: '90px' } }
+                                                    ]"
+                                                >
+                                                    <template #head(reason)>
+                                                        Reason
+                                                    </template>
+                                                    <template #cell(in_search)="row">
+                                                        {{ helpers.isGeneInSearchSet(row.item) === true ? 'Yes' : (helpers.isGeneInSearchSet(row.item) === false ? 'No' : '—') }}
+                                                    </template>
+                                                    <template #cell(scores_factor_relevance)="row">
+                                                        {{ row.item.scores && (row.item.scores.factor_relevance != null || row.item.scores.combined != null) ? Number(row.item.scores.factor_relevance ?? row.item.scores.combined).toFixed(3) : '—' }}
+                                                    </template>
+                                                    <template #cell(scores_gene_score)="row">
+                                                        {{ row.item.scores && (row.item.scores.gene_score != null || row.item.scores.functional != null) ? Number(row.item.scores.gene_score ?? row.item.scores.functional).toFixed(3) : '—' }}
+                                                    </template>
+                                                    <template #cell(reason)="row">
+                                                        {{ row.item.reason != null ? row.item.reason : row.item.role }}
+                                                    </template>
+                                                    <template #cell(gene)="row">
+                                                        <span
+                                                            class="pill mechanism-gene-symbol"
+                                                            :style="helpers.mechanismGeneGroupPillStyle(row.item.group)"
+                                                        >{{ row.item.gene }}</span>
+                                                    </template>
+                                                    <template #cell(gene_sets)="row">
+                                                        <span class="mechanism-gene-sets-cell">
+                                                            {{
+                                                                helpers.formatGeneSetNamesForTableWrap(
+                                                                    visibleCandidateGeneSets(mechanism, row.item.gene, idx)
+                                                                )
+                                                            }}
+                                                            <button
+                                                                v-if="getCandidateGeneSetsList(mechanism, row.item.gene).length > 5"
+                                                                type="button"
+                                                                class="mechanism-gene-sets-toggle"
+                                                                :aria-expanded="isCandidateGeneSetsExpanded(idx, row.item.gene) ? 'true' : 'false'"
+                                                                :aria-label="isCandidateGeneSetsExpanded(idx, row.item.gene) ? 'Show fewer gene sets' : 'Show more gene sets'"
+                                                                @click="toggleCandidateGeneSets(idx, row.item.gene)"
+                                                            >{{ isCandidateGeneSetsExpanded(idx, row.item.gene) ? '-' : '+' }}</button>
                                                         </span>
-                                                        <span class="ai-gen">AI</span>
-                                                    </div>
-                                                    <div class="flex-grow-1" style="min-height: 220px;">
-                                                        <factor-base-reveal-network
-                                                            :ref="'mechanismHypothesisMap-' + idx"
-                                                            :key="'core-spine-' + idx + '-' + (mechanism.group_name || '')"
-                                                            :network="mechanism.core_spine_network"
-                                                            :genes="mechanism.candidate_genes || mechanism.genes || []"
-                                                            :width="640"
-                                                            :height="280"
-                                                            :show-popup-button="true"
-                                                            :is-mechanism-flow-map="true"
-                                                            :is-biolink-map="helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                            :show-hypothesis-map-view-toggle="helpers.hasMechanismBiolinkNetwork(mechanism)"
-                                                            :show-original-hypothesis-map="!helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                            @hypothesis-original-map="
-                                                                $emit('set-mechanism-map-view', idx, $event ? 'original' : 'biolink')
-                                                            "
-                                                            @open-popup="$emit('open-network-popup', { index: idx, hypothesisMap: true })"
-                                                        />
-                                                    </div>
-                                                    <p
-                                                        v-if="helpers.isMechanismUsingBiolinkMap(mechanism)"
-                                                        class="text-muted mt-2 mb-0"
-                                                    >
-                                                        Nodes in this view are mapped to Biolink Model categories (classes), and edges are labeled with Biolink predicates to standardize relationship types across knowledge graphs.
-                                                        Edge support is then checked through the NCATS Biomedical Data Translator using TRAPI queries against Translator knowledge sources.
-                                                    </p>
-                                                </div>
+                                                    </template>
+                                                    <template #cell(group)="row">
+                                                        {{ row.item.group || "—" }}
+                                                    </template>
+                                                </b-table>
+                                                <!-- Free-text columns -->
+                                                <b-table
+                                                    v-else
+                                                    class="mechanism-candidate-genes-table"
+                                                    striped
+                                                    hover
+                                                    responsive="sm"
+                                                    head-variant="light"
+                                                    :items="mechanism.candidate_genes || mechanism.genes || []"
+                                                    :fields="[
+                                                        { key: 'gene', label: 'Gene', thStyle: { width: '15%' }, tdClass: 'align-top' },
+                                                        { key: 'group', label: 'Gene role', thStyle: { width: '20%' }, tdClass: 'align-top' },
+                                                        { key: 'reason', label: 'Reason', thStyle: { width: '20%' }, tdClass: 'align-top' },
+                                                        { key: 'gene_sets', label: 'Gene sets (selected row)', thStyle: { width: '45%' }, tdClass: 'align-top' }
+                                                    ]"
+                                                >
+                                                    <template #head(reason)>
+                                                        Reason
+                                                    </template>
+                                                    <template #cell(reason)="row">
+                                                        {{ row.item.reason != null ? row.item.reason : row.item.role }}
+                                                    </template>
+                                                    <template #cell(gene)="row">
+                                                        <span
+                                                            class="pill mechanism-gene-symbol"
+                                                            :style="helpers.mechanismGeneGroupPillStyle(row.item.group)"
+                                                        >{{ row.item.gene }}</span>
+                                                    </template>
+                                                    <template #cell(gene_sets)="row">
+                                                        <span class="mechanism-gene-sets-cell">
+                                                            {{
+                                                                helpers.formatGeneSetNamesForTableWrap(
+                                                                    visibleCandidateGeneSets(mechanism, row.item.gene, idx)
+                                                                )
+                                                            }}
+                                                            <button
+                                                                v-if="getCandidateGeneSetsList(mechanism, row.item.gene).length > 5"
+                                                                type="button"
+                                                                class="mechanism-gene-sets-toggle"
+                                                                :aria-expanded="isCandidateGeneSetsExpanded(idx, row.item.gene) ? 'true' : 'false'"
+                                                                :aria-label="isCandidateGeneSetsExpanded(idx, row.item.gene) ? 'Show fewer gene sets' : 'Show more gene sets'"
+                                                                @click="toggleCandidateGeneSets(idx, row.item.gene)"
+                                                            >{{ isCandidateGeneSetsExpanded(idx, row.item.gene) ? '-' : '+' }}</button>
+                                                        </span>
+                                                    </template>
+                                                    <template #cell(group)="row">
+                                                        {{ row.item.group || "—" }}
+                                                    </template>
+                                                </b-table>
                                             </div>
-                                            <div v-if="mechanism.relevance" class="mb-3">
-                                                <div class="mechanism-section-label mb-1">Relevance</div>
-                                                <div>{{ mechanism.relevance }}</div>
+                                            <div v-if="!isGeneSetEntryMode && mechanism.genes_collective_reason">
+                                                <div class="mechanism-section-label mb-1">Genes collective reason</div>
+                                                <div class="bg-warning bg-opacity-25 p-2 rounded">{{ mechanism.genes_collective_reason }}</div>
                                             </div>
-                                            <div style="display:flex; flex-direction: row; gap:20px">
-                                                <div style="display:flex; flex-direction: column; flex:1; overflow-x: auto;">
-                                                    <div class="mb-3">
-                                                        <template v-if="(mechanism.candidate_genes && mechanism.candidate_genes.length) || (mechanism.genes && mechanism.genes.length)">
-                                                            <div class="mechanism-section-label mb-2">Candidate genes ({{ (mechanism.candidate_genes || mechanism.genes || []).length }})</div>
-                                                            <b-table
-                                                                striped
-                                                                hover
-                                                                responsive="sm"
-                                                                head-variant="light"
-                                                                :items="mechanism.candidate_genes || mechanism.genes || []"
-                                                                :fields="[
-                                                                    { key: 'gene', label: 'Gene', thStyle: { width: '90px' }},
-                                                                    { key: 'group', label: 'Gene role', thStyle: { width: '200px' } },
-                                                                    { key: 'reason', label: 'Reason' },
-                                                                    { key: 'gene_sets', label: 'Gene sets (selected row)', thStyle: { width: '180px' } },
-                                                                    { key: 'scores_combined', label: 'Combined', thStyle: { width: '85px' } },
-                                                                    { key: 'scores_gwas', label: 'GWAS', thStyle: { width: '75px' } },
-                                                                    { key: 'scores_functional', label: 'Functional', thStyle: { width: '90px' } }
-                                                                ]"
-                                                            >
-                                                                <template #head(reason)>
-                                                                    Reason<span class="ai-gen">AI</span>
-                                                                </template>
-                                                                <template #cell(scores_combined)="row">
-                                                                    {{ row.item.scores && (row.item.scores.combined != null || row.item.scores.c != null) ? Number(row.item.scores.combined ?? row.item.scores.c).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(scores_gwas)="row">
-                                                                    {{ row.item.scores && (row.item.scores.gwas != null || row.item.scores.g != null) ? Number(row.item.scores.gwas ?? row.item.scores.g).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(scores_functional)="row">
-                                                                    {{ row.item.scores && (row.item.scores.functional != null || row.item.scores.f != null) ? Number(row.item.scores.functional ?? row.item.scores.f).toFixed(2) : '—' }}
-                                                                </template>
-                                                                <template #cell(reason)="row">
-                                                                    {{ row.item.reason != null ? row.item.reason : row.item.role }}
-                                                                </template>
-                                                                <template #cell(gene)="row">
-                                                                    <span
-                                                                        class="pill mechanism-gene-symbol"
-                                                                        :style="helpers.mechanismGeneGroupPillStyle(row.item.group)"
-                                                                    >{{ row.item.gene }}</span>
-                                                                </template>
-                                                                <template #cell(gene_sets)="row">
-                                                                    <span class="mechanism-gene-sets-cell">{{
-                                                                        helpers.formatGeneSetNamesForTableWrap(
-                                                                            helpers.getGeneConnectionForMechanism(mechanism, row.item.gene).gene_sets || []
-                                                                        )
-                                                                    }}</span>
-                                                                </template>
-                                                                <template #cell(group)="row">
-                                                                    {{ row.item.group || "—" }}
-                                                                </template>
-                                                            </b-table>
-                                                        </template>
-                                                    </div>
-                                                    <div v-if="mechanism.genes_collective_reason" class="mb-3">
-                                                        <div class="mechanism-section-label mb-1">Genes collective reason</div>
-                                                        <div class="bg-warning bg-opacity-25 p-2 rounded">{{ mechanism.genes_collective_reason }}</div>
-                                                    </div>
+                                            <div
+                                                v-if="!isGeneSetEntryMode && (mechanism.supporting_network || mechanism.network) && ((mechanism.supporting_network || mechanism.network).nodes || (mechanism.supporting_network || mechanism.network).edges)"
+                                            >
+                                                <div class="mechanism-section-label mb-2">Supporting network</div>
+                                                <div class="text-muted mb-2">
+                                                    {{ ((mechanism.supporting_network || mechanism.network).nodes || []).length }} nodes,
+                                                    {{ ((mechanism.supporting_network || mechanism.network).edges || []).length }} edges
                                                 </div>
-                                                <div v-if="(mechanism.supporting_network || mechanism.network) && ((mechanism.supporting_network || mechanism.network).nodes || (mechanism.supporting_network || mechanism.network).edges)" style="flex:1">
-                                                    <div class="mechanism-section-label mb-2">Supporting network</div>
-                                                    <div class="text-muted mb-2">
-                                                        {{ ((mechanism.supporting_network || mechanism.network).nodes || []).length }} nodes,
-                                                        {{ ((mechanism.supporting_network || mechanism.network).edges || []).length }} edges
-                                                    </div>
+                                                <div style="min-height: 220px;">
                                                     <factor-base-reveal-network
-                                                        :key="mechanism.group_name || idx"
+                                                        :key="'support-' + (mechanism.group_name || idx)"
                                                         :ref="'mechanismNetwork-' + idx"
                                                         :network="mechanism.supporting_network || mechanism.network"
                                                         :genes="mechanism.candidate_genes || mechanism.genes || []"
                                                         :width="640"
                                                         :height="360"
                                                         :show-popup-button="true"
+                                                        keep-physics-enabled
+                                                        :use-gene-role-colors="false"
+                                                        highlight-anchor-genes
                                                         @open-popup="$emit('open-network-popup', { index: idx, hypothesisMap: false })"
                                                     />
-                                                    <div class="mt-2" style="display:flex; flex-direction: column;">
-                                                        <div v-if="(mechanism.relevant_phenotypes && mechanism.relevant_phenotypes.length)" class="mb-2">
-                                                            <div class="mechanism-section-label mb-1">Relevant phenotypes</div>
-                                                            <div style="display:flex; flex-direction: column; gap:3px">
-                                                                <div
-                                                                    v-for="(phenotypeLabel, pidx) in helpers.getRelevantPhenotypesDisplay(mechanism.relevant_phenotypes)"
-                                                                    :key="'mech-' + idx + '-rphen-' + pidx + '-' + (phenotypeLabel || '')"
-                                                                    class="pill"
-                                                                    :style="`background:${nodeColors.Phenotype}; color:white`"
-                                                                >
-                                                                    {{ phenotypeLabel }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div v-if="(mechanism.redundant_associated_pairs && mechanism.redundant_associated_pairs.length)" class="mb-2">
-                                                            <div class="mechanism-section-label mb-1">Related data categories</div>
-                                                            <div style="display:flex; flex-wrap: wrap; gap:3px">
-                                                                <div
-                                                                    v-for="(pair, ridx) in mechanism.redundant_associated_pairs"
-                                                                    :key="'mech-' + idx + '-red-' + ridx + '-' + (pair.factor || '')"
-                                                                    class="pill"
-                                                                    style="background:#e2e3e5; color:#383d41;"
-                                                                >
-                                                                    {{ helpers.getPhenotypeDisplay(pair.phenotype) }} - {{ helpers.getFactorClusterDisplayString(pair.factor) }}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div v-if="(mechanism.relevant_gene_sets && mechanism.relevant_gene_sets.length)" class="mb-2">
-                                                            <div class="mechanism-section-label mb-1">Relevant gene sets</div>
-                                                            <div style="white-space: normal; display:flex; flex-direction: column; gap:3px">
-                                                                <div v-for="set in helpers.formatRelevantGeneSetsForDisplay(mechanism.relevant_gene_sets)" :key="set.gs">
-                                                                    <div style="display:flex; gap:10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-                                                                        <a
-                                                                            :href="helpers.cfdeExploreGeneSetHref(mechanism, set.gs, set.program)"
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            class="pill text-white text-decoration-none cfde-explore-geneset-link"
-                                                                            style="overflow: clip; text-overflow: ellipsis; max-width: 300px; word-wrap: normal;"
-                                                                            :style="`background:${nodeColors.Pathway}`"
-                                                                            :title="set.desc || set.gs"
-                                                                        >{{ set.gs }}</a>
-                                                                        <div class="d-flex flex-wrap align-items-center fbr-relevant-geneset-programs" style="gap:6px; max-width: min(100%, 560px); justify-content: flex-end;">
-                                                                            <template v-if="helpers.c2m2GeneSetDownloadNodes(set.gs).length">
-                                                                                <div class="fbr-program-download-wrap">
-                                                                                    <div
-                                                                                        class="pill text-white d-inline-flex align-items-center fbr-program-download-trigger"
-                                                                                        :style="{ background: nodeColors.GeneSetProgramDownloads }"
-                                                                                        role="button"
-                                                                                        tabindex="0"
-                                                                                        :title="(set.program || 'Data files') + ' — hover for download links'"
-                                                                                    >
-                                                                                        <span class="fbr-program-download-label">{{ set.program || "Data files" }}</span>
-                                                                                        <b-icon icon="three-dots-vertical" class="fbr-program-download-icon ml-1 flex-shrink-0" aria-hidden="true" />
-                                                                                    </div>
-                                                                                    <div class="fbr-program-download-menu border rounded bg-white shadow-sm">
-                                                                                        <div class="fbr-program-download-menu-heading px-2 pt-2 pb-1 text-muted text-uppercase">Open or download</div>
-                                                                                        <a
-                                                                                            v-for="(pn, nidx) in helpers.c2m2GeneSetDownloadNodes(set.gs)"
-                                                                                            :key="'mech-' + idx + '-prov-menu-' + set.gs + '-' + nidx + '-' + pn.id"
-                                                                                            :href="pn.dcc_url"
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            class="fbr-provenance-menu-link d-block px-2 py-1 text-dark text-decoration-none"
-                                                                                        >{{ pn.id }}</a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </template>
-                                                                            <span v-else-if="helpers.c2m2ProvenanceEntry(set.gs) && helpers.c2m2ProvenanceEntry(set.gs).status === 'loading'" class="text-muted">Provenance…</span>
-                                                                            <template v-else>
-                                                                                <div v-if="set.program" class="pill">{{ set.program }}</div>
-                                                                            </template>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
-                                            </template>
                                             <div v-if="mechanism.next_steps && mechanism.next_steps.length" class="mt-2 mb-1 border-top pt-3">
                                                 <div class="mechanism-section-label mb-2">Recommended next steps</div>
                                                 <div class="d-flex flex-column" style="gap:8px">
@@ -1030,6 +933,12 @@ export default {
         nodeColors: { type: Object, default: () => ({}) },
         helpers: { type: Object, required: true },
     },
+    data() {
+        return {
+            /** Keys: `${mechanismIndex}:${gene}` → expanded gene-set list in candidate table. */
+            expandedCandidateGeneSets: {},
+        };
+    },
     methods: {
         /** Split hypothesis map caption on arrows into pill segments. */
         splitHypothesisCaption(caption) {
@@ -1040,6 +949,25 @@ export default {
                 .map((p) => p.trim())
                 .filter(Boolean);
             return parts.length ? parts : [raw];
+        },
+        candidateGeneSetsKey(mechIdx, gene) {
+            return `${mechIdx}:${gene != null ? String(gene) : ""}`;
+        },
+        getCandidateGeneSetsList(mechanism, gene) {
+            const conn = this.helpers.getGeneConnectionForMechanism(mechanism, gene);
+            return Array.isArray(conn && conn.gene_sets) ? conn.gene_sets : [];
+        },
+        isCandidateGeneSetsExpanded(mechIdx, gene) {
+            return !!this.expandedCandidateGeneSets[this.candidateGeneSetsKey(mechIdx, gene)];
+        },
+        toggleCandidateGeneSets(mechIdx, gene) {
+            const key = this.candidateGeneSetsKey(mechIdx, gene);
+            this.$set(this.expandedCandidateGeneSets, key, !this.expandedCandidateGeneSets[key]);
+        },
+        visibleCandidateGeneSets(mechanism, gene, mechIdx) {
+            const list = this.getCandidateGeneSetsList(mechanism, gene);
+            if (list.length <= 5 || this.isCandidateGeneSetsExpanded(mechIdx, gene)) return list;
+            return list.slice(0, 5);
         },
     },
 };

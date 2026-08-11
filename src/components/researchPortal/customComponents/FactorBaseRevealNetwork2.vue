@@ -204,6 +204,15 @@ export default {
          * instead of painting the whole visible graph orange.
          */
         suppressSelectionHighlight: { type: Boolean, default: false },
+        /**
+         * Color Gene nodes by candidate_genes[].group (role palette). Off for supporting
+         * networks so fills match the type legend (purple Gene).
+         */
+        useGeneRoleColors: { type: Boolean, default: true },
+        /**
+         * Paint search-anchor genes (candidate_genes[].is_input) with the Selected / Anchor color.
+         */
+        highlightAnchorGenes: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -281,13 +290,30 @@ export default {
                     { label: "Gene", color: DATA_TAB_GENE_COLOR.background },
                 ];
             }
-            // Genes-entry / factorization network: compact type legend.
-            return [
-                { label: "Gene set cluster", color: NODE_COLORS.Factor },
-                { label: "Gene set", color: NODE_COLORS.Pathway },
-                { label: "Gene", color: DEFAULT_GENE_COLOR },
-                { label: "Selected", color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground },
-            ];
+            // Supporting / factorization network: legend tracks types present + Selected / Anchor.
+            const typesPresent = new Set();
+            (this.network.nodes || []).forEach((n) => {
+                const t = n && n.type != null ? String(n.type).trim() : "";
+                if (t) typesPresent.add(t);
+            });
+            const items = [];
+            if (typesPresent.has("Phenotype")) {
+                items.push({ label: "Phenotype", color: NODE_COLORS.Phenotype });
+            }
+            if (typesPresent.has("Factor") || !typesPresent.size) {
+                items.push({ label: "Gene set cluster", color: NODE_COLORS.Factor });
+            }
+            if (typesPresent.has("Pathway") || !typesPresent.size) {
+                items.push({ label: "Gene set", color: NODE_COLORS.Pathway });
+            }
+            if (typesPresent.has("Gene") || !typesPresent.size) {
+                items.push({ label: "Gene", color: DEFAULT_GENE_COLOR });
+            }
+            items.push({
+                label: "Selected / Anchor",
+                color: SELECTION_HIGHLIGHT_ORANGE.nodeBackground,
+            });
+            return items;
         },
         showNodeSizeLegend() {
             return !!(String(this.geneNodeMetricKey || "").trim() || String(this.geneSetNodeMetricKey || "").trim());
@@ -818,9 +844,21 @@ export default {
                         color = DATA_TAB_GENE_COLOR.background;
                         geneBorder = DATA_TAB_GENE_COLOR.border;
                     } else {
-                        const group = geneToGroup[geneName];
-                        color = colorForGeneRole(group);
-                        if (biolinkColor) color = biolinkColor;
+                        const isAnchor =
+                            this.highlightAnchorGenes &&
+                            candidateGeneRow &&
+                            (candidateGeneRow.is_input === true || candidateGeneRow.in_search === true);
+                        if (isAnchor) {
+                            color = SELECTION_HIGHLIGHT_ORANGE.nodeBackground;
+                            geneBorder = SELECTION_HIGHLIGHT_ORANGE.nodeBorder;
+                        } else if (this.useGeneRoleColors) {
+                            const group = geneToGroup[geneName];
+                            color = colorForGeneRole(group);
+                            if (biolinkColor) color = biolinkColor;
+                        } else {
+                            color = DEFAULT_GENE_COLOR;
+                            if (biolinkColor) color = biolinkColor;
+                        }
                     }
                 }
                 if (type === "Pathway") {

@@ -271,10 +271,9 @@ function requestMechanismHypotheses(vm, factorData, kgTriples, routeEvidenceBund
         ? filterFactorDataByAssociationFilters(freeTextScoped.factorData, associationFilters)
         : freeTextScoped.factorData;
 
-    // Local KG for post-LLM evidence networks / gene scores (not sent in the prompt).
-    const scopedKgTriples = transformMergedDataToKG(scopedFactorData, "factors", {
-        forHypothesisPrompt: true,
-    });
+    // Local KG for post-LLM evidence networks / candidate-gene scores (not sent in the slim LLM feed).
+    // Keep scores (forHypothesisPrompt: false) so Results Combined/GWAS/Functional columns populate.
+    const scopedKgTriples = transformMergedDataToKG(scopedFactorData, "factors");
     vm.lastFlattenedKG = flattenKGData(scopedKgTriples);
 
     const built = buildFreeTextLlmFeed(scopedFactorData, {
@@ -368,7 +367,8 @@ function generateHypothesisForRemainingPair(vm, row) {
         vm.remainingPairGenerateError = "Could not build data for this pair.";
         return;
     }
-    const kgTriples = transformMergedDataToKG(subset, "factors", { forHypothesisPrompt: true });
+    // Scored KG for normalize / candidate table (slim LLM feed stays score-free separately).
+    const kgTriples = transformMergedDataToKG(subset, "factors");
     if (!kgTriples || !kgTriples.length) {
         vm.remainingPairGenerateError = "No knowledge graph triples for this pair.";
         return;

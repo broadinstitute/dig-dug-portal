@@ -109,9 +109,24 @@
     gap: 16px 24px;
     align-items: flex-start;
 }
+.mechanism-evidence-half {
+    flex: 1 1 calc(50% - 12px);
+    max-width: calc(50% - 12px);
+    min-width: 0;
+}
+.mechanism-evidence-full {
+    flex: 1 1 100%;
+    min-width: 0;
+}
 .mechanism-evidence-col {
     flex: 1 1 240px;
     min-width: 0;
+}
+@media (max-width: 767.98px) {
+    .mechanism-evidence-half {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
 }
 .reveal-evidence-chips-stack {
     display: flex;
@@ -130,6 +145,31 @@
     color: #6c757d;
     letter-spacing: 0.02em;
     font-size: inherit;
+}
+.mechanism-hypothesis-block.has-pathway-shift {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+}
+.mechanism-hypothesis-block.has-pathway-shift .mechanism-hypothesis-main {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 70%;
+    flex-basis: calc(70% - 8px);
+}
+.mechanism-hypothesis-block.has-pathway-shift .mechanism-hypothesis-shift {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 30%;
+    flex-basis: calc(30% - 8px);
+}
+@media (max-width: 767.98px) {
+    .mechanism-hypothesis-block.has-pathway-shift .mechanism-hypothesis-main,
+    .mechanism-hypothesis-block.has-pathway-shift .mechanism-hypothesis-shift {
+        max-width: 100%;
+        flex-basis: 100%;
+    }
 }
 .mechanism-hypothesis-caption {
     display: flex;
@@ -214,6 +254,29 @@
 .mechanism-gene-sets-cell {
     overflow-wrap: break-word;
     word-break: normal;
+}
+.mechanism-candidate-genes-table table {
+    table-layout: fixed;
+    width: 100%;
+}
+.mechanism-gene-sets-toggle {
+    display: inline;
+    margin-left: 4px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #0d6efd;
+    font-weight: 700;
+    font-size: inherit;
+    line-height: 1;
+    cursor: pointer;
+    vertical-align: baseline;
+}
+.mechanism-gene-sets-toggle:hover,
+.mechanism-gene-sets-toggle:focus {
+    color: #0a58ca;
+    text-decoration: none;
+    outline: none;
 }
 
 /* Relevant / cited gene sets: program source pill + hover menu for C2M2 file links */
