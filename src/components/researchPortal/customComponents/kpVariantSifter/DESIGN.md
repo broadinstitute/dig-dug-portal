@@ -34,7 +34,7 @@ Settings and Actions live in **viewport controls**, not the menu bar.
 - First visit / after reset shows the **Welcome** panel on the canvas (`VariantSifterWelcomePanel`).
 - Search & select: phenotype typeahead, ancestry, locus (gene / rsID / region), optional region expand, Import session.
 - Optional **project** (Default KP / GIANT / **GWAS-CE**) changes BioIndex host and search fields — see `variantSifterProjects.js`.
-- **GWAS-CE:** Welcome shows **Token** (for associations) plus **Phenotype** and **Ancestry** (for GE / credible sets / companion layers on the portal BioIndex). Region is still required via the gene/variant/region field.
+- **GWAS-CE:** Welcome shows **Token** (GWAS-CE overlay) plus **Phenotype** and **Ancestry** (default KP associations + GE / credible sets / companion layers). Region is still required via the gene/variant/region field.
 
 ### Projects
 
@@ -42,9 +42,9 @@ Settings and Actions live in **viewport controls**, not the menu bar.
 |----|-------|-----------|----------|-------|
 | `""` | Default (KP) | Phenotype + Ancestry | Portal host | Full sections |
 | `giant` | GIANT | Curated phenotypes + ancestries | `https://giant.hugeampkpnbi.org` | Subset of indexes on Giant; others fall back to portal |
-| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | `https://gwas-ce.kpndataregistry.org/bioidx` for associations; portal host for other indexes | Associations via token; GE/CS/genes/etc. via selected phenotype |
+| `gwas-ce` | GWAS-CE | **Token** + Phenotype + Ancestry | Portal host for default VS; CE host for additive GWAS-CE associations | Default KP associations + GE/CS/…; CE overlay plot/table rows tagged `Project=GWAS-CE` |
 
-**GWAS-CE query shape:** associations index `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Phenotype/ancestry drive portal BioIndex layers (GE, credible sets, …). Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`. Skip per-ancestry association availability probes (token series is not multi-ancestry associations).
+**GWAS-CE query shape:** additive overlay — keep default KP `associations` / `ancestry-associations` for the selected phenotype + ancestry. Also fetch CE `associations-{token}`, `q={token},{chr:start-end}`, `fmt=row`, via **HTTP GET**. Canvas shows a **GWAS-CE associations** plot above the default **Associations** plot. Table rows include a **Project** column (`KP` / `GWAS-CE`) and a **Project** filter under Ancestry. Do **not** put the token in the page URL. Session / HTML export replaces the token with `$token`.
 
 ### Canvas vs drawers
 
@@ -241,3 +241,4 @@ Reference pattern: `VariantSifterGenesTrack.vue` + `variantSifterGenesTrackRende
 | 2026-08-11 | Initial DESIGN.md for agent handoff (canvas-first VS rebuild on `dk-ai-based-VS`) |
 | 2026-08-11 | GWAS-CE: Token + Phenotype + Ancestry; associations via token, companion layers via phenotype on portal BioIndex |
 | 2026-08-11 | GWAS-CE: skip ancestry-association availability probes; LD falls back past I/D lead variants |
+| 2026-08-11 | GWAS-CE additive: KP associations remain primary; CE overlay plot + Project column/filter |

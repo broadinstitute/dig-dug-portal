@@ -259,9 +259,11 @@ import { parseRegionParam, formatRegion, formatSearchSessionLabel, formatSubAnce
 import {
     associationRowAncestry,
     fetchAssociations,
-    fetchGlobalAssociations,
+    fetchGwasCeAssociations,
+    filterAssociationRowsByProject,
     primaryAssociationAncestry,
     probeAncestryAssociationAvailability,
+    fetchGlobalAssociations,
 } from "./kpVariantSifter/variantSifterAssociationsApi.js";
 import { formatAssociationRows } from "./kpVariantSifter/variantSifterAssociationsTable.js";
 import { createFiltersIndex } from "./kpVariantSifter/variantSifterAssociationsFilters.js";
@@ -360,8 +362,11 @@ import {
     normalizeProjectId,
     projectAssociationsOnly,
     projectPhenotypes,
+    resolveGwasCeToken,
     resolveProjectBioIndexHost,
     resolveProjectPrimaryBioIndexHost,
+    VKS_ASSOCIATION_PROJECT_GWAS_CE,
+    VKS_ASSOCIATION_PROJECT_KP,
     VKS_PROJECT_DEFAULT_ID,
 } from "./kpVariantSifter/variantSifterProjects.js";
 import {
@@ -769,6 +774,75 @@ export default Vue.component("kp-variant-sifter", {
                 this.projectId,
                 this.defaultBioIndexHost
             );
+        },
+        /**
+         * Fetch GWAS-CE token associations as an additive overlay (Project=GWAS-CE).
+         * Soft-fails to [] when token/project is missing or the request errors.
+         */
+        async fetchFormattedGwasCeAssociationRows(session, region = null) {
+            if (!isGwasCeProject(this.projectId) || !resolveGwasCeToken(session)) {
+                return [];
+            }
+            try {
+                const result = await fetchGwasCeAssociations(
+                    region ? { ...session, region } : session
+                );
+                return formatAssociationRows(result.rows, session, {
+                    project: VKS_ASSOCIATION_PROJECT_GWAS_CE,
+                });
+            } catch (error) {
+                console.warn("Variant Sifter GWAS-CE associations load failed", error);
+                return [];
+            }
+        },
+        /**
+         * Enrich KP and GWAS-CE association rows separately so CE indels do not
+         * block LD for the KP series (and vice versa).
+         */
+        async enrichAssociationRowsByProject(rows, session, region = null) {
+            const list = Array.isArray(rows) ? rows : [];
+            if (!list.length || !session) {
+                return { rows: list, refVariant: null };
+            }
+            const kpRows = filterAssociationRowsByProject(
+                list,
+                VKS_ASSOCIATION_PROJECT_KP
+            );
+            const ceRows = filterAssociationRowsByProject(
+                list,
+                VKS_ASSOCIATION_PROJECT_GWAS_CE
+            );
+            const activeRegion = region || session.region;
+            let enriched = [];
+            let refVariant = null;
+
+            if (kpRows.length) {
+                const kpResult = await enrichAssociationRowsWithLdScores(
+                    kpRows,
+                    session,
+                    activeRegion
+                );
+                enriched = enriched.concat(kpResult.rows);
+                refVariant = kpResult.refVariant;
+            }
+            if (ceRows.length) {
+                const ceResult = await enrichAssociationRowsWithLdScores(
+                    ceRows,
+                    session,
+                    activeRegion
+                );
+                enriched = enriched.concat(ceResult.rows);
+                if (!refVariant) {
+                    refVariant = ceResult.refVariant;
+                }
+            }
+
+            // Preserve any rows that lack Project (legacy snapshots).
+            if (!kpRows.length && !ceRows.length) {
+                return enrichAssociationRowsWithLdScores(list, session, activeRegion);
+            }
+
+            return { rows: enriched, refVariant };
         },
         applyProjectFromUrl() {
             const params = this.utilsBox?.keyParams;
@@ -1294,7 +1368,9 @@ export default Vue.component("kp-variant-sifter", {
 
                     try {
                         const result = await fetchAssociations(gapSession, associationsHost, this.projectId);
-                        const formattedRows = formatAssociationRows(result.rows, gapSession);
+                        const formattedRows = formatAssociationRows(result.rows, gapSession, {
+                            project: VKS_ASSOCIATION_PROJECT_KP,
+                        });
                         if (formattedRows.length) {
                             extendedAssociationRows = true;
                         }
@@ -1303,6 +1379,19 @@ export default Vue.component("kp-variant-sifter", {
                             formattedRows,
                             primaryAssociationAncestry(this.searchSession)
                         );
+
+                        const ceGapRows = await this.fetchFormattedGwasCeAssociationRows(
+                            this.searchSession,
+                            gapRegion
+                        );
+                        if (ceGapRows.length) {
+                            extendedAssociationRows = true;
+                            mergedRows = mergeAssociationRowsByVariantAndAncestry(
+                                mergedRows,
+                                ceGapRows,
+                                primaryAssociationAncestry(this.searchSession)
+                            );
+                        }
                         this.flushStreamedAssociationRows(mergedRows, activeRegion, gapRegion);
 
                         for (const ancestry of this.associationsState.selectedAncestries || []) {
@@ -1324,7 +1413,8 @@ export default Vue.component("kp-variant-sifter", {
                                 );
                                 const ancestryRows = formatAssociationRows(
                                     ancestryResult.rows,
-                                    ancestrySession
+                                    ancestrySession,
+                                    { project: VKS_ASSOCIATION_PROJECT_KP }
                                 );
                                 if (ancestryRows.length) {
                                     extendedAssociationRows = true;
@@ -2681,11 +2771,22 @@ export default Vue.component("kp-variant-sifter", {
 
                 let enrichedRows = [];
                 let resolvedRefVariant = rowToLdVariant(preferredRefRow);
+
+                // Enrich KP ancestry series and GWAS-CE overlay separately.
+                const kpRows = filterAssociationRowsByProject(
+                    rows,
+                    VKS_ASSOCIATION_PROJECT_KP
+                );
+                const ceRows = filterAssociationRowsByProject(
+                    rows,
+                    VKS_ASSOCIATION_PROJECT_GWAS_CE
+                );
+
                 for (const ancestry of ancestries) {
                     if (isCancelled()) {
                         return false;
                     }
-                    const seriesRows = rows.filter(
+                    const seriesRows = kpRows.filter(
                         (row) => associationRowAncestry(row, primary) === ancestry
                     );
                     if (!seriesRows.length) {
@@ -2720,6 +2821,32 @@ export default Vue.component("kp-variant-sifter", {
                         }
                     }
                     enrichedRows = enrichedRows.concat(seriesWithLd);
+                }
+
+                if (ceRows.length) {
+                    if (isCancelled()) {
+                        return false;
+                    }
+                    if (userPinnedRef) {
+                        enrichedRows = enrichedRows.concat(
+                            await enrichAssociationRowsWithLdScoresForRef(
+                                ceRows,
+                                { ...this.searchSession, region: activeRegion },
+                                preferredRefRow,
+                                activeRegion
+                            )
+                        );
+                    } else {
+                        const ceLd = await enrichAssociationRowsWithLdScores(
+                            ceRows,
+                            { ...this.searchSession, region: activeRegion },
+                            activeRegion
+                        );
+                        enrichedRows = enrichedRows.concat(ceLd.rows);
+                        if (!resolvedRefVariant && ceLd.refVariant) {
+                            resolvedRefVariant = ceLd.refVariant;
+                        }
+                    }
                 }
 
                 if (isCancelled()) {
@@ -2797,7 +2924,19 @@ export default Vue.component("kp-variant-sifter", {
                     return;
                 }
 
-                formattedRows = formatAssociationRows(result.rows, session);
+                const kpRows = formatAssociationRows(result.rows, session, {
+                    project: VKS_ASSOCIATION_PROJECT_KP,
+                });
+                const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+
+                formattedRows = mergeAssociationRowsByVariantAndAncestry(
+                    kpRows,
+                    ceRows,
+                    primaryAssociationAncestry(session)
+                );
                 if (!this.dataRegion) {
                     this.dataRegion = cloneGenomicRegion(session.region);
                 }
@@ -2814,13 +2953,36 @@ export default Vue.component("kp-variant-sifter", {
                 if (token !== this.associationsRequestToken) {
                     return;
                 }
-                associationFailed = true;
-                console.warn("Variant Sifter associations load failed", error);
-                this.associationsState = {
-                    ...emptyAssociationsState(),
-                    error: "Failed to load associations. Please try again.",
-                };
-                this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                // KP failed — still try CE overlay so the page is not empty.
+                const ceRows = await this.fetchFormattedGwasCeAssociationRows(session);
+                if (token !== this.associationsRequestToken) {
+                    return;
+                }
+                if (ceRows.length) {
+                    formattedRows = ceRows;
+                    associationFailed = false;
+                    if (!this.dataRegion) {
+                        this.dataRegion = cloneGenomicRegion(session.region);
+                    }
+                    this.associationsState = {
+                        ...this.associationsState,
+                        error: null,
+                        ldError: null,
+                        rows: formattedRows,
+                        index: null,
+                        query: null,
+                    };
+                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.DONE);
+                    console.warn("Variant Sifter KP associations load failed; showing GWAS-CE only", error);
+                } else {
+                    associationFailed = true;
+                    console.warn("Variant Sifter associations load failed", error);
+                    this.associationsState = {
+                        ...emptyAssociationsState(),
+                        error: "Failed to load associations. Please try again.",
+                    };
+                    this.setRegionLoadStep("associations", VKS_REGION_LOAD_STATUS.FAILED);
+                }
             }
 
             if (token !== this.associationsRequestToken) {
@@ -2841,7 +3003,13 @@ export default Vue.component("kp-variant-sifter", {
                     if (token !== this.associationsRequestToken) {
                         return;
                     }
-                    const leadRow = pickLeadVariantRow(formattedRows);
+                    const leadRow =
+                        pickLeadVariantRow(
+                            filterAssociationRowsByProject(
+                                formattedRows,
+                                VKS_ASSOCIATION_PROJECT_KP
+                            )
+                        ) || pickLeadVariantRow(formattedRows);
                     this.plotOverlaysState = {
                         ready: true,
                         loading: false,
@@ -2867,7 +3035,7 @@ export default Vue.component("kp-variant-sifter", {
                 if (!associationFailed && formattedRows.length) {
                     this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
                     try {
-                        const ldResult = await enrichAssociationRowsWithLdScores(
+                        const ldResult = await this.enrichAssociationRowsByProject(
                             formattedRows,
                             session
                         );
@@ -3039,7 +3207,7 @@ export default Vue.component("kp-variant-sifter", {
             if (!associationFailed && formattedRows.length) {
                 this.setRegionLoadStep("ld", VKS_REGION_LOAD_STATUS.LOADING);
                 try {
-                    const ldResult = await enrichAssociationRowsWithLdScores(
+                    const ldResult = await this.enrichAssociationRowsByProject(
                         formattedRows,
                         session
                     );
@@ -3122,18 +3290,6 @@ export default Vue.component("kp-variant-sifter", {
             }
         },
         async probeAncestryAssociationAvailabilityForSession(session) {
-            // GWAS-CE associations are a single token-gated series — no per-ancestry
-            // association indexes to probe (and probes would hit the wrong host/query).
-            if (isGwasCeProject(this.projectId)) {
-                this.associationsState = {
-                    ...this.associationsState,
-                    ancestryAvailability: [],
-                    ancestryAvailabilityLoading: false,
-                    ancestryAvailabilityError: null,
-                };
-                return;
-            }
-
             const host = this.bioIndexHostFor("ancestry-associations");
             const token = this.associationsRequestToken;
             if (!session?.phenotype || !session?.region || !host) {
@@ -3241,12 +3397,20 @@ export default Vue.component("kp-variant-sifter", {
                     return false;
                 }
 
-                let formattedRows = formatAssociationRows(result.rows, ancestrySession);
+                let formattedRows = formatAssociationRows(result.rows, ancestrySession, {
+                    project: VKS_ASSOCIATION_PROJECT_KP,
+                });
                 try {
-                    const refRow = resolveLdReferenceRow(this.associationsState.rows, {
-                        refVariant: this.plotOverlaysState?.refVariant,
-                        refVariantUserSet: this.plotOverlaysState?.refVariantUserSet,
-                    });
+                    const refRow = resolveLdReferenceRow(
+                        filterAssociationRowsByProject(
+                            this.associationsState.rows,
+                            VKS_ASSOCIATION_PROJECT_KP
+                        ),
+                        {
+                            refVariant: this.plotOverlaysState?.refVariant,
+                            refVariantUserSet: this.plotOverlaysState?.refVariantUserSet,
+                        }
+                    );
                     if (refRow) {
                         formattedRows = await enrichAssociationRowsWithLdScoresForRef(
                             formattedRows,

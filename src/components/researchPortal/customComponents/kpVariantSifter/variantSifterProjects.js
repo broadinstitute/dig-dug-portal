@@ -3,8 +3,8 @@
  *
  * Default (no project): portal BioIndex host (`biDomain()`), full phenotype prop list,
  * KP ancestry options. Giant: dedicated BioIndex host + curated phenotype/ancestry lists.
- * GWAS-CE: token-gated associations BioIndex (`associations-{token}`) plus portal
- * phenotype/ancestry for GE and other companion layers.
+ * GWAS-CE: token-gated associations BioIndex as an *additive* overlay on default
+ * KP associations; phenotype/ancestry drive the usual portal layers (and KP assoc).
  *
  * Indexes present on the project BioIndex use that host; everything else (including
  * gene match / varIdLookup / genes / regions / tissue-regions / variant-links on Giant)
@@ -28,6 +28,10 @@ export const VKS_GWAS_CE_TOKEN_REDACTION = "$token";
 
 /** Only associations are served from the GWAS-CE BioIndex host. */
 export const VKS_GWAS_CE_BIOINDEX_INDEXES = new Set(["associations"]);
+
+/** Association row `Project` column values (additive CE overlay on default KP). */
+export const VKS_ASSOCIATION_PROJECT_KP = "KP";
+export const VKS_ASSOCIATION_PROJECT_GWAS_CE = "GWAS-CE";
 
 /**
  * Curated GIANT phenotype ids with display labels for search UI / header.
@@ -126,12 +130,14 @@ export const VKS_PROJECTS = [
         id: VKS_GWAS_CE_PROJECT_ID,
         label: "GWAS-CE",
         bioIndexHost: VKS_GWAS_CE_BIOINDEX_HOST,
-        // Portal phenotype catalog + KP ancestries for GE / CS / companion layers.
+        // Portal phenotype catalog + KP ancestries for default VS + companion layers.
         phenotypeNames: null,
         phenotypeInfo: null,
         ancestries: null,
-        bioIndexIndexes: VKS_GWAS_CE_BIOINDEX_INDEXES,
-        ancestryAssociationsIndex: "associations",
+        // CE host is used only via explicit GWAS-CE association fetches; default
+        // associations / ancestry-associations stay on the portal BioIndex.
+        bioIndexIndexes: new Set(),
+        ancestryAssociationsIndex: "ancestry-associations",
         associationsOnly: false,
         tokenSearch: true,
         // GWAS-CE BioIndex only supports GET/HEAD on /api/bio/query/{index}.

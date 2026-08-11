@@ -18,7 +18,41 @@
         </div>
         <template v-else-if="hasPlotSeriesData">
             <div ref="plotStack" class="vks-associations-plot-stack">
-                <div v-if="showAssociationsSection" class="vks-plot-section">
+                <div v-if="showGwasCeAssociationsSection" class="vks-plot-section">
+                    <header class="vks-plot-section-head">
+                        <h3 class="vks-plot-section-title">GWAS-CE associations</h3>
+                    </header>
+                    <div
+                        v-if="!gwasCePlotRows.length"
+                        class="vks-associations-plot-status vks-associations-plot-status--inline"
+                    >
+                        No GWAS-CE association points for this locus.
+                    </div>
+                    <VariantSifterAssociationRegionPlot
+                        v-else
+                        :plot-rows="gwasCePlotData"
+                        :show-legend="true"
+                        :recomb-peak-intervals="recombPeakIntervals"
+                        :region="searchSession?.region"
+                        :search-session="searchSession"
+                        :region-zoom="regionZoom"
+                        :region-shift-bp="regionShiftBp"
+                        :region-view-area="regionViewArea"
+                        :view-region="viewRegion"
+                        :plot-overlays-state="gwasCePlotOverlaysState"
+                        :plot-margin="plotMargin"
+                        :shared-canvas-width="stackCanvasWidth"
+                        :plot-markers="plotMarkers"
+                        :utils="utils"
+                        @update:regionShiftBp="$emit('update:regionShiftBp', $event)"
+                        @update:regionViewArea="$emit('update:regionViewArea', $event)"
+                        @pan-end="$emit('pan-end')"
+                        @toggle-position-marker="$emit('toggle-position-marker', $event)"
+                        @toggle-star-variant="$emit('toggle-star-variant', $event)"
+                        @set-reference-variant="$emit('set-reference-variant', $event)"
+                    />
+                </div>
+                <div v-if="showKpAssociationsSection" class="vks-plot-section">
                     <header class="vks-plot-section-head">
                         <h3 class="vks-plot-section-title">Associations</h3>
                     </header>
@@ -236,8 +270,14 @@ import {
 } from "./variantSifterAssociationsPlotConfig.js";
 import {
     buildAssociationPlotSeries,
+    filterAssociationRowsByProject,
     primaryAssociationAncestry,
 } from "./variantSifterAssociationsApi.js";
+import {
+    VKS_ASSOCIATION_PROJECT_GWAS_CE,
+    VKS_ASSOCIATION_PROJECT_KP,
+} from "./variantSifterProjects.js";
+import { pickLeadVariantRow, rowToLdVariant } from "./variantSifterLdServer.js";
 import {
     buildGeneTypeOptions,
     filterGenesByTypes,
@@ -419,10 +459,39 @@ export default {
                 rows: this.rows,
                 primaryAncestry: this.primaryAncestry,
                 selectedAncestries: this.selectedAncestries,
+                project: VKS_ASSOCIATION_PROJECT_KP,
             }).map((series) => ({
                 ...series,
                 plotData: associationRowsToPlotData(series.rows),
             }));
+        },
+        gwasCePlotRows() {
+            return filterAssociationRowsByProject(
+                this.rows,
+                VKS_ASSOCIATION_PROJECT_GWAS_CE
+            );
+        },
+        gwasCePlotData() {
+            return associationRowsToPlotData(this.gwasCePlotRows);
+        },
+        gwasCePlotOverlaysState() {
+            const leadRow = pickLeadVariantRow(this.gwasCePlotRows);
+            return {
+                ...this.plotOverlaysState,
+                refVariant: rowToLdVariant(leadRow) || this.plotOverlaysState?.refVariant,
+                refVariantUserSet: false,
+            };
+        },
+        showGwasCeAssociationsSection() {
+            return (
+                this.showAssociationsSection && this.gwasCePlotRows.length > 0
+            );
+        },
+        showKpAssociationsSection() {
+            return (
+                this.showAssociationsSection &&
+                this.plotSeries.some((series) => series.rows.length > 0)
+            );
         },
         showAncestryHeaders() {
             return this.plotSeries.length > 1;
@@ -435,7 +504,10 @@ export default {
             return associationRowsToPlotData(this.rows);
         },
         hasPlotSeriesData() {
-            return this.plotSeries.some((series) => series.rows.length > 0);
+            return (
+                this.plotSeries.some((series) => series.rows.length > 0) ||
+                this.gwasCePlotRows.length > 0
+            );
         },
         plotMargin() {
             return VARIANT_SIFTER_PLOT_MARGIN;

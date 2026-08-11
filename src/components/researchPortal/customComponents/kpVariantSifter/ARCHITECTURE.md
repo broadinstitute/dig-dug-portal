@@ -207,11 +207,11 @@ S2G is **manual** Load/Clear in its drawer (not auto-fetched on search).
 
 - **Default** (`projectId === ""`) — portal BioIndex + full phenotype list + KP ancestries
 - **GIANT** (`projectId === "giant"`) — host `https://giant.hugeampkpnbi.org` for indexes in `VKS_GIANT_BIOINDEX_INDEXES`; curated phenotypes/ancestries; other indexes fall back to the portal host
-- **GWAS-CE** (`projectId === "gwas-ce"`) — associations from `https://gwas-ce.kpndataregistry.org/bioidx` via `session.gwasCeToken` (`associations-{token}`); welcome requires Token + Phenotype + Ancestry; GE/CS/genes and other indexes use the portal BioIndex with the selected phenotype; token omitted from page URL and redacted to `$token` on export; skips ancestry-association availability probes
+- **GWAS-CE** (`projectId === "gwas-ce"`) — default KP associations + companion layers on the portal BioIndex; additive CE overlay from `https://gwas-ce.kpndataregistry.org/bioidx` via `session.gwasCeToken` (`associations-{token}`); welcome requires Token + Phenotype + Ancestry; CE rows tagged `Project=GWAS-CE` with a separate canvas plot above Associations; token omitted from page URL and redacted to `$token` on export
 
 Shell helper: `bioIndexHostFor(index)` → `resolveProjectBioIndexHost`.
 
-Helpers: `isGwasCeProject`, `projectAssociationsOnly`, `projectUsesTokenSearch`, `normalizeGwasCeToken`, `resolveGwasCeToken`, `gwasCeAssociationsIndex`.
+Helpers: `isGwasCeProject`, `projectAssociationsOnly`, `projectUsesTokenSearch`, `normalizeGwasCeToken`, `resolveGwasCeToken`, `gwasCeAssociationsIndex`, `fetchGwasCeAssociations`.
 
 ---
 
@@ -302,3 +302,4 @@ Props passed from Research: `phenotypesInUse`, `utilsBox`, `sectionConfigs`.
 | 2026-08-11 | Initial architecture doc for agent handoff (`dk-ai-based-VS`) |
 | 2026-08-11 | GWAS-CE: token on session for associations; phenotype/ancestry restored for portal companion layers |
 | 2026-08-11 | GWAS-CE skips ancestry-association probes; LD enrich falls back when lead is not in 1000G |
+| 2026-08-11 | GWAS-CE additive overlay on default KP associations (Project column + CE plot) |

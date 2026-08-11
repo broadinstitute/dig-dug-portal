@@ -588,10 +588,11 @@ export function mergeAssociationRowsByVariantId(existingRows, incomingRows) {
 export function associationRowMergeKey(row, primaryAncestry = "Mixed") {
     const id = row?.["Variant ID"] || row?.varId || "";
     const ancestry = row?.Ancestry || primaryAncestry;
-    return `${id}@@${ancestry}`;
+    const project = row?.Project || "KP";
+    return `${id}@@${ancestry}@@${project}`;
 }
 
-/** Merge association rows preserving one record per Variant ID × Ancestry. */
+/** Merge association rows preserving one record per Variant ID × Ancestry × Project. */
 export function mergeAssociationRowsByVariantAndAncestry(
     existingRows,
     incomingRows,
